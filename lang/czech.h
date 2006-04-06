@@ -79,7 +79,7 @@ SETTEXT(LANG_WARNVERSION, "POZOR: Nezn m  verze!\n")
 SETTEXT(LANG_OVLNOTFOUND, " nenalezen, hled m origin ln¡ soubory:\n")
 
 // (DOS) neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
-SETTEXT(LANG_NOFILESFOUND, "Nemohu nal‚zt ani TYCOON.EXE ani %s.\n")
+SETTEXT(LANG_NOFILESFOUND, "Nemohu nal‚zt ani %s ani %s.\n")
 
 // (Windows) neither does GameGFX.exe.  %s is GameGFX.EXE
 SETTEXT(LANG_NOFILEFOUND, "Nemohu nal‚zt %s.\n")

@@ -6,26 +6,15 @@
 # =========================================================
 
 # Define the name of the default target (actual definition below)
-ifndef DEFAULTTARGET
-DEFAULTTARGET=allw
-endif
-default: ${DEFAULTTARGET}
+# Makefile.local can override the default target
+default:
+
+# verbose build default off (Makefile.local can override this)
+V=0
 
 # This is a variable so that we can refer to ../Makefile.local from
 # the patchsnd/ Makefile
 MAKEFILELOCAL=Makefile.local
-
-# Check whether Makefile.local exists
-HAVE_LOCAL = $(shell [ -s ${MAKEFILELOCAL} ]; echo $$?)
-
-# If not, create it with defaults
-ifneq (${HAVE_LOCAL},0)
-MAKE_LOCAL = $(shell cp ${MAKEFILELOCAL}.sample ${MAKEFILELOCAL}; echo $$?)
-ifneq (${MAKE_LOCAL},0)
-$(error Could not create ${MAKEFILELOCAL})
-endif
-$(error ${MAKEFILELOCAL} did not exist, creating new. Please edit it before running make again)
-endif
 
 # Set up compilers, targets and host
 
@@ -58,6 +47,31 @@ URSP = $(subst \,\\,$(shell cygpath -w $(DRSP)))
 
 # No configuration below here...
 
+# =======================================================================
+#           setup verbose/non-verbose make process
+# =======================================================================
+
+# _E = prefix for the echo [TYPE] TARGET
+# _C = prefix for the actual command(s)
+ifeq (${V},1)
+	# verbose, set _C = nothing (print command), _E = comment (don't echo)
+	_C=
+	_E=@\#
+else
+	# not verbose, _C = @ (suppress cmd line), _E = @echo (echo type&target)
+	_C=@
+	_E=@echo
+endif
+
+# standard compilation commands should be of the form
+# target:	prerequisites
+#	${_E} [CMD] $@
+#	${_C}${CMD} ...arguments...
+#
+# non-standard commands (those not invoked by make all/dos/win) should
+# use the regular syntax (without the ${_E} line and without the ${_C} prefix)
+# because they'll be only used for testing special conditions
+
 
 # =======================================================================
 #           collect info about source files
@@ -68,7 +82,7 @@ asmsources:=	$(asmmainsrc) $(wildcard patches/*.asm) $(wildcard procs/*.asm)
 asmcsources:=	$(wildcard patches/*.c) $(wildcard procs/*.c)
 csources:=	ttdpatch.c error.c grep.c switches.c loadlng.c checkexe.c auxfiles.c
 doscsources:=	$(csources) dos.c
-wincsources:=	$(csources) windows.c codepage.c
+wincsources:=	$(csources) windows.c codepage.c noregist.c
 versiondatad:=	$(wildcard versions/1*.ver)
 versiondataw:=	$(wildcard versions/2*.ver)
 
@@ -90,17 +104,28 @@ hostwinobjs:=	$(wincsources:%.c=host/%.o)
 # =======================================================================
 
 Makefile.dep%:
+	${_E} [DEP] $@
 	@touch $@
 	@make -o Makefile.depd -o Makefile.depw -s INCLUDES
-	$(CPP) -x assembler-with-cpp -Iinc -D${WDEF_$*} -MM $(asmmainsrc) patches/*.asm procs/*.asm ${asmcsources} -I. | perl -pe 's/\.o/.$*po/; s#\w+/\.\./##g; print "${OTMP}" if /^\S/; print "$$1/" if /: (patches|procs)\//' > $@
+	${_C}$(CPP) -x assembler-with-cpp -Iinc -D${WDEF_$*} -MM $(asmmainsrc) patches/*.asm procs/*.asm ${asmcsources} -I. | perl -pe 's/\.o/.$*po/; s#\w+/\.\./##g; print "${OTMP}" if /^\S/; print "$$1/" if /: (patches|procs)\//' > $@
+
+${MAKEFILELOCAL}: ${MAKEFILELOCAL}.sample
+	@echo ${MAKEFILELOCAL} did not exist, using defaults. Please edit it if compilation fails.
+	cp $< $@
 
 include Makefile.dep
-include Makefile.depd
-include Makefile.depw
+-include Makefile.depd
+-include Makefile.depw
 
 # =======================================================================
 #           special targets
 # =======================================================================
+
+# set up the default target
+ifndef DEFAULTTARGET
+DEFAULTTARGET=allw
+endif
+default: ${DEFAULTTARGET}
 
 .PHONY:	all allw dos win nodebug clean cleantemp remake mrproper
 
@@ -186,22 +211,26 @@ INCLUDES:	versiond.h versionw.h
 # how to make an object file from a C file
 ifeq ($(DOSCC),BCC)
 %.obj : %.c
+	${_E} [CCD] $@
 	@echo "-3 -a- -c -d -f- -u -K -j7"				> $(DRSP)
 	@echo "-zC_mytext"						>> $(DRSP)
 	@echo "-m$(MODEL) $(foreach DEF,$(DOSDEFS),-D$(DEF)) "		>> $(DRSP)
 	@echo $< 							>> $(DRSP)
-	$(CCD) $(CFLAGSD) -o$@ @$(URSP)
+	${_C}$(CCD) $(CFLAGSD) -o$@ @$(URSP)
 	@perl -e 's//pop/e;rename uc, lc or die "Error"' $@
 else
 %.obj : %.c
-	$(CCD) $(CFLAGSD) -fo=$@ -m$(MODEL) $(foreach DEF,$(DOSDEFS),-d$(DEF)) $<
+	${_E} [CCD] $@
+	${_C}$(CCD) $(CFLAGSD) -fo=$@ -m$(MODEL) $(foreach DEF,$(DOSDEFS),-d$(DEF)) $<
 endif
 
 %.o : %.c
-	$(CC) -c -o $@ $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) $<
+	${_E} [CC] $@
+	${_C}$(CC) -c -o $@ $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) $<
 
 host/%.o : %.c
-	$(HOSTCC) -c -o $@ $(HOSTCFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) $<
+	${_E} [HOSTCC] $@
+	${_C}$(HOSTCC) -c -o $@ $(HOSTCFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) $<
 
 # make pre-compiled C file
 %.E : %.c
@@ -214,19 +243,24 @@ host/%.o : %.c
 	as -a $< -o /dev/null > $@
 
 host/%${HOSTEXE} : %.o
-	$(HOSTLD) -o $@ ${filter host/%,$^} $(HOSTLDFLAGS)
+	${_E} [HOSTLD] $@
+	${_C}$(HOSTLD) -o $@ ${filter host/%,$^} $(HOSTLDFLAGS)
 
 %${EXEW} : %.o
-	$(LD) -o $@ $^ $(LDFLAGS)
+	${_E} [LD] $@
+	${_C}$(LD) -o $@ $^ $(LDFLAGS)
 
 %.o : %.asm
-	$(NASM) $(NASMOPT) -f coff -dCOFF $(NASMDEF) $< -o $@
+	${_E} [NASM] $@
+	${_C}$(NASM) $(NASMOPT) -f coff -dCOFF $(NASMDEF) $< -o $@
 
 %.obj : %.asm
-	$(NASM) $(NASMOPT) -f obj -dOBJ $(NASMDEF) $< -o $@
+	${_E} [NASM] $@
+	${_C}$(NASM) $(NASMOPT) -f obj -dOBJ $(NASMDEF) $< -o $@
 
 host/%.o : %.asm
-	$(NASM) $(NASMOPT) $(HOSTNASM) $(NASMDEF) $< -o $@
+	${_E} [NASM] $@
+	${_C}$(NASM) $(NASMOPT) $(HOSTNASM) $(NASMDEF) $< -o $@
 
 # -------------------------------------------------------------------------
 #                  The assembly modules
@@ -246,16 +280,21 @@ host/%.o : %.asm
 # (using a define here because we need the same commands for the 
 # various versions)
 define A-PO-COMMANDS
-	$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< | perl perl/lineinfo.pl > $@.asp
-	$(NASM) -f win32 $@.asp -o $@
+	${_E} [CPP/NASM] $@
+	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< | perl perl/lineinfo.pl > $@.asp
+	${_C}$(NASM) -f win32 $@.asp -o $@
 	@rm -f $@.asp
 endef
 define A-LST-COMMANDS
-	$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< | perl perl/lineinfo.pl > $@.asp
-	$(NASM) -f win32 $@.asp -o /dev/null -l $@
+	${_E} [CPP/NASM] $@
+	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< | perl perl/lineinfo.pl > $@.asp
+	${_C}$(NASM) -f win32 $@.asp -o /dev/null -l $@
 	@rm -f $@.asp
 endef
-C-PO-COMMANDS =	$(CC) ${XASMDEF} -c -o $@ $< -Iinc
+define C-PO-COMMANDS
+	${_E} [CC] $@
+	${_C}$(CC) ${XASMDEF} -c -o $@ $< -Iinc
+endef
 
 ${OTMP}%.dpo : %.asm
 	${A-PO-COMMANDS}
@@ -281,52 +320,72 @@ ttdprotw.pe ttdprotw.map: IMAGEBASE=0x600000
 
 # call the linker explicitly (not via gcc), and pass the patches/ object
 # files via the shell expansion instead of one giant make command line
+
+# this bit at the end is a little trick to filter out useless Info: lines
+# but still return with the exit code of ld not that of grep
+# (the output is not filtered in verbose mode with `make V=1')
+LD_NO_INFO_0 = | grep -v "Info: "; [ $${PIPESTATUS[0]} -eq 0 ];
+LD_NO_INFO_1 =	
 ttdprot%.pe ttdprot%.map:
-	$(LDEXP) $(LDEXPFLAGS) -Map ttdprot$*.map -o ttdprot$*.pe $(filter-out ${OTMP}procs/%.$*po,$(filter-out ${OTMP}patches/%.$*po,$^)) ${OTMP}patches/*.$*po ${OTMP}procs/*.$*po reloc.a
+	${_E} [LDEXP] $@
+	${_C}$(LDEXP) $(LDEXPFLAGS) -Map ttdprot$*.map -o ttdprot$*.pe $(filter-out ${OTMP}procs/%.$*po,$(filter-out ${OTMP}patches/%.$*po,$^)) ${OTMP}patches/*.$*po ${OTMP}procs/*.$*po reloc.a ${LD_NO_INFO_${V}}
 
 ttdprot%.bin: ttdprot%.pe
-	$(OBJCOPY) -O binary -j .ptext $< $@
+	${_E} [OBJCOPY] $@
+	${_C}$(OBJCOPY) -O binary -j .ptext $< $@
 
 loader%.bin: ttdprot%.pe
-	$(OBJCOPY) -O binary -j .phead $< $@
+	${_E} [OBJCOPY] $@
+	${_C}$(OBJCOPY) -O binary -j .phead $< $@
 
 reloc.a:	reloc.o
-	$(DLLTOOL) -l $@ $<
+	${_E} [DLLTOOL] $@
+	${_C}$(DLLTOOL) -l $@ $<
 
 # replace section name+offset with final offset in listing
 loader%.lst: ttdprot%.pe
-	$(OBJDUMP) -D -j .phead -Mintel $< > $@
+	${_E} [OBJDUMP] $@
+	${_C}$(OBJDUMP) -D -j .phead -Mintel $< > $@
 
 # make .lst without auto-relocation fixups, they confuse the disassembler
 %.lst: %.pe
-	$(OBJCOPY) -w -N '*_fu[0-9]*' -j .ptext $*.pe $*.pes
-	$(OBJDUMP) -D -Mintel $*.pes > $@
+	${_E} [OBJCOPY/OBJDUMP] $@
+	${_C}$(OBJCOPY) -w -N '*_fu[0-9]*' -j .ptext $*.pe $*.pes
+	${_C}$(OBJDUMP) -D -Mintel $*.pes > $@
 	@rm -f $*.pes
 
 texts.lst:	texts.asp
-	$(NASM) $(NASMOPT) $(NASMDEF) $< -l $@ -o /dev/null
+	${_E} [NASM] $@
+	${_C}$(NASM) $(NASMOPT) $(NASMDEF) $< -l $@ -o /dev/null
 
 texts.asp:	texts.asm
-	$(NASM) $(NASMOPT) -e -dPREPROCESSONLY $(NASMDEF) $< -o $@
+	${_E} [NASM] $@
+	${_C}$(NASM) $(NASMOPT) -e -dPREPROCESSONLY $(NASMDEF) $< -o $@
 
 inc/ourtext.h:	inc/ourtext.inc
-	perl perl/texts.pl < $< > $@
+	${_E} [PERL] $@
+	${_C}perl perl/texts.pl < $< > $@
 
 bitnames.h:	bitnames.ah
-	perl perl/bitnames.pl < $< > $@
+	${_E} [PERL] $@
+	${_C}perl perl/bitnames.pl < $< > $@
 
 # generate relocations
 reloc%.inc:	ttdprot%.map
-	perl -s perl/reloc.pl -os=$* < $(filter %.map,$<) > $@
+	${_E} [PERL] $@
+	${_C}perl -s perl/reloc.pl -os=$* < $(filter %.map,$<) > $@
 
 reloc%.bin:	reloc.asm reloc%.inc
-	$(NASM) $(NASMOPT) -f bin $(NASMDEF) -dINCFILE=$(filter %.inc,$^) $< -o $@
+	${_E} [NASM] $@
+	${_C}$(NASM) $(NASMOPT) -f bin $(NASMDEF) -dINCFILE=$(filter %.inc,$^) $< -o $@
 
 pproc%.h:	ttdprot%.map
-	perl perl/pproc.pl -os=$* < $< > $@
+	${_E} [PERL] $@
+	${_C}perl perl/pproc.pl -os=$* < $< > $@
 
 patchsnd.bin:	patchsnd.asm patchsnd/patchsnd.dll
-	$(NASM) $(NASMOPT) -f bin $(NASMDEF) $< -o $@
+	${_E} [NASM] $@
+	${_C}$(NASM) $(NASMOPT) -f bin $(NASMDEF) $< -o $@
 
 # ---------------------------------------------------------------------
 #               Language data
@@ -334,7 +393,8 @@ patchsnd.bin:	patchsnd.asm patchsnd/patchsnd.dll
 
 # define rules for the language modules
 langerr.h:	language.h common.h
-	perl perl/langerr.pl $^ > $@
+	${_E} [PERL] $@
+	${_C}perl perl/langerr.pl $^ > $@
 
 makelang${EXEW}:	LDLIBS = -L. -lz
 host/makelang${HOSTEXE}:	LDLIBS = -lz
@@ -342,15 +402,18 @@ makelang${EXEW}:		${makelangobjs} $(langobjs)
 host/makelang${HOSTEXE}:	${makelangobjs:%.o=host/%.o} $(hostlangobjs)
 
 lang/%.o:	lang/%.h
-	$(CC) -c -o $@ $(CFLAGS) -DLANGUAGE=$* proclang.c
+	${_E} [CC] $@
+	${_C}$(CC) -c -o $@ $(CFLAGS) -DLANGUAGE=$* proclang.c
 
 host/lang/%.o:	lang/%.h
-	$(HOSTCC) -c -o $@ $(HOSTCFLAGS) -DLANGUAGE=$* proclang.c
+	${_E} [HOSTCC] $@
+	${_C}$(HOSTCC) -c -o $@ $(HOSTCFLAGS) -DLANGUAGE=$* proclang.c
 
 # test versions of makelang with a single language: make lang/<language> and run
 # the executable to make a single-language language.dat file
 lang/%:		makelang.c lang/%.o switches.o codepage.o texts.o
-	$(CC) -o $@ $(CFLAGS) $(LDOPT) $(foreach DEF,$(WINDEFS),-D$(DEF)) -DSINGLELANG=${patsubst lang/%,%,$@} $^ -L. -lz
+	${_E} [CC] $@
+	${_C}$(CC) -o $@ $(CFLAGS) $(LDOPT) $(foreach DEF,$(WINDEFS),-D$(DEF)) -DSINGLELANG=${patsubst lang/%,%,$@} $^ -L. -lz
 
 mkpttxt.o host/mkpttxt.o:       mkpttxt.c # patches/texts.h
 mkpttxt${EXEW}:  mkpttxt.o texts.o
@@ -361,7 +424,8 @@ host/mkpttxt${HOSTEXE}:  host/mkpttxt.o host/texts.o
 # ----------------------------------------------------------------------
 
 %.res : %.rc
-	${WINDRES} -i $< -o $@ -O coff
+	${_E} [WINDRES] $@
+	${_C}${WINDRES} -i $< -o $@ -O coff
 
 
 # ----------------------------------------------------------------------
@@ -370,26 +434,33 @@ host/mkpttxt${HOSTEXE}:  host/mkpttxt.o host/texts.o
 
 
 # make both uncompressed (for testing) and compressed language data
+# if an error occurs, show last 5 lines of makelang.err
 language.dat: ${HOSTPATH}makelang${HOSTEXE}
-	$< > makelang.log 2> makelang.err
-	@$< n > /dev/null 2> makelang.err
+	${_E} [MAKELANG] $@
+	${_C}./$< > makelang.log 2> makelang.err || (tail -5 makelang.err; false)
+	@./$< n > /dev/null 2> makelang.err
+	@if grep "English:" makelang.err; then false; else true; fi;
 
 # link the modules to the exe file
 ifeq ($(DOSCC),BCC)
 ttdprotd${EXED}:	$(dosobjs)
+	${_E} [LDD] $@
 	@echo ${LDFLAGSD} 		> $(DRSP)
 	@echo $^ 			>> $(DRSP)
 	@echo zlib_bc$(MODEL).lib	>> $(DRSP)
 	@echo exec_bc$(MODEL).lib	>> $(DRSP)
-	$(LDD) -m$(MODEL) -e$@	@$(URSP)
+	${_C}$(LDD) -m$(MODEL) -e$@	@$(URSP)
 else
 # for OpenWatcom wlink, files need to be comma-separated, so we'll use sed to s/ /,/
 ttdprotd${EXED}:	$(dosobjs)
-	$(LDD) ${LDFLAGSD} name $@ file `echo $^|sed "s/ /,/g"` lib zlib_ow$(MODEL).lib,exec_ow$(MODEL).lib
+	${_E} [LDD] $@
+	${_C}$(LDD) ${LDFLAGSD} name $@ file `echo $^|sed "s/ /,/g"` lib zlib_ow$(MODEL).lib,exec_ow$(MODEL).lib
 endif
 
+ttdprotw${EXEW}:	LDLIBS=-lshlwapi
 ttdprotw${EXEW}:	$(winobjs)
-	$(LD) -o $@ $^ $(LDFLAGS)
+	${_E} [LD] $@
+	${_C}$(LD) -o $@ $^ $(LDFLAGS)
 
 # compress it, and link the language data to it too
 ttdpatch.exe:	ttdprotd${EXED} language.dat
@@ -400,20 +471,23 @@ ttdpatchw.exe:	ttdprotw.bin loaderw.bin relocw.bin patchsnd.bin
 
 # the $(if ...) makes it append .exe only if $< doesn't have it already
 ttdpatch.exe:
-	cp $(if $(findstring .exe,$<),$<,$<.exe) $@
-	$(STRIPD) $@
+	${_E} [BUILD] $@
+	${_C}cp $(if $(findstring .exe,$<),$<,$<.exe) $@
+	${_C}$(STRIPD) $@
 ifndef NOUPX
-	upx -qq --best $@
+	${_C}upx -qqq --best $@
 endif
-	${CAT} language.dat loaderd.bin ttdprotd.bin relocd.bin >> $@
+	${_C}${CAT} language.dat loaderd.bin ttdprotd.bin relocd.bin >> $@
 
 ttdpatchw.exe:
-	cp $(if $(findstring .exe,$<),$<,$<.exe) $@
-	${STRIP} -s $@
+	${_E} [BUILD] $@
+	${_C}cp $(if $(findstring .exe,$<),$<,$<.exe) $@
+	${_C}${STRIP} -s $@
 ifndef NOUPX	
-	upx -qq --best --compress-icons=0 $@
+	@# no UPX in Windows executable due to need for LoadLibrary support
+	@#${_C}upx --compress-exports=0 --strip-relocs=0 -qqq --best --compress-icons=0 $@
 endif
-	${CAT} language.dat loaderw.bin ttdprotw.bin relocw.bin patchsnd.bin >> $@
+	${_C}${CAT} language.dat loaderw.bin ttdprotw.bin relocw.bin patchsnd.bin >> $@
 
 # ----------------------------------------------------------------------
 #                       additional stuff
@@ -445,7 +519,8 @@ version%.h:
 
 # sorted switch list
 sw_lists.h:	sw_list.h
-	perl perl/sw_sort.pl < $^ > $@
+	${_E} [PERL] $@
+	${_C}perl perl/sw_sort.pl < $^ > $@
 
 # Autodetection of the TTDPATCH program size, for deciding when to swap out
 # - make ttdpatch.exe with a bogus memsize
@@ -465,10 +540,12 @@ memsize.h:
 
 # copy compiled versions to TTD game directory
 ${GAMEDIR}/%: %
-	cp $^ ${GAMEDIR}
+	${_E} [CP] $@
+	${_C}cp $^ ${GAMEDIR}
 
 ${GAMEDIRW}/%: %
-	cp $^ ${GAMEDIRW}
+	${_E} [CP] $@
+	${_C}cp $^ ${GAMEDIRW}
 
 .PHONY:	copyd copyw copy
 

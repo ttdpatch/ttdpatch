@@ -75,8 +75,11 @@ SETTEXT(LANG_WARNVERSION, "WARNING: Version is unknown!\n")
 // TTDLOAD.OVL doesn't exist
 SETTEXT(LANG_OVLNOTFOUND, " not found, looking for original files:\n")
 
-// (DOS) neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
-SETTEXT(LANG_NOFILESFOUND, "Could find neither TYCOON.EXE nor %s.\n")
+// neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
+SETTEXT(LANG_NOFILESFOUND, "Could find neither %s nor %s.\n")
+
+// default Windows language executable (american/english/french/german/spanish).exe
+SETTEXT(LANG_WINDEFLANGEXE, "AMERICAN.EXE");
 
 // (Windows) neither does GameGFX.exe.  %s is GameGFX.EXE
 SETTEXT(LANG_NOFILEFOUND, "Could not find %s.\n")
@@ -467,14 +470,14 @@ SWITCHTEXT(townroadbranchprob, "Change town road branch prob.", " to %d")
 SWITCHTEXT(newcargos, "Allow new cargo types", "")
 SWITCHTEXT(enhancemultiplayer, "Enhance multiplayer games (allow more players)", "")
 SWITCHTEXT(newsounds, "Allow adding new sounds to the game", "")
-SWITCHTEXT(morestats, "Enable collection of more statistics (only works if enhancegui is also enabled)", "")
+SWITCHTEXT(morestats, "Enable collection of more statistics", "")
 SWITCHTEXT(onewayroads, "Allow changing roads to one-way with 'Ctrl'", "")
 SWITCHTEXT(irrstations, "Enable irregular station construction", "")
-SWITCHTEXT(autoreplace, "Upgrade vehicles when they get old", "%d%% min. reliability for new model")
-SWITCHTEXT(autoslope, "Allows terraforming without removeing structures", "")
+SWITCHTEXT(autoreplace, "Upgrade vehicles when they get old", "; %d%% min. reliability for new model")
+SWITCHTEXT(autoslope, "Allows terraforming without removing structures", "")
 SWITCHTEXT(followvehicle, "Follow vehicle motion in main map", "")
-SWITCHTEXT(trams, "Enable Trams on Roads", "")
-SWITCHTEXT(enhancetunnels, "Allows to build virtual bridges on tunnel entrances", "")
+SWITCHTEXT(trams, "Enable trams on Roads", "")
+SWITCHTEXT(enhancetunnels, "Allows building track on top of tunnel entrances", "")
 
 
 // A cfg file (%s) could not be found and is ignored.
@@ -701,7 +704,7 @@ SETTEXT(CFG_AUTOREPLACE, "`%s' (%s) upgrades vehicles to the best available new 
 SETTEXT(CFG_AUTOSLOPE, "`%s' (%s) allows to terraform without removeing structure.")
 SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) allows the main view to follow a vehicle with a right mouse click on the Center View button in the vehicles window.")
 SETTEXT(CFG_TRAMS, "`%s' (%s) allows trams to be built.")
-SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) allows to build virtual bridges on tunnel entrances")
+SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) allows to build track on top of tunnel entrances")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')
@@ -746,6 +749,12 @@ SETTEXT(LANG_INTERNALERROR, "*** Internal TTDPatch error #%d ***\n")
 
 // Error fixing the Windows version HDPath registry entry
 SETTEXT(LANG_REGISTRYERROR, "TTD is not installed properly (registry error %d)\n")
+
+// Trying no-registry file
+SETTEXT(LANG_TRYINGNOREGIST, "Trying no-registry information from %s\n")
+
+// no-registry file failed
+SETTEXT(LANG_NOREGISTFAILED, "No-registry information not available.\n")
 
 // DOS reports not enough memory available to start TTD
 SETTEXT(LANG_NOTENOUGHMEMTTD, "Not enough memory available to start TTD, need %d KB more.\n")

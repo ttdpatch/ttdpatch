@@ -1932,7 +1932,7 @@ loadplayer2array:
 	call ebp
 	mov esi,cargoids	// use as temporary storage; it'll be reset anyway
 	mov ecx,[esp+4]
-	sub ecx,player2_size	// and skip the rest
+	sub ecx,0+player2_size	// and skip the rest
 .ok:
 	call ebp
 	pop eax

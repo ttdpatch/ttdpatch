@@ -3,7 +3,7 @@
 #include <window.inc>
 #include <patchproc.inc>
 
-patchproc locomotiongui, patchtabbedwindows
+patchproc locomotiongui,enhancegui, patchtabbedwindows
 
 
 extern CloseDropDownMenu.ddmParentWinIdPtr1

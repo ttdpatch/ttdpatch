@@ -19,7 +19,13 @@
 // file is made, to give the real addresses in the list file.  That is not
 // possible for the object file.
 
+// To prevent the div overflow handlers being made externs
+#define realoverflowreturn _realoverflowreturn_
+#define overflowhandler _overflowhandler_
 #include <defs.inc>
+#undef realoverflowreturn
+#undef overflowhandler
+
 #include <var.inc>
 #include <flags.inc>
 #include <textdef.inc>
@@ -54,36 +60,14 @@ extern patchflags,patchflagsfixed,ttdmemsize,setvehiclearraysize
 extern startflagvars,unimaglevmode
 extern user32hnd,vehsorttable,heapstart,heapptr
 extern oldveharraysize,varheap,Sleep
-extern initourtextptr
+extern initourtextptr,initnoregist
 
 ext_frag oldfixcommandaddr
-
-// Macros for catching division-by-zero
-%macro div 1.nolist
-#if DEBUG
-	mov dword [realoverflowreturn],addr(%%postdiv)
-	mov dword [overflowreturn],addr(overflowhandler)
-#else
-	mov dword [overflowreturn],addr(%%postdiv)
-#endif
-	div %1
-%%postdiv:
-%endmacro
-
-%macro idiv 1.nolist
-#if DEBUG
-	mov dword [realoverflowreturn],addr(%%postdiv)
-	mov dword [overflowreturn],addr(overflowhandler)
-#else
-	mov dword [overflowreturn],addr(%%postdiv)
-#endif
-	idiv %1
-%%postdiv:
-%endmacro
 
 #if DEBUG
 uvard realoverflowreturn
 
+global overflowhandler
 overflowhandler:
 	CALLINT3
 	jmp [realoverflowreturn]
@@ -587,6 +571,13 @@ initialize:
 	and word [expswitches],0		// same for experimentalfeatures
 
 .haveexpfeatures:
+#if WINTTDX
+	testmultiflags usenoregistry
+	jz .notnoregistry
+	call initnoregist
+
+.notnoregistry:
+#endif
 	// initialize patchflagsfixed
 	xor ecx,ecx
 	mov esi,patchflagsfixedmap

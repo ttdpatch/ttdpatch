@@ -6,7 +6,7 @@
 #include <grf.inc>
 
 extern GenerateDropDownMenu,firsttownnamestyle,gettextintableptr
-extern specialtext1
+extern specialtext1,ttdtexthandler
 
 
 
@@ -45,7 +45,10 @@ makeenglishgermanname:
 
 .ourname:
 	pop eax				// clear our return address
+
+	push dword [specialtext1]
 	call gettownname
+	pop dword [specialtext1]
 
 	push ecx			// adjust textrefstack to remove seed
 	push edi
@@ -97,11 +100,10 @@ gettownname:
 .nextchar:
 // this is a plain name part - copy it to edi (the terminating zero included), then move
 // on to next part
-	lodsb
-	stosb
-	or al,al
-	jnz .nextchar
-	dec edi			// edi is after the zero, so it's one too much
+
+	mov [specialtext1],esi
+	mov ax,statictext(special1)
+	call [ttdtexthandler]
 	jmp short .finished
 
 .otherid:

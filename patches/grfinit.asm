@@ -1406,16 +1406,6 @@ postinfoapply:
 	cmp dl,NTRAINTYPES+NROADVEHTYPES
 	jb .nextc0
 
-	// *********
-
-	testflags morecurrencies
-	jnc .nomorecurr
-
-	call applycurrencychanges
-	call updatecurrlist
-
-.nomorecurr:
-
 // moreindustriesperclimate: for adding new cargo
 	testflags moreindustriesperclimate
 	jnc .nomoreindustriesperclimate

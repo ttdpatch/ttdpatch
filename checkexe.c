@@ -156,7 +156,7 @@ void openexe(const char *exenames[])
 		}
 	}
 	if (!f)
-		error(langtext[i > 1 ? LANG_NOFILESFOUND : LANG_NOFILEFOUND], s);
+		error(langtext[LANG_NOFILESFOUND], exenames[0], exenames[1]);
 
 	fclose(f);
 #if WINTTDX

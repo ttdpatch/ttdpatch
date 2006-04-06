@@ -35,15 +35,17 @@ uvard	oldClass2DrawLand,1,s
 uvard	oldRoadTile,1,s
 uvard	Class5LandPointer,1,s
 uvard	Class2LandPointer,1,s
+uvard	Class9LandPointer,1,s
 uvard	stdRoadElemListPtr,1,s
 uvarb	editTramMode
 uvarb	curTileMap
+uvarb	tmpSpriteOffset
 uvard	bTempNewBridgeDirection
 uvard	tramTracksSWNE
 uvard	tramTracksNWSE
 uvard	paRoadConstrWinClickProcs,1,s
 uvarw	tmpDI,1,s
-var	numtramtracks, dd 75
+var	numtramtracks, dd 99
 var	tramfrontwiresprites,	db 0h, 37h, 37h, 3Fh, 37h, 37h, 43h, 37h, 37h, 3Fh, 37h, 37h, 3Fh, 37h, 37h, 37h
 var	trambackpolesprites,	db 0h, 38h, 39h, 40h, 38h, 38h, 43h, 3Eh, 39h, 41h, 39h, 3Ch, 42h, 3Bh, 3Dh, 3Ah
 var	tramtracksprites,	db 0h, 16h, 15h, 0Bh, 14h, 04h, 0Eh, 09h, 13h, 0Ch, 05h, 08h, 0Dh, 07h, 0Ah, 06h, 00h, 01h, 02h, 03h, 30h
@@ -136,14 +138,14 @@ insertTramTrackL3Value:
 	jne	.dontLoadTramArray
 	cmp	byte [editTramMode], 0
 	jz	.dontLoadTramArray
-	push	dx
-	and	dh, 10h
-	cmp	dh, 10h
-	pop	dx
-	je	.dontLoadTramArray
-    
+	push dx
+	and dh, 10h
+	cmp dh, 10h
+	pop dx
+	je .dontLoadTramArray
+	
 	mov	byte dh, [landscape3+esi*2]	
-    
+	
 .dontLoadTramArray:
 	cmp	bl, 10h
 	retn
@@ -466,17 +468,16 @@ ovar .origfn, -4, $, drawTramTracksOnStation
 	push	ebx
 	add	bx, [tramtracks]
 	mov	si, 6h
-	push	ebx
 	mov	di, 6h
 	mov	si, 6h
 	mov	dh, 1h
+	push	ebx
 	call	[addsprite]
 	pop	ebx
 	add	bx, 2
-	add	dh, 8h
 	mov	di, 6h
 	mov	si, 6h
-	mov	dh, 1h
+	mov	dh, 6h
 	call	[addsprite]
 	pop	ebx
 
@@ -533,7 +534,7 @@ ovar .origfn, -4, $, insertTramsIntoGetGroundAltitude
 	mov	byte dh, [landscape3+esi*2]
 .skipInsertingTramTracks:
 	retn
-    
+	
 global stopTramOvertaking
 stopTramOvertaking:
 	cmp	byte [tramVehPtr], 0
@@ -618,35 +619,35 @@ roadmenudropdown:
 //the code to produce the new tram toolbar.
 global saTramConstrWindowElemList
 saTramConstrWindowElemList:
-    db cWinElemTextBox,cColorSchemeDarkGreen
-    dw 0,10,0,13,0x00C5;12
-    db cWinElemTitleBar,cColorSchemeDarkGreen
-    dw 11, 283, 0, 13, ourtext(txtetramwindowheader);24
-    db cWinElemSpriteBox,cColorSchemeDarkGreen  ;builtrack NWSE
-    dw 0,21,14,35,1309;36
-    db cWinElemSpriteBox,cColorSchemeDarkGreen  ;buildtrack SWNE
-    dw 22,43,14,35,1310  ;48                  ; sprite
-    db cWinElemSpriteBox,cColorSchemeDarkGreen ;DYNAMITE
-    dw 44,65,14,35,703      ;60                    ; sprite
-    db cWinElemSpriteBox,cColorSchemeDarkGreen ;down landscape
-    dw 66,87,14,35,695 ;72
-    db cWinElemSpriteBox,cColorSchemeDarkGreen  ;up landscape
-    dw 88,109,14,35,694    ;84                       ; sprite
-    db cWinElemSpriteBox,cColorSchemeDarkGreen  ;depot
-    dw 110,131,14,35,1295     ;96                   ; sprite
-    db cWinElemSpriteBox,cColorSchemeDarkGreen ;busstop
-    dw 132,153,14,35,749       ;108                   ; sprite
-    db cWinElemSpriteBox,cColorSchemeDarkGreen ;truckstop
-    dw 154,175,14,35,750  
-    db cWinElemSpriteBox,cColorSchemeDarkGreen ;bridge
-    dw 176,217,14,35,2594                         ; sprite
-    db cWinElemSpriteBox,cColorSchemeDarkGreen ;tunnel
-    dw 218,239,14,35,2429                         ; sprite
-    db cWinElemSpriteBox,cColorSchemeDarkGreen ;bulldoze
-    dw 240,261,14,35,714                          ; sprite
-    db cWinElemSpriteBox,cColorSchemeDarkGreen ;sign
-    dw 262,283,14,35,4791                         ; sprite
-    db cWinElemLast
+	db cWinElemTextBox,cColorSchemeDarkGreen
+	dw 0,10,0,13,0x00C5;12
+	db cWinElemTitleBar,cColorSchemeDarkGreen
+	dw 11, 283, 0, 13, ourtext(txtetramwindowheader);24
+	db cWinElemSpriteBox,cColorSchemeDarkGreen  ;builtrack NWSE
+	dw 0,21,14,35,1309;36
+	db cWinElemSpriteBox,cColorSchemeDarkGreen  ;buildtrack SWNE
+	dw 22,43,14,35,1310  ;48                  ; sprite
+	db cWinElemSpriteBox,cColorSchemeDarkGreen ;DYNAMITE
+	dw 44,65,14,35,703      ;60                    ; sprite
+	db cWinElemSpriteBox,cColorSchemeDarkGreen ;down landscape
+	dw 66,87,14,35,695 ;72
+	db cWinElemSpriteBox,cColorSchemeDarkGreen  ;up landscape
+	dw 88,109,14,35,694    ;84                       ; sprite
+	db cWinElemSpriteBox,cColorSchemeDarkGreen  ;depot
+	dw 110,131,14,35,1295     ;96                   ; sprite
+	db cWinElemSpriteBox,cColorSchemeDarkGreen ;busstop
+	dw 132,153,14,35,749       ;108                   ; sprite
+	db cWinElemSpriteBox,cColorSchemeDarkGreen ;truckstop
+	dw 154,175,14,35,750  
+	db cWinElemSpriteBox,cColorSchemeDarkGreen ;bridge
+	dw 176,217,14,35,2594                         ; sprite
+	db cWinElemSpriteBox,cColorSchemeDarkGreen ;tunnel
+	dw 218,239,14,35,2429                         ; sprite
+	db cWinElemSpriteBox,cColorSchemeDarkGreen ;bulldoze
+	dw 240,261,14,35,714                          ; sprite
+	db cWinElemSpriteBox,cColorSchemeDarkGreen ;sign
+	dw 262,283,14,35,4791                         ; sprite
+	db cWinElemLast
 //-------------------------end tram toolbar-------------------------------------------------------
 
 global setTramXPieceTool
@@ -725,10 +726,10 @@ dontForgetTramCrossingsRail:
 	//shift a bit into L3 somewhere...
 	
 	mov	byte [landscape3+ebx*2], 0
-
+	
 .weDontCare:
 	retn
-
+	
 global dontForgetTramCrossingsRoad
 dontForgetTramCrossingsRoad:
 	and	byte [landscape4(si)], 0Fh
@@ -738,12 +739,12 @@ dontForgetTramCrossingsRoad:
 	cmp	byte [editTramMode], 0
 	je	.dontDoTramStuff
 	bts	word [landscape3+esi*2],12
-
+	
 	//check for ONLY trams
 	//cmp	byte [OLYTRAMS], 0
 	//jne	.dontDoTramStuff
 	//bts	word [landscape3+esi*2],13
-
+	
 .dontDoTramStuff:
 	retn
 
@@ -756,7 +757,7 @@ drawTramTracksLevelCrossing:
 	cmp	bx, 800h
 	pop	ebx
 	jnz	.returnToDraw
-
+	
 	push	ebx
 	xor	ebx,ebx
 	mov	bl, 05h
@@ -764,14 +765,14 @@ drawTramTracksLevelCrossing:
 	add	bx, [tramtracks]
 	mov	di, 6h
 	mov	si, 6h
-	mov	dh, 1h
+	mov	dh, 6h
 	call	[addsprite]
 	pop	ebx
 
 .returnToDraw:
-	mov	si, [landscape3+esi*2]
+	mov     si, [landscape3+esi*2]
 	retn
-
+	
 global insertTramDepotFlag
 insertTramDepotFlag:
 	mov	byte [landscape5(di)], bh
@@ -811,4 +812,157 @@ drawTramOrRoadDepot:
 	call    [addsprite]
 	retn
 
+global storeArrayPointerFromClass9
+storeArrayPointerFromClass9:
+	mov	dword [Class9LandPointer], ebx
+	mov	bx, word [landscape3+ebx*2]
+	retn
+
+global drawTramTracksInTunnel
+drawTramTracksInTunnel:
+	push	ebx
+	call	[addgroundsprite]
+	pop	ebx
+	push	ebx
+	//----------------------------Marcin rox!--------------------------
+	//L5 bits 7..4 clear: tunnel entrance/exit
+	//	* L5 bits 3..2: 0 - railway tunnel, 1 - road tunnel
+	//	* L5 bits 1..0 - direction: entrance towards: 0 = NE, 1 = SE, 2 = SW, 3 = NW
+	//	* L1: owner of the tunnel
+	//	* L3 bits 3..0 = track type for railway tunnel, must be 0 for road tunnel
+	//	* L3 bit 15 set = on snow or desert
+	//-----------------------------------------------------------------
+
+	push	ecx
+	push	edi
+	xor	ecx, ecx
+
+	mov	edi, dword [Class9LandPointer]
+	mov	cl, byte [landscape5(di)]
+	and	cl, 1100b
+	cmp	cl, 0100b
+	jne	near .notRoad
+	
+	
+	
+	//draw TRAMMIETRAKKIES!
+	xor	ebx, ebx
+	//we need to work out the direction of the tunnel:
+	mov	cl, byte [landscape5(di)]
+	and	cl, 0Fh
+
+	cmp	cl, 4h //check for NE
+	jne	.checkDirSE
+	mov	bx, 05h
+	mov	byte [tmpSpriteOffset], 50h
+	//check if we have tram tracks at DI
+	add	di, 1h
+	mov 	cl, byte [landscape3+edi*2]
+	and	cl, 0x08
+	cmp	cl, 0x08
+	jne	near .notRoad
+	mov 	cl, byte [landscape4(di)]
+	and	cl, 0xF0
+	cmp	cl, 0x20
+	jne	near .notRoad
+	mov 	cl, byte [landscape5(di)]
+	and	cl, 0x08
+	cmp	cl, 0x08
+	je	near .dirChanged
+	mov	bx, 1Ch
+	jmp	.dirChanged
+.checkDirSE:
+	cmp	cl, 5h 
+	jne	.checkDirSW
+	mov	bx, 4Ch
+	mov	byte [tmpSpriteOffset], 51h
+	sub	di, 100h
+	mov 	cl, byte [landscape3+edi*2]
+	and	cl, 0x04
+	cmp	cl, 0x04
+	jne	near .notRoad
+	mov 	cl, byte [landscape4(di)]
+	and	cl, 0x20
+	cmp	cl, 0x20
+	jne	near .notRoad
+	mov 	cl, byte [landscape5(di)]
+	and	cl, 0x04
+	cmp	cl, 0x04
+	je	near .dirChanged
+	mov	bx, 4Eh
+	jmp	.dirChanged
+.checkDirSW:
+	cmp	cl, 6h
+	jne	.checkDirNW
+	mov	bx, 4Dh
+	mov	byte [tmpSpriteOffset], 52h
+	sub	di, 1h
+	mov 	cl, byte [landscape3+edi*2]
+	and	cl, 0x02
+	cmp	cl, 0x02
+	jne	near .notRoad
+	mov 	cl, byte [landscape4(di)]
+	and	cl, 0xF0
+	cmp	cl, 0x20
+	jne	near .notRoad
+	mov 	cl, byte [landscape5(di)]
+	and	cl, 0x02
+	cmp	cl, 0x02
+	je	.dirChanged
+	mov	bx, 4Fh
+	jmp	.dirChanged
+.checkDirNW:
+	//NORTH WEST
+	mov	bx, 04h //offset of image in GRF
+	mov	byte [tmpSpriteOffset], 53h
+	add	di, 100h
+	mov 	cl, byte [landscape3+edi*2]
+	and	cl, 0x01
+	cmp	cl, 0x01
+	jne	.notRoad
+	mov 	cl, byte [landscape4(di)]
+	and	cl, 0xF0
+	cmp	cl, 0x20
+	jne	.notRoad
+	mov 	cl, byte [landscape5(di)]
+	and	cl, 0x01
+	cmp	cl, 0x01
+	je	.dirChanged
+	mov	bx, 1Bh
+	
+
+.dirChanged:
+
+	pop	edi
+	pop	ecx
+	push	ebx
+	add	bx, [tramtracks]
+	mov	di, 6h
+	mov	si, 6h
+	mov	dh, 1h
+	call	[addsprite]
+	pop	ebx
+
+	mov	bx, [tmpSpriteOffset]
+	add	bx, [tramtracks]
+	mov	di, 0Fh
+	mov	si, 0Fh
+	mov	dh, 08h
+	call	[addsprite]
+	//meh.. disregard the following.. it was written before the above was.
+	//HOLD THE PHONE!!!
+	//do we have road/tram/road+tram at the entrance/exit this tunnel?
+	//maybe we should check for the existence of a connecting road piece to draw road underneath,
+	//or if there is ONLY tram, then draw the lightrail tracks?
+	//DEFAULT: ROAD
+
+	//how the hell do I know which way to check?
+
+	jmp	.endOfProc
+.notRoad:
+	pop	edi
+	pop	ecx
+.endOfProc:
+	pop	ebx
+	retn
 

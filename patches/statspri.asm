@@ -1669,7 +1669,7 @@ getstationterrain:
 	shl al,3
 	cmp al,[snowline]
 	mov al,0
-	jbe .nosnowlinecheck
+	jb .nosnowlinecheck
 
 	mov al,4		// we are on or above the snowline
 

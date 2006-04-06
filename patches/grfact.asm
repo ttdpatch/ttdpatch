@@ -1565,7 +1565,49 @@ applyparam:
 action7:
 action9:
 	// Four extra bytes in front of this sprite data are used this way:
-	// - unused
+	// - sprite number of target sprite for jump, or -1 if jump to EOF
+
+initaction7:
+	// find and store target sprite number
+	pusha
+
+	movzx ebx,byte [esi]	// varsize
+	mov bh,byte [esi+ebx+2]	// numsprites/label
+	mov bl,0x10		// now BX = action 10 data defining this label
+
+	or ebp,byte -1
+	test bh,bh
+	jz .havetarget		// numsprites=0 -> jump to EOF
+
+	// search for next matching label
+	mov ebp,edi
+	mov ecx,[edx+spriteblock.spritelist]
+
+.next:
+	cmp bp,[edx+spriteblock.numsprites]	// at EOF, start from beginning
+	jb .ok
+	xor ebp,ebp
+.ok:
+	mov eax,[ecx+ebp*4]
+	inc ebp
+	cmp [eax],bx
+	je .havetarget
+
+	cmp ebp,edi				// searched whole file?
+	jne .next
+
+	movzx ebx,bh
+	add ebp,ebx	// jump to edi+numsprites
+
+.havetarget:
+	mov [esi-6],ebp
+
+	popa
+	ret
+
+initaction9:
+	call initaction7
+	// fall through to actually doing the test
 
 skipspriteif:
 	mov ebp,edx
@@ -1607,7 +1649,7 @@ skipspriteif:
 
 	// a value test
 	mov eax,[esi]
-	add esi,ecx
+//	add esi,ecx
 
 	shl ecx,3
 	neg ecx
@@ -1732,9 +1774,13 @@ skipspriteif:
 	jnz .dont
 
 .skipit:
+	mov ebx,[esi-8]	// target sprite
+	cmp ebx,byte -1
+#if 0
 	xor eax,eax
 	lodsb
 	test al,al
+#endif
 	jnz .ok
 
 	mov al,[ebp+spriteblock.active]
@@ -1743,9 +1789,12 @@ skipspriteif:
 	je .dont
 
 	mov al,0
-	or edi,byte -1
+	or ebx,byte -1
 
 .ok:
+	mov edi,ebx
+	ret
+#if 0
 	mov ebx,eax
 	sub al,256-MAXLABELS
 	jb .nolabel
@@ -1772,6 +1821,7 @@ skipspriteif:
 .didscan:
 	mov edi,[curlabels+eax*4]
 	ret
+#endif
 
 
 	// *** action 8 handler ***
@@ -1783,6 +1833,7 @@ grfidactivate:
 	mov ah,1	// ah=1 to activate, ah=0 (by default) to record
 
 recordgrfid:
+	mov [edx+spriteblock.version],al
 	mov cl,ah
 
 	mov ebp,edx
@@ -2859,6 +2910,7 @@ newtownnameparts:
 action10:
 	// Four extra bytes in front of this sprite data are used this way:
 	// - unused
+#if 0
 checklabel:
 	mov ebx,edx
 	mov dh,INVSP_INVLABEL
@@ -2868,6 +2920,7 @@ checklabel:
 	bts [ebx+spriteblock.labelsdef],eax
 	mov [curlabels+eax*4],edi
 	ret
+#endif
 
 
 	// *** action 11 handler ***
@@ -3130,9 +3183,9 @@ var spriteinitializeaction
 	dd addr(initnewvehnames)	// 4: new veh name
 	dd addr(checknewgraphicsblock)	// 5: non-veh sprite block
 	dd addr(applyparam)		// 6: apply parameter
-	dd 0				// 7: skip sprites if condition true
+	dd addr(initaction7)		// 7: skip sprites if condition true
 	dd addr(recordgrfid)		// 8: grf ID
-	dd addr(skipspriteif)		// 9: skip sprites even during init
+	dd addr(initaction9)		// 9: skip sprites even during init
 	dd addr(replacettdspriteskip)	// A: replace TTD's sprites
 	dd addr(grferrormsg)		// B: generate error message
 	dd 0				// C: NOP
@@ -3197,6 +3250,7 @@ var spritetestactaction
 
 
 
+#if 0
 	// what to do when scanning a .grf file for goto labels
 var spritescanaction
 	dd 0				// 0: new vehicle data
@@ -3219,6 +3273,7 @@ var spritescanaction
 	dd addr(skipgrfsounds)		//11: define sounds
 
 	dd -1				// never check for valid GRFID
+#endif
 
 
 	// everything that needs to happen before grfs are really activated
@@ -3246,7 +3301,9 @@ var spritereserveaction
 	dd -1				// never check for valid GRFID
 
 %ifndef PREPROCESSONLY
-%if (numspriteactions+1 <> (addr($)-spritereserveaction)/4) ||  (numspriteactions+1 <> (spritereserveaction-spritescanaction)/4) || (numspriteactions+1 <> (spritetestactaction-spriteactivateaction)/4) || (numspriteactions+1 <> (spritescanaction-spritetestactaction)/4)
+%if (numspriteactions+1 <> (addr($)-spritereserveaction)/4) ||  (numspriteactions+1 <> (spritereserveaction-spritetestactaction)/4) || (numspriteactions+1 <> (spritetestactaction-spriteactivateaction)/4)
+//%if (numspriteactions+1 <> (addr($)-spritereserveaction)/4) ||  (numspriteactions+1 <> (spritereserveaction-spritescanaction)/4) || (numspriteactions+1 <> (spritetestactaction-spriteactivateaction)/4) || (numspriteactions+1 <> (spritescanaction-spritetestactaction)/4)
+//%if (numspriteactions+1 <> (addr($)-spritereserveaction)/4) ||  (numspriteactions+1 <> (spritereserveaction-spritescanaction)/4) || (numspriteactions+1 <> (spritetestactaction-spriteactivateaction)/4) || (numspriteactions+1 <> (spritescanaction-spritetestactaction)/4)
 	%error "Inconsistent number of sprite actions"
 %endif
 %endif
@@ -3534,8 +3591,8 @@ uvard curgrfhouselist,256/4
 uvard curgrftownnames,128
 uvard curgrfindustilelist,256/4
 uvard curgrfindustrylist,NINDUSTRIES/4 + 1
-uvard curlabels,MAXLABELS
-uvard didscanlabels
+// uvard curlabels,MAXLABELS
+// uvard didscanlabels
 uvard globalidoffset
 
 

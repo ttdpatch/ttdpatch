@@ -120,7 +120,7 @@ CFLAGS-PPC = -g -Wall -Wno-unused -Wwrite-strings
 LDFLAGS-PPC = $(LDLIBS)
 NASMOPT-PPC = -f macho -dMACHO
 
-include ${MAKEFILELOCAL}
+-include ${MAKEFILELOCAL}
 
 # Now use the appropriate settings to define the final variables
 CCD=${CC-${DOSCC}}

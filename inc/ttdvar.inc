@@ -30,7 +30,7 @@ ptrvardec ttdvar_base
 #else
 	%1 equ %2
 #endif
-	%1_abs equ %2
+	%define %1_abs %2
 %endmacro
 
 #define ttdvar(a,b) ttdvar a,b
@@ -243,6 +243,7 @@ ttdvar(uiflags,0x9f1e6)			// W: bit 10: edit control active; other bits=??
 
 ttdvar(scurrspriteheader,0x9f186)	// 8B: current sprite header used in when drawing sprite
 ttdvar(baTempBuffer1,0x9f1e8)		// 256B: tempbuffer1 for various TTD functions
+ttdvar(baTempBuffer2,0x9f2e8)		// 256B: tempbuffer2 for various TTD functions
 ttdvar(baTextInputBuffer,0x9f629)	// 64B
 ttdvar(temprecolormapsprite,0x9f18E)	// 6B: pointer to recolor spritedata
 ttdvar(initialspriteline, 0x9F1AC)	// W: initialspriteline when drawing tile compressed sprite

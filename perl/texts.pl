@@ -18,7 +18,7 @@ my ($ind,$vardatasize,$maxname,@textnames);
 $ind = -1;
 while (<>) {
 	next unless /^\s*defourtext (\w+)/;
-
+	
 	my $name = $1;
 	$ind++;
 

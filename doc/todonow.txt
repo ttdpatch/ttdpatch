@@ -395,18 +395,54 @@
 - station var 41 not counting right:
   http://www.tt-forums.net/viewtopic.php?p=381568#381568
 
+- crash when lowering land under house
+
+- lots of other crashes, http://www.tt-forums.net/viewtopic.php?p=382758#382758
+  and http://www.tt-forums.net/viewtopic.php?p=382860#382860
+
+- teach AI 2nd CC: http://www.tt-forums.net/viewtopic.php?p=383011#383011
+
 - autoreplace doesn't preserve head direction
 
 - autoreplace getting confused; pb_brmini.grf and http://www.tt-forums.net/viewtopic.php?p=385426#385426
   ID 05 is the "EE Type 1", ID 0D is the "Sulzer Type 2"
+  some consist vars not getting set? http://www.tt-forums.net/viewtopic.php?p=387369#387369
 
 - better message when running out of industry tiles (etc.)
-
-- use diesel/electric default for DMU/EMU if no special DMU/EMU graphics
 
 - make tram depots respect transparent buildings settings
 
 - custom 2cc gui tab sprites with sprite limit extender
+
+- fix PBS with enhancetunnels: doesn't consider bridge piece as track?
+
+- right click on Statistics = crash (no tooltips)
+
+- action 11 sound effects don't work without callback
+
+- callback 23 doesn't set curmiscgrf correctly?
+  http://www.tt-forums.net/viewtopic.php?p=387407#387407
+
+- crash in depot-all-trash with enhancegui off
+
+- change incorrect out of sprites message to grf conflict
+
+- newsounds off = TTD sounds off too?
+  http://www.tt-forums.net/viewtopic.php?p=394539#394539
+
+- problem unreserving tracks on custom bridge heads
+  http://www.tt-forums.net/viewtopic.php?p=395362#395362
+
+- writing bit switches with all bits off turns off switch too
+  http://www.tt-forums.net/viewtopic.php?p=395391#395391
+
+- crash with higherbridges
+  http://www.tt-forums.net/viewtopic.php?p=395527#395527
+
+- allow GRM override by ctrl-click on flag
+
+- when non-GRM grf tries to overwrite GRM-reserved ID, show error
+  if user overrides (ctrl-click on flag?), still show warning
 
 ==== Rather urgent =====
 
@@ -421,7 +457,7 @@
 
 - higherbridges too cheap
 
-  - show cargo symbols for planes, possibly (refittable?) rvs and ships too
+- show cargo symbols for planes, possibly (refittable?) rvs and ships too
 
 - allow repeating current order list in reverse order, for ships to find the
   way back (of course skipping current last and first order)
@@ -469,7 +505,7 @@
 
 - large sprites (also buildings) sometimes don't get drawn properly, e.g.
   the cruise ship sometimes has the tip cut off
--> just set veh.box_coord properly?
+  -> just set veh.box_coord properly?
   try changing the two immediate operands at 16A4D1 from 6 to some larger
   value, and setting the following two at minus half that value
   (i.e. currently they're -3)
@@ -507,14 +543,6 @@
 - translation compiler, auto-add new switches to the help display for lang's
   where they're not defined yet
 
-- update combo signals: count all exits, combos themselves aren't exits, but
-  rather regular signals.  All pre-signals red/green according to all exits.
-  Maybe change TTD's signal finder to go across combos when doing this.
-  another idea: one more bit that says "count as red", set for n of the exits
-  where n=number of trains in pre-signal blocks, thus if there's one train in
-  a pre-signal block, and one green exit somewhere behind a combo signal, it
-  doesn't actually count as a green exit.  This should work.
-
 - signals in tunnels & on bridge.
   could work like this: when last waggon leaves bridge ramp/tunnel entrance,
   set signal green.  Whenever entering a new fake square, fudge the signal
@@ -542,7 +570,7 @@
 
 - in orders menu, make skip change to "skip to" when an order is selected
 
-  =====  Not so urgent  =====
+=====  Not so urgent  =====
 
 - if vehicle rename fails, don't close edit window
 
@@ -665,51 +693,12 @@
 - Cht: NewCompany to force a new AI company to appear (independent of
   difficulty?), of course only if slot available
 
-=====  Not in to-do list =====
-
-- Towns: factor all passenger&mail numbers to "fake" larger towns.
-- city display: show more inhabitants, multiply by some constant factor
-  => change text string to show "Population: x,000" to multiply by 1000
-- Bank in temperate: produce some valuables right after getting others
-  => use newindustries
-
-
 
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-  CHANGELOG
+CHANGELOG
 
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
-2.0.1 alpha 69
-- added code to check that action 4 text ID is valid
-- made mkpttxt work on big endian CPUs
-- defined fixed IDs for all F800 range text IDs
-- by stevenh:
-  * fixed crash with autoslope or land info tool
-  * fixed bus stop problem
-  * fixed custom bridge heads showing tram tracks
-  * removed light posts from tram stops
-  * allow custom tram depot graphics
-  * fixed random road vehicle speed changes
-- by Csaba:
-  * Now even default currencies can be changed via ttdpttxt
-  * New action 0 feature 8 properties for changing currency properties via GRF
-  * Changed some vars to var{b,w,d}
-  * New text class E0xx for language-dependent strings that didn't have a textID until now
-    (Except town name parts, these still don't have textIDs)
-  * New action D variable for setting language ID, default currency and measurement system
-  * New debug cheat "Cht: TextId" to display the given text in a popup window
-  * Bugfix: gethexnumber considered 9 an invalid hex digit
-  * Allow changing date format via an ourtext
-- allow action 4 to check 64 different language IDs
-- fixed saving and loading of player2 array
-- fixed crash when displaying refit list of certain vehicles
-- fixed crash with irregular stations when certain other switches were all off
-- by Oskar:
-  * allow building rails on top of tunnels with "enhancetunnels on"
-  * GRF helper window to help adjusting sprite offsets, open with Ctrl-click
-    in GRF status description box
-- by Lakie: new company colour selection window
-- added hotkeys to tram toolbar
+2.0.1 alpha 71

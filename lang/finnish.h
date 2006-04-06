@@ -77,7 +77,7 @@ SETTEXT(LANG_WARNVERSION, "VAROITUS: Tunnistamaton versio!\n")
 SETTEXT(LANG_OVLNOTFOUND, " ei ole l”ydett„viss„, etsit„„n alkuper„isi„ tiedostoja:\n")
 
 // (DOS) neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
-SETTEXT(LANG_NOFILESFOUND, "Kumpaakaan tiedostoa, TYCOON.EXE tai %s, ei l”ytynyt.\n")
+SETTEXT(LANG_NOFILESFOUND, "Kumpaakaan tiedostoa, %s tai %s, ei l”ytynyt.\n")
 
 // (Windows) neither does GameGFX.exe.  %s is GameGFX.EXE
 SETTEXT(LANG_NOFILEFOUND, "%s ei l”ytynyt.\n")

@@ -9,7 +9,7 @@ totalsprites equ 0x131a+6*WINTTDX	// Windows TTD has six more (for Fish UK logo 
 #define THISGRFVERSION 2
 
 	// maximum GRF version compatible with this patch version
-#define MAXGRFVERSION 6
+#define MAXGRFVERSION 7
 
 	// number of GRF features supported for actions 0, 1, 2, 3 etc.
 %define NUMFEATURES 13
@@ -19,7 +19,7 @@ totalsprites equ 0x131a+6*WINTTDX	// Windows TTD has six more (for Fish UK logo 
 %define NUMCARGOS 32		// if newcargos is on
 
 
-#define MAXLABELS 32
+//#define MAXLABELS 32
 
 maxstationclasses equ 32
 

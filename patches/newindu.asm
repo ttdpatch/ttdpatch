@@ -22,7 +22,7 @@ extern industryspriteblock,invalidatehandle,lookuppersistenttextid
 extern mostrecentspriteblock,processtileaction2,randomfn
 extern randomindustiletrigger,randomindustrytrigger,redrawtile,setmousetool
 extern specialerrtext1,substindustries
-extern texthandler
+extern texthandler,mostrecentgrfversion
 
 
 // --- Industry tile stuff ---
@@ -906,6 +906,10 @@ getindustilelandslope:
 	shl al,1
 	or [esp+29],al
 
+	call gethouseterrain
+	shl al,2
+	or [esp+29],al
+
 	popa
 	ret
 
@@ -1034,6 +1038,59 @@ industryanimtrigger:
 	popa
 	ret
 
+// Called to refresh all tiles of an industry
+// in:	esi->industry
+// preserves all registers
+redrawindustry:
+	push ebx
+	push ecx
+	push esi
+	push edi
+
+	mov edi,esi
+
+	movzx ecx,word [esi+industry.dimensions]
+	movzx esi,word [esi+industry.XY]
+
+// esi will go through all tiles in the bounding rectangle of the industry
+// ch will contain the number of remaining rows, cl the number of remaining
+// tiles in the current row
+.yloop:
+// start the next row
+	mov cl,[edi+industry.dimensions]
+	push esi
+.xloop:
+// is it an industry tile?
+	mov bl,[landscape4(si)]
+	and bl,0xf0
+	cmp bl,0x80
+	jne .dontneed
+	
+// does it belong to the industry we're checking?
+	movzx ebx,byte [landscape2+esi]
+	imul ebx,industry_size
+	add ebx,[industryarrayptr]
+	cmp ebx,edi
+	jne .dontneed
+
+	call redrawtile
+
+.dontneed:
+	inc esi
+	dec cl
+	jnz .xloop
+
+	pop esi
+	add esi,0x100
+	dec ch
+	jnz .yloop
+
+	pop edi
+	pop esi
+	pop ecx
+	pop ebx
+	ret
+
 // --- industry stuff ---
 
 // How the new industry handling works:
@@ -1091,6 +1148,8 @@ vard defaultindustriesofclimate
 	dd 11111100000000000000000000000000b,11111b
 
 section .text
+
+uvard defaultindustries,2
 
 // The old code has count/type pairs for initial industry generation. We convert this to
 // an array of probabilities and store that here, since this makes the handling easier.
@@ -1176,6 +1235,8 @@ uvard origfundchances, NINDUSTRIES
 // 2	00	Call the production callback every 256 ticks 	
 // 3	28	Determine whether the industry can be built on given spot 	
 // 4	29	Control random production changes
+// 5	35	Do production changes every month
+// 6	37	Do cargo subtext callback
 uvarb industrycallbackflags,NINDUSTRIES
 
 // helper array to hold incoming cargo amounts
@@ -1360,6 +1421,14 @@ restoreindustrydata:
 	and dword [industryinputmultipliers1+0xc*4],0
 	and dword [industryinputmultipliers2+0xc*4],0
 	and dword [industryinputmultipliers3+0xc*4],0
+
+// ...default industries of the climate
+	movzx eax,byte [climate]
+	mov ecx,[defaultindustriesofclimate+8*eax]
+	mov eax,[defaultindustriesofclimate+8*eax+4]
+	mov [defaultindustries],ecx
+	mov [defaultindustries+4],eax
+
 	ret
 
 // Various versions to get an industry text ID (instead of "add foo,0x4802")
@@ -1570,6 +1639,9 @@ global setsubstindustry
 setsubstindustry:
 .next:
 	xor edx,edx
+	cmp byte [esi],0xff
+	je near .turnoff
+
 	mov dl,[curgrfindustrylist+ebx]
 	or dl,dl
 	jnz near .alreadyhasoffset
@@ -1590,9 +1662,8 @@ setsubstindustry:
 	jb .findid
 // the ID isn't in the list yet - try to find an empty slot for it
 	xor ecx,ecx
-	movzx edx,byte [climate]
 .findemptyid:
-	bt [defaultindustriesofclimate+edx*8],ecx		// is it occupied by an old industry?
+	bt [defaultindustries],ecx		// is it occupied by an old industry?
 	jc .nextid2
 	cmp byte [grfstage],0
 	je .foundemptyid
@@ -1645,6 +1716,21 @@ setsubstindustry:
 	pop ecx
 	jmp short .loopend
 
+.turnoff:
+	inc esi
+	cmp ebx, NINDUSTRIES	// is this a valid slot id?
+	jae .loopend
+	cmp dword [industrydataidtogameid+ebx*8+industrygameid.grfid],0
+	jnz .loopend		// the industry is already overridden
+
+	btr [defaultindustries],ebx	// free the slot for future use
+
+	// reset probabilities so the industry doesn't appear
+	mov byte [initialindustryprobs+ebx],0
+	mov byte [ingameindustryprobs+ebx],0
+
+	jmp short .loopend
+	
 .alreadyhasoffset:
 // this isn't the first prop. 8 setting - just set the substitute type and be done with it
 	lodsb
@@ -1857,7 +1943,6 @@ getlayoutbyte:
 // that will make the following code reject the tile
 	test di,0x10
 	jz .nosteep
-.deny:
 	mov bh,0x10
 	mov di,0xf
 .nosteep:
@@ -1893,20 +1978,58 @@ getlayoutbyte:
 	call getnewsprite
 	mov byte [curcallback],0
 	jc .callbackfailed
+
+	cmp byte [mostrecentgrfversion],7
+	jae .newformat	// use new return format for grf version 7 and higher
+
 	test eax,eax
-	pop eax
 
 // if the callback returned 0, the tile must be denied
 // otherwise, pretend it's a flat tile so the further code doesn't reject it
 	jz .deny
+.allow:
 	xor bh,bh
+	pop eax
+	ret
+
+.deny:
+	mov bh,0x10
+	mov di,0xf
+	pop eax
 	ret
 
 // the callback failed, but bh still contains the fallback shape flags
 // all we need is popping eax, then resume the default handling
 .callbackfailed:
 	pop eax
-	jmp short .checksteep
+	jmp near .checksteep
+
+.newformat:
+// 0x400 means "allow"
+	cmp ax,0x400
+	je .allow
+// values below 0x400 mean custom error messages
+	jb .custom
+
+// values above 0x400 mean "canned" error messages
+	mov word [operrormsg2],0x0317	// ...can only be built in rainforest areas
+	cmp ax,0x402
+	je .deny
+	mov word [operrormsg2],0x0318	// ...can only be built in desert areas
+	cmp ax,0x403
+	je .deny
+	mov word [operrormsg2],0x0239	// site unsuitable
+	jmp short .deny
+
+.custom:
+// for custom GRF messages, look up the string and use a special textID for operrormsg2
+	mov esi,[mostrecentspriteblock]
+	mov [curmiscgrf],esi
+	add ah,0xd4
+	call texthandler
+	mov [specialerrtext1],esi
+	mov word [operrormsg2],statictext(specialerr1)
+	jmp short .deny
 
 // called while putting an industry tile to the landscape, to fill L5
 // in:	bx: ID of the containing industry
@@ -2001,7 +2124,6 @@ setconflindustry:
 	mov edi,[industrylayouttableptr]
 	lea edi,[edi+ebx*8+5]
 // edi now points to "conflicting type" slot
-	movzx edx,byte [climate]
 
 .nexttype:
 	xor eax,eax
@@ -2011,7 +2133,7 @@ setconflindustry:
 // an old type - ignore if isn't active at the current climate
 	cmp al,NINDUSTRIES
 	jae .ignore
-	bt [defaultindustriesofclimate+edx*8],eax
+	bt [defaultindustries],eax
 	jc .writeit
 
 .ignore:
@@ -2263,11 +2385,14 @@ putfarmfields1:
 	pop edx
 	pop edi
 
+ 	call redrawindustry
+
 	movzx eax,byte [esi+industry.type]
 
 // do the periodical production callback
 	test byte [industrycallbackflags+eax],4
 	jz .notcustomprod
+
 	mov dword [callback_extrainfo],1
 	call doproductioncallback
 .notcustomprod:
@@ -2553,6 +2678,8 @@ industryproducecargo:
 	mov edi,4
 	call randomindustrytrigger
 
+ 	call redrawindustry
+
 	mov edi,esi
 	mov edx,3
 	call industryanimtrigger
@@ -2704,11 +2831,10 @@ openfundindustrywindow:
 // to find out how many items there will be in the list, run through all slots looking
 // for available types
 	xor eax,eax
-	movzx ebx,byte [climate]
 
 .nexttypeslot:
 // is it a default industry?
-	bt [defaultindustriesofclimate+8*ebx],eax
+	bt [defaultindustries],eax
 	jc .inc
 
 // maybe a new industry?
@@ -2888,10 +3014,9 @@ induwindow_redraw:
 
 // we loop through all slots, skipping disabled ones
 	xor ebx,ebx
-	movzx ebp,byte [climate]
 .nextindustry:
 // is it a default type?
-	bt [defaultindustriesofclimate+8*ebp],ebx
+	bt [defaultindustries],ebx
 	jc .dontskip
 
 // is it a new type?
@@ -2947,38 +3072,51 @@ induwindow_redraw:
 	jb .nextindustry
 .finishlist:
 // if nothing is selected, we're done
-	movzx ebx,byte [esi+window.data]
-	or bl,bl
+	movsx ebp,byte [esi+window.data]
+	test ebp,ebp
 	jns .writeinfo
 	ret
 
 .writeinfo:
 // otherwise, draw the accepted and produced cargo types plus the cost
 
+	mov byte [grffeature],0xa
+	and dword [callback_extrainfo],0
+	mov byte [curcallback],0x37
+
 // first the accepted cargoes
-	lea eax,[industryacceptedcargos+4*ebx]
 // if there's no accepted cargoes, we skip the line entirely
-	cmp byte [eax],-1
+	cmp byte [industryacceptedcargos+4*ebp],-1
 	jz .nofirstline
+
+	push edi
 // otherwise, loop through the accepted cargoes, updating the textID and filling
 // the text. ref. stack
 	mov bx,0x4827-1			// Requires: xxx
+	mov edi,textrefstack
 	xor ecx,ecx
 .nextcargo:
+	movzx edx,byte [industryacceptedcargos+4*ebp+ecx]	// get cargo name
+	cmp dl,-1			// have we reached the end?
+	je .drawit
 	inc ebx				// increase ID to have one more item
-	movzx edx,byte [eax]		// get cargo name
 	shl edx,1
 	add edx,[cargotypenamesptr]
 	mov dx,[edx]
-	mov [textrefstack+2*ecx],dx	// and store it
+	mov word [edi],statictext(ident2)
+	mov [edi+2],dx			// and store it
+	call .getcargosubtext
+	mov [edi+4],ax
+	add edi,6
+	inc byte [callback_extrainfo]
 	inc ecx
-	inc eax
 	cmp ecx,3			// have we reached the max?
-	jae .drawit
-	cmp byte [eax],-1		// have we reached the end?
-	jne .nextcargo
+	jb .nextcargo
 
 .drawit:
+	pop edi
+	mov eax,[mostrecentspriteblock]
+	mov [curmiscgrf],eax
 // now we can draw the first line
 	mov cx,[esi+window.x]
 	mov dx,[esi+window.y]
@@ -2989,32 +3127,37 @@ induwindow_redraw:
 	popa
 .nofirstline:
 // the second line: produced cargoes
-	movzx eax,byte [esi+window.data]
-	mov ax,[industryproducedcargos+2*eax]
+	mov cx,[industryproducedcargos+2*ebp]
 // if the first item is -1, no cargoes are produced, so skip the line altogether
-	cmp al,-1
+	cmp cl,-1
 	jz .nosecondline
 
 // assume we'll have one output cargo
 	mov bx,statictext(newindu_onecargo)
 // get its name
-	movzx edx,al
+	movzx edx,cl
 	shl edx,1
 	add edx,[cargotypenamesptr]
 	mov dx,[edx]
 // and store it
 	mov [textrefstack+2],dx
+	mov byte [callback_extrainfo],3
+	call .getcargosubtext
+	mov [textrefstack+4],ax
 
 // is there a second cargo?
-	test ah,ah
+	test ch,ch
 	js .nosecondcargo
 // yes - increase textID and repeat the steps above
 	inc ebx
-	movzx edx,ah
+	movzx edx,ch
 	shl edx,1
 	add edx,[cargotypenamesptr]
 	mov dx,[edx]
-	mov [textrefstack+4],dx
+	mov [textrefstack+6],dx
+	inc byte [callback_extrainfo]
+	call .getcargosubtext
+	mov [textrefstack+8],ax
 .nosecondcargo:
 // draw the line
 	mov [textrefstack],bx
@@ -3052,6 +3195,25 @@ induwindow_redraw:
 	call [drawtextfn]
 	popa
 .nothirdline:
+	ret
+
+.getcargosubtext:
+	test byte [industrycallbackflags+ebp],0x40
+	jz .default
+
+	mov eax,ebp
+	push esi
+	xor esi,esi
+	call getnewsprite
+	pop esi
+	jc .default
+	cmp al,0xff
+	je .default
+	add ah,0xd4
+	ret
+
+.default:
+	mov ax,6
 	ret
 
 // Click handler. This includes reactions for pushing the button, selecting an industry type
@@ -3184,10 +3346,9 @@ induwindow_click:
 
 // loop through the valid industries until we find the al-th one
 	xor ebx,ebx
-	movzx ecx,byte [climate]
 .nextindustry:
 // default industry?
-	bt [defaultindustriesofclimate+8*ecx],ebx
+	bt [defaultindustries],ebx
 	jc .dontskip
 
 // new industry?
@@ -3452,31 +3613,75 @@ createindustrywindow:
 //	esi-> window
 //	edi-> screen update block descriptor
 // out:	cx, dx: X and Y of last drawn text, following lines will be relative to this
-//	zf set to skip drawing of normal acceptance list
-//	eax=first accepted cargo type if zf is clear
 // safe: eax, ebx
 global drawinduacceptlist
 drawinduacceptlist:
-// reproduce overwritten code - if there's no incoming cargo, don't draw anything
+// reproduce overwritten code
+	add ebp,[industryarrayptr]
+	mov byte [grffeature],0xa
+	mov dword [callback_extrainfo],0x100
+// if there's no incoming cargo, don't draw anything
 	movzx eax,byte [ebp+industry.accepts]
 	cmp al,-1
-	je .exit
-// first, check the production callback
-	movzx ebx,byte [ebp+industry.type]
-	test byte [industrycallbackflags+ebx],2+4
-	jnz .specialprod
-// restore zf for normal operation
-	cmp al,-1
-.exit:
+	jne .hasaccepts
 	ret
 
-.specialprod:
-// we have a production callback - print waiting cargo amounts
+.hasaccepts:
+	mov byte [curcallback],0x37
+
 	push esi
 	push ebp
 	push ecx
 	push edx
 
+// check the production callback
+	movzx ebx,byte [ebp+industry.type]
+	test byte [industrycallbackflags+ebx],2+4
+	jnz .specialprod
+
+	push ecx
+	push edx
+
+	mov edx,[cargotypenamesptr]
+	mov bx,0x4827-1			// Requires: xxx
+
+	mov esi,textrefstack
+	xor ecx,ecx
+.nextslot:
+	movzx eax,byte [ebp+industry.accepts+ecx]
+	cmp al,-1
+	je .done
+	inc ebx
+	mov word [esi],statictext(ident2)
+	mov ax,[edx+2*eax]
+	mov [esi+2],ax
+	call .getcargosubtext
+	mov [esi+4],ax
+	add esi,6
+
+	inc byte [callback_extrainfo]
+	inc ecx
+	cmp ecx,3
+	jb .nextslot
+
+.done:
+
+	pop edx
+	pop ecx
+	mov eax,[mostrecentspriteblock]
+	mov [curmiscgrf],eax
+	call [drawtextfn]
+
+	mov byte [curcallback],0
+
+	pop edx
+	pop ecx
+	pop ebp
+	pop esi
+	ret
+
+.specialprod:
+// we have a production callback - print waiting cargo amounts
 	mov ebx,ebp
 	getinduidfromptr ebx
 	lea ebx,[industryincargos+8*ebx]
@@ -3488,14 +3693,16 @@ drawinduacceptlist:
 	xor ecx,ecx
 .cargoloop:
 // fill slot with the empty string if the cargo slot is unused
-	mov ax,6
 	movzx edx,byte [ebp+industry.accepts+ecx]
 	cmp dl,-1
 	jne .notempty
+	mov ax,6
 	stosw
 	jmp short .nextcargo
 
 .notempty:
+	mov ax,statictext(ident2)
+	stosw
 // get the cargo amount textID; assume that we need the plural one...
 	shl edx,1
 	add edx,[cargoamountnnamesptr]
@@ -3514,7 +3721,11 @@ drawinduacceptlist:
 	mov ax,[ebx+ecx*2]
 	stosw
 
+	call .getcargosubtext
+	stosw
+
 .nextcargo:
+	inc byte [callback_extrainfo]
 	inc ecx
 	cmp ecx,3
 	jb .cargoloop
@@ -3527,8 +3738,12 @@ drawinduacceptlist:
 	push edx
 
 // draw the thing
+	mov eax,[mostrecentspriteblock]
+	mov [curmiscgrf],eax
 	mov bx,ourtext(newindu_cargowaiting)
 	call [drawtextfn]
+
+	mov byte [curcallback],0
 
 	pop edx
 	pop ecx
@@ -3537,7 +3752,35 @@ drawinduacceptlist:
 
 // leave some empty space after the list
 	add dx,30
-	cmp edx,edx	// set zf
+	ret
+
+.getcargosubtext:
+	movzx eax,byte [ebp+industry.type]
+	test byte [industrycallbackflags+eax],0x40
+	jz .default
+
+	xchg esi,ebp
+	call getnewsprite
+	xchg esi,ebp
+	jc .default
+	cmp al,0xff
+	je .default
+	add ah,0xd4
+	ret
+
+.default:
+	mov ax,6
+	ret
+	
+global drawinduproducelist
+drawinduproducelist:
+	mov word [textrefstack+0],statictext(ident2)
+	mov [textrefstack+2],ax
+	mov [textrefstack+4],bx
+	mov byte [curcallback],0x37
+	call drawinduacceptlist.getcargosubtext
+	mov [textrefstack+6],ax
+	mov byte [curcallback],0
 	ret
 
 // fake industry data structure to be used during callback 28 (industry location permissibility)
@@ -3808,6 +4051,8 @@ uvard industry_incprod,1,s		// ...increase production
 uvard industry_closedown,1,s		// ...initate imminent closedown
 uvard industry_primaryprodchange,1,s	// ...decides production change for primary industries
 
+uvarb prodchange_suppressnewsmsg
+
 // Called in the beginning of the random production change proc
 // Handle callback 29 (random production change) here if enabled
 // in:	ebx: industry type
@@ -3818,22 +4063,28 @@ global industryrandomprodchange
 industryrandomprodchange:
 	mov al,[industryproductionflags+ebx]	// recreation of overwritten code
 // check for the callback
+	mov byte [prodchange_suppressnewsmsg],0
 	test byte [industrycallbackflags+ebx],0x10
 	jnz .docallback
 	ret
 
 .docallback:
 	pop eax					// remove return address - we'll return from the caller
+	mov byte [curcallback],0x29
+.callit:
 // give a random value to the GRF
 	call [randomfn]
 	mov [callback_extrainfo],eax
 // and do the callback
 	mov eax,ebx
 	mov byte [grffeature],0xa
-	mov byte [curcallback],0x29
 	call getnewsprite
 	mov byte [curcallback],0
 	jc .error
+
+// bit 7 is set if the news message should be suppressed
+	btr eax,7
+	setc byte [prodchange_suppressnewsmsg]
 
 // 0 means "do nothing"
 	or al,al
@@ -3849,6 +4100,35 @@ industryrandomprodchange:
 
 .nothing:
 .error:
+	ret
+
+global monthlyupdateindustryproc
+monthlyupdateindustryproc:
+	call $
+ovar .oldfn,-4,$,monthlyupdateindustryproc
+
+	cmp word [esi+industry.XY],0
+	je .done
+
+	call redrawindustry
+	movzx ebx, byte [esi+industry.type]
+	test byte [industrycallbackflags+ebx],0x20
+	jnz .docallback
+.done:
+	ret
+
+.docallback:
+	mov byte [prodchange_suppressnewsmsg],0
+	mov byte [curcallback],0x35
+	jmp short industryrandomprodchange.callit
+
+global industryprodchange_shownewsmsg
+industryprodchange_shownewsmsg:
+	mov [textrefstack+6],ax			// overwritten
+	cmp byte [prodchange_suppressnewsmsg],0
+	jz .nosuppress
+	pop eax
+.nosuppress:
 	ret
 
 // Called while looking for the closest industry accepting a cargo type, when a vehicle unloads cargo

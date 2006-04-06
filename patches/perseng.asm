@@ -11,6 +11,7 @@
 
 extern checkrefittable,isengine,patchflags
 extern vehtypedataptr
+extern TrainSpeedNewVehicleHandler.lnews
 
 // Find what vehicles are currently in use
 // With persistentengines on:
@@ -190,7 +191,8 @@ ovar doshownewrailveh, -4
 //	mov eax,ebx
 //	add eax,[enginepowerstable]
 	movzx eax,byte [traincost+ebx]
-	movzx ebx,word [trainspeeds+ebx*2]
+;	movzx ebx,word [trainspeeds+ebx*2]
+	call TrainSpeedNewVehicleHandler.lnews
 	imul eax,[waggonbasevalue]
 	shr eax,8
 	mov [edi],eax

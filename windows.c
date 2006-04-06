@@ -10,6 +10,7 @@
 
 #include <string.h>
 #include <windows.h>
+#include <unistd.h>
 
 #define IS_WINDOWS_CPP
 #include "osfunc.h"
@@ -29,9 +30,41 @@ extern pversioninfo versions[];
 
 const char *ttd_winexenames[] = {
 	"GAMEGFX.EXE",
+	NULL,
 	NULL };
 
-	
+
+// Function pointers to deal with the registry, these may
+// be redirected to noregist.c's fake_* functions if needed
+typedef LONG WINAPI t_RegQueryValueEx(HKEY,LPCSTR,LPDWORD,LPDWORD,LPBYTE,LPDWORD);
+t_RegQueryValueEx *_RegQueryValueEx = RegQueryValueEx;
+typedef LONG WINAPI t_RegSetValueEx(HKEY,LPCSTR,DWORD,DWORD,const BYTE*,DWORD);
+t_RegSetValueEx *_RegSetValueEx = RegSetValueEx;
+typedef LONG WINAPI t_RegCloseKey(HKEY);
+t_RegCloseKey *_RegCloseKey = RegCloseKey;
+
+// functions in noregist.c
+extern t_RegQueryValueEx fake_RegQueryValueExA;
+extern t_RegSetValueEx fake_RegSetValueExA;
+extern t_RegCloseKey fake_RegCloseKey;
+LONG WINAPI fake_RegOpenKeyA(HKEY key, LPCSTR subkey, PHKEY result);
+char *getreginifilename();
+
+const char *def_noregistry =
+	"[HKLM_Software_FISH_Technology_Group_Transport_Tycoon_Deluxe]\n"
+	"DisplayModeNumber=D1\n"
+	"ForceDIBSection=D1\n"
+	"FullScreen=D0\n"
+	"HDPath=S.\\\n"
+	"Installed=D3\n"
+	"Language=D0\n"
+	"MidiType=D1\n"
+	"MousePointer=D0\n"
+	"RetraceSync=D0\n"
+	"SafeMode=D0\n"
+	"UpdateMode=D1\n";
+
+
 void sysfnerror(const char *fnname, DWORD error)
 {
   LPVOID msgbuf;
@@ -59,6 +92,7 @@ void checkpatch(void)
   u32 ourcode, codelen;
   FILE *f, *prcode;
 
+  ttd_winexenames[1] = langtext[LANG_WINDEFLANGEXE];
   u32 newexepos = checkexe(&f, ttd_winexenames, maketwochars('P','E'), "Windows");
   u32 section;
   u32 sectionaddr = 0;
@@ -188,6 +222,28 @@ void checkpatch(void)
   loadingamestrings(flen);
 }
 
+int trynoregistry()
+{
+  char *inifile = getreginifilename();
+
+  printf(langtext[LANG_TRYINGNOREGIST], inifile);
+
+  if (access(inifile, R_OK)) {
+	FILE *ini = fopen(inifile, "wt");
+	if (!ini)
+		error(langtext[LANG_CFGFILENOTWRITABLE], inifile);
+	fputs(def_noregistry, ini);
+	fclose(ini);
+  }
+
+  _RegQueryValueEx = fake_RegQueryValueExA;
+  _RegSetValueEx = fake_RegSetValueExA;
+  _RegCloseKey = fake_RegCloseKey;
+
+  setf1(usenoregistry);
+
+  return 1;
+}
 
 // fix the HDPath in the registry, to not end in NULL
 // and to be a 8.3 pathname and to end with a backslash
@@ -200,23 +256,37 @@ void fixregistry(void)
   DWORD len, shortlen;
   DWORD type, result;
 
-  // open the key
-  result = RegOpenKey(HKEY_LOCAL_MACHINE,
-	"Software\\Fish Technology Group\\Transport Tycoon Deluxe",
-	&hkey);
+  if (debug_flags.noregistry <= 0)	// registry allowed?
+	  // try opening the key
+	  result = RegOpenKey(HKEY_LOCAL_MACHINE,
+		"Software\\Fish Technology Group\\Transport Tycoon Deluxe",
+		&hkey);
+  else result = 1;
 
-  if (result)
-	error(langtext[LANG_REGISTRYERROR], 1);
+  if (result) {
+	if (debug_flags.noregistry == 0)	// noregistry automatic, show warning
+		printf(langtext[LANG_REGISTRYERROR], 1);
+	else if (debug_flags.noregistry < 0)	// noregistry not allowed, abort
+		error(langtext[LANG_REGISTRYERROR], 1);
+
+	trynoregistry();
+	result = fake_RegOpenKeyA(HKEY_LOCAL_MACHINE,
+		"Software\\Fish Technology Group\\Transport Tycoon Deluxe",
+		&hkey);
+
+	if (result)
+		error(langtext[LANG_NOREGISTFAILED]);
+  }
 
   // get the length of the path
-  result = RegQueryValueEx(hkey, "HDPath", NULL, &type, NULL, &len);
+  result = _RegQueryValueEx(hkey, "HDPath", NULL, &type, NULL, &len);
   if (result)
 	error(langtext[LANG_REGISTRYERROR], 2);
 
   filename = malloc(len);
 
   // get the value of the installation path
-  result = RegQueryValueEx(hkey, "HDPath", NULL, &type, (BYTE*) filename, &len);
+  result = _RegQueryValueEx(hkey, "HDPath", NULL, &type, (BYTE*) filename, &len);
   if (result)
 	error(langtext[LANG_REGISTRYERROR], 3);
 
@@ -261,14 +331,14 @@ void fixregistry(void)
   }
 
   if (modified) {
-	result = RegSetValueEx(hkey, "HDPath", 0, type,
+	result = _RegSetValueEx(hkey, "HDPath", 0, type,
 			(BYTE*) shortname, strlen(shortname));
 	if (result)
 		error(langtext[LANG_REGISTRYERROR], modified | 8);
   }
 
   // close the key
-  RegCloseKey(hkey);
+  _RegCloseKey(hkey);
 
   free(shortname);
   free(filename);
@@ -449,6 +519,9 @@ int runttd(const char *program, char *options, langinfo **info)
   fixregistry();
   check_patchsnd();
 
+  strcpy(ttdoptions, "EXE:");
+  GetModuleFileName(NULL, ttdoptions+4, 128+1024*WINTTDX);
+
   cmdlength = strlen(options) + strlen(program) + 1;
   commandline = (char*) malloc(cmdlength);
   if (!commandline)
@@ -457,7 +530,7 @@ int runttd(const char *program, char *options, langinfo **info)
   strcpy(commandline, program);
   if (strlen(options)) {
 	strcat(commandline, " ");
-	strcat(commandline, options);
+	strcat(commandline, ttdoptions);
   }
 
   printf(langtext[LANG_RUNTTDLOAD], commandline, "", "");

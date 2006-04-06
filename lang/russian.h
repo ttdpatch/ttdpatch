@@ -79,7 +79,7 @@ SETTEXT(LANG_WARNVERSION, "ВНИМАНИЕ! Версия неизвестна!\n")
 SETTEXT(LANG_OVLNOTFOUND, " не найден, произвожу поиск схожих файлов:\n")
 
 // (DOS) neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
-SETTEXT(LANG_NOFILESFOUND, "Файл TYCOON.EXE или %s не найден.\n")
+SETTEXT(LANG_NOFILESFOUND, "Файл %s или %s не найден.\n")
 
 // (Windows) neither does GameGFX.exe.  %s is GameGFX.EXE
 SETTEXT(LANG_NOFILEFOUND, "Невозможно найти %s.\n")
@@ -390,7 +390,7 @@ SWITCHTEXT(enhancegui, "Расширенный игровой интерфейс", ": %d")
 SWITCHTEXT(newagerating, "Терпимый рейтинг к возрасту ТС", "")
 SWITCHTEXT(buildonslopes, "Строительство на обрывах/откосах", "")
 SWITCHTEXT(buildoncoasts, "Строительство на побережьи", "")
-SWITCHTEXT(experimentalfeatures, "Новые экспериментальные возможности", ": %d")
+SWITCHTEXT(experimentalfeatures, "Нов├ле экспериментальные возможности", ": %d")
 SWITCHTEXT(tracktypecostdiff, "Типы ж/д имеют разную стоимость", "")
 SWITCHTEXT(planespeed, "Реальная скорость самолетов", "")
 SWITCHTEXT(fastwagonsell, "Ускоренная продажа вагонов", "")
@@ -541,7 +541,7 @@ SETTEXT(CFG_TGRACTSTATIONSWEIGHT, "`%s' (%s) определяет\n// эффективность содейс
 SETTEXT(CFG_TGRPASSOUTWEIGHT, "`%s' (%s) определяет\n// темп прироста города в зависимости от эффективности пассажирских перевозок\n// (см. документацию). Активно при значении параметра `towngrowthratemode',\n// равном 2. Диапазон %ld..%ld. По умолчанию %ld")
 SETTEXT(CFG_TGRMAILOUTWEIGHT, "`%s' (%s) определяет\n// темп прироста города в зависимости от эффективности почтовых перевозок\n// (см. документацию). Активно при значении параметра `towngrowthratemode',\n// равном 2. Диапазон %ld..%ld. По умолчанию %ld")
 SETTEXT(CFG_TGRPASSINMAX, "`%s' (%s) определяет\n// максимальное количество прибывающих в город пассажиров, которые могут\n// повлиять на прирост города (см. документацию). Активно при значении\n// параметра `towngrowthratemode', равном 2.\n// Диапазон %ld..%ld. По умолчанию %ld")
-SETTEXT(CFG_TGRPASSINWEIGHT, "`%s' (%s) определяет\n// эффективность содействия темпу прироста города прибывающими в город\n// пассажирами (см. документацию). Активно при значении параметра\n// `towngrowthratemode', равном 2. Диапазон %ld..%ld. По умолчанию %ld")
+SETTEXT(CFG_TGRPASSINWEIGHT, "`%s' (%s) определяет\n// эффективность содействия темпу прироста города прибывающими в ┬город\n// пассажирами (см. документацию). Активно при значении параметра\n// `towngrowthratemode', равном 2. Диапазон %ld..%ld. По умолчанию %ld")
 SETTEXT(CFG_TGRMAILINOPTIM, "`%s' (%s) определяет\n// максимальное население на каждые два мешка ввозимой в город почты\n// (см. документацию). Активно при значении параметра `towngrowthratemode',\n// равном 2. Диапазон %ld..%ld. По умолчанию %ld")
 SETTEXT(CFG_TGRMAILINWEIGHT, "`%s' (%s) определяет\n// эффективность содействия темпу прироста города ввозимой в город почты\n// (см. документацию). Активно при значении параметра `towngrowthratemode',\n// равном 2. Диапазон %ld..%ld. По умолчанию %ld")
 SETTEXT(CFG_TGRGOODSINOPTIM, "`%s' (%s) определяет\n// оптимальное население на каждые два ящика ввозимых в город товаров\n// (см. документацию). Активно при значении параметра `towngrowthratemode',\n// равном 2. Диапазон %ld..%ld. По умолчанию %ld")

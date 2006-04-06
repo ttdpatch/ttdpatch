@@ -146,9 +146,9 @@ enum langtextids {
 
 	LANG_OVLNOTFOUND,		// TTDLOAD.OVL doesn't exist
 
-	LANG_NOFILESFOUND,		// (DOS) neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
+	LANG_NOFILESFOUND,		// neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
 
-	LANG_NOFILEFOUND,		// (Windows) neither does GameGFX.exe
+	LANG_WINDEFLANGEXE,		// default Windows language executable (american/english/french/german/spanish).exe
 
 	LANG_SHOWCOPYING,		// Shown when copying tycoon.exe or ttdx.exe (first %s) to ttdload.ovl (2nd %s)
 
@@ -254,6 +254,8 @@ enum langtextids {
 	LANG_INTERNALERROR,		// Internal error in TTDPatch
 
 	LANG_REGISTRYERROR,		// Error fixing HDPath registry entry
+	LANG_TRYINGNOREGIST,		// Trying no-registry file
+	LANG_NOREGISTFAILED,		// no-registry file failed
 
 	LANG_NOTENOUGHMEMTTD,		// DOS reports no memory available
 
@@ -514,6 +516,7 @@ enum langtextids {
 	LANG_NOTTDPATCHGRF,		// Messages about the graphics file ttdpatch.grf
 	LANG_ERRORCREATING,
 	LANG_TOSTARTTTD,
+	LANG_NOFILEFOUND,		// (Windows) neither does GameGFX.exe
 
 	LANG_REALLYLASTSTRING		// Must be the last, used below to determine how many entries we need
 

@@ -262,7 +262,7 @@ Class6DrawLand:
 
 .snowlinecheck:
 	cmp dl, byte [snowline]
-	jbe .nosnowlinecheck
+	jb .nosnowlinecheck
 	mov al, 4		// we are on or above the snowline
 .nosnowlinecheck:
 	cmp byte [climate], 2

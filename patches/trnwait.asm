@@ -4,6 +4,7 @@
 
 #include <defs.inc>
 #include <veh.inc>
+#include <ttdvar.inc>
 
 extern signal1waittime,signal2waittime
 

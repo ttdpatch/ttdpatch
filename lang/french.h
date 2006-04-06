@@ -79,7 +79,10 @@ SETTEXT(LANG_WARNVERSION, "ATTENTION: Version inconnue!\n")
 SETTEXT(LANG_OVLNOTFOUND, " non trouv‚, recherche des fichiers originaux:\n")
 
 // (DOS) neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
-SETTEXT(LANG_NOFILESFOUND, "Ni TYCOON.EXE ni %s ne peuvent ˆtre trouv‚s.\n")
+SETTEXT(LANG_NOFILESFOUND, "Ni %s ni %s ne peuvent ˆtre trouv‚s.\n")
+
+// default Windows language executable (american/english/french/german/spanish).exe
+SETTEXT(LANG_WINDEFLANGEXE, "FRENCH.EXE");
 
 // (Windows) neither does GameGFX.exe.  %s is GameGFX.EXE
 SETTEXT(LANG_NOFILEFOUND, "%s ne peut ˆtre trouv‚.\n")

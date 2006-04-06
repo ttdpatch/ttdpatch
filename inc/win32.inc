@@ -29,7 +29,12 @@ ClientToScreen		equ 0x4234b0
 FindWindowA		equ 0x423494	// This is a WinApi call, do not confuse with FindWindow of the TTD GUI
 SendMessageA		equ 0x423514
 SetDlgItemTextA		equ 0x423508
-
+GetCommandLine		equ 0x423438
+LoadLibraryA		equ 0x4233A0
+FreeLibrary		equ 0x423380
+RegCloseKey		equ 0x423304
+RegQueryValueExA	equ 0x423308
+RegOpenKeyA		equ 0x42330C
 
 // some constant addresses for enhancemultiplayer
 

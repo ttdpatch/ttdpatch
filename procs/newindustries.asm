@@ -14,6 +14,8 @@ extern getindunamebx,industilespritetable,industry_closedown,industry_decprod
 extern industry_incprod,industry_primaryprodchange
 extern malloccrit,newinduwindowitemlist
 extern oldinduwindowitemlist,displayfoundation,correctexactalt.chkslope
+extern monthlyupdateindustryproc,monthlyupdateindustryproc.oldfn
+extern callback_extrainfo
 
 #include <industry.inc>
 #include <textdef.inc>
@@ -379,12 +381,28 @@ codefragment newcreateindustrywindow
 	icall createindustrywindow
 	setfragmentsize 21
 
-codefragment olddrawinduacceptlist
+codefragment olddrawinduacceptlist,-6
 	movzx eax,byte [ebp+industry.accepts]
 	cmp al,-1
 
 codefragment newdrawinduacceptlist
 	icall drawinduacceptlist
+	setfragmentsize 12
+	db 0xeb			// jz -> jmp short
+
+codefragment olddrawinduproducelist
+	mov [textrefstack],ax
+	mov [textrefstack+2],bx
+
+codefragment newdrawinduproducelist1
+	mov byte [callback_extrainfo],3
+	icall drawinduproducelist
+	setfragmentsize 13
+
+codefragment newdrawinduproducelist2
+	mov byte [callback_extrainfo],4
+	icall drawinduproducelist
+	setfragmentsize 13
 
 codefragment oldcreateindustry_chkplacement,-7
 	mov ebp,[ebp+4*edx]
@@ -422,6 +440,18 @@ codefragment findindustrydecprod
 
 codefragment findindustryincprod
 	cmp byte [esi+industry.prodmultiplier],0x80
+
+codefragment oldindustryprodchange_shownewsmsg
+	mov [textrefstack+6],ax
+	mov ebp,[esi+industry.townptr]
+
+codefragment_call newindustryprodchange_shownewsmsg, industryprodchange_shownewsmsg, 6
+
+codefragment oldmonthlyupdateindustryproc,11
+	mov cl,90
+	cmp word [esi+industry.XY],0
+	jz $+2+9
+	push cx
 
 codefragment oldcheckindustileslope,-5
 	jz $+2+0x26
@@ -550,6 +580,10 @@ patchnewindustries:
 	add word [eax+80],30
 
 	patchcode drawinduacceptlist
+	patchcode olddrawinduproducelist,newdrawinduproducelist1,1,2
+	add dword [edi+lastediadj+28],4
+	patchcode olddrawinduproducelist,newdrawinduproducelist2,1,0
+	add dword [edi+lastediadj+28],4
 
 	patchcode createindustry_chkplacement
 	patchcode fundindustry_chkplacement
@@ -559,6 +593,9 @@ patchnewindustries:
 	storeaddress findindustrydecprod,1,1,industry_decprod
 	storeaddress findindustryincprod,1,1,industry_incprod
 	storeaddress oldindustryclosedown,1,1,industry_closedown
+	patchcode industryprodchange_shownewsmsg
+	stringaddress oldmonthlyupdateindustryproc,1,1
+	chainfunction monthlyupdateindustryproc,.oldfn
 
 	stringaddress oldcheckindustileslope,2-WINTTDX,2
 	storefunctioncall checkindustileslope

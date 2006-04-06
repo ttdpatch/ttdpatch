@@ -15,7 +15,7 @@ struc spriteblock
 	.action8:	resd 1	// Pointer to action 8 data
 	.miscstr:	resd 1	// Pointer to list of miscellaneous texts
 	.errparam:	resd 1	// Parameters for sprite error message, if any
-	.labelsdef:	resd (MAXLABELS+31)/32	// one bit per label, set if that label is defined
+//	.labelsdef:	resd (MAXLABELS+31)/32	// one bit per label, set if that label is defined
 	.soundinfo:	resd 1	// If defined, pointer to array of soundinfo structures
 	.cargotransptr:	resd 1	// Pointer to cargo translation struct, if defined
 	.numsprites:	resw 1	// number of sprites in this block
@@ -23,6 +23,7 @@ struc spriteblock
 	.errsprite:	resw 1	// number with the first action 0B error message
 				// or text ID for error message if signed
 	.numsounds:	resw 1	// number of entries in soundinfo array
+	.version:	resb 1	// GRF version from action 8
 	.numparam:	resb 1	// number of parameters given for this block
 	.active:	resb 1	// 0=not active, 1=active in current game,
 				// 2=will be not active, 3=will be active,

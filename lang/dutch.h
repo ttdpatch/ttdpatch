@@ -80,7 +80,7 @@ SETTEXT(LANG_WARNVERSION, "LET OP!: Versie is niet bekend!\n")
 SETTEXT(LANG_OVLNOTFOUND, " niet gevonden, ik zoek de originele bestanden:\n")
 
 // (DOS) neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
-SETTEXT(LANG_NOFILESFOUND, "Kon noch TYCOON.EXE noch %s vinden.\n")
+SETTEXT(LANG_NOFILESFOUND, "Kon noch %s noch %s vinden.\n")
 
 // (Windows) and GameGFX.exe either.  %s is GameGFX.EXE
 SETTEXT(LANG_NOFILEFOUND, "Kon %s niet vinden.\n")

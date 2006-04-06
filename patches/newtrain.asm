@@ -26,7 +26,7 @@ extern invalidatehandle,ishumanplayer,lastrefitmask,mostrecentspriteblock
 extern movetrainvehicle,newcargotypenames,newsmessagefn
 extern onlycheckpath,patchflags,pbssettings,prevtrainveh
 extern vehtypetextids
-
+extern TrainSpeedBuyNewVehicle.lwagon
 
 
 
@@ -105,6 +105,7 @@ ovar nexttrainvehthreshold, -4
 // in:	on stack->vehicle
 // out:	on stack: how much shorter
 // uses:---
+global getwagonlength
 getwagonlength:
 	push eax
 	push esi
@@ -588,7 +589,8 @@ showwagoninfo:
 	push ebx
 //	add ebx,ebx
 //	add ebx,[enginepowerstable]
-	imul bx,[trainspeeds+ebx*2],10
+;	imul bx,[trainspeeds+ebx*2],10
+	call TrainSpeedBuyNewVehicle.lwagon
 	shr bx,4
 	mov [ebp+20],bx	// for later
 

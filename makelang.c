@@ -427,11 +427,12 @@ const char *patchedfilename = "";
 #define NUMBLOCK (2*UCBLOCK)	//	26..51 = upper case, 52..61 = numbers
 #define XBLOCK (SWITCHBLOCK)
 #define YBLOCK (2*SWITCHBLOCK)
-#define TOTALSWITCHES (3*SWITCHBLOCK)
+#define NOCMDSWITCHES (3*SWITCHBLOCK)
+#define TOTALSWITCHES (NOCMDSWITCHES+128)
 
 int switchid(int ch)
 {
-  int ind;
+  int ind = 0;
 
   if (firstchar(ch) == 'X') {
 	ind = XBLOCK;
@@ -439,8 +440,9 @@ int switchid(int ch)
   } else if (firstchar(ch) == 'Y') {
 	ind = YBLOCK;
 	ch = secondchar(ch);
-  } else
-	ind = 0;
+  } else if ( (firstchar(ch) >= 128) && (firstchar(ch) <= 255) ) {
+	return NOCMDSWITCHES + ch - 128;
+  }
 
   if (ch > 0xff)
 	error("Invalid two-byte char: %c%c\n",
@@ -452,15 +454,24 @@ int switchid(int ch)
 		ind += UCBLOCK;
   } else if (isdigit(ch))
 	ind += ch - '0' + NUMBLOCK;
-  else
+  else {
+	// some special cases
+	switch (ch) {
+		case '?': break;
+		default:
+			error("Unknown command line switch '%s' (%d %d)\n",
+				dchartostr(ch), firstchar(ch), secondchar(ch));
+	}
 	ind = -1;
+  }
 
   return ind;
 }
 
 int getswitchid(const char **str)
 {
-  int ext, ch;
+  int ind, ext, ch;
+  const char *orgstr = *str;
 
   ch = *str[0];
   (*str)++;
@@ -472,8 +483,15 @@ int getswitchid(const char **str)
 	ch = maketwochars(ch, ext);
   }
 
-  return switchid(ch);
+  ind = switchid(ch);
+  if (ind >= TOTALSWITCHES)
+	error("%s: Invalid index for switch '%s' in line: %s\n",
+		langname, dchartostr(ch), orgstr);
+  return ind;
 }
+
+extern u8 switchorder[];
+extern int numswitchorder;
 
 void errorcheck(void)
 {
@@ -487,6 +505,7 @@ void errorcheck(void)
   int cmdchars[TOTALSWITCHES];
   int i, ind;
   const char *line;
+  int inorder[lastbitdefaultoff+1];
 
   // these switches are not in the -h display, remove them from the list
   const char *notlisted = "hCVWX2";
@@ -494,57 +513,16 @@ void errorcheck(void)
   printf("Error checking");
   memset(cmdchars, 0, sizeof(cmdchars));
   for (i=0; switches[i].cmdline; i++) {
-//	if ( (switches[i].range[0] == -1) &&
-//	     (switches[i].range[1] == -1) ) {
 		ind = switchid(switches[i].cmdline);
-/*
-		ch = switches[i].cmdline;
-
-		if (firstchar(ch) == 'X') {
-			ind = 64;
-			ch = secondchar(ch);
-		} else if (firstchar(ch) == 'Y') {
-			ind = 2*64;
-			ch = secondchar(ch);
-		} else
-			ind = 0;
-
-		if (ch > 0xff)
-			error("Invalid two-byte char: %c%c\n",
-				firstchar(ch), secondchar(ch));
-
-		if (!isalpha(ch))
-			continue;	// not a switch char
-
-		ind += tolower(ch) - 'a';
-		if (isupper(ch))
-			ind += 32;
-*/
 		if (ind >= 0 && !(switches[i].bit == -1 &&
 				  switches[i].var == (void _fptr *)-1L))
 			cmdchars[ind] = switches[i].cmdline;
-//	}
   }
   printf(".");
 
   line = notlisted;
   for (line=notlisted; line[0]; ) {
 	ind = getswitchid(&line);
-/*
-	ch = notlisted[i];
-	if (ch == 'X') {
-		ind = 64;
-		ch = notlisted[++i];
-	} else if (ch == 'Y') {
-		ind = 2*64;
-		ch = notlisted[++i];
-	} else
-		ind = 0;
-
-	ind += tolower(ch) - 'a';
-	if (isupper(ch))
-		ind += 32;
-*/
 	if (ind >= 0)
 		cmdchars[ind] = 0;
   }
@@ -557,8 +535,6 @@ void errorcheck(void)
 		fprintf(stderr, "%s: halfline too long by %d chars: %s\n",
 			langname, (int) strlen(line) - 38, line);
 
-//	j = 0;
-
 	if ((line[0] == ' ') && (line[1] == '-') )
 		line++;
 
@@ -567,24 +543,6 @@ void errorcheck(void)
 
 	line++;
 	ind = getswitchid(&line);
-/*
-	ch = halflines[i][j+1];
-	if (ch == 'X') {
-		ind = 64;
-		ch = halflines[i][j+2];
-	} else if (ch == 'Y') {
-		ind = 2*64;
-		ch = halflines[i][j+2];
-	} else
-		ind = 0;
-
-	if (!isalpha(ch) && ind)
-		error("Invalid extended option -%c%c\n", halflines[i][j+1], ch);
-
-	ind += tolower(ch) - 'a';
-	if (isupper(ch))
-		ind += 32;
-*/
 	if (ind >= 0)
 		cmdchars[ind] = 0;
   }
@@ -597,7 +555,7 @@ void errorcheck(void)
 	if (line[0] == '-') {
 		line++;
 
-		while ((ind = getswitchid(&line)) >= 0) {
+		while ( (line[0] != ' ') && ((ind = getswitchid(&line)) >= 0) ) {
 			cmdchars[ind] = 0;
 		}
 	}
@@ -608,13 +566,40 @@ void errorcheck(void)
 
 	line++;
   }
+  printf(".");
+
+  // check that all switches are in switchorder[]
+  memset(inorder, 0, sizeof(inorder));
+  for (i=0; i<numswitchorder; i++) {
+	if (switchorder[i] > lastbitdefaultoff)
+		error("Switch %d is beyond lastbitdefaultoff in common.h\n", switchorder[i]);
+	if ( (switchorder[i] > lastbitdefaulton) && (switchorder[i] < firstbitdefaultoff) )
+		error("Switch %d is beyond lastbitdefaulton in common.h\n", switchorder[i]);
+
+	inorder[switchorder[i]]++;
+  }
+
+  // special cases
+  inorder[setsignal1waittime]++;
+  inorder[setsignal2waittime]++;
+  inorder[lowmemory]++;
+
+  // check that all switches are present
+  for (i=0; i<=lastbitdefaultoff; i++) {
+	if (i==lastbitdefaulton+1) i=firstbitdefaultoff;
+	if (!inorder[i])
+		error("Switch %d is not in switch order list in sw_list.h\n", i);
+	else if (inorder[i] > 1)
+		error("Switch %d occurs %d times in switch order list in sw_list.h\n", i, inorder[i]);
+  }
+  printf(".");
 
   // now see which ones are missing
   for (i=0; i<SWITCHBLOCK; i++)
 	if (cmdchars[i])
 		fprintf(stderr, "%s: halflines missing description of option -%c\n",
 			langname, cmdchars[i]);
-  for (; i<sizeof(cmdchars)/sizeof(cmdchars[1]); i++)
+  for (; i<NOCMDSWITCHES; i++)
 	if (cmdchars[i])
 		fprintf(stderr, "%s: halflines missing description of option -%s\n",
 			langname, dchartostr(cmdchars[i]));
@@ -629,11 +614,11 @@ void errorcheck(void)
 	if (!switchnames[i*2+1])
 		switchnames[i*2+1] = "";
 
-	if ( (strlen(switchnames[i*2])+strlen(switchnames[i*2+1]) > 79)
+	if ( (strlen(switchnames[i*2])+strlen(switchnames[i*2+1]) > 74)
 			&& (i != setsignal1waittime) )
 		fprintf(stderr, "%s: %s too long by %d chars: %s%s\n",
 			langname, switchname[i],
-			(int) (strlen(switchnames[i*2])+strlen(switchnames[i*2+1]) - 79),
+			(int) (strlen(switchnames[i*2])+strlen(switchnames[i*2+1]) - 74),
 			switchnames[i*2], switchnames[i*2+1]);
   }
   printf(".\n");

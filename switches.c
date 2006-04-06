@@ -392,6 +392,7 @@ int setreallyspecial(int switchid, int swon, const char *cfgpar, int onlycheck)
 }
 
 int lastswitchorder = 0;
+int numswitchorder = sizeof(switchorder)/sizeof(switchorder[0]);
 
 int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int swon, int onlycheck)
 {
@@ -736,10 +737,14 @@ void writeswitch(FILE *cfgfile, int switchid)
 
 char *dchartostr(int ch)
 {
-  static char dcharstr[3];
+  static char dcharstr[6];
 
+  if (firstchar(ch) < 128) {
   dcharstr[0] = firstchar(ch);
   dcharstr[1] = secondchar(ch);
+  } else {
+	snprintf(dcharstr, sizeof(dcharstr)-1, "\\%d", firstchar(ch));
+  }
 
   return dcharstr;
 }
@@ -1112,13 +1117,13 @@ const char *getswitchline(int bit, int state, char *line, size_t maxlen, int *mo
   i = snprintf(line, maxlen, " %c ",
 			state?langtext[LANG_SWTABLEVERCHAR][1]
 			     :langtext[LANG_SWTABLEVERCHAR][2]);
-  if (i < 0) return snprintf_error;
+  // if (i < 0) return snprintf_error;
   if (i > maxlen) i = maxlen;
   lineend += i;
   maxlen -= i;
 
   i = snprintf(lineend, maxlen, switchnames[bit*2]);
-  if (i < 0) return snprintf_error;
+  // if (i < 0) return snprintf_error;
   if (i > maxlen) i = maxlen;
   lineend += i;
   maxlen -= i;
@@ -1655,6 +1660,7 @@ static const struct debug_switch_struct {
 	{ 'C', &debug_flags.protcodefile },	// C+ load protected mode code from ttdprot?.bin file
 	{ 'R', &debug_flags.relocofsfile },	// R+ load reloc ofs from reloc.bin file
 	{ 'P', &debug_flags.patchsndfile },	// P+ do not touch patchsnd.dll
+	{ 'n', &debug_flags.noregistry },	// n+ always use registry.ini, n- never use registry.ini
 	{ 0, NULL }
 };
 

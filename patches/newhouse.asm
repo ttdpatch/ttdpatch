@@ -1297,7 +1297,7 @@ gethouseterrain:
 	and bl,0xf
 	shl bl,3
 	cmp bl,[snowline]
-	jbe .gotit
+	jb .gotit
 
 	mov al,4
 

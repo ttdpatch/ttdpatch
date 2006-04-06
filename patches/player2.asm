@@ -118,6 +118,11 @@ getvehiclecolors:
 	cmp ah,0x28
 	sbb al,al		// -1 for DMU, 0 for EMU
 	add al,COLSCHEME_EMU
+
+	movzx eax, al		 // Move the bit to test to whole of eax
+	bt [ebx+player2.colschemes], eax	// Is the emu bit active
+	jc .special				// If it is jump this
+	sub al, COLSCHEME_DMU-COLSCHEME_DIESEL	// Go to the Type of Vehicle
 	jmp short .special
 
 .wagon:

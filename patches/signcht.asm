@@ -113,6 +113,7 @@ cheatentry "RESETPBS",resetpbscheat,0
 cheatentry "DELETEVEH",deletevehcheat,0
 cheatentry "RESETFIFO",resetfifocheat,0
 cheatentry "RELOADINDUSTRIES",resetinducheat,0
+cheatentry "FACE",facecheat,0
 //cheatentry "ENGINE",enginecheat
 //          12345678901234 (max length of name)
 
@@ -702,12 +703,13 @@ var hexdigits, db "0123456789ABCDEF"
 // show what cheats have been used
 usedcheat:
 	call skipspaces
+	mov edx,[landscape3+ttdpatchdata.chtused]
+.showhex:
 	mov edi,[esp+4]
 	mov byte [edi+ebx]," "
 	inc ebx
-	mov word [edi+ebx]," ="
+	mov word [edi+ebx],"  "
 	add ebx,byte 2
-	mov edx,[landscape3+ttdpatchdata.chtused]
 	mov ecx,8
 .nextdigit:
 	rol edx,4
@@ -2471,3 +2473,20 @@ textidcheat:
 	clc
 .error:
 	ret
+
+facecheat:
+	movzx eax,byte [curplayer]
+	imul eax,player_size
+	add eax,[playerarrayptr]
+
+	call gethexnumber
+	jc .show
+
+	mov [eax+player.face],edx
+	call redrawscreen
+
+.show:
+	mov edx,[eax+player.face]
+	mov ebx,5
+	jmp usedcheat.showhex
+

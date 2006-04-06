@@ -137,7 +137,6 @@
 	YESNO('x',"saveoptionaldata", CFG_SAVEOPTDATA, saveoptdata),
 	     //y
 	RANGE('z',"windowsnap", CFG_WINDOWSNAP, windowsnap, 0, 0, FLAGDATA(windowsnapradius), 0, 255, 10),
-	SPCL ('#',"saveextradata", 0, OBSOLETE),
 
 
 		// X-extended, uppercase
@@ -290,6 +289,7 @@
 	YESNO(183,"followvehicle", CFG_FOLLOWVEHICLE, followvehicle),
 	YESNO(184,"trams", CFG_TRAMS, trams),
 	YESNO(185,"enhancetunnels", CFG_ENHANCETUNNELS, enhancetunnels),
+	SPCL (186,"saveextradata", 0, OBSOLETE),
 
 
 //
@@ -443,3 +443,4 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	autoslope,
 	followvehicle,
 	trams,
+	enhancetunnels,

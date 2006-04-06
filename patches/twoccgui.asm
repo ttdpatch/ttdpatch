@@ -52,6 +52,39 @@ var twoccguitabbits
 /************************************* Variables For Ingame **************************************/
 uvarb twoccguilasttabclicked, 8 // One for each Company (n-player games)
 
+
+/********************* This Changes the Company Window Sprite to support 2cc *********************/
+extern deftwocolormaps
+extern newgraphicssetsavail
+global recolourcompanywindowsprite
+recolourcompanywindowsprite:
+	movzx ebx, byte [ebx+player.colourscheme] // Get the current colour scheme
+	bt dword [newgraphicssetsavail], 10 // Is a 2cc mappings grf loaded
+	jnc .nomappings // If not skip the next part
+	push ecx // Backup what was in this registor
+	movzx ecx, byte [esi+window.company] // Get the company the winodw belongs to
+	imul ecx, player2_size // Number of bytes to skip to get to entry
+	add ecx, dword [player2array] // Move to the player2 array
+	bt dword [ecx+player2.colschemes], 0 // IS the second colour enabled?
+	jnc .nocolour2
+	movzx ecx, byte [ecx+player2.col2] // Add the second company colour
+	jmp .colour2 // Don't run the next part
+.nocolour2:
+	mov ecx, ebx // The second colour is the primary colour so add itself
+.colour2:
+	shl ecx, 4 // Increase the second colour to the top 4 bits of a byte
+	add ebx, ecx // Add the second colour to the remap table pointer
+	pop ecx // Restore this registor
+	add ebx, [deftwocolormaps]
+	jmp .mappings
+.nomappings:
+	add ebx, 775 // Default Company Colour Remaps
+.mappings:
+	shl ebx, 0x10 // Move this into the top 16 bits of ebx
+	mov bx, 3097 // The srpte to change
+	add bx, 0x8000 // Set bit 15 of ebx
+	ret
+
 /****************************** Two Company Colours Window Elements ******************************/
 var win_twoccgui_elements
 	// Close button
@@ -780,6 +813,7 @@ twoccguitab_recolour:
 
 .loop:
 	push ecx // Back up the counter
+.ismu:
 	bt dword [edi], ecx // Is this special colour scheme enabled
 	jnc .nospecscheme
 
@@ -790,32 +824,34 @@ twoccguitab_recolour:
 	add edi, ebx // Make sure the tab bit offsets are applied
 	sub edi, 1 // Decrease the current bit by one
 	add edi, edi // Double edi's pointer
-	mov dx, cx // Store the current colour
 	mov ch, byte [eax+player2.specialcol+edi] // Get the colour scheme for this special class
 	inc edi // Move to next byte
 	mov cl, byte [eax+player2.specialcol+edi] // Get second colour
 	pop ebx // Restore the data address
 	pop edi
-
-	push eax // Preseve the Player2 array pointer
-	movzx eax, dl // Copy the current row being checked
-	imul eax, 12 // Make sure that the right number of elements is skipped
 	jmp .skip // move to the next part of the loop
 
 .nospecscheme:
-	mov dx, cx // Store the current row
+	cmp ecx, COLSCHEME_DMU-1 // Is the vehicle a below
+	jb .notmu // If it isn't and is below jump to next part
+	cmp ecx, COLSCHEME_EMU-1 // Is the Vehicle a EMU
+	ja .notmu // If it isn't match jump
+	sub ecx, COLSCHEME_DMU-COLSCHEME_DIESEL // Move the item back to base
+	jmp .ismu // Jump back to the start of the loop
+
+.notmu:
 	mov ch, byte [ebp+companycolors] // Get the primary Company Colour
 	mov cl, ch // Make the second company colour equal the first
 	bt dword [eax+player2.colschemes], 0 // Is there a second company colour defined
-	jnc .singleonly
+	jnc .skip
 	mov cl, byte [eax+player2.col2] // Get Second Company Colour
 
-.singleonly:
+.skip:
+	mov edx, [esp] // Use the pushed counter to get the row to modify
 	push eax // Preseve the Player2 array pointer
 	movzx eax, dl // Copy the current row being checked
 	imul eax, 12 // Make sure that the right number of elements is skipped
 
-.skip:
 	push ebx
 	sub bh, dl // Count how many checkboxes are left
 	movzx edx, bh // Move the number of items to skip

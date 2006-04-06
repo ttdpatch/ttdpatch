@@ -89,3 +89,37 @@ section .text align=4
 #endif
 
 #include <opimm8.inc>
+
+// Macros for catching division-by-zero
+extern overflowhandler,realoverflowreturn
+%macro div 1-2.nolist 1
+	%if %2
+		%ifndef overflowreturn_abs
+			%error "Include ttdvar.inc please"
+		%endif
+#if DEBUG
+		mov dword [realoverflowreturn],%%postdiv
+		mov dword [overflowreturn],overflowhandler
+#else
+		mov dword [overflowreturn],%%postdiv
+#endif
+	%endif
+	div %1
+%%postdiv:
+%endmacro
+
+%macro idiv 1-2.nolist 1
+	%if %2
+		%ifndef overflowreturn_abs
+			%error "Include ttdvar.inc please"
+		%endif
+#if DEBUG
+		mov dword [realoverflowreturn],%%postdiv
+		mov dword [overflowreturn],overflowhandler
+#else
+		mov dword [overflowreturn],%%postdiv
+#endif
+	%endif
+	idiv %1
+%%postdiv:
+%endmacro

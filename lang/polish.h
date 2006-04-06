@@ -81,7 +81,7 @@ SETTEXT(LANG_WARNVERSION, "UWAGA: Nieznana wersja!\n")
 SETTEXT(LANG_OVLNOTFOUND, " - nie znaleziono, szukam oryginalnych plik¢w:\n")
 
 // (DOS) neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
-SETTEXT(LANG_NOFILESFOUND, "Nie znaleziono ani TYCOON.EXE, ani %s.\n")
+SETTEXT(LANG_NOFILESFOUND, "Nie znaleziono ani %s, ani %s.\n")
 
 // (Windows) neither does GameGFX.exe.  %s is GameGFX.EXE
 SETTEXT(LANG_NOFILEFOUND, "Nie znaleziono %s.\n")
@@ -199,7 +199,7 @@ TEXTARRAY(halflines,) =
 
 	  "-B:  Dˆu¾sze mosty",
 	  "-D:  Dynamit usuwa wi©cej obiekt¢w",
-	  "-E:  Okienka bˆ©d¢w u g¢ry ekranu",
+	  "-E:  Okienka bˆ©d¢w u gÂ¢ry ekranu",
 	  "-F:  'Full load' dla jednego ˆadunku",
 	  "-G:  Na stacjach pojawiaj¥ si© tylko",
 	  "     towary odbierane",

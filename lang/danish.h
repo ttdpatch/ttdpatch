@@ -76,7 +76,7 @@ SETTEXT(LANG_WARNVERSION, "Advarsel: versionen er ukendt!\n")
 SETTEXT(LANG_OVLNOTFOUND, " ej fundet, leder efter originale filer:\n")
 
 // (DOS) neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
-SETTEXT(LANG_NOFILESFOUND, "kunne hverken finde TYCOON.EXE eller %s.\n")
+SETTEXT(LANG_NOFILESFOUND, "kunne hverken finde %s eller %s.\n")
 
 // (Windows) neither does GameGFX.exe.  %s is GameGFX.EXE
 SETTEXT(LANG_NOFILEFOUND, "Kunne ikke finde %s.\n")

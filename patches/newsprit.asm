@@ -28,7 +28,7 @@ extern getstationsectionmiddle,getstationterrain,gettownnumber,gettrackcont
 extern getvehiclecargo,getvehidcount,getvehnuminconsist,getvehnuminrow
 extern industryaction3,numextvars,patchflags,septriggerbits
 extern stationcargolots,stationcargowaitingmask,stationflags,stsetids
-extern triggerbits,vehids
+extern triggerbits,vehids, getvehtypeflags
 extern wagonoverride
 
 uvard grffeature
@@ -36,6 +36,7 @@ uvard curgrffeature,1,s		// must be signed to indicate "no current feature"
 uvard curgrfid,1,s		// same here
 uvard curaction3info
 uvard mostrecentspriteblock
+uvarb mostrecentgrfversion
 
 uvard curstationcargo
 
@@ -492,6 +493,9 @@ getnewsprite:
 //	mov ecx,[eax-6]
 	mov [curaction3info],eax
 	mov edx,[eax+action3info.spriteblock]
+
+	mov bl,[eax+spriteblock.version]
+	mov [mostrecentgrfversion],bl
 
 		// record file and sprite number for the crash logger
 	mov ebx,[edx+spriteblock.filenameptr]
@@ -1336,7 +1340,7 @@ uvard tscvar
 
 uvard tscdatabegin,0
 
-#define NUMCALLBACKS 0x34
+#define NUMCALLBACKS 0x36
 uvard numtscfeat
 uvard numtsccb
 uvard numticks,((NUMFEATURES+1)*2)*2
@@ -1603,6 +1607,7 @@ var vehvarhandler
 	dd addr(getcurveinfo)
 	dd addr(getmotioninfo)
 	dd addr(getvehiclecargo)
+	dd addr(getvehtypeflags)
 %ifndef PREPROCESSONLY
 %assign n_vehvarhandler (addr($)-vehvarhandler)/4
 %endif

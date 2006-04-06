@@ -1608,6 +1608,18 @@ getvehiclecargo:
 	mov al,cl
 	ret
 
+	// 48: vehtype flags
+	// out: xxxxxxff
+	//	xxxxxx = undefined
+	//	ff = flags such as 'is aviable to all companies'
+global getvehtypeflags
+getvehtypeflags:
+	movzx eax, byte [esi+veh.vehtype] ; Get the vehicle type id
+	imul eax, vehtype_size ; Multiple by the size of each entry
+	add eax, vehtypearray ; Move to veh type array
+	movzx eax, byte [eax+vehtype.flags] ; Get the flags
+	ret ; Return eax to be tested in action2
+
 	// 60: count occurence of vehicle ID in consist
 	// in:	ah=ID
 	//	esi->first vehicle
@@ -1740,7 +1752,7 @@ endvar
 uvarb defvehsprites,256
 
 	// callback stuff
-uvarb curcallback
+uvard curcallback
 uvard callbackflags,256/4
 
 #if 0	// now in veh2 struct

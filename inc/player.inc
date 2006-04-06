@@ -2,14 +2,18 @@
 struc player
 	.name: 		resw 1	// 00h:name text ID; 0 for non-existing players
 	.nameparts:	resd 1	// 02h:text ref stack argument for name text ID
-			resw 1	// 06h:?
-			resd 1	// 08h:?
-			resd 1	// 0ah:?
+	.face:		resd 1	// 06h:face, bitcoded
+	.managername:	resw 1	// 0ah:manager name text ID
+	.managernameparts:resd 1// 0ch:02h:text ref stack argument for manager name text ID
 	.cash: 		resd 1	// 10h:	cash of player	(use [addexpenses] to modify for overflow protection)
-			resb 0x18-$
+	.loan:		resd 1	// 14h: loan of player
 	.colourscheme	resb 1	// 18h: Company's Colour Scheme
 	.cashfract:	resb 1	// 19h: fraction of cash, for subtracting sub-dollar amounts
-			resb 0x26-$
+	.quartersindebt:resb 1	// 1ah: number of quarters player has been in debt
+	.introuble:	resb 1	// 1bh: AI: company is in trouble/Player: company bankrupt
+	.takeovercost:	resd 1	// 1ch: amount required to take over company
+	.takeovercountdown:resw 1//20h: AI: ticks until take-over offer issued/Player: ticks until bankrupt
+	.cargotypesdelivered:resd 1//22h:bit mask of cargo types delivered in this quarter
 	.thisyearexpenses:resd 12//26h: several types of expenses in this year
 			resb 0xc2-$
 	.thisquarterincome:resd 1//c2h: income in this quarter

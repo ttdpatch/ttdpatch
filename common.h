@@ -136,7 +136,7 @@
 
 // NOTE!! If you add a bit here, also add it to patchflagsfixedmap in vars.ah!!
 
-#define lastbitdefaulton	112	// META: last bit defined to be set by -a 
+#define lastbitdefaulton	113	// META: last bit defined to be set by -a 
 
 // add new flags that should be on by default above, flags off by default below
 
@@ -161,7 +161,7 @@
 #define resolutionheight	208	// Resolution Height
 #define fifoloading		209	// FIFO loading
 #define townroadbranchprob	210	// Change the chance of a town creating a road branch
-#define newcargos		211	// suport new cargos
+#define newcargos		211	// support new cargos
 #define onewayroads		212	// Enable support for one-way roads
 #define irrstations		213	// Enable support for irregular stations
 #define enhancemultiplayer	214	// allow more than two players in multiplayer
@@ -187,6 +187,7 @@
 // be modified by command line or config switches
 // if any of these need versiondata, be sure to always turn them on separately
 // in function allswitches in switches.c.
+#define usenoregistry		246	// Use registry.ini instead of the Windows registry
 #define rvpower			247	// Set if road vehicles set to realistic accel.
 #define patchprocbitflag	248	// Used to indicate a bit in patchproc list
 #define enhancedkbdhandler	249	// Can we install an enhanced keyboard handler?

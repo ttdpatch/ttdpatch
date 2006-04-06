@@ -24,7 +24,7 @@ extern drawTramTracksOnStation, drawTramTracksOnStation.origfn
 extern insertTramsIntoGetGroundAltitude, insertTramsIntoGetGroundAltitude.origfn
 extern stopTramOvertaking, rvcheckovertake, patchflags, editTramMode,stdRoadElemListPtr
 extern tramtracks,saTramConstrWindowElemList,tramtracksprites
-extern setTramXPieceTool,setTramYPieceTool
+extern setTramXPieceTool,setTramYPieceTool, drawTramTracksInTunnel, addgroundsprite
 extern bTempNewBridgeDirection, checkIfThisShouldBeATramStop, addsprite,paRoadConstrWinClickProcs
 
 extern updateBridgeData1, updateBridgeData2, updateBridgeData1.origfn, updateBridgeData2.origfn
@@ -286,7 +286,7 @@ begincodefragments
 
 	codefragment findRVMovementArray
 		db 0x00, 0x00, 0x00, 0x10, 0x00, 0x02, 0x08, 0x1A, 0x00, 0x04
-
+    
 
 	//-------------------Find creation of road Depot-----------------
 	codefragment oldCreateRoadDepot
@@ -323,14 +323,30 @@ begincodefragments
 		icall	insertTramTracksIntoFindRoadDepot
 		setfragmentsize 8
     
+	codefragment oldClass9DrawStart, 6
+		retn
+		test	dh, 0f0h
+	codefragment newClass9DrawStart
+		icall	storeArrayPointerFromClass9
+		setfragmentsize 8
+
+	codefragment oldDrawTunnel, 12
+		db 0x0F,0xB6,0xF6,0x66,0x83,0xE6,0x03,0x66,0xD1,0xE6,0x03,0xDE
+	codefragment newDrawTunnel
+		icall	drawTramTracksInTunnel
+		setfragmentsize 7
+    
 endcodefragments
 
 patchtrams:
 	stringaddress olddrawgroundspriteroad
 	chainfunction DrawTramTracks, .origfn, 1
 
+	patchcode oldClass9DrawStart, newClass9DrawStart, 2, 4
+	patchcode oldDrawTunnel, newDrawTunnel, 1, 1
+
 	#if WINTTDX
-		stringaddress oldDrawRoadStationCode, 1, 3
+	stringaddress oldDrawRoadStationCode, 1, 3
 	#else
 		stringaddress oldDrawRoadStationCode, 2, 3
 	#endif
@@ -338,7 +354,7 @@ patchtrams:
 
 	stringaddress oldGroundAltidudeGetTileInfo, 1
 	chainfunction insertTramsIntoGetGroundAltitude, .origfn, 1
-    
+
 	mov eax, [ophandler+0x02*8]
 	mov ecx, [eax+0x1C]
 	mov [oldClass2DrawLand], ecx
@@ -358,7 +374,7 @@ patchtrams:
 	patchcode oldRVProcCheckOvertake,newRVProcCheckOvertake,1,1
 
 	patchcode oldBuildBusStop, newBuildBusStop, 1, 2
-
+	
 	#if WINTTDX
 		patchcode oldCreateRoadDepot, newCreateRoadDepot, 1, 2
 		patchcode oldDrawRoadDepot, newDrawRoadDepot, 1, 4
@@ -395,7 +411,7 @@ patchtrams:
 	stringaddress findRVMovementArray
 	mov dword [noOneWaySetTramTurnAround.rvmovement], edi
 	stringaddress oldClass2End,1,1
-    
+
 	testmultiflags onewayroads
 	jnz .dontTryInsertTramCode
 	storefragment newClass2End
@@ -418,7 +434,7 @@ patchtrams:
 
 	patchcode oldSetRoadXPieceTool,newSetRoadXPieceTool,1,1
 	patchcode oldSetRoadYPieceTool,newSetRoadYPieceTool,1,1
-
+	
 	or byte [newgraphicssetsenabled+1],1 << (11 - 8)
 	retn
 

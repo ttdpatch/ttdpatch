@@ -23,8 +23,19 @@ I'll explain this a bit below.  In addition
 
 -----------
 
- 1) Use "var{b,w,d}" to declare all variables
-=============================================
+ 1) Use "{u,s,}var{b,w,d}" macros to declare all variables
+===========================================================
+
+We have the following macros to define new variables, depending on their
+initialization value, whether it's zero, all-ones (-1), or something else,
+and depending on the size:
+
+----Initial----	--------Size---------
+     value	Byte	Word	Dword
+-------------------------------------
+Zero		uvarb	uvarw	uvard
+All ones	svarb	svarw	svard
+Other		varb	varw	vard
 
 The preferred way of defining variables works like this:
 
@@ -33,7 +44,7 @@ vard myofs, 0x403124
 This declares a DWORD variable and puts it in the right section with proper
 alignment.  The word and byte variants work similarly.  There's also a
 "var" macro that puts variables in the current section.  It's not recommended
-to put variables in the .text section though.
+to put data in the .text section though.
 
 You can also declare a variable like this:
 
@@ -41,15 +52,16 @@ varb longtable
 	db 1,2,3,4
 	...
 	db 252,253,254,255
-section .text
+endvar
 
-Note the "section .text" at the end, which is necessary because the
-"open-ended" form of var{b,w,d} does not reset the section to its former value.
+Note the "endvar" at the end, which is necessary because the "open-ended"
+form of var{b,w,d} does not reset the section to its former value.
 
 If you have a variable that needs to be initialized to either 0 or -1 (or if
-it doesn't matter to what it is initialized), use the uvar{b,w,d} macros
-instead.  These ensure that your variable isn't stored in the patching code,
-thus reducing the executable file size.
+it doesn't matter to what it is initialized), use the uvar{b,w,d}
+(initialized to 0) or svar{b,w,d} (initialized to -1) macros instead.
+These ensure that your variable isn't stored in the patching code, thus
+reducing the executable file size.
 
 To make a variable initialized to zero, use
 
@@ -61,7 +73,7 @@ You can make it an array by specifying the number of members:
 
 And to initialize it to -1, append an 's' (for "signed"):
 
-	uvard mysigned,1,s	// one DWORD initialized to -1
+	svard mysigned		// one DWORD initialized to -1
 
 To declare a variable in TTD's memory, use the macro "ttdvar".  It takes
 a parameter that specifies an offset into TTD's data segment.  Note that the

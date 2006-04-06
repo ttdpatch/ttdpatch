@@ -11,7 +11,7 @@
 extern curspriteblock,customtextptr,gethousetexttable,getmiscgrftable
 extern getstationtexttable,gettextintableptr,ntxtptr
 extern systemtextptr,mainstringtable,getextratranstable
-extern setelrailstexts,patchflags,applycurrencychanges
+extern setelrailstexts,patchflags,applycurrencychanges,ttdtexthandler
 
 uvard ourtext_ptr, ourtext(last)-ourtext(base)
 
@@ -348,7 +348,7 @@ varb undefid
 	db "(",0x8b,"UD:"
 .id1:	db "####",0x98,":"
 .id2:	db "####)",0
-section .text
+endvar
 
 ; endp texthandler
 
@@ -375,7 +375,7 @@ varw textclass_maxid
 	dw 0x0334,0x0810,0x1024,0x1818,0x205c,0x2810,0x306c,0x3807
 	dw 0x4010,0x483b,0x5029,0x5807,0x6018,0x6838,0x707f,0
 	dw 0x8107,0x886b,0x9037,0x9842,0xa043,0,     0xb005,0
-	dw 0xc3ff,0xcbff,0xd3ff,0xdbff,0xe04a,0,     0,     ourtext(last)-1
+	dw 0xc3ff,0xcbff,0xd3ff,0xdbff,0xe04c,0,     0,     ourtext(last)-1
 endvar
 
 
@@ -668,3 +668,114 @@ resetourtextptr:
 	popa
 	ret
 
+global newtextcopy
+newtextcopy:
+	push dword [specialtext1]
+	mov [specialtext1],esi
+	mov ax,statictext(special1)
+	call [ttdtexthandler]
+	pop dword [specialtext1]
+	ret
+
+uvarb FrSpaTownNameFlags,156
+
+global findFrSpaTownNameFlags
+findFrSpaTownNameFlags:
+	xor ecx,ecx
+
+.nexttext:
+	mov eax,[esi]
+	add esi,4
+.nextchar:
+	cmp byte [eax],0x20
+	jb .foundit
+	inc eax
+	jmp short .nextchar
+
+.foundit:
+	mov bl,[eax]
+	mov [FrSpaTownNameFlags+ecx],bl
+	mov byte [eax],0
+
+	inc ecx
+	cmp ecx,156
+	jb .nexttext
+
+	ret
+
+global SpaTownNameCopy
+SpaTownNameCopy:
+	mov eax,[textrefstack]
+	mov al,[FrSpaTownNameFlags+eax]
+	mov [tempvar],al
+	jmp short newtextcopy
+
+global addparentdir
+addparentdir:
+	mov edi,baTempBuffer1
+
+	push ss
+	pop es
+
+	push dword [specialtext1]
+	push ecx
+	push edx
+	mov [specialtext1],esi
+	mov ax,statictext(special1)
+	call [ttdtexthandler]
+	pop edx
+	pop ecx
+	pop dword [specialtext1]
+
+	mov esi,baTempBuffer1
+
+	mov al,1
+	xor ebp,ebp
+	ret
+
+global adddir1
+adddir1:
+	push ss
+	pop es
+
+	push esi
+
+.nextchar:
+	mov al,[esi]
+	mov [ebx],al
+	inc esi
+	inc ebx
+	test al,al
+	jnz .nextchar
+
+	pop esi
+
+	push dword [specialtext1]
+	push ecx
+	push edx
+	mov [specialtext1],esi
+	mov ax,statictext(special1)
+	call [ttdtexthandler]
+	pop edx
+	pop ecx
+	pop dword [specialtext1]
+
+	inc edi
+	ret
+
+global addsavegame
+addsavegame:
+	mov edi,baTempBuffer2
+
+	push dword [specialtext1]
+	push ecx
+	push edx
+	mov dword [specialtext1],baTempBuffer1
+	mov ax,statictext(special1)
+	call [ttdtexthandler]
+	pop edx
+	pop ecx
+	pop dword [specialtext1]
+
+	mov esi,baTempBuffer2
+	ret

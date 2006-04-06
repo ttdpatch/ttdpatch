@@ -33,7 +33,7 @@ begincodefragments
 #if WINTTDX
 codefragment oldtickcheck
 	mov ebx, 0x1b
-	div ebx
+	div ebx,0	// ,0 to disable div-by-zero handling code
 
 codefragment newtickcheck
 	call runindex(tickcheck)

@@ -76,7 +76,7 @@ SETTEXT(LANG_WARNVERSION, "Versione sconosciuta!\n")
 SETTEXT(LANG_OVLNOTFOUND, " non trovato, cerco i file originali:\n")
 
 // (DOS) neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
-SETTEXT(LANG_NOFILESFOUND, "TYCOON.EXE e %s : file non trovati.\n")
+SETTEXT(LANG_NOFILESFOUND, "%s e %s : file non trovati.\n")
 
 // (Windows) neither does GameGFX.exe.  %s is GameGFX.EXE
 SETTEXT(LANG_NOFILEFOUND, "%s : file non trovato.\n")

@@ -3245,3 +3245,76 @@ before 1.6
     directly accessable
   * now industry tiles have correct merged foundations similarly to roads
     and rails
+
+2.0.1 alpha 69
+- added code to check that action 4 text ID is valid
+- made mkpttxt work on big endian CPUs
+- defined fixed IDs for all F800 range text IDs
+- by stevenh:
+  * fixed crash with autoslope or land info tool
+  * fixed bus stop problem
+  * fixed custom bridge heads showing tram tracks
+  * removed light posts from tram stops
+  * allow custom tram depot graphics
+  * fixed random road vehicle speed changes
+- by Csaba:
+  * Now even default currencies can be changed via ttdpttxt
+  * New action 0 feature 8 properties for changing currency properties via GRF
+  * Changed some vars to var{b,w,d}
+  * New text class E0xx for language-dependent strings that didn't have a textID until now
+    (Except town name parts, these still don't have textIDs)
+  * New action D variable for setting language ID, default currency and measurement system
+  * New debug cheat "Cht: TextId" to display the given text in a popup window
+  * Bugfix: gethexnumber considered 9 an invalid hex digit
+  * Allow changing date format via an ourtext
+- allow action 4 to check 64 different language IDs
+- fixed saving and loading of player2 array
+- fixed crash when displaying refit list of certain vehicles
+- fixed crash with irregular stations when certain other switches were all off
+- by Oskar:
+  * allow building rails on top of tunnels with "enhancetunnels on"
+  * GRF helper window to help adjusting sprite offsets, open with Ctrl-click
+    in GRF status description box
+- by Lakie: new company colour selection window
+- added hotkeys to tram toolbar
+
+2.0.1 alpha 70
+- fixed crash in colour selection with locomotiongui off
+- changed action 2 var 0C (callback) to dword size
+- added some more consistency checking to makelang program
+- removed [snprintf error] message in verbose output
+- prevent crashes due to division by zero again
+- (devel) implemented terse build mode (the default now) similar to the
+  Linux kernel build, which only shows command type and target;
+  use make V=1 targets... to switch to verbose mode; less output makes
+  it easier to spot compiler errors and warnings
+- built in noregistry support; will use registry.ini if no registry entries
+  exist, or can be controlled by -!n debug switch
+- in addition to gamegfx.exe, also search for LANG.exe (default set by
+  ttdpatch language)
+- Cht: Face [code] to allowing viewing and setting the manager face code
+- allow duplicate GOTO labels in action 10, will jump to next matching label
+- fixed bug with morecurrency data not getting applied correctly
+- by Csaba:
+  * added callback 35 to allow changing industry production every month
+  * replaced (hopefully) all code that filled the text buffer directly
+    with code that calls the text handler
+  * terrain checks didn't work for tiles exactly on the snow line
+    (according to the patch, it was still normal, but according to TTD
+    it's snowy already). Now TTDPatch follows TTD's behavior.
+  * terrain type added to industry tile var 60.
+  * now industries are redrawn at the beginning of every month, plus
+    every time their incoming/produced cargo amount changes. This helps
+    eliminating some glitches with variable graphics.
+  * new callback 37 to allow adding subtexts to produced/accepted cargo
+    types.
+  * now there's a way to disable a default industry, by setting property
+    8 to FFh.
+  * callback 2F changed to allow reporting a custom error message
+- by Lakie:
+  * use diesel/electric default for DMU/EMU if no special DMU/EMU graphics
+  * added 2cc support to the company window road vehicle drawn sprite
+  * added callback 36, currently supports changing the speed of
+    trains, planes and ships.
+  * added train var 48 (gives the special flags of a vehicle)
+    (not documented yet; format will probably change)

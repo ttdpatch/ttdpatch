@@ -76,7 +76,7 @@ SETTEXT(LANG_WARNVERSION, "FIGYELEM: Verzi¢ ismeretlen!\n")
 SETTEXT(LANG_OVLNOTFOUND, " hi†nyzik, eredeti f†jlok keresÇse:\n")
 
 // (DOS) neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
-SETTEXT(LANG_NOFILESFOUND, "Nem tal†ltam se a TYCOON.EXE-t se a %s-t.\n")
+SETTEXT(LANG_NOFILESFOUND, "Nem tal†ltam se a %s-t se a %s-t.\n")
 
 // (Windows) neither does GameGFX.exe.  %s is GameGFX.EXE
 SETTEXT(LANG_NOFILEFOUND, "%s file nem tal†lhat¢.\n")
@@ -474,7 +474,7 @@ SETTEXT(CFG_RVQUEUEING, "`%s' (%s) a kîz£ti j†rm˚vek felsorakoznak az †llom†sok 
 SETTEXT(CFG_LOWMEMORY, "`%s' (%s) hat†s†ra a TTDPatch 3,5 MB mem¢ri†val is fut.")
 SETTEXT(CFG_GENERALFIXES, "`%s' (%s) megjav°t sz†mos apr¢ hib†t, l†sd rÇszletesen a dokument†ci¢ban.")
 SETTEXT(CFG_MOREAIRPORTS, "`%s' (%s) az eredeti kettãnÇl tîbb repteret engedÇlyez v†rosonkÇnt.")
-SETTEXT(CFG_BRIBE, "`%s' (%s) a helyi înkorm†nyzati menÅben megjelen°t egy 'lefizetÇs' lehetãsÇget.")
+SETTEXT(CFG_BRIBE, "`%s' (%s) a helyi înkorm†nyzati menÅben megjelen¬°t egy 'lefizetÇs' lehetãsÇget.")
 SETTEXT(CFG_PLANECRCTRL, "`%s' (%s) meghat†rozza mikor zuhan le egy repÅlãgÇp. Bitk¢dolt ÇrtÇk , Alap: 1.")
 SETTEXT(CFG_SHOWSPEED, "`%s' (%s) feltÅnteti a j†rm˚vek sebessÇgÇt az ablakukban.")
 SETTEXT(CFG_AUTORENEW, "`%s' (%s) szervizelÇskor fel£j°tja a mozdonyokat ennyi h¢nappal a maxim†lis Çletkoruk ut†n.  Intervallum %ld..%ld.  Alap: %ld.")

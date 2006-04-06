@@ -16,7 +16,7 @@ extern miscgrfvar,moresteamsetting,mountaintypes,multihdspeedup,numheads
 extern patchflags,randomfn,reversearticulatedloco
 extern trainweight,veh2ptr,vehcallback,wagonoverride
 extern wagonspeedlimitempty,newvehdata,sellcost
-
+extern TrainSpeedBuyNewVehicle.lmultihead
 
 
 
@@ -72,7 +72,10 @@ proc calcpowerandspeed
 
 .nextvehicle:
 	movzx ebx,word [esi+veh.vehtype]
-	movzx ecx,word [trainspeeds+ebx*2]
+
+	call TrainSpeedBuyNewVehicle.lmultihead
+;	movzx ecx,word [trainspeeds+ebx*2]
+
 	mov [%$curvehspeed],ecx
 
 	movzx ecx,word [edi+ebx*2]

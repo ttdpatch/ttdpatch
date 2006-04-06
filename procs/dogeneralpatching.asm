@@ -64,7 +64,7 @@ extern drawcenteredtextfn,drawsplitcenteredtextfn, RefreshWindows
 extern CreateTextInputWindow
 extern addrailfence1,addrailfence2,addrailfence3,addrailfence4
 extern addrailfence5,addrailfence6,addrailfence7,addrailfence8
-extern rvcheckovertake
+extern rvcheckovertake,findFrSpaTownNameFlags
 
 
 begincodefragments
@@ -1142,6 +1142,128 @@ codefragment findCreateTextInputWindow, 7
  	mov bp, 0x2A9
  	mov bl, 0xF6
 
+codefragment oldtextcopy1
+.nextchar:
+	mov al,[esi]
+	mov [edi],al
+	inc esi
+	inc edi
+	or al,al
+	jnz .nextchar
+	dec edi
+	ret
+
+codefragment oldtextcopy2
+.nextchar:
+	mov al,[esi]
+	mov [edi],al
+	inc esi
+	inc edi
+	or al,al
+	jnz .nextchar
+	dec edi
+	push eax
+
+codefragment oldtextcopy3
+.nextchar:
+	mov al,[esi]
+	mov [edi],al
+	inc esi
+	inc edi
+	or al,al
+	jnz .nextchar
+	dec edi
+	pop esi
+
+codefragment_call newtextcopy123, newtextcopy,11
+
+codefragment oldtextcopy4
+.nextchar:
+	mov al,[esi]
+	mov [edi],al
+	inc esi
+	inc edi
+	or al,al
+	jnz .nextchar
+	mov dword [edi-1],' & C'
+	
+codefragment newtextcopy4
+	icall newtextcopy
+	inc edi
+	setfragmentsize 10
+
+codefragment oldSpaTownNameCopy
+	mov al,[esi]
+	mov [edi],al
+	inc esi
+	inc edi
+	cmp al,0x20
+
+codefragment_call newSpaTownNameCopy,SpaTownNameCopy,19
+
+codefragment oldaddparentdir
+	push ss
+	pop es
+	mov al,1
+	xor ebp,ebp
+
+codefragment_call newaddparentdir, addparentdir
+
+codefragment oldadddir1
+.nextchar:
+	mov al,[esi]
+	mov [edi],al
+	mov [ebx],al
+	inc esi
+	inc edi
+	inc ebx
+	or al,al
+	jnz .nextchar
+
+codefragment_call newadddir1, adddir1, 13
+
+codefragment oldadddir2
+.nextchar:
+	mov al,[esi]
+	mov [edi],al
+	inc esi
+	inc edi
+	or al,al
+	jnz .nextchar
+	mov al,2
+
+codefragment newadddir2
+	push ecx
+	push edx
+	icall newtextcopy
+	pop edx
+	pop ecx
+	setfragmentsize 10
+
+codefragment oldaddsavegame,12
+	xor dx,0xaaaa
+	cmp dx,[edi]
+
+codefragment_call newaddsavegame, addsavegame, 5
+
+codefragment oldmakestationsigns,-4
+	mov byte [edi],0xb4
+	inc edi
+
+codefragment newmakestationsigns
+	mov edx, 0xb482ee		// E0B4h in UTF-8 with inverse byte order
+	xor ecx,ecx
+.nextsign:
+	mov [edi],edx
+	add edx, 0x10000
+	shr al,1
+	setc cl
+	rcl cl,1		// now ecx=3 if the bit was set, 0 if not
+	add edi,ecx
+	cmp edx,0xb882ee
+	jbe .nextsign
+	setfragmentsize 40, 1
+
 #if !WINTTDX
 codefragment findexitcleanup,-4
 	mov ax,0x4C00
@@ -1335,7 +1457,6 @@ dogeneralpatching:
 	storewrap compname4,12
 	storewrap compname5,16
 #endif
-
 	// and get the general text table
 	mov eax,[edi+lastediadj-4]
 	mov [mainstringtable],eax
@@ -1366,6 +1487,29 @@ dogeneralpatching:
 .notdone2:
 	stosb
 	loopne .nextbyte2
+
+	// check some code that bypasses the text handler and doesn't get Unicode processing
+
+	multipatchcode oldtextcopy1,newtextcopy123,3
+	multipatchcode oldtextcopy2,newtextcopy123,4
+	patchcode oldtextcopy3,newtextcopy123,1,1
+	patchcode oldtextcopy4,newtextcopy4,1,1
+
+	stringaddress oldSpaTownNameCopy,1,1
+	mov esi,[edi-4]
+	call findFrSpaTownNameFlags
+	xor ecx,ecx
+	storefragment newSpaTownNameCopy
+
+	patchcode addparentdir
+	patchcode adddir1
+	patchcode adddir2
+	multipatchcode oldaddsavegame,newaddsavegame,2
+
+	stringaddress oldmakestationsigns,1,1
+#ifdef UTF8
+	storefragment newmakestationsigns
+#endif
 
 	storeaddress findgetymd,3,3,getymd
 	mov [getfullymd],edi

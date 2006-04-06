@@ -47,10 +47,10 @@ codefragment findmanagerinitials,5
 	movzx esi,ah
 	db 0x8a, 0x86
 
-codefragment findparentdir,-4
-	push ss
-	pop es
-	mov al,1
+codefragment findparentdir,4
+	db 0
+	jz short $+2+0x10
+	db 0xbe
 
 codefragment finddir,5
 	or al,al

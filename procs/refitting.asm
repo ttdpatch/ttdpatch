@@ -20,7 +20,7 @@ codefragment newinitrefit
 	jmp newinitrefit_start+82
 
 codefragment oldchooserefit,2
-	div bl
+	div bl,0	// ,0 to disable div-by-zero handling code
 	xor ah,ah
 	mov [esi+window.selecteditem],ax
 

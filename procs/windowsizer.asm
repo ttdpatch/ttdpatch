@@ -136,14 +136,14 @@ codefragment newdrawtrainlist
 	icall drawtrainlist
 
 codefragment oldvehlist7click,2
-	div dl
+	div dl,0	// ,0 to disable div-by-zero handling code
 	cmp al, 7
 
 codefragment newvehlistclick
 	setfragmentsize 8
 
 codefragment oldvehlist4click,2
-	div dl
+	div dl,0	// ,0 to disable div-by-zero handling code
 	cmp al, 4
 	db 0x0f, 0x83	// jnb ...
 
@@ -188,7 +188,7 @@ codefragment newdrawtrainwagonsindepot
 	icall drawtrainwagonsindepot
 	
 codefragment oldtraindepotclick, 2
-	div dl
+	div dl,0	// ,0 to disable div-by-zero handling code
 	cmp al, 6
 
 codefragment newtraindepotclick

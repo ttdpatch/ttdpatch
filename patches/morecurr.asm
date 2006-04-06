@@ -267,6 +267,11 @@ restorecurrencydata:
 	mov edi,eurointr
 	rep movsw
 
+	// *********
+
+	call applycurrencychanges
+	call updatecurrlist
+
 	ret
 
 // apply currency changes given in special currency ourtext()-s

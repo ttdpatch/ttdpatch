@@ -24,7 +24,7 @@ codefragment newcalcperf2
 	ror ecx,16
 	or cx,cx
 	jz short .nodivbyzero
-	div cx
+	div cx,0	// ,0 to disable div-by-zero handler which would make fragment too large
 	cmp ax,100
 	jg .max100
 	jmp short .end

@@ -19,7 +19,7 @@ codefragment newsettownzones
 
 codefragment oldsettowngrowthlimit,4
 	mov bl,0x5E
-	div bl
+	div bl,0	// ,0 to disable div-by-zero handling code
 	or al,0x80
 
 codefragment newsettowngrowthlimit
