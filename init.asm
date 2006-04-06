@@ -1062,9 +1062,9 @@ proc dofindstring
 	_enter
 	push ebx
 
-#if !WINTTDX
-	mov ah,0x02
+#if 0 && !WINTTDX	// disabled because it suddenly breaks some fragments ???
 	push edx
+	mov ah,0x02
 	mov dl,0x2e
 	CALLINT21
 	pop edx
@@ -1171,6 +1171,7 @@ proc dofindstring
 
 	global dofindstring.failmiserably
 .failmiserably:		// it wasn't found often enough, or too often
+	mov [%$found],edi		// for the error message
 	mov edi,findstringerr_strnum
 	xchg eax,edx
 	mov cl,4
@@ -1190,6 +1191,11 @@ proc dofindstring
 	inc edi	// add edi,byte findstringerr_outof-findstringerr_occurence-2
 	mov eax,[%$orgcount]
 	mov cl,2
+	call hexnibbles
+
+	add edi,byte findstringerr_at-(findstringerr_outof+2)
+	mov eax,[%$found]
+	mov cl,8
 	call hexnibbles
 
 	lea edx,[byte edi+findstringerror-findstringerr_outof-2]
@@ -1217,7 +1223,8 @@ var findstringerror
 var findstringerr_strnum, db	  "#### at "
 var findstringerr_callfrom, db		  "########, found "
 var findstringerr_occurence, db				  "##/"
-var findstringerr_outof, db				     "##"
+var findstringerr_outof, db				     "## at "
+var findstringerr_at, db					   "########"
 	db 13,10,0
 
 uvard lastsearchcalladdr

@@ -6,7 +6,7 @@
 # =========================================================
 
 # Define the name of the default target (actual definition below)
-# Makefile.local can override the default target
+# Makefile.local can override the default target by setting DEFAULTTARGET
 default:
 
 # verbose build default off (Makefile.local can override this)

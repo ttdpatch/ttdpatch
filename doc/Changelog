@@ -3318,3 +3318,7 @@ before 1.6
     trains, planes and ships.
   * added train var 48 (gives the special flags of a vehicle)
     (not documented yet; format will probably change)
+
+2.0.1 alpha 71
+- fixed grf files not activating correctly
+- fixed callback 36 not working in DOS

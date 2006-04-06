@@ -1568,10 +1568,14 @@ action9:
 	// - sprite number of target sprite for jump, or -1 if jump to EOF
 
 initaction7:
+initaction9:
 	// find and store target sprite number
-	pusha
 
 	movzx ebx,byte [esi]	// varsize
+	cmp byte [esi+1],2
+	jnb .notbittest
+	mov bl,1		// for bit tests, varsize is always 1
+.notbittest:
 	mov bh,byte [esi+ebx+2]	// numsprites/label
 	mov bl,0x10		// now BX = action 10 data defining this label
 
@@ -1601,13 +1605,7 @@ initaction7:
 
 .havetarget:
 	mov [esi-6],ebp
-
-	popa
 	ret
-
-initaction9:
-	call initaction7
-	// fall through to actually doing the test
 
 skipspriteif:
 	mov ebp,edx
@@ -1757,8 +1755,7 @@ skipspriteif:
 	jmp .gotstate
 
 .bittest:
-	xor eax,eax
-	lodsb
+	movzx eax,byte [esi]
 		// eax=bit number
 		// ebx=bit test type-2
 		// [edx]=value
@@ -3183,9 +3180,9 @@ var spriteinitializeaction
 	dd addr(initnewvehnames)	// 4: new veh name
 	dd addr(checknewgraphicsblock)	// 5: non-veh sprite block
 	dd addr(applyparam)		// 6: apply parameter
-	dd addr(initaction7)		// 7: skip sprites if condition true
+	dd 0				// 7: skip sprites if condition true
 	dd addr(recordgrfid)		// 8: grf ID
-	dd addr(initaction9)		// 9: skip sprites even during init
+	dd skipspriteif			// 9: skip sprites even during init
 	dd addr(replacettdspriteskip)	// A: replace TTD's sprites
 	dd addr(grferrormsg)		// B: generate error message
 	dd 0				// C: NOP
@@ -3250,9 +3247,8 @@ var spritetestactaction
 
 
 
-#if 0
-	// what to do when scanning a .grf file for goto labels
-var spritescanaction
+	// what to do after loading a .grf file
+var spritesloadedaction
 	dd 0				// 0: new vehicle data
 	dd addr(skipvehspriteblock)	// 1: sprite block
 	dd 0				// 2: cargo ID
@@ -3260,20 +3256,19 @@ var spritescanaction
 	dd 0				// 4: new veh name
 	dd addr(skipnewgraphicsblock)	// 5: non-veh sprite block
 	dd 0				// 6: apply parameter
-	dd 0				// 7: skip sprites if condition true
+	dd initaction7			// 7: skip sprites if condition true
 	dd 0				// 8: grf ID
-	dd 0				// 9: skip sprites even during init
+	dd initaction9			// 9: skip sprites even during init
 	dd addr(replacettdspriteskip)	// A: replace TTD's sprites
 	dd 0				// B: generate error message
 	dd 0				// C: NOP
 	dd 0				// D: Set GRF parameter
 	dd 0				// E: deactivate other GRFs
 	dd 0				// F: specify new town name styles
-	dd addr(checklabel)		//10: define label
+	dd 0				//10: define label
 	dd addr(skipgrfsounds)		//11: define sounds
 
 	dd -1				// never check for valid GRFID
-#endif
 
 
 	// everything that needs to happen before grfs are really activated
@@ -3301,9 +3296,7 @@ var spritereserveaction
 	dd -1				// never check for valid GRFID
 
 %ifndef PREPROCESSONLY
-%if (numspriteactions+1 <> (addr($)-spritereserveaction)/4) ||  (numspriteactions+1 <> (spritereserveaction-spritetestactaction)/4) || (numspriteactions+1 <> (spritetestactaction-spriteactivateaction)/4)
-//%if (numspriteactions+1 <> (addr($)-spritereserveaction)/4) ||  (numspriteactions+1 <> (spritereserveaction-spritescanaction)/4) || (numspriteactions+1 <> (spritetestactaction-spriteactivateaction)/4) || (numspriteactions+1 <> (spritescanaction-spritetestactaction)/4)
-//%if (numspriteactions+1 <> (addr($)-spritereserveaction)/4) ||  (numspriteactions+1 <> (spritereserveaction-spritescanaction)/4) || (numspriteactions+1 <> (spritetestactaction-spriteactivateaction)/4) || (numspriteactions+1 <> (spritescanaction-spritetestactaction)/4)
+%if (numspriteactions+1 <> (addr($)-spritereserveaction)/4) ||  (numspriteactions+1 <> (spritereserveaction-spritesloadedaction)/4) || (numspriteactions+1 <> (spritetestactaction-spriteactivateaction)/4) || (numspriteactions+1 <> (spritesloadedaction-spritetestactaction)/4)
 	%error "Inconsistent number of sprite actions"
 %endif
 %endif

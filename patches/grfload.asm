@@ -22,7 +22,7 @@ extern newspritenum,numactsprites,numgrfswitchparam,numspriteactions
 extern numgrfvarreinitalways,numgrfvarreinitzero,numgrfvarreinitsigned
 extern openfilefn,patchflags,readspriteinfofn,readwordfn
 extern removespritefromcache,spriteblockptr,spriteinitializeaction
-extern tempvard
+extern spritesloadedaction,tempvard
 extern vehids
 
 
@@ -752,10 +752,8 @@ resolvesprites:
 
 	// process each block individually, so that it can
 	// adjust its sprite numbers to the real sprite numbers
-#if 0
-	mov eax,spritescanaction
+	mov eax,spritesloadedaction
 	call procallsprites
-#endif
 	mov eax,spriteinitializeaction
 	call procallsprites
 

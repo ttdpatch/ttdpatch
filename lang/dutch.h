@@ -140,7 +140,7 @@ SETTEXT(LANG_INSTALLLOADER, "Installatie: codelader.\n")
 
 // TTDLOAD.OVL (%s) is invalid, needs to be deleted.
 SETTEXT(LANG_TTDLOADINVALID, "Kon codelader niet installeren")
-SETTEXT(LANG_DELETEOVL, "%s wordt verwijderd.\n")
+// wrong translation SETTEXT(LANG_DELETEOVL, "%s wordt verwijderd.\n")
 
 // TTDLOAD.OVL was verified to be correct
 SETTEXT(LANG_TTDLOADOK, "%s is OK.\n")
