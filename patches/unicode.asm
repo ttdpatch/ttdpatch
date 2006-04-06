@@ -631,7 +631,6 @@ uvarb hasaction12
 #if WINTTDX
 uvard codepagechar
 uvard unicodechar
-#endif
 
 // process input character
 //
@@ -652,7 +651,6 @@ exported textinputchar
 
 .gotchar:
 	push esi
-#if WINTTDX
 	mov [codepagechar],eax
 
 	// now we need to convert that to Unicode
@@ -667,12 +665,11 @@ exported textinputchar
 	jz near .donenz
 
 	mov eax,[unicodechar]
-#endif
 	cmp eax,0x1b
 	stc
 	je near .done
 	cmp eax,0x0d
-	je near .complete
+	je near .done
 	cmp eax,8
 	je .isvalid
 
@@ -749,15 +746,6 @@ exported textinputchar
 	pop esi
 	ret
 
-.complete:
-	// check if we can convert the buffer back to Latin-1
-	mov esi,baTextInputBuffer
-	movzx ecx,byte [bTextInputMaxLength]
-	call checklatin1conv
-	test al,0
-	pop esi
-	ret
-
 .delete:
 	test ecx,ecx
 	jz .ret
@@ -772,6 +760,17 @@ exported textinputchar
 .delthis:
 	mov byte [esi],0
 	jmp .refresh
+
+exported textinputokbutton
+	// check if we can convert the buffer back to Latin-1
+	push esi
+	mov esi,baTextInputBuffer
+	movzx ecx,byte [bTextInputMaxLength]
+	call checklatin1conv
+	mov edi,baTextInputBuffer
+	pop esi
+	ret
+#endif
 
 // check if text buffer can be converted to Latin-1
 // if so do it, if not prepend UTF-8 code

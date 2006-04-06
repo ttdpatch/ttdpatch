@@ -33,6 +33,8 @@ codefragment oldsetwindowtitle,9
 	mov ax,0x2BA
 
 codefragment_call newsetwindowtitle,setwindowtitle,5
+
+codefragment_call newtextinputokbutton,textinputokbutton,5
 #endif
 
 codefragment oldbuildcompanyname
@@ -75,6 +77,8 @@ patchunicode:
 
 #if WINTTDX
 	patchcode textinputchar
+	add edi,lastediadj+162
+	storefragment newtextinputokbutton
 	patchcode setwindowtitle
 #endif
 	ret
