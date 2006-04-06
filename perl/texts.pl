@@ -17,6 +17,12 @@ INTRO
 my ($ind,$vardatasize,$maxname,@textnames);
 $ind = -1;
 while (<>) {
+	if (/CRC\s+([0-9a-f]{8})/) {
+		my $crcdef = $1;
+		my $crc = sprintf "%08x", crc32 "@textnames";
+		next if $crc eq $crcdef;
+		die "CRC checkpoint incorrect, is $crc, should be $crcdef";
+	}
 	next unless /^\s*defourtext (\w+)/;
 	
 	my $name = $1;

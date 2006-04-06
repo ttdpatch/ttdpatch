@@ -236,8 +236,6 @@ defourtext totalcargo
 defourtext landareainfoheight
 defourtext txteroadmenu
 defourtext txtetramwindowheader
-defourtext txtetramstationheader
-defourtext txtetramdepotheader
 defourtext hotkeylistdos
 defourtext hotkeylistwin
 defourtext curr_pound
@@ -276,6 +274,13 @@ defourtext landhigherbridgehead
 defourtext grfhelpercaption
 defourtext grfhelper_displxrelyrel
 defourtext textsprite
+
+; CRC 41a0d227 (check to make sure that the order above is unchanged)
+
+defourtext txtetramstationheader
+defourtext txtetramdepotheader
+
+; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
 
