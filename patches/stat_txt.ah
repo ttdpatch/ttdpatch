@@ -105,12 +105,6 @@ stxt grfnamelineselected,   0x94,0x80,0
 stxt grfwitherror,  0x8b,"/",0x98,"!",0x8b,"\  ",0x95,0x80,0
 stxt grfwitherrorselected,  0x8b,"/",0x98,"!",0x8b,"\  ",0x94,0x80,0
 
-
-// Because building higherbridges gets a bit complicate help the user a bit:
-stxt steepslopes, "steep slopes aren't suited", 0
-stxt landhigherbridgehead, "land under bridge higher than bridgehead", 0
-
-
 stxt stickybutton, 0x98, "S", 0
 
 // For transparent station signs in company colors
@@ -233,7 +227,3 @@ stxt whitedword, 0x94,0x7B,0
 stxt ellipsis, '...', 0
 
 stxt checkmark, 0xad, 0
-
-stxt grfhelpercaption, 0x94,"GRF Author Helper",0
-stxt grfhelper_displxrelyrel, 0x94, "Sprite: ", 0x7E, " xrel: ", 0x7C, " yrel: ", 0x7C, 0
-stxt textsprite, 0x98,"Sprite",0

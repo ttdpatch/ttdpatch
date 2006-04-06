@@ -383,6 +383,13 @@ def txtltwocchel, db 0x98, "Helicopter", 0
 def txtltwocclr1, db 0x94, "Primary", 0
 def txtltwocclr2, db 0x94, "Secondary", 0
 
+def steepslopes, db "steep slopes aren't suited", 0
+def landhigherbridgehead, db "land under bridge higher than bridgehead", 0
+
+def grfhelpercaption, db 0x94,"GRF Author Helper",0
+def grfhelper_displxrelyrel, db 0x94,"Sprite: ",0x7E," xrel: ",0x7C," yrel: ",0x7C,0
+def textsprite, db 0x98,"Sprite",0
+
 def hotkeylistdos, db "xqwe!@#$t%1234567890-=",1eh,5ch,0
 def hotkeylistwin, db "xqwe!@#$t%1234567890-=`",5ch,0
 
@@ -748,6 +755,13 @@ def txtltwoccfrp, db 0x98, "Freight Aircraft", 0
 def txtltwocchel, db 0x98, "Helicopter", 0
 def txtltwocclr1, db 0x94, "Primary", 0
 def txtltwocclr2, db 0x94, "Secondary", 0
+
+def steepslopes, db "steep slopes aren't suited", 0
+def landhigherbridgehead, db "land under bridge higher than bridgehead", 0
+
+def grfhelpercaption, db 0x94,"GRF Author Helper",0
+def grfhelper_displxrelyrel, db 0x94,"Sprite: ",0x7E," xrel: ",0x7C," yrel: ",0x7C,0
+def textsprite, db 0x98,"Sprite",0
 
 def hotkeylistdos, db "xqwe!",22h,0xa3,"$t%1234567890-=",1eh,5ch,0
 def hotkeylistwin, db "xqwe!",22h,0xa3,"$t%1234567890-=~",5ch,0
@@ -1115,6 +1129,13 @@ def txtltwocchel, db 0x98, "Helicopter", 0
 def txtltwocclr1, db 0x94, "Primary", 0
 def txtltwocclr2, db 0x94, "Secondary", 0
 
+def steepslopes, db "steep slopes aren't suited", 0
+def landhigherbridgehead, db "land under bridge higher than bridgehead", 0
+
+def grfhelpercaption, db 0x94,"GRF Author Helper",0
+def grfhelper_displxrelyrel, db 0x94,"Sprite: ",0x7E," xrel: ",0x7C," yrel: ",0x7C,0
+def textsprite, db 0x98,"Sprite",0
+
 def hotkeylistdos, db "xqwe!",0x22,"-$t%1234567890",0xdf,1eh,5ch,0
 def hotkeylistwin, db "xqwe!",0x22,"§$t%1234567890-=~]",0
 
@@ -1480,6 +1501,13 @@ def txtltwocchel, db 0x98, "Helicopter", 0
 def txtltwocclr1, db 0x94, "Primary", 0
 def txtltwocclr2, db 0x94, "Secondary", 0
 
+def steepslopes, db "steep slopes aren't suited", 0
+def landhigherbridgehead, db "land under bridge higher than bridgehead", 0
+
+def grfhelpercaption, db 0x94,"GRF Author Helper",0
+def grfhelper_displxrelyrel, db 0x94,"Sprite: ",0x7E," xrel: ",0x7C," yrel: ",0x7C,0
+def textsprite, db 0x98,"Sprite",0
+
 def hotkeylistdos, db "xqwe!",0x22,0x9C,"$t%1234567890-=",1eh,5ch,0
 def hotkeylistwin, db "xqwe1234t5&",0xE9,0x22,"'(-",0xE8,"_",0xE7,")=$",0xB2,"*",0
 
@@ -1844,6 +1872,13 @@ def txtltwoccfrp, db 0x98, "Freight Aircraft", 0
 def txtltwocchel, db 0x98, "Helicopter", 0
 def txtltwocclr1, db 0x94, "Primary", 0
 def txtltwocclr2, db 0x94, "Secondary", 0
+
+def steepslopes, db "steep slopes aren't suited", 0
+def landhigherbridgehead, db "land under bridge higher than bridgehead", 0
+
+def grfhelpercaption, db 0x94,"GRF Author Helper",0
+def grfhelper_displxrelyrel, db 0x94,"Sprite: ",0x7E," xrel: ",0x7C," yrel: ",0x7C,0
+def textsprite, db 0x98,"Sprite",0
 
 def hotkeylistdos, db "xqwe!",0x22,"$%t&1234567890'",0xa1,1eh,5ch,0
 def hotkeylistwin, db "xqwe!",0x22,0xb7,"$t%1234567890'",0xa1,0xba,0xe7,0

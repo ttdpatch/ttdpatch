@@ -61,7 +61,7 @@ autoslopechecklandscape:
 	cmp ah, 0x50
 	je near .stationtile
 	cmp ah, 0x80
-	je near .noroutetiles
+	je near .industrytile
 	cmp ah, 0xA0
 	je near .noroutetiles
 
@@ -237,8 +237,12 @@ autoslopechecklandscape:
 .roadup_noroute2:
 	jmp .oktochange
 
-.hasroadroute:
-	//in dx corner to change
+.industrytile:
+	// ebx  = tile xy
+	// For Csaba:
+	// call a function to check if it's allowed to change this tile
+	// yes: .noroutetiles
+	// no:  jmp to near .exit with a pusha before 
 	
 // normal tiles
 .noroutetiles:	

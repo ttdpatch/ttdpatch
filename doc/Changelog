@@ -3359,3 +3359,29 @@ before 1.6
 - fixed bug with mixed-power trains breaking when entering a non-electrified tunnel
 - fixed crash/glitches in vehicle colours (2cc code) if enhancegui was off
 - fixed 2cc vehicles being all black if no ccol2.grf loaded
+
+2.0.1 alpha 73
+- made callback 33 takeoff sound work for helicopters
+- fixed vehicles being unable to enter enhanced tunnels
+- fixed bug in DOS crash logger occasionally writing giant crash log
+- by stevenh:
+  * fixed crash when displaying tram bridges
+  * fixed bridge display problem if trams on but buildonslopes off
+  * when removing a bridge, tram tracks under it stay
+  * repaired rv and tram depot finding
+  * misc. graphical fixes for tram tracks on bridges and in tunnels
+- (devel) added -xt option to OpenWatcom to prevent DGROUP overflow
+- by Csaba:
+  * added industry variable 60 to get tile IDs
+  * added industry variable 23: industry remove cost multiplier
+  * allow lumber mill to have two output types
+  * added callback 3B to control special industry effects
+  * new industry var 61 to get random bits of an industry tile
+  * allow industry production callback to have some state information
+- defined language ID 3F to match any language setting
+- finished UTF-8 support and font glyph loading (action 12)
+- made higherbridges and grf helper window texts translatable
+- fixed crash with enhancetunnels on if no newgrf files loaded
+- fixed crash with multiple station IDs in one action 3
+- reduced newplanes/newships/newhouses sprite limits to stay within 64K
+  sprite limit

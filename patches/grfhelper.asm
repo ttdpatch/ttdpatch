@@ -24,11 +24,11 @@ win_grfhelper_elements:
 db cWinElemTextBox,cColorSchemeGrey
 dw 0, 10, 0, 13, 0x00C5
 db cWinElemTitleBar,cColorSchemeGrey
-dw 11, win_grfhelper_width-1, 0, 13, statictext(grfhelpercaption)
+dw 11, win_grfhelper_width-1, 0, 13, ourtext(grfhelpercaption)
 db cWinElemSpriteBox,cColorSchemeGrey
 dw 0, win_grfhelper_width-1, 14, win_grfhelper_height-1, 0
 db cWinElemTextBox, cColorSchemeYellow
-dw 16, 16+100, win_grfhelper_mbuttony, win_grfhelper_mbuttony+14, statictext(textsprite)
+dw 16, 16+100, win_grfhelper_mbuttony, win_grfhelper_mbuttony+14, ourtext(textsprite)
 %assign grfhelperb_x win_grfhelper_mbuttonx-win_grfhelper_mbuttonmidoffset-win_grfhelper_mbuttonsize
 %assign grfhelperb_y win_grfhelper_mbuttony
 db cWinElemTextBox, cColorSchemeYellow
@@ -249,7 +249,7 @@ var grfhelperbuttonhandler
 win_grfhelper_clickchangesprite:
 	pusha
 	mov ax, -1
-	mov bp, statictext(grfhelpercaption)
+	mov bp, ourtext(grfhelpercaption)
 	mov dword [baTempBuffer1], 0
 	mov ch, 8
 	mov bl, 80
@@ -414,7 +414,7 @@ win_grfhelper_redraw:
 	add cx, 16
 	add dx, 56
 	mov edi, [currscreenupdateblock]
-	mov bx, statictext(grfhelper_displxrelyrel)
+	mov bx, ourtext(grfhelper_displxrelyrel)
 	mov bp, win_grfhelper_width - 100
 	mov dword [SplittextlinesMaxlines],1
 	call [drawsplittextfn]

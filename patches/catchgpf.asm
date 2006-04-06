@@ -387,7 +387,8 @@ catchgpf:
 	call [WriteFile]
 
 	mov ecx,[cargoids]
-	jecxz .nogrffile
+	test ecx,ecx
+	jle .nogrffile
 
 	pop eax
 	push eax			// for CloseHandle below
@@ -411,10 +412,17 @@ catchgpf:
 	CALLINT21		// write to file
 
 	mov ecx,[cargoids]
-	jecxz .nogrffile
+	test ecx,ecx
+	jle .nogrffile
 
 	mov ah,0x40
 	mov edx,cargoids+4
+
+	cmp ecx,1024
+	jb .sizeok
+	mov ecx,1024
+	sub edx,4	// want to see what the size was
+.sizeok:
 	CALLINT21
 
 .nogrffile:

@@ -18,6 +18,7 @@
 #include <ptrvar.inc>
 #include <patchdata.inc>
 #include <house.inc>
+#include <font.inc>
 
 extern SwapDockWinPurchaseLandIco,SwapLomoGuiIcons,activatedefault
 extern addnewtemperatecargo,basecostmult,bridgespritetables,callbackflags
@@ -51,6 +52,7 @@ extern vehtypedataptr,numpredefstationclasses,spritecache,editTramMode
 extern cargobits,resetourtextptr,restorecurrencydata,applycurrencychanges
 extern languagesettings,languageid,setdeflanguage,resetcargodata
 extern disabledoldhouses,enhancetunnelshelpersprite
+extern initglyphtables,setcharwidthtables,fonttables,hasaction12
 
 // New class 0xF (vehtype management) initialization handler
 // does additional things before calling the original function
@@ -919,6 +921,10 @@ preinfoapply:
 	jnc .nonewcargos
 	call resetcargodata
 .nonewcargos:
+	cmp byte [hasaction12],0
+	je .nounicode
+	call initglyphtables
+.nounicode:
 	ret
 
 var cargowagonspeedlimit, db 0,96,0,96,80,120,96,96,96,96,120,120
@@ -996,7 +1002,7 @@ postinfoapply:
 	call overrideembeddedsprite
 	mov cl,10
 	call overrideembeddedsprite
-	
+
 .nooslash:
 	testmultiflags morecurrencies
 	jz .noeuro
@@ -1015,6 +1021,19 @@ postinfoapply:
 	call overrideembeddedsprite
 
 .noeuro:
+	cmp byte [hasaction12],0
+	je .nounicode
+
+	call setcharwidthtables
+	mov ebx,[fonttables+0x20*4]	// Euro character is U+20AC
+	test ebx,ebx
+	jz .noeuroglyph
+
+	cmp word [ebx+0xAC*fontinfo_size+fontinfo.sprite],0
+	je .noeuroglyph
+	jmp short .haveeurogrf
+
+.nounicode:
 	// .grfs or the above may have modified the font, calculate the new width
 	push es
 	call [setcharwidthtablefn]
@@ -1024,6 +1043,7 @@ postinfoapply:
 	cmp byte [charwidthtables+0x7e],1
 	ja .haveeurogrf
 
+.noeuroglyph:
 	mov dword [currsymsbefore+CURR_EURO*4],"EUR "
 	mov dword [currsymsafter+CURR_EURO*4]," EUR"
 

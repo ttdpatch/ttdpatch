@@ -12,6 +12,7 @@
 #include <newvehdata.inc>
 #include <house.inc>
 #include <flagdata.inc>
+#include <font.inc>
 
 extern tramtracks,numtramtracks
 extern newonewayarrows,numonewayarrows
@@ -54,7 +55,8 @@ extern vehtypedataptr,textclass_maxid,restoretranstexts
 extern currtextlist,currmultis,curropts,currsymsbefore,currsymsafter,eurointr
 extern languagesettings
 extern cargotowngrowthtype,cargotowngrowthmulti,cargocallbackflags,setindustileaccepts
-extern setinduproducedcargos,setindustryacceptedcargos
+extern setinduproducedcargos,setindustryacceptedcargos,industrydestroymultis
+extern fonttables,allocfonttable,hasaction12
 
 uvarb action1lastfeature
 
@@ -1087,6 +1089,7 @@ grfcalltable action3storeid, dd addr(action3storeid_table.generic)
 	mov [stsetids+ebx*stsetid_size+stsetid.setid],al
 
 	// set stationid.gameid in stationidgrfmap
+	push ebp
 	mov bh,al
 	xor eax,eax
 	mov ebp,[curspriteblock]
@@ -1107,7 +1110,7 @@ grfcalltable action3storeid, dd addr(action3storeid_table.generic)
 	add al,1
 	jnc .searchnext
 	pop esi
-.nextstation:
+	pop ebp
 	loop .getstations
 	ret
 
@@ -1203,9 +1206,13 @@ checklanguage:
 	ret
 
 .oneid:
+	and al,0x7f
+	cmp al,0x7f
+	je .right
 	xor cl,al
 	and cl,0x3f
 	jnz .notright
+.right:
 	stc
 .notright:
 	ret
@@ -1797,34 +1804,6 @@ skipspriteif:
 .ok:
 	mov edi,ebx
 	ret
-#if 0
-	mov ebx,eax
-	sub al,256-MAXLABELS
-	jb .nolabel
-
-	bt [ebp+spriteblock.labelsdef],eax
-	jc .label
-
-.nolabel:
-	add edi,ebx
-	ret
-
-.label:
-	bts dword [didscanlabels],0
-	jc .didscan
-
-	pusha
-	mov edx,ebp
-	push dword [spritehandlertable]
-	mov dword [spritehandlertable],spritescanaction
-	call procgrffile
-	pop dword [spritehandlertable]
-	popa
-
-.didscan:
-	mov edi,[curlabels+eax*4]
-	ret
-#endif
 
 
 	// *** action 8 handler ***
@@ -1913,8 +1892,7 @@ replacettdsprite:
 	jnz .allownewsprites
 
 	cmp edx,totalsprites
-	jmp .spritenumok
-//	jbe .spritenumok	ONLY FOR TESTING
+	jbe .spritenumok
 .spritenumbad:
 	mov dh,INVSP_SPNUM
 .bad:
@@ -2914,17 +2892,8 @@ newtownnameparts:
 action10:
 	// Four extra bytes in front of this sprite data are used this way:
 	// - unused
-#if 0
-checklabel:
-	mov ebx,edx
-	mov dh,INVSP_INVLABEL
-	sub al,256-MAXLABELS
-	jb newcargoid.invalid
 
-	bts [ebx+spriteblock.labelsdef],eax
-	mov [curlabels+eax*4],edi
-	ret
-#endif
+	// nothing to do here, all handled by action 7
 
 
 	// *** action 11 handler ***
@@ -3054,6 +3023,91 @@ skipgrfsounds:
 	ret
 
 
+	// Action 12 handler
+action12:
+
+loadcharset:
+	mov ebp,eax		// <num-def>
+
+.nextset:
+	push ebp
+	xor eax,eax
+	lodsb			// <font>
+	cmp al,3
+	jae near .badfont
+	mov ebx,eax
+	lodsb			// <num-char>
+	mov ecx,eax
+	add ax,di
+	cmp ax,[edx+spriteblock.numsprites]
+	ja .toomany
+
+	lodsw			// <base-char>
+	mov ebp,eax
+	movzx eax,ah
+	call allocfonttable
+	shl ebx,8	// 256 tables per font
+	mov ebx,[eax+ebx*4]
+
+	mov eax,ebp
+	and eax,0x7f
+	dec ecx
+	jl .badblock	// defining 0 characters?
+	add eax,ecx
+	jc .badblock	// crossed 256-byte boundary (very bad)
+	js .badblock	// crossed 128-byte boundary (against specs)
+	inc ecx
+
+	// now ebx->fontinfo ebp=base-char ecx=num-char
+
+	push ecx
+	call insertactivespriteblock
+	pop ecx
+	cmp edi,byte -1
+	je .bail
+	and ebp,0xff
+
+.nextchar:
+	mov [ebx+ebp*fontinfo_size+fontinfo.sprite],ax
+	inc eax
+	inc ebp
+	loop .nextchar
+
+	pop ebp
+	dec ebp
+	jnz .nextset
+	ret
+
+.bail:
+	pop eax
+	ret
+
+.toomany:
+	mov dl,INVSP_BLOCKTOOLARGE
+	jmp short .bad
+.badfont:
+	mov dl,INVSP_BADFONT
+.bad:
+	pop eax
+	jnb newcargoid.invalid
+.badblock:
+	mov dl,INVSP_NOTINBLOCK
+	jmp .bad
+
+skipcharset:
+	mov byte [hasaction12],1
+	mov ecx,eax
+.nextset:
+	inc esi		// skip <font>
+	lodsb		// <num-char>
+	add edi,eax
+	inc esi		// skip <base-char>
+	inc esi		// (two bytes)
+	loop .nextset
+	ret
+
+
+
 //
 // Action 0 property info
 //
@@ -3139,7 +3193,7 @@ defvehdata specindustiledata
 defvehdata spclindustiledata, F,F,F,F,F,B,B,w,B,B	// 08..11
 
 defvehdata specindustrydata
-defvehdata spclindustrydata, F,H,F, B,t,t,t,B,F,F,B,B,B	,F,F,B,B,F,d,t, d,d,d,t,d,B,B		// 08..22
+defvehdata spclindustrydata, F,H,F, B,t,t,t,B,F,F,B,B,B	,F,F,B,B,F,d,t, d,d,d,t,d,B,B,D		// 08..23
 
 defvehdata speccargodata
 defvehdata spclcargodata, F,t,t,t,t,t,w,B,B,B,F,F,F,F,F,d,B,w,B	// 08..1a
@@ -3198,6 +3252,7 @@ var spriteinitializeaction
 	dd addr(newtownnameparts)	// F: specify new town name styles
 	dd 0				//10: define label
 	dd addr(initgrfsounds)		//11: define sounds
+	dd skipcharset			//12: define glyphs
 
 numspriteactions equ (addr($)-spriteinitializeaction)/4
 spritegrfidcheckofs equ numspriteactions*4
@@ -3224,6 +3279,7 @@ var spriteactivateaction
 	dd 0				// F: specify new town name styles
 	dd 0				//10: define label
 	dd addr(skipgrfsounds)		//11: define sounds
+	dd loadcharset			//12: define glyphs
 
 	dd spriteactnogrfid
 
@@ -3249,6 +3305,7 @@ var spritetestactaction
 	dd 0				// F: specify new town name styles
 	dd 0				//10: define label
 	dd addr(skipgrfsounds)		//11: define sounds
+	dd skipcharset			//12: define glyphs
 
 	dd spriteactnogrfid
 
@@ -3274,6 +3331,7 @@ var spritesloadedaction
 	dd 0				// F: specify new town name styles
 	dd 0				//10: define label
 	dd addr(skipgrfsounds)		//11: define sounds
+	dd skipcharset			//12: define glyphs
 
 	dd -1				// never check for valid GRFID
 
@@ -3299,6 +3357,7 @@ var spritereserveaction
 	dd 0				// F: specify new town name styles
 	dd 0				//10: define label
 	dd addr(skipgrfsounds)		//11: define sounds
+	dd skipcharset			//12: define glyphs
 
 	dd -1				// never check for valid GRFID
 
@@ -3489,6 +3548,7 @@ var industrydata
 	dd fundchances-4					// 20
 	dd industrycallbackflags-1				// 21
 	dd industrycallbackflags2-1				// 22
+	dd industrydestroymultis-4				// 23
 
 var cargodata
 	dd addr(setcargobit),newcargotypenames,newcargounitnames	//08..0a
@@ -3593,8 +3653,6 @@ uvard curgrfhouselist,256/4
 uvard curgrftownnames,128
 uvard curgrfindustilelist,256/4
 uvard curgrfindustrylist,NINDUSTRIES/4 + 1
-// uvard curlabels,MAXLABELS
-// uvard didscanlabels
 uvard globalidoffset
 
 

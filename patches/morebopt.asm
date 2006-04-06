@@ -11,6 +11,7 @@
 extern cleartilefn,curplayerctrlkey,locationtoxy,morebuildoptionsflags
 extern patchflags
 extern pushownerontextstack
+extern industrydestroymultis
 
 var morestationspritebase, dw -1
 uvard nummorestationgraphics
@@ -131,9 +132,18 @@ removeindustry:
 	clc
 	ret
 .doit:
+	testflags newindustries
+	jc .doit_newcost
 	mov edi,[housermbasecost]
 	imul edi, 1000
 .editormode:
+	stc
+	ret
+
+.doit_newcost:
+	movzx edi,byte [esi+industry.type]
+	mov edi,[industrydestroymultis+edi*4]
+	imul edi,[housermbasecost]
 	stc
 	ret
 ;endp removeindustry

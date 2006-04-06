@@ -145,7 +145,9 @@
 	patchproc feederservice,gradualloading,canmodifygraphics,fifoloading, patchenterstation
 	patchproc autorenew,canmodifygraphics,pathbasedsignalling, patchtrainenterdepot
 	patchproc autorenew,canmodifygraphics, patchautorenew
-	patchproc canmodifygraphics, patchmovespriteinfo
+
+		// enhancetunnels requires access to sprite 4898
+	patchproc canmodifygraphics,enhancetunnels, patchmovespriteinfo
 
 	patchproc electrifiedrail, patchelectrifiedrail		// must be after patchunifiedmaglev
 	patchproc locomotiongui, patchlocomotiongui		// must be before patchstationgraphics
@@ -153,7 +155,7 @@
 	patchproc newstations, patchbusstop		// need stuff set via patchstationgraphics!
 
 		// all patch bits that use overrideembeddedsprite must be listed below
-	patchproc generalfixes,canmodifygraphics,morecurrencies,enhancegui, patchsetspritecache	// must be after patchmovespriteinfo
+	patchproc generalfixes,canmodifygraphics,morecurrencies,enhancegui,enhancetunnels, patchsetspritecache	// must be after patchmovespriteinfo
 	patchproc canmodifygraphics, patchtranslation		// must be before patchsetnewgraphics
 	patchproc canmodifygraphics, patchsetnewgraphics	// must be after patchsetspritecache
 	patchprocandor canmodifygraphics,NOTBIT(MISCMODS_SMALLSPRITELIMIT),, patchextendedspritelimit

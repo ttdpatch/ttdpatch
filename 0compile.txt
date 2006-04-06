@@ -24,7 +24,7 @@ WINTTDX		If 0, compile for the DOS version.  If 1, compile
 		algebra with it, e.g. 16-8*WINTTDX works as expected.
 
 These macros are always defined, but have different values.  Therefore, 
-don't test the with #ifdef DEBUG which will always be true, but use 
+don't test them with #ifdef DEBUG which will always be true, but use 
 #if DEBUG or #if !DEBUG to test the #define value.
 
 
@@ -36,9 +36,9 @@ the following software:
 
 - The Cygwin distribution, from http://www.cygwin.com/
   In particular, you need GNU Make (3.80 or higher), gcc, the binutils 
-  (version 2.16 or higher), the fileutils, grep, gawk, nasm (but use
-  nasm.exe from the nasm/ directory!), Perl 5.8.0 or higher, unzip, 
-  upx (optional), and perhaps some other Cygwin packages.
+  (version 2.16 or higher), the coreutils, grep, nasm (but use nasm.exe from
+  the nasm/ directory!), Perl 5.8.0 or higher, upx (optional; see below),
+  and perhaps some other Cygwin packages.
   Of course you also need the prerequisites for each of the above packages.
   Let me know if you find you need another package that I haven't listed.
 - Borland C++ for DOS 3.1 or higher to compile the DOS version
@@ -134,6 +134,12 @@ make remake	force recompilation (use this when you change between
 
 There are a few other pseudo-targets but these are the most important
 ones.  Study the makefile for enlightenment.
+
+By default, the make process is "terse", i.e. it will only show the main
+command type and the target, not the entire command line.  This makes it
+easier to spot warning messages among all the output.  If you want to see
+the command lines used to compile each file, switch to verbose mode by
+adding "V=1" to the make command line, e.g. "make V=1 all".
 
 Running it
 ==========

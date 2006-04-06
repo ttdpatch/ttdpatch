@@ -10,57 +10,74 @@
 extern currscreenupdateblock,drawsplittextfn,drawspritefn,miscmodsflags
 extern numactsprites
 
-// Todolist:
-//
 
-// 0, 1, 2 or 3 for trains, road vehicles, ships or planes
-// 4 train station sets
-// 5 canals
-// 6 bridges (unused)
-// 7 newhouses
+vard exsfeatureuseseparatesprites, 00010001111b
 
-exsfeaturemaxspritesperblockstandard equ 0x3FFF	// the standard region
-exsfeaturemaxspritesperblockextrachunks equ (0x3FFF - baseoursprites)
+// maximum sprites per extended block
+%assign exsfeaturemaxspritesperblockextrachunks 0x3FFF - baseoursprites
 
-var exsfeatureuseseparatesprites, dd 00010001111b
+// Number of sprites in the various extended sprite blocks
+%assign EXTCOUNT_OTHER	exsfeaturemaxspritesperblockextrachunks
+%assign EXTCOUNT_TRAINS	exsfeaturemaxspritesperblockextrachunks
+%assign EXTCOUNT_RVS	exsfeaturemaxspritesperblockextrachunks
+%assign EXTCOUNT_SHIPS	8724
+%assign EXTCOUNT_PLANES	8724
+%assign EXTCOUNT_HOUSES	8724
 
-align 4
+// Base sprites in the linear 0..65535 sprite space
+%assign EXTBASE_OTHER	baseoursprites
+%assign EXTBASE_TRAINS	EXTBASE_OTHER+ EXTCOUNT_OTHER+1
+%assign EXTBASE_RVS	EXTBASE_TRAINS+EXTCOUNT_TRAINS+1
+%assign EXTBASE_SHIPS	EXTBASE_RVS+   EXTCOUNT_RVS+1
+%assign EXTBASE_PLANES	EXTBASE_SHIPS+ EXTCOUNT_SHIPS+1
+%assign EXTBASE_HOUSES	EXTBASE_PLANES+EXTCOUNT_PLANES+1
 
-var exsfeaturemaxspritesperblock
-	dd exsfeaturemaxspritesperblockstandard+1*exsfeaturemaxspritesperblockextrachunks  	// 0 trains
-	dd exsfeaturemaxspritesperblockstandard+2*exsfeaturemaxspritesperblockextrachunks	// 1 road
-	dd exsfeaturemaxspritesperblockstandard+3*exsfeaturemaxspritesperblockextrachunks  	// 2 ships
-	dd exsfeaturemaxspritesperblockstandard+4*exsfeaturemaxspritesperblockextrachunks	// 3 planes
-	dd exsfeaturemaxspritesperblockstandard 						// 4 stations
-	dd exsfeaturemaxspritesperblockstandard 						// 5 canals
-	dd exsfeaturemaxspritesperblockstandard 						// 6 bridges (unused)
-	dd exsfeaturemaxspritesperblockstandard+5*exsfeaturemaxspritesperblockextrachunks  	// 7 newhouses
-	dd exsfeaturemaxspritesperblockstandard 						// 8 specialvars
-	dd exsfeaturemaxspritesperblockstandard 						// 9 industry tiles
-	dd exsfeaturemaxspritesperblockstandard 						// 10 industries
-	dd exsfeaturemaxspritesperblockstandard 						// 11 cargoes
-	dd 0											// 12 sounds
+// Last sprite used, must be <65535
+%assign EXTBASE_END	EXTBASE_HOUSES+EXTCOUNT_HOUSES+1
+
+// Show counts and bases (non-fatal warning)
+//%error Counts: EXTCOUNT_OTHER EXTCOUNT_TRAINS EXTCOUNT_RVS EXTCOUNT_SHIPS EXTCOUNT_PLANES EXTCOUNT_HOUSES
+//%error Bases: EXTBASE_OTHER EXTBASE_TRAINS EXTBASE_RVS EXTBASE_SHIPS EXTBASE_PLANES EXTBASE_HOUSES EXTBASE_END
+
+%if EXTBASE_END>=65535
+	%error "Extended sprite limit too large (EXTBASE_END sprites)"
+%endif
+
+vard exsfeaturemaxspritesperblock
+	dd EXTBASE_TRAINS+EXTCOUNT_TRAINS	// 0 trains
+	dd EXTBASE_RVS+   EXTCOUNT_RVS		// 1 road
+	dd EXTBASE_SHIPS+ EXTCOUNT_SHIPS 	// 2 ships
+	dd EXTBASE_PLANES+EXTCOUNT_PLANES	// 3 planes
+	dd EXTBASE_OTHER+ EXTCOUNT_OTHER	// 4 stations
+	dd EXTBASE_OTHER+ EXTCOUNT_OTHER 	// 5 canals
+	dd EXTBASE_OTHER+ EXTCOUNT_OTHER 	// 6 bridges (unused)
+	dd EXTBASE_HOUSES+EXTCOUNT_HOUSES	// 7 newhouses
+	dd 0			 		// 8 specialvars
+	dd EXTBASE_OTHER+ EXTCOUNT_OTHER 	// 9 industry tiles
+	dd EXTBASE_OTHER+ EXTCOUNT_OTHER 	// 10 industries
+	dd EXTBASE_OTHER+ EXTCOUNT_OTHER 	// 11 cargoes
+	dd 0					// 12 sounds
 	checkfeaturesize exsfeaturemaxspritesperblock, 4
+endvar
 
-align 4
-var exsfeaturetospritebaseoffsets
-	dd exsfeaturemaxspritesperblockstandard+0*exsfeaturemaxspritesperblockextrachunks 	// 0 trains
-	dd exsfeaturemaxspritesperblockstandard+1*exsfeaturemaxspritesperblockextrachunks 	// 1 road
-	dd exsfeaturemaxspritesperblockstandard+2*exsfeaturemaxspritesperblockextrachunks 	// 2 ships
-	dd exsfeaturemaxspritesperblockstandard+3*exsfeaturemaxspritesperblockextrachunks	// 3 planes
-	dd baseoursprites									// 4 stations
-	dd baseoursprites									// 5 canals
-	dd baseoursprites									// 6 bridges (unused)
-	dd exsfeaturemaxspritesperblockstandard+4*exsfeaturemaxspritesperblockextrachunks	// 7 newhouses
-	dd 0											// 8 specialvars
-	dd baseoursprites									// 9 industry tiles
-	dd baseoursprites									// 10 industries
-	dd baseoursprites									// 11 cargoes
-	dd 0											// 12 sounds
+vard exsfeaturetospritebaseoffsets
+	dd EXTBASE_TRAINS	// 0 trains
+	dd EXTBASE_RVS		// 1 road
+	dd EXTBASE_SHIPS	// 2 ships
+	dd EXTBASE_PLANES	// 3 planes
+	dd EXTBASE_OTHER	// 4 stations
+	dd EXTBASE_OTHER	// 5 canals
+	dd EXTBASE_OTHER	// 6 bridges (unused)
+	dd EXTBASE_HOUSES	// 7 newhouses
+	dd 0			// 8 specialvars
+	dd EXTBASE_OTHER	// 9 industry tiles
+	dd EXTBASE_OTHER	// 10 industries
+	dd EXTBASE_OTHER	// 11 cargoes
+	dd 0			// 12 sounds
 	checkfeaturesize exsfeaturetospritebaseoffsets, 4
+endvar
 
-align 4
-var exsnumactspritesptrlist
+vard exsnumactspritesptrlist
 	dd numactspritesvehtrains	// 0 trains
 	dd numactspritesvehrv		// 1 road
 	dd numactspritesvehships	// 2 ships
@@ -75,6 +92,7 @@ var exsnumactspritesptrlist
 	dd numactsprites		// 11 cargoes
 	dd 0				// 12 sounds
 	checkfeaturesize exsnumactspritesptrlist, 4
+endvar
 
 uvard numactspritesvehtrains,1,z
 uvard numactspritesvehrv,1,z
@@ -97,7 +115,7 @@ exsgetspritecount:
 	test dword [miscmodsflags],MISCMODS_SMALLSPRITELIMIT
 	jnz .small
 	// well, if you get overexited, this can result in a crash when to much memory seems to be allocated
-	mov ebx, 16384 + 5*exsfeaturemaxspritesperblockextrachunks + 100  // this should be calculated!
+	mov ebx, EXTBASE_END + 1
 	ret
 .small:
 	mov ebx, 16384

@@ -23,7 +23,7 @@ extern mostrecentspriteblock,processtileaction2,randomfn
 extern randomindustiletrigger,randomindustrytrigger,redrawtile,setmousetool
 extern specialerrtext1,substindustries
 extern texthandler,mostrecentgrfversion,drawsplittextfn
-extern lookuptranslatedcargo
+extern lookuptranslatedcargo,miscgrfvar
 
 
 // --- Industry tile stuff ---
@@ -1289,6 +1289,7 @@ uvarb industrycallbackflags,NINDUSTRIES
 // callback flags, second set
 // Bit	Var. 0C	Callback
 // 0	3A	Show additional info in industry window
+// 1	3B	control special effects
 uvarb industrycallbackflags2,NINDUSTRIES
 
 // helper array to hold incoming cargo amounts
@@ -1302,6 +1303,8 @@ endstruc_32
 
 // amount of cargo accepted, but not processed by industries
 uvard industryincargos,2*90
+
+uvard industrydestroymultis,NINDUSTRIES
 
 // Macro to get back the industry ID from its address. It assumes the pointer is actually pointing into the industry array.
 %macro getinduidfromptr 1
@@ -1478,6 +1481,12 @@ restoreindustrydata:
 	and dword [industryinputmultipliers2+0xc*4],0
 	and dword [industryinputmultipliers3+0xc*4],0
 
+// all destroy multipliers are 1000 by default
+	mov edi,industrydestroymultis
+	mov eax,1000
+	mov cl,NINDUSTRIES
+	rep stosd
+
 // ...default industries of the climate
 	movzx eax,byte [climate]
 	mov ecx,[defaultindustriesofclimate+8*eax]
@@ -1633,6 +1642,9 @@ reloadoldindustry:
 // callback flags are zero by default
 	mov byte [industrycallbackflags+ebx],0
 	mov byte [industrycallbackflags2+ebx],0
+
+// destruction cost multiplier is 1000 by default
+	mov dword [industrydestroymultis+4*ebx],1000
 	ret
 
 // copy every property between two slots
@@ -1683,11 +1695,15 @@ copynewindustrydata:
 	mov edx,[fundchances+eax*4]
 	mov [fundchances+eax*4],edx
 
-// ...and callback flags
+// ...callback flags...
 	mov dl,[industrycallbackflags+eax]
 	mov [industrycallbackflags+ebx],dl
 	mov dl,[industrycallbackflags2+eax]
 	mov [industrycallbackflags2+ebx],dl
+
+// ...and destruction cost multipier
+	mov edx,[industrydestroymultis+eax*4]
+	mov [industrydestroymultis+ebx*4],edx
 	ret
 
 // Called to set the substitute type for an industry. This function assigns
@@ -2524,9 +2540,29 @@ global cutlmilltrees
 cutlmilltrees:
 	movzx ebx,byte [esi+industry.type]
 	test byte [industryspecialflags+ebx*4],2
-	jnz .dontskip
+	jz .skip
+	test byte [industrycallbackflags2+ebx],2
+	jz .original
+
+	xchg eax,ebx
+	mov byte [callback_extrainfo],1
+	mov byte [grffeature],0xa
+	mov byte [curcallback],0x3b
+	call getnewsprite
+	mov byte [curcallback],0
+	xchg eax,ebx
+	jc .original
+	test ebx,ebx
+	jz .skip
+	ret
+
+.original:
+	test word [esi+industry.prodcounter],0x01FF
+	jz .noskip
+
+.skip:
 	pop ebx
-.dontskip:
+.noskip:
 	ret
 
 // called to decide whether a watered tile is suitable for an industry
@@ -3598,6 +3634,131 @@ getincargo:
 	pop edx
 	ret
 
+// get parametrized variable 60 - type of tile at given offset
+// the parameter in ah contains the X offset in the low nibble and
+// the Y offset in the high nibble
+// the return value is
+// - 00xxh if the tile is defined in the current GRF with ID xx
+// - FFxxh if the tile is an old type with ID xx
+// - FFFEh if the tile is defined in another GRF
+// - FFFFh if the tile doesn't belong to the current industry
+global getindutiletypeatoffset
+getindutiletypeatoffset:
+// get the XY of the tile by adding the given offset to industry.XY
+	mov cl,ah
+	and ecx,0xF
+	mov ch,ah
+	shr ch,4
+	add cx,[esi+industry.XY]
+
+// check if it's an industry tile
+	mov al,[landscape4(cx,1)]
+	and al,0xF0
+	cmp al,0x80
+	jne .notindustry
+
+// check if it belongs to the current industry
+	movzx eax,byte [landscape2+ecx]
+	imul eax,industry_size
+	add eax,[industryarrayptr]
+	cmp eax,esi
+	jne .notindustry
+
+// look at the "new type" field - zero means it's an old tile
+	movzx eax,byte [landscape3+ecx*2+1]
+	test eax,eax
+	jz .oldtype
+
+// check if graphics are available for the type
+// if not, report the substitute type instead
+	cmp byte [industiledataidtogameid+eax*8+industilegameid.gameid],0
+	je .oldtype_nooverride
+.gotslot:
+// does it come from the current GRF?
+	mov ecx,[mostrecentspriteblock]
+	mov ecx,[ecx+spriteblock.grfid]
+	cmp ecx,[industiledataidtogameid+eax*8+industilegameid.grfid]
+	jne .othergrf
+
+// everything is OK and the higher bytes of EAX is already zero,
+// so all we need to do is loading the setID into AL
+	mov al,[industiledataidtogameid+eax*8+industilegameid.setid]
+	ret
+
+.notindustry:
+	mov eax,0xFFFF
+	ret
+
+// it's an old type, but may still be overridden
+.oldtype:
+	movzx eax, byte [landscape5(cx,1)]
+	movzx ecx,byte [industileoverrides+eax]
+	test ecx,ecx
+	jnz .overridden
+// it's not overridden, so we're almost done
+	mov ah,0xFF
+	ret
+
+// The tile is overridden, but we only now the gameID of the overriding type.
+// Look up the gameid to find out the GRFID and setID
+.overridden:
+	mov eax,1
+.nextslot:
+	cmp byte [industiledataidtogameid+eax*8+industilegameid.gameid],cl
+	je .gotslot
+	inc eax
+	cmp al,[lastextraindustiledata]
+	jbe .nextslot
+
+	ud2
+
+// return the old type since the new one isn't available
+.oldtype_nooverride:
+	movzx eax, byte [landscape5(cx,1)]
+	mov ah,0xFF
+	ret
+
+// the tile is defined in another GRF, so we can't return anything useful for it
+.othergrf:
+	mov eax,0xFFFE
+	ret
+
+global getindutilerandombits
+getindutilerandombits:
+// get the XY of the tile by adding the given offset to industry.XY
+	mov cl,ah
+	and ecx,0xF
+	mov ch,ah
+	shr ch,4
+	add cx,[esi+industry.XY]
+
+// check if it's an industry tile
+	mov al,[landscape4(cx,1)]
+	and al,0xF0
+	cmp al,0x80
+	jne .notindustry
+
+// check if it belongs to the current industry
+	movzx eax,byte [landscape2+ecx]
+	imul eax,industry_size
+	add eax,[industryarrayptr]
+	cmp eax,esi
+	jne .notindustry
+
+// look at the "new type" field - zero means it's an old tile
+	movzx eax,byte [landscape3+ecx*2+1]
+	test eax,eax
+	jz .oldtype
+
+	movzx eax,byte [landscape6+ecx]
+	ret
+
+.notindustry:
+.oldtype:
+	// old types don't use random graphics
+	xor eax,eax
+	ret
+
 // a production instruction returned by the production callback
 // it contains three values to subtract from the three waiting cargo types,
 // two values to add the two outgoing cargo types, plus a boolean telling whether to
@@ -3637,6 +3798,7 @@ doproductioncallback:
 	mov [getincargo_div],bp
 	mov byte [grffeature],0xa
 	and word [callback_extrainfo+1],0
+	mov byte [callback_extrainfo+3],0
 
 // Now everything is set up for getnewsprite. We'll keep every needed register untouched
 // during the loop, so we don't need to refill them every time
@@ -3684,9 +3846,11 @@ doproductioncallback:
 // increase the loop counter for the GRF
 	inc word [callback_extrainfo+1]
 // repeat if the GRF asks so
-	cmp byte [eax+productioninstruction.call_again],1
+	mov al, [eax+productioninstruction.call_again]
+ 	mov byte [callback_extrainfo+3],al
+	test al,al
 	pop eax
-	je .again
+	jnz .again
 
 // invalidate the corresponding industry window
 	mov ebx,esi
@@ -4403,4 +4567,39 @@ industryrandomsound:
 	mov [mostrecentspriteblock],eax
 	call [randomfn]				//overwritten
 	cmp ax,0x1249				//ditto
+	ret
+
+// Called when TTD tries to plant fields around a farm
+// use a callback to control this event
+// in:	esi->industry
+// out:	ax<=0x2000 to allow planting
+//	ax>0x2000 to disallow planting
+// safe: eax, ???
+global plantrandomfields
+plantrandomfields:
+	call [randomfn]				// overwritten
+	mov [miscgrfvar],eax
+	movzx eax, byte [esi+industry.type]
+	test byte [industrycallbackflags2+eax],2
+	jz .original
+	mov byte [callback_extrainfo],0
+	mov byte [grffeature],0xa
+	mov byte [curcallback],0x3B
+	call getnewsprite
+	mov byte [curcallback],0
+	jc .original
+	and dword [miscgrfvar],0
+	test eax,eax
+	jz .deny
+
+	xor eax,eax
+	ret
+
+.deny:
+	or eax,-1
+	ret
+
+.original:
+	xor eax,eax
+	xchg eax,[miscgrfvar]
 	ret

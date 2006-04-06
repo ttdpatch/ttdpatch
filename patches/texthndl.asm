@@ -7,10 +7,11 @@
 #include <grf.inc>
 #include <ptrvar.inc>
 #include <flags.inc>
+#include <bitvars.inc>
 
 extern curspriteblock,customtextptr,gethousetexttable,getmiscgrftable
 extern getstationtexttable,gettextintableptr,ntxtptr
-extern systemtextptr,mainstringtable,getextratranstable
+extern systemtextptr,mainstringtable,getextratranstable,hasaction12
 extern setelrailstexts,patchflags,applycurrencychanges,ttdtexthandler
 
 uvard ourtext_ptr, ourtext(last)-ourtext(base)
@@ -22,6 +23,9 @@ uvard textutf8flag			// 32 bits of UTF-8-ness for each recursion level
 uvard continueflag			// same but just specifying whether we've check UTF-8-ness or not
 uvard textprocchar			// handler to process one character (UTF-8 or regular)
 uvard textspechandler			// TTD's handlers for special text codes
+
+uvard fonttables,3*256			// Pointer to font info for sizes normal,small,large
+
 
 // in:  ax=text ID
 //	text ID & 07ff is the offset into an array of pointers for TTD
@@ -209,7 +213,9 @@ textprocessing:
 	jmp short .gotchar
 
 .trlchar:	// invalid UTF-8 start character, use it as TTD string code
-#if UNICODE
+	cmp byte [hasaction12],0
+	je .gotchar
+
 	// when using unicode fonts, translate old codes to allow access
 	// to full latin-1 supplement block (U+00A0..U+00FF)
 	cmp al,0x9e
@@ -217,7 +223,12 @@ textprocessing:
 	cmp al,0xb8
 	ja .gotchar
 
-	mov al,[.chartrl+(eax-0x9e)*2]
+	mov ax,[.chartrl+(eax-0x9e)*2]
+
+	// make sure the block exists
+	movzx ebx,ah
+	cmp dword [fonttables+ebx*4],0	// check normal font; if it exists all of them do
+	je storetextcharacter.badchar
 
 section .dataw
 .chartrl:
@@ -238,7 +249,7 @@ section .dataw
 	dw 0xE0B7	// B7 Plane symbol
 	dw 0xE0B8	// B8 Ship symbol
 section .text
-#endif
+
 	jmp short .gotchar
 
 .procnonutf8:
@@ -288,20 +299,22 @@ storetextcharacter:
 	cmp eax,0x7f		// ASCII?
 	jbe .gotutf8code
 
-	mov edx,eax		// edx: all-but-last sequence bytes
-	and edx,0x3f		// LSB of eax will be last byte in sequence
+	mov dl,al		// edx: all-but-last sequence bytes
+	and dl,~0x40		// LSB of eax will be last byte in sequence
+	or dl,0x80
+	movzx edx,dl		// (now edx=eax[0:5] with bit 7 set)
 
 	// check how long the sequence will be
-	// bl is the high-bit mask for the start-of-sequence byte
-	mov bl,011100000b	// for U+0080..U+07FF, use two-byte sequence
+	// bh is the high-bit mask for the start-of-sequence byte
+	mov bh,011100000b	// for U+0080..U+07FF, use two-byte sequence
 	cmp eax,0x7ff
 	jbe .nextutf8byte
 
-	mov bl,011110000b	// for U+0800..U+FFFF, use three-byte sequence
+	mov bh,011110000b	// for U+0800..U+FFFF, use three-byte sequence
 	cmp eax,0xffff
 	jbe .nextutf8byte
 
-			// U+10000 and above not supported (beyond the BMP)
+.badchar:		// U+10000 and above not supported (beyond the BMP)
 	mov eax,' '	// substitute a space; FIXME: use a "invalid char" code here
 	jmp .storeutf8
 
@@ -318,10 +331,10 @@ storetextcharacter:
 	ud2
 .lastutf8byte:
 	or eax,edx
-	test al,bl	// check that eax has no high bits set
+	test al,bh	// check that eax has no high bits set
 	jnz .die	// if this happens, something is wrong in the algorithm above
-	add bl,bl	// remove lowest high bit from bl
-	or al,bl	// and use bl to make al the sequence start byte
+	add bh,bh	// remove lowest high bit from bl
+	or al,bh	// and use bl to make al the sequence start byte
 
 .gotutf8code:	// now eax holds the 1-byte ASCII code or
 		// 2-3 bytes of the UTF-8 sequence in LSB->MSB order

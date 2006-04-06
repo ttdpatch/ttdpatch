@@ -211,6 +211,7 @@ codefragment oldcutlmilltrees
 
 codefragment newcutlmilltrees
 	icall cutlmilltrees
+	setfragmentsize 14
 
 codefragment oldinducheckempty
 	cmp bl,0x38
@@ -483,6 +484,11 @@ codefragment oldenddrawindustrywindow,7
 	pop cx
 	db 0xe9
 
+codefragment oldplantrandomfields,-5
+	cmp ax,0x2000
+	ja $+2+0x2c
+
+codefragment_call newplantrandomfields, plantrandomfields
 endcodefragments
 
 ext_frag findCreateNewRandomIndustry,oldindustryclosedown
@@ -625,6 +631,8 @@ patchnewindustries:
 	mov eax,[ophandler+(8*8)]
 	mov dword [eax+0x14],correctexactalt.chkslope
 	patchcode olddrawindustryfundation,newdrawindustryfundation,2-WINTTDX,2
+
+	patchcode plantrandomfields
 	ret
 
 // shares a code fragment

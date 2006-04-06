@@ -26,7 +26,7 @@ extern stopTramOvertaking, rvcheckovertake, patchflags, editTramMode,stdRoadElem
 extern tramtracks,saTramConstrWindowElemList,tramtracksprites
 extern setTramXPieceTool,setTramYPieceTool, drawTramTracksInTunnel, addgroundsprite
 extern bTempNewBridgeDirection, checkIfThisShouldBeATramStop, addsprite,paRoadConstrWinClickProcs
-extern drawTramTracksUnderBridge
+extern drawTramTracksUnderBridge, checkIfTramsAndKeepTracksUnder, newSendVehicleToDepotAuto
 
 extern roadmenudropdown,roadmenuelemlisty2,roadDropdownCode,createRoadConstructionWindow
 
@@ -284,12 +284,6 @@ begincodefragments
 		setfragmentsize 7
 	//------------------------------------------------------------
 	
-	codefragment oldFindRoadDepot, 35
-		mov     bp, 100h
-	codefragment newFindRoadDepot
-		icall	insertTramTracksIntoFindRoadDepot
-		setfragmentsize 8
-    
 	codefragment oldClass9DrawStart, 6
 		retn
 		test	dh, 0f0h
@@ -335,6 +329,44 @@ begincodefragments
 		icall	drawTramBridgeMiddlePart
 		setfragmentsize 8
 
+	codefragment bridgeRemovalKeepTramsUnderOld
+#if WINTTDX
+		and     byte [landscape4(di)], 0Fh
+		or      byte [landscape4(di)], dh
+		mov     byte [landscape5(di)], dl
+#else
+		// same but different order of prefixes
+		db 0x67,0x64,0x80,0x25,0x0f
+		db 0x67,0x64,0x08,0x35
+		db 0x67,0x65,0x88,0x15
+#endif
+
+
+	codefragment bridgeRemovalKeepTramsUnderNew
+		icall	checkIfTramsAndKeepTracksUnder
+	#if WINTTDX
+		setfragmentsize 19
+	#else
+		setfragmentsize 13
+	#endif
+
+	codefragment vehicleToDepotOld, -5
+		mov	edx, ebx
+		pop	cx
+		pop	ebx
+		pop	ax
+
+	codefragment vehicleToDepotOld2, 10
+		and     al, 5Fh
+		cmp     al, 42h
+
+	codefragment vehicleToDepotNew
+		icall	newSendVehicleToDepot
+		setfragmentsize	7
+	
+	codefragment vehicleToDepotNew2
+		icall	newSendVehicleToDepotAuto
+		setfragmentsize	7
     
 endcodefragments
 
@@ -362,7 +394,9 @@ patchtrams:
 
 	patchcode oldStartRVProcessing, newStartRVProcessing, 1, 1
 	patchcode oldEndRVProcessing, newEndRVProcessing, 3, 4
+
 	patchcode oldClass2Chunk1, newClass2Chunk1, 1, 1
+
 	patchcode stopTownFromSeeingTramsOld, stopTownFromSeeingTramsNew, 1, 1
 	patchcode stopTownFromSeeingTramsOld2, stopTownFromSeeingTramsNew, 1, 1
 	patchcode oldGetTileHeightMapChunk, newGetTileHeightMapChunk, 1, 1
@@ -381,18 +415,19 @@ patchtrams:
 	patchcode drawTramTracksUnderBridgeOld, drawTramTracksUnderBridgeNew, 1, 1
 	patchcode oldDrawBridgeSlope, newDrawBridgeSlope, 1, 1
 	patchcode oldDrawBridgeMiddlePart, newDrawBridgeMiddlePart, 1, 1
+	patchcode bridgeRemovalKeepTramsUnderOld, bridgeRemovalKeepTramsUnderNew, 1, 1
 	//not stable just yet ^^
 	
 	#if WINTTDX
 		patchcode oldCreateRoadDepot, newCreateRoadDepot, 1, 2
 		patchcode oldDrawRoadDepot, newDrawRoadDepot, 1, 4
-		patchcode oldFindRoadDepot, newFindRoadDepot, 1, 3
 	#else
 		patchcode oldCreateRoadDepot, newCreateRoadDepot, 2, 2
 		patchcode oldDrawRoadDepot, newDrawRoadDepot, 3, 4
-		patchcode oldFindRoadDepot, newFindRoadDepot, 3, 3
 	#endif
 	
+	patchcode vehicleToDepotOld, vehicleToDepotNew, 1, 2
+	patchcode vehicleToDepotOld2, vehicleToDepotNew2, 2, 4
 	
 	stringaddress findRVMovementArray
 	mov dword [noOneWaySetTramTurnAround.rvmovement], edi

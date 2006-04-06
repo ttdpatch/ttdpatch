@@ -269,6 +269,11 @@ defourtext txtltwoccfrp
 defourtext txtltwocchel
 defourtext txtltwocclr1 ; Colours
 defourtext txtltwocclr2
+defourtext steepslopes
+defourtext landhigherbridgehead
+defourtext grfhelpercaption
+defourtext grfhelper_displxrelyrel
+defourtext textsprite
 
 defourtext last
 

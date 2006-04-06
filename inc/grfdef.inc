@@ -56,6 +56,8 @@ foundationtypes equ 14+8
 #define INVSP_MULTIACT11 22	// multiple action 11 in file
 #define INVSP_NOTBININC 23	// not a binary include sprite after action 11
 #define INVSP_UNRESID 24	// attempt to modify unreserved ID
+#define INVSP_BADFONT 25	// invalid font in action 12
+#define INVSP_NOTINBLOCK 26	// range crosses block boundary
 
 #endif	// ndef __GRF_INC__
 

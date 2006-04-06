@@ -33,6 +33,11 @@ extern gettunnelspriteset
 extern locationtoxy
 extern cleartilefn
 
+
+// in:	ebx=di=landscape XY
+//	esi->vehicle
+//	ebp=vehicle direction
+// out:	
 exported enhancetunneltestrailwaytype
 	mov al, [landscape5(di)]	
 	or al, al
@@ -55,8 +60,6 @@ exported enhancetunneltestrailwaytype
 	je .onbridge
 	jmp .withoutbridge
 .onbridge:
-	mov ax,[esi+veh.idx]
-	cmp ax,[esi+veh.engineidx]
 	jne .ok		// only check track type for engine
 	mov al, [landscape7+ebx]
 	and al, 0x0F
@@ -64,8 +67,12 @@ exported enhancetunneltestrailwaytype
 	jmp short .testvehicle
 
 .tunnel:
-	testmultiflags experimentalfeatures
-	jz .ownertest
+	push eax
+	mov ax,[esi+veh.idx]
+	cmp ax,[esi+veh.engineidx]
+	pop eax
+	jne .ok		// only check track type and owner for engine
+
 	test byte [expswitches],EXP_COOPERATIVE
 	jz .noownertest
 .ownertest:
@@ -75,17 +82,9 @@ exported enhancetunneltestrailwaytype
 	test byte [landscape7+ebx], 0x80
 	jnz .withbridge
 .withoutbridge:
-	push esi
-	movzx esi,word [esi+veh.engineidx]
-	shl esi,7
-	add esi,[veharrayptr]
-	mov ax,[esi+veh.idx]
-	cmp ax,[esi+veh.engineidx]
-	jne .ok		// only check track type for engine
 	call istrackrighttype	// reads landscape3
 .testvehicle:
 	cmp al, byte [esi+veh.tracktype]
-	pop esi
 	jz .ok
 .wrong:
 	add esp, 4
@@ -130,9 +129,16 @@ exported Class9DrawLandTunnelExt
 	
 	push esi
 	mov si, bx
-// WARNING! broken for non electrif  !!!!
 
+	testflags electrifiedrail
+	jnc .notelectrifiedtunnel
 	call gettunnelspriteset	// will set
+	jmp short .electrifiedtunnel
+.notelectrifiedtunnel:
+
+	and ebx, byte 0x0F
+	imul bx, byte 8
+.electrifiedtunnel:
 
 	or si, si
 	jns .nosnow
@@ -173,9 +179,16 @@ exported Class9DrawLandTunnelExt
 
 // route top sprite
 	pusha
+	xor eax, eax
 	mov al,[landscape7+esi]
 	and al, 0x0F
+
+	testflags electrifiedrail
+	jnc .notelectrifiedtop
+
 	call geteffectivetracktype
+.notelectrifiedtop:
+
 	xchg eax,ebx
 	
 	imul bx, 82
@@ -190,10 +203,6 @@ exported Class9DrawLandTunnelExt
 	popa
 
 // caternary top
-	test byte [landscape7+esi], 1
-	jz .notelectrified
-
-
 	testflags electrifiedrail
 	jnc near .notelectrified
 
@@ -217,66 +226,6 @@ exported Class9DrawLandTunnelExt
 	popa
 	add esp, 4
 	ret
-
-#if 0
-exported Class9DrawLandTunnelExt
-	mov byte [dontdisplaywireattunnel], 0
-	test byte [landscape7+ebx], 0x80
-	jnz .withbridge
-	mov bx,[landscape3+ebx*2]
-	ret
-
-.withbridge:
-	mov byte [dontdisplaywireattunnel], 1
-	pusha	
-	mov esi, ebx
-
-	testflags electrifiedrail
-	jnc near .notelectrified
-
-	test byte [landscape7+ebx], 1
-	jz .notelectrified
-
-	pusha
-	add dl, 8
-	mov di, 0
-	test dh, 1
-	mov dh, 1
-	jnz .otherdirpylons
-	mov dh, 2
-.otherdirpylons:
-	mov esi, ebx
-	call drawpylons
-	call displaywires
-	popa
-.notelectrified:
-
-	xchg eax,ebx
-	mov al,[landscape7+eax]
-	and al, 0x0F
-	call geteffectivetracktype
-	xchg eax,ebx
-	
-	imul bx, 82
-	add ebx, 1005
-	test dh, 1
-	jnz .otherdir
-	inc ebx
-.otherdir:
-	add dl, 8
-	mov di, 16
-	mov si, di
-	mov dh, 1
-	call [addsprite]
-	popa
-
-//	test si,1
-//	jz .nofuturepylon
-//	mov dword [badpylondirs],(1<<3)+(1<<31)
-//.nofuturepylon:
-	mov bx,[landscape3+ebx*2]
-	ret
-#endif
 
 
 // ax,cx = tunnelend

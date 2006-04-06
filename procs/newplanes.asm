@@ -56,6 +56,13 @@ codefragment newtouchdownsound
 	icall touchdownsound
 	setfragmentsize 10
 
+codefragment oldhelitakeoffsound
+	mov eax,0x16
+	db 0xe8
+
+codefragment newhelitakeoffsound
+	icall helitakeoffsound
+	setfragmentsize 10
 
 endcodefragments
 
@@ -98,6 +105,7 @@ patchnewplanes:
 
 	patchcode oldshipplanestartsound,newvehstartsound,3-2*WINTTDX,3
 	patchcode touchdownsound
+	patchcode helitakeoffsound
 	ret
 
 .adjust:

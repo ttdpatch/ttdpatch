@@ -1162,6 +1162,10 @@ touchdownsound:
 	mov byte [miscgrfvar],5
 	jmp checksoundcallback
 
+exported helitakeoffsound
+	mov eax,0x16
+	mov byte [miscgrfvar],1
+	jmp checksoundcallback
 
 	// called when TTD is about to create a visual effect
 	//

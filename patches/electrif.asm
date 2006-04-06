@@ -628,7 +628,7 @@ haspyloninthisdirection.tunnel:
 	and bl,0xF
 	cmp bl,1
 	pop ebx
-	jne .tunneluppart
+	jne .tunneldone
 
 	// (bits:0=NW,1=NE,2=SW,3=SE)
 	test dh, 1
@@ -638,8 +638,9 @@ haspyloninthisdirection.tunnel:
 .tunnelotherdir:
 	or bl, 1001b
 .tunneldone:
-	cmp ebx,ebp
-	ret
+	jmp haspyloninthisdirection.gotexitmap
+	//cmp ebx,ebp
+	//ret
 
 haspyloninthisdirection:
 	movsx ebp,bl
@@ -1179,9 +1180,34 @@ geteffectivetracklayout:
 	inc bh
 	jmp .hastracks
 
+
+.istunnel:		// support for enhancetunnels
+	testflags enhancetunnels 
+	jnc .wrongtracks
+
+	test byte [landscape7+esi], 0x80
+	jz .wrongtracks
+
+	push ebx
+	mov bl,[landscape7+esi]
+	and bl,0xF
+	cmp bl,1
+	pop ebx
+	jne .wrongtracks
+
+	test bh, 1
+	jnz .tunnelotherdir
+	mov bh, 10b
+	jmp .tunneldone
+.tunnelotherdir:
+	mov bh, 1b
+.tunneldone:
+	jmp .hastracks
+
+
 .isbridgeortunnel:
 	cmp bh,4
-	jb .wrongtracks	// tunnels don't count
+	jb .istunnel	//.wrongtracks	// tunnels don't count
 
 	test bh,0x80
 	jz .notracks

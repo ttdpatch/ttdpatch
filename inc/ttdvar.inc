@@ -233,6 +233,7 @@ ttdvar(numplayers,0x9ed32)		// B: 1=single player, 2=multi player
 ttdvar(gamemode,0x9ed33)			// B: 0=title screen, 1=normal game, 2=scenario editor
 ttdvar(scenarioeditmodeactive,0x9ea36)	// B: 
 ttdvar(mpcomputer,0x9ed37)		// B: 1=is host computer, 0=is client computer (only valid in multiplayer)
+ttdvar(currenttextcolor,0x9ed39)	// W: current text colours
 ttdvar(buslorrystationorientation, 0x9ED3B)	// B: orientation of road station
 ttdvar(showcatchmentarea, 0x9EDEB) 			// B: 0=disabled 1=enabled
 ttdvar(actionnestlevel,0x9edec)		// B: nesting level of [actionhandler] calls (see below)

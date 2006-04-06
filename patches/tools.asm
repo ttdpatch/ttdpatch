@@ -28,7 +28,7 @@ extern orighumanplayers,patchflags,randomfn,recalchousecounts
 extern searchcollidingvehs,specialtext1,station2clear,station2init
 extern stationarray2ptr,tmpbuffer1,ttdpatchactions,ttdtexthandler
 extern varheap,exitcleanup,player2clear,player2array,newvehdata
-extern cargobits,cargoid
+extern cargobits,cargoid,maxtextwidth,gettextwidthunicode,hasaction12
 
 
 #define __no_extern_vars__ 1
@@ -815,6 +815,10 @@ global initializeveharray
 initializeveharray:
 	pusha
 
+#if !WINTTDX
+	push ds
+	pop es
+#endif
 	mov al,0
 	mov edi,esi
 	rep stosb
@@ -1332,6 +1336,15 @@ drawtextlen:
 
 	pusha
 	mov esi, tmpbuffer1
+
+	cmp byte [hasaction12],0
+	je .notunicode
+
+	mov word [maxtextwidth],bp
+	call gettextwidthunicode
+	jmp short .toolong
+
+.notunicode:
 	xor eax, eax
 	movzx ebx, word [currentfont]
 	mov cx, -1
@@ -1459,6 +1472,9 @@ lookuptranslatedcargo:
 	push ebx
 
 	mov eax,[esp+16]
+	test eax,eax
+	jz .notranslate
+
 	cmp byte [eax+spriteblock.version],7
 	jb .notranslate
 

@@ -1048,9 +1048,9 @@ void commandline(int argc, const char *const *argv)
 	clearf(moreindustriesperclimate);
     }
 
-    if (!getf(electrifiedrail)) {
-	clearf(enhancetunnels);
-    }
+//    if (!getf(electrifiedrail)) {
+//	clearf(enhancetunnels);
+//    }
   }
 
   copyflagdata();

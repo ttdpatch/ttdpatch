@@ -29,7 +29,7 @@ extern getvehiclecargo,getvehidcount,getvehnuminconsist,getvehnuminrow
 extern industryaction3,numextvars,patchflags,septriggerbits
 extern stationcargolots,stationcargowaitingmask,stationflags,stsetids
 extern triggerbits,vehids, getvehtypeflags
-extern wagonoverride
+extern wagonoverride,getindutiletypeatoffset,getindutilerandombits
 
 uvard grffeature
 uvard curgrffeature,1,s		// must be signed to indicate "no current feature"
@@ -1711,6 +1711,8 @@ var industryvarhandler
 %endif
 
 var industryparamvarhandler
+	dd getindutiletypeatoffset
+	dd getindutilerandombits
 %ifndef PREPROCESSONLY
 %assign n_industryparamvarhandler (addr($)-industryparamvarhandler)/4
 %endif

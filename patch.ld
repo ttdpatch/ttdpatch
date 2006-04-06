@@ -68,12 +68,9 @@ SECTIONS
 
 	/* The sbss sections, these will not be included in the binary either */
 	__psbss_start = .;
-	*.*po(.sbss)
-	*/*.*po(.sbss)
-	*.*po(.sbss2)
-	*/*.*po(.sbss2)
-	*.*po(.sbss1)
-	*/*.*po(.sbss1)
+	*(.sbss)
+	*(.sbss2)
+	*(.sbss1)
 	. = ALIGN(4);
 	__psbss_end = .;
 	currentversion = .;

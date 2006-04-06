@@ -123,10 +123,8 @@ newsmsgwithnearesttown:
 	ret
 
 // Watching production of lumber mills works this way:
-// We count the number of treecuts since the last unsuccessful one in the field that would contain
-// the production rate of the second cargo. Since lumber mills product only one thing, our counter
-// won't make problems (it will modify the production counter of the second cargo, but this isn't used
-// anyway). We notify the player only if there were at least four successful cuts before an unsuccessful one.
+// We count the number of treecuts since the last unsuccessful one in a previously unused field.
+// We notify the player only if there were at least four successful cuts before an unsuccessful one.
 // This way we can avoid multiple warnings caused by cutting the few baby trees that grow sometimes
 // in the otherwise empty area.
 
@@ -142,7 +140,7 @@ lmillcuttree1:
 	ret		// haven't finished the loop yet
 
 .outoftrees:
-	cmp byte [esi+industry.prodrates+1],4
+	cmp byte [esi+industry.badtreecuts],4
 	jbe .notenough
  
 	push eax
@@ -183,7 +181,7 @@ lmillcuttree1:
 	pop eax
 	
 .notenough:
-	and byte [esi+industry.prodrates+1],0	// reset counter
+	and byte [esi+industry.badtreecuts],0	// reset counter
 	clc	// need to clear carry to exit the loop
 	ret
 
@@ -197,10 +195,10 @@ lmillcuttree2:
 	mov word [esi+industry.amountswaiting],0xffff	// runindex call
 
 .noprodoverflow:
-	add byte [esi+industry.prodrates+1],1	// inc wouldn't set the flags
+	add byte [esi+industry.badtreecuts],1	// inc wouldn't set the flags
 	jae .nocutcountoverflow
 
-	mov byte [esi+industry.prodrates+1],0xff
+	mov byte [esi+industry.badtreecuts],0xff
 
 .nocutcountoverflow:
 	ret

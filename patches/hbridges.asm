@@ -424,11 +424,11 @@ bridgemiddlecheckslopeok:
 	dec dh
 .notwater:
 
-	mov word [operrormsg2], statictext(steepslopes) 
+	mov word [operrormsg2], ourtext(steepslopes) 
 	// steep slopes not allowed
 	test di, 0x10			// we don't like steep slopes do we?
 	jnz .steepslope
-	mov word [operrormsg2], statictext(landhigherbridgehead) 
+	mov word [operrormsg2], ourtext(landhigherbridgehead) 
 	or di, di
 	jnz .issloped 
 	cmp dl, [buildbridgeheight]

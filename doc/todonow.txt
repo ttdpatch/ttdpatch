@@ -77,8 +77,6 @@
 
 - fix bogus makelang.err messages
 
-- move higherbridge error texts to texts.inc
-
 - flag for "station is really depot"
 
 - newstations flags to build fences for +x/+y and -x/-y sides
@@ -182,6 +180,7 @@
 
 - incorrect refit cargo size for planes with non-pass default
   see http://www.tt-forums.net/viewtopic.php?t=14344
+  also incorrect type; same thread
 
 - veh still getting obsolete with early ret option but perseng on?
 
@@ -395,8 +394,6 @@
 - station var 41 not counting right:
   http://www.tt-forums.net/viewtopic.php?p=381568#381568
 
-- crash when lowering land under house
-
 - lots of other crashes, http://www.tt-forums.net/viewtopic.php?p=382758#382758
   and http://www.tt-forums.net/viewtopic.php?p=382860#382860
 
@@ -465,6 +462,14 @@
 
 - new station var 40+x to give slope info
   http://www.tt-forums.net/viewtopic.php?t=23285
+
+- pylons wrong on tunnel bridge
+  http://www.bytetransfer.de/projects/ttdpatch/other/pylon_ups.png
+
+- add capacity callback for mail compartment
+
+- font problems
+  http://www.tt-forums.net/viewtopic.php?p=406081#406081
 
 ==== Rather urgent =====
 
@@ -723,4 +728,4 @@ CHANGELOG
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
-2.0.1 alpha 73
+2.0.1 alpha 74

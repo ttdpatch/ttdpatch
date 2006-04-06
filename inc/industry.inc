@@ -28,7 +28,9 @@ struc industry
 // the following fields are added by TTDPatch
 	.random:	resw 1	// 2eh:random bits
 	.consdate:	resw 1	// 30h:construction date
-	.unused3:	resd 1	// 32h:unused by TTD, initialized to 0
+	.badtreecuts:	resb 1	// 32h:number of unsuccessful treecuts; used only by TTDPatch,
+				// and only for industries that cut trees
+	.unused3:	resb 3	// 33h:unused by TTD, initialized to 0
 endstruc_32
 
 ptrvardec industrydatablock

@@ -849,7 +849,7 @@ proc applypatches
 
 	lodsb
 	test al,al
-	jne .orbits
+	jne near .orbits
 
 	lodsb
 	test al,al
@@ -877,20 +877,22 @@ proc applypatches
 	bt ecx,eax	// using only bits 0..4 of al
 	jmp short .checkflag
 .vartest:
-	CALLINT3
 	mov ah,al
 	and ah,0x7f
 	cmp ah,0x7e
+	mov ah,0
 	jb .bytevar
 	je .wordvar
 .dwordvar:
 	cmp ecx,1
-	jmp short .checkflag
+	jmp short .checkvarflag
 .wordvar:
 	cmp cx,1
-	jmp short .checkflag
+	jmp short .checkvarflag
 .bytevar:
 	cmp cl,1
+.checkvarflag:
+	cmc		// was CF=1 if not set
 .checkflag:
 	mov cl,al
 	mov al,0
@@ -1267,7 +1269,7 @@ proc dofindstring
 	mov cl,8
 	call hexnibbles
 
-	lea edx,[byte edi+findstringerror-findstringerr_outof-2]
+	mov edx,findstringerror
 	jmp criticalerror
 
 .goodsearch:

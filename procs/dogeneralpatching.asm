@@ -27,8 +27,8 @@ extern class8queryhandler,cleartilefn,closecompanywindows,copyspriteinfofn
 extern copyvehordersfn,curfileofsptr,currrmsignalcost,currscreenupdateblock
 extern curtooltracktypeptr,ddrawpaletteptr,decodespritefn,deductvehruncost
 extern delveharrayentry,delvehschedule,doshownewrailveh,drawrectangle
-extern drawrighttextfn,drawsplittextfn,drawspritefn,drawtextfn
-extern endofloadtarget,errorpopup,fillrectangle,fnredrawsquare
+extern drawrighttextfn,drawsplittextfn,drawspritefn,drawspriteonscreen,drawtextfn
+extern drawstringfn,endofloadtarget,errorpopup,fillrectangle,fnredrawsquare
 extern generatesoundeffect,gennewrailvehtypemsg,getdesertmap,getfullymd
 extern getgroundaltitude,getroutemap,gettextwidth,gettileinfo
 extern gettileinfoshort,gettunnelotherend,getymd,groundaltsubroutines
@@ -61,7 +61,7 @@ extern waterbanksprites,exitcleanup,oldclass6maphandler,addcargotostation
 extern reduceyeartobyte,reduceyeartoword
 extern titlescreenloading, class0procmidsection, checkroadremovalconditions
 extern drawcenteredtextfn,drawsplitcenteredtextfn, RefreshWindows
-extern CreateTextInputWindow
+extern CreateTextInputWindow, findroadvehicledepot
 extern addrailfence1,addrailfence2,addrailfence3,addrailfence4
 extern addrailfence5,addrailfence6,addrailfence7,addrailfence8
 extern rvcheckovertake,findFrSpaTownNameFlags
@@ -415,6 +415,10 @@ codefragment findcurrscreenupdateblockptr, 13
  	mov dx, 439
 
 reusecodefragment finddrawspritefn,findcurrscreenupdateblockptr, 18
+
+codefragment finddrawspriteonscreen
+	mov ebx,[es:esi]
+	db 0x66,0xFF,5	// inc dword [...]
 
 glob_frag oldenddisplaytownstats
 codefragment oldenddisplaytownstats,19
@@ -1359,6 +1363,12 @@ codefragment findAddRailFenceSprite8, -3
         mov     ebx, 1304
         test    di, 2
 
+codefragment vehicleToDepotOld, -4
+	mov     edx, ebx
+	pop     cx
+	pop     ebx
+	pop     ax
+
 endcodefragments
 
 ptrvarall industrydatablock
@@ -1558,6 +1568,8 @@ dogeneralpatching:
 	storeaddress findprofitcalc,1,1,calcprofitfn
 	storeaddress findaddcargotostation,1,1,addcargotostation
 
+	storefunctionaddress vehicleToDepotOld, 1, 2, findroadvehicledepot
+
 	storeaddresspointer findstatusbarnewsitem,1,1,statusbarnewsitem
 	storeaddresspointer brakeindex,1,1,brakespeedtable
 	storeaddresspointer findisbigplane,1,1,isbigplanetable
@@ -1654,7 +1666,19 @@ dogeneralpatching:
 
 	storeaddresspointer findcurrscreenupdateblockptr,1,1,currscreenupdateblock
 	storefunctionaddress finddrawspritefn,1,1,drawspritefn
+	storeaddress drawspriteonscreen
 	storefunctionaddress finddrawtextfn,1,1,drawtextfn
+#if WINTTDX
+	inc eax
+	add eax,[eax]
+	add eax,4
+#endif
+	lea edi,[eax+42]
+#if WINTTDX
+	add edi,[edi]
+	add edi,5
+#endif
+	storefunctiontarget 0,drawstringfn
 	storefunctionaddress finddrawrighttextfn,1,1,drawrighttextfn
 	storefunctionaddress finddrawcenteredtextfn,1,1,drawcenteredtextfn
 	storefunctionaddress finddrawsplitcenteredtextfn,1,1,drawsplitcenteredtextfn

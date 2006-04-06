@@ -152,8 +152,10 @@ uvard class0procmidsection,1,s	// Steven's hack to get back into the class0perio
 
 uvard currscreenupdateblock,1,s
 uvard drawspritefn,1,s
+uvard drawspriteonscreen,1,s
 
 uvard drawtextfn,1,s		// draw text on screen: BX=text ID, CX=X, DX=Y, EDI->screen block descr., AL=init. color
+uvard drawstringfn,1,s
 uvard drawrighttextfn,1,s	// draw text on screen: BX=text ID, CX=X (right), DX=Y, EDI->screen block descr., AL=init. color
 uvard drawsplittextfn,1,s	// draw text on screen: BX=text ID, CX=X, DX=Y, EDI->screen block descr., BP=linewidth
 uvard drawcenteredtextfn,1,s // draw centered text on screen:
@@ -198,6 +200,7 @@ uvard savevehordersfn,1,s	// saves the orders of the veh. in esi to the buffer p
 uvard copyvehordersfn,1,s	// copies the orders from the buffer pointed by edi to the veh. in esi
 uvard removespritefromcache,1,s	// removes sprite from sprite cache; ECX=sprite number; destroys EDX, ESI
 uvard fetchspriteincache,1,s	// fetch a sprite into cache; EAX=sprite number; destroys EAX, ECX, EDX, ESI
+uvard findroadvehicledepot,1,s	// finds the nearest road depot
 
 uvard addrailfence1,1,s //adds the REAR rail fence to tile on slope SW->NE
 uvard addrailfence2,1,s //adds the FRONT rail fence to tile on slope SW->NE
