@@ -4815,7 +4815,7 @@ indutilesellouthandler:
 // safe:ax ebx cx dx ebp
 exported checkinduclosedown
 	mov al,[currentyear]
-	cmp al,[esi+industry.lastyearprod]
+	sub al,[esi+industry.lastyearprod]
 	cmp al,5
 	jb .ok
 	call preventindustryclosedown
