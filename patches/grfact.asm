@@ -1915,8 +1915,8 @@ replacettdsprite:
 	ja .spritenumbad
 
 .spritenumok:
-	lea edx,[eax+edi]
-	cmp edx,[ebp+spriteblock.numsprites]
+	lea dx,[eax+edi]
+	cmp dx,[ebp+spriteblock.numsprites]
 	mov dh,INVSP_BLOCKTOOLARGE
 	jae .bad
 
@@ -2533,6 +2533,7 @@ var actiondop
 // in/out:
 //	edx=resource value (in for CHECK and MARK, out for GET, maybe both!)
 // out:	CF=1 resource not available
+//		for CHECK also esi->spriteblock of conflicting grf
 //	CF=0 resource available
 // safe:eax ebx ecx ebp esi
 
