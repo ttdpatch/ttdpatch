@@ -147,7 +147,7 @@
 	BITS ('C',"morecurrencies", CFG_MORECURRENCIES, morecurrencies, 0, FLAGDATA(morecurropts), 0),
 	BITS ('D',"disasters", CFG_DISASTERS, maskdisasters, 0, FLAGDATA(disastermask), 255),
 	YESNO('E',"electrifiedrailway", CFG_ELECTRIFIEDRAIL, electrifiedrail),
-	BITS ('F',"experimentalfeatures", CFG_EXPERIMENTALFEATURES, experimentalfeatures, 1, FLAGDATA(expswitches), 0xFFFF),
+	BITS ('F',"experimentalfeatures", CFG_EXPERIMENTALFEATURES, experimentalfeatures, 1, FLAGDATA(expswitches), 0xFFFF & ~4),
 	YESNO('G',"loadallgraphics", 0, loadallgraphics),
 	YESNO('H',"newshistory", CFG_NEWSHISTORY, newshistory),
 	BITS ('I',"pathbasedsignalling", CFG_PATHBASEDSIGNALLING, pathbasedsignalling, 0, FLAGDATA(pbssettings), 11),

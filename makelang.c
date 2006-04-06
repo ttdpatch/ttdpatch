@@ -427,7 +427,7 @@ void unicodecheckarray(const char ** const array, u16 arraysize, s16 code, s16 n
 
 void unicodecheck(int warn)
 {
-  int bitswitch, i;
+  int i;
 
   unicodecheckstring(LANGCODE_NAME(0), &langname, warn);
   unicodecheckstring(LANGCODE_NAME(1), &langcode, warn);
@@ -728,7 +728,7 @@ u32 writelanguages(FILE *dat)
 			if (strcmp(bitnames[i][j], "(reserved)"))
 				bitswitchdesc[i][j] = UNTRANSLATED;
 			else
-				bitswitchdesc[i][j] = bitnames[i][j];
+				bitswitchdesc[i][j] = "";
 		}
 
 	languagedata[lang]();
