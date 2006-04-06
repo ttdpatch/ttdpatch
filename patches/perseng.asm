@@ -7,10 +7,11 @@
 #include <textdef.inc>
 #include <veh.inc>
 #include <vehtype.inc>
+#include <newvehdata.inc>
 #include <ptrvar.inc>
 
 extern checkrefittable,isengine,patchflags
-extern vehtypedataptr
+extern vehtypedataptr,newvehdata
 extern TrainSpeedNewVehicleHandler.lnews
 
 // Find what vehicles are currently in use
@@ -122,17 +123,21 @@ proc monthlyengineloop
 	bt [%$engineuse],ecx
 	jnc short .engineloop
 
-		// this engine is in use, so check it
+		// this engine is in use
+	and byte [esi+vehtype.availinfo],~3	// make it available if it wasn't
+	or byte [esi+vehtype.availinfo],1
+	mov word [esi+vehtype.playeravail],-1
+
+		// check that's it's not about to expire
 	mov ax,word [esi+vehtype.engineage]
-	mov bx,word [esi+vehtype.durphase1]
+	movzx ebx,byte [vehphase2dec+ecx]
+	imul ebx,byte -12
+	add bx,word [esi+vehtype.durphase1]
 	add bx,word [esi+vehtype.durphase2]
-	sub bx,byte 24		// 2 years before
+	sub bx,byte 24		// 2 years before end of phase 2, or early ret.
 	cmp ax,bx
 	jb short .engineloop	// not old enough yet
 	mov word [esi+vehtype.engineage],bx	// set age back
-	mov word [esi+vehtype.playeravail],-1
-	and byte [esi+vehtype.availinfo],~ 3
-	or byte [esi+vehtype.availinfo],1	// make it available if it wasn't
 
 .engineloop:
 	add esi,byte vehtype_size

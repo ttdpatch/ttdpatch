@@ -1472,9 +1472,6 @@ lookuptranslatedcargo:
 	push ebx
 
 	mov eax,[esp+16]
-	test eax,eax
-	jz .notranslate
-
 	cmp byte [eax+spriteblock.version],7
 	jb .notranslate
 

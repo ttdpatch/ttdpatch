@@ -48,32 +48,6 @@ URSP = $(subst \,\\,$(shell cygpath -w $(DRSP)))
 # No configuration below here...
 
 # =======================================================================
-#           setup verbose/non-verbose make process
-# =======================================================================
-
-# _E = prefix for the echo [TYPE] TARGET
-# _C = prefix for the actual command(s)
-ifeq (${V},1)
-	# verbose, set _C = nothing (print command), _E = comment (don't echo)
-	_C=
-	_E=@\#
-else
-	# not verbose, _C = @ (suppress cmd line), _E = @echo (echo type&target)
-	_C=@
-	_E=@echo
-endif
-
-# standard compilation commands should be of the form
-# target:	prerequisites
-#	${_E} [CMD] $@
-#	${_C}${CMD} ...arguments...
-#
-# non-standard commands (those not invoked by make all/dos/win) should
-# use the regular syntax (without the ${_E} line and without the ${_C} prefix)
-# because they'll be only used for testing special conditions
-
-
-# =======================================================================
 #           collect info about source files
 # =======================================================================
 
@@ -388,7 +362,8 @@ patchdll.bin:	patchdll.asm patchdll/ttdpatch.dll
 	${_C}$(NASM) $(NASMOPT) -f bin $(NASMDEF) $< -o $@
 
 patchdll/ttdpatch.dll: $(wildcard patchdll/*.h) $(wildcard patchdll/*.c*)
-	make -C patchdll
+	${_E} [MAKE] $@
+	${_C} make -C patchdll
 
 # ---------------------------------------------------------------------
 #               Language data

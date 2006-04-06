@@ -18,7 +18,7 @@ extern externalvars,extraindustilegraphdataarr
 extern genericids,getaircraftinfo,getcargoenroutetime,getcargolastvehdata
 extern getcargorating,getcargotimesincevisit,getcargowaiting,getconsistcargo
 extern getcurveinfo,getexpandstate,gethouseage,gethouseanimframe
-extern gethousebuildstate,gethousecount,gethouseterrain,gethousezone
+extern gethousebuildstate,gethousecount,gettileterrain,gethousezone
 extern getincargo,getindustileanimframe,getindustileconststate
 extern getindustilelandslope,getindustilepos,getistownlarger,getmotioninfo
 extern getotherhousecount,getothernewhousecount,getplatformdirinfo
@@ -30,6 +30,7 @@ extern industryaction3,numextvars,patchflags,septriggerbits
 extern stationcargolots,stationcargowaitingmask,stationflags,stsetids
 extern triggerbits,vehids, getvehtypeflags
 extern wagonoverride,getindutiletypeatoffset,getindutilerandombits
+extern getindustilelandslope_industry
 
 uvard grffeature
 uvard curgrffeature,1,s		// must be signed to indicate "no current feature"
@@ -1658,7 +1659,7 @@ var housesvarhandler
 	dd addr(gethousebuildstate)
 	dd addr(gethouseage)
 	dd addr(gethousezone)
-	dd addr(gethouseterrain)
+	dd addr(gettileterrain)
 	dd addr(gethousecount)
 	dd addr(getexpandstate)
 	dd addr(gethouseanimframe)
@@ -1676,7 +1677,7 @@ var housesparamvarhandler
 
 var industilesvarhandler
 	dd addr(getindustileconststate)
-	dd addr(gethouseterrain)
+	dd addr(gettileterrain)
 	dd addr(gethousezone)
 	dd addr(getindustilepos)
 	dd addr(getindustileanimframe)
@@ -1713,6 +1714,7 @@ var industryvarhandler
 var industryparamvarhandler
 	dd getindutiletypeatoffset
 	dd getindutilerandombits
+	dd getindustilelandslope_industry
 %ifndef PREPROCESSONLY
 %assign n_industryparamvarhandler (addr($)-industryparamvarhandler)/4
 %endif

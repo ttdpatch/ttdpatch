@@ -160,7 +160,7 @@ ptrvarofs globalhousecounts,newhousedatablock,$
 resw 128+256
 
 ptrvarofs newhousespriteblock,newhousedatablock,$
-resb 256
+resd 256
 
 endstruc_32
 

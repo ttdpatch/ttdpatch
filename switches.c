@@ -1044,9 +1044,11 @@ void commandline(int argc, const char *const *argv)
 	flags->data.multihdspeedup = 0;
     }
 
+#if 0
     if (getf(newcargos) || getf(newindustries)) {
 	clearf(moreindustriesperclimate);
     }
+#endif
 
 //    if (!getf(electrifiedrail)) {
 //	clearf(enhancetunnels);

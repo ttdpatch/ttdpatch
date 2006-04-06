@@ -36,7 +36,8 @@
 #define morestationtracks	14	// up to 7 tracks per station
 #define longerbridges		15	// bridges up to 127 squares long
 #define improvedloadtimes	16	// improved load time calculation
-#define moreindustriesperclimate 17	// Enables more industries and cargo in climates
+//#define moreindustriesperclimate 17	// Enables more industries and cargo in climates
+#define followvehicle		17	// follow vehicle motion in main map
 #define presignals		18	// use pre-signals
 #define extpresignals		19	// extended pre-signal setups
 #define noinflation		20	// Turn off inflation
@@ -45,7 +46,8 @@
 #define fullloadany		23	// Full load is full if any type full
 #define signalsontrafficside	24	// railroad signals on the side road vehicles drive on
 #define morethingsremovable	25	// More things can be removed, at a cost
-#define aibooster		26	// Increase AI recursion factor
+//#define aibooster		26	// Increase AI recursion factor
+#define	trams			26	// Trams
 #define buildwhilepaused	27	// build while paused
 #define newlineup		28	// Make busses and trucks wait at their stops
 #define moretoylandfeatures	29	// random land features normally disabled in toyland
@@ -131,12 +133,10 @@
 #define newsounds		109	// allow new sound effects
 #define morestats		110	// save some more company statistics
 #define autoreplace		111	// autoreplace old vehicle
-#define followvehicle		112	// follow vehicle motion in main map
-#define	trams			113 //TRAMMIES!
 
 // NOTE!! If you add a bit here, also add it to patchflagsfixedmap in vars.ah!!
 
-#define lastbitdefaulton	113	// META: last bit defined to be set by -a 
+#define lastbitdefaulton	111	// META: last bit defined to be set by -a 
 
 // add new flags that should be on by default above, flags off by default below
 

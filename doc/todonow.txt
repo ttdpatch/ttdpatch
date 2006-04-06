@@ -1,10 +1,6 @@
 
 =-=-= Very urgent =-=-=
 
-- for beta: make ai boost obsolete
-
-- for beta: make moreindu... obsolete
-
 - docs: update bit switches in manual
 
 - when changing console size, remember current settings
@@ -450,8 +446,6 @@
 
 - George reports lost stations, see emails
 
-- newsounds crashes if no sound HW present
-
 - cht:face doesn't work but cht: face does
 
 - cht: resetpbs sometimes misses some signals
@@ -468,8 +462,13 @@
 
 - add capacity callback for mail compartment
 
-- font problems
-  http://www.tt-forums.net/viewtopic.php?p=406081#406081
+- remove/hide class 2 if no waypoints loaded
+
+- check that utf-8 mode obeys new spec
+
+- add glyphs for 7B..7F (maybe others?) from glyphs.grf on server
+
+- font crash http://www.tt-forums.net/viewtopic.php?p=409894#409894
 
 ==== Rather urgent =====
 
@@ -728,4 +727,4 @@ CHANGELOG
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
-2.0.1 alpha 74
+2.5 beta 2

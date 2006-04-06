@@ -1,3 +1,5 @@
+#if 0
+
 #include <defs.inc>
 #include <frag_mac.inc>
 #include <patchproc.inc>
@@ -169,3 +171,4 @@ patchmoreindustriesperclimate:
        mov dword [edi+4], fundindustrytooltips_temperate
 
 	ret
+#endif

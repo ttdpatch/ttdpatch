@@ -7,8 +7,10 @@
 #include <grf.inc>
 #include <window.inc>
 #include <veh.inc>
+#include <industry.inc>
 #include <misc.inc>
 #include <newvehdata.inc>
+#include <bitvars.inc>
 #include <ptrvar.inc>
 
 extern DrawGraph,DrawWindowElements,WindowClicked,calcprofitfn,cargoclass
@@ -18,7 +20,7 @@ extern grffeature,invalidatehandle,isfreight,isfreightmult
 extern malloc,patchflags,pdaTempStationPtrsInCatchArea,randomstationtrigger
 extern cargobits,cargotypes,spriteblockptr,stationarray2ofst
 extern updatestationgraphics,newvehdata,specificpropertybase
-extern callback_extrainfo,curcallback
+extern callback_extrainfo,curcallback,grfstage,grfresources
 
 
 // In most places, the cargo type is stored in at least a byte, so it isn't too hard to
@@ -935,6 +937,7 @@ initcargodata:
 global setcargobit
 setcargobit:
 	xor eax,eax
+	mov edx,[curspriteblock]
 .next:
 	// clear previous cargo bit, if any
 	mov al,[cargotypes+ebx]
@@ -945,6 +948,15 @@ setcargobit:
 	lodsb
 	cmp al,0xff		// FFh means clearing the bit only
 	je .nonewbit
+
+	test byte [expswitches],EXP_MANDATORYGRM
+	jz .notmandatory
+	cmp byte [grfstage],0
+	je .notmandatory
+.checknextres:
+	cmp [grfresources+(GRM_CARGOBITS+eax)*4],edx
+	jne .unresid
+.notmandatory:
 	bts [cargobits], eax
 	mov [cargotypes+ebx], al
 	mov [cargoid+eax],bl
@@ -953,6 +965,12 @@ setcargobit:
 	loop .next
 	clc
 	ret
+
+.unresid:
+	mov eax,(INVSP_UNRESID<<16)+ourtext(invalidsprite)
+	stc
+	ret
+	
 
 // Set price factor of a cargo. The tricky part is that we need to set the cargo
 // price as if it inflated constantly during the game. To solve this, we keep
@@ -974,7 +992,10 @@ setcargopricefactors:
 	push eax
 	mov eax,[cargopricefactors+4]
 	shl eax,16			//fraction of old passenger cost
-	cdq
+
+	// edx still contains the remainder of the previous division,
+	// no need to CDQ here
+
 	idiv edi			// eax=fraction part of multiplier
 	push eax
 .next:

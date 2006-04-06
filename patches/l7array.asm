@@ -8,7 +8,7 @@
 // 50		Station tile flags (L7STAT_*)
 // 80		Industry tile triggers
 // 90/bridge	Higher bridges, height
-// 90/tunnel	enhanced tunnels, bits 0:3 track type or upper track, bit 7=has bridge
+// 90/tunnel	enhanced tunnels, bits 0:3 track type of upper track, bit 7=has bridge
 
 #include <std.inc>
 #include <flags.inc>

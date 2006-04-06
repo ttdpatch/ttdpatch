@@ -76,7 +76,7 @@ defbyte(townminpopulationsnow)	// minimum 'guaranteed' population of towns on sn
 defbyte(townminpopulationdesert)// minimum 'guaranteed' population of towns on desert
 
 // unsigned byte variables:
-defbyte(aiboostfactor)		// AI boost factor
+// defbyte(aiboostfactor)		// AI boost factor
 defbyte(newstationspread)	// new maximum station spread in tiles
 defbyte(vehicledatafactor)	// size multiplier of vehicle array
 defbytes(mctype, 2)		// [0]:curves [1]:mountains

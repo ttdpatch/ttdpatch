@@ -16,11 +16,17 @@ extern malloccrit,newinduwindowitemlist
 extern oldinduwindowitemlist,displayfoundation,correctexactalt.chkslope
 extern monthlyupdateindustryproc,monthlyupdateindustryproc.oldfn
 extern callback_extrainfo,enddrawindustrywindow,enddrawindustrywindow.oldfn
+extern indutilesellouthandler
 
 #include <industry.inc>
 #include <textdef.inc>
 
 begincodefragments
+
+codefragment findCreateNewRandomIndustry,12
+       shr eax, 10h
+       and eax, 1Fh
+       db 0x8A, 0x98
 
 codefragment findDifficultySettingsData
 	dw 0, 7, 1, 0
@@ -488,10 +494,23 @@ codefragment oldplantrandomfields,-5
 	cmp ax,0x2000
 	ja $+2+0x2c
 
-codefragment_call newplantrandomfields, plantrandomfields
+codefragment_call newplantrandomfields, plantrandomfields, 5
+
+codefragment oldFundNewIndustry_saveplayer
+	mov bh, [curplayer]
+	push ax
+
+codefragment_call newFundNewIndustry_saveplayer, FundNewIndustry_saveplayer
+
+codefragment oldFundNewIndustry_restoreplayer,2
+	pop ax
+	mov [curplayer],bh
+
+codefragment_call newFundNewIndustry_restoreplayer, FundNewIndustry_restoreplayer
+
 endcodefragments
 
-ext_frag findCreateNewRandomIndustry,oldindustryclosedown
+ext_frag oldindustryclosedown
 
 patchnewindustries:
 	// these two are needed for the prospecting code, so it works even with moreindustriesperclimate disabled
@@ -633,6 +652,11 @@ patchnewindustries:
 	patchcode olddrawindustryfundation,newdrawindustryfundation,2-WINTTDX,2
 
 	patchcode plantrandomfields
+
+	patchcode FundNewIndustry_saveplayer
+	multipatchcode oldFundNewIndustry_restoreplayer,newFundNewIndustry_restoreplayer,2
+	mov eax,[ophandler+8*8]
+	mov dword [eax+0x38],indutilesellouthandler
 	ret
 
 // shares a code fragment

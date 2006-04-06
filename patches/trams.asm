@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------------------------
-//---------------------------------------------------------------------------------------------
+get//---------------------------------------------------------------------------------------------
 //  Ladies and Gentlemen... Let me introduce to you TRAMS!
 //  The basic idea:
 //	--Allocate a Variable in the vehmiscflags to specify a road vehicle as a tram
@@ -22,8 +22,7 @@ extern	RefreshWindows,  gettileinfo, gettileinfoshort, addsprite, addgroundsprit
 extern	catenaryspritebase,elrailsprites.wires, elrailsprites.pylons, elrailsprites.anchor,housespritetable
 extern	newvehdata, invalidatetile, addrelsprite, demolishroadflag, checkroadremovalconditions
 extern  rvcheckovertake, CreateWindow, txteroadmenu, getroutemap, displbridgeendsprite
-
-extern patchflags, tunnelotherendfn
+extern patchflags, gettunnelotherend
 
 extern CloseWindow, RefreshWindowArea, findroadvehicledepot
 
@@ -768,7 +767,7 @@ storeArrayPointerFromClass9:
 //	this is for bridges, tunnels, etc...
 //	i hope you can follow, whoever you are, that has to... :P
 //------------------------------------------------------
-
+uvarw	tmpXY
 global drawTramTracksInTunnel
 drawTramTracksInTunnel:
 	push	ebx
@@ -794,7 +793,7 @@ drawTramTracksInTunnel:
 	cmp	cl, 0100b
 	jne	near .notRoad
 	
-	
+	mov	word [tmpXY], di
 	
 	//draw TRAMMIETRAKKIES!
 	xor	ebx, ebx
@@ -808,7 +807,10 @@ drawTramTracksInTunnel:
 	mov	byte [tmpSpriteOffset], 50h
 	//check if we have tram tracks at DI
 .iterateNE:
+	cmp	di, word [tmpXY]
+	jl	near .notRoad
 	add	di, 1h
+	mov	word [tmpXY], di
 	mov 	cl, byte [landscape4(di)]
 	and	cl, 0xF0
 	cmp	cl, 0x90
@@ -838,11 +840,13 @@ drawTramTracksInTunnel:
 	mov	bx, 4Ch
 	mov	byte [tmpSpriteOffset], 51h
 .iterateSE:
-	sub	di, 100h
+	cmp	di, word [tmpXY]
+	jg	near .notRoad
+	sub	di, 100h				//loop starts
 	mov 	cl, byte [landscape4(di)]
 	and	cl, 0xF0
 	cmp	cl, 0x90
-	je	.checkbridgSE
+	je	.checkbridgSE				//Tunnel? YES \/
 	cmp	cl, 0x50
 	je	.iterateSE
 	cmp	cl, 0x20
@@ -861,13 +865,15 @@ drawTramTracksInTunnel:
 	test	byte [landscape5(di)], 80h
 	jnz	.iterateSE
 	call	gettunnelotherendmystyle		//get the other end preserving everything else BUT EDI
-	jmp	.iterateSE
+	jmp	.iterateSE				//LOOPING! ^^ //must be getting the WRONG tile....
 .checkDirSW:
 	cmp	cl, 6h
 	jne	.checkDirNW
 	mov	bx, 4Dh
 	mov	byte [tmpSpriteOffset], 52h
 .iterateSW:
+	cmp	di, word [tmpXY]
+	jg	near .notRoad
 	sub	di, 1h
 	mov 	cl, byte [landscape4(di)]
 	and	cl, 0xF0
@@ -884,7 +890,7 @@ drawTramTracksInTunnel:
 	mov 	cl, byte [landscape5(di)]
 	and	cl, 0x02
 	cmp	cl, 0x02
-	je	.dirChanged
+	je	near .dirChanged
 	mov	bx, 4Fh
 	jmp	.dirChanged
 .checkbridgSW:
@@ -897,6 +903,8 @@ drawTramTracksInTunnel:
 	mov	bx, 04h //offset of image in GRF
 	mov	byte [tmpSpriteOffset], 53h
 .iterateNW:
+	cmp	di, word [tmpXY]
+	jl	near .notRoad
 	add	di, 100h
 	mov 	cl, byte [landscape4(di)]
 	and	cl, 0xF0
@@ -905,7 +913,7 @@ drawTramTracksInTunnel:
 	cmp	cl, 0x50
 	je	.iterateNW
 	cmp	cl, 0x20
-	jne	.notRoad
+	jne	near .notRoad
 	mov 	cl, byte [landscape3+edi*2]
 	and	cl, 0x01
 	cmp	cl, 0x01
@@ -1152,6 +1160,7 @@ drawNormalSlopeAndAddTrams:
 	popad
 	retn
 .thisisroad:
+	mov	word [tmpXY], di
 	mov	ebx, 02h
 	test	ecx, 1
 	jz	.xdir
@@ -1168,6 +1177,22 @@ drawNormalSlopeAndAddTrams:
 .gotebx:
 	push	edi
 .playitagainsam:
+	cmp	word [tracktocheck+ebx*2], 0h
+	jg	.testIfLesser
+	cmp	di, word [tmpXY]
+	jle	.continuethisstuff
+	pop	edi
+	pop	ecx
+	popad
+	retn
+.testIfLesser:
+	cmp	di, word [tmpXY]
+	jge	.continuethisstuff
+	pop	edi
+	pop	ecx
+	popad
+	retn
+.continuethisstuff:
 	add	di, word [tracktocheck+ebx*2]
 	push	cx
 	xor	ecx,ecx
@@ -1323,7 +1348,6 @@ drawTramBridgeMiddlePart:
 	//ok, the idea is to grab the class9landpointer and iterate positively along the bridge till we find a
 	//class 9 bit 6 (bridge ending)...then shift one more tile along and check if it has tram tracks...
 	//i just realised we might have to do this in both directions.
-
 	pushad
 	xor	esi, esi
 	xor	ebx, ebx
@@ -1377,7 +1401,10 @@ drawTramBridgeMiddlePart:
 .checkfortunnel:
 	test	byte [landscape5(di)], 80h
 	jnz	.setoffset
+	mov	word [tmpXY], di
 	call	gettunnelotherendmystyle		//get the other end preserving everything else BUT EDI
+	cmp	word [tmpXY], di
+	jge	near .cleanup
 	jmp	.setoffset
 
 .changestyle:
@@ -1693,7 +1720,7 @@ gettunnelotherendmystyle:
 	and	ax, 3h
 	mov	bl, byte [dirmapping+eax]
 	mov	si, 2h
-	call	[tunnelotherendfn]
+	call	[gettunnelotherend]
 	pop	eax
 	pop	ebx
 	pop	ecx

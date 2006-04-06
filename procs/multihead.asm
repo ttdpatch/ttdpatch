@@ -3,6 +3,7 @@
 #include <patchproc.inc>
 
 patchproc fastwagonsell,newtrains, patchwagonsell
+patchproc newtrains, multihead, patchpower
 
 extern gettextandtableptrs,trainmaintcostarray,trainmaintbasecostarray
 
@@ -134,8 +135,7 @@ roadvehcosttable equ	(vehiclecosttables+1*4)	// Table of cost multipliers of roa
 shipcosttable equ	(vehiclecosttables+2*4)	// Table of cost multipliers of ships
 aircraftcosttable equ	(vehiclecosttables+3*4)	// Table of cost multipliers of aircraft
 
-global patchmultihead
-patchmultihead:
+patchpower:
 	mov ax,0x885e
 	call gettextandtableptrs
 
@@ -153,7 +153,10 @@ patchmultihead:
 	add dword [edi+14],byte 2
 	add edi,byte 18
 	storefragment newshowpower
+	ret
 
+global patchmultihead
+patchmultihead:
 	patchcode oldwaggonvalue,newwaggonvalue1,1,2
 	patchcode oldwaggonvalue,newwaggonvalue2,1,1,-6
 	mov eax,dword [traincosttable]

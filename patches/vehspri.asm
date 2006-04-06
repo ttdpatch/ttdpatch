@@ -1699,9 +1699,13 @@ getdefvehcargotype:
 	jb .notplane
 
 .plane:
-	shl eax,2
-	add eax,[newrefitvars+3*4]
-	bsf eax,[eax]	// get first refittable cargo type
+	or eax,0x130000
+	push eax
+	call getrefitmask
+	pop eax
+	bsf eax,eax	// get first refittable cargo type
+	jnz .done
+	xor eax,eax	// not refittable? assume passengers
 	jmp short .done
 
 .notplane:

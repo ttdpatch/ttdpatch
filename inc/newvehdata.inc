@@ -55,7 +55,7 @@ struc newvehdatastruc
 	.vehphase2dec:	resb 256			// C20..D1F
 	.vehmiscflags:	resb 256			// D20..E1F
 	.cargoclasses:	resw 256			// E20..101F
-	.cargonotclasses: resw 256			// 1020..121F
+	.cargonotclasses:resw 256			// 1020..121F
 	.cargolabels:	resd NUMCARGOS			// 1220..129F
 endstruc_32
 
@@ -111,9 +111,9 @@ endstruc_32
 %define canalspeedfract (newvehdata+newvehdatastruc.canalspeedfract)
 %define vehphase2dec (newvehdata+newvehdatastruc.vehphase2dec)
 %define trainphase2dec (newvehdata+newvehdatastruc.vehphase2dec)
-%define rvphase2dec (newvehdata+newvehdatastruc.vehphase2dec+NTRAINTYPES)
-%define shipphase2dec (newvehdata+newvehdatastruc.vehphase2dec+NROADVEHTYPES)
-%define planephase2dec (newvehdata+newvehdatastruc.vehphase2dec+NSHIPTYPES)
+%define rvphase2dec (newvehdata+newvehdatastruc.vehphase2dec+ROADVEHBASE)
+%define shipphase2dec (newvehdata+newvehdatastruc.vehphase2dec+SHIPBASE)
+%define planephase2dec (newvehdata+newvehdatastruc.vehphase2dec+AIRCRAFTBASE)
 %define globalcargolabels (newvehdata+newvehdatastruc.cargolabels)
 
 // related variable (also set by action 0) but not stored in newvehdata

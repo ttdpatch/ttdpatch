@@ -168,7 +168,7 @@ exported Class9DrawLandTunnelExt
 	call [addsprite]
 	test dh,dh
 	popa
-	jnz .norelsprite
+	jnz near .norelsprite
 
 // top sprite
 	pusha
@@ -193,10 +193,22 @@ exported Class9DrawLandTunnelExt
 	
 	imul bx, 82
 	add ebx, 1005
+	mov al, 1
 	test dh, 1
 	jnz .otherdir
+	mov al, 2
 	inc ebx
 .otherdir:
+
+	testflags pathbasedsignalling
+	jnc .nopathsig
+	test byte [pbssettings],PBS_SHOWRESERVEDPATH|PBS_SHOWNONJUNCTIONPATH
+	jz .nopathsig	// neither setting active
+	jpo .nopathsig	// not both settings active
+	test [landscape6+esi],al
+	jz .nopathsig
+	or ebx,0x3248000
+.nopathsig:
 	mov ax, 31
 	mov cx, -1
 	call [addrelsprite]

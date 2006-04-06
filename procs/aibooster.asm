@@ -1,3 +1,4 @@
+#if 0
 
 #include <defs.inc>
 #include <frag_mac.inc>
@@ -46,3 +47,5 @@ patchaibooster:
 	xor ecx,ecx
 #endif
 	ret
+
+#endif

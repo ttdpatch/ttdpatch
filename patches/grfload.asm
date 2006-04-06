@@ -22,7 +22,7 @@ extern newspritenum,numactsprites,numgrfswitchparam,numspriteactions
 extern numgrfvarreinitalways,numgrfvarreinitzero,numgrfvarreinitsigned
 extern openfilefn,patchflags,readspriteinfofn,readwordfn
 extern removespritefromcache,spriteblockptr,spriteinitializeaction
-extern spritesloadedaction,tempvard
+extern spritesloadedaction,tempvard,grfvarreinitgrmstart,numgrfvarreinitgrm
 extern vehids
 
 
@@ -797,8 +797,16 @@ procallsprites:
 	jle .done
 
 	mov edi,grfvarreinitalwaysstart
-	xor eax,eax
 	mov ecx,numgrfvarreinitalways
+
+	cmp byte [procallsprites_replaygrm],0
+	jne .replay
+
+	mov edi,grfvarreinitgrmstart
+	mov ecx,numgrfvarreinitgrm
+
+.replay:
+	xor eax,eax
 	rep stosd
 
 .procblock:

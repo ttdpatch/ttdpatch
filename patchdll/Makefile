@@ -28,26 +28,32 @@ ttdpatch.dll: ${OBJECTFILES} ttdpatch.def
 ttdpatch.def: ${OBJECTFILES}
 
 %.o : %.c
-	$(CC) -c -o $@ $(CFLAGS) $<
+	${_E} [CC] $@
+	${_C}$(CC) -c -o $@ $(CFLAGS) $<
 
 %.o : %.cpp
-	$(CXX) -c -o $@ $(CFLAGS) $<
+	${_E} [CXX] $@
+	${_C}$(CXX) -c -o $@ $(CFLAGS) $<
 
 %.def:
-	$(DLLTOOL) -z $@ $^
+	${_E} [DLLTOOL] $@
+	${_C}$(DLLTOOL) -z $@ $^
 
 %.dll:
-	$(CC) -o $@ -shared $^ $(DLLOPTS) 
+	${_E} [BUILD] $@
+	${_C}$(CC) -o $@ -shared $^ $(DLLOPTS) 
 ifndef NOUPX
-	upx -qq --best $@
+	${_C}upx -qqq --best $@
 endif
 
 # make assembly file for testing the compile output
 %.s : %.cpp
-	$(CXX) -S -o $@ $(CFLAGS) $<
+	${_E} [CXX] $@
+	${_C}$(CXX) -S -o $@ $(CFLAGS) $<
 
 %.lst : %.s
-	$(AS) -a -o /dev/null $< > $@
+	${_E} [AS] $@
+	${_C}$(AS) -a -o /dev/null $< > $@
 
 distclean:
 	rm -f *.o *.map *.s *.dmp 

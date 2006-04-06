@@ -167,8 +167,11 @@ textprocessing:
 .procutf8:		// get UTF-8 sequence start byte and validate
 	xor eax,eax
 	lodsb
-	cmp al,0x80	// is it ASCII?
-	jb .trlchar	// C0 and C1 would decode to ASCII, so they're invalid
+	cmp al,0x7b
+	jb .gotchar
+	mov bl,1
+	cmp al,0x80	// is it ASCII that'd be a format statement? if so, just store it
+	jb near .store	// C0 and C1 would decode to ASCII, so they're invalid
 	cmp al,0xc2	// and 80..BF are continuation characters, they cannot
 	jb .trlchar	// start a sequence, so use them verbatim to support
 	cmp al,0xfe 	// the old-style \80 etc. codes;
@@ -274,11 +277,18 @@ section .text
 	jb .store
 
 	cmp eax,0x9f
+	jb .special
+
+	cmp eax,0xe07b
+	jb .store
+
+	cmp eax,0xe09e
 	jnb .store
 
 .special:
 	cmp al,0x88
 	jnb .store
+	movzx eax,al
 	mov ebx,[textspechandler]
 	jmp [ebx+(eax-0x7b)*4]
 

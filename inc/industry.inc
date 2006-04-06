@@ -30,7 +30,12 @@ struc industry
 	.consdate:	resw 1	// 30h:construction date
 	.badtreecuts:	resb 1	// 32h:number of unsuccessful treecuts; used only by TTDPatch,
 				// and only for industries that cut trees
-	.unused3:	resb 3	// 33h:unused by TTD, initialized to 0
+	.creationtype:	resb 1	// 33h:how the industry got created
+				// 0 - don't know (created with an earlier TTDPatch)
+				// 1 - created in-game either by a player or by the random routine
+				// 2 - created during random map creation
+				// 3 - created in the scenario editor
+	.unused3:	resw 1	// 34h:unused by TTD, initialized to 0
 endstruc_32
 
 ptrvardec industrydatablock

@@ -176,7 +176,7 @@ varb patchflagsfixedmap
 	db buildonslopes	// 77
 	db noflag
 	db planespeed		// 79
-	db moreindustriesperclimate // 80
+	db noflag //  moreindustriesperclimate // 80
 	db moretoylandfeatures	// 81
 	db newstations		// 82
 	db tracktypecostdiff	// 83
@@ -211,6 +211,10 @@ varb patchflagsfixedmap
 	db newsounds		// 112
 	db autoreplace		// 113
 	db autoslope		// 114
+	db followvehicle	// 115
+	db trams		// 116
+	db enhancetunnels	// 117
+
 
 	times 127-(addr($)-patchflagsfixedmap) db noflag
 	db anyflagset		// 127

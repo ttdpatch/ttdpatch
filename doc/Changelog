@@ -3385,3 +3385,44 @@ before 1.6
 - fixed crash with multiple station IDs in one action 3
 - reduced newplanes/newships/newhouses sprite limits to stay within 64K
   sprite limit
+
+2.5 beta 1
+- fix problems/crashes related to town grfs (fixed text problems too)
+- fixed crash with rv/tram tunnels with abandonedroads off
+- added missing switches to grf var 85
+- new experimental switch "mandatorygrm" to require that grfs reserve
+  the IDs they use (will break many old grf files; only for authors)
+- fixed PBS with enhancetunnel bridge pieces
+- by Oskar: show reserved PBS pieces on enhancetunnel bridges
+- fixed newsounds crash if no sound hardware present
+- allow autoreplace to choose model with wrong refittability as long
+  as default cargo type matches
+- by stevenh: fixed tunnel lockups when a tunnel was placed on 
+  top of another tunnel
+- by Csaba:
+  * fixed newcargo price factors being calculated incorrectly
+  * new global variable 10: snow line height table (give a snow line
+    height for every day of the year)
+  * (devel) renamed gethouseterrain to gettileterrain since it works for
+    all tiles, not just for houses
+  * industry variable 61 now contains the terrain type as well
+  * added var. action 2 global variable 20 to get the snow line height
+  * added action 5 type 0C * snowy versions of temperate trees
+  * the snowline variable is now set to FFh for non*snowy games to make
+    GRF coders' lives easier
+  * (revert) industry variable 61 no longer contains the terrain type
+  * added parametrized industry variable 62 to get landscape info about
+    nearby tiles
+  * bugfix: callback 3B didn't work correctly for effect 0; it was
+    always planting fields no matter what the callback returned
+  * bugfix: callback 22 is now enforced when building the industry as well
+  * new industry variable B3h (byte), shows how the industry got built
+  * industry variable A7h (byte) now contains the funder of the industry
+- fixed bug with plane colour schemes not considering cargo classes
+  for passenger/freight determination
+- fixed early retirement for planes and ships setting train retirement
+  instead
+- by Lakie: added train props 0B and 1F to callback 36
+- fixed(?) early retirement property breaking persistentengines
+- made ai boost and moreindustriesperclimate obsolete
+- fixed font size and newhistory problem in utf8 mode

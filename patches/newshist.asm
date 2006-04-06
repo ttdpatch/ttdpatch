@@ -9,7 +9,7 @@ extern BringWindowToForeground,CreateWindow,DestroyWindow,DrawWindowElements
 extern WindowClicked,WindowTitleBarClicked,currscreenupdateblock
 extern drawsplittextfn,drawtextfn,invalidatehandle,newshistoryptr
 extern newsmessagefn,specialtext1,statusbarnewsitem
-extern ttdtexthandler
+extern newtexthandler,hasaction12,getutf8char
 
 
 
@@ -517,32 +517,50 @@ NewsHistRedraw:
 
 .formatnewsmessage:
 	mov edi, tmpbuffer1
-	call [ttdtexthandler]
+	call newtexthandler // [ttdtexthandler]
 	mov esi, tmpbuffer1
 	mov edi, tmpbuffer2
 
+	cmp byte [hasaction12],0
+	je .copyloop
+
+	mov ax,0x9EC3
+	stosw
+
 .copyloop:
-	mov al, [esi]
-	inc esi
-	or al, al
+	cmp byte [hasaction12],0
+	je .notutf8
+	push esi
+	call getutf8char
+	pop ecx
+	sub esi,ecx
+	xchg esi,ecx	// now ecx=number of bytes in UTF-8 sequence, esi->sequence
+	jmp short .check
+.notutf8:
+	movzx eax,byte [esi]
+	mov ecx,1
+.check:
+	test eax,eax
 	jz .zero
-	cmp al, 0Dh
+	cmp eax, 0Dh
 	jz .lbl0Dh
-	cmp al, 20h
-	jb .copyloop
-	cmp al, 88h
+	cmp eax, 20h
+	jb .skip
+	cmp eax, 88h
 	jb .lbl88h
-	cmp al, 99h
-	jb .copyloop
+	cmp eax, 99h
+	jb .skip
 
 .lbl88h:
-	mov [edi], al
-	inc edi
+	rep movsb
 	jmp .copyloop
 
 .lbl0Dh:
 	mov dword [edi], 20202020h
 	add edi, 4
+
+.skip:
+	add esi,ecx
 	jmp .copyloop
 
 .zero:

@@ -13,6 +13,7 @@
 #include <house.inc>
 #include <flagdata.inc>
 #include <font.inc>
+#include <bitvars.inc>
 
 extern tramtracks,numtramtracks
 extern newonewayarrows,numonewayarrows
@@ -56,7 +57,8 @@ extern currtextlist,currmultis,curropts,currsymsbefore,currsymsafter,eurointr
 extern languagesettings
 extern cargotowngrowthtype,cargotowngrowthmulti,cargocallbackflags,setindustileaccepts
 extern setinduproducedcargos,setindustryacceptedcargos,industrydestroymultis
-extern fonttables,allocfonttable,hasaction12
+extern fonttables,allocfonttable,hasaction12,setsnowlinetable,snowytemptreespritebase
+extern numsnowytemptrees
 
 uvarb action1lastfeature
 
@@ -122,7 +124,9 @@ proc processnewinfo
 	mov [%$offset],eax
 	mov [%$orgoffset],eax
 
-#ifdef REQUIREGRFRESMGMT
+	test byte [expswitches],EXP_MANDATORYGRM
+	jz .notmandatory
+
 	cmp byte [grfstage],0
 	je .resok
 	mov ebx,[%$vehtype]
@@ -132,14 +136,17 @@ proc processnewinfo
 	add ebx,eax
 	push ecx
 	mov ecx,[%$numinfo]
+	jecxz .noids
 .checknextres:
 	cmp [grfresources+ebx*4],edx
 	jne .unresid
 	inc ebx
 	loop .checknextres
+.noids:
 	pop ecx
 .resok:
-#endif
+
+.notmandatory:
 
 	add eax,[%$numinfo]
 	mov ebx,[%$vehtype]
@@ -912,7 +919,9 @@ initializevehcargomap:
 	ret
 
 setvehcargomap:
-#ifdef REQUIREGRFRESMGMT
+	test byte [expswitches],EXP_MANDATORYGRM
+	jz .notmandatory
+
 	mov ebp,edx
 	mov edx,eax
 	cmp byte [grfstage],0
@@ -927,17 +936,20 @@ setvehcargomap:
 
 	lodsb
 	mov ecx,eax
+	and ecx,0x7f
+	jz .noids	// generic action 3, no IDs
 .checknextres:
 	lodsb
 	cmp [ebx+eax*4],ebp
-	jne .badres
+	jne near .badres
 	loop .checknextres
+.noids:
 	pop esi
 	mov eax,edx
 .resok:
-#else
+
+.notmandatory:
 	mov edx,eax
-#endif
 
 	mov ebp,[esi-6]
 	lodsb
@@ -3186,7 +3198,7 @@ defvehdata spechousedata
 defvehdata spclhousedata, F,F,w,B,B,B,B,B,w,B,t,w,B,F,B,d,B,B,B,B,F,B,d	// 08..1e
 
 defvehdata specglobaldata
-defvehdata spclglobaldata, B,F,t,d,w,d,d,w		// 08..0F
+defvehdata spclglobaldata, B,F,t,d,w,d,d,w,F		// 08..10
 		
 
 defvehdata specindustiledata
@@ -3402,6 +3414,7 @@ var externalvars		// for variational cargo IDs and action 7/9/D
 	dd ttdplatform		// 1D	9D
 	dd grfmodflags		// 1E   9E
 	dd languagesettings	// 1F	9F
+	dd snowline		// 20	A0
 
 global numextvars
 numextvars equ (addr($)-externalvars)/4
@@ -3411,10 +3424,10 @@ uvard alwaysminusone,1,s
 	// first entry in grf resource list for each feature
 	// must be synchronized with NGRFRESOURCES and grfresources below
 	// -1 = no resources defined yet, -2 = has special handler
-var grfresbase, dd TRAINBASE,ROADVEHBASE,SHIPBASE,AIRCRAFTBASE
-	dd -1, -1, -1, -1	// stations, canals, bridges houses
-	dd -2, -1, 256, 293,	// sprites, industiles, industries, cargos,
-	dd -1			// sounds
+var grfresbase, dd GRM_TRAINS,GRM_RVS,GRM_SHIPS,GRM_PLANES
+	dd -1, -1, -1, -1		// stations, canals, bridges houses
+	dd -2, -1,GRM_INDUSTRIES	// sprites, industiles, industries,
+	dd GRM_CARGOS,-1		// cargos, sounds
 checkfeaturesize grfresbase, 4
 	// next one starts with 357
 
@@ -3515,7 +3528,7 @@ var housedata
 var globaldata
 	dd basecostmult,addr(setcargotranstbl)			// 08..09
 	dd currtextlist,currmultis,curropts,currsymsbefore	// 0A..0D
-	dd currsymsafter,eurointr				// 0E..0F
+	dd currsymsafter,eurointr,setsnowlinetable		// 0E..10
 
 var industiledata
 	dd addr(setsubstindustile),addr(setindustileoverride)	// 08..09
@@ -3621,17 +3634,19 @@ uvard cargoclasscargos,16	// bit mask of cargo bits that belong to each class
 uvard cargoclass,32/2		// bit mask of cargo classes each cargo belongs to
 uvard deftwocolormaps		// sprite numbers for 2nd CC translation tables
 
-uvard grfvarreinitalwaysstart,0
+uvard grfvarreinitgrmstart,0
+
+	// GRF Resource Management variables that must be reinitialized
+	// always, except when replaying GRM during final activation
+
+	// list of reserved grf resources, spriteblock ptr that reserved them
+	// (see GRM_* values in grfdef.inc)
+uvard grfresources,GRM_NUM
 
 	// All variables that are reinitialized even for just checking
 	// activation (e.g. clicking on flag in grf status window)
 
-	// list of reserved grf resources, spriteblock ptr that reserved them
-	// 0..255=vehid, 256..292=industries, 293..324=cargoids, 
-	// 325..356=cargo bits
-	// NOTE: This must be synchronized with grfresbase above
-#define NGRFRESOURCES 256+NINDUSTRIES+32+32
-uvard grfresources,NGRFRESOURCES
+uvard grfvarreinitalwaysstart,0
 
 	// ----------------------------
 
@@ -3667,6 +3682,9 @@ uvard laststationid
 
 uvard grfvarclearend,0
 
+global numgrfvarreinitgrm
+numgrfvarreinitgrm equ (grfvarreinitend-grfvarreinitgrmstart)/4
+
 global numgrfvarreinitalways
 numgrfvarreinitalways equ (grfvarreinitend-grfvarreinitalwaysstart)/4
 
@@ -3681,8 +3699,8 @@ numgrfvarreinit equ (grfvarreinitend-grfvarreinitstart)/4
 
 	// for action 5, where to store the first sprite number
 	// (the ones that are -1 are safe to be reused)
-var newgraphicsspritebases, dd presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,deftwocolormaps,tramtracks
-var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,-1,numtramtracks
+var newgraphicsspritebases, dd presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,deftwocolormaps,tramtracks,snowytemptreespritebase
+var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,-1,numtramtracks,numsnowytemptrees
 
 global numnewgraphicssprites
 numnewgraphicssprites equ (newgraphicsspritenums-newgraphicsspritebases)/4

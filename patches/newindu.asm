@@ -16,7 +16,7 @@ extern cargoamount1namesptr,cargoamountnnamesptr,cargotypenamesptr
 extern curcallback,curgrfindustilelist,curgrfindustrylist,curmiscgrf
 extern currscreenupdateblock,curspriteblock,drawtextfn,errorpopup
 extern fillrectangle,fundchances,fundprospecting_newindu_actionnum
-extern generatesoundeffect,gethouseterrain,getnewsprite,gettileinfo
+extern generatesoundeffect,gettileterrain,getnewsprite,gettileinfo
 extern getwincolorfromdoscolor,grffeature,grfstage,malloccrit
 extern industryspriteblock,invalidatehandle,lookuppersistenttextid
 extern mostrecentspriteblock,processtileaction2,randomfn
@@ -909,6 +909,7 @@ getindustileanimframe:
 global getindustilelandslope
 getindustilelandslope:
 	pusha
+.gotesi:
 	mov ebp,esi		// save XY to a safe place
 
 // get fine X and Y coordinates from XY (plus the offsets), for GetTileTypeHeightInfo
@@ -949,7 +950,7 @@ getindustilelandslope:
 	shl al,1
 	or [esp+29],al
 
-	call gethouseterrain
+	call gettileterrain
 	shl al,2
 	or [esp+29],al
 
@@ -3030,6 +3031,8 @@ fundindustrywindowhandler:
 	pop esi
 	pop edx
 .noGUItick:
+	cmp dl, cWinEventSecTick
+	jz near induwindow_sectick
 	cmp dl, cWinEventTimer
 	jz induwindow_timer
 	cmp dl, cWinEventMouseToolClose
@@ -3593,6 +3596,60 @@ induwindow_click:
 .dontresettool:
 	jmp [RefreshWindowArea]
 
+// called every second, to update the enabled/disabled state of the button if callback 22 is enabled
+induwindow_sectick:
+// in the scenario editor, everything can be built, so no update needed
+	cmp byte [gamemode],2
+	je .exit
+	movzx eax, byte [esi+window.data]
+	cmp al,0xFF
+	je .exit
+	test byte [industrycallbackflags+eax],1
+	jnz .docallback
+.exit:
+	ret
+
+.docallback:
+	mov ebx,esi
+	xor esi,esi
+	mov byte [grffeature],10
+	mov dword [callback_extrainfo],2		// 2: player tries to build
+	mov byte [curcallback],0x22
+	call getnewsprite
+	mov byte [curcallback],0
+	mov esi,ebx
+	jc .enabled
+	or eax,eax
+	jz .enabled
+
+// the industry isn't available
+	bts dword [esi+window.disabledbuttons],5
+	jc .exit					// the button is disabled already - we're done
+
+// if the current mouse tool is ours, go back to the normal cursor
+	cmp byte [curmousetooltype],1
+	jne .dontresettool
+	cmp byte [curmousetoolwintype],0x3b
+	jne .dontresettool
+
+	push ecx
+	push esi
+	xor ebx,ebx
+	xor al,al
+	call [setmousetool]
+	pop esi
+	pop ecx
+
+.dontresettool:
+	jmp [RefreshWindowArea]
+
+.enabled:
+	btr dword [esi+window.disabledbuttons],5
+	jnc .exit					// the button is enabled already - we're done
+	jmp [RefreshWindowArea]
+
+var realindustryowner, db 10h
+
 // Called during the initialization of a new industry struc
 // The old overwritten code pedantly zeroed out 8 bytes that
 // are never accessed. We store extra data there instead.
@@ -3605,6 +3662,25 @@ initnewindustry:
 	mov ax,[currentdate]
 	mov [esi+industry.consdate],ax
 	and dword [esi+0x32],0			// this one is unused now, but clear it anyway for the future
+
+	// find out why this industry is being created, and store this information
+	// gamemode	scenarioeditmodeactive	stored val
+	// 1		0			1 - created in-game
+	// 1		1			2 - created during random game generation
+	// 2		1			3 - created in the scenario editor
+	// (0 is reserved since older versions left this field zero)
+
+	cmp byte [gamemode],2
+	sete al
+	cmp byte [scenarioeditmodeactive],0
+	setnz ah
+	add al,ah
+	inc al
+	mov [esi+industry.creationtype],al
+
+	mov al,[realindustryowner]
+	mov [esi+industry.owner],al
+
 	mov eax,esi
 	getinduidfromptr eax
 	and dword [industryincargos+8*eax],0
@@ -3758,6 +3834,12 @@ getindutilerandombits:
 	// old types don't use random graphics
 	xor eax,eax
 	ret
+
+global getindustilelandslope_industry
+getindustilelandslope_industry:
+	pusha
+	movzx esi,word [esi+industry.XY]
+	jmp getindustilelandslope.gotesi
 
 // a production instruction returned by the production callback
 // it contains three values to subtract from the three waiting cargo types,
@@ -4233,9 +4315,8 @@ newindu_placechkproc:
 // store the distance we've found
 	mov [fakeinduentry+0xb],di
 
-// gethouseterrain doesn't really assumes the tile being a house tile, so we can use it here
 	push esi
-	call gethouseterrain
+	call gettileterrain
 	mov [fakeinduentry+7],al
 
 	pop eax
@@ -4602,4 +4683,31 @@ plantrandomfields:
 .original:
 	xor eax,eax
 	xchg eax,[miscgrfvar]
+	ret
+
+global FundNewIndustry_saveplayer
+FundNewIndustry_saveplayer:
+	mov bh, [curplayer]		// overwritten
+	mov [realindustryowner],bh
+	ret
+
+global FundNewIndustry_restoreplayer
+FundNewIndustry_restoreplayer:
+	mov [curplayer],bh		// overwritten
+	mov byte [realindustryowner],10h
+	ret
+
+global indutilesellouthandler
+indutilesellouthandler:
+	movzx esi,byte [landscape2+ebx]
+	imul esi,industry_size
+	add esi,[industryarrayptr]
+	cmp [esi+industry.owner],dl
+	jne .exit
+	cmp dh,0xff
+	jne .notsellout
+	mov dh,0x10
+.notsellout:
+	mov [esi+industry.owner],dh
+.exit:
 	ret

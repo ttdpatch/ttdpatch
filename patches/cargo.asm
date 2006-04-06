@@ -24,6 +24,9 @@ distributecargo:
 	movzx ecx, cl
 	mov eax, ecx
 	add ecx, edx
+	jnz .ok
+	inc ecx	// to prevent division by zero
+.ok:
 	// ecx == (A+B) *256
 	mov [tmpratingsum], ecx
 	imul dx

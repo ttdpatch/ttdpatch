@@ -38,27 +38,30 @@ uvard wantstationpbstrigger	// set if reserving signal tile should trigger rando
 
 
 	// pieces that rotate clockwise as function of direction of origin
-var tilebitsclockwise, db 0, 0x20, 0, 8, 0, 0x10, 0, 4
+varb tilebitsclockwise, 0, 0x20, 0, 8, 0, 0x10, 0, 4
 
-var tiledeltas, db 0,-1,-1,0,1,1,0,0,-1
+varb tiledeltas, 0,-1,-1,0,1,1,0,0,-1
 
 	// which bit stores the signal state as function of source direction and piece
-var sigbitfromsdirpiece
+varb sigbitfromsdirpiece
 	db 80h,20h,80h,0	// dir 1 (NE), pieces 01,08,10
 	db 80h,80h,40h,0	// dir 3 (SE), pieces 02,04,10
 	db 40h,40h,10h,0	// dir 5 (SW), pieces 01,04,20
 	db 40h,10h,20h,0	// dir 7 (NW), pieces 02,08,20
+endvar
 
 	// same but using destination direction
-var sigbitfromddirpiece
+varb sigbitfromddirpiece
 	db 80h,80h,20h,0	// dir 1 (NE), pieces 01,04,20
 	db 80h,20h,10h,0	// dir 3 (SE), pieces 02,08,20
 	db 40h,10h,40h,0	// dir 5 (SW), pieces 01,08,10
 	db 40h,40h,80h,0	// dir 7 (NW), pieces 02,04,10
+endvar
 
 	// both signals, independent of direction
-var sigbitsonpiece
+varb sigbitsonpiece
 	db 0xc0,0xc0,0xc0,0x30,0xc0,0x30
+endvar
 
 
 	// final route information
@@ -675,7 +678,7 @@ chkmarksignalroute:
 
 	and al,0xf0
 	cmp al,0x10
-	je .rail
+	je near .rail
 
 	cmp al,0x20
 	je .roadcrossing
@@ -690,6 +693,14 @@ chkmarksignalroute:
 	cmp dh,4
 	jae .bridge
 
+	// check direction to see if we're on an enhancetunnels bridge
+	mov al,dh
+	and al,1
+	add al,1
+	cmp al,dl
+	jne near .markdl	// not tunnel direction, therefore bridge -> mark
+
+.tunnel:
 	// only reserve far end of tunnel, the close one won't be cleared when train disappears in tunnel
 	bts edx,31
 	jnc .nexttile
@@ -699,7 +710,7 @@ chkmarksignalroute:
 
 .bridge:
 
-	checkbridgepbs dh,dl,.nexttile,short .markdl
+	checkbridgepbs dh,dl,.nexttile,near .markdl
 
 .roadcrossing:
 	and dh,0xf0
@@ -1315,20 +1326,15 @@ lastwagoncleartile:
 	cmp byte [landscape5(di,1)],4
 	jnb .nottunnel
 
-	// enhancetunnels hotfix
-	test byte [landscape5(di,1)], 1
-	jz .othertunneldir
-	cmp ebp, 1
-	je .ontunnelbridge
-	cmp ebp, 5
-	je .ontunnelbridge
-	jmp .withouttunnelbridge
-.othertunneldir:
-	cmp ebp, 3
-	je .ontunnelbridge
-	cmp ebp, 7
-	je .ontunnelbridge
-.withouttunnelbridge:
+	mov ebx,ebp
+
+	// on enhancetunnels bridge?
+	and ebx,2	// now ebx=2 if in Y dir, 0 if in X dir
+	mov bh,[landscape5(di,1)]
+	and bh,1
+	add bh,bh
+	cmp bh,bl
+	jne .nottunnel	// not in dir of tunnel entrance -> on bridge
 
 	// train left tunnel entrance; we need to clear the pieces in front
 	// of the other end instead
@@ -1339,7 +1345,6 @@ lastwagoncleartile:
 	call [gettunnelotherend]
 	or byte [lastmovementstat],0x80
 
-.ontunnelbridge:
 .nottunnel:
 	push edi
 
@@ -1697,6 +1702,13 @@ reservecurrenttrack:
 .bridgetunnel:
 	cmp ch,4
 	jae .bridge
+
+	// enhancetunnels bridge?
+	mov ah,[esi+veh.direction]
+	shl ah,2
+	or ah,ch
+	and ah,0x9	// now ah=0 or 9 if in tunnel dir, or 1 or 8 if in bridge dir
+	jpo .mark	// odd number of bits set -> bridge -> mark
 
 	// only reserve far end (exit) of tunnel
 	mov ah,[esi+veh.direction]

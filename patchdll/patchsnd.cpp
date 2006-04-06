@@ -74,6 +74,7 @@ DWORD LoadSamples(char* bankFilePath)
 	//----------Start DSOUND
 	ret = DirectSoundCreate(NULL, &lpDirectSound, NULL);
 	if (DS_OK != ret) {
+		lpDirectSound = NULL;
 		WriteLogData("Creating the initial DirectSound object failed: %x\n", ret);
 		return 1;
 	}
@@ -327,6 +328,9 @@ void PlayWaveFile(LPWAVEFILE file, int volume, int panning, int frequency,
 	LPDIRECTSOUNDBUFFER lpDSBSingle = NULL;
 	LPBUFFERINFO info;
 
+	if (!lpDirectSound)
+		return;
+
 	// find existing buffer that's done playing
 	for (info = file->Buffers.next; info; info = info->next) {
 		DWORD status;
@@ -377,6 +381,9 @@ LPDIRECTSOUNDBUFFER CreateBuffer(LPWAVEFILE file, int volume, int panning, int f
 	DWORD dwLength;
 	DSBUFFERDESC dsbdSingle;
 	LPDIRECTSOUNDBUFFER lpDSBSingle;
+
+	if (!lpDirectSound)
+		return NULL;
 
 	//we need to create the struct to hold the required sound data
 	memset(&dsbdSingle, 0, sizeof(DSBUFFERDESC));

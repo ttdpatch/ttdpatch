@@ -271,7 +271,9 @@ exported drawstringunicode
 	cmp bx,[edi+scrnblockdesc.x]
 
 	// get char info without affecting flags
-	movzx ebx,byte [currentfont+1]	// now ebx=0/1/3 for normal/small/large
+	movzx ebx,word [currentfont]
+	lea ebx,[ebx*2]			// double ebx without affecting flags
+	movzx ebx,bh			// now ebx=0/1/3 for normal/small/large
 	mov ebx,[fonttableofs+ebx*4]	// now ebx=0/256/512 for normal/small/large
 	mov bl,ah
 	mov ebx,[fonttables+ebx*4]
@@ -341,7 +343,9 @@ exported drawstringunicode
 	jmp .nextchar
 
 .linefeed:
-	movzx ebx,byte [currentfont+1]
+	movzx ebx,word [currentfont]
+	lea ebx,[ebx*2]
+	movzx ebx,bh			// now ebx=0/1/3 for normal/small/large
 	mov cx,[xpos]
 	add dx,[lineheight+ebx*2]
 	jmp .nextchar
@@ -377,7 +381,7 @@ vard fonttableofs, 0,256,0,512
 // out:	eax=character
 //	esi adjusted
 // uses:---
-getutf8char:
+exported getutf8char
 	push ebx
 	xor eax,eax
 	lodsb
@@ -415,7 +419,9 @@ getutf8char:
 exported gettextwidthunicode
 	push edx
 	or cx,byte -1
-	movzx ebx,byte [currentfont+1]	// now ebx=0/1/3 for normal/small/large
+	movzx ebx,word [currentfont]
+	lea ebx,[ebx*2]
+	movzx ebx,bh			// now ebx=0/1/3 for normal/small/large
 	mov ebx,[fonttableofs+ebx*4]	// now ebx=0/256/512 for normal/small/large
 
 .nextchar:
@@ -488,7 +494,9 @@ getutf8charwidth:
 // safe:eax,cx,esi
 exported splittextlinesunicode
 	push edx
-	movzx ebx,byte [currentfont+1]	// now ebx=0/1/3 for normal/small/large
+	movzx ebx,word [currentfont]
+	lea ebx,[ebx*2]
+	movzx ebx,bh			// now ebx=0/1/3 for normal/small/large
 	mov ebx,[fonttableofs+ebx*4]	// now ebx=0/256/512 for normal/small/large
 	mov edx,[tempSplittextlinesNumlinesptr]
 	and word [edx],0

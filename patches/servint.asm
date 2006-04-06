@@ -21,7 +21,7 @@ extern getnewsprite,getrefitmask,getymd,grffeature,isengine,ishumanplayer
 extern lastmovementstat,lastwagoncleartile,makerisingcost,miscgrfvar
 extern miscmodsflags,newservint,noattachnewwagon,numheads,patchflags
 extern randomtrigger,replaceage,replaceminreliab,savevehordersfn,tiledeltas
-extern vehbase,vehiclecosttables,newvehdata
+extern vehbase,vehiclecosttables,newvehdata,getdefvehcargotype
 
 
 
@@ -133,7 +133,7 @@ getreplacevehicle:
 	mov ah,1	// generic callback
 	mov [grffeature],al
 	call getnewsprite
-	jc .done
+	jc near .done
 
 	movzx edx,byte [esi+veh.class]
 	add al,[vehbase+edx-0x10]
@@ -171,7 +171,24 @@ getreplacevehicle:
 	mov dl,[cargotypes+edx]
 	pop ebx
 	bt ebx,edx
-	jnc .next
+	jc .ok
+
+	// is the default cargo type right at least?
+#if 0
+	mov dl,[esi+veh.class]
+	mov ebx,[cargotypeptr+(edx-0x10)*4]
+	mov dl,[esi+veh.vehtype]
+	cmp dl,0x13
+	je .next	// aircraft don't have default type
+
+	mov dl,[ebx+edx]
+#endif
+	mov dl,[esi+veh.vehtype]
+	push edx
+	call getdefvehcargotype
+	pop edx
+	cmp dl,[esi+veh.cargotype]
+	jne .next
 
 #if 0
 	// can player afford it?
@@ -192,6 +209,12 @@ getreplacevehicle:
 	mov dword [miscgrfvar],0	// need to preserve CF
 	mov byte [curcallback],0
 	ret
+
+vard cargotypeptr
+	dd traincargotype
+	dd rvcargotype-ROADVEHBASE
+	dd shipcargotype-SHIPBASE
+	dd 0 // planecargotype-AIRCRAFTBASE (doesn't exist)
 
 
 	// called when last vehicle of train has entered the depot

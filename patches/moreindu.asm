@@ -9,7 +9,7 @@
 
 extern CreateNewRandomIndustry,actionhandler,errorpopup
 extern fundcostmultipliers,fundprospecting_actionnum,generatesoundeffect
-extern randomfn
+extern randomfn,realindustryowner
 
 
 
@@ -22,6 +22,7 @@ uvard industryquerryacceptlist1,1,s
 uvard industryquerryacceptlist2,1,s
 uvard industryquerryacceptlist3,1,s
 
+#if 0
 
 //This will fix savegames, new games to support paper.
 //It changes the industry accept table(s) on the fly too.
@@ -89,6 +90,7 @@ createnewindustryclimate:
 	ret
 ;endp createnewindustryclimate
 
+
 global fundnewindustrywindowhandler
 fundnewindustrywindowhandler:
 	// do the things we've overwritten
@@ -135,6 +137,7 @@ fundnewindustrywindowhandler:
 	pop esi
 .oldfunction:
 	ret
+#endif
 
 global fundprospecting_newindu
 fundprospecting_newindu:
@@ -166,7 +169,7 @@ fundprospecting:
 	mov ebx, ebp
 
 	test dl, 1
-	jz .onlytesting
+	jz near .onlytesting
 
 	// calculate if research will fail
 	pop ebx
@@ -208,10 +211,11 @@ fundprospecting:
 	// create the industry
 	// this modifies curplayer, so save that
 	mov al,[curplayer]
-	push eax
+	mov [realindustryowner],al
 	call [CreateNewRandomIndustry]
 	cmp al, -1
-	pop eax
+	mov al,10h
+	xchg al,[realindustryowner]
 	mov [curplayer],al
 	mov byte [currentexpensetype],expenses_other
 	je .nosuitableplace

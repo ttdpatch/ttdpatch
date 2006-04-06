@@ -75,7 +75,8 @@
 		// uppercase
 
 	//RANGE('A', "aiboost", CFG_AIBOOST, aibooster, 0, 0, FLAGDATA(aiboostfactor), 0, 255, 0),
-	RANGE('A', "aiboost", CFG_AIBOOST, aibooster, 0, 0, FLAGDATA(aiboostfactor), 0, 4, 0),
+	//RANGE('A', "aiboost", CFG_AIBOOST, aibooster, 0, 0, FLAGDATA(aiboostfactor), 0, 4, 0),
+	SPCL ('A', "aiboost", 0, OBSOLETE),
 	YESNO('B', "longbridges", CFG_LONGBRIDGES, longerbridges),
 	SPCL ('C', "include", 0, NULL),
 	YESNO('D', "extradynamite", CFG_DYNAMITE, morethingsremovable),
@@ -211,7 +212,8 @@
 	YESNO('F',"fifoloading", CFG_FIFOLOADING, fifoloading),
 	YESNO('G',"enhancegui", CFG_ENHANCEGUI, enhancegui),
 	YESNO('H',"morehotkeys", CFG_MOREHOTKEYS, morehotkeys),
-	YESNO('I',"moreindustriesperclimate", CFG_MOREINDUSTRIESPERCLIMATE, moreindustriesperclimate),
+	// YESNO('I',"moreindustriesperclimate", CFG_MOREINDUSTRIESPERCLIMATE, moreindustriesperclimate),
+	SPCL ('I',"moreindustriesperclimate", 0, OBSOLETE),
 	     //J
 	     //K
 	RANGE('L',"wagonspeedlimits", CFG_WAGONSPEEDLIMITS, wagonspeedlimits, 0, 0, FLAGDATA(wagonspeedlimitempty), 0, 255, 20),
@@ -327,7 +329,7 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	keepsmallairports,
 	longerbridges,
 	morethingsremovable,
-	aibooster,
+//	aibooster,
 	multihead,
 	newlineup,
 	generalfixes,
@@ -394,7 +396,7 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	showprofitinlist,
 	moresteam,
 	abandonedroads,
-	moreindustriesperclimate,
+//	moreindustriesperclimate,
 	signalsontrafficside,
 	buildwhilepaused,
 	losttrains,

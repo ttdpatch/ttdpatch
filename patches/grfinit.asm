@@ -53,6 +53,8 @@ extern cargobits,resetourtextptr,restorecurrencydata,applycurrencychanges
 extern languagesettings,languageid,setdeflanguage,resetcargodata
 extern disabledoldhouses,enhancetunnelshelpersprite
 extern initglyphtables,setcharwidthtables,fonttables,hasaction12
+extern snowlinetableptr,getymd,restoresnowytrees,snowytemptreespritebase
+extern applysnowytemptrees
 
 // New class 0xF (vehtype management) initialization handler
 // does additional things before calling the original function
@@ -667,6 +669,9 @@ initttdpatchdata:
 	mov [isfreightmult],eax	// set to 0 if freight trains off, else default freight types
 	mov [isfreight],edx	// set to default freight types
 
+	and dword [snowlinetableptr],0
+	call restoresnowytrees
+
 	// also clear all TTDPatch overridden graphics
 	// (i.e. those that have the immutable flag set)
 	// that way TTD will use its own graphics again
@@ -815,6 +820,7 @@ preinfoapply:
 
 .notrainsorting:
 
+#if 0
 	// make paper wagon and trucks available in temperate with moreindustriesperclimate
 	testmultiflags moreindustriesperclimate
 	jz .nopaperintemperate
@@ -851,6 +857,7 @@ preinfoapply:
 	// *********
 
 .nopaperintemperate:
+#endif
 
 	testflags newindustries
 	jnc .dontrestoreinddata
@@ -955,14 +962,34 @@ postinfoapply:
 	mov byte [grfstat_titleclimate],-1
 .nottitle:
 
-	testflags tempsnowline
-	jnc .dontupdatesnowline
-
 	mov al,[temp_snowline]
 	mov [snowline],al
 
-.dontupdatesnowline:
+	testflags tempsnowline
+	setc al
+	or al,[climate]
+	dec al
+	jnz .nosnow
 
+	mov ecx,[snowlinetableptr]
+	test ecx,ecx
+	jz .notable
+
+.update:
+	mov ax,[currentdate]
+	call [getymd]
+	shl edx,5
+	add edx,ebx
+	mov al,[ecx+edx]
+	mov [snowline],al
+	jmp short .havesnow
+
+.nosnow:
+	// if snow is disabled, set the snow line height to FFh to make GRF coder's life easier
+	mov byte [snowline],0xFF
+
+.notable:
+.havesnow:
 	// make bitmask out of new signal sprite number
 
 	mov eax,[numsiggraphics]
@@ -1444,11 +1471,13 @@ postinfoapply:
 	cmp dl,NTRAINTYPES+NROADVEHTYPES
 	jb .nextc0
 
+#if 0
 // moreindustriesperclimate: for adding new cargo
 	testflags moreindustriesperclimate
 	jnc .nomoreindustriesperclimate
 	call addnewtemperatecargo
 .nomoreindustriesperclimate:
+#endif
 
 	call SwapDockWinPurchaseLandIco
 	call SwapLomoGuiIcons
@@ -1463,6 +1492,13 @@ postinfoapply:
 	call recalchousecounts
 .nohousecountrecalc:
 
+	testflags tempsnowline
+	jnc .notempsnow
+	cmp word [snowytemptreespritebase],-1
+	je .notempsnow
+	call applysnowytemptrees
+
+.notempsnow:
 	ret
 
 // List of vehicles the should be made eternal

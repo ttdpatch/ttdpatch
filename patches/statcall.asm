@@ -9,9 +9,10 @@
 #include <flags.inc>
 #include <ptrvar.inc>
 #include <textdef.inc>
+#include <newvehdata.inc>
 
 // Need for the callback finder
-extern miscgrfvar, vehtypecallback
+extern miscgrfvar, vehtypecallback, newvehdata
 
 // Train Codes
 // Set the global subroutines
@@ -73,6 +74,69 @@ GetTrainCallBackSpeed:
 	pop ecx
 	ret
 
+// Used as a generic code replacer for powers
+global TrainPowerGenertic, TrainPowerGenertic.lecx, TrainPowerGenertic.leax
+TrainPowerGenertic:
+	push ecx
+	push ebx
+	push esi
+	xor esi, esi
+.lstart:
+	movzx ecx, word [trainpower+ebx*2] ; Gets the default speed of the vehicle
+	mov byte [miscgrfvar], 0xB ; Get the speed value
+	mov al, bl ; Set the system to vehicle id
+	call GetCallBackResult ; Get the actual value for the speed
+	pop esi
+	pop ebx
+	pop ecx
+	ret
+
+.leax:
+	push ecx
+	push ebx
+	push esi
+	mov ebx, eax
+	jmp TrainPowerGenertic.lstart ; Jump to top of subroutine
+
+.lecx:
+	push eax
+	xor eax, eax
+	movzx ecx, word [trainpower+ebx*2] ; Gets the default speed of the vehicle
+	mov byte [miscgrfvar], 0xB ; Get the speed value
+	mov al, bl ; Set the system to vehicle id
+	call GetCallBackResult ; Get the actual value for the speed
+	mov ecx, eax
+	pop eax
+	ret
+
+// Used as a genertic code to replace the te coffient
+global TrainTEGenetic, TrainTEGenetic.lebx
+TrainTEGenetic:
+	push ecx
+	push esi
+	xor esi, esi
+	movzx ecx, byte [traintecoeff+ebx] ; Get the orginal TE coffient
+	mov byte [miscgrfvar], 0x1F ; Get the speed value
+	mov al, bl ; Set the system to vehicle id
+	call GetCallBackResult ; Get the actual value for the TE
+	and eax, 0xFF ; Byte return from callback
+	pop esi
+	pop ecx
+	ret
+
+.lebx:
+	push eax
+	push ecx
+	movzx ecx, byte [traintecoeff+ebx] ; Get the orginal TE coffient
+	mov byte [miscgrfvar], 0x1F ; Get the speed value
+	mov al, bl ; Set the system to vehicle id
+	call GetCallBackResult ; Get the actual value for the TE
+	and eax, 0xFF ; Byte return from callback
+	mov ebx, eax
+	pop ecx
+	pop eax
+	ret
+
 // Boats Codes
 // Sets the globals up
 global GetShipCallBackSpeed
@@ -86,6 +150,7 @@ GetShipCallBackSpeed:
 	mov byte [miscgrfvar], 0xB ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
 	call GetCallBackResult ; Get the actual value for the speed
+	and eax, 0xFF ; Byte return from callback
 	pop esi
 	pop ecx
 	ret
@@ -103,6 +168,7 @@ GetPlaneCallBackSpeed:
 	mov byte [miscgrfvar], 0xC ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
 	call GetCallBackResult ; Get the actual value for the speed
+	and eax, 0xFF ; Byte return from callback
 	pop esi
 	pop ecx
 	ret

@@ -1326,8 +1326,8 @@ gethousezone:
 	ret
 
 // Called to access variable 43 (terrain type) for town buildings
-global gethouseterrain
-gethouseterrain:
+global gettileterrain
+gettileterrain:
 	push ebx
 	xor eax,eax
 	testflags tempsnowline
