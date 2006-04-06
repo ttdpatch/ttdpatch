@@ -1,0 +1,627 @@
+
+=-=-= Very urgent =-=-=
+
+- for beta: make ai boost obsolete
+
+- docs: update bit switches in manual
+
+- when changing console size, remember current settings
+
+- fix large ships tip not being drawn properly; check ship motion and
+  redrawing of the main window; should have the size calculation there
+
+- make hotkeys work for ship and aircraft tools too (and maybe others?)
+
+- make planting more than one tree in a square affect city ratings, but
+  perhaps not as much
+
+- make remove industry apply only for dynamite, instead of requiring Ctrl key
+
+- catch alignment problems in flagdata.h automatically (nasm macros?)
+
+- too much diesel smoke when train is slowed down by bridge speed limit
+
+- mechanism to have .grf specify what "resources" it changes, e.g. all train
+  engines, all temperate train engines, all wagons... and in what climates
+  to have automatic exclusion of incompatible .grfs
+  new action; maintain bit mask of vehicles that are redefined, if clash then
+  the second one is skipped (action should be for each block of vehicles)
+  define action 7 test for this too maybe?
+
+- make elrails cost change in time, something like
+  mx - (mx-mn)/(fix(steps*log(1+(2000-1920)/scale))/steps) * fix(steps*log(1+(year-1920)/scale))/steps])
+  mx=8 mn=1.6 steps=3 scale=8
+  use bsf instead of log, of course
+
+- newttdsprites array is no longer necessary, except for swapping tunnel
+  icons; swap their spriteoffsetinfile values instead
+  oh, and for el.rails construction icons, those might be a bit more difficult
+
+- clean up sources; get rid of all now-useless #if 0 .. #endif and
+  commented blocks
+
+- delivering cargo to industry: tests station origin, should test origin
+  of all facilities instead. maybe also fix that only one industry receives
+  all goods
+
+- make trigger 4 work without gradualloading
+
+- make makelang check for duplicate entries
+
+- make grftrans able to use both .grf and _trans.grf to have only the new
+  entries untranslated
+
+- bug: writecfg ttdpatch.cfg overwrites currently open files and causes confusion
+
+- !!! Improve/automate defining flags for patchflags in action 7. Also have
+  them set by C code, not in assembly to save some protected code bytes
+
+- at least for debug versions, add check to chunk loadsave code to verify
+  correct size of chunk; e.g. change ebp to a helper function that does the
+  accounting
+
+- also add checks to sw_list script to make sure all flags are there; add
+  FLAGSNOTSHOWN: and make sure each flag is in either this or the other list
+
+- callback for wagon capacity and weight
+
+- callback for cost factor/running cost factor
+
+- update copyright notices; switches.c and ttdpatchw.rc
+
+- change msg if messageboxw not avail to show error loc or something
+
+- make overload stop work without fullloadany; also adjust it in some way?
+
+- fix bogus makelang.err messages
+
+- move higherbridge error texts to texts.inc
+
+- flag for "station is really depot"
+
+- newstations flags to build fences for +x/+y and -x/-y sides
+
+- grf option to turn on catenary for third set (japanese set -> shinkansen)
+
+- change realistic curves to use constant drag force instead
+  e.g. each curve = 25 kN, but how to handle single loco & short trains?
+
+- veh sort age in percent, not absolute
+
+- wagons converted engines don't make category become available
+
+- make building waypoints does not "attach" them to existing stations, thereby
+  can build waypoints adjacent to other stations
+
+- different graphics for electr. depot using action 5
+
+- supporting reversing artic locos
+
+- make dual-headed artics work
+
+- autorenew doesn't deal correctly with multihead locos (price)
+
+- keep cargo as well when selling&buying vehicle; remember both vehs for planes
+  and dual-headed trains
+
+- buildonslopes off doesn't turn it off...
+
+- allow grf setting baseline year to allow fake years before 1920
+
+- conflict with morecurrencies in ttdpttxt; setting euro intro to 0 is taken
+  as default setting, not new setting
+
+- reset vehicles should also reset track types available, and large airport?
+  or maybe the latter should be taken care of by cht: year
+
+- fix additional pillar heights for higher bridges, they check the height of
+  the wrong corner
+
+- add AI airport selection
+
+- grftrans can't translate new station names
+  -> make it write action 0 feature 4 prop 8 set to FFFFFFF, make that use the
+     mapping of the previous .grf ?
+  -> or add another bit to action 4 to do that
+
+- gamespeed doesn't turn on morehotkeys?
+
+- morecurrencies overwrites default curr selection (not GBP in BE version)
+
+- fix sprite sorter problems on bridge with elrails
+  -> requires changing sprite coordinates and requires elrails.grf with
+     different offsets
+  -> also ships under bridges (see alpha discussion thread)
+
+- provide support for long train vehicles composed of two vehicles?  maybe
+  emulate bogeys like Locomotion has them
+
+- tie heliport&large airport intro dates to first heli and jet?
+
+- allow AI to build paper routes in temperate (tries to deliver to town)
+
+- remove set name from grf stat status box; add sprite&mem info?
+
+- make clicking on news history item open that one immediately (maybe even
+  in paused mode?), instead of adding it to the end of the list
+
+- crash if # of industries set to none but load without that switch
+
+- change station rating calc with wagonspeedlimits
+
+- add parameter "only x years old" to cht:renew
+
+- airport problem, http://www.tt-forums.net/viewtopic.php?p=237282#237282
+
+- fix perf score overflow: bsr ecx,ebx; sub ecx,16; jb .noshift; shr ebx,cl; .noshift:
+
+- combine all newgraphics options into one bitswitch, then newgraphics.rvs on etc.
+
+- check malloc works with chunks > 128 KB
+
+- split the various miscmods generalfixes into their own patchprocs to make
+  the procs smaller, using the new direct bit tests for miscmods checks
+
+- check why newshistory needs enhancedgui? and fix if necessary
+
+- allow resizing train info windows (number of wagons shown)
+
+- show loading speed in wagon info (and other vehicle types too?)
+
+- flag to disable company colours for vehicle graphics
+
+- no loading states for planes?
+
+- faster loading/unloading at bus stops
+
+- station list too limited by TTD's max drop down size, also crashes if too many?
+
+- nowires variable needs to be rethought
+
+- incorrect refit cargo size for planes with non-pass default
+  see http://www.tt-forums.net/viewtopic.php?t=14344
+
+- veh still getting obsolete with early ret option but perseng on?
+
+- refitting crash, http://www.tt-forums.net/viewtopic.php?p=262819#262819
+
+- when selecting station type that makes cur size invalid, choose closest not largest
+
+- company colours for rotors
+
+- way to show different sprites in veh list/veh details/depot
+
+- problem selling part of articulated loco with Ctrl (doesn't sell whole veh)
+
+- support artic vehs with capacity in additional vehicles
+
+- don't split artic vehs over multiple lines in depot
+
+- make the sep of wagons in depot equal to sep in main view
+
+- crash when building higher bridge, http://www.tt-forums.net/viewtopic.php?p=265905#265905
+
+- don't autoclose station building window if it's pinned (others too)
+
+- define bridge prop to change bboxes, add action 1/2/3 support for bridges
+
+- add action 1/2/3 support for bus stops (new pre-def class? flag? selection?)
+
+- in grf status window in scen ed, add state "do not save", make this default
+
+- looping paths in PBS cause problems; either catch in route finder (with hash)
+  or in checkmark
+
+- crash with newstations 0.4, see http://www.tt-forums.net/viewtopic.php?p=278809#278809
+
+- Oracle reports duplicate town names when using custom town name set
+
+- save is-in-PBS-block for station, and also prop 15 (in tileproc, 256 ticks=3.5 days)
+
+- when clicking train refit button, wrong button gets shown as pressed
+
+- need to record "reserve" results to preserve them across loads even if order
+  of grf files changes
+  -> when saving, save only those reserved IDs that are in use in the game
+     (make new table "checkreservedIDinuse" or something; call when saving;
+      save reserved ID if any in range is in use)
+  -> also support multiple reserve/find per feature (record FFFFFFFF as GRFID
+     in reserve table, then clear all FFFFFFFF for next grf)
+  -> disallow this type of Action D if GRFID is FFxxxxxx
+
+- allow building station tiles with station ID = FE or FF or something, that
+  doesn't create station structure; to allow building e.g. buffers
+
+- update tools site with http://www.geocities.com/TimesSquare/Stadium/8515/downloads.htm
+
+- add to crash log a list of GRFIDs and the CRC of the corresponding files
+
+- fastwagonsell slightly broken, see also above
+  http://www.tt-forums.net/viewtopic.php?p=319109#319109
+
+- coop feature for other vehicle types too
+
+- draw transparent sprites properly in station construction window
+  (regular and LoMo GUI)
+
+- PBS reversing crash, http://www.tt-forums.net/viewtopic.php?p=323034#323034
+
+- PBS can't reverse, http://www.tt-forums.net/viewtopic.php?p=323490#323490
+
+- custombridgeheads, can add with wrong owner, http://www.tt-forums.net/viewtopic.php?p=324376#324376
+
+- allow dividers in GRF stat wnd, use e.g. +<text> in newgrf.cfg, make
+  unselectable and in different colour, or better, with ----- <text> -----
+
+- gamespeed setting is written to ttdpatch.cfg as unsigned variable, not signed
+
+- PBS bug?: http://www.tt-forums.net/viewtopic.php?p=338775#338775
+
+- change pers.eng. to bit switch for each vehicle type
+
+- stat var 60+ofsind to obtain land shape info of surrounding tiles
+
+- bug? in MP, when one player opens refit window, it opens on other computer too
+
+- remove grf stat window from game options in-game
+
+- see Edse van Eijk email; trains deliver to source station and make money
+
+- add startyear setting to difficulty settings or elsewhere
+
+- initialize newcargos text IDs
+
+- add default refit ratio for cargos
+
+- add veh2ofs (or not, wrong size) and station2ofs ptrvars
+
+- show yellow income/cost messages for feeder service drop-off/pick-up
+
+- callback for deciding station/industry names
+  http://www.tt-forums.net/viewtopic.php?t=20790
+
+- cache station var 40+x, when updating cache also check PBS state for each
+  platform for better var 44
+  -> one D l-array that allocates cache-structs on demand? will not work in DOS
+     b/o locking pages not allowing to allocate memory later
+  -> prealloc 6 D/tile?
+
+- multihead initially wrong speed: http://www.tt-forums.net/viewtopic.php?p=354243#354243
+  cause probably that now both heads are attached, but second one doesn't
+  update weight/speed/etc for some reason
+
+- mod of tile removal cost -> towns build no buildings
+  http://www.tt-forums.net/viewtopic.php?p=354169#354169
+  -> see bTempNewHouseAllowedOnBareLand
+
+- cht: newai
+
+- make Cht: tracks, renew, clearpresig, nounload, semaphores, etc. also affect
+  subsidiaries
+
+- lomo station gui highlight bug: http://www.tt-forums.net/viewtopic.php?p=355109#355109
+
+- add "last text ID" to crash log
+
+- livery changes in 2070: http://www.tt-forums.net/viewtopic.php?p=355121#355121
+
+- irr station acceptance broken? http://www.tt-forums.net/viewtopic.php?p=355370#355370
+
+- move draggable dynamite and diag track to morebuildoptions
+
+- Oskar's problem: train finds path past red presig to green one-way
+  when it shouldn't; see pbscrash.zip
+
+- switch to set amount of panning/speaker separation
+
+- TSC stuff doesn't work for feature>=4?  also messes up sprites after loading?
+
+- pathfinding still wrong; need curtarget to be valid or "go closest" won't work
+
+- save 0-7 direction and z before calling getroutemap in pathfinder
+  -> fix depot messing up signalling with tunnel below (or is it fixed already)
+
+- try multi-bus/truck station pathfinding
+
+- station buoy should attach to adjacent station
+
+- news history occasionally has wrong number of entries
+
+- for autoreplacing non-trains, check that refittability is right
+  --> test this!
+
+- check Class2DrawLandOneWay - show arrows only when tool open
+  -> works but needs refresh
+
+- access to current game speed
+
+- eliminate scenariocargo array, make it a single DWORD for only the current climate
+
+- crash in ECS, http://new.tt-forums.net/viewtopic.php?p=369786#369786
+
+- euro broken? period flag controls euro?
+
+- support veh.cargotype init to FF = pick first from refit list
+
+- action 1/2/3 feature type check doesn't work for var/random action 2?
+
+- irr station pathfinding still looking for north tile first:
+  http://www.tt-forums.net/viewtopic.php?p=372921#372921
+
+- add RPN to action D and adv.var.action 2
+
+==== Rather urgent =====
+
+- implement change to the seed of town growth, not just town.xy but also
+  from tiles near stations in the vicinity (airports and rail stations
+  have always been centers of city development historically)
+
+- new industry flag: like farm, but plant trees not fields
+
+- change IsTrainInSignalBlock to use position hash; must take tunnels into
+  account correctly!
+
+- higherbridges too cheap
+
+- show cargo symbols for planes, possibly (refittable?) rvs and ships too
+
+- allow repeating current order list in reverse order, for ships to find the
+  way back (of course skipping current last and first order)
+
+- no (or lower) running costs for electric heads on non-electric tracks
+
+- when loading unknown chunks, keep their data and save it when saving game
+  again to prevent game breaking when loaded in version which does treat them
+
+- show height level in tile query info
+
+- allow long-range subsidies too
+
+- giantscreenshotsize n; make giant screenshot of n x n screens
+
+- modify train pathfinding to prefer straight and level routes; change it from
+  a shortest-distance algorithm to least-cost algorithm, with some balance
+  between cost due to distance, curves and inclines
+
+- implement George's 24-dir action 1 for road vehicles turning
+
+- for vehlist sorting, build sortvar list with two DWORDs: one for vehicle, one
+  for the property which is being sorted. then sort the sortvar list directly,
+  without going to the veh struct, this should speed up sorting and make
+  writing a better algorithm easier
+
+- check for duplicate grfs and show warning if GRFID exists already
+
+- use zlib to compress ttdprot?.bin; ideally keep header+loader uncompressed
+  and compress only rest; otherwise uncompress header+loader separately
+
+- town stats with growth mode 2: maybe show growth rate if debugging?
+
+- elrails: for crossings/connections between elrail and reg. rail don't
+  show pylons and wire for track pieces that go to reg. rail
+
+- lowering/raising land removes exclusive land use signs?
+
+- in town, show "Population: 600 (snow)" or "Population: 600 (desert)"
+
+- use TTD's cache for TTDPatch sprites (at least in lowmemory mode?)
+
+- subsidiaries: if A owns (75%of) B, B owns C and C owns D, allow A, B and C
+  to manage D without going through the chain explicitly
+
+- large sprites (also buildings) sometimes don't get drawn properly, e.g.
+  the cruise ship sometimes has the tip cut off
+  -> just set veh.box_coord properly?
+  try changing the two immediate operands at 16A4D1 from 6 to some larger
+  value, and setting the following two at minus half that value
+  (i.e. currently they're -3)
+
+- make feeder service optional by selecting both load and unload at an order
+
+- make station coverage depend on size: large airports bigger, small airports
+  normal, similar for train stations.
+
+- when refitting planes/trains, show mail, and show passengers/mail as well
+  as just passengers
+
+- Presignals don't look right in toyland, where signals look different
+
+- Bug: Industry acceptance is mostly ignored
+
+- !! BUG !! Pre-signals crashes if too large chunks without signals present
+  (this is a bug in TTD; stack overflow. Maybe I can fix it anyway?)
+
+- Include depots "usefully" in a pre-signal block.
+  Idea: when depot checks whether block is clear, count pre, exit & combos
+	if (pre&exit) or combo present, depot "signal" acts like pre-signal
+	then placing combo-signal in front of depot makes depot act like
+	a sponge; otherwise it's not interfering with the regular station
+	operation
+
+- Makefile: make install dirs an environment parameter in .bat files
+
+- make Cht: XXXX ? always show cost even for cheats that don't cost
+- make Cht: XXXX ? not set the bit in Cht: Used
+
+- DOS version: save interrupt vectors before calling TTD, restore afterwards,
+  so that the DOS version doesn't lock up/crash/catch fire when TTD crashes
+
+- translation compiler, auto-add new switches to the help display for lang's
+  where they're not defined yet
+
+- update combo signals: count all exits, combos themselves aren't exits, but
+  rather regular signals.  All pre-signals red/green according to all exits.
+  Maybe change TTD's signal finder to go across combos when doing this.
+  another idea: one more bit that says "count as red", set for n of the exits
+  where n=number of trains in pre-signal blocks, thus if there's one train in
+  a pre-signal block, and one green exit somewhere behind a combo signal, it
+  doesn't actually count as a green exit.  This should work.
+
+- signals in tunnels & on bridge.
+  could work like this: when last waggon leaves bridge ramp/tunnel entrance,
+  set signal green.  Whenever entering a new fake square, fudge the signal
+  check to return yes, and red or green depending on train on the next
+  square
+  (all this only if the signals are valid, i.e. two one ways, both same way)
+
+- store language data in resource section for Windows version
+
+- renew wagons along with engine
+
+- make Cht: Semaphores cost, equal to difference between placing and removing
+  a signal for each signal
+
+- slowdown on bridges and before crossings as long as any wagon is on them
+
+- make "build signal" button a toggle, then count squares and build signal
+  every "signalevery x" squares
+
+- make some grf errors nonfatal warnings; but if real error after warning
+  show that instead!
+
+- support train prop 21=06 or 07, problem is @16046b, the cmp al/cl,2/-2,
+  won't trigger right if prior vehicle is too short
+
+- in orders menu, make skip change to "skip to" when an order is selected
+
+=====  Not so urgent  =====
+
+- if vehicle rename fails, don't close edit window
+
+- Cht to reset "will not get exclusive offers" flag
+
+- make bank production dependent on town population, e.g. pop/40 = bags/month
+
+- when building tunnel, not only try lowering one corner of other side but
+  also try raising other corner; do what's cheapest of the two
+
+- add sound effects for diesel, electric and monorail/maglev trains entering
+  a tunnel
+
+- allow trains to go backwards: fake it by reversing the order, and copying
+  all engine data from the real engine to the new first wagon; make sure to
+  always reverse it when entering a depot.  Will require multihead on to work.
+  perhaps show "correct" (unreversed) order in train window to avoid confusion
+
+- improved steam displays; new sprites for each direction, different sprites
+  if engine is using more power
+
+- show destinations in train and rv lists, like planes and ships
+
+- for trucks, resolve traffic jams by disabling the collision detection
+
+- how about ship speed > 127 km/h?
+
+- for normally dualheaded engines, count twice as many heads half as much
+  (i.e., each unit of two gives same advantage as one unit for regular engines)
+
+- allow updating vehicle data as game is running?
+
+- maintenance cost for tracks?
+
+- power efficiency factor; or better: internal power used to calc. accel
+  plus power displayed in all vehicle windows
+
+- endyear or gameduration to go with startyear
+
+- high-speed bridges; length 2-inf; expensive (possible?), look=just base, no cover
+  also Cht: UpgradeBridges [to [from]]
+
+- One line in CFG file should be version number. Then new versions should
+  ask "New version of TTDPatch, update CFG file?" if ttdpatch.cfg exists
+  (if N is answered still update it, but only change the version number!)
+  This should take obsolete values into account.  But what about players who
+  try out a new version but then go back to the old one?
+
+- Refit both plane compartments separately; also choose relative size?
+
+- minimum load; never leave a station if less than X percent full.  Perhaps
+  only if not forced unload.
+
+- Faster scrolling with ctrl-shift.Extremely fast.
+
+- Stocks: get part of profit, get money for selling stock. If 75% owned
+  company goes bankrupt, only pay 25%
+
+- Airport number: Make noise units depend on city size!
+	all cities have 2 at least, up to 400 inhabitants, where
+	they get another one.  Then every 300(?) they get one more.  Up to?
+
+- Cht: MaxRatings
+
+- Increased production, higher limits.
+
+- Company value doesn't include stations,vehicles,track.  When buying a
+  company, bank balance is returned immediately (i.e. buy for free)
+
+- Cht: GlobalAd 0..2, does Small..Large ad campaign at all stations not
+  only close to a city
+
+- Stations: Load fuller trains first
+	and if next train waiting, leave station -> check after signal
+	allow loading of n trains per cargo if more than n*somesetting
+	units waiting
+
+- Cht: OwnCrossing should determine the owner by tracing the tracks
+
+- Plane: Crash instead of getting slower, but much more rarely, and try
+	 to crash where they are not at airport. Option to disable all crashes
+
+- Max Loan = 10% of real comp.value (w/o cur.loan) + initial loan
+
+- RV's: no collision detection in the station
+
+- Restrict switches for competitions
+
+- automatic cht: owncrossing after sellout/bankruptcy
+
+- Prevent landscape changes unless good standing.  Big penalties.
+
+- Improve ship pathfinding for longer distances.  Diagonal not north then west
+
+- Larger tile sizes in the editor.
+
+- cht: money 1,000,000 (i.e. ignore commas and/or decimal points for better legibility)
+
+- add option in menu to jump between editor and playing
+
+- some hydroplanes that land on water and use the boat docks?
+
+- fullloadany should be optional by vehicle type
+
+- link ratings and cargo of several stations to "simulate" several facilities
+  of each type
+
+- cargo payment rates should follow supply and demand rules
+
+- make economy fluctuations smoother, e.g. changes or +/- 10%, but more often.
+  +/- 50% should be rare.
+
+- limit station capacity according to facilities attached
+
+- sign cheat to force all vehicles (or of some type) into the depot; like
+  clicking the "depot" button
+
+- in vehicle window title: show "veh. name (old)" or something
+
+- Cht: NewCompany to force a new AI company to appear (independent of
+  difficulty?), of course only if slot available
+
+=====  Not in to-do list =====
+
+- Towns: factor all passenger&mail numbers to "fake" larger towns.
+- city display: show more inhabitants, multiply by some constant factor
+  => change text string to show "Population: x,000" to multiply by 1000
+- Bank in temperate: produce some valuables right after getting others
+  => use newindustries
+
+
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+   CHANGELOG
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+2.0.1 alpha 68

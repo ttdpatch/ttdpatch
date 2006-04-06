@@ -1,0 +1,21 @@
+Translation Status - 2.0
+
+Language	Translator	Conf	Done	Pass	Update1	Pass
+
+Czech		TTD_LEAGUE	0729	0817	0817	0915	0915
+Danish		Rune		0729	0819	0819
+Dutch		Jan Willem	0803	0806	0806	0904	0905
+
+English		(Josef)
+Finnish		Pekko		0731	(90%)	(2)
+French		Florent		0821	0822	0902	0904	0905
+
+German		(Josef)		0730	0730	0730	0904	0904
+Hungarian	Saiyan		0802	0803	0904	0904	0904
+Italian		Lorenzo		0729	0801	0808	0909	0909
+
+Norwegian	Tor Inge	0729	0821	0821	0904	0904
+Polish		Marcin		0729	0806	0806
+Russian		Yuri		0813	0813	0821	0904	0905
+
+Spanish		John		0807	0807	0821	0910	0910

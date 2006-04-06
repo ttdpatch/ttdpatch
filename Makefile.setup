@@ -1,0 +1,184 @@
+
+# =========================================================
+#			Compiler setup
+#
+#	Don't put any local configuration in here
+#	Change Makefile.local instead, it'll be
+#	preserved when updating the sources
+# =========================================================
+
+# Default settings here, these will be modified by Makefile.local later
+
+# Compilation platform settings
+DOSCC = OWC
+WINCC = CYGWIN
+HOST = 
+
+# Tools
+SHELL = /bin/bash	# typical on Cygwin or Linux
+
+# Use large model for the DOS version
+MODEL = l
+
+# Set DEBUG to 0 if not defined yet. To change, define it as an environment
+# variable, or run `make DEBUG=1 <targets...>'
+ifeq ($(DEBUG),)
+DEBUG=0
+endif
+
+# -----------------------------------------------
+#        Compilers and options
+#
+# NOTICE: Don't change anything here, or it'll
+# be overwritten when you unpack the source again
+# Instead, put your changes in Makefile.local
+# -----------------------------------------------
+
+# Borland compilers and options
+# (use winx to work around bug in latest cygwin bash)
+CC-BCC = winx bcc
+LD-BCC = ${CC-BCC}
+STRIP-BCC = tdstrip
+
+ifeq ($(DEBUG),1)
+CFLAGS-BCC = -v -y -k -Od -N
+else
+CFLAGS-BCC = -v -y -k- -O1
+endif
+LDFLAGS-BCC = -M -v -y -f-
+EXE-BCC = .exe
+
+# NASM compiler and options
+NASM = nasm
+NASMPRE = nasm -e
+NASMOPT = 
+
+# Watcom compilers and options
+CC-OWC = wcc
+LD-OWC = wlink
+STRIP-OWC = wstrip -q
+ 
+CFLAGS-OWC = -3 -zp1 -e7 -wx -wcd=202 -zq -bt=DOS -nt=_MYTEXT -hc
+LDFLAGS-OWC = option quiet debug watcom system dos
+ifeq ($(DEBUG),1)
+CFLAGS-OWC += -d3 -od
+else
+CFLAGS-OWC += -d1 -s -obkls
+endif
+EXE-OWC = .exe
+
+# Cygwin GCC
+CC-CYGWIN = gcc
+CPP-CYGWIN = ${CC-CYGWIN} -E
+LD-CYGWIN = ${CC-CYGWIN}
+LDEXP-CYGWIN = ld
+WINDRES-CYGWIN = windres
+STRIP-CYGWIN = strip
+CAT-CYGWIN = cat --binary
+DOSCMD-CYGWIN = 
+DLLTOOL-CYGWIN = dlltool
+OBJCOPY-CYGWIN = objcopy
+OBJDUMP-CYGWIN = objdump
+
+CFLAGS-CYGWIN = -g -mno-cygwin -march=i386 -mtune=pentium -Wall -Wno-unused -Wwrite-strings
+LDFLAGS-CYGWIN = -mno-cygwin -Wl,--subsystem,console $(LDLIBS)
+LDEXPFLAGS-CYGWIN = -T patch.ld --image-base=$(IMAGEBASE) --enable-runtime-pseudo-reloc --no-demangle
+EXE-CYGWIN = .exe
+HOSTPATH-CYGWIN =
+# no other HOST variables, they won't be used
+
+# Mingw gcc cross compiler
+CC-CROSS = i686-pc-mingw32-gcc
+CPP-CROSS = ${CC-CROSS} -E
+LD-CROSS = ${CC-CROSS}
+LDEXP-CROSS = i686-pc-mingw32-ld
+WINDRES-CROSS = i686-pc-mingw32-windres
+STRIP-CROSS = i686-pc-mingw32-strip
+CAT-CROSS = cat
+DOSCMD-CROSS = dos
+DLLTOOL-CROSS = i686-pc-mingw32-dlltool
+OBJCOPY-CROSS = i686-pc-mingw32-objcopy
+OBJDUMP-CROSS = i686-pc-mingw32-objdump
+
+CFLAGS-CROSS = -g -march=i386 -mtune=pentium -Wall -Wno-unused -Wwrite-strings
+LDFLAGS-CROSS = -Wl,--subsystem,console $(LDLIBS)
+LDEXPFLAGS-CROSS = -T patch.ld --image-base=$(IMAGEBASE) --enable-runtime-pseudo-reloc --no-demangle
+EXE-CROSS = .exe
+HOSTPATH-CROSS = host/
+
+EXE-INTEL =
+CC-INTEL = gcc
+LD-INTEL = ${CC-INTEL}
+CFLAGS-INTEL = ${CFLAGS-CROSS}
+LDFLAGS-INTEL = $(LDLIBS)
+NASMOPT-INTEL = -f elf -dELF
+
+EXE-PPC =
+CC-PPC = gcc
+LD-PPC = ${CC-PPC}
+CFLAGS-PPC = -g -Wall -Wno-unused -Wwrite-strings
+LDFLAGS-PPC = $(LDLIBS)
+NASMOPT-PPC = -f macho -dMACHO
+
+include ${MAKEFILELOCAL}
+
+# Now use the appropriate settings to define the final variables
+CCD=${CC-${DOSCC}}
+LDD=${LD-${DOSCC}}
+CFLAGSD=${CFLAGS-${DOSCC}}
+LDFLAGSD=${LDFLAGS-${DOSCC}}
+STRIPD=${STRIP-${DOSCC}}
+EXED=${EXE-${DOSCC}}
+
+CC=${CC-${WINCC}}
+CPP=${CPP-${WINCC}}
+LD=${LD-${WINCC}}
+LDEXP=${LDEXP-${WINCC}}
+DOSCMD=${DOSCMD-${WINCC}}
+WINDRES=${WINDRES-${WINCC}}
+STRIP=${STRIP-${WINCC}}
+CAT=${CAT-${WINCC}}
+DLLTOOL=${DLLTOOL-${WINCC}}
+OBJCOPY=${OBJCOPY-${WINCC}}
+OBJDUMP=${OBJDUMP-${WINCC}}
+CFLAGS=${CFLAGS-${WINCC}}
+LDFLAGS=${LDFLAGS-${WINCC}}
+LDEXPFLAGS=${LDEXPFLAGS-${WINCC}}
+EXEW=${EXE-${WINCC}}
+HOSTPATH=${HOSTPATH-${WINCC}}
+
+HOSTEXE=${EXE-${HOST}}
+HOSTCC=${CC-${HOST}}
+HOSTLD=${LD-${HOST}}
+HOSTCFLAGS=${CFLAGS-${HOST}}
+HOSTLDFLAGS=${LDFLAGS-${HOST}}
+HOSTNASM=${NASMOPT-${HOST}}
+
+ifeq (${HOSTPATH},)
+HOSTEXE=${EXEW}
+endif
+
+# General options
+LDFLAGS += -Wl,-Map,$(@:%=%.map)		# to make map files
+
+ifeq ($(DEBUG),0)
+CFLAGS += -Os
+LDFLAGS += -Wl,-s
+endif
+
+# To display the options for testing
+disp-comp:
+	@echo "DOS=${DOSCC}"
+	@echo "     CC=${CCD}; LD=${LDD}; STRIP=${STRIPD};"
+	@echo "     EXE=${EXED}; CFLAGS=${CFLAGSD}; LDFLAGS=${LDFLAGSD};"
+	@echo "WIN=${WINCC}"
+	@echo "     CC=${CC}; CPP=${CPP}; LD=${LD}; LD(exp)=${LDEXP};"
+	@echo "     DLLTOOL=${DLLTOOL}; OBJCOPY=${OBJCOPY}; OBJDUMP=${OBJDUMP};"
+	@echo "     WINDRES=${WINDRES}; STRIP=${STRIP}; DOSCMD=${DOSCMD}; CAT=${CAT};"
+	@echo "     EXE=${EXEW}; CFLAGS=${CFLAGS}; LDFLAGS=${LDFLAGS};"
+	@echo "HOST=${HOST}"
+	@echo "     CC=${HOSTCC}; LD=${HOSTLD}; NASMOPT=${HOSTNASM}; PATH=${HOSTPATH};"
+	@echo "     EXE=${HOSTEXE}; CFLAGS=${HOSTCFLAGS}; LDFLAGS=${HOSTLDFLAGS};"
+
+.PHONY:	disp-comp
+

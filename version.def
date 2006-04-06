@@ -1,0 +1,18 @@
+# Version numbers
+# VERSION is as few digits as necessary; for making bak and dist zip files
+# VERSIONSTR is how it's printed by the program
+# VERSIONNUM is an up to eight hexdigit code for the language data
+# VERSIONMAJOR is the major version number for the Windows resource file
+# VERSIONMINOR is the minor version number for the Windows resource file
+# VERSIONREVISION is the revision version number for the Windows resource file
+# VERSIONBUILD is the build number for the Windows resource file
+VERSION = 201a67
+VERSIONSTR = 2.0.1 alpha 67
+VERSIONNUM = 201a67
+
+# Important: increase the build number by 10 every time VERSIONNUM changes
+# Limits: VERSIONMAJOR up to 255, MINOR and REVISION up to 15, BUILD up to 65535
+VERSIONMAJOR = 2
+VERSIONMINOR = 0
+VERSIONREVISION = 10
+VERSIONBUILD = 670

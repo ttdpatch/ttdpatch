@@ -1,0 +1,159 @@
+
+How to compile TTDPatch
+-----------------------
+
+Why is it so difficult?
+
+The difficulties that arise come from the fact that the DOS version of
+TTDPatch must be a 16bit DOS program, but incorporate 32bit protected mode
+code.  This means it must use some pretty special constructs to be
+compiled.  In particular, the 32bit code must not have any relocations
+other than those explicitly handled for relocatable variables (see ttdvar
+and ptrvar macros), and it must be linked in to a special segment in a
+special location.
+
+In addition, the source is used for both the Windows and DOS versions 
+use the same code for the most part (except for a few special functions), 
+that makes it necessary to do a fair bit of #if WINTTDX testing.
+
+
+What are the compilation defines?
+
+The following defines are used by both the assembler and C sources:
+
+DEBUG		If 0, this is an end-user release.  If 1 it is a
+		developers' release, and contains some help for debugging.
+		By default it is 1.  See notes below under "running it".
+WINTTDX		If 0, compile for the DOS version.  If 1, compile
+		for the Windows version.  There are no other allowed 
+		values for this define.  That makes it possible to do
+		algebra with it, e.g. 16-8*WINTTDX works as expected.
+
+These macros are always defined, but have different values.  Therefore, 
+don't test the with #ifdef DEBUG which will always be true, but use 
+#if DEBUG or #if !DEBUG to test the #define value.
+
+
+What software you need
+======================
+
+To compile TTDPatch using the provided Makefile and batch files, you need
+the following software:
+
+- The Cygwin distribution, from http://www.cygwin.com/
+  In particular, you need GNU Make, gcc, the binutils (version 2.16 or higher),
+  the fileutils, grep, gawk, nasm (but use nasm.exe from the nasm/ directory!),
+  Perl 5.8.0 or higher, unzip, upx, and perhaps some other Cygwin packages.
+  Of course you also need the prerequisites for each of the above packages.
+  Let me know if you find you need another package that I haven't listed.
+- Borland C++ for DOS 3.1 or higher to compile the DOS version
+  OR OpenWatcom for DOS (set compiler with USEBCC in Makefile)
+- Texinfo to compile the documentation
+- The most recent UPX EXE packer to compress ttdpatch.exe
+
+You can install Perl 5.6.1 if you don't need to update the language files.
+The language files need Perl 5.8.0 or higher because of its superior Unicode
+processing capabilities.
+
+The files in bin/ assume that you're using the Far Commander as shell.  If 
+you prefer a different shell just edit bin/t2.bat whichever way you want.
+
+Alternatively, you can compile TTDPatch entirely on Linux (as Josef does).
+Then you need the following:
+
+- gcc compiled as mingw cross compiler (for the Windows version)
+- OpenWatcom 1.0.3 for Linux (for the DOS version)
+- all the packages that are required from the cygwin distribution above,
+  but now of course as native Linux packages
+- to test the patch, Wine (for the Windows version) and/or VMWare for either
+  the DOS or Windows version; qemu, dosemu and/or dosbox may work as well.
+- http://wiki.ttdpatch.net/tiki-index.php?page=CompilingTTDPatchOnLinux has
+  instructions on how to compile TTDPatch on Linux
+
+
+How to set it up
+================
+
+First, run `make' once, it will create Makefile.local with default
+settings.
+
+Then, edit Makefile.local and choose your compilation platform at the
+beginning of the file.  By default it's set to Cygwin for the Windows
+version and OpenWatcom for the DOS version.  Don't change any of the other
+Makefile-related files with your local settings, they'll be overwritten
+when you update your source and mess up diffs.
+
+Then edit bin/setall.bat to tell the programs where everything is.  Also
+make sure that setall.bat is actually called before you try to run make!
+If you have the Far Commander you just need to run bin/t.bat and everything
+should be fine.
+
+The PATH environment variable should contain these dirs in the following order:
+(TTDPATCHSRC)\NASM
+(CYGWIN)\BIN
+(TTDPATCHSRC)\BIN
+{WATCOM}\BINNT
+
+Or, if you prefer to use Borland C++ 3.1 instead of OpenWatcom (see above):
+(TTDPATCHSRC)\NASM
+(CYGWIN)\BIN
+(TTDPATCHSRC)\BIN
+(BORLANDC3.1)\BIN
+
+
+How to compile it
+=================
+
+Assuming that you have all the above software, in all the above paths
+and so on, and have started Far Commander from the t2.bat file in BIN, or
+otherwise entered your favourite shell, you can run the following commands 
+to start the compilation:
+
+make
+make allw
+make win	any of the above will compile the Windows version of TTDPatch
+
+make alld
+make dos	any of the above will compile the DOS version of TTDPatch
+
+		(the difference between the all* and dos/win targets is that
+		the all* targets also make mkpttxt)
+
+make all	to compile both DOS and Windows versions of TTDPatch
+
+make copyd
+make copyw
+make copy	same as `make alld/allw/all', but when done copy the 
+		ttdpatch(w).exe files to your game directory as set 
+		in setall.bat
+
+make testd
+make testw
+make test	similar to `make copy*', but append the version number to the
+		executable names, e.g. ttdpatch-201a34.exe
+
+make clean	to delete all compiled files
+make cleantemp	to delete only temporary files
+make remake	force recompilation (use this when you change between 
+		DEBUG=0 and DEBUG=1 for example)
+
+There are a few other pseudo-targets but these are the most important
+ones.  Study the makefile for enlightenment.
+
+Running it
+==========
+
+By default, TTDPatch is compiled with DEBUG=1, which puts a few INT3 debug
+breakpoints in the code.  For the DOS version, these are usually harmless.
+The Windows version however crashes if these instructions are executed and
+there is no debugger to handle them.
+
+This means that if you compile TTDPatch for Windows with DEBUG=1, you must
+load a debugger that traps these instructions.  Alternatively, you can
+compile the patch with DEBUG=0, or simply comment out the INT3 in proc
+winloader in loader.ah.  The other INT3 instructions are only executed 
+when there is some problem that can't be handled otherwise, just to draw your
+attention.
+
+Alternatively, uncomment the NASMDEF += -dNOINT3 line in the Makefile to
+remove the INT3 instructions even for debugging versions.

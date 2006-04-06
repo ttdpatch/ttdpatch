@@ -1,0 +1,31 @@
+sv2flip - flips both players of a TTD multiplayer game
+
+Copyright (C) 2003 by Josef Drexler.
+
+Use sv2flip to resynch a TTD multiplayer game after a few years
+of playing.
+
+In multiplayer games in TTD, it often happens that as time goes
+on, the games on both computers slowly drift apart.  This is the
+result of TTD's very crude networking algorithms, and unless the
+two computers are identical in speed, these small time differences
+will add up and eventually cause problems in the games.
+
+To resynch, you use one savegame from either computer, copy it
+to the other computer, and flip the players in this copy using
+sv1flip.  Then, both games a synched perfectly again, because
+they are identical copies.  Of course, they will become desynched
+again after some time, so you have to repeat this process every
+once in a while.
+
+Here's how you do it:
+- find savegame (eg. trt02.sv2) on one computer
+- delete, or better rename, original savegame on other computer
+- copy trt02.sv2 to other computer
+- on other computer, install sv1fix and sv1codec
+- run "sv2flip trt02.sv2"
+- start TTD and load the game
+
+
+Maybe I will come up with a better solution, perhaps a way to
+do this resynching in game, but that's fairly unlikely...

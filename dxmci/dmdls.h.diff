@@ -1,0 +1,20 @@
+--- dxdsk.old/include/dmdls.h	2001-10-08 16:29:48.000000000 -0400
++++ dxsdk/include/dmdls.h	2002-11-15 19:17:02.000000000 -0500
+@@ -19,7 +19,7 @@
+ typedef LONGLONG REFERENCE_TIME;
+ typedef REFERENCE_TIME *LPREFERENCE_TIME;
+ 
+-#ifndef MAKE_FOURCC
++#ifndef MAKEFOURCC
+ #define MAKEFOURCC(ch0, ch1, ch2, ch3)                              \
+                 ((DWORD)(BYTE)(ch0) | ((DWORD)(BYTE)(ch1) << 8) |   \
+                 ((DWORD)(BYTE)(ch2) << 16) | ((DWORD)(BYTE)(ch3) << 24 ))
+@@ -78,7 +78,7 @@
+     ULONG           ulFirstExtCkIdx;        /* If zero no 3rd party entenstion chunks associated with the region */
+     WAVELINK        WaveLink;
+     WSMPL           WSMP;                   /*  If WSMP.cSampleLoops > 1 then a WLOOP is included */
+-    WLOOP           WLOOP[1];
++    WLOOP           WLoop[1];
+ } DMUS_REGION;
+ 
+ typedef struct _DMUS_LFOPARAMS

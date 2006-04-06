@@ -1,0 +1,37 @@
+
+Background info on the language identifiers.
+
+Find the Windows language number and code page at 
+http://msdn.microsoft.com/library/en-us/wcelocal/htm/cereflanguageidentifierslocales.asp
+
+The DOS language number is in Ralph's Interrupt List at
+http://www.pobox.com/~ralf/files.html at int 21h function 65h
+
+
+Make sure that everything is in the right code page.  Here's a list of
+default code pages for DOS:
+
+Country         Code Pages Used
+ Australia         437   850
+ Austria           437   850
+ Belgium           437   850
+ Canada (English)  437   850
+ Canada (French)   863   850
+ Denmark           865   850
+ Finland           437   850
+ France            437   850
+ Germany           437   850
+ Hungary           852   850
+ Italy             437   850
+ Latin America     437   850
+ Netherlands       437   850
+ Norway            865   850
+ Portugal          860   850
+ Russia            866   850
+ Spain             437   850
+ Sweden            437   850
+ Switzerland (French) 437   850
+ Switzerland (German) 437   850
+ Turkey            857   850
+ United Kingdom    437   850
+ United States     437   850

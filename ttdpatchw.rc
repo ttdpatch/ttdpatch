@@ -1,0 +1,44 @@
+#include "versionw.h"
+#include <winver.h>
+
+1 ICON "ttdpatch.ico"
+2 ICON "ttdpatc2.ico"
+1 VERSIONINFO 
+FILEVERSION TTDPATCHVERSIONMAJOR, TTDPATCHVERSIONMINOR, TTDPATCHVERSIONREVISION, TTDPATCHVERSIONBUILD
+PRODUCTVERSION TTDPATCHVERSIONMAJOR, TTDPATCHVERSIONMINOR, TTDPATCHVERSIONREVISION, TTDPATCHVERSIONBUILD
+FILEOS VOS__WINDOWS32
+FILETYPE VFT_APP
+{
+ BLOCK "StringFileInfo"
+ {
+  BLOCK "040904E4"
+  {
+   VALUE "CompanyName", "Josef Drexler\000"
+   VALUE "FileDescription", "TTDPatch\000"
+   VALUE "FileVersion", TTDPATCHVERSION
+   VALUE "InternalName", "ttdpatchw\000"
+   VALUE "LegalCopyright", "Copyright \251 Josef Drexler 1999-2004\000"
+   VALUE "OriginalFilename", "ttdpatchw.exe\000"
+   VALUE "ProductName", "TTDPatch\000"
+   VALUE "ProductVersion", TTDPATCHVERSION
+  }
+
+ }
+
+ BLOCK "VarFileInfo"
+ {
+  VALUE "Translation", 0x0809, 1252, // English
+                       0x0407, 1252, // German
+                       0x040B, 1252, // Finnish
+                       0x040C, 1252, // French
+                       0x040A, 1252, // Spanish
+                       0x0410, 1252, // Italian
+                       0x0413, 1252, // Dutch
+                       0x0414, 1252, // Norwegian
+                       0x0415, 1250, // Polish
+                       0x0419, 1250, // Russian
+		       0x040e, 1250, // Hungarian
+		       0x0405, 1250  // Czech
+ }
+
+}

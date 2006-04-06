@@ -1,0 +1,360 @@
+//
+// globals.ah - global variable definitions
+//
+
+#ifndef FROM_HEADER_ASM
+#error Only to be included from header.asm
+#endif
+
+#include <ttdvar.inc>
+
+	align 4
+var windowstack,dd windowstack_default
+var viewsarray,dd viewsarray_default	// array of view descriptors
+
+var cargotypenamesptr, dd cargotypenames	// pointers to the above, can be overwritten by newcargos
+var cargounitnamesptr, dd cargounitnames
+var cargoamount1namesptr, dd cargoamount1names
+var cargoamountnnamesptr, dd cargoamountnnames
+var cargounitweightsptr, dd cargounitweights
+
+// -------------------
+// General definitions
+// -------------------
+
+ptrvar trainpower
+
+
+// ----------------------------------
+//  Define global TTDPatch variables
+// ----------------------------------
+
+	// Other global variables
+
+// flag variable(s) to hold the current company's 'virtual control keys' state
+// 0 = key inactive, 1 = key active
+// valid *only* in code called via [actionhandler] (see below)
+// (this includes all Class*ActionHandler and Class*ClearTile functions in TTD, see TTDMEM.IDB)
+uvarb curplayerctrlkey
+
+// data for the train and road vehicle windows
+global trainwindowsize
+trainwindowsize equ 0x90
+uvarb trainwindowrefit,trainwindowsize
+
+uvard varheap,1,z		// variable size heap (is in the linked list too)
+uvard spriteblockptr,1,s	// Base address of pointers to new sprite data
+uvard curspriteblock,1,s	// Pointer to current sprite block
+#if WINTTDX
+uvard spritecacheptr,1,s	// Pointer to pointer to sprite cache
+#else
+uvard spritecache,1,s		// Sprite cache
+#endif
+uvard orggentextptr		// Pointer to first orggentext struc in linked list
+var newspritedata, dd spritedata// New sprite data array pointer
+var newspritenum, dd totalsprites//Number of sprites in each sprite data array
+uvard numactsprites,1,z		// Number of active sprites in TTD's sprite number space
+uvard specialtext,1,z		// Special text used with ourtext(special)
+uvard datasize,1,z		// New size of vehicle struct
+uvard newnormalvehsize,1,z	// New size of player-usable vehicle array
+uvard newvehicles,1,z        	// maximum number of vehicles
+uvard newspecialvehicles,1,z	// Special, reserved slots for vehicles
+uvard newnormalvehicles,1,z	// Normal, player-usable vehicles
+uvarw newstationpos,1,z		// New position for train station extension
+uvarb newstationtracks,1,z	// new length & number of tracks
+uvard currrmsignalcost,1,s	// cost of removing a signal, or 0 if just removing pre-signal setup
+uvard isengine, (totalvehtypes+31)/32
+				// Bit array of whether a vehtype is an engine (bit set) or a waggon (bit clear)
+
+	// Indices to several TTD data locations
+
+ptrvar ophandler		// Array of pointers to tables of various object handlers
+uvard aiactiontable,1,s		// Array of AI actions
+uvard mainstringtable,1,s	// Array of pointers to non-task-specific strings
+uvard brakespeedtable,1,s	// speed to have at certain points when braking
+uvard vehtypedataptr,1,s	// Array of engine data in .exe file for all the vehicle types
+uvard stationsizeofs,1,s	// where the station size of a new station dialog is stored
+uvard isbigplanetable,1,s	// Array of plane size, bit 0=1: is big plane
+uvard curfileofsptr,1,s		// Pointer to dword of offset in current file
+uvard scenedactiveptr,1,s	// 1=Scenario editor active; 0=not
+uvard aicargovehinittables,1,s	// pointers to tables used to init aicargovehtable for each climate
+// curtooltracktypeptr,1,s	// Offset to where the current tool's track type is stored (now in grfload.asm)
+//uvard cargoweightfactors,1,s	// Array for factor of cargo weights (times amount shr 4)
+// the following twelve uvars must stay next to each other, in this order
+uvard housepartflags,1,s 	// offset to house part flags, bitcoded: 8=main part,
+				// 4=has part in Y dir., 2=has part in X dir., 1=has part in XY dir. [b]
+uvard houseflags,1,s		// ...and to house type flags, bitcoded: 2=only on flat land,
+				// 20h=has animated part, 4/8/10h=dimensions 2x1/1x2/2x2 [b]
+uvard houseavailyears,1,s	// ...and the availability years: first, last [b*2]
+uvard housepopulations,1,s	// Array of population values for town buildings
+
+uvard housemailgen,1,s		// ...and the average mail generation rate [b]
+uvard houseacceptpass,1,s	// ...and the passengers acceptance [b]
+uvard houseacceptmail,1,s	// ...and the mail acceptance [b]
+uvard houseacceptgoods,1,s	// ...and the goods (if positive) or food (if negative) acceptance [b]
+uvard housermrating,1,s		// ...and the LA rating penalty for house removal [w]
+uvard housermcost,1,s		// ...and the removal cost multiplier [b]
+uvard housename,1,s		// ...and the name (text ID) [w]
+uvard houseavailflags,1,s	// ...and the zone/climate availability, bitcoded: bits 0..4=town zones,
+				// 800h=arctic above snow line, 1000h=temperate, 2000h=arctic below snow line,
+				// 4000h=tropical, 8000h=toyland [w]
+// end of house data uvars
+
+uvard housespritetable,1,s	// table of house sprites (110 house types, 16 entries/type, 17 bytes/entry)
+uvard wantedtracktypeofs,1,s	// Pointer to the track type to build
+uvard stationbuildcostptr,1,s	// Pointer to the variable that accumulates the cost of building a station
+uvard incomequarterstatslist,1,s // a table of where each types of "expenses" counts in quarterly stats
+uvard groundaltsubroutines,1,s	// table of subroutines TTD uses to get the exact ground altitude for different slopes
+uvard orderhints,1,s		// text IDs for the order window hints
+uvard fundcostmultipliers,1,s  // Funding cost multipliers for new industries
+uvard statusbarnewsitem,1,s	// Pointer to status bar news item data
+uvard RailConstrToolClickProcs,1,s// Pointer to table of rail construction tool click procs
+#if WINTTDX
+uvard MPpacketnum,1,s
+uvard MPtransferbuffer,1,s
+uvard MPtimeout,1,s
+#endif
+
+	// Several TTD functions that are called by the patch
+
+	align 4
+uvard getymd,1,s		// Index to function getymd. In ax=[0]; Out al=Y-1920, dl=M, bl=D
+uvard getfullymd,1,s		// Alt. entry point to get uncapped Y-1920 in EAX with eternalgame
+uvard loadchunkfn,1,s		// Load a chunk of game data
+uvard savechunkfn,1,s		// Save a chunk of game data
+uvard calcprofitfn,1,s		// Function to calculate cargo transit profit
+uvard acceptcargofn,1,s		// Function to process cargo acceptance, including transit profit calculation
+uvard oldrefitplane,1,s		// Old plane refit function
+uvard randomfn,1,s		// Random number generator
+uvard invalidaterect,1,s	// Invalidate rectangle X: AX..DX, Y:BX..BP in pixels
+uvard invalidatehandle,1,s	// Invalidate window handle AL[5:0]=window type, AL[6]=disregard bx, AL[7]=only element AH, BX=window ID
+uvard invalidatetile,1,s	// Invalidate tile, AX,CX=X,Y
+uvard errorpopup,1,s		// Show a red error popup message
+uvard makerisingcost,1,s	// Generate a cost display that rises
+uvard openfilefn,1,s		// Opens the file pointed to in edx; return handle in bx
+uvard readwordfn,1,s		// read next word from current file
+uvard copyspriteinfofn,1,s	// copy the first eight bytes of sprite info to edi
+uvard readspriteinfofn,1,s	// same, but write them only to tempspriteheader
+uvard decodespritefn,1,s	// read and decode the current sprite to edi
+uvard ttdtexthandler,1,s
+uvard gettextwidth,1,s
+uvard setmousetool,1,s		// AL=tooltype,AH=window type,DX=window id, EBX=mouse cursor sprite,ESI=cursor animation
+uvard setmousecursor,1,s	// EBX=mouse cursor sprite,ESI=cursor animation
+
+uvard currscreenupdateblock,1,s
+uvard drawspritefn,1,s
+
+uvard drawtextfn,1,s		// draw text on screen: BX=text ID, CX=X, DX=Y, EDI->screen block descr., AL=init. color
+uvard drawrighttextfn,1,s	// draw text on screen: BX=text ID, CX=X (right), DX=Y, EDI->screen block descr., AL=init. color
+uvard drawsplittextfn,1,s	// draw text on screen: BX=text ID, CX=X, DX=Y, EDI->screen block descr., BP=linewidth
+uvard drawcenteredtextfn,1,s // draw centered text on screen:
+uvard drawsplitcenteredtextfn,1,s // draw split centered text on screen:
+uvard splittextlines,1,s	// split text into lines of given width by inserting NULs at the right places
+uvard fillrectangle,1,s
+uvard drawrectangle,1,s		// AX,BX,CX,DX=screen X1,X2,Y1,Y2, EDI->scr. blk. desc., BP=color scheme,SI=flags
+
+uvard addsprite,1,s		// add sprite to draw list: EBX=sprite&flags, AX:CX:DL(safe)=X:Y:Z, DI:SI:DH=X:Y:Z extents
+uvard addlinkedsprite,1,s	// add sprite linked to previous sprite
+uvard addrelsprite,1,s		// add sprite relative to previous sprite: EBX=sprite&flags, AX:CX=X:Y pixel offsets
+uvard addgroundsprite,1,s	// add sprite to list of ground sprites: EBX=sprite&flags, AX:CX:DL(safe)=X:Y:Z
+uvard addrailgroundsprite,1,s	// same as above if slopebuild is off, else points to displrailnextsprite
+uvard landshapetospriteptr,1,s // pointer to TTDs map to convert landshapes to spritenumbers
+uvard waterbanksprites,1,s	// pointer to TTDs array of water bank sprite numbers
+
+uvard treeplantfn,1,s		// tree-planting proc
+uvard industryrefreshfn,1,s	// refreshes industry data (curr. production becomes production last month etc.)
+uvard actionhandler,1,s		// generic action handler: ESI=(class<<3)+(action<<16), BL=flags,...
+uvard gettileinfo,1,s		// in AX,CX=X,Y (N corner); out ESI=XY, DL=Z, DH=L5[ESI], BX=class<<3, DI=map of corners above DL
+uvard gettileinfoshort,1,s	// in SI=XY, out ESI=XY, DL=Z, DH=L5[ESI], BX=class<<3, DI=map of corners above DL
+
+uvard getgroundaltitude,1,s	// in AX,CX=X,Y; out DL=Z (=height<<3), DH=1 if under bridge, safe:EAX,EBX,ECX,EDI,EBP
+uvard getdesertmap,1,s		// Get a byte from the desert/rainforest map: in EBX=XY; out AL=code (0..3)
+uvard reloadenginesfn,1,s	// to load engine data from .exe file
+uvard closecompanywindows,1,s	// closes all company windows (difficult to call, see fixmisc.asm)
+uvard delveharrayentry,1,s	// delete a vehicle array entry, clean up game state: ESI->vehicle
+uvard delvehschedule,1,s	// delete a vehicle's schedule: EDX->vehicle (assumes .scheduleptr<>-1), uses:AX,EBX,ESI,EBP
+uvard newsmessagefn,1,s		// generate a news report or message (WARNING: DON'T USE ourtext() or statictext() IDs as arguments, see morenews.asm!)
+uvard movetrainvehicle,1,s	// move a train vehicle by a certain amount
+uvard prevtrainveh,1,s		// previous train vehicle to follow when moving (0 if none)
+uvard recordtraincrash,1,s	// place where a train crash gets recorded
+uvard cleartilefn,1,s		// clears a tile and set for redraw
+uvard checkvehiclesinthewayfn,1,s // checks for vehicles in the way in di
+uvard subsidyfn,1,s		// creates a new subsidy
+uvard addexpenses,1,s		// subtract from current player cash; EBX=amount to deduct; destroys EDX
+uvard deductvehruncost,1,s	// same for running costs; bl=player, edx=amount*8; destroys eax
+uvard pushownerontextstack,1,s	// push owner's name string on text ref stack: DL=owner, EBP->stack
+uvard searchcollidingvehs,1,s	// finds vehicles on a given tile
+uvard savevehordersfn,1,s	// saves the orders of the veh. in esi to the buffer pointed by edi. uses ax,ebp,edi
+uvard copyvehordersfn,1,s	// copies the orders from the buffer pointed by edi to the veh. in esi
+uvard removespritefromcache,1,s	// removes sprite from sprite cache; ECX=sprite number; destroys EDX, ESI
+uvard fetchspriteincache,1,s	// fetch a sprite into cache; EAX=sprite number; destroys EAX, ECX, EDX, ESI
+
+
+uvard getroutemap,1,s		// map of possible routes on tile: in EDI=XY, AX=0/2/4 for rail/road/water; out EAX=bitcoded
+uvard generatesoundeffect,1,s	// generate sound effect; eax=sound number, ESI=>vehicle or ESI=-1, BX,CX=landscape X,Y or ESI=-2, EBP=(pixel Y << 16)+pixel X
+uvard tunnelotherendfn,1,s	// find the other end of a tunnel
+uvard setmainviewxy,1,s		// in AX,CX = landscape X,Y; out cf clear if changed, set if not changed
+uvard TransmitAction,1,s
+uvard generateincometexteffect,1,s
+uvard CreateNewRandomIndustry,1,s
+uvard drawrailwaytile,1,s	// in EBX = XY-index, DI = height-mask (when != 0 it won't work), DH = railmask, AX,CX = landscape X,Y
+uvard DrawStationImageInSelWindow,1,s
+uvard DrawPlannedStationAcceptsList,1,s
+uvard UpdateStationAcceptList,1,s
+uvard DistributeProducedCargo,1,s
+uvard DrawGraph,1,s
+
+// Several TTD GUI Functions
+uvard BringWindowToForeground,1,s
+uvard CreateWindow,1,s
+uvard CreateWindowRelative,1,s
+uvard WindowClicked,1,s
+uvard DestroyWindow,1,s
+uvard WindowTitleBarClicked,1,s
+uvard DrawWindowElements,1,s
+uvard FindWindow,1,s
+uvard GenerateDropDownMenu,1,s
+uvard CreateTooltip,1,s
+uvard RefreshWindowArea,1,s
+uvard RefreshLandscapeRect,1,s
+uvard ScreenToLandscapeCoords,1,s// in AX,CX = screen X,Y; Return AX,CX = X,Y/AX=-1 on failure
+uvard RefreshLandscapeHighlights,1,s
+uvard GetMainViewWindow,1,s
+#if WINTTDX
+uvard FindTopmostWindowAtXY,1,s
+#endif
+
+#if WINTTDX
+uvard int21handler,1,s		// replaces "int 21" on Windows; instead do call [int21handler]
+uvard user32hnd,1,s		// handle for USER32.DLL
+uvard gdi32hnd,1,s		// handle for GDI32.DLL
+uvard MessageBoxW,1,s		// This function may be unavailable (see patches/tools.asm)
+uvard Sleep,1,s
+uvard StretchBlt,1,s
+uvard SetStretchBltMode,1,s
+#else
+uvard exitcleanup,1,s		// cleanup exit function
+#endif
+// in case any of this is needed in the future...
+//uvard ttdcriterrorfn,1,s	// TTD's critical error message: AX=msg ID (0xF005=out of mem, 0xF00D=no free HD space, ...)
+
+
+
+	// Other stuff
+var didinitialize, dd 0		// bit 0 set: initialize started; bit 1 set: initialize finished
+#if WINTTDX
+var loaderdata, dd -1		// loader's data structure
+#endif
+var findstring, dd addr(useknownaddress)
+
+
+var railenginetypenames, dw 0x8102,0x8106,0x8107	// text IDs for {railway,monorail,maglev} locomotive
+							// and the same for wagons
+var railwagontypenames, dw ourtext(railwaywagon),ourtext(monorailwagon),ourtext(maglevwagon)
+
+
+var signal1waittime, dw 0xfd	// time for a train to wait on a 1-way red signal;
+var signal2waittime, dw 0xfd	//  same for a 2-way signal
+			//  if this number of time units is exceeded, the train turns back
+			//  253 is the TTD default
+
+
+uvard bridgespritetables,1,s		// Bridge Sprite Tables
+
+uvarw newmaglevbridgespeeds,4,z	// new max. speeds on two highest-speed monorail and maglev bridge types
+
+// how much airports "weigh" - i.e. how many of the allowed points they use up
+var airportweight, db 2,3,1,0
+
+//	align 4
+//
+//uvarw newplatformarray, 8*2, s
+
+// vehicle ID display order table
+// the default is an identity function (see initialize)
+// reinitialized if unifiedmaglev is active (see initrailvehsorttable)
+// now modified to hold all vehicles to eliminate some case distinctions
+uvarb vehsorttable, 256
+
+
+
+// global variables needed for the manytrees patch
+
+var normalplant, db 0	//if 1,patched parts act like they weren't patched to achieve normal functionality in recursive calls
+var treenum, db 12,8,12,9 //how many tree types are there in a climate
+var treestart, db 0x00,0x0c,0x14,0x20 //number of the first tree type in a climate
+
+// #include <curr.inc>
+
+// Offset from the town array to the secondary town array, 0 if not available
+uvard townarray2ofst
+
+// Pointer to the new landscape6 array
+// usage:
+//	anything with roads (including e.g. bridges): abandonedroads
+//	train stations: newstations
+//	town buildings: newhouses
+ptrvar landscape6
+
+// Pointer to the new landscape7 array (bridge height offsets)
+// usage:
+//	any bridges: higherbridges
+//	town buildings: newhouses
+ptrvar landscape7
+
+// Pointer to the temporary (not saved) vehicle data array
+uvard veh2ptr
+
+// Pointer to the news history array
+uvard newshistoryptr
+// #include <news.inc>
+
+// Dimensions of airport types (X,Y pairs)
+var airportdimensions, db 4,3,6,6,1,1,2,3
+
+// Aircraft notional sizes (for the 3D bounding box) for 4 directions
+// (the other 4 directions are symmetric)
+var aircraftbboxtable, db 7,7, 12,2, 7,7, 2,12
+
+// These will contain copies of flags at fixed bit positions
+uvard patchflagsfixed,4
+
+
+// Bit masks for values returned by [getroutemap] for 4 directions (the other 4 directions are symmetric)
+var vehdirectionroutemasks, db 0x30,1,0xc,2
+
+// track type list, considering electrifiedrailways and/or unimaglev mode
+// values:	0=railroad, 1=electric, 2=monorail, 3=maglev
+var tracktypes, db 0,2,3	// by default: regular, monorail, maglev
+
+// and the inverse of the above: which in-game track type to use for
+// each of railroad,electric,monorail and maglev
+//var realtracktypes, db 0,0,1,2
+
+// Pointer to secondary station array
+uvard stationarray2ptr
+// Offset from the station array to the secondary station array, 0 if not available
+uvard stationarray2ofst
+
+	align 4
+var cachevehvar40x, dd cachevehvar40x_def	// bitmask of actually cacheable 40+x vars
+
+// Masks for accessing stationcargo.amount. Use these variables instead of hardcoding the
+// constants since newcargos may modify them.
+var stationcargowaitingmask, dd 0x0fff
+var stationcargowaitingnotmask, dd 0xf000
+
+
+uvard ttdplatform	// 0: TTDPatch
+
+#if WINTTDX
+var dorecbuffer, dd 0x40123f	// receive buffer procedure
+var dosendbuffer, dd 0x401d39	// send buffer procedure
+var closedirectplay, dd 0x401c44	// procedure to close DirectPlay
+var recaction, dd 0x401875	// receive action
+var sendaction, dd 0x401eec	// send action
+var receiveanddoactions, dd 0x401901
+var doallplayeractions, dd 0x40139d
+var transmitendofactionsfn, dd 0x401e7e
+var restartgame, dd 0x4018c0
+#endif

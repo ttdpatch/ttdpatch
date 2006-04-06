@@ -1,0 +1,7 @@
+#!/bin/bash
+for f in "$@"; do
+	if [[ "$f" == *[[:upper:]]* ]] && test ! -d "$f"; then
+		nf="`echo "$f" | awk '{ print tolower($0) }'`"
+		mv -fv "$f" "$nf" || exit
+	fi
+done

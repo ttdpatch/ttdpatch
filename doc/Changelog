@@ -1,0 +1,3219 @@
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+   CHANGELOG
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+before 1.6
+- A switch to turn off inflation
+- Free up runindex array, only use for patch hooks and use variables instead
+- Search for "Version" not "Copyright"; then search for the version string
+  and display both   .25hrs
+- Cht: Repay to repay as much of the loan as affordable.  Useful if you just
+  bought a computer player that had a huge loan
+  OR use shift to borrow and repay as much as possible
+  -- implemented using "Ctrl".  2hrs
+- Repair cht: owncrossing.  1hr (+1hr originally)
+- Adjust the life of the engines so that you can still buy helicopters in
+  2070.  This could work in the way that no engines that are currently in use
+  will become outdated and instead will always keep their life expectancy,
+  while unused and unpopular engines would eventually disappear.
+  -- will be always two years before phase 3.  3hrs
+- Office Towers also accept food - check climate type;  same for hamburger
+  bars ("shops&offices") - those should accept goods.  x+1hr
+- Serv.interval settable
+- Save games uncompressed for easier editing.  Bypass compression and write
+  directly into the buffer
+  -- cht: dumpmemory writes files ttdmem.dmp.  1hr
+- Make full load behave such that the train leaves if any type of cargo is
+  full, not all of them. Useful for airplanes, to fill them with passengers
+  and take as much mail as available
+  -- 2hrs
+- Make it possible to select what is going to be picked up at stations, so
+  that there won't be passengers waiting for the never-arriving train
+  Don't let cargo arrive until the first train able to pick it up has
+     arrived - then let this sort of cargo arrive forever or maybe only until
+     the station is renamed
+  -- station has to die to be reset though.  1hr
+- Cht: Year should change ages/serv.ints./etc too
+  -- changes age and last service.  1/2hr
+- Translate ttdstart.pas to C   LONG, 10hr?
+- Maybe use a configuration file instead of command line options?  There seem
+  to be too many of them than any sane person can handle...
+  add -C and -W options and update doc   LONG, 10hr?
+- DOC: z and y Problem
+- DOC: ttweb;id=114;go not ttweb;list
+
+1.6
+- Small airports after 1975 or so. [20 min]
+- BUGS: -airplane count, -servint, -mountain/curve not hex  [1hr]
+- 2055+16000 days bug [2 hrs]
+- Build station - if Ctrl 3-7/4-7 not 1-5/1-4 [3hrs]
+- Longer bridges [2hrs]
+- Somehow restrict cheats in multiplayer games to the player placing the sign,
+  which is difficult because signs don't have owners.  Maybe use the company
+  name instead of signs.  Check into 9ea35 [active player]; 770f8 [human1] & 770f9 [human2]
+  [40min]
+- bulldoze all city roads.  Connected ones cost 4 trees.  [2hrs]
+- Recursion factor change from 6 @136ffc 137113
+- Cht: Year w/o number = crash! [5 min]
+- Beta version: not all switches! Only with -V to write .VER file [10min]
+- Cht: Nononstop and Cht: Allnonstop [30min]
+- Cht: ServInt <days> <types> <ai too?> [30min]
+
+1.6.1
+- Swap out if low on memory, keep only the protected mode code [4hrs]
+- Multi-headed trains, buy extra engine with Ctrl [10hrs]
+- TTDLOAD.OVL instead of TTDLOAD.EXE and TTDLOADW.OVL instead of TTDLOADW.EXE
+- b2: Fixed bugs with planes freezing when using -M
+- Languages too large for DOS; put all at end of EXE file [10hrs]
+
+1.6.2b1
+- Low memory version
+- !! BUG !! Station spread for AI -> obelisk stations
+- !! BUG !! Refitting engines with 0 capacity -> don't even show refit button
+- !! BUG ?? Refitting train engines AND PLANES! - "must be in hangar" DOS version
+- !! BUG !! Win95 - cht: tracks no change tunnels/bridges/stations
+- !! BUG !! Buying multi-headed, only buy one not two!!
+- !! BUG ?? Possible to add perpendicular platforms to a station?
+- Marcin !! BUG !! Undead vehicles.  When built not immediately -14 profit.
+- Marcin !! BUG !! Vehicle listing with >130 vehicles. Clicking on >130 gives first one
+		-> each opening shows 120 (or half?), reopen for more
+- Marcin Truck,Bus queueing by Marcin Grzegorczyk
+  = Trucks: wait and don't turn around even if there's one waiting already
+  = RV Station; wait if station is full, don't turn around
+- Make stationsgoods stations resettable
+	-> Cht: ResetStation to reset all stations; both ratings and "stationgoods".
+- !! BUG !! Keepsmallap -> AI lands concordes on them
+	-> AI can't buy large planes on small airports. However, they can
+	   still be *sent* to a small airport!  fix this.
+
+1.6.2b2
+- Fixed immediate crashed caused by wrong version information
+
+1.6.2b3
+- !!BUG !! DOS Version crashes going back to title screen (didn't recognise
+  old ttdload.ovl as such)
+- !! BUG !! Placing additional platforms/length in N/S in Win version
+- !! BUG !! -e /Windows crashes, as does -W w/no arg,
+- Heliports don't count for "Too many airports". at 000F:0014E574 in UK ver
+	-> New airport counting, -J
+- Oil field: wrong acceptance. use scenario editor to debug.
+	Some oil rigs accept passengers, others not.  Why?
+	-> in general fixes
+- Fix lang data e.g. %s%c%s...
+- Cht: Resetstation forgot to reset food in arctic/tropic
+- !! BUG !! -x switch in Win version -> crash immediately after new/random game
+	strangely, "play scenario", or "load", work...
+	must be some missing initialization, or only init'ing too little. Indeed it was!
+- Language data is now tested for integrity (lengths, everything present etc.)
+- Language data can be changed easily by anyone
+
+
+1.6.2b4
+- Translation compiler: detect missing command line help lines
+
+1.7 (was 1.6.2b4)
+- Update DOCS!!!
+- DOCS: Batch file for ttdalter by Ewout Stam ( see below )
+- DOCS: 3.12 Pre-signals, running costs *not* more expensive
+- DOCS: Multiplayer, what's safe to use? Read docs\mpok.txt
+- DOCS: Describe updating. Make new cfg file etc.
+- DOCS: train refit and multiheading doesn't work well together
+
+1.7.1a1
+- Change hardcoded "ú", "*" to use the value from LANG_SWTABLECHAR
+- Change switchnames to not be depending on the order of the entries, both
+  for easier editing and better error checking in makelang
+- Autodetect memory used by TTDPatch, to decide when to swap -> memsize.h
+- Enable extended command line switches
+- Change all Lang files: fix some %c, add %s%s%s in "starting ttd ..."
+
+1.7.1.a2
+- By Marcin: Fix bug: plane crash makes terminal unusable
+- By Marcin: Plane crash control [which planes on what airports]
+- Add "bribe" to L.A. menu.  More expensive if better and city bigger
+- Add "showspeed" option
+- Added Marcin's "morevehicles" bugfix for Windows TTDPatch, makes new saves
+  unusable under 1.7
+- Cht: Allengines
+
+1.7.1.a3
+- cheats cost money
+- started to make variable signal graphics available
+
+1.7.1.a4
+- testing and fully implementing variable pre-signals
+
+1.7.1.a5
+- made signal graphics depend on byte in 3rd landscape array
+- Marcin fixed bug in bribe option if multiple windows open
+- Marcin; generalfixes: remove oil field station when oil field closes down
+- Marcin: fix display of unknown cfg options
+
+1.7.1.a6
+- made it possible to change size and relative position of signal graphics
+- Marcin: make it possible to compile with only one version info (and not the first one either)
+
+1.7.1.a7
+- fixed a bug that showed only one of the signals in a two-way signal with
+  new graphics
+- fixed a bug that made new graphics flicker in the Windows version
+- made trt63.sv1 to show off the signals
+
+1.7.1.a8
+- made it possible to cycle signal state using Ctrl
+- redesigned pre-signal handling; it's more flexible (and much more
+  complicated) now, and fixed some bugs this brought up
+- actually implemented autoreplace switch
+- fixed a bug in Cht: Renew that gave multi-headed engines value like a waggon
+- fixed a bug in Persistent engines that didn't count additional heads
+
+1.7.1.a9 - all Changes by Marcin Grzegorczyk
+- provide more general vehicle value calculation, not only for train vehicles
+- fix autoreplace to work with vehicles other than trains
+- fix autoreplace to not touch vehicles manually sent to depot
+- clear pre-signal setups using Ctrl with bulldozer
+- implement reusecodefragment macro
+- convert all sources to C
+- fix bug when buying multi-head engine, having to pay double for first engine
+
+1.7.1.a10
+- make in-game text strings version dependent
+- split Makefile, put dependencies in Makefile.dep
+- Add "forcerebuildovl on" to always rebuild ttdpatch.ovl to simplify use
+  of TTD Alter et.al.
+- Cht: ClearPreSignals [0/1] clears all pre-signal setups, manual ones only if 1
+- extpresignals without presignals: no new automatic setups
+  -> needs new macro to test two bits at once: testmultiflags, or
+  testflagsandskip ebp/mem,<flag1,flag2,...>,(far),(far),1 (1 means multi)
+- show state of signal in info window
+
+1.7.1.a11
+- ctrl-buy signal buys signal if there isn't one yet
+- show vehicle speed also on the way to a depot and with no orders
+- fixed cycling speed for trains waiting at signals to always show 0
+
+1.7.1a12
+- made a more verbose crash logger that generates ttdcrash.* files
+- fixed trt63.sv1 to have at least one town; otherwise it might crash
+  when placing a station for example
+
+1.7.1a13
+- fixed train speed display to also show for RV, ship and plane depots
+- removed crash logger, it crashed more often than not :(
+- included patches by Marcin:
+-   can't ctrl-dynamite signals to get money
+-   (probably) fix the crashing bug (Moral: don't nest test in testflagsandskip!)
+-   fix dependencies
+-   make the Windows version of TTDPatch use the Windows codepage, and write
+    a conversion function
+
+1.7.1a14
+- moved *all* dependencies into Makefile.dep; left only first dep. in Makefile
+- read ttdpatchw.grf for the windows version b/o different palette
+- close file at end of grfload
+- by Norman: make ttdloadw.ovl nt/2k compatible
+- Marcin: fix catchgpf handler; should work a lot better now
+- Marcin: fix writing of switches and "blabla 0" vs. "blabla off".
+
+1.7.1a15
+- Argh! Screwed up the Win2k patches...  should be and esp,not 3 not "not 4"!
+- Norman: some fixes for music
+
+1.7.1a16
+- Save morevehicles>1 files as trp**.sv1, change load filter to tr???.sv1
+- gray bar in the disk menu now opens a "load savegame" dialog
+- use english strings for untranslated strings
+
+1.7.1a17
+- win2k patches applied automatically if dwPlatFormID == 2
+- TTDPatch makes default ttdpatch.cfg if none exists and no cmd.line pars specified
+- rearranged the disk menu and made it show a "load game" text
+- rename autoreplace to autorenew
+- when loading, check morevehicle setting of savegame.  Show warning and
+  pause game when it's larger than current setting of TTDPatch.
+- new option "diskmenu" or "Xm"
+- fix "load savegame" option in scenario editor.  Now it shows "load game"
+  or "save game" with Ctrl
+- in-game text numbers automatically generated, now we only need to edit texts.asm
+
+1.7.1a18
+- automatic win2k patches didn't get applied b/c win2k was cleared in commandline()
+- modified gpf handler to also show the handler's stack frame for debugging
+- actually print LANG_SWAPPING (Hi Marcin :)
+- changed last flags dword to have all special flags that don't correspond to
+  cfg/cmdline switches
+- Windows version doesn't patch the sprite routines unless at least one sprite
+  was read
+- Marcin: fixed moredynamite for roads, so info tool doesn't lower ratings
+- fix crash on obsolete options
+- moredynamite on city roads now only if "excellent" or better
+
+1.7.1.a19
+- stupid!  I'm telling people to switch to 95 compatibility mode and then try
+  to detect 2000...  won't work!  So, the -2 option is back.
+
+1.7.1.a20
+- train refit and multiheading doesn't work well together
+- Multihead, calculate correct running cost (not shown in window yet)
+
+1.7.1.a21
+- by Marcin: city bridges removable
+- multiply connected roads are again removable if you're only Mediocre
+- train info window now shows running cost correctly as well
+- when placing or removing signals; tracks; depots; others? automatic pre-signal
+  setups are reset properly
+
+1.7.1.a22
+- there were some cases in which even manual signals were cleared
+- "Cht: allengines" only adds engines that are available in this climate
+- "Cht: removeengines" to remove all unused engines
+
+1.8 beta 1
+- cht: removeengines left the first rail engine if there was a plane or heli in the game
+- cht: removeengines no longer removes waggons
+- change sign cheats cost to do it by default
+- Marcin: autorenew won't renew obsolete engines, nor will it try to when out of money
+- auto-pre-sig check both sides of all two-ways before setting pre-sigs and exits
+- DOCS: Clean up terminology: station parts; vehicle types; also explain syntax
+- change bribe failure probability to only 1 in 15 (like I wanted), not 15%.
+- autorenew and cht: renew also reset the last service date
+
+1.8 alpha 23
+- autorenew did already reset the last maint date, so remove that code again
+- fix ghost station bug
+- Cht: ClearGhosts
+- sign cheat names no longer need unique first four chars
+- presignals off did still generate some automatic pre-signals; no longer
+
+1.8 beta 2
+- some more Midi fixes by Norman Rasmussen
+- updated the docs some more
+- removed any possibility of ghost stations, and greatly simplified the testing
+- turn multihd into valued option; sets max. speedup in pct
+- refresh screen after new automatic pre-signal setup
+- fix bug where one two-way would not become an exit signal if the conversion
+  happened when the train entered its block
+- fixed a bug with multihead refit (if no train cars after first engine)
+- fixed a bug where a combo signal would be green because of a one-way non-exit
+  signal out
+- with win2k set, also lower the priority of ttd to BELOW_NORMAL_PRIORITY_CLASS
+- Marcin: loading a scenario with road vehicles crashed the game
+- Marcin: fixed bug with variable size in city-ratings
+
+1.8 alpha 24
+- actually fix "error reading registry" by patching registry access
+
+1.8 alpha 25
+- updated docs
+- reg. fix must ensure there's a backslash at the end
+
+1.8 release
+- updated docs some more
+- fixed bug in Cht: Removeengines that did actually remove the train cars too
+- fixed bug in auto. presignals that converted a 2-one-way, 1-two-way setup
+
+1.8.1 alpha 1
+- fixed a bug where one-ways behaved like they were a pre-signal
+- fixed the Ctrl key bug?  Made sure that Ctrl key only affects human players
+
+1.8.1 alpha 2
+- changed codepage handling for language files
+- fixed bug with ClearGhosts in tropical and arctic climates (didn't clear
+  landscape array 2)
+- made Steam and Diesel engines smoke properly when multi-headed
+
+1.8.1 alpha 3
+- pre-signals without exits are green now, not red
+- fixed WINCODEPAGEs for western european countries to 1252, not 1250
+- fixed problem with AI being unable to build grain service
+- Cht: PlayerID
+
+1.8.1 beta 1
+- improve Win-version idle loop to sleep when possible (with win2k switch)
+- fixed bug in loadtime with forced unload
+- feeder service: forced unload on station that accepts that cargo
+- better handling of profit distribution with forced unload
+- prevent Cht: PlayerID from switching to other human player
+
+1.8.1 beta 2
+- fixed bug in Cht: Renew that renewed engines instead carriage; income
+  instead of cost
+- feeder not for AI
+- feeder service for rv, plane, ship
+- win version crashes (wrong patchcode number in steamsmokes)
+
+1.8.1 beta 3
+- fixed multiplayer bug on win2k by aligning esp
+
+1.8.1 beta 4
+- Make Ctrl key unavailable in multiplayer
+- Combo signals without exits are still red!
+  also they don't seem to count as exits either; see savegame in bugs/
+- Fix 2K MP bug when opening vehicle from vehicle list (all of them)
+  ...except it didn't help :(
+
+1.8.1 beta 5
+- Re-enable Ctrl key for multiplayer when extending/building stations
+- Bug? Using train station name for Sign cheats crashes
+  ...crashed TTD/Win, works with TTD/DOS -- now those won't work at all
+  until one "real" sign has been placed, then it uses that sign's coords
+- Bug: combo-signals red for one combo-->two combo-->two exits
+- bug with refitting, sometimes cleared first waggon's capacity and load
+- bug with reffiting, wrong capacity if original cargo type was not passengers
+
+1.8.1 release
+- Norman: Fix screenshot on Win2k
+- Fix screenshot hotkeys in Windows
+- Fix infinite production due to feeder service
+- FAQ:  COM-port errors -> DOS version won't work, get Windows version
+- Manual: extended vehicles doesn't mention parameter, or that 1 is default
+
+1.8.2 alpha 1
+- bug: reliability decrease speed after auto-renew, sometimes too fast
+- allow adding depots to vehicle orders
+
+1.8.2 alpha 2
+- fixed bug which made the AI build routes from depot to depot without any
+  stations
+
+1.8.2 alpha 3
+- in multiplayer, extpresignals can be set without Ctrl (it cycles all types)
+- fix problem selling train and buying a new one: depots orders not copied
+- fix problem with trains always going to depots if autorenew is off
+- built framework to support modifying ship graphics (and perhaps others)
+- changed build process to use Cygwin make and bash (by Marcin)
+
+1.8.2 alpha 4
+- allow temporary cht: playerid <num> 1, where ai does not take over player's
+  company
+- Marcin: fix planes taking off for hangar at same airport
+- Marcin: fix removing/replacing depots that are in vehicle orders
+- Marcin: hangars are named after the airport not the city
+- Marcin: planes deciding they need service go to the destination airport hangar
+- prevent org. human players from getting AI benefit for station ratings
+- show company status (owned, operated, player...)
+- fixed bug with crash when multiheading vehicles produced speed > 32767
+- removed duplication of patchcode macro, now it's just one proc that calls
+  dofindstring or useknownaddresses depending on version info
+- newships feature; separate tanker, dry goods and refrigerated goods ships
+- sign cheats give two error messages: unknown cheat or invalid parameter
+
+1.8.2 alpha 5
+- fix crash in Windows version if newships is turned off
+- Marcin: fix ships that look like train signals
+- Marcin: loading and saving after removing a depot works
+
+1.8.2 alpha 6
+- include Marcin's changes in 5.exp1 and 5.exp2:
+  * Fixed bug which sometimes prevented autorenewal of vehicles with a Full Load order
+  * Fixed bug in depot replacement code which could make the AI disrupt the process
+  * gotodepot modified so that depot replacement works with an intermediate save/load
+  * Fixed bug in trainrefit that quadrupled the capacity
+  * When refitting a mail-carrying engine, 1 bag of mail corresponds to 2 passengers,
+    not 4 as before (but mail is still not included in the cargo list)
+  * Fixed diamonds appearing twice in the cargo ship refit list in sub-tropical climate if newships=on
+  * Fixed bug in TTD that caused incorrect display of Chimaera's running cost in some windows
+  * (internal) Fixed codepage issues in lang/update.pl, now it requires Perl 5.8.0 or later
+  * Fixed bug in variableadjustment macro that caused counter to go out of sync
+- Bug: it's impossible to buy shares (now only impossible for subsidiaries)
+- bug: crash if ship with sprite FF is load and graphics not available
+  should catch this and look up original sprite instead
+- allow arbitrarily large number of new sprites (as long as they fit in memory)
+- multihd + multiplayer: assume Ctrl is pressed if a train engine is in the depot
+
+1.8.2 alpha 7
+- updated all 00readme files
+- make patch compatible with older ttdpatch.grf files
+- allow ship sprite distinction on running/loading/unloading!
+
+1.8.2 alpha 8
+- fixed bug in FeederService with companies temporarily taken over
+- -XS, "subsidiaries: subsidiaries
+- feeder-service with ships as first carrier: ships gets credit as if
+  days-in-transit was only a quarter -> following carrier makes -ve money
+  fix: store cargo with only 1/4 of the days-in-transit at station
+  and also when ships pick up cargo multiply en-route time by four
+- fixed bug in enroute-time calculation (if feederservice or generalfixes on)
+
+1.8.2 alpha 9
+- allow several action 0 pseudo-sprites
+
+1.8.2 alpha 10
+- ship enroute-time should *not* be divided by four, remove that fix again
+- changed patching code to need fewer macros and be more robust. also decreased the code size...
+- split patching code out of init.ah into patches.ah
+- actually program gradualloading
+- move error popups to top right corner
+
+1.8.2 alpha 11
+- gradualloading, many fixes, should work now
+- fixed some bugs in the new patching functions
+
+1.8.2 alpha 12
+- fixed bug with vehicles never loading
+- allow new names for ships: action 4
+- increased TTDPatch memory size to 8MB to load all new ship sprites
+- fixed crash when clicking on a new ship in the docks to sell it
+- Marcin: fixed charset handling for Windows
+
+1.8.2 alpha 13
+- fixed bug with gradualloading and an "unload" order (would load all but
+  first vehicle in consist)
+- fixed bug unloading airplanes with gradualloading & feederservice
+- ship name changes didn't take effect, now they do
+- crash if no ttdpatch.grf present
+- Cht: NoUnload
+
+1.8.2 alpha 14
+- entered translations for the new ship names
+- ship loading/unloading now 10 units at a time for better display of loading state
+- TTDPatch waits for a key after displaying any error messages
+- fixed screenshots under Windows, *again* (probably still won't work under nt/2k/xp)
+- "invalid segment length" error now suggests deleting ttdload.ovl
+- Cht: ReloadEngines to load updated engine data ("newships" or TTD Alter)
+- fix ships temporarily displaying loading graphics when arriving at a buoy
+- Marcin: dates before 1950 should no longer crash the game
+- Marcin: wooden bridges are available even in very early years
+- Windows version only waits after launching the game if we want new version info
+
+1.9 beta 1
+- setting new ship date didn't work
+- copied all new ship data from Michael
+- made new ship graphics available
+- convert new ship graphics to Windows palette
+
+1.9 beta 2
+- gradualloading: store "gotprofit" bit per waggon, and reset only when empty
+- FAQ: Something doesn't work like it used to.  -> It's the patch!  Point to index.
+- SITE: Add screenshots for the various config tools etc.
+- new ship available: wrong graphics
+- fix crash if too many steam engines running
+- gradualloading off: some trains with full load never leave
+  (bit was stuck from gradualloading on)
+- Marcin: switch to 50 line mode for verbose display
+- create process failed->suggest delete ttdloadw.ovl
+- Bug: depots at end of terminus station (for example) clear auto presigs
+	(because they call the construction function, resetting presigs)
+- allow external texts, e.g. language.lcf or something
+- build heading for switch display from characters; don't store whole line
+  (otherwise the Windows language files have lines with length > 512 chars)
+- Marcin: with morevehicles, TTD sometimes runs out of "special" vehicles
+
+1.9 beta 3
+- fixed feeder services with all but last hops not making any profit
+  (another stuck bit)
+- cht: reloadengines will now not remove waggons, or engines that are in use
+- rewrite texts.awk in perl to easily calculate CRC of the names as version number
+- make ttdpttxt.dat version only change if order/content of strings changes
+  (use CRC to generate the version number instead)
+- make texts.asm compatible with NASM, and compile mkpttxt with gcc/nasm
+- bribe discovered in late 2070: never ending penalty now ends on Dec 31, 2070
+- fixing HDPath: say "not installed properly" instead
+- borrowing/repaying loan when temp. player did not go in steps of 50,000 pounds
+- fix bug in subsidiary / Cht: PlayerID when company bought out that owns any shares
+- fix crash in company bankrupcy if any of its windows open (they're closed now)
+- Marcin: signalwaittimes and disaster selection
+- Manual: impossible changes: more stations or depots
+- gradualloading: trains with multiple engines sometimes unloaded forever
+- fixed bug in Cht: Unload: crash if trains with no orders at all
+- Marcin: forceautorenew and morenews
+- Marcin: fix saveonly if consists have to be removed
+
+1.9 release
+- fixed obscure crash at start of month in multihd
+  (movedcheckwaggonspritejump undefined)
+- bug: lowmemory is broken (some things assume 40*850 array)
+- fixed bug in ship display if only some sprites available
+- bug: subsidiaries still allow orig. company to buy out other company in trouble
+- show segment limits and access rights in crash dump
+
+1.9.1 alpha 1
+- fixed bug in mkpttxt with beta 2 .txt files
+- convert assembler sources to NASM
+- switch Windows version compilation to gcc
+- update all readme files
+- split the language object files into one object file for each language
+  and generally clean up the language handling
+
+1.9.1 alpha 2
+- wrote sv1fix
+- fix bug in cht: playerid with [temp] having bit 7 tested, not bit 31
+- Norman: DirectMusic wrapper DLL (in dxmci/)
+- Marcin: fixes for GCC 3.2, and several other fixes for the compilation process
+- Marcin: unifiedmaglev and newbridgespeeds
+- removed long-obsolete "autoreplace" cfg entry
+- makelang checks ranged switches too
+
+1.9.1 alpha 3
+- rvpower: road vehicles can have different engine powers and weights, also
+  speeds up to 511 km/h supported (change max speed using maxrvspeedshift)
+- develop opimm8.mac so we don't need to write "byte" for imm8 operands
+- show TTDPatch version in title screen and about screen
+- remove need for nasm/output/outobj.c patch
+- by Owen Rudge: version info in the Windows executable resource table
+- forgot to close ttdpttxt.dat if it was invalid
+- Marcin: fix amount of litres, 1000 litres = 1 ton
+- Marcin: fix bug in ingame text version handling
+- had a variable searched for twice (texthandlerparamptr vs. windowparams)
+
+1.9.1 alpha 4
+- Marcin: rename many variables etc. and make structure members local identifiers
+- Marcin: Windows version also adjusts screen size to 50 lines
+- fixed display of road vehicle weight and power
+- adjusted road vehicle weights and powers
+- road vehicles did everything four times too fast (loading/aging/breaking down etc.)
+- showspeed will no longer slow down the game as much on older computers
+- also show loaded weight in rv purchase window
+- allow sign cheats with "Cht;" so that the French version can have them too
+- giant screenshots no longer reset the zoom level
+
+1.9.1 alpha 5
+- tweak RV powers a bit more
+- split ttdpatch.grf into several individual files; currently presig.grf
+  and newship.grf; controlled by newgrf.txt
+- allow parameters in newgrf.txt
+- made multihead option compatible with TTD Translator
+- simplify handling TTD's string tables
+- with help from Marcin: shuffle monorail and maglev engines ahead of the waggons
+- fixed bug: road vehicles would often not "arrive" at a depot when sent there
+- wrote smartpad.mac, just because I can
+- service interval in 2070 never expires.  Patch year limiter to fix this.
+- eternalgame, -Xe: eternal game play; time doesn't stop in 2070.  Instead,
+  years stop in 2175.
+- showfulldate, -d: always show full date, not only when paused
+- for new graphics, changed cargo IDs to be two byte values
+- allow separate .grf files for each vehicle or several vehicles
+
+1.9.1 alpha 6
+- changed proc.mac notation to be more consistent with nasm's syntax
+- start working on new train stuff
+- allow changing train properties
+- build fake BSS section to support uninitialized variables that
+  don't use up space in the .exe file
+- allow new sprites for all vehicle types
+- allow new properties for all vehicle types
+- multihd can reverse any engine for additional heads
+  note, this is experimental and may be removed if it's useless
+
+1.9.1 alpha 7
+- fixed ships not having new graphics (or any other vehicles for that matter)
+- new aircraft graphics still don't quite work (crashes when leaving hangar)
+- Windows version works too
+
+1.9.1 alpha 8
+- new graphics in Windows version were still broken; along with a couple of
+  other bugs
+- road vehicles don't show load state
+- added possibility to change rv power and weight using action 0
+- plane graphics work now, but the shadow isn't right. oh well...
+- fixed bug with newgrf.txt > 128 bytes
+
+1.9.1 alpha 9
+- fixed action 0, property 17 for trains
+- organized TTDPatch data stored in landscape3 in a struct
+- fixed problem with unimaglev interfering with veh.ID mapping
+- aircraft shadow is now correct
+- allow changing steam/smoke/sparks for new trains; is property 18
+- fixed action 0, "property" 19 for trains (was property 18)
+
+1.9.1 alpha 10
+- Marcin: signalsontrafficside, -Ys
+- fixed dual headed engines with new graphics
+- temporarily fixed train waggons not showing correct loading states
+
+1.9.1 alpha 11
+- Marcin: made code better by adding "const" to char pointers
+- Marcin: fix new graphics not getting applied (checking wrong switch)
+- allow symmetric train engines (num-dirs=4 in action 1)
+
+1.9.1 alpha 12
+- make symmetric train engines work
+- include Marcin's changes from alpha 11.2 experimental:
+   * Modified DOS version's swapper to allow up to ca. 62KB protected mode code
+   * Special debugging/development command line switches
+   * Fixed the eternalgame feature, now end of year is processed correctly after 2175
+   * Cht:Year now works for years above 2099, and it always sets the date exactly
+     on 31 Dec, so the end of year is never processed twice
+   * Disaster year limits work right up to 2154 now
+   * Modified year limiting code, now it processes industries too
+- Fixed incorrect player display on the client side in multiplayer
+- Possibly fixed crash in WinXP when clicking on a vehicle in a depot
+- include Marcin's changes from alpha 11.6 experimental:
+   * Removed search-until-fail macros (repeatpatch and multiplesearches),
+     replaced with new, safer macros multipatchcode and multichangeloadedvalue
+   * Even more enhancements to the eternalgame feature, now years are displayed
+     correctly up to 65535 (yes, really!)
+   * Fixed moveerrorpopup, now the red popup windows are always displayed in
+     the left top corner
+   * Made the AI special engine flag (and the associated train property 08
+     in new .grf files) obsolete, now the AI should never use a train engine
+     with wrong capacity (as long as newtrains or unifiedmaglev is on)
+   * Added missing train property (the AI's engine rank) as hex 18.
+     Note: This introduces a slight incompatibility because steam/smoke/sparks
+     and sound type is now 19 and sorting is now 1A.
+   * New switch: electrifiedrailway, -XE: electrified railways instead of
+     monorail or maglev (depending on unifiedmaglev mode). Highly experimental,
+     only the basics work as intended.
+- include Marcin's changes from alpha 11.7 experimental:
+   * Improved electrified railway catenary display engine; wires are now
+     displayed over level crossings, stations and bridges
+   * Fixed occasional problem with the top of pre-signals being clipped by
+     one or two pixels
+- include Marcin's changes from alpha 11.8 experimental:
+   * Electrified railway catenary display improved again; pylons now are drawn
+     closer to the track and on alternating sides (although still too densely)
+- automatically add new .grf files to newgrf(w).txt if .add file is present
+- possibly fix problem with argv[0] containing file name without .exe, making
+  it impossible to load the language data (now also try appending .exe)
+
+1.9.1 alpha 13
+- fixed bug: cht: year 1920 goes to 2099 (underflow)
+- maintain engine index for all vehicles for easy access
+- train waggons show now always show correct loading state with new graphics
+- rename shipspri.asm to vehspri.asm which is more fitting
+- support wagon override graphics for engines using action 3
+- support variational graphics
+- support random graphics (though currently they aren't re-randomized when
+  loading or entering a depot)
+- changed definition of action 2 to allow random and variational sprites
+- changed definition of action 3 to allow wagon overrides
+
+1.9.1 alpha 14
+- fixed crash in Windows version when buying/selling train vehicles
+- variational cargo ID shows first ID in purchase display, not current ID
+- modified definition of randomized cargo ID list
+- random triggers work now when entering depot (currently only if autorenew
+  is on) or getting new load from empty (currently only with gradualloading)
+
+1.9.1 alpha 15
+- forgot to update maxtotalsized4; now it'll be automatic
+- fixed incorrect ship graphics
+- fixed bug in randbit handling for random graphics
+- Cht: Year YYYY 0 does not adjust year vehicle was bought or service dates
+  (only for testing sprites; will be removed soon probably)
+
+1.9.1 alpha 16
+- changed action 6: terminator is now FF not 00 to allow additional items for
+  parameter 0 (currently backwards compatible; this compatibility will be
+  removed in beta 1)
+- changed action 4: added language-id byte
+- removed initdifffixed hack
+- ttdpttxt.txt must be adjusted: \1f in newshipnames, ttdpttxt.dat must be remade
+
+1.9.1 alpha 17
+- fixed crash in engine index handling (when veh.engineidx=-1)
+- Marcin: fix ufo explosion in windows version removing too much
+- fixed crash if loading memory overflow b/o too many sprites
+
+1.9.1 alpha 18
+- fixed broken text display if too many new sprites loaded
+
+1.9.1 alpha 19
+- fixed multiheading of single-head engines with new sprites
+
+1.9.1 alpha 20
+- Marcin: food and fizzy drinks subsidies work now (with generalfixes on)
+- Marcin: when a station is removed permanently, also all subsidies attached
+  to it will be removed to prevent bugs and crashes (with generalfixes on)
+- Marcin: bridges and tunnels owned by nobody can now be removed (with either
+  generalfixes on or extradynamite on
+- fixed crash in Windows version if railroad wagon is offered for exclusive testing
+
+1.9.1 alpha 21
+- removed *.add mechanism to automatically add grf files to newgrf(w).txt;
+  it's just not useful
+- slightly changed the way findengines works
+- Marcin fixed bug: airport with three terminals occupied stalls if plane from that airport
+  has target being the exact same airport again with gotodepot on
+- Marcin: new switch "startyear <year>" sets default start year and allows
+  greater range in scenario editor
+- Marcin: disallow "Cht: Year 1920" because it messes up the vehicle list
+- Marcin: train carriages never disappear from the purchase list
+- new train wagons are no longer offered for exclusive testing, and the new
+  vehicle announcement shows the correct cost for them
+- moved road vehicles properties 12 and 13, new prop. 12 is sound effect
+- allow speed > 127 km/h for road vehicles (property 15)
+- allow refitting of road vehicles (property 16)
+
+1.9.1 alpha 22
+- fixed bug: shuffling regular rail vehicles gave them the wrong sound/graphics effects
+- fixed bug: shuffling vehicles out of order could cause crash
+- allow negative values in newgrf parameters
+- fixed bug in mkpttxt (wrong order of entries)
+- renamed railvehsorttable to vehsorttable
+- fixed bug: with -a (or "all on"), the monorail/maglev track doesn't show
+  with "electrifiedrailway on"
+- fixed bug: vehicles.dat was incompatible with patchsortrailvehicles
+- added english texts for the startyear switch display and configuration file lines
+
+1.9.1 alpha 23
+- texts.inc is now checked for correct order of the entries
+- moved rv hill handler and accel. calc. to mountain.asm
+- changed meaning of curves and mountains parameters
+
+1.9.1 alpha 24
+- train acceleration was too large on bridges (they were considered downhill)
+- hovercraft can be refitted for mail
+- fixed bug with zero train acceleration if multihead off
+- fixed bug with train weight calculation
+- fixed calculation of incline angle
+- allow display of tractive effort and acceleration in train window (with mkpttxt)
+
+1.9.1 alpha 25
+- fixed bug with curves settings 1 and 2
+- show "unrealistic" acceleration in vehicle window too
+- display of acceleration shouldn't slow down the game anymore
+- air resistance is now less for high-speed engines (streamlined)
+- air resistance is now correctly doubled in tunnels
+- fixed bug with monorail&maglev never increasing their reliabilities
+- fixed bug with Windows version: acceleration didn't consider mountains properly
+- moved verbose display of "mountains" and "curves" into regular section
+- by Marcin: new switch errorpopuptime # or -YE sets how long error popups are displayed
+- by Marcin: new switch towngrowthlimit # or -Xt sets the growth limit for towns
+- by Marcin: new switch largertowns # or -XT sets the frequency of big towns
+- by Marcin: fixed bug in internal number of buildings when removing building under
+  construction (if either generalfixes, towngrowthlimit or largertowns on)
+- by Marcin: towns can now build on waterbanks (if either generalfixes,
+  towngrowthlimit or largertowns on)
+- by Marcin: very small towns in arctic and tropical climates will grow even
+  without food and water (if either generalfixes or largertowns on)
+- by Marcin: fixed bug in town growth if more than five stations active in the transport zone
+- by Marcin: fixed bug transporting cargo not adding to town growth if
+  `fund new buildings' is active
+
+1.9.1 alpha 26
+- generalfixes no longer makes small towns grow even without food and water
+  (in snow/desert areas), now only "largertowns" activates this
+- experimentally increased the effect of acceleration by four
+- increased coefficient of friction to 0.3
+- modified how mountain slopes are detected (should be more reliable now)
+- apply 1.6 mph minimum speed to start from rest as well, not only slowdowns
+- realistic speed in curves now limits speed as long as any part of train is in curve, by 1/16 of top speed for each segment down to 1/2 top speed
+- fixed action 7 with param-sizes other than a byte
+- fixed bug of wrong speed in new road vehicle announcement
+- fixed bug in action 7 with parameter numbers other than zero
+- when loading graphics, check that there aren't too many sprites
+
+1.9.1 alpha 27
+- fixed crash when using old ttdpttxt.dat with old newshipnames entry
+- fixed bug with wrong smoke/steam and sound effects for train engines
+- fixed bug with east-west track not resetting hill acceleration
+- rewrote memory allocation mechanism
+- allocate memory for sprites based on how much is needed
+- show error message for problems loading new graphics
+- went back to alpha 25 acceleration settings
+- fixed bug: curves setting didn't work in windows version
+
+1.9.1 alpha 28
+- fix crash if newgrf.txt exists but none of the files exist
+- presig.grf or elrails.grf didn't work if they were the last entry in newgrf.txt
+- split .grf loading into two stages, initialization and activation
+- defined action 8 to provide .grf IDs, description and copyright info
+- action 7 allows testing climate
+- action 7 allows skipping rest of .grf file without specifying actual number
+  of sprites
+- Marcin: change AI special flag for trains to indicate optimized passenger trains
+- make memory available for presig.grf and elrails.grf in lowmemory version
+- Cht: Tracks 1 0 doesn't convert steam or diesel engine to electric. Cht: Tracks 1
+  still does, though
+- change name of DOS crash log into crash*.txt
+- move picture and text in train info window to accomodate larger engines
+- renamed doc/newgrf.txt to doc/sprites.txt
+
+1.9.1 alpha 29
+- by Marcin: new switch "miscmods #" or "-Yo #" selectively disables some
+  patches from generalfixes
+- by Marcin: eliminate the need to keep the flag data in vars.ah and
+  switches.h in sync
+- by Marcin: rewrite the train sorting code (now they are only displayed out
+  of order, not in fact sorted in memory)
+- by Marcin: road vehs entering stations with realistic curves enabled are
+  now limited to 20 mph
+- by Marcin: fixed wrong speed and power for trains if "multihead off"
+- new switch "loadallgraphics on" or "-XG" forces loading all graphics, no
+  matter whether they are in the right climate (etc.) or not
+- fix crash while loading new graphics
+- fix bug with new ship names not being applied
+
+1.9.1 alpha 30
+- disable windows platform ID test with "win2k on".  Maybe that'll allow
+  fullscreen mode finally
+- newshipnames entry in ttdpttxt.txt must be adjusted. First line must
+  read: newshipnames="\00\00\00\00\04\02\1f\0b\00"
+- implement crash logger for the Windows version too
+
+1.9.1 alpha 31
+- Windows crash logger active even without "win2k on"
+- fix another crash while loading graphics
+
+1.9.1 alpha 32
+- by Marcin: fixed custom vehicle names getting "stuck" so they can't be reused
+- by Marcin: rewrite save and load routines, make "reducedsave" obsolete
+- by Marcin: give more detailed error message when loading game with too many vehicles
+- by Marcin: new switch "saveextradata on" or "-Xx" saves additional data in
+  savegames. Currently this is TTD's vehicle data such as speed/power/etc.
+- new miscmods item: 8 means gradual loading fills first wagon first
+- allow making train vehicles shorter (e.g. tenders): new property 21
+
+1.9.1 alpha 33
+- fixed bug in new gradualloading with stations that didn't have train facility
+- fix screenshot crash when in windowed mode for the Windows version; now all
+  screenshots should work perfectly in all modes on all systems
+
+1.9.1 alpha 34
+- fix bug in testflags with testflagbase and numerical bit numbers
+- by Marcin: wait for key on warning messages while starting up
+- by Marcin: trap critical errors (such as loading too large game with lowmemory switch)
+- by Marcin: debug flag to disable switch consistency checks
+- action 7 will no longer be applied in the initialization run (otherwise some
+  cargo ids/sprite ids may not be resolved)
+- fix prop 21 for trains, also it is only used when a vehicle leaves a depot;
+  to change it you must send the train back to a depot
+- fixed bug with vehicles unloading only partially without miscmods=8
+- fixed bug with train vehicles in depot being slightly offset
+- added missing prop 12 (sound effect) for planes
+
+1.9.1 alpha 35
+- fixed bug with wrong order of train vehicles in purchase list
+- actually made sure no action 7 will be applied in the initialization, as
+  promised by alpha 34 already
+- debug flag w to disable waiting for key on warnings; w+ terminate, w- continue
+- debug flag T to terminate TTD right after collecting new version info
+  (to automate the collection for many versions)
+- by Marcin: insert new prop 10 for ships (sound effect); makes all ship
+  graphics incompatible
+- by Marcin: properly document prop 0C and 0D for planes (speed & accel)
+- by Oskar: new switch "morebuildoptions on" or -YB to allow building tunnels
+  that cross (though they're still independent) and more than one industry
+  of each type per city
+- by Oskar: allow removing company statues, lighthouses and radio transmitters
+  with Ctrl if morebuildoptions is on
+- implement semaphore signals: "semaphores on" or -YS, still no graphics yet
+- moved rail type conversion into postinfoapply
+- split infoapply into inforeset and infoapply; call them separately
+  when loading a game (reset before loading; apply new info after loading)
+- allow testing patch flags in action 7 (new param-num 85)
+- created action 9 which is identical to action 7 except that it isn't
+  ignored during the initialization
+- fixed bug in bit testing in action 7
+- saveextradata also saves TTDPatch vehicle data
+
+1.9.1 alpha 36
+- semaphores/light signals can always be built with the Ctrl key
+- allow checking road traffic side in action 7
+- add more diesel smoke on hills with realistic acceleration
+- fix graphics error with some waggons that have override in some scenarios
+- fix some bugs in the semaphore signal handling
+- fix minor bug in graphics loading
+- moved railway type conversion back into vehtypeinit
+
+1.9.1 alpha 37
+- support replacing any arbitrary TTD sprite number with new sprites
+- show correct sprites and various texts in elec.rail and maglev build menu
+- reworked newgrf loading functions
+- grf errors should now have \80 not \7c
+- show TTDPatch version in generated ttdpatch.cfg file
+- fix bug with selling dualheaded engines when multihead is off (couldn't sell
+  second head)
+- loadallgraphics is no longer turned on by default
+- fixed bug with trains leaving depot towards northeast lose all waggons
+  if they have a tender
+- fixed bug allowing to lower terrain below tunnel
+- by Oskar: more hotkeys available; 't' toggles transparency
+- more hotkeys: 1 to 0, -, =, \ choose build tool, ` toggles bulldozer
+- tenders no longer show a capacity of 0 passengers
+- fixed bug where trains with tenders lost wagons after reversing
+- introduced new action 0A
+
+1.9.1 alpha 38
+- fixed bug with missing intro screen (only multiple mouse cursors displayed)
+  in Win version
+- translated the rest of the awk scripts to Perl
+- by Oskar: hotkeys for the other display options
+- allow showing key codes
+- renamed "Cht: Reloadengines" to "Cht: Resetvehicles"
+- "Cht: Resetvehicles" should work more reliably now; but it will reset custom
+  vehicle names; be sure to save them if you want to keep them
+- "Cht: Resetvehicles" also activates any new graphics that weren't active before
+- action 7 no longer affected by "loadallgraphics on"
+- mkpttxt now automatically detects the language and uses it for default values
+- "Cht: Semaphores 0/1 [tracktype]" to change all signals to light (0) or
+  semaphores (1), optionally only for a particular track type
+- fixed bug with trains only unloading first wagon if gradualloading off
+  but feederservices on
+- action 4 can change (almost) any arbitrary strings in TTD
+- station orientation selection now shows correct track type (but no overhead
+  wire yet)
+- fixed the (hopefully) last bug where trains with tenders lost their waggons
+- reset all vehicle sprites after loading a game
+
+1.9.1 alpha 39
+- in generalfixes: fix TTD bug with swapped monorail and maglev tunnel building cursors
+- removed requirement that malloc chunks be contiguous
+- experimentally moved sprite data back into DS; this will simplify many things
+- -W maintains order of switches; new switches written in alphabetical order
+  with, "// ** NEW SWITCHES **" separator
+- by Csaba: new "plantmanytrees" option (-Yp); mark w/o ctrl, plant area w/ctrl
+- by Csaba: news item when lumber mill runs out of trees (with "morenews on")
+- show pylons on bridges and open station tiles
+
+1.9.1 alpha 40
+- fixed bug: pylons from elrails(w).grf didn't work near the beginning of newgrf.txt
+- by Csaba: sign cheat "Cht: PlantTrees <SizeX> <SizeY> <type>"
+- by Csaba: allow duplicate signs
+- moved sign code to a different area of TTD code; should work better
+- included all changes from Marcin's alpha 38.1 experimental:
+  * Bug fixed: when vehicles are deleted due to vehicle array size reduction,
+    their schedules are deleted too (so that they don't clobber the precious
+    little schedule heap space)
+  * Bug fixed: ship refit list is no longer empty if "newships off" is used
+    but other new graphics are present (note: the bug may persist in older
+    savegames if 'saveextradata' is on)
+  * Bug fixed: the C key (center) no longer works the same as Z (center &
+    zoom) with 'morehotkeys on'
+  * TTD bug fixed: backspace key used to trigger a 'replay' of the key buffer
+    occasionally in the Windows version (fix active if 'generalfixes' or 'win2k' is on)
+  * TTD bug fixed: now screenshot key combinations no longer cause inadvertent
+    multiple screenshots in DOS versions, too
+  * Enhanced keyboard handler in the DOS version that allows for almost
+    arbitrary mapping of key combinations to characters
+  * Ported the DOS version to Open Watcom
+  * Bug fixed: TTDPatch tried to display a localized "press any key" message
+    even if an error occurred before language data had been loaded
+  * Bug fixed: "-a -W ttdpatch.cfg" was passed to a program started via the
+    c debug flag if there was no f- flag, no arguments to the program and no
+    ttdpatch.cfg was found
+  * New debug flag, L+ to load language data from language.dat instead of
+    the executable
+  * New debug flag, I- to disable programming of the keyboard indicators
+    (the LEDs) in the enhanced keyboard handler (in case it doesn't work well)
+- when writing ttdpatch.cfg, // *** NEW SWITCHES *** is now only shown once,
+  not for every new switch
+- ttdvar macro now officially supports 0x9c458..0x9f278 range too
+- electric pylons no longer displayed if full detail is off
+- electric pylons are subject to the "transparent buildings" option too
+
+1.9.1 alpha 41
+- fixed bug: newgrf loading was aborted if a file could not be found
+- don't show pylon immediately in front of depot
+- fixed crash in Windows version if total sprite memory needed > 2 MB
+- add error message if more than 8192 sprites in total
+- by Csaba: multi-tree-plant feature no longer plants additional trees on a square
+- by Marcin: use ttdvar for a couple more variables
+- by Marcin: keyboard mapping supports making keys dead except for input fields
+- by Marcin: improve descriptions of variables in vars.ah
+- by Marcin: support selective saving/loading of extra data
+- by Marcin: new feature "euro on" or -Ye changes Deutschmark, French Francs
+  and Pesetas to Euro at the beginning of 2002
+- northern bridge heads had too many electric pylons
+- fixed bug in el. rails construction window if elrails.grf not loaded
+  (now it displays regular railway instead)
+- don't show pylons inside tubular bridge
+- I now use Marcin's custom settings when making a source distribution even
+  though I don't use them myself, but people have had good results with them
+
+1.9.1 alpha 42
+- fixed crash when loading a game after having saved another game
+- new bit 2 (value 4) for moretrees: if set, multi-plant will add additional trees
+  1=allow adding trees to tile, 2=plant rectangular area with ctrl,
+  4=for rectangular plant (ctrl or sign cheat), try to plant tree in every
+  square even if tree is there already
+
+1.9.1 alpha 43
+- added icon to the Windows version (won't show in Windows 95 explorer which has a bug)
+- fixed crash if newgrf(w).txt is missing
+- allow non-language specific strings, defined in patches/stat_txt.ah
+- by Marcin: fixed bug in heap allocation
+- by Marcin: fixed lowmemory version again
+- by Marcin: ensure that train engine types aren't converted more than once
+- by Marcin: change name of saveextradata switch to saveoptionaldata, which
+  better reflects what it does
+- by Marcin: light house removal cost is now affected by inflation
+- fixed bug: oil ships carry coal and are refittable if newgrf(w).txt is empty
+  or contains no valid .grf files
+- in newgrf.txt, show error if file not found, handle comments (line beginning
+  with "#") explicitly
+- fixed display of overhead wires and pylons for tunnel entrances
+- fixed crash when reversing if last wagon of train was short
+- change checkfreemem to use dosintx
+
+1.9.1 alpha 44
+- change loader to run before TTD initializes
+- make more memory available in the lowmemory version especially
+- remove support for separate sprite data segment
+- lowmemory version can now use morevehicles > 2, but then fewer graphics
+  can be loaded
+- renamed Cht: RemoveEngines to Cht: RemoveVehicles and Cht: AllEngines to
+  Cht: AllVehicles
+- allow sign cheat aliases; ReloadEngines for ResetVehicles,
+  AllEngines for AllVehicles and RemoveEngines for RemoveVehicles
+- by Csaba: prevent lumber mill messages after every time a baby tree starts growing again
+- by Csaba: "morecurrencies on" to enable Forints and a custom currency,
+  "morecurrencies #" to set multiplier factor
+- by Csaba: allow manual track conversion with "manualconvert on". Only regular
+  tracks work at this time.
+- new miscmods value: adding 16 prevents generalfixes from changing the display
+  of litres such that 1000 l is a ton, instead of 100 l.
+- restore shell icon after exiting
+- improve placement of pylons on horizontal/vertical track
+- fixed offsets of pylons and wires
+- long stretches of straight track have pylons only on every other tile
+- added .ico files to the DOS version too, they'll be used when you create a
+  shortcut or view the properties in Windows
+- included changes from Marcin's 1.9.1 alpha 43.1 experimental:
+  * Bug fixed: -C or -W with no parameter could crash TTDPatch
+  * Bug fixed: Windows version restores the console icons before terminating
+  * TTDPatch now supports long (.cfg) versions of switches in the command
+    line, in the format --switch=value or --switch value (not very useful
+    in the DOS version)
+  * New switch: towngrowthratemode, -YT: define what affects the growth rate
+    of towns. Value: 0 - TTD standard mode, 1 - TTD extended mode (as in 
+    previous alpha versions), 2 - advanced settings mode.
+  * Many additional new switches (long versions only), active only if 
+    `towngrowthratemode' is set to 2, to define the rules of town growth 
+    rate calculation
+  * New switches, `townminpopulationsnow' and `townminpopulationdesert' 
+    (long versions only), to define minimum populations to which towns in 
+    snow or desert can grow even without food or water (active if 
+    `towngrowthlimit', `towngrowthratemode' or `generalfixes' is enabled; 
+    set to 0 to get the standard TTD behaviour)
+  * New switch: moretownstats (no command-line short version yet): display 
+    additional statistics in a town information window
+  * Modified the `bribe' feature, it works with multiple companies now 
+    (should work in multiplayer, too); fixed problem with 'unwanted' 
+    status not expiring in 2070 and later; the bribe cost calculation has 
+    changed slightly, now passengers and mail are taken independent of each other
+  * More data per town are stored in a secondary town array if any of the 
+    following switches are enabled: bribe, towngrowthlimit, towngrowthratemode, 
+    moretownstats; the array is saved in an extra chunk after the normal data
+  * Town population is now stored as a 32-bit value, so it no longer wraps 
+    around at 65536 (active if the secondary town array is used)
+  * TTD bug fixed: when a new town is created in the scenario editor, 
+    population and number of buildings is recalculated for all towns (because 
+    town boundaries have changed; active if the secondary town array is used 
+    or `generalfixes' is on)
+  * TTDPatch now displays a warning if important data may be lost (due to some
+    feature being disabled or not present) while loading a game
+  * With `lowmemory on' it is no longer possible to load a game with a larger 
+    `morevehicles' setting
+  * Allow ranged switches with no associated bit in common.h, as auxiliary 
+    parameters (used for the new town growth switches)
+  * New debug flag, o+ to write all switches (not only the new ones) in 
+    alphabetic order when using the -W switch
+- by Oskar: allow defining bits directly in .cfg file, e.g. "switchname #1011"
+  sets bits 0, 1 and 3 (counted from the right)
+- by Oskar: new switch "enhancegui on" (-YG) improves game interface
+  e.g. for construction of large stations
+
+1.9.1 alpha 45
+- when changing screen size in DOS, properly adjust cursor position
+- fix crash when Windows version tried to allocate more memory
+- show correct pylons and wire type on bridges
+- by Csaba: finish manualconvert feature
+- by Csaba: new switch "newagerating on" or -Ya, changes station ratings to be
+  more tolerant of older rolling stock (now 21 years is the limit instead of 3.)
+
+1.9.1 alpha 46
+- don't abort processing of newgrf(w).txt when an empty line is encountered
+- I broke Oskar's depot GUI code when integrating it, now it's fixed
+- show pylon for track piece under bridge
+- show pylon inside bridge, not outside
+- by Marcin: fix airport counting bug preventing the construction of airports
+  in some towns where one didn't have any airports yet
+- rename small to smallico in windows.c or gcc complains (?)
+- fixed crash when starting new game in DOS version with morevehicles > 1
+- remove pylons from tubular bridge again
+
+1.9.1 alpha 47
+- fixed bug: last line of newgrf.txt is ignored
+- with morecurrency on, amount of zero were shown as e.g. "$" not "$0"
+- symbol of custom currency can be changed with ttdpttxt.txt (curr_CUS_sym)
+- allow changing custom currency multiplier from ttdpttxt.txt, giving
+  exchange rate from 1000 pounds in curr_CUS_sym after symbol, e.g.
+  curr_CUS_sym="Rb \0050287\00" (both parts are optional)
+- fixed bug in action 0A with multiple sprite sets
+
+1.9.1 alpha 48
+- included changes from Marcin's alpha 47.1 experimental:
+  * Bug fixed: games saved while an AI was tracing their vehicles could 
+    crash TTD if loaded with a different version of TTDPatch
+  * Bug fixed: extended town data were not cleared properly when a new
+    town was created (thanks Csaba!)
+  * New switch: buildonslopes (long version only): makes it possible to build bus 
+    stations, lorry loading areas and heliports on sloped land (with some restrictions)
+  * DOS version no longer assumes that all Lock key LEDs are initially off; 
+    instead, it reads their initial status from a BIOS variable
+  * Video mode is no longer reset if the protected-mode part of TTDPatch fails 
+    to initialize (DOS version only)
+  * Moved most of the remaining uninitialized global variables to the 'fake BSS' 
+    section to reduce code size
+  * TTDPatch no longer crashes if it fails to find some TTD location (or, in debug builds, 
+    runs out of version data space); instead, it writes a message and aborts
+  * Extended semantics of the debug/development flag v: v- simply ignores built-in version 
+    data as before, v+ makes TTDPatch collect version data and write to a .ver file. 
+  * Since version data collection is considered a development feature now, the related 
+    messages are no longer included in the language data (i.e. they're in English only now).
+  * Debug builds of TTDPatch use INT3 instruction the second time after the main code has 
+    been copied to its destination location (makes setting breakpoints easier)
+- included changes from Marcin's alpha 47.2 experimental:
+  * Bug fixed: attempt to display electrified railway tunnels crashed TTD if no electrified
+    railway sprites were present
+  * Bug fixed: towns above the snow line in sub-arctic climate had their growth rate
+    calculated incorrectly if the enhanced rate calculation was used
+  * It is now possible to build depots on slopes, too, with 'buildonslopes on'
+  * Pylons are no longer displayed as transparent (use the "Full detail" switch in TTD 
+    to turn them off completely)
+
+1.9.1 alpha 49
+- included changes from Marcin's alpha 48.1 experimental:
+  * It is now possible to build tracks, roads, railway stations and airports
+    on sloped land with 'buildonslopes on' (with various restrictions)
+  * Minor bug fixed: with 'generalfixes on' TTD would not remember position
+    of the last built aircraft hangar correctly in small airports
+  * Merged the functionality of the storeabsfromrel macro into storefunctiontarget
+  * Fixed reusecodefragment and setfragmentsize macros; now parameters may be
+    numeric expressions
+  * Cleaned up some codefragments to reduce the protected mode code size
+- included changes from Marcin's alpha 48.2 experimental:
+  * remove unused code fragments to make code smaller
+- included Csaba's changes:
+  * merge "euro" and "morecurrencies" switches; euro switch is obsolete now,
+    and euro exists only after 2002 and actually replace national currencies
+  * "cusmultiplier" ttdpatch.cfg entry (no command line switch) to set
+    currency multiplier for CUS currency (multiplier can no longer set
+    by ttdpttxt.dat)
+  * selectable for "morecurrencies #", where # is the sum of ...
+  * fix display of loan size in difficulty window
+  * fix bug with cost of plantmanytrees in case of error messages
+- included Oskar's changes:
+  * experimentalfeatures switch (-XF); not enabled by default;
+    currently this slows down trains before crossing
+  * implemented cost difference between different track types
+  * Cht: RemoveHQ
+  * Cht: Climate <number> (very experimental; save before using)
+- added command line switch -Yt for "moretownstats on"
+- added command line switch -Yb for "buildonslopes on"
+- make trkfound(W).grf available with improved foundations for tracks on slopes
+- add new switch for track type cost difference: "tracktypecostdiff on" or -Yc
+- show EUR instead of Euro sign if Euro graphics aren't available (except
+  in currency selection list, where the entry is stored in ttdpttxt.dat)
+
+1.9.1 alpha 50
+- removal of industries no longer enabled by default with "morebuildoptions on"
+- add trackcostdiff changes to cht: tracks
+- morecurrencies bits for using commas (8) or dots (16) as thousand separators
+- new variational sprites 0x83 depending on engine properties, not waggon properties
+- new switch `planespeed' (-YP) makes planes fly at their real speed, and limits the
+  speeds for breakdowns to 5/8 of the top speed.
+- included changes from Marcin
+  * tweak Makefile
+  * wait for key before displaying settings, otherwise messages are scrolled off
+- included changes from Oskar
+  * morebuildoptions (-YB): Fixed MOREBUILDOPTIONS_REMOVEINDUSTRY, now you have to use Ctrl to remove them
+  * experimentalfeatures (-XF): Railstations can have different graphic sets now.
+    Add mstation.grf to your newgrfw.txt.  You can switch between spriteset with
+    cht: setset [value] then build the station. 0 means first set and so on.
+
+1.9.1 alpha 51
+- engine variational sprites should really have been 0x82 not 0x83, now they're 0x82
+- engine variational sprites crashed when showing vehicle list in depot
+- `planespeed' was using speed during breakdown for regular flight and full
+  speed when broken down
+- action 7 can now test whether another .grf file with a certain GRFID has
+  been activated, is inactive, or not loaded at all
+
+2.0 beta 1
+- included Marcin's changes from 1.9.1 alpha 51.1 experimental:
+  * New switch, 'buildoncoasts': makes it possible to build tracks, roads
+    etc. on coasts (waterbanks) without having to demolish them first
+  * Fixed version information collection (no longer have to specify
+    experimentalfeatures explicitly)
+  * Fixed Oskar's oilfield removal fix; now when the oil rig is removed
+    the associated station is deleted if and only if there are no other
+    facilities
+  * (devel) Made patch skip condition in the patchcode macro more versatile
+  * (devel) Fixed the preprocess-only mode again
+- fixed bug with incorrect alignment in flagdata.h causing some newer features
+  not to work (enhgui, morebuildoptions, the CUS currency factor, and town switches)
+- action 8 is required now in all .grf files
+- changed .grf version to 2. All .grfs must be upgraded.
+- allow randomized sprites depending on engine too (0x83 (this time for real))
+- action 8 works properly now; new graphics areby default only activated when
+  a new game is started, or if loadallgraphics is on
+- loadallgraphics is again on by default; but now it's actually useful
+  * Case 1: game was saved without saveoptionaldata: all graphics are activated
+  * Case 2: game was saved with saveoptionaldata, and loadallgraphics is
+    off: only graphics that were active when game was saved are activated
+  * Case 3: loadallgraphics is on: all graphics are activated in all cases
+  (note, graphics are *never* activated for the wrong climate etc.)
+- remove ship data and names from patch, now only the data from newships.grf
+  is used
+- fixed sv2flip to work with morevehicles>1
+- fixed both sv1fix and sv2flip to work with extended savegame data
+  present since alpha 1.9.1 32
+- introduce action 0 prop 7: loading speed (quantity per load), by default it's
+  5 for trains and road vehicles, 10 for ships and 20 for airplanes
+- documented action 0 prop 2, reliabilty decay speed
+- renamed newgrf(w).txt to newgrf(w).cfg (because it's really a configuration file)
+- fixed bug with feederservice, if miscmods=8 was on vehicles didn't load
+  cargo at more than one station in a chain
+- use ttdpatch.dat to provide protected mode code, instead of keeping in memory
+- fixed bug: if treeplantmode 1 was used, every time a tree was planted the
+  cost would increase
+- in generalfixes: limit company value if it gets too large, and when cash is
+  at max, still get individual income and quarterly statistics instead of 0
+- make random sprites work without autorenew and/or gradualloading
+- included Marcin's changes from 1.9.1 alpha 51.2 epxerimental:
+  * rename and update some language strings
+  * make sure bits in action 7 flag 85 stay valid even if the internal number
+    changes; see doc/sprites.txt
+  * with newships, make ship window wider and move ship names to the right
+  * many little changes to reduce code size
+  * added "Cht: Debugger" to call TTD's built-in debugger
+  * "keepsmallairports" now only applies to human players
+- made -V obsolete, use -!v+ instead
+- included Csaba's changes:
+  * `fastwagonsell', -Yw: sell whole consist with Ctrl
+  * `newrvcrash #', -Yr: modify train/rv crashes, 1:train breaks down too, 2:?
+  * `stableindustry', -Xi: prevent industry closedowns with stable economy
+  * in gotodepot: clicking on depot button while current order is depot order
+    causes current order to be skipped, so that train can find the nearest
+    depot itself
+  * in morenews: news message when airport is clear after plane or zeppelin crash
+  * "Cht: Subsidy" to force new subsidy
+- when using feeder service (force unload) into a town, it showed
+  incorrect stats on passengers/mail/goods/etc received
+- planespeed caused a crash when a crashed plane was removed from the runway
+- Oskar: submitted bugfix for railcost again (selling gave more money than buying)
+
+2.0 beta 2
+- fixed bug: always showed "wrong version" error for any kind of graphics error
+- added Marcin's changes from version 2.0 beta 1.1 MG:
+  * Bug fixed: forced unload with feeder service used to trigger subsidies
+  * TTD bug fixed: temperate-climate banks built in the sub-tropical climate
+    (enabled with 'generalfixes'; won't fix pre-existing games or scenarios;
+    can be disabled with 'miscmods' bit 5 (value 32))
+  * TTD bug fixed: shops & offices in snow areas sometimes shown as church,
+    check a scenario in the misc/ directory which demonstrates the bug
+    (enabled with 'generalfixes'; can be disabled with 'miscmods' bit 6 (value 64))
+  * It is now possible to remove company statues (but not other companies'
+    statues) without the Ctrl key if the 'extradynamite' switch is on
+  * When all company statues are removed from a town the transport rating
+    bonus also vanishes now
+  * The AI now always buys both heads, whether 'multihead' is on or off
+  * Fixed compilation under Open Watcom
+- TTDPatch saves version and current configuration with "saveoptionaldata"
+- made "Cht: SetSet" only available in debug versions
+- removed graphics glitch with bridges above electrified railways
+- transfer version data and custom texts separately
+- size of ttdpttxt.dat is unlimited now
+
+2.0 beta 3
+- added more consistency checking to the grf loader code
+- if possible, show sprite number that caused an error
+- always show first error now, instead of last error
+- renew cost (either cheat or autorenew) was not added properly in finances window
+- fix crash when vehicles autorenewed
+- newships on but no newships.grf: incorrect cargo for ships
+- two new variables for var. sprites: datefract (09) and animcounter (0A)
+- fixed bug in engine variational sprites (crash in purchase list)
+- override for helicopter rotor, using wagon override
+- debug switch S+ that dumps switch list to list.tmp
+- fixed crash if RV weight overflows (>127 tons with cargo)
+- must change rvweightinfo: first 7d to 7c in ttdpttxt
+- ttdvar macro now supports full range from 0 to 0x9f1e7
+- by Csaba: implement more new currencies, allow changing them all via ttdpttxt.txt
+- make action 0a work with all types of sprites
+- work towards supporting 12000 new sprites instead of only 8000
+- simplify TTDPatch sprite data handling
+- Cht: Graphics [ID [0/1]] to activate/deactivate all or particular graphics
+- by Marcin:
+  * fix some mistakes in sprites.txt
+  * fix calculation of swapped memory size
+  * fix for statue removal: now needs either moredynamite or morebuildoptions, not both
+  * fix some issues in the version data collection code
+
+2.0 beta 4
+- allow making single-language versions of TTDPatch for testing translations
+  (make lang/<language> to make .exe that creates appropriate language.dat)
+- added translations: Czech, Dutch, German, Hungarian, Italian, Polish,
+  Russian and Spanish
+- included changes from Marcin's version 2.0 beta 3.1 MG:
+  * The 'buildonslopes' option is even more flexible; now it is possible to
+    build inclined roads and tracks on 'weak' slopes (i.e. only one corner
+    higher than the rest), on 'inclined' foundations. It is also possible to
+    start and end bridges on such slopes.
+  * All wagons may be introduced during gameplay now, even those without new
+    sprite blocks; the introduction message is shown only if the corresponding
+    track type is already available for construction
+  * Partially fixed pylon spacing on electrified tracks with foundations
+  * TTD bug fixed: when trying to place a bridge and getting an error message,
+    the second line (reason of failure) is not displayed unless tubular
+    bridges are available (activated by 'generalfixes')
+  * Slightly improved TTD's sprite sorting algorithm to make it more stable
+    (active if any new graphics are loaded and/or buildonslopes is turned on;
+    very experimental)
+  * Fixed some error messages when trying to build a station in wrong
+    direction on a slope
+  * Bug fixed: cash and expenses display not immediately updated on autorenewal
+  * Changed the default for 'towngrowthratemax' from 960 to 600
+  * (devel) Fixed the file versions/empty.dat
+- included changes from Marcin's version 2.0 beta 3.2 MG:
+  * Bug fixed: if a file from newgrf.txt or newgrfw.txt could not be loaded
+    TTDPatch would crash
+  * Fixed most of the remaining display problems related to foundations
+    (Note: The foundation graphics must be updated again)
+  * Bug fixed: it is no longer possible to raise or lower land under tracks
+    on a foundation
+  * Bug fixed: water will no longer flood coastal half-tile-long road pieces
+    if 'buildoncoasts' is on
+  * Bug fixed: if removing a piece of track removes the foundation, track
+    fences are removed too
+  * Towns and AIs can now join roads built on a foundation
+- included changes from Marcin's version 2.0 beta 3.3 MG:
+  * Bug fixed: with lowmemory=on and morevehicles=1 TTDPatch would mess up
+    version data and custom strings
+  * Bug fixed: insufficient memory condition could crash TTDPatch
+  * Town growth rate calculation is more accurate
+  * TTD bug fixed: the maximum cost of terrain levelling for town expansion
+    is a fixed value, independent of inflation (activated by 'generalfixes',
+    can be disabled by 'miscmods 128')
+  * TTD bug fixed: period ('.') works as backspace in WinTTD (activated if
+    'generalfixes' or 'win2k' is enabled, or keyboard remapping is active)
+  * With 'buildonslopes' enabled it's now possible to start and end bridges
+    on 'strong' slopes (i.e. only one corner lower than the rest)
+  * With 'buildonslopes' enabled it's now possible to build company HQs,
+    lighthouses and transmitters on (partially) sloped land
+  * Limited keyboard remapping capability is now available for WinTTD
+    (activated if the remapping file ttdpatchw.kbd is present)
+  * Corrected a few omissions in verbose switch display and TTDPATCH.CFG
+    comments in the English locale
+  * Updated the Polish locale
+
+2.0 beta 5
+- included more translations
+- fixed crash in DOS version when out of sprite cache
+- included Marcin's changes:
+  * Bug fixed: stableindustry testing wrong variable
+  * With multihead on and TTD standard graphics, it was impossible to move
+    waggons after a trailing engine
+  * With multihead off and new graphics, waggons moved after the second
+    (trailing) engine would get lost
+  * Cht:Money with no parameters is an error now (it used to set cash to -1)
+- included Csaba's changes:
+  * changed "experimentalfeatures" into a bit switch:
+    + 1: trains slow down on crossings (from Oskar earlier)
+    + 2: experimental station graphics selection (from Oskar earlier)
+    + 4: TTD news messages are no longer black and white after the year 2000.
+    + 8: Allow linking vehicle schedules to more than one vehicle.
+    + 16: A news message will appear if a crashed train is cleared (needs
+	morenews on)
+    + 32: In the vehicle list windows, profits will be color-coded:
+	red: the last year profit was negative
+	yellow: the last year profit is below 10.000 pounds (spoils your rating)
+	green: the last year profit is above 10.000 pounds
+    + 64: Your company finances won't pop up on every 1st January.
+  * Zeppelins only crash at small airports (they also used to do it on
+    large airports and heliports) (enabled with generalfixes)
+  * Different wagon types won't show up in the same line in depots (rare
+    bug), (enabled with generalfixes)
+  * Vehicles less than two years old won't be colored in vehicle lists
+    (their last year wasn't a full one, so they can't be judged
+    automatically. BTW the performance code also ignores these vehicles.)
+  * Zeppelins will crash on large airports, but not on heliports with
+    generalfixes.  To disable crashing on large airports, add
+    256 to your miscmods switch.
+- integrate Euro glyph into the patch; but the one from trg1.grf will be used
+  if present
+- make action A change the sprite size properly
+- separately assemble the protected mode code and attach to end of .exe
+  to get around 64KB limit
+- remember previous track type and use as default for rail construction window
+  (with generalfixes, may be disabled by miscmods 512)
+- allow 11484 new sprites, instead of only 8192
+- fixed bug if line in newgrf(w).cfg had trailing space(s)
+- changed sprites.txt to show the action number in each definition, to avoid
+  some confusion
+- fix steam engines in middle/at end of trains; they didn't smoke when first
+  head was in tunnel, but did smoke when they're in the tunnel
+- steam engines steam more if using more power
+- show more electric sparks if using more power
+- now all engine types show the right effect even in mixed-type trains
+- allow 11484 *active* real sprites, and unlimited (I think...) pseudo-sprites
+  or inactive sprites, only available memory is the limit
+- included Marcin's changes:
+  * with newships=on, in the Ship Details window texts in the lower part are
+    shifted 20 pixels to the right (so that they don't overlap the ship sprite)
+  * with newtrains=on, the New Railway Vehicles window is widened to 240
+    pixels if it's narrower originally
+  * the maximum value for largertowns is now 70
+  * with generalfixes=on ships stuck under a bridge will be able to break free
+  * Wooden bridge is now available from 1920 on if no other bridge type is.
+  * House selection won't go into infinite loop as long as the availability
+    years are sane.  That is, houses with the lowest start year are always
+    available.
+  * startyear < 1930 now forces generalfixes on
+  * ttdpatchdata.orgpl2 was not recorded in one-player, which was a Bad Thing
+    and could potentially confuse the ishumanplayer proc
+  * Town stats are cleared when a scenario is started if generalfixes=on,
+    thus fixing the bug with passengers/mail last month showing weird values
+    in February
+  * Bug fixed: Cht:PlayerID with no parameters randomly refused to work. Also,
+    the second parameter is now interpreted as a 32-bit value.
+  * Bug fixed: TTDPatchW modifies the correct window even when started in
+    background
+- make 114KB heap block if sprite arrays 7f9e8..9c458 unused
+- fixed bug in random sprites: cargo was randomized when train entered a depot
+- with miscmods 1024 (more steam), steam engines smoke four times as fast,
+  and the steam also lasts twice as long
+- fixed two crashes in the Windows version
+- included Marcin's changes:
+  * Fixed wrong first vehicle arrival message for buses converted to trucks
+    and vice versa.
+  * Fixed Local Authority actions disappearing if the cash is close to the
+    maximum.
+  * No wagons are displayed, and no "New wagon available" messages appear if
+    there are no engines to buy.
+
+2.0 beta 6
+- allow Windows version relocations > 64KB 
+- don't show more station window buttons with enhgui on if largestations is off
+- included changes from Marcin's 2.0 beta 5.1 MG:
+  * Reorganized extra TTDPatch data and moved them to a safe portion of the
+    landscape3 array
+  * Windows version now obtains its console handle the way Microsoft recommends
+    it (see MS KB Article 124103, thanks Oskar)
+  * (devel) Fixed potential array overrun in makelang
+- fixed bug: steam engines from new .grf files didn't blow whistle when
+  entering tunnel
+- with generalfixes: rescale company graph windows when a company is deselected
+  may be disabled with miscmods 2048
+- adjusted moresteam effect
+- disable monorail option if unifiedmaglev=2 and electr.rails off
+- rename "maglev" to monorail with electrifiedrailway and unimaglev mode 1
+- removed all SPRITESEG related code
+- fixed crash if Euro glyph was installed but no other new graphics loaded
+- fixed sv2flip to also flip orgplayer numbers for subsidiary management
+- added Marcin's changes from 2.0 beta 5.2 MG:
+  * TTD bug fixed: it's no longer possible to place buoys in the north
+    corner of the map (would result in a ghost buoy)
+  * TTD bug fixed: New Vehicle Available message was not displayed for
+    vehicle id 0
+  * TTD bug fixed: potential sync loss after a failed action, query, or
+    cost checking in multiplayer
+  * Towns no longer build on half-water tiles
+  * Windows version supports codepages 65000 (UTF-7) and 65001 (UTF-8)
+  * AI players no longer try to build routes if they have no available
+    engines in the corresponding vehicle class
+  * (devel) Reduced code size by getting rid of patches/stations.ah, now
+    station layouts are generated dynamically
+- by Oskar: limit multiple industries of same type per city to not be
+  too close, old behaviour with new morebuildoptions bit 5 (value 32)
+- update language files slightly
+
+2.0 release
+- manual: change screenshot of presigs in (detailed) section to not show
+  red for exits without presig
+- by Marcin:
+  * fix cdpath switch
+  * fix mistakes in translations
+  * fixed crash when trying to save game with no human player from scenario
+    editor
+  * fix sprite cache memory allocation and locking under DOS
+  * fix bug in findengines that could cause crash with maximum morevehicles
+    setting
+- docs: make htmlhelp version officially available
+
+2.0 rev 1
+- retrofit fix: Selecting new currency in main menu doesn't apply to new game
+- retrofit fix for load/unload bug when returning to same station without unloading
+- retrofit new random triggers, after feedback from alpha 3
+- retrofit new ttdpatchvercode action 7 variable
+- retrofit winloader bugfix
+- retrofit embeddedsprite-without-spritecache-in-DS bug
+- retrofit fix for crash while parsing command line (startyear vs. newstartyear)
+- retrofit detecting and complaining about multiple action 8 entries in a grf file
+- set graphics version range to 2..5, so ver=5 grf files won't work on 2.0 original
+- by Csaba: manualconvert of occupied depots is possible, however the wagons
+  of incorrect train type can't be attached to trains of different (new) type
+- by Marcin: fix bug with AI taking over original company when using subsidiary
+  management with sign cheats disabled
+
+2.0.1 alpha 1
+- fix bug in windows loader (could show "TTDPatch nlp" error message)
+- by Marcin: make compatible with NASM 0.98.37
+- include updated NASM 0.98.37 in the nasm/ directory (thanks Marcin)
+- embedded files (euro and new transparent colour tables) moved to embedded/ directory
+- by Oskar: new enhancegui bit 4 (value 16) to show transparent station signs
+- split experimentalfeatures into separate switches; now they are
+  `showprofitinlist' (-XL), `newspapercolour' (-XN) and `sharedorders' (-XO)
+  and new miscmods bit 12 (value 4096) to not show company finances on Jan 1st
+- included changes from Csaba's 20b6vcs version:
+  * new performance calculation regarding vehicle profit with
+    `newperformance on' (-Xp)
+  * sort vehicle lists by various properties with `sortvehlist on' (-Xv)
+  * change "Delete" button in order menu to "Reset" with shared orders
+    when no order is selected
+  * change "Full Load" button to "Service" for depot orders
+
+2.0.1 alpha 2
+- by Csaba: improve speed of sorted vehicle lists
+- by Csaba: newspapercolour now takes a parameter: the year in which newspapers
+  appear in colour (default 2000)
+- by Csaba: fix crash when clicking on "new vehicles" in sorted vehicle list
+- fix miscmods 4096 being required for shared orders
+- now it's really miscmods 4096 that turns off the yearly finance window
+- new sort order: cargo type
+
+2.0.1 alpha 3
+- really, really, *really* fix sharedorders...
+- split vehspri.asm into vehspri.asm and newsprit.asm
+- created statspri.asm for new station graphics, but so far it's empty
+- updated newgrf.txt with the specs for station graphics (doesn't work yet though)
+- actions 7 and 9 can now test the TTDPatch version
+- created new random triggers for when consist empties or gets new load
+  (currently works only with gradualloading)
+- fixed crash while parsing command line
+- fixed crash if no new graphics but morecurrencies on or enhgui 0x10
+- support patchproc notation of bit1 AND bit2 AND (bit3 OR bit4 OR bit5)
+- fixed selection of new currencies in main menu not applying to new game
+- fixed bug with train loading a bit, returns to station and refuses to load
+
+2.0.1 alpha 4
+- fix incorrect vehicle display in purchase list (could also cause crashes)
+- by Csaba:
+  * hints for "Reset" and "Service" buttons are now displayed properly even
+    with multiple order windows open.
+  * order windows weren't redrawn properly after sharing an order list
+  * when sorting by cargo type, consists with only one cargo weren't at the
+    top of the list
+- disallow manual conversion of depots if there are vehicles in it
+  (interferes with the dbset)
+- detect and complain about multiple action 8 entries in a grf file
+- new switch: moresteam xy or -YM turns on moresteam and sets amount. x sets
+  length of plume, y sets frequency. 2 is TTD's default, adding/subtracting
+  one doubles/halves the length or frequency.
+- miscmods bit 1 (value 2) makes servint setting not apply to AI
+- fixed bug: after switching climate when loading games, Euro character and
+  transparent station signs didn't work until loading game again
+
+2.0.1 alpha 5
+- by Csaba:
+  * new switch: 'abandonedroads on' or -YA makes unused roads lose their owner
+    after a while
+  * it's possible to manualconvert occupied depots again, however the wagons
+    of incorrect train type can't be attached to trains of different (new) type
+  * miscmods bit 2 (value 4): towns no longer take over all roads built in the
+    scenario editor when a savegame is imported
+- by Marcin: fix bug with AI taking over original company when using subsidiary
+  management with sign cheats disabled
+- detect non-patch grf files in newgrf.cfg and give error message
+- allow whitespace at the end of on/off cfg switch values
+- fixed bug with saveoptdata on but unimaglev off and newtrains off: showed
+  train engines as wagons in purchase list
+- include changes from Oskar's 2.0.1 alpha 3.1 (a):
+  * Real big stations, 14(15)x14(15) max
+- include changes from Oskar's 2.0.1 alpha 4.1 (a):
+  * new switch 'moreindustriesperclimate on' or -YI allows funding paper
+    industries in the temperate climate; use the tpaper(w).grf to have a
+    paper wagon, doesn't work with cargoset
+- include changes from Oskar's All changes in 2.0.1 alpha 4.2(b):
+  * Paper (with moreindustriesperclimate) as refit options for GRF Files
+  * Fixed small pixel bug in new temperate fund industry window,
+- with moreindustriesperclimate, make sure paper wagon and trucks are
+  available in temperate and TTD's default ships are refittable for paper
+
+2.0.1 alpha 6
+- by Oskar: fix bug with incorrect button behaviour in station building window
+- by Oskar: fix bug with station acceptance with moreindustriesperclimate
+- by Csaba: fix crash when loading games with abandonedroads off
+- by Csaba: fix bug when town tries to demolish tile
+- define new vehicle properties for action 0: can now make powered train wagons
+  for train sets, specify visual and sound effect separately and choose steam
+  position. setting train&plane refitting won't do anything yet
+- train wagons will no longer be converted to electric by Cht: Tracks 1 0
+- electric wagons can now be attached to diesel engines and vice versa
+- make it possible to undo action 4 for general texts (e.g. keep copy of
+  org values somewhere, and array or linked list of texts modified so far)
+  therefore general text action 4 can now be skipped by action 7
+- new switch "newstations on" or -Yn enables new station graphics; but
+  currently only displaying them in the construction window works
+
+2.0.1 alpha 7
+- correction in newgrf.txt, action 7: descriptions of condition-types 4 and 5 
+  were swapped
+- added weight override along with power override for train set wagons
+- forgot to add powered wagons to adhesive weight for realistic accel
+- fixed bug: road vehicles could not be refitted
+- implement plane and train refitting cargo list (props 1D resp. 13)
+- fixed bug with tenders not having the correct distance from train
+  (tenders with this bug need to be rebought)
+- fixed old bug in cht: resetvehicles which reset the selection of active
+  graphics to the default, now only cht: graphics does that
+- setting train and plane refit property works now, can even make train wagons
+  refittable
+- by Csaba: make sortvehlist only update every few seconds, settable by parameter
+- removed sortvar from veh struct, made separate array for it (3.4 KB * morevehicles)
+- new vehicle variable 0x72 counts refitting to same cargo e.g. for different
+  types of goods
+- improved mammothtrains: now too long trains continue on next row of depot
+
+2.0.1 alpha 8
+- changed the way the "+" displayed when a long train is continued on the
+  next row of a depot
+- fixed bug in calculation of trains with normal/fast/fastest (0/1/2) settings
+- new switch: "buildwhilepaused on" or -XB allows (all?) construction while paused
+- fixed bug with trains in depot incorrectly displayed as old (in red)
+- fixed bug with clicking on train in depot while another train is leaving
+  sometimes giving the wrong vehicles
+- fixed bug with multihead on also turning on rvqueueing
+- fixed crash when buying multiheaded train engines with multihead off and
+  "mountains" not off
+- fixed bug with incorrect train acceleration after loading game
+- fixed bug with the wrong road vehicles being refittable
+- by Oskar: add menu to choose enhanced gui settings; click on "empty" row
+  in settings menu to open window
+
+2.0.1 alpha 9
+- by Csaba:
+  * Dropdown lists will appear above the button if they don't fit below it
+  * Fixed a TTD bug that allowed trains and RVs to travel on the water
+    of a diagonal riverbank.
+  * Added window and windowbox structures to ttdprot.ah
+  * Added the ability to release timeslices in the DOS version as well,
+    enabled by generalfixes.  You can turn this feature off with mismods
+    bit 13 (value 8192).
+- by Marcin: fix bug in gotodepot with hangar orders disappearing when other
+  non-aircraft depots are removed
+- by Oskar: enhancegui is no longer a bit switch, the settings can be chosen
+  in the game by the new settings window available from the setting menu bar
+- by Csaba:
+  * New switches to enable warnings for lost vehicles (vehicles that couldn't
+    get to the next station in the given time)
+  * The DOS version gives timeslices away while showing the high score
+    tables and the end game screen as well
+  * News messages no longer appear if an opponent's crashed airplane or
+    train is cleared. Also moved these messages to the vehicle info category
+  * Implemented a cache for performance scores if both newperformance and
+    showprofitinlist are enabled, so it won't slow down low-end machines so much.
+  * Showprofitinlist colors only the last year profit, not the whole line.
+    It shows the exact performance score with newperformance.
+  * Various small improvements of my older switches
+  * Fixed a small bug with transparent station signs (they appeared with
+    normal letters even in the farthest zoom level, which caused incorrect display)
+
+2.0.1 alpha 10
+- fixed bugs with train properties 1B and 23 not working
+- fixed bug with new grfs always showing english names if ttdpttxt.dat present
+- fixed bug with landscape6 chunk in savegames having four trailing bytes
+  of garbage
+- fixed bug with action 7/9 GRFID tests only working on grfs above the current one
+- Included Csaba's changes from 2.0.1 alpha 9 VCS1:
+  * Fixed lost vehicles assuming every vehicle to be lost
+  * Lost vehicles switches now consider depot orders as well
+  * Enable palette animation in windowed mode for the Windows version
+  * Fixed lights not going red in road/rv crossings
+- Included Marcin's changes from 2.0.1 alpha 9.1 MG (2003-12-15):
+  * The following Ctrl key features should work now in multiplayer: 'debtmax',
+    'morebuildoptions' bits 3 and 4, 'multihead', 'extpresignals'.
+    The special behaviour of 'multihead' and 'extpresignals' in the multiplayer
+    mode has been removed.
+  * Bug fixed: possible loss of synchronization in multiplayer when checking
+    the cost of building a new depot (with 'gotodepot' on)
+  * Bug fixed: with 'buildwhilepaused' on, if a vehicle generated income at
+    the title screen TTD would crash
+  * Bug fixed: with 'buildwhilepaused' on, tile animation procedures used to
+    be called when TTD ran out of text effect slots (could cause a sync loss
+    in multiplayer)
+- Included Csaba's changes from 2.0.1 alpha 9 VCS2:
+  * Windows ver uses less CPU time when showing the high score table and the
+    game end screens
+  * The 'selectgoods' switch is now able to "forget" cargos not picked up
+    for the given number of days (set to 2 to disable this "forgetting" feature)
+  * Constant map refreshing
+  * TTD bug fixed: TTD will no longer crash if you right-click the catchment
+    area on/off buttons in the lorry station orientation window
+  * Cht: ResetThisStation to reset only one station; if you specify a parameter
+    between 0 and 11, it will reset only the corresponding cargo type
+- Included Csaba's changes from 2.0.1 alpha 9 VCS3:
+  * New switch, 'maprefresh' (-YR) to specify how frequently the map window
+    should be refreshed (in ticks)
+  * Shared orders, fast consist selling and planting trees with Ctrl now works
+    in multiplayer too
+  * TTD bug fixed: planting trees over farm fields includes the cost of clearing
+    the fields now
+  * Leftover farm fences disappear everywhere, not just in snow or desert
+    (enabled by 'generalfixes')
+  * TTD bug fixed: Station windows could show wrong number of cargo icons if
+    more than 2550 items were waiting
+  * TTD bug fixed: Trains no longer assume they can enter a depot from the
+    wrong direction
+- Included Csaba's changes from 2.0.1 alpha 9 VCS4:
+  * Bug fixed: dynamite tool used to cause a loss of synchronization in multiplayer
+  * Bug fixed: train engines no longer emit smoke or sparks when they're
+    braking at a station
+  * WinTTD now uses DPLAYX.DLL instead of DPLAY.DLL if possible (requires
+    DirectX 5 or later, but seems to fix hangups under Windows XP and allows
+    connecting to a specific host)
+    (enabled by 'generalfixes', 'win2k' or 'networktimeout')
+  * TTD will now warn both players if the games get out of sync (enabled by
+    'generalfixes', 'win2k' or 'networktimeout'; may be disabled by miscmods bit 14)
+  * WinTTD will now abort the connection if there's no response after a
+    certain time (enabled by 'networktimeout')
+- Included Marcin's changes from 2.0.1 alpha 9.2 MG (2004-01-08):
+  * New switch, 'networktimeout' to sepcify the time after which WinTTD will
+    abort the network connection if there's no response from the other player
+  * Out-of-memory messages are in a normal format now (LANG_TOSTARTTTD is
+    obsolete)
+  * The table of settings displayed by the 'verbose' switch now can be
+    scrolled, and no longer causes the console to resize; the switch
+    descriptions are displayed in one-column format now, so they may be up
+    to 76 characters long instead of the former 36
+  * Some of the in-game red messages (e.g. bribe attempt failed) are better
+    formatted now
+  * Bug fixed: saving enhanced GUI settings didn't work in the DOS version
+  * The enhanced GUI settings chunk is now treated as optional
+  * The -!S+ devel switch writes ranges correctly in the switch comments
+  * Improved communication between the code loader and ttdpatchw.exe
+  * It is now possible to translate some of the error and warning messages
+    TTDLOAD may display at its initialization stage (e.g. not enough free
+    memory for some TTDPatch features)
+- Included Csaba's changes from 2.0.1 alpha 9 VCS5:
+  * Bug fixed: loss of synchronization in multiplayer when using the
+    'showspeed' switch
+  * TTD bug fixed: crashed aircraft not considered "in the way" when
+    removing an airport
+- Included Marcin's changes from 2.0.1 alpha 9.3 MG (2004-01-15):
+  * New switch, 'toylandfeatures' to enable some landscape features of
+    randomly-generated games that are normally disabled in the toyland
+    climate: bit 1 - create lighthouses; bit 2 - create random clusters of
+    trees in addition to isolated random trees
+- make sure Marcin's new Win loader code can detect old loaders and suggests
+  deleting ttdloadw.ovl if necessary
+- action 2 feature 0-3 property 40 is number in consist (calculated)
+- allow division/modulus operation for action 2 variational ids
+- make monorail&maglev paper wagon available in temperate climate as well,
+  with moreindustriesperclimate on
+- fixed bug in display of cargo types available for train wagon refitting
+
+2.0.1 alpha 11
+- include changes in Csaba's 2.0.1 alpha 10 VCs:
+  * more multiplayer fixes
+  * TTDWin now doesn't use 100% while waiting for reply from other player
+- the environment variable LANG now accepts standard format cc_CC@dd.encoding,
+  although only the cc part (ISO-3166 country code) is used at the moment
+- action 2 vehicle prop 40 now returns total number of vehs in consist as well
+- for actions 0..5 and A, abort with wrong version error if no action 8 before,
+  to prevent crashes from old graphics files with no action 8; also check that
+  param 6 really is terminated by FF
+- fixed bug with the tempset not automatically deactivating when the dbset
+  was loaded and already active
+- fixed memory leak when loading language data (esp. for list of languages)
+- rewrote train refitting, and added new prop 1C to set refit cost
+- introduced "callback" feature that allows patch functions to depend on
+  graphics features
+- added callback for making wagons powered and the corresponding
+  sparks/smoke production
+- fixed steam position in N direction when using prop 22
+- replaced windows version literal constants with labeled constants
+- train info window didn't show weight added by powered wagons, and it wasn't
+  added when not using realistic acceleration either
+- in depot window, when unattached wagon line is shown but doesn't fit, the
+  scrollbar sometimes showed more rows than were really there
+
+2.0.1 alpha 12
+- fixed morebuildoptions bit 5 being impossible to turn on
+- fixed bug with action A for other climate files being reset when changing
+  climate (e.g. loading non-tropic game from main menu)
+- added an action 2 callback for wagon length
+- fixed bug with wagons that had no capacity and incorrect value
+  (also prevented AI from building train routes)
+- copying or sharing orders from other vehicles is now only possible if
+  the order list is empty
+- reset train&rv window struct on entering/leaving depot to show/remove
+  refit button as appropriate
+- removed AIBoost switch entirely (although currently it's not yet declared
+  obsolete, it just won't do anything at all)
+
+2.0.1 alpha 13
+- set the default for servint, feederservice, selectstationgoods, multihead,
+  newstartyear and planespeed to be turned off
+- reorganized common.h switch definitions
+- added switch to scale window size in the Windows version of TTD when set
+  to window mode, now the window size can be anything (but pixels are simply
+  doubled, no better resolution); don't use switch in fullscreen mode
+- fixed crash when opening aircraft window in Windows version (also happened
+  when buying new aircraft of course)
+- allow prop 22 to only add effect, but no wagon power/weight (add 80)
+- Cht: NoUnload now applies to all vehicle types, not only trains, but can
+  choose vehicle type with optional parameter (0=trains, 1=RV, 2=ships, 3=aircraft)
+- fixed bug with sign cheat parameters not getting applied correctly in some
+  cases when reusing signs
+- three new graphics actions: 0B: generate error messages, 0C: NOP to comment
+  out actions, 0D: set grf parameter (can do math too)
+- new variable 8D for action 7 checks TTD version type, DOS or Windows
+- defined new grf version number 06 for 2.0.1 alpha 13 or above
+- fixed bug with incorrect train refit cargo list in other climates and with
+  paper in temperate
+
+2.0.1 alpha 14
+- fixed crash when using action B with severity=3 (fatal error)
+- fixed error when using actions B, C or D before action 8 (now it's possible)
+- fixed crash when using action 4 for non-vehicle names
+- fixed Cht: ResetThisStation and Cht: ResetVehicles not working
+- fixed bug with 80+x vars not working in action D
+- added callbacks for load/unload speed to all vehicle classes
+- fixed bug with callbacks not using default when they failed
+- fixed issue with train sort order (prop 1A) not being overwritable; when a
+  second grf loads, the list may already be shuffled from earlier grfs. To fix,
+  use a separate action 0 for prop 1A with num-info=00, this resets the order
+- define writable variable 8E that sets y offset in train info windows
+- allow action D to set patch variables too (for var 8E)
+- make sure action 6 does not write beyond the end of the sprite
+- new action 7 test 8 to check if GRFID is inactive but will become active later
+- new action E to prevent activation of not-yet-activated graphics files
+- fixed bug in stretchwindow making mouse jump when right-clicking in
+  fullscreen mode as well as sometimes in windowed mode
+- by Owen Rudge: copy gamegfx.exe to ttdloadw.ovl using CopyFile API
+  instead of command.com
+
+2.0.1 alpha 15
+- fix load amount callbacks causing trains to take forever when loading
+
+2.0.1 alpha 16
+- got rid of old, misguided myalloc code
+- made vehicle news messages (old/lost/in depot) use vehicle name, not just
+  the number, enabled by generalfixes (unless miscmods bit 10, value 1024 is set)
+- save custom vehicle name when selling and buying again
+- make edges of the world flood too, enabled by generalfixes
+  (unless miscmods bit 15, value 32768 is set)
+- change refit window button labels, "refit aircraft" and "refit ship",
+  to generic "refit vehicle" that fits all four types
+- allow accessing other grf's params in action 0D (source2=FE, data=GRFID)
+- included changes from Marcin's version 2.0.1 alpha 15.1 MG:
+  * Windows version can do without MessageBoxW (apparently required to work
+    under the current version of Wine), but then if an error occurs it cannot
+    display the message
+  * The 'stretchwindow' switch is no longer displayed in the DOS version's
+    switch table
+  * (devel) removed duplicate code to obtain the handle of USER32.DLL
+
+2.0.1 alpha 17
+- by Oskar:
+  * new switch "canals on" or -Xl, allows building canals and locks using
+    the "buy land" tool from the dock construction menu
+  * new window showing active and inactive graphics
+- prevent introduction dates and reliabilities (etc) from getting rerandomized
+  everytime "Cht: Resetvehicles", "Cht: Graphics" or the "Apply" button from
+  the GRF Status window are used
+- added GRF status window to toolbox menu; changed look of that menu
+- fixed bug with some vehicles showing incorrect graphics after new grf was
+  deactivated
+- switch -!S- writes switch list in XML format to switches.xml and aborts
+- fixed bug with wrong vehicle being shown in news message (the text was fine,
+  but the view area showed the wrong vehicle)
+- fixed another bug in action B with severity 03 ("invalid sprite" message)
+
+2.0.1 alpha 18
+- by Oskar:
+  * fixed crash when trying to build canals on tile with "buy land" sign on it
+- fixed crash when trying to activate/deactivate graphics in the grf status
+  window
+
+2.0.1 alpha 19
+- fixed bug with being unable to change activation of graphics sets below
+  the first ten
+- fixed bug with grfstat window not honouring the shift key
+- fixed bug with grfstat window not showing invalid grf files in gray if they
+  have no grfid
+- fixed bug in enhancegui ttdpatch.cfg description
+- action 5 in grf file with regular GRFID (not FFFFFFFF) will always override
+  any action 5 if grf file without GRFID (i.e. FFFFFFFF)
+- fixed broken graphics of locks if no canals.grf loaded, still not quite
+  perfect (leaves "hole" in water when in transparent mode)
+- action 0 prop 1F for trains is coefficient of tractive effort
+- added new flags for patchflags test in action 7
+- new switch: "freighttrains on|<factor>" or -Yf, multiplies freight train
+  cargo weight by the given factor (5 by default), to simulate really long
+  freight trains
+- made sure to use default loadamount if loadamount callback returns zero
+  by accident
+- fixed trains losing wagons with train vehicles shortened by more than 50%
+- allow grfs changing rail type cost multipliers; is action D variable 8F
+- moved old newstation code from morebopt.asm to statspri.asm
+- added code to keep new station IDs consistent between saving/loading
+- fixed bug with new, previously unknown graphics set not getting activated
+  or deactivated correctly when loading a savegame
+- fixed width of the scrollbar, and names sometimes getting written over it
+  in the GRF status window
+- fixed bug in Windows crash logger possibly causing repeated crashes
+
+2.0.1 alpha 20
+- fixed bug causing random crashes if newstations was turned on
+- fixed crash at start when neither of curves, mountains or multihead is on
+- fixed bug deactivating and showing wrong .grf file if first sprite is wrong
+- correctly calculate power and acceleration of mixed power trains on
+  non-electric tracks
+- integrated changes from Oskar's alpha 19.1a:
+  * improved dike support code, corners and under bridges
+  * added support for different locks at sea level and inland
+  * changed icon in the ship construction window
+- fixed bug with action 0 properties for props>07 not accepting numinfo>1
+- catch grf error if action 0 doesn't have as many props as specified
+- if freighttrains on, prevent loading more cargo onto train than engine can
+  handle at half the top speed; this currently only works if fullloadany is on
+- fixed XML output of -!S-
+- moved enhgui search code from enhgui.asm to patches.ah
+- fixed bug with transparent station sprites not using new graphics
+- added props 09 and 0A for stations, can now specify custom sprite layout
+
+2.0.1 alpha 21
+- fixed crash when building station if newstations was off
+- added rudimentary descriptions to switches.xml
+- removed station graphics selection buttons if newstations is off
+- fixed bug with action 0 for stations often changing the wrong stations
+- added props 0C and 0D for stations, to disallow certain platform lengths
+  and numbers; doesn't work 100% yet but it's a start
+- fixed bug with mixed power train being unable to pass signal tile
+
+2.0.1 alpha 22
+- stations props 0C and 0D are now bytes, but now they work properly
+- added station prop 0B to set callback flags
+- added station callback 13 to check whether station should be available in
+  construction menu
+- new station props 0E and 0F to set and copy station layouts
+- added station special var 40, which may be more convenient than altering
+  the station layout
+- station prop 09 can now redefine only some tiles and use TTD's layout for
+  others without having to copy it
+- added WAYP class for new stations, when these stations are built they will
+  never accept or receive any cargo, and trains won't stop even without using
+  the nonstop switch
+- made new stations multiplayer and AI compatible (though the AI will never
+  build new stations, now it won't do so accidentally)
+- fixed helicopter rotor override which was broken for a long time
+- allow random graphics for stations
+- record construction date of stations and allow var.action 2 to access it
+  (this caused the previously defined variables to change)
+- allow grf to change station class desc (textids C0xx)
+- grf error messages are now only shown as popups if they occur during
+  initialization or if they are fatal errors, all other messages and
+  warnings are stored and displayed in the GRF status window
+
+2.0.1 alpha 23
+- fixed bug with fatal error messages from action 0B
+- fixed bug when using engine variational action 2
+- fixed bug with multiple sets in action 0A incorrectly reporting "invalid sprite"
+- experimentally changed road vehicle code to use same code as trains for
+  realistic acceleration; this might require adjustments to RV powers
+- added xml version and charset to switches.xml output
+- allow life time of wagons to be limited; all vehicles with prop 04 set
+  to FF will never expire; this is set for all wagons by default
+- when vehicle prop 00 is before 1922, the random amount is not added to it
+- reset action 5 sprite vars when reloading; previously this could cause
+  incorrect sprites if sprite limit reached
+- added display of current number of sprites in use in grf stat window
+- change default for prop 22 for wagons to 0 instead of 40 to allow
+  prop 1B to work by default
+- show non-action B error messages in grf status window as well
+- when trying to activate more sprites than possible, the grf which reaches
+  the limit will no longer be deactivated permanently
+- fixed bug with station prop 0A, copying from wrong station ID
+- version ID in xml file made by dos version was wrong
+- fixed display of wrong rail type in monorail/maglev stations with newstations on
+- added consistency check to action 4
+- generalfixes skips intro screen unless miscmods bit 16 (value 65536) is set
+- by Sander van Schouwenburg: gamespeed on (-Yg) allows you to control the
+  game speed with the 'q' (slower), 'w' (normal) and 'e' (faster) keys
+  (Windows version only at the moment), needs keys updated in ttdpttxt.txt if it exists
+
+2.0.1 alpha 24
+- fixed crash in showspeed option for ships and planes
+- fixed crash when trying to start newly bought road vehicles
+- added prop 18 for road vehicles, to set max TE like prop 1F for trains
+- XML output now shows whether switch is on by default
+- adjusted realistic road vehicle acceleration
+
+2.0.1 alpha 25
+- added format attribute to error message functions to let gcc check the
+  printf-like arguments
+- fixed bug in text-ID version of action 4 overwriting semi-random texts
+- fixed bug in changing new station class names; text-ID is now C1xx
+- fixed bug with wrong display of built stations
+- fixed bug with apply button/resetvehicles clearing new stations
+- waypoints within a town's transport zone no longer reduce the LA rating
+- fixed bug with train wagons sometimes keeping power of previously sold
+  engine
+- modified station action 2 and 3 to be like vehicles; supports cargo types
+  and different amounts
+- new property 10 for stations to set cargo amount for which we switch
+  from "little" cargo to "lots of" cargo
+- can now distinguish regular and pseudo-sprites and show error message for
+  wrong type instead of crashing
+- fixed callback 10 not using the right default value if it fails
+- make sure station graphics are refreshed when changing cargo (from industry
+  or vehicle), when changing rating and/or maybe only when aging cargo
+- actions 2, 3 now check that the ids they refer to are already defined
+  and display error otherwise
+- road vehicle acceleration back at alpha 23 settings
+- adjusted default bus powers
+
+2.0.1 alpha 26
+- make gamespeed hotkeys work in DOS too
+- by Marijn: "moreindustries" now allows funding the prospecting of new
+  primary industries, with less chance of success the more industries
+  of that type there are
+- by Oskar: "higherbridges" or -Yh allows building bridges more than
+  one height level high
+- fixed bug with station waypoint selection being applied to other station
+  types as well
+- fixed bug requiring signalsontrafficside on for new station graphics to work
+- fixed bug with removing electrified track from under bridge and pylons
+  not being removed as well
+- changed meaning of station var 40, and introduced new var 41 which gives
+  separate tile information for all individually built sections
+- changed definition of station prop 09 to allow defining variable number of tiles
+- added callback 14 for stations to display other tile types
+- by Oskar: changed canals to use action 1/2/3 system
+- fixed bug with showing wrong error sprite in grf status window
+- allow forcing a .grf to activate
+- with "morehotkeys on", space bar now cancels summary news messages as well
+- fixed inverted meaning of miscmods bit 10 (value 1024), without it now
+  vehicle names will really be used in news messages; set the bit to disable this
+- change freighttrains to show "20 tons of coal (x5)" instead of multiplied amount
+
+2.0.1 alpha 27
+- fixed newstation prop 40 not being right after station attached to other
+  facilities
+- fixed 'c' key again
+- added fixed by Csaba:
+  * fixed bug in Windows-TTD overwriting wrong savegame if it has a filename
+    with lower case letters (e.g. Trt01.sv1 instead of TRT01.SV1)
+  * fixed bug in Windows-TTD with sounds effects being too low volume
+  * fixed bug with vehicle names not being shown properly in news messages
+    in some translated versions (these message can now be customized separately)
+- new station prop 11: bit mask that sets for which tiletypes pylons are drawn
+- now higherbridges turns on buildonslopes automatically
+- now newstations turns on enhancegui automatically
+- in crash log, show currently processed .grf file and sprite number, if any
+- crash log now shows current patch configuration as well
+- by Oskar: fix bug and possible crash with desert detection for canals
+- by Oskar: fix bug in crash logger not making logs in Windows NT/2k/XP
+- turning GRF files on/off with GRF Status window (or Cht: Graphics) no longer
+  requires saveoptionaldata on
+- reset vehicle lost time when it gets new cargo (so it will not be lost
+  while loading unless no more cargo arrives)
+- stations now support up to 16 different random graphics per tile in addition
+  to the existing per-station randomness
+- fixed bug in prospecting being charged to wrong expense types and only being
+  charged if it fails
+- var.action 2 variable 41 like var. 40 but only counting consecutive
+  vehicles of same type
+- var.action 2 variable 42 for vehicles allows to check what cargo the consist transports
+- realistic acceleration air drag coefficient c2 can now be set by train
+  prop. 20 and RV prop 19
+
+2.0.1 alpha 28
+- fixed generation of current grf file and sprite number in Windows crash logs
+- by Sander van Schouwenburg: allow 1/4 and 1/8 game speed as well
+- fixed bug with trains sometimes getting a refit button even if not refittable
+- train info window now shows tractive effort, wagon power and refittability
+- fixed with gotodepot: train would advance to next order even if it
+  enters the wrong depot
+- allow defining new station classes (by simply using them)
+- action 4 textid C4xx now refers to the class of station ID xx, not class xx
+- fixed spanish translation of dbsetxl
+
+2.0.1 alpha 29
+- fixed bug with station callback 14 not working in NW-SE direction
+- added "reset" button to grf status window
+- fixed bug with vehicle length callback sometimes causing lost wagons or a crash
+- fixed bug in train var 41, "bb" was one too large by all but last vehicle of train
+- fixed incompatibility between "higherbridges" and "bridgespeedlimits"
+- fixed bug when refitting to mail giving half the intended capacity
+- added train callback 15 for refit capacity
+- fixed gotodepot not working for planes
+- fixed lack of "vehicle waiting in depot" messages
+- fixed incorrect wagon lengths when reversing train with short wagons
+- fixed station callback 14 not working for layouts beyond 06/07
+- make sure callback 14 never tries to use nonexisting sprite layouts
+- fixed bug with GRF status window and new station selection window changing
+  company name if it was "unnamed"
+- changed station vars 40&41 to xTNLcCpP, T=tile type (in callback 14), x=undefined
+
+2.0.1 alpha 30
+- fixed bug with multiple actions 0 setting prop 08 not working
+- fixed bug with custom vehicle names not getting saved if it had shared orders
+- fixed bug with different acceleration setting for regular and electric railways
+- prevent crashes from division by zero or overflow on division
+- new switch "newgrfcfg" (-Yn) allows specifying an alternate newgrf.cfg file
+- if veh can't be autorenewed because the model is obsolete, the "getting old"
+  message now says so
+- improved resilience of the newgrf.cfg parser (now less confused by spaces
+  in odd places etc.)
+- removed "loadallgraphics" functionality, instead individual .grfs can be
+  disabled by default by adding a "!" parameter in newgrf(w).cfg
+- added independent random trigger chains, now only the bits which actually
+  get triggered will be re-randomized
+- new station prop 12 to set cargo types that should trigger re-randomizing
+- added station triggers for re-randomizing
+- had to reduce random station bits from 16 to 8 because of the above changes
+- when refitting aircraft, take original mail capacity into account too
+- make sure train and road vehicle refit costs are accounted in proper category
+- implemented callback 15 for all vehicle types
+- allow setting refit cost for all vehicle types
+- force redraw of depot window after refitting
+- selling and re-buying a vehicle now copies the service interval, refitted
+  cargo type and current destination as well (with generalfixes or sharedorders)
+- allow articulated train engines, using callback 16
+- changed multihead: by default buy both heads of dualheaded trains, and changed
+  what the Ctrl key does when arranging trains: forward with Ctrl, backward
+  without
+- powered wagons work even with multihead off
+- fix incorrect values of dualheaded engines with multihead on
+
+2.0.1 alpha 31
+- grf status window now also shows memory usage
+- newstation var 42 gives tile and terrain type
+- fixed bug with wagons getting lost when selling articulated multihead
+- fixed bug with selling & buying setting cargo types that the newly bought
+  vehicle didn't support
+- fixed bug with copying orders also copying veh.name and cargo type (etc.)
+- fixed incorrect power, weight and TE of articulated engines
+- fixed bug with vehicles in "unattached" rows in depots sometimes not
+  showing the right graphics
+- fix crash when AI tries to sell dualheaded train
+- show articulated loco on a single line in train details
+- newgrfcfg entry is written to ttdpatch.cfg commented out if it's set to
+  the default
+- new action 0 feature 6 to modify bridge sprite tables
+- by Marijn: canals built at sealevel show dikes too and don't flood into
+  adjacent sealevel tiles
+
+2.0.1 alpha 32
+- fix planes getting wrong passenger capacity when refitting
+- fixed bug with road vehicle/ship refitting to same cargo costing money
+- new action 2 variable for current player and whether is AI or human
+- fixed crash in Windows version when selling remaining head of dualheaded
+  engine with fastwagonsell on
+- by Csaba:
+  * fixed manualconvert bug not changing both ends of a tunnel
+  * new switch "mousewheel on/#" (-Yl #) adds support for mouse wheel in the
+    Windows version
+  * new switch "morewindows on" (-YW) allows opening more windows in the
+    game at the same time
+  * fixes a crash if the current currency is Euro, but Euros are disabled
+  * changed enhanced GUI settings window, the texts can be localized now
+    and the right mouse button no longer does the same thing as the left button
+- fixed crash when looking at top corner of map with morevehicles and canals on
+- new train prop 24 sets high byte of weight to allow > 255 ton vehicles
+- fixed hang when choosing new station class whose stations are all unavailable
+- query tool now shows names of station and its class, if available
+
+2.0.1 alpha 33
+- fixed canals having dikes in the wrong places
+- fixed road vehicle refit capacity callback being called with old cargo type
+- building sealevel canal with Ctrl key actually places regular water
+- fixed incorrect mousewheel switch range being written to ttdpatch.cfg
+- stopped vehicles no longer generate "getting old" or "lost" messages
+- vehicle list now shows old vehicles in depot in purple, and stopped
+  vehicles in white, or gray if they're old
+- Cht: FindLostWagons can recover "invisible" wagons in a depot
+- fixed hang or corruption of status bar when choosing new station graphics
+
+2.0.1 alpha 34
+- station prop. 09 (sprite layout) now allows both using newgrf sprites for
+  the ground sprite as well as TTD's sprites for the station sprites; both
+  are selected by setting bit 31 in the sprite number
+- new action 7/9 variable 91 holds current track type; only valid while rail
+  tool menu is open (e.g. when building stations)
+- improved dxmci error handling (now shown ingame with latest dxmci.dll version)
+- by Csaba:
+  * mouse wheel now respected the lines-per-wheel-motion setting in Windows
+  * new switch, "newhouses on" (-Xh) enables graphics for new town houses
+    and buildings
+- by Marijn: new switch "enhanceddifficultysettings on" or -YD allows
+  choosing "none" for the number of industries in the difficulty settings
+- new switch "newbridges on" (-Yd) for setting bridge properties
+- bridge prop. 08 had to be changed to 0D to make room for the basic bridge
+  properties year (08), min.length (09), max.length (0A), cost factor (0B)
+  and max.speed (0C)
+- new bridge prop 0E sets flags for the bridge
+- fixed station var. 42 (terrain type)
+
+2.0.1 alpha 35
+- improved detection of pseudo/real sprite mixups
+- improve crash log when drawing new graphics
+- improve detection of invalid sprites (this breaks the tropicset)
+- fixed crashes due to insufficient array size when station grf sets cargo triggers
+- moved "no command line switch" to separate string and simplified switch writing
+- wait for key after language error too
+- fixed bug with water sometimes flooding tiles it shouldn't, with generalfixes on
+- simplified getnewsprite function and changed it to use call tables
+- improved utility of veh2 array, and moved realpower/fullweight/fullaccel
+  variables there
+- fixed cash overflow when merging with other company
+- fixed problem with some engines being considered obsolete after 2050 and
+  not being autorenewed
+- implement non-vehicle, feature specific callbacks with action 3 that has n-id=0
+- added callback 18 called by the AI when deciding on a wagon to buy
+- fixed bug with action 4 feature 48 not being recognised as valid
+- added track type value to station var. 42 (bits 8-15)
+- fixed bug with vehicle callbacks of articulated engines not being set properly
+- fixed bug with station selection back arrows not working when they would skip
+  inactive classes or stations
+- made ALLOCEMPTYOFFSETS larger since we were getting close to the limit
+- by Csaba:
+  * fixed bug causing cities to build houses on occupied tiles
+  * added newhouses prop 17 to set the four colours available for random
+    colour translation
+  * added newhouses prop 18 to set probability of house being built
+  * constructions stages are now built into action 1 by using from 1 to 4
+    views per set (though using a var.action 2 will still work)
+  * new feature, "newtownnames on" (-YN) allows .grfs to define new town name
+    sets
+  * abandonedroads now has several modes, mode 0 works as before, in mode 1
+    towns will take over nearby roads after a while of them not being used,
+    and in mode 2 this will happen instantly
+- feeder services are now attributed to the right vehicles in the financial stats
+- by chirho: round new currency factors to nicer numbers, fix some currency
+  symbols and Euro introduction dates
+- support more than one new text for newhouses names in action 4
+- fix bug in capacity callback, causing callback to have wrong refit cycle
+- thanks to lots of nagging by George, c2 is now set in units of 1/256
+
+2.0.1 alpha 36
+- fixed wrong sign of acceleration of trains on hills
+- fixed bug with multi-vehicle action 4 causing crash or overwriting the date
+- allow station ground sprites to be from different sprite set than main sprites
+- fixed higher bridges built in scenario editor not working when playing game
+- new ship props. 14 and 15 allow setting speed fraction in the ocean and in canals
+- fixed bug with c2 coefficient not being set until save is loaded again the
+  first time
+
+2.0.1 alpha 37
+- fixed incorrect newstations graphics display (problem with setting prop 09
+  for multiple IDs in the same action 0)
+- by Csaba:
+  * Fix for negative town populations (it was my fault breaking Marcin's
+    code)
+  * Fix town name styles always reverting to German on the title screen
+  * New property 44 for houses to get number of buildings of same type in
+    the town/whole map (allows a more general solution for limiting number
+    of buildings instead of church/stadium flags)
+- fixed multiplayer desynch when selling an engine and buying a new one
+
+2.0.1 alpha 38
+- added Csaba's changes from 2.0.1 alpha 37 VCS:
+  * additions and fixes in newgrf.txt
+  * allowing "ancient" and "protected" building types (more info in newgrf.txt)
+  * variable 45 to check if a random town is being generated
+  * fixed new house types having their timers screwed up if their subtitute
+    type was type 4 or 5
+  * (devel) newhouses now uses the features of grfload.asm instead of
+    its own functions. (saves some space in executable)
+- added improved sprite sorter to fix flickering especially of short train
+  vehicles; enabled by default, disable with "miscmods.nonewspritesorter on"
+- added Csaba's changes from 2.0.1 alpha 37 VCS 2:
+  * some clarifications about buildings in newgrf.txt.
+  * sloped multi-tile buildings no longer have extra foundation edges between 
+    their groundtiles (needs trkfundw.grf to work correctly)
+  * mouse wheel now cycles through map modes in mini-map
+  * support for legacy mouse wheel drivers (needed under Win95 and under Win98 for some 
+    drivers/mice). Can be enabled by adding 4 to the value of the mousewheel 
+    switch. If you have Win2000/WinXP or your mouse wheel already works 
+    correctly, you can safely disable it. This feature wasn't tested thoroughly 
+    since I can't test it myself. Please contact me if your mouse wheel doesn't 
+    work even with legacy support enabled.
+  * newtownnames now work correctly with more than 16 random bits per name part, 
+    and checks for invalid startbit/bitcount settings.
+  * building flag 1 (build only on flat land) now works correctly for 1x2 and 
+    2x1 buildings as well.
+- revamped the bit switch handling, now you can set them using the form of
+  "miscmods.nodefaultoldtracktype on"; use -W to write a new configuration file
+  in that format.  The old way of "miscmods 1024" remains valid, of course.
+- new callback 19 to append text after cargo type, shown in refitting window
+  and in vehicle display of capacity; use action 4 text ID D0xx to set text.
+- new station selection is now done via drop-down lists for faster access
+- fixed bug with feederservice income for aircraft getting added to ship income
+  and vice versa
+- fixed bug with station +7 button sometimes not getting deactivated for
+  stations which do not support it
+- fixed bug with train capacity callback using wrong capacities
+- fixed station selection not resetting itself when old station type expires
+- fixed crash when attempt to buy new rail vehicle failed
+- added Csaba's changes from 2.0.1 alpha 37 VCS 3:
+  * added some color mapping information to newgrf.txt
+  * the state of the newhouses switch can be checked from grfs (bit 59)
+  * bug: random house graphics were always re-randomized after loading a game
+  * bug: New house types displayed incorrectly if graphics weren't available.
+- allow grf to force-activate itself (useful for title screen), use action E
+  on its own GRFID to activate itself
+- new action 7/9 variable 92 (BYTE) is 0 in title screen, 1 in game
+  and 2 in editor
+- "Cht: FindLostWagons" now also finds lost dual head engines
+- reorganized action 3 handling, generic callbacks are now chainable
+- fixed "Default" button in grfstat window to correctly handle ! parameter
+- added missing factory to "fund industry" window in tropical climate
+- fixed bug with fast-wagon sell on dual-headed train causing additional
+  engines to get "lost"
+- fixed crash when copying/sharing orders in multiplayer games
+- fixed bug with copying orders copying current order index as well
+- it's now possible to un-share orders by Ctrl-clicking on the Reset button
+  (this keeps the orders and just makes them unshared)
+- newstations buttons and larger station buttons are now added independently
+  from the enhancegui switch
+- fixed enhancegui .cfg description in the translations
+- fixed bug with newbridges sprite tables not being reset when grf is turned off
+- fixed bug with ctrl-buying single head of dualheaded train costing right
+  amount but setting value twice as high
+
+2.0.1 alpha 39
+- fixed hang when selecting new station class
+- fixed longer bridges switch not working
+- prevent hang if action 2 refers to its own ID (now it's an error)
+- added Csaba's changes from 2.0.1 alpha 38 VCS:
+  * allow new town buildings to be animated
+  * new switch "moreanimation" to allow more tiles to be animated, so
+    animation can work in big towns with lots of buildings
+- by Marijn: new switch "newshistory" (-XH) adds window with history of recent
+  news messages, open from info menu
+- new switch "wagonspeedlimits" sets speed limits for cargo wagons
+- veh. var 42 now also returns most common refit cycle of the cargo type in
+  byte cc as well as a mask of user-definable bits (set by new prop.25)
+- speed up grapics display with many vehicles by caching vehicle variables 40-42
+- fixed bug with refitting not resetting some vehicle callbacks (length, visual effect etc.)
+- fixed bug with plane refitting always using default cargo selection
+- (devel) renamed trnrefit.asm to refit.asm and moved other vehicle refit stuff there too
+- changed refitting to show all sub-types of a cargo if the vehicle is
+  using callback 19
+- Cht: Graphics now opens the GRF status window instead
+- GRF status window now indicates which grf file is selected
+- allow AI to build steam/diesel loco on electrified routes
+- (devel) made runindex list automatic; use ijmp/icall for indirect jmps/calls
+- implement AI station graphics selection
+- added changes from Csaba's 2.0.1 alpha 38 vcs 2:
+  * added callback 1C for new houses: called if the construction state
+    changes, can be used to modify animation
+  * added GRF variables 13-16 (93-96 for action D) to specify the size of
+    the refresh rectangle of tiles
+  * fixed a bug that caused house gameIDs to leak while loading, and
+    eventually prevented TTDPatch from loading games with new house GRFs on.
+  * house animations are now disabled in the scenario editor, which
+    doesn't handle animations correctly
+  * added new cheat: "Cht: RestartConst" to restart the construction of
+    the house under the sign. Useful for GRF authors to check out the
+    construction stages.
+- fixed funding industries construction the wrong type of factory in the
+  tropical climate
+- fixed Cht: Resetvehicles resetting graphics selection to default
+- Cht: Resetvehicles (and grf status apply button) did not properly freeze the
+  values at 2050 values after the year 2050
+- added disasters, mousewheel, plantmanytrees and toylandfeatures as bit switches
+
+2.0.1 alpha 39.1
+- fixed crash at start of game with "newplanes off"
+- fixed crash when selling vehicle with refit window still open
+- fixed crash when refitting vehicle with cargo name suffix
+- fixed crash when clicking on some news history items
+- fixed news history not showing correct vehicle after clicking
+- fixed news history not displaying accented or special characters
+- news history now supports class 3 messages as well (these were not displayed
+  previously), that includes new vehicle types and company status announcements
+- allow refitting ships even with single cargo type when using callback 19
+
+2.0.1 alpha 40
+- make sure refit window is closed when closing vehicle window (or selling vehicle)
+- allow 15 bits callback results, now anything with bit 7 of the high byte
+  set is a callback result with bits 0..6 of the high byte used as high bits
+  (if high byte is FF, it is converted to 80)
+- allow capacity callback to return up to 32511 (7EFF)
+- allow setting base cost multipliers via feature 8 action 0 prop 08
+- made Cht: RestartConst available in alpha (non-debug) versions as well
+- prevent hang when adding wagons with cargo name suffix to train, or when
+  trying to refit vehicle with cargo name suffix
+- fixed crash when selling & buying refitted rail engine or plane
+- fixed problems with helicopter rotor override
+- by Marijn:
+  * fixed crash clicking on a news history item
+  * new switch "townbuildnoroads on" prevents towns from building roads, you
+    have to do it for them
+- fixed bug allowing AI companies to build electric locos in regular depots
+- fixed bug with plane callbacks being incorrect after loading game
+- fixed bug with standard helicopters getting incorrect rotor sprites
+- fixed bug with wagons with callback 5 bit set but cargoids without
+  callbacks defined not being refittable
+- fixed crash when station built before alpha 26 has random trigger event
+- fixed crash logger not recording correct sprite number
+- bitswitch had default option incorrectly written in hex
+- fixed train refit button not getting updated when attaching/detaching wagon
+- support AI road vehicle refitting
+
+2.0.1 alpha 41
+- made "unknown bit" a warning, not a fatal error
+- new train callback 1D to check whether vehicle may be attached to current engine
+- (devel) made a few more convenience macro for storeaddress et.al. taking only
+  one or two argument
+- allow action 6 between an action 3  and its override action 3's
+- new experimental feature: path-based signalling
+- new sign cheat "Cht: StopAll" stops all vehicles (except aircraft in flight)
+  or "Cht: StopAll 0" to start them again
+- fixed ttdpatch.cfg comments for switches with no command line switch in
+  Windows version
+- added changes by Marijn:
+  * fixed bug allowing the construction of multiple HQs
+  * new switch "newcargodistribution on" for better distribution of cargo among
+    multiple stations serving an industry
+  * allow docks on flat land (for canals)
+  * new switch "windowsnap <dist>" (-Xz) to make windows snap to each other if moved
+    within the given number of pixels (default 10)
+  * draw coast under bridges over water
+  * new switch "custombridgeheads on" allows rearranging track and road pieces
+    on flat bridge heads
+  * new set of switches to choose the probability with which the AI will attempt
+    to build new routes, enable with "aichoosechances on", then set the individual
+    probabilities with "aibuildrailchance", "aibuildrvchance" and "aibuildairchance",
+    ship routes will be the remainder, with a value of 65535 meaning 100%.
+- (devel) by Marcin: fixed bug in nasm resulting in inefficient code for forward references
+  (new nasm version in source zip)
+- (devel) fixed multipatchcode not working if search offset was negative and
+  fragment not being overwritten
+- fixed incorrect station track types with electrifiedrailways off
+- by Oskar: allow changing the resolution TTD runs in (Windows version only),
+  set it with "resolutionwidth <num>" and "resolutionheight <num>"; in
+  fullscreen TTD must be able to find the corresponding DirectX mode for this
+  to work
+
+2.0.1 alpha 42
+- by Mek: fixed problems with incorrect z offset of vehicles on custom bridge heads
+- by Mek: fixed manualconvert not working with tunnels and bridges
+- fixed action 5 with different sprite count not resetting internal count
+- wagonspeedlimits switch now takes a parameter that sets how much faster empty
+  wagons are allowed to go (20 km/h by default)
+- fixed bug with trains not entering depot properly
+- by Csaba: fixed bug that could cause the game to hang if some house graphics
+  were not available
+- disabled freighttrains setting for the AI
+- fixed a bug with tunnels becoming unusable in PBS setups
+- fixed a bug with signals on one track piece on a tile but not the other
+  causing unsafe pathfinding
+- prevent trains from reversing in a PBS block if they can't reserve a path
+- fixed bug with X crossings on bridge heads not setting signals correctly
+- fixed bug with Cht: StopAll accidentally stopping aircraft in flight too
+- fixed bug with trains sometimes not waiting for free station platforms
+- fixed bug with depots occasionally not working in PBS blocks
+- fixed bug with refit cycle on new vehicles not being reset
+- fixed crash when LA forbids building a dock
+- fixed crash when loading some savegames
+- fixed problem with rotor override not getting reset correctly
+
+2.0.1 alpha 43
+- by Oskar: allow more active sprites, now 11383 per grf feature
+  (disable this with miscmods.smallspritelimit on)
+- include Csaba's changes up to version alpha 42 VCS 4:
+  * a small tweak in the savegame compression algorithm that saves 3-4%
+    according to my tests (can be disabled by miscmods.noenhancedcomp)
+    The decompress code hasn't been touched, so it's 100% backwards
+    compatible.
+  * trains no longer break down at signals (can be disabled by
+    miscmods.breakdownatsignal, can be refined if forum people say so)
+  * callback 1E for houses to allow choosing the color mapping
+    independently from the sprites
+  * added property 1C and extended variable 44 for houses to allow
+    "building classes"
+  * newindustries patch and new industry tile support. It's far from
+    usable yet...
+  * added variable 40 for towns, and refactored some code to allow this
+  * fixed a bug that made morecurrencies disable the wrong currencies after
+    Euro has been introduced
+  * fixed a bug that caused glitches when house random trigger 2 was used
+    for multi-tile buildings
+  * fixed a bug with random trigger handling for newhouses
+- included Marijn's changes:
+  * fix display of coasts under bridges
+  * Support for resizable windows.
+  * Support for sticky windows.
+  * New "locomotiongui" switch to build rails and signals with a locomotion-like
+    gui (if not enabled by default, Ctrl-click on the rail building menu)
+  * Added a tooltip when resizing rail-depot windows, displaying the size of the depot
+  * Added a remove signal button to the signal tab in the locomotiongui.
+  * Made it possible to de-select the signal build buttons in the new gui.
+  * New miscmods flag: displaytownsize; displays the population of a town in brackets after the name of the town in the main view.
+  * New enhgui feature: in the minimap window a new button is added, when this button is pressed, the minimap will auto-center it's view with the main view.
+- show error message about missing newgrf(w).cfg only if a file other than
+  the default filename is specified using the newgrfcfg config file switch
+- fixed bug with wagon speed limit set to FFFF not removing the speed limit
+- allow callback 14 to return up to 255 tile types
+- fixed bug with incorrect vehicles in regular/electrified depot
+- fixed helicopters having incorrect cargo capacities
+- made preprocessing of assembly code work again
+- added a mechanism to prevent changes in texts.inc from messing up news
+  messages in the queue of existin savegames (see new textdef.ah and morenews.asm)
+- changed display of reserved paths to make them more visible in complex tiles
+
+2.0.1 alpha 44
+- by Mek: added station tab in locomotion GUI plus some fixes
+- it's now always possible, but not always safe, to manually reverse trains
+- if train needs to reverse but cannot due to path-based signalling, a news
+  message is generated to notify the player
+- changed station prop 09 to allow > 255 sprite layouts
+- fixed division by zero in resizable window code
+- fixed bug with display of cargo amount for default cargo type using wrong
+  cargo type
+- (devel) ensure action 0 handler functions are called during initialization
+  to allow them to properly allocate memory
+- (devel) support directly testing bits in patchproc arguments
+- allow 0 and 1 (or any non-zero number) as arguments for bit switches, not just on/off
+- fixed bug in PBS causing some reversing trains to unreserve track pieces of
+  other trains, thereby causing train crashes
+- fix rounding error in small running cost values
+- fixed bug in PBS pathfinding causing unsafe behaviour if the first signal on
+  a wrong track is at the same distance as a bridge piece on the right track
+- fixed bug in PBS with trains leaving station sometimes reserving path across
+  the wrong signal
+- fixed another bug causing trains to sometimes reserve unsafe paths
+- fixed bug in PBS causing train to try to route the wrong way through one-way signals
+- fixed most situations in which trains were unable to reverse
+- fixed bug with non-existing track pieces sometimes remaining reserved
+- fixed infinite loop in new performance calculation if vehicle cost was set
+  to zero
+- added mechanism to expire vehicles n years before the end of their phase 2,
+  i.e. before their model reliability starts to drop (action 0 props 26,1B,16,16)
+- fixed bug with missing or wrong track foundations in stations with callback 14
+- support callback results in regular action 2 as well for standardized access
+  to loading/moving state and cargo amount
+- fixed refitting of trains with wagons with different text suffix but same
+  F2 value, now refits only those wagons that use the same text suffix
+- show number of trains that share orders in "End of shared orders" message
+- fixed bridgespeedlimits (broken because of wagonspeedlimits)
+- fixed bug with incorrect purchase list display with resizable windows
+- support planes carrying cargo other than passengers by default (if not
+  refittable to passengers, first refittable cargo option is used)
+- support not using the default cargo type for stations by defining cargo type
+  FE, thus not displaying sum of all cargo, but no cargo
+- fixed bug with dual-headed engines having wrong speed with multihd off
+- fixed slow planes and helicopters speeding up when broken down
+- made planespeed take a parameter from 1 to 4 that is the speed up factor
+- by Oskar: fix bug in resolution switches affecting the jukebox
+- prevent AI from building AIRank 0 locos
+
+2.0.1 alpha 45
+- (devel) changed random and variational action 2 to use call table
+- fixed bug in building new stations not being multiplayer safe (and causing
+  wrong layouts when using the Locomotion GUI to build it)
+- fixed GRF Status window apply button not respecting persistent engines
+  correctly after 2050
+- by Marijn: bulldozer now supports drag&drop (with enhancegui on)
+- integrated Csaba's changes from 201a44vcs:
+  * new house callbacks:
+    + 1F: Decide acceptance of tile
+    + 20: Decide the length of current animation frame
+    + 21: To trigger conditional destruction
+  * new extra flag to allow synchronized animation for multi-tile
+    buildings
+  * added ability to play sound effects during house animation
+  * bug fixed: If a savegame was loaded without house random bits,
+    multi-tile buildings got different random bits for their tiles
+  * bug fixed: newhouses was broken in a44
+  * new debug cheat: "Cht: WhereAmI" to display tile coordinates
+    (available in debug builds only)
+  * New industry type support, doesn't yet work nicely together with
+    moreindustriesperclimate
+- (devel) fixed findstring to not search beyond original TTD memory size
+- new station prop. 13 bit 1 to use cargo divided by station size for
+  the station graphics
+- made early retirement compatible with persistentengines
+- fixed bug with incorrect display of rail and road vehicle purchase list
+- added station var. 44 that indicates if station tile is PBS-reserved
+
+2.0.1 alpha 46
+- by Csaba:
+  * Fixed the industry name bug
+  * Added some array clearing that was left out from the previous diff
+  * Fix to the "action 1 must always precede action 2" bug
+  * House building tool with ctrl-rocks in the scenario editor
+- fixed crash when viewing verbose switch list
+- added all bit names of active bits in bit switches to verbose switch list
+- added more details to "invalid sprite" error, showing type of error and,
+  when possible, which byte of a sprite is triggering the error
+- allow defining action 3 for a station which has not had prop.08 set; in this
+  case the action 3 is ignored, the same as for houses and industry tiles
+- fixed bug with aircraft sprite not getting updated when var E6 changed
+- (devel) changed default Makefile not to use gcc-2 because it's a cygwin
+  package that's no longer maintained; gcc 3.3.x works fine anyway
+- fixed bug in DOS version with drag&drop dynamite getting "stuck" to the cursor
+- TTDPatch now supports the Windows-style language definition like LANG=1031 too
+- fixed bug with some news messages mentioning town of destination not
+  town closest to current position
+- in vehicle callback 1D, var.action type 82 will now use the engine of the
+  destination consist, not the source consist
+- (devel) moved veh.lastspeed to veh2
+- fixed bug in random graphics feature
+- fixed AI not building correct vehicle and station types
+- fixed incorrect display of plane stats
+- fixed bug with refitting not working except when paused, and it should also
+  be safe to use in multiplayer games again
+- by Mek:
+  * new bit setting for locomotion gui to use TTD's station building window
+  * switch between TTD's station building window and lomogui with Ctrl
+  * fix incorrect display of too long station names in dropdowns
+- by Oskar: allow bus stop construction (with newstations on)
+
+2.0.1 alpha 47
+- fixed bug with action B not accepting severity 03 (fatal error)
+- fixed miscmods.notimegiveaway not working in the Windows version
+- fixed crashes when trying to display various graphics error messages
+- station var. 44 now has bit 2 that states whether PBS is on/off
+- fixed incorrect graphics in new stations with electrifiedrailways off
+- allow building new rail station pieces over existing station to allow easier
+  construction of custom station layouts
+- fixed bug with autorenew not taking into account early retirement set by .grf
+- new station prop to disable drawing of overhead wires in case of sprite
+  sorter problems
+- by Oskar:
+  * fixed station direction not getting reset when building truck station 
+    after building bus stop
+  * (devel) make it unnecessary to generate .lst twice for correct relocations
+  * Cht: ClearGhosts now fixes invalid bus/truck stations as well
+  * allow bus stops on sloped land (with buildonslopes on)
+  * allow rail track on steep slopes
+- by Csaba:
+  * started working on a new industry generation window for newindustries
+  * support for a new text class, permanent texts. (class D800h)
+  * industries now can have custom names and messages via this mechanism
+  * TTDPatch texts are no longer saved and restored for action 4
+  * new industry property 1F to set industry name (not documented yet)
+  * new town variable (41) that tells the index of the town in the town array,
+    can be used to emulate some "dedicated" towns.(not documented yet)
+  * new industry tile variable (43) to tell the relative position within 
+    the industry (not documented yet)
+  * fixed a bug that caused the wrong industries to appear during the game
+- fixed bug in station prop 09 not using right TTD default if numtile!=08
+- fixed wrong colour for coal mines in map window
+- fixed bug: placing more than 49 station tiles at once (e.g. 7x8) would
+  overwrite various patch variables and cause random problems
+- sticky windows are no longer replaced when the max. number of window is
+  reached (unless all windows are sticky)
+- added station size info (var 88) to AI callback
+- PBS signals which have a signal following them now never let trains pass
+  through (or else this could cause crashes)
+- when train can't reverse in PBS block and has to be stopped, the train
+  window is opened immediately to alert the player
+
+2.0.1 alpha 48
+- action D can now access patch switch parameters through GRFID FFFF0000
+- added bitwise AND and OR to action D ops
+- fixed another bug with trains not being able to reverse
+- made final gamespeed setting much faster in fullscreen display
+- game speed setting is now displayed in statusbar date area
+- Cht: DeleteVehs to delete all vehicles on a tile (whole train even)
+- fixed with PBS on custom bridge heads not working right
+- fixed bug with trains sometimes taking very roundabout routes in PBS blocks
+- added forgotten signal wait times back to verbose switch display
+- now non-junction tiles will be shown darker too in PBS blocks
+- PBS is now a bit switch, to select various settings
+- added veh var 44 that gives aircraft height above ground and airport type
+- fixed bug with tunnels sometimes preventing trains from passing PBS signal
+- by Mek:
+  * NS and EW rails are now also draggable
+  * fixed the incorrect display of coloured texts in drop downs
+  * added some miscmods switches, one to increase the maximum distance between 
+    station-sign and industry for cargo accepted at the station to appear 
+    at the industry, and one to disable the vehicle is getting old news-messages
+
+2.0.1 alpha 49
+- support sprite sizes > 32KB (now up to 64KB supported)
+- fixed bug with station overbuilding not working near map edges
+- fixed road vehicles sometimes stopping in front of bus stops
+- fixed gamemode variable 92 getting set too late when loading savegame
+- fixed traffic jams when bus leaving bus stop breaks down or is stopped
+- made action 1 nument and action 5 numsprites an extended byte 
+  (use FF xx xx for word values)
+- added changes by Csaba:
+  * Added property 0d (land shape flags) to industry tiles
+  * Added property 20 (prospecting success change)
+    to industries
+  * Documented changes being undocumented in the previous version
+  * Drop down menus now use the actual screen height instead of the
+    hardcoded 480 to decide when to "drop up"
+  * Finished the new industry generation window, now it should be able
+    to do anything the old one did, including funding prospections
+  * Newhouses bug fixed: when deciding whether to call callback 1C for
+    the first time, the wrong byte was checked
+  * Minor bug fixed: coal mines had strange color on the map in the Win
+    version with newindustries being on
+- gamespeed now takes a parameter that specifies the initial setting
+- implemented action 10, GOTO labels for action 7/9
+- fixed crash when too many station types are available in a given class
+- by Mek:
+  * fixed bug where building track built the wrong track piece
+  * new switch `fifoloading on' (-YF) to set trains to load in the order they
+    arrive if they have are set to full load
+- embedded oslash glyphs in newspaper font size (with generalfixes)
+- added changes by Csaba:
+  * new switch: "tempsnowline", currently supports a stationary snow
+    line only, without snowy trees
+  * New callback 22 for industries to allow disabling industry types
+    according to global variables (especially date)
+  * New triggers 02 and 04 for industry tiles
+  * Added 16 random bits to industries
+  * Added variable 18 to allow passing extra information to GRFs during
+    callbacks
+  * Added variable 97 to allow defining the snow line (can be modified
+    via action D)
+  * New switch: townroadbranchprob (I hope Oskar is happy now ;)
+  * Fixed performance scores showing up negative if they're above 127
+  * Fix: house overrides weren't cleared after loading a game
+  * Fixed some bugs copying original industry build chances
+  * New debug sign cheat "cht: snowline xx" to set the snow line height
+    to xx (decimal)
+  * Tweaked random bit handling so it supports separating 80 and 83
+    modified bits
+  * Fixed a bug that prevented newtownnames from working after entering
+    a game from the title screen.
+
+2.0.1 alpha 50
+- fixed Cht: DeleteVeh not clearing reserved track when using PBS
+- added var. 80+30 to industry array, contains construction date for industries
+  built in alpha 50 or higher
+- fixed bug breaking the addition of station platforms if station is near the
+  middle of the map in X or Y
+- fixed bug with labels causing GOTO to never execute any of the following
+  actions
+- fixed hang if remnants of train crash in tunnel are cleared
+- if action that's invalid before action 8 is encountered, the error message
+  is now "invalid sprite", not "wrong version"
+- added station var 45 to tell whether track continues in the four directions
+- (devel) changed uvar* macros to use .bss sections
+- (devel) made reloc data an auxfile to require only a single nasm pass
+- (devel) fixed bug in nasm, to compile a50 one must patch it 
+  with nasm-fixofs.diff.gz (updated nasm.exe and nasm included in source zip)
+- fixed bug with fatal action B error message only being shown once, not being
+  kept in grf status window
+- fixed trains stopping at waypoints with "nonstop off"
+- fixed incorrect error message if trying to replace last of TTD's sprites 
+  using action A
+- allow historical buildings to appear when placing rocks with Ctrl in the
+  scenario editor
+- fixed bug in PBS causing trains to ignore red pre-signals and red two-way
+  signals
+
+2.0.1 alpha 51
+- (devel) fixed several instructions with unspecified operation size
+- made train purchase window two lines longer and added callback 23 to display
+  misc GRF text (D0xx) there
+- fixed wagon speed being shown even with wagonspeedlimits off
+- fixed o slash character being inserted even when a character already existed
+  at this position in trg1.grf
+- with debug switch T-, TTDPatch will terminate after parsing the cfg/cmdline
+- fixed random crashes with manualconvert off
+- added station callback 24 (custom tile layout), and prop. 15 (no-enter tiles)
+- (devel) updated to nasm 0.98.39
+- (devel) resolve.pl now resolves instruction address too, and converts as
+  many spaces as possible to tabs to save space
+- made action 6 be reapplied at each activation stage too, not just
+  initialization
+- action 6 offset is now an extended byte, and the size can have bit 7 set to
+  indicate that the value should be added instead of simply stored
+- added GRF resource management feature to action D
+- added station vars 46/47, similar to 40/41 but counting from the middle
+- made TTDPatch compatible with Windows XP 64
+- fixed bug causing some trains to have too high TE (e.g. BR05 with valuables 
+  wagons)
+- fixed bug with custom bridge heads sometimes slowing down trains to 0 km/h
+- fixed train losing reserved path even when it case reverse
+- by Aegir: with experimentalfeatures.cooperative on, any AI that another
+  player owns 75% of will be inactive
+
+2.0.1 alpha 52
+- fixed crash when using station prop 15
+- fixed bug and crash with custom bridge heads
+- fixed crash when pathbasedsignalling was turned off
+
+2.0.1 alpha 53
+- fixed another crash when using station prop 15
+- fix train not being able to find path past PBS signal if a later two-way
+  signal was red
+- fixed bug allowing trains to crash if station can be entered from both sides
+  using PBS, and made waypoints safe in PBS blocks
+- bridges should now be safe to use in PBS blocks as well
+  (may need to dynamite all middle pieces to reset bridge)
+- added random trigger 20 for train reserving station platform
+- fixed hang when building depot next to station using var 45
+- fixed counting bug in station vars 46/47
+- fixed crash when displaying power
+
+2.0.1 alpha 54
+- added shadow to flags in grf status window to accentuate them
+- changed conflict message to white to make it stand out more
+- made patch crash instead of hang when callback 18 uses vars 40+x
+- fixed callback storing var.41 data in wrong variable
+- integrated Csaba's changes:
+  * added support for animated industry tiles
+  * added production callback mechanism to allow fine-tuning industry production
+  * new callback to decide where the industry can be built
+  * refined cargo acceptance of industries
+  * new bit for morebuildoptions: enhancedbuoys
+  * new special industry bit 14 to divide/multiple cargo amounts with
+    the production multiplier during production callback.
+  * new industry callback 29 for random prod. rate changes
+  * during production callback, bits 8..23 of variable 18 now contain
+    how many times the callback was already called.
+  * enhanced action 2: can check words/dword in one go, can combine two
+    or more values with the following operands: add, subtract, select
+    lower, select greater, divide, modulus.
+  * new values available during callback 28: height of tile and distance
+    of closest water/dry land tile.
+  * small change in cargo acceptance: while looking for the closest of several
+    industries, the center tile of the industry is used instead of the north corner.
+  * bug fixed: industry special flags weren't initialized correctly.
+
+2.0.1 alpha 55
+- by Csaba: fixed bug causing crashes when buying new vehicles
+
+2.0.1 alpha 56
+- fixed bug that allowed dock construction in the middle of the sea
+- fixed problem with ttdload.ovl occasionally not getting rebuilt and causing crashes
+  at startup
+- integrated all of Csaba's changes up to 2.0.1 alpha 55 vcs 5:
+  * new switch: newcargos 
+  * devel: Restructured load/unload code to a single proc instead of a myriad of small patches 
+  * industry colors must always be specified from the DOS palette from now on. The Windows version translates colors automatically. 
+  * added variable 1A, which is always FFFFFFFF, to help specifying constants for action 2 calculations 
+  * added multiply, and, or and xor to the available operations for action 2 
+  * added warning if a loaded scenario doesn't contain any towns. 
+  * made gradualloading and fulloadany compatible again 
+  * fixed feederservice bug that caused negative profit for vehicles 
+  * bugfix: industry tile prop. 10 didn't work 
+  * bugfix: new industry tiles didn't work correctly for water industries 
+  * bugfix: the game no longer crashes when an AI player tries transporting a new cargo type. It still needs to be "taught" what vehicles to use for the new cargos, though. 
+  * special industry tile type FF now works on land as well (it used to always check for water) 
+  * it's now possible for houses to accept any cargo by setting new house property 1E or using callback 2A. (Wiki will be updated soon) 
+  * fixed station trigger 2 (it was broken with newcargos on) 
+  * ctrl-built buoys now should work correctly 
+  * fixed newcargos breaking fifoloading 
+  * station action 3 wasn't working correctly with newcargos 
+  * "Cht: ReloadIndustries" to reload all industry data to existing industries. 
+  * fixed a possible crash with DCxx textIDs 
+  * support for house/industry tiles consisting more sprites.
+  * support for parametrized variables (6x) that accept a byte parameter. 
+  * fixed random station trigger 1 (it was broken for DOS since a55vcs and it seems Windows versions were broken before a55vcs as well) 
+  * two new parametrized house variables 60 and 61 to count houses other than the current 
+  * fixed bug with newcargos messing up waiting cargo amount reported to GRFs 
+  * new parametrized variables (60..64) to get data about a cargo type waiting without directly reading the station struct 
+  * fixed bug with multi-sprite tiles not working correctly with the larger spritelimit enabled 
+  * added variable 48 for stations: bit mask of accepted cargos 
+  * fixed incorrect re-applying industry data after loading a game 
+  * two new callbacks, 2B and 2C to decide industry tile acceptance 
+  * industry properties 0C..0E were broken 
+  * fixed crash while TTD tries to build an oil rig 
+  * new callback 2D to select vehicle recoloring independently from the owner 
+  * with newcargos on, there can be up to 65535 units waiting from each cargo type from now on, although the display will be incorrect if more than 32767 units are waiting. (The old limit was 4095 units) 
+  * the industry funding window now displays the map colors of industries. Until someone comes up with a good way to fix the map legend, this list can be used to identify industries on the map. 
+  * fixed crash with Cht: ResetStation if newcargos was on.
+  * fixed panning for resolutions above 640x480
+  * enhancemultiplayer switch
+  * fix patch actions that used vehicle pointers (shareorders, resetorders, saverestorevehdata)
+
+2.0.1 alpha 57
+- by Csaba:
+  * fixed crash when ctrl-clicking shared orders to unlink but keep them
+  * fixed multiplayer desync with flat docks
+  * fixed incorrect warning about "no towns" when starting game
+  * fix: The color callback wasn't called for news messages and exclusive offers
+  * for tile action 2's, bit 30 now means "drawn normally even in transparent buildings mode"
+    The groundsprite can be 0 from now on to skip drawing the ground sprite altogether
+    (These are needed for custom foundations)
+  * new callback 2E for houses, to override default cargo generation (wiki will be updated soon)
+  * new callback 2F for industry tiles to have custom slope checks instead of default
+  * new callback 30 for industry tiles to decide if default foundations should be drawn
+  * enhancement in variational action 2: if nvar=0, the calculated value is returned with
+    bit 15 set instead of being used for a branch. The default value is still required, and is
+    used when a var. is unaccessible
+  * fix: vehicles sometimes got stuck unloading and never loaded cargo
+- all newcargos are now freight by default (for freighttrains switch)
+- new newcargos prop. 15 to set freight status
+- change error message when trying to build 91st industry to say 
+  "too many industries"
+- fixed crash if VirtualAlloc returned addresses with bit 30 or 31 set
+  (usually the crash would occur when trying to display a grf error)
+- (devel) made sure veh.modflags are cleared when a new vehicle is created
+- added action 11 to define binary include files (for sound effects)
+- add newcargos to grf resource management; need one ID from 00..1D as cargo ID
+  and one from 20..3F as bit number (for prop.08)
+- add grf status to main menu game options windows; set default for starting
+  new game; settings are reset if the climate is changed
+- fixed bug with AI messing up player's original company when managing another company
+  if enhancemultiplayer was on
+- fixed bug stopping AI from doing anything if 75% or shares owned with cooperative play
+- fixed bug with canals causing incorrect route map for non-ship vehicles
+- fixed bug in grf resource management with features other than 00 not working
+- fixed crash if too many station classes/types in selection
+- by Oskar: new switch 'onewayroads on' allows building one-way roads by holding Ctrl
+
+2.0.1 alpha 58
+- alpha 57 accidentally included an old version of the onewayroads feature,
+  it's updated and fixed now
+- fixed a bug in nasm: if an explicit byte address offset is out of bounds, it
+  now generates a warning; updated nasm executables in nasm/ directory
+- added no-fail GRF Resource operations that do not deactivate the .grf file
+  if the resources are not available
+- added veh.variable 45, curvature info to allow trains that tilt in curves
+- added train prop. 27: misc flags; so far they set whether train is tilting
+  or not (for higher curve speeds)
+- added var.action 2 variable 1B, gives access to current display settings
+- make action 11 check that block is within grf size (like 1/5/A), else emit
+  code 7
+- by Oskar:
+  * fixed bug with road under higherbridges sometimes showing one-way arrows
+  * fixed bug with removal of bridge sometimes turning road under bridge 
+    into one-way road
+- by Csaba:
+  * Fixed the X axis of cargo payment graph, it had incorrect values.
+    Can be disabled with miscmods.dontfixpaymentgraph
+  * New switch: newsounds. The framework is done for both DOS and
+    Windows, but currently only house/industry animations and industry
+    random sound effects use it. (under DOS, newsounds.highfrequency
+    enables 22KHz mixing, it's on by default)
+  * With newcargos on, now all cargo types are displayed in the cargo
+    payment window. Maximum 16 of them can be turned off at a time,
+    though.
+  * (devel) cleaned up newcargo.asm somewhat
+  * With newcargos on, the limit of waiting cargo is lowered to 32K to
+    avoid display glitches
+  * Bug: callback 2E corrupted town data
+  * var. 60 for industry tiles is changed somewhat. New format is:
+    rrzzbbss, where rr is reserved for future use, zz is the Z
+    coordinate of the lowest corner, ss is the slope data as returned by
+    gettileinfo, and bb is a bitmask: bit 0 set=industry tile, bit 1
+    set=water tile, other bits reserved
+  * callback 2F is now called for steep slopes as well, so those can be
+    allowed
+  * for industry tiles, the land shape flag 0x20 means "allow building
+    on both land and water". Callback 2F can be enabled to decide if a
+    given tile is OK or not.
+- added patchsnd.dll, will be extracted automatically from ttdpatchw.exe
+  if it does not exist yet
+- (devel) implemented ptrvar definition
+- added concept of "cargo classes" to allow better compatibility between
+  vehicle sets and future cargo sets; new cargo and vehicle props added
+- by Csaba:
+  * callback 2E no longer makes TTD crash
+  * fixed bug: passengers and mail created by callback 2E didn't go to the
+    town statistics
+  * fixed bug: Incorrect panning in the Windows version with newsounds on
+
+2.0.1 alpha 59
+- new generic var.action 2 variable 7F, a 60+x variable that accesses the
+  grf param (from Action D etc.) given by its parameter
+- fixed bug with newsounds action 0 always overriding ID 0 and following
+- fixed crash when displaying some PBS signals
+- changed [mainhandlertable] to varptr ophandler
+- improved encoding of sparse relocations for ptrvars with few or very
+  widely distributed accesses
+- actually added new miscflags and cargo class properties
+- added correct error codes to station action 0 sprite errors
+- added vehicle callback 31 to determine whether vehicle may be started in depot
+- fixed bug with refittability due to cargo classes setting capacity to 0
+- by Csaba:
+  * Bug fixed: Scrollbar arrows stuck pushed in the industry fund window
+    and the cargo payment rates window
+  * Bug fixed: Sound priorities were handled incorrectly
+  * Bug fixed: The new cargo payment window didn't always display the
+    last cargo available
+  * (devel) Newhouses data is now allocated dinamically if the switch is
+    on. This saves roughly 15Kb memory for those who disable this switch.
+  * Industry tile var. 43 can now be used during callback 2F
+  * TTD bug fixed: sometimes a bogus message could be displayed instead
+    of "Site unsuitable" when trying to build an industry.
+  * Bug fixed: Industry variable 8A was incorrect during callback 28
+  * "Cht: RestartConst" now works on industries as well
+- fixed crash using callback 30
+- added ID, feature and callback info to crash log
+- fixed resolve.pl, was giving wrong addresses since introduction of .ptr
+- fixed integer division overflow when adjusting newcargo price factors
+- fixed hang with tilting trains if curve speed setting was not realistic
+- changed all non-stop orders (waypoints or explicit) to say "Route through X",
+  or "Route non-stop through X" for non-stop waypoint orders with "nonstop off"
+- fixed bug in loading/unloading: it applied a cargo limit for heavy trains
+  even if not using realistic acceleration
+- added callback 32, called every 32 days that determines whether to trigger
+  vehicle trigger 10 (for now, may be able to do more later)
+- added vehicle variable 46, motion counter for animated vehicles
+- added division and modulo operations to action D
+- fixed caching of 40+x vehicle variables again (broken since a56)
+- added variable 5F, returns random trigger bits for all features that support them
+  (i.e. the triggers which have been triggered at the moment)
+- by Mek: fixed bug if train was sent to the depot, fifo loading would get stuck
+- by Csaba:
+  * two new return values for callback 28
+  * Bug fixed: Acceptance change messages weren't generated for new cargos
+- fixed bug/crash when industry props. 0B..14 were being set with nprops>1
+- use cargo class 0 for deciding what appears as bus stations, but allow 
+  only regular passengers at bus stops
+- by Oskar: "irregularstations on" allows building irregular stations
+- by Mek: "morestatistics on" collects statistics on transported cargo
+- station var 45 corners no longer consider connections to tiles 2/3
+
+2.0.1 alpha 60
+- by stevenh: removed message boxes when playing "road construction funding" sound
+- by Oskar:
+  * fixed bug in irregular stations: train station removal would sometimes
+    remove other facilities too
+  * fixed bug in irregular stations: train loading time was wrong sometimes
+  * allow removal of individual platforms without Ctrl, drag dynamite to remove
+    several at once, or Ctrl-click to remove single tile or rect. area with drag
+- fixed bug with "freighttrains off" not working
+- fixed bug with passenger class cargo not always being distributed to bus stations
+- fixed bug with buses not stopping at bus stops
+- fixed bug with powered wagons not working by temporarily disabling the vehicle
+  variable cache again
+
+2.0.1 alpha 61
+- (devel) implemented performance testing of newgrf feature var 40+x/60+x
+- fixed crash if no switch defining L6 or L7 was active 
+- fixed train path finding problem with irregular stations if PBS was off
+- fixed crash with morestatistics if subsidiaries were off
+- added morebuildoptions.bulldozesignals on to automatically bulldoze signala
+  when bulldozing track tiles (works with drag-bulldoze too!)
+- fixed and re-enabled vehice var 40x cache
+- by stevenh: fixed playback of (broken) sample 33
+- fixed bug in path finder not being able to find paths to stations whose
+  north tile is not a station tile
+- added callback 23 to the other vehicle types
+- all vehicle types now show a list of refittable cargo types
+- by Csaba:
+  * enhancemultiplayer is now off by default
+  * enhancemultiplayer should play nicely together with subsidiary
+    management (I couldn't test it, though)
+  * House var 40 should be a little bit faster now (it's the most
+    heavily used house var)
+  * "Cht: PlayerID" now fails in enhanced multiplayer games (supporting
+    it would have meant too much work)
+  * Rewritten subsidiary manage code, I think it's better now.
+- fixed bogus grf errors generated by cargo props 15/16
+- implemented callbacks for start/tunnel/breakdown/running/touchdown sounds
+- add new feature for action 11 to import sound effects from other grf files
+- action 0 <Id> value is now an extended byte
+- fixed bug with veh var 46 (motion counter) giving incorrect values
+- fixed -!P+ debug switch that preserves patchsnd.dll
+- rearranged and tightened patchsnd.dll, and make it fully compatible with win2k/xp
+- by eis_os: fixed overtaking problem on long stretches of one-way roads
+- fixed incorrect station tile counts when removing irrstation tiles
+- fixed var 41. after removing station tiles/platforms instead of whole station
+- fixed random station triggers for irregular stations
+
+2.0.1 alpha 62
+- (devel) moved change log from todonow.txt into new Changelog file
+- fixed bug with trains appearing in wrong place after being bought in depot
+- fixed pathfinding bug if tile at north station corner is reachable but 
+  not a station tile
+- "all off" or "-a-" now actually turns off all switches, not only those
+  that are on by default
+- by Csaba:
+  * fixed View/Build HQ bug with subsidiaries on
+  * fixed incorrect recoloring applied to industry tiles
+- fixed newcargo prop 15 messing up all following properties if freighttrains
+  was off
+- fixed broken detection whether ttdload.ovl needs an update in DOS version
+- fixed "refitabble to" line to work correctly with newcargos off
+- fixed problems with trains finding paths to depots
+
+2.0.1 alpha 62 fixed
+- fixed crash while loading or saving if landscape6/7 weren't defined
+- fixed another pathfinding bug
+
+2.0.1 alpha 63
+- fixed bug in var.action 2 <vadadjust> divide/modulo operation
+- added player colour info to var. 43
+- added player colour support using bit 14 to callback 2D
+- new switch, "autoreplace on" to automatically replace vehicles with
+  better models when they get old (needs .grf support to define what
+  models are "better"), will only use models with given min. reliability
+- by Oskar: new switch "autoslope on" allows lowering land under tracks
+  and automatically builds foundations there
+- by Csaba:
+  * cargo property 9 should now be usable for cargoes that already have
+    a bit defined, and should disable the previous bit. A special value
+    FF will remove the slot from cargo type listings.
+  * (devel) commented some of my previously uncommented code, more to come...
+  * fixed bug in load/unload code that made trains deliver cargo to
+    stations which didn't accept it
+- added two new tests to action 7/9
+- made backward jumps to labels work (but still not safe in most cases)
+- fixed display of food/water received by town last month
+- fixed action 0 with allocation to not run out of IDs during initialization
+
+2.0.1 alpha 64
+- fixed autoreplace off breaking autorenew
+- fixed crash after refitting
+- changed malloc to always abort the process if out of memory
+- fixed grfs changing the climate selection always being forced active
+  in the title screen grf selection
+- fixed roadbranchprob switch accidentally using hex arugments in cfg file
+- changed action 3 to use lookup table for cargo types and livery overrides
+- fixed veh.var 42
+- fixed incorrect display cargo subtexts and callback 15 problems
+
+2.0.1 alpha 65
+- changed linux compilation to build native mkpttxt and makelang
+- by Oskar:
+  * prevent autoslope from removing industries with Ctrl
+  * prevent tunnel entrance contruction from destroying rail above
+- fixed crash when building newgrf stations
+- fixed empty action 1 spritesets being considered valid callback results
+- fixed crash in dbsetxl_rep.grf
+- fixed bug using wrong cargo graphics for wagons and stations
+
+2.0.1 alpha 66
+- added PPC compilation platform (using gcc-mingw cross compiler)
+- fixed endianness issues of makelang.c
+- moved all Makefile user configurations to Makefile.local
+- make action 2 var 7F accessible even when regular 40/60/80+x variables aren't
+- fixed bug in helicopter rotor override handling causing random crashes
+- fixed train crashes if road crossing was immediately followed by a PBS signal
+- added cargo translation table feature for vehicle grfs
+- added vehicle sound events 7,8,9; fixed event 4 to not happen while
+  waiting at signal
+- fixed veh var.43 being broken after loading savegames
+- morecurrencies is now a proper bit switch
+- fixed bug with refit cargo classes for non-rail vehicles not working
+- fixed incorrect refit list display for wagons with no capacity
+- fixed action 7/9 tests 9 and A
+- fixed incorrect error message display if action B severity had bit 7 set
+- added action 7 test B to check whether cargo is defined
+- added cache for vehicle color maps, refresh with callback 32
+- made vehicle purchase window 2 lines longer
+- by Lakie: load time calculation properly considers short wagons
+- by Mek: Lomogui now shows PBS signals correctly
+- by stevenh: new switch "followvehicle on" allows following the motion of
+  a vehicle in the main view by right-clicking its "eye" button
+
+2.0.1 alpha 67
+- fixed crash in makelang.exe on cygwin
+- fixed crash in followvehicle with newshistory off
+- fixed memory leak in patchsnd.dll
+- (devel) changed GAMEDIR variable into GAMEDIR (for DOS) and GAMEDIRW
+  (for Windows)
+- (devel) changed compilation to assemble all patches individually
+  then link them
+- added support for second company colour (choose with ctrl-click)
+- added bit 2 to veh.misc.flags to disable showing refit list
+- added support for two company colours to house callback 1E
+- fixed bug with loading at a second station resetting origin of full wagons too
+- random rectangular tree planting now plants correct tree types in tropic, and
+  only sparsely plants cactii in the desert
+- fixed bug: aircraft window opened by plane list without airport has wrong size
+- fixed bug with planes aging twice as fast
+- fixed tender display for mixed multiheaded articulated locos
+- made extra two lines in vehicle buy window actually available
+- by Mek: fix graphics glitch in company window if morestats is on
+- by stevenh: show altitude in land info window; disable with
+  "miscmods.dontshowaltitude on"
+- by stevenh: now scrolling resets follow function
+- (devel) changed *.ver output to be grouped by patchproc
+- fixed problem in grf activation and active checks

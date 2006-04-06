@@ -1,0 +1,7 @@
+<switches version="TTDPatch 2.0.1 alpha 17" ID="020A00AA">
+        <bool name="debtmax" desc="(from cfg") value="1" />
+        <range name="multihead" min="0" max="100" default="35" value="35" />
+        <bitswitch name="experimentalfeatures" desc="(from cfg file)"> 
+                <bit num="0" desc="slow before crossing"> 
+        </bitswitch>
+</switches>
