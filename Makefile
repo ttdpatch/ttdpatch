@@ -6,7 +6,10 @@
 # =========================================================
 
 # Define the name of the default target (actual definition below)
-default: allw
+ifndef DEFAULTTARGET
+DEFAULTTARGET=allw
+endif
+default: ${DEFAULTTARGET}
 
 # This is a variable so that we can refer to ../Makefile.local from
 # the patchsnd/ Makefile
@@ -137,6 +140,7 @@ cleantemp:
 	rm -f *.*lst *.LST patches/*.*lst
 	rm -f ttdload.ovl
 	rm -f reloc*.inc
+	rm -f *.pe
 
 # remove files that depend on compiler flags (DEBUG, etc.)
 remake:
@@ -158,7 +162,7 @@ clean:	cleantemp
 	rm -f *.{res,RES}
 	rm -f langerr.h
 	rm -f sw_lists.h
-	rm -f patches/texts.h
+	rm -f inc/ourtexts.h
 	rm -f version{d,w}.h
 
 # also remove Makefile.dep?, listings and bak files
@@ -169,7 +173,8 @@ mrproper: clean
 
 # files that need to be created to check include dependencies
 .PHONY: INCLUDES
-INCLUDES:	patches/texts.h versiond.h versionw.h
+#INCLUDES:	patches/texts.h versiond.h versionw.h
+INCLUDES:	versiond.h versionw.h
 
 # if a command fails, delete its output
 .DELETE_ON_ERROR:
@@ -304,7 +309,7 @@ texts.lst:	texts.asp
 texts.asp:	texts.asm
 	$(NASM) $(NASMOPT) -e -dPREPROCESSONLY $(NASMDEF) $< -o $@
 
-patches/texts.h:	texts.lst
+inc/ourtext.h:	inc/ourtext.inc
 	perl perl/texts.pl < $< > $@
 
 bitnames.h:	bitnames.ah
@@ -347,7 +352,7 @@ host/lang/%.o:	lang/%.h
 lang/%:		makelang.c lang/%.o switches.o codepage.o texts.o
 	$(CC) -o $@ $(CFLAGS) $(LDOPT) $(foreach DEF,$(WINDEFS),-D$(DEF)) -DSINGLELANG=${patsubst lang/%,%,$@} $^ -L. -lz
 
-mkpttxt.o host/mkpttxt.o:       mkpttxt.c patches/texts.h
+mkpttxt.o host/mkpttxt.o:       mkpttxt.c # patches/texts.h
 mkpttxt${EXEW}:  mkpttxt.o texts.o
 host/mkpttxt${HOSTEXE}:  host/mkpttxt.o host/texts.o
 

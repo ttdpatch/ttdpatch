@@ -5,6 +5,8 @@
 // THIS IS OBSOLETE NOW, DON'T USE IT IN NEW CODE
 %define addr(x) (x) //-protectedstart+runindexbase)
 
+%define endvar __SECT__
+
 // preferred form of variable declaration:
 // var{b,w,d} <var> [, <value>, ...]
 // b/w/d specifies the alignment
@@ -17,7 +19,7 @@
 	global %1
 	%if %0>1
 		%1: db %2
-		__SECT__
+		endvar
 	%else
 		%1:
 	%endif
@@ -28,7 +30,7 @@
 	align 2
 	%if %0>1
 		%1: dw %2
-		__SECT__
+		endvar
 	%else
 		%1:
 	%endif
@@ -39,7 +41,7 @@
 	align 4
 	%if %0>1
 		%1: dd %2
-		__SECT__
+		endvar
 	%else
 		%1:
 	%endif

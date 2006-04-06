@@ -15,10 +15,10 @@ DrawWinElemCheckBox:
 	mov cx,[ebp+windowbox.y1]
 	add ax,[esi+window.x]
 	add cx,[esi+window.y]
-	lea bx,[eax+8]
-	lea dx,[ecx+10]
+	lea bx,[eax+10]		// width of check box
+	lea dx,[ecx+11]		// height of check box
 
-	xor esi,esi
+	mov esi,1<<5	// pushed in box
 	movzx ebp,byte [ebp+windowbox.bgcolor]
 	call [drawrectangle]
 	pop ebp
@@ -35,9 +35,10 @@ DrawWinElemCheckBox:
 .notblack:
 	mov cx,[ebp+windowbox.x1]
 	add cx,[ebx+window.x]
-	inc cx
+	add cx,2
 	mov dx,[ebp+windowbox.y1]
 	add dx,[ebx+window.y]
+	inc dx
 	mov bx,statictext(checkmark)
 	call [drawtextfn]
 	popa

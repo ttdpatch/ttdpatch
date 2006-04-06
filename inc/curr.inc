@@ -23,8 +23,7 @@
 %define CURR_DEUTSCHMARK 3
 %define CURR_YEN 4
 %define CURR_PESETA 5
-%define CURR_FIRSTCUSTOM 6
 %assign CURR_EURO currcount-1 // **MUST** always be last, or it can't be introduced later!
 
-%define firstcuscurrtext ourtext(curr_HUF)    // Text for the first new currency
+// %define firstcuscurrtext ourtext(curr_pound)	// Text for the first new currency
 

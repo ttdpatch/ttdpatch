@@ -26,7 +26,7 @@ extern piececonnections,randomfn,randomstationtrigger
 extern setstationdisabledbuttons,stationarray2ofst,stationcallbackflags
 extern stationcargowaitingmask,stationclass,stationclassesused,stationflags
 extern stationspritelayout,stsetids
-extern unimaglevmode, Class5LandPointer
+extern unimaglevmode, Class5LandPointer, paStationtramstop
 
 
 // bits in L7:
@@ -1176,6 +1176,14 @@ getstationspritelayout:
 	movzx ebp,dh
 	cmp dh,8
 	jb .isitours
+
+	cmp dh, 0x53
+	jb .notours
+	test byte [landscape3+ebx*2],0x10
+	jz .notours
+	movzx ebp,dh
+	mov ebp,[paStationtramstop+(ebp-0x53)*4]
+	retn
 
 .notours:
 	movzx ebp,dh

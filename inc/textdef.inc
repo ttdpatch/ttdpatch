@@ -4,13 +4,9 @@
 
 //
 // ourtext(): custom texts that can be translated via mkpttxt
-//
-// IDs are defined from texts.inc
-//
-#define ourtext(n) ( ( (TXT_ ## n) & 0x7ff) | 0xf800)
-#include "../patches/texts.h"
-#define TXT_special TXT_last
 
+#define ourtext(n) (ourtext_ ## n)
+%include "inc/ourtext.inc"
 
 //
 // statictext(): custom texts that are language-independent

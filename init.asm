@@ -54,6 +54,7 @@ extern patchflags,patchflagsfixed,ttdmemsize,setvehiclearraysize
 extern startflagvars,unimaglevmode
 extern user32hnd,vehsorttable,heapstart,heapptr
 extern oldveharraysize,varheap,Sleep
+extern initourtextptr
 
 ext_frag oldfixcommandaddr
 
@@ -619,15 +620,7 @@ initialize:
 .nounimaglev:
 	testflagbase none
 
-	mov ax,ourtext(grflanguage)	// see if ttdpttxt.dat specifies a
-	call texthandler		// different grf language
-	lodsb
-	sub al,'1'
-	jb .deflang
-
-	mov [languageid],al
-
-.deflang:
+	call initourtextptr
 
 	mov ecx,numgrfswitchparam
 	mov esi,grfswitchparamlist

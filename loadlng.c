@@ -13,7 +13,7 @@
 #include "loadlng.h"
 #include "auxfiles.h"
 
-#include "patches/texts.h"
+//#include "patches/texts.h"
 
 #if WINTTDX
 #	include "versionw.h"
@@ -425,52 +425,6 @@ u32 langinfo_readingamestrings(langinfo *linfo, u32 exesize, char *target, u32 t
   FILE *f;
   static const char *external_text_file = "ttdpttxt.dat";
 
-	// load ttdpttxt.dat if it exists and is correct
-
-  f = fopen(external_text_file, "rb");
-  if (f) {
-		// try to use texts from ttdpttxt.dat instead
-	fread(&magic, 4, 1, f);
-
-	if (magic != MAGIC) {
-		// show error messages only during actual loading, not when
-		// determining size
-		if (targetsize)
-			warning(langtext[LANG_CUSTOMTXTINVALID], external_text_file);
-	} else
-		datsize++;	// good so far
-  }
-  if (datsize) {
-	fread(&i, 4, 1, f);
-	if (i != TXT_VERSIONID) {
-		if (targetsize)
-			warning(langtext[LANG_CUSTOMTXTWRONGVER], external_text_file);
-		datsize--;
-	}
-  }
-  if (datsize) {
-	fread(&datsize, 4, 1, f);
-	if (!targetsize) {
-		fclose(f);
-		return datsize;
-	}
-
-		// generic error message is fine; size should be right anyway
-	if (datsize > targetsize) {
-		warning(langtext[LANG_CUSTOMTXTINVALID], external_text_file);
-		datsize = 0;
-	} else {
-		printf(langtext[LANG_LOADCUSTOMTEXTS], external_text_file);
-
-		fread(target, 1, datsize, f);
-
-		// could return here, but we need to set *langid
-	}
-  }
-  if (f)
-	fclose(f);
-
-
 //  printf("Reading in-game language data from %x\n", dataloc(linfo, LANGINGAMEOFS));
   fseek(linfo->f, dataloc(linfo, LANGINGAMEOFS), SEEK_SET);
   fread(&baseofs, sizeof(baseofs), 1, linfo->f);
@@ -517,21 +471,66 @@ u32 langinfo_readingamestrings(langinfo *linfo, u32 exesize, char *target, u32 t
 	*langid = 0;
   }
 
-  if (datsize)		// we already have the data from custom text file
-	return datsize;
-
-
   // it's the right size, uncompress (if necessary) the data
   fseek(linfo->f, dataloc(linfo, foundofs), SEEK_SET);
   fread(&numsizes, 4, 1, linfo->f);
   fread(&ucsize, 4, 1, linfo->f);
   fread(&csize, 4, 1, linfo->f);
 
+	// also load ttdpttxt.dat if it exists and is correct
+
+  f = fopen(external_text_file, "rb");
+  if (f) {
+		// try to use texts from ttdpttxt.dat instead
+	fread(&magic, 4, 1, f);
+
+	if (magic != MAGIC) {
+		// show error messages only during actual loading, not when
+		// determining size
+		if (targetsize)
+			warning(langtext[LANG_CUSTOMTXTINVALID], external_text_file);
+	} else
+		datsize++;	// good so far
+  }
+  if (datsize) {
+	fread(&i, 4, 1, f);
+	if (i !=  (MAGIC ^ 0x12345678)) {
+		if (targetsize)
+			warning(langtext[LANG_CUSTOMTXTWRONGVER], external_text_file);
+		datsize--;
+	}
+  }
+  if (datsize) {
+	fread(&datsize, 4, 1, f);
+	if (!targetsize) {
+		fclose(f);
+		return datsize + ucsize - 2;
+	}
+
+		// generic error message is fine; size should be right anyway
+	if (datsize > targetsize) {
+		warning(langtext[LANG_CUSTOMTXTINVALID], external_text_file);
+		datsize = 0;
+	} else {
+		printf(langtext[LANG_LOADCUSTOMTEXTS], external_text_file);
+
+		fread(target + ucsize - 2, 1, datsize, f);
+
+		// could return here, but we need to set *langid
+	}
+  }
+  if (f)
+	fclose(f);
+
   if (!targetsize)
 	return ucsize;
 
+  if (datsize)
+	datsize = -2;
+
   fseek(linfo->f, numsizes*4, SEEK_CUR);
   if (ucsize != csize) {
+	int datid;
 
 	// allocate buffers
 	cbuf = (char*) malloc(csize);
@@ -542,15 +541,18 @@ u32 langinfo_readingamestrings(langinfo *linfo, u32 exesize, char *target, u32 t
 	// read compressed language data
 	fread(cbuf, 1, csize, linfo->f);
 	realucsize=ucsize;
+	datid = *(u16*) (target+ucsize-2);
 	result = uncompress( (Bytef*) target, &realucsize, (Bytef*) cbuf, csize);
 	if (result != Z_OK)
 		error("Uncompressing in-game language %d: error %d\n", found, result);
 
 	free(cbuf);
+	if (datsize)
+		*(u16*) (target+ucsize-2) = datid;
   } else {
 	// read uncompressed data
-	fread(target, 1, ucsize, linfo->f);
+	fread(target, 1, ucsize + datsize, linfo->f);
   }
 
-  return ucsize;
+  return datsize + ucsize;
 }

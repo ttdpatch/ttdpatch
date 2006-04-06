@@ -1438,6 +1438,7 @@ ovar .origfn,-4,$,changecolorscheme
 	xor ebx,ebx
 	ret
 
+global resetcolmapcache
 resetcolmapcache:
 	mov esi,[veharrayptr]
 .next:

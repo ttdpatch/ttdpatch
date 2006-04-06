@@ -10,7 +10,7 @@ extern mostrecentspriteblock,patchflags,specialerrtext1,texthandler
 extern vehtypecallback
 extern wantedtracktypeofs
 
-
+extern enhancetunneladdtrack
 
 
 
@@ -37,6 +37,7 @@ redrawtile:
 // Check if there is a vehicle on the tile given in esi
 // If there is, it sets operrormsg2 accordingly
 // zf clear -> vehicle in the way
+global checkvehintheway
 checkvehintheway:
 	push di
 	mov di,si
@@ -114,7 +115,7 @@ getconvertcost:
 	ret
 
 // Constants that should be added to a coordinate to move to the given direction
-var directions,dw -1,256,1,-256	// NE,SE,SW,NW
+varw directions, -1,256,1,-256	// NE,SE,SW,NW
 
 // Note: returning 0x1007 ("Already built") in operrormsg2 has the side effect of
 // not interrupting laying tracks when doing it by dragging the mouse. All other
@@ -242,6 +243,12 @@ buildtrackonbridgeortunnel:
 .end:
 	ret
 
+.tunnelwrongdirection:
+	testflags enhancetunnels
+	jc near enhancetunneladdtrack
+	// jmp enhancetunneladdtrack
+	ret
+
 .gotoerror:
 	or esi,esi
 	ret
@@ -250,21 +257,25 @@ buildtrackonbridgeortunnel:
 	test dh,4	// don't convert road tunnels
 	jnz .end
 
-	mov dl,[landscape3+esi*2]	// get convert cost
-	call getconvertcost
-	je .gotoerror
+//	mov dl,[landscape3+esi*2]	// get convert cost
+//	call getconvertcost
+//	je .gotoerror
 
 	test dh,1	// odd numbers (1 and 3) mean NESW orientation
 	jz .neswtun
 	cmp bh,2	// allow only with the right rail direction
-	jne .end
+	jne .tunnelwrongdirection
 	jmp short .doconverttunnel
 
 .neswtun:
 	cmp bh,1	// same as above
-	jne .end
+	jne .tunnelwrongdirection
 	
 .doconverttunnel:
+	mov dl,[landscape3+esi*2]	// get convert cost
+	call getconvertcost
+	je .gotoerror
+
 	push eax
 	push ecx
 	mov ecx,edi	// ecx will store the final cost

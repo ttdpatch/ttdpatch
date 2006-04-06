@@ -289,6 +289,7 @@
 	RANGE(182,"autoslope", CFG_AUTOSLOPE, autoslope, 0, 1, FLAGDATA(autoslopevalue), 1, 3, 1),
 	YESNO(183,"followvehicle", CFG_FOLLOWVEHICLE, followvehicle),
 	YESNO(184,"trams", CFG_TRAMS, trams),
+	YESNO(185,"enhancetunnels", CFG_ENHANCETUNNELS, enhancetunnels),
 
 
 //

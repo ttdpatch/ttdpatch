@@ -435,22 +435,24 @@ RailConstrWinClick:
 	jmp [RefreshWindowArea]
 
 .showclassdropdown:
-	mov eax, [GenerateDropDownMenu]
-	mov [OldGenerateDropDownMenu], eax
-	mov dword [GenerateDropDownMenu], addr(GenerateDropDownMenuTab1)
+// Removed code which is now handled by the drop down menus
+//
+//	mov eax, [GenerateDropDownMenu]
+//	mov [OldGenerateDropDownMenu], eax
+//	mov dword [GenerateDropDownMenu], addr(GenerateDropDownMenuTab1)
 	push dword [curselclass]
 	mov al, [CurStationSelClass]
 	mov [curselclass], al
 	call makestationclassdropdown
 	pop dword [curselclass]
-	mov eax, [OldGenerateDropDownMenu]
-	mov [GenerateDropDownMenu], eax
+//	mov eax, [OldGenerateDropDownMenu]
+//	mov [GenerateDropDownMenu], eax
 	jmp [RefreshWindowArea]
 	
 .showtypedropdown:
-	mov eax, [GenerateDropDownMenu]
-	mov [OldGenerateDropDownMenu], eax
-	mov dword [GenerateDropDownMenu], addr(GenerateDropDownMenuTab1)
+//	mov eax, [GenerateDropDownMenu]
+//	mov [OldGenerateDropDownMenu], eax
+//	mov dword [GenerateDropDownMenu], addr(GenerateDropDownMenuTab1)
 	push dword [curselclass]
 	mov al, [CurStationSelClass]
 	mov [curselclass], al
@@ -458,8 +460,8 @@ RailConstrWinClick:
 	mov [curselstation], al
 	call makestationseldropdown
 	pop dword [curselclass]
-	mov eax, [OldGenerateDropDownMenu]
-	mov [GenerateDropDownMenu], eax
+//	mov eax, [OldGenerateDropDownMenu]
+//	mov [GenerateDropDownMenu], eax
 	jmp [RefreshWindowArea]
 
 .incdec:
@@ -876,40 +878,42 @@ RailConstrWinClick:
 	jmp .generatedropdown
 
 .generatedropdown:
-	push dword [esi+window.elemlistptr]
-	push dword [esi+window.activebuttons]
-	push dword [esi+window.disabledbuttons]
-
-	push dx
-	mov dh, cWinDataTabs
-	call FindWindowData
-	jc .failed
-	push edi
-	mov edi, [edi]
-	mov edi, [edi+4*2]
-	mov [esi+window.elemlistptr], edi
-	pop edi
-	pop dx
-
-	push eax
-	mov edi, [esi+window.data]
-	mov eax, [edi+2*8]
-	mov [esi+window.activebuttons], eax
-	mov eax, [edi+2*8+4]
-	mov [esi+window.disabledbuttons], eax
-	pop eax
-
-	call [GenerateDropDownMenu]
-
-	mov edi, [esi+window.data]
-	mov eax, [esi+window.activebuttons]
-	mov [edi+2*8], eax
-	mov eax, [esi+window.disabledbuttons]
-	mov [edi+2*8+4], eax
-.failed:
-	pop dword [esi+window.disabledbuttons]
-	pop dword [esi+window.activebuttons]
-	pop dword [esi+window.elemlistptr]	
+// Reduant By fixed dropdown code
+//
+//	push dword [esi+window.elemlistptr]
+//	push dword [esi+window.activebuttons]
+//	push dword [esi+window.disabledbuttons]
+//
+//	push dx
+//	mov dh, cWinDataTabs
+//	call FindWindowData
+//	jc .failed
+//	push edi
+//	mov edi, [edi]
+//	mov edi, [edi+4*2]
+//	mov [esi+window.elemlistptr], edi
+//	pop edi
+//	pop dx
+//
+//	push eax
+//	mov edi, [esi+window.data]
+//	mov eax, [edi+2*8]
+//	mov [esi+window.activebuttons], eax
+//	mov eax, [edi+2*8+4]
+//	mov [esi+window.disabledbuttons], eax
+//	pop eax
+//
+	call [GenerateDropDownMenu] // Should work with the above
+//
+//	mov edi, [esi+window.data]
+//	mov eax, [esi+window.activebuttons]
+//	mov [edi+2*8], eax
+//	mov eax, [esi+window.disabledbuttons]
+//	mov [edi+2*8+4], eax
+//.failed:
+//	pop dword [esi+window.disabledbuttons]
+//	pop dword [esi+window.activebuttons]
+//	pop dword [esi+window.elemlistptr]	
 	jmp [RefreshWindowArea]
 
 UpdateStationSelectionSize:

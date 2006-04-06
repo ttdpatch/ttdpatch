@@ -19,7 +19,7 @@ createvehicle:
 //	al: landscape4 entry
 // out:	zf set if depot
 
-var vehtypetextids, dw 0x19f,0x19c,0x19e,0x19d
+varw vehtypetextids, 0x19f,0x19c,0x19e,0x19d
 
 var isindepot
 	dd addr(isintraindepot)

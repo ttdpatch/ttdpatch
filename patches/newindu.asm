@@ -1080,7 +1080,7 @@ endstruc_32
 // this is necessary so we can reuse unused slots for new industries
 // (32 bits aren't enough, so we use 64 bits per climate. BT doesn't care as long as its
 //  parameter is given in a register)
-var defaultindustriesofclimate
+vard defaultindustriesofclimate
 	// temperate
 	dd 00000000000001000001101101111111b,00000b
 	// arctic
@@ -1089,6 +1089,8 @@ var defaultindustriesofclimate
 	dd 00000011111110110010110000010000b,00000b
 	// silly
 	dd 11111100000000000000000000000000b,11111b
+
+section .text
 
 // The old code has count/type pairs for initial industry generation. We convert this to
 // an array of probabilities and store that here, since this makes the handling easier.
@@ -1112,10 +1114,13 @@ uvarb ingameindustryprobs,NINDUSTRIES
 uvarb industrymapcolors,NINDUSTRIES
 
 // The default industry colors, extracted from the original TTD array.
-var defaultindustrymapcolors, 	db 0x01+0xd6*WINTTDX
+varb defaultindustrymapcolors
+	db 0x01+0xd6*WINTTDX
 				     db 0xb8,0xc2,0x56,0xbf,0x98,0xae,0xae, 0x0a,0x30,0x0a,0x98,0x0f,0x37,0x0a,0xc2
 				db 0x0f,0xb8,0x37,0x56,0x27,0x25,0xd0,0xae, 0x30,0xc2,0x30,0xae,0x27,0x37,0xd0,0x0a
 				db 0x25,0xb8,0x98,0xc2,0x0f
+
+section .text
 
 // Bitmasks for special industry functions. These bits are checked instead of checking against a fixed industry type,
 // so new industries can have the same special effects. This also allows a slot reused by a new industry _not_ to have
@@ -1141,9 +1146,12 @@ uvard industryspecialflags,NINDUSTRIES
 
 // The default values for the above special flags, ie. a bit is only set if the unpatched TTD industry would
 // have the special effect
-var defaultindustryspecialflags, 	dd 0x2000,0,0,0,0x800,0x604,0x1000,0,	0,0x41,0,0x180,0x8,0,0,0
+vard defaultindustryspecialflags
+	dd 0x2000,0,0,0,0x800,0x604,0x1000,0,	0,0x41,0,0x180,0x8,0,0,0
 					dd 0x10,0,0,0,0,0,0x10,0,		0x40,0x2,0,0,0,0,0x20,0
 					dd 0,0,0,0,0
+
+section .text
 
 // The old code has hard-coded creation messages. We introduce an array to store message IDs, so they can be
 // customized
@@ -2039,7 +2047,7 @@ setindustrymapcolors:
 uvard createinitialindustry_nolookup,1,s
 
 // number of industries to create on the different industry density settings
-var industrycounts, db 25,55,75
+varb industrycounts, 25,55,75
 
 uvarb industriestogenerate
 uvard industryprobabtotal
@@ -2650,7 +2658,7 @@ industryproducecargo:
 
 
 
-var newindufundelemlist
+varb newindufundelemlist
 db cWinElemTextBox,cColorSchemeDarkGreen
 dw 0, 10, 0, 13, 0x00C5
 
@@ -2672,7 +2680,7 @@ dw 0, indufundwin_width-1, 16+indufundwin_listheight+45, 16+indufundwin_listheig
 
 db cWinElemLast
 
-var newindufundtooltips, dw 0x018b,0x018c,ourtext(newindulist_tooltip),0x0190,ourtext(newinduinfo_tooltip)
+varw newindufundtooltips, 0x018b,0x018c,ourtext(newindulist_tooltip),0x0190,ourtext(newinduinfo_tooltip)
 
 // Called to open the "Fund industry" or "Industry generation" window
 // Our new code uses the same window for both purposes, with small differences in behavior
@@ -3265,7 +3273,7 @@ initnewindustry:
 	and dword [industryincargos+8*eax+4],0
 	ret
 
-var getincargo_div, dw 1
+varw getincargo_div, 1
 
 // get the incoming cargo amount from type 1..3
 // eax=variable-0x40 (0-first cargo, 1-second, 2-third)

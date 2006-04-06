@@ -13,7 +13,7 @@
 #include <errno.h>
 
 #define WANTINGAMETEXTNAMES
-#include "patches/texts.h"
+#include "inc/ourtext.h"
 
 #define C
 #include "common.h"
@@ -47,11 +47,30 @@ void error(const char s[], ...)
   exit(1);
 }
 
+#ifdef __POWERPC__
+inline u32 littleendian(u32 in, int size)
+{
+  u8 *inp = (u8*) &in;
+  u8 outp[4];
+
+  if (size == 4) {
+	outp[0] = inp[3]; outp[1] = inp[2]; outp[2] = inp[1]; outp[3] = inp[0];
+	return *(u32*) outp;
+  } else if (size == 2) {
+	outp[0] = inp[3]; outp[1] = inp[2];
+	return *(u16*) outp;
+  } else if (size != 1)
+	error("Can't convert size %d to little endian\n", size);
+  return in;
+}
+#else
+inline u32 littleendian(u32 in, int size) { return in; }
+#endif
 
 char *data;
-char *entries[TXT_last];
-int lengths[TXT_last];
-int defined[TXT_last];
+char *entries[TXT_last+1];
+int lengths[TXT_last+1];
+int defined[TXT_last+1];
 int txtindex, linelen;
 pingame defstr;
 
@@ -89,6 +108,7 @@ void printdefault(FILE *txt, int txtindex)
 	fprintf(txt,
 		"// TTDPatch in-game text strings\n"
 		"// Edit with a Windows editor, or a charset of ISO-8859-1,\n"
+		"// remove initial semicolon of modified lines,\n"
 		"// then compile with the mkpttxt program.\n"
 		"// Leave backslashes followed by two hexdigits alone\n"
 		"// Escape newlines with \\n, backslashes with \\\\ and quotation marks with \\\".\n"
@@ -99,7 +119,7 @@ void printdefault(FILE *txt, int txtindex)
 	return;
   }
 
-  fprintf(txt, "%s=\"", ingametextnames[txtindex]);
+  fprintf(txt, "; %s=\"", ingametextnames[txtindex]);
 
   prefix = "";
   linelen=strlen(ingametextnames[txtindex])+2;
@@ -124,7 +144,7 @@ void printdefault(FILE *txt, int txtindex)
 
 	linelen++;
 	if ( (linelen > 80) || ( (linelen > 70) && (c == ' ') ) ) {
-		prefix = "\"\n\t\"";
+		prefix = "\"\n;\t\"";
 		linelen = 8;
 	}
   }
@@ -146,7 +166,7 @@ int findsize(const char *filename)
 
   for (lang=0; lang<ingamelang_num; lang++) {
 	for (size=0; size<ingamelang_ptr[lang]->numfilesizes; size++) {
-		if (ingamelang_ptr[lang]->filesizes[size] == exesize) {
+		if (littleendian(ingamelang_ptr[lang]->filesizes[size],4) == exesize) {
 			return lang;
 		}
 	}
@@ -157,8 +177,8 @@ int findsize(const char *filename)
 int main(int argc, char **argv)
 {
   FILE *txt, *dat;
-  char *baseline, *line, *name, c;
-  u32 u, *offsets;
+  char *baseline, *line, *name, c, *strdata;
+  u32 u; //, *offsets;
   int i, lineno, datasize;
 
   printf("mkpttxt - takes ttdpttxt.txt and converts it into ttdpttxt.dat\n"
@@ -187,26 +207,37 @@ int main(int argc, char **argv)
   printf("Using language %d as default.\n", i+1);
 
   // set default (language from executable file size)
-  defstr = ingamelang_ptr[i];
-  offsets = (u32*) defstr->data;
+  defstr = (pingame) littleendian((int)ingamelang_ptr[i], 4);
+  strdata = (char*) littleendian((int) defstr->data, 4);
 
+  while (1) {
+	i = littleendian( *( (u16*) strdata), 2);
+	strdata += 2;
+	if (i == 0xffff) break;
+	if (i > TXT_last)
+		error("invalid string ID %d > %d\n", i, TXT_last);
+	linelen = littleendian( *( (u16*) strdata), 2);
+	strdata += 2;
+/*
   for (i=0; i<TXT_last; i++) {
 	if (defstr) {
-		line = defstr->data + offsets[i];
+		line = defstr->data + littleendian(offsets[i], 4);
 		if (i == TXT_last - 1)
-			linelen = defstr->size;
+			linelen = littleendian(defstr->size, 4);
 		else
-			linelen = offsets[i+1];
+			linelen = littleendian(offsets[i+1], 4);
 		linelen -= offsets[i];
 	} else {
 		static char untranslated[] = "(untranslated)";
 		line = untranslated;
 		linelen = strlen(line) + 1;
 	}
-	entries[i] = line;
+*/
+	entries[i] = strdata;
 	lengths[i] = linelen;
 	defined[i] = 0;
-  }
+	strdata += linelen;
+  };
 
   txt = fopen(txtname, "rt");
 
@@ -243,7 +274,7 @@ int main(int argc, char **argv)
 	line = baseline;
 	if (!fgets(line, 16384, txt))
 		break;
-	if (strncmp(line, "//", 2) == 0)
+	if ( (strncmp(line, "//", 2) == 0) || (line[0] == ';') )
 		continue;
 
 	// does it begin with whitespace?
@@ -314,24 +345,34 @@ int main(int argc, char **argv)
 
   printf("Assembling data.\n");
 
-  offsets = (u32*) data;
+//!  offsets = (u32*) data;
 
-  datasize = TXT_last * 4;
-  offsets[0] = datasize;
+//!  datasize = TXT_last * 4;
+//!  offsets[0] = datasize;
+
+  datasize = 2;
+  strdata = data;
 
   for (i=0; i<TXT_last; i++) {
+	if (!defined[i]) continue;
+
 	linelen = lengths[i];
-	datasize += linelen;
+
+	*(u16*) strdata = littleendian(i, 2);
+	strdata += 2;
+	*(u16*) strdata = littleendian(linelen, 2);
+	strdata += 2;
+
+	datasize += 4+linelen;
 	/* realloc here maybe?
 	if (datasize > VARDATASIZE)
 		error("ERROR: Too much data (more than %d characters in total)\n", VARDATASIZE);
 	*/
 
-	memcpy(data + offsets[i], entries[i], linelen);
-
-	if (i < TXT_last - 1)
-		offsets[i+1] = offsets[i] + linelen;
+	memcpy(strdata, entries[i], linelen);
+	strdata += linelen;
   }
+  *(u16*) strdata = -1;
 
   printf("Writing %s\n", tmpname);
 
@@ -342,10 +383,10 @@ int main(int argc, char **argv)
   u = MAGIC;
   fwrite(&u, 4, 1, dat);
 
-  u = TXT_VERSIONID;
+  u = MAGIC ^ 0x12345678;
   fwrite(&u, 4, 1, dat);
 
-  u = datasize;
+  u = littleendian(datasize,4);
   fwrite(&u, 4, 1, dat);
 
   fwrite(data, 1, datasize, dat);
@@ -369,7 +410,7 @@ int main(int argc, char **argv)
   for (i=0; i<TXT_last; i++) {
 	if (!defined[i]) {
 		if (!txtindex)
-			printf("\nWARNING! The following entries are missing:\n");
+			printf("\nNotice: the following entries are using the default strings:\n");
 		txtindex = 1;
 		printf("\t%s\n", ingametextnames[i]);
 	}

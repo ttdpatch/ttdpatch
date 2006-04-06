@@ -20,8 +20,8 @@ PrepareCustomSound_dummy:
 	ret
 
 	align 4
-var PlayCustomSound, dd PlayCustomSound_dummy
-var PrepareCustomSound, dd PrepareCustomSound_dummy
+vard PlayCustomSound, PlayCustomSound_dummy
+vard PrepareCustomSound, PrepareCustomSound_dummy
 #endif
 
 global generatesound
@@ -223,7 +223,7 @@ struc soundcfg
 	.signedsample	resw 1		// if nonzero, the device needs signed bytes in the buffer
 endstruc_32
 
-var SoundCfgName, db "SOUND.CFG",0
+varb SoundCfgName, "SOUND.CFG",0
 
 // data from SOUND.CFG is loaded here during initialization
 uvarb SoundCfgData,soundcfg_size
@@ -535,14 +535,14 @@ endproc
 
 // some parts of the playback need to be changed for stereo playback and auto-init DMA
 // instead of conditional jumps, we do indirect calls to addresses stored here
-var mixbuffer,dd addr(mixmonosoundtobuffer)
-var mixbuffer_upsample,dd addr(mixmonosoundtobuffer_upsample)
-var needrefill,dd addr(checkaudiopending)
-var postsound,dd addr(postnormalsound)
+vard mixbuffer, addr(mixmonosoundtobuffer)
+vard mixbuffer_upsample, addr(mixmonosoundtobuffer_upsample)
+vard needrefill, addr(checkaudiopending)
+vard postsound, addr(postnormalsound)
 
 // maximum number of sample bytes that can be used in one go
-var maxsamplelen, dd SOUNDBUFSIZE/2
-var maxsamplelen_upsample, dd SOUNDBUFSIZE/2/2
+vard maxsamplelen, SOUNDBUFSIZE/2
+vard maxsamplelen_upsample, SOUNDBUFSIZE/2/2
 
 // set to 1 when the sound card actually starts playing
 uvarb PlaybackStarted
@@ -919,7 +919,7 @@ proc playsound
 	_ret
 endproc
 
-var PanningLeftShrVals, db 0,0,0,0,0,1,2,4,8
-var PanningRightShrVals, db 8,4,2,1,0,0,0,0,0
+varb PanningLeftShrVals, 0,0,0,0,0,1,2,4,8
+varb PanningRightShrVals, 8,4,2,1,0,0,0,0,0
 
 #endif

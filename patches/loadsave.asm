@@ -1911,10 +1911,13 @@ loadplayer2array:
 	push eax
 	mov esi,esp
 	mov ecx,4
+	push eax
 	call ebp			// load saved array size into [esp]
+	pop eax
 	imul ecx,[esp],8
+	sub eax,4
 	cmp ecx,eax
-	jne badchunk
+	jne .bad
 
 	xor eax,eax
 
@@ -1940,6 +1943,10 @@ loadplayer2array:
 	or byte [extrachunksloaded2],LOADED_X2_PLAYER2
 	ret
 
+.bad:
+	pop ecx
+	jmp badchunk
+
 saveplayer2array:
 	mov ecx,player2_size
 	push ecx
@@ -1952,7 +1959,7 @@ saveplayer2array:
 
 	mov esi,[player2array]
 	pop ecx
-	mov ecx,eax			// gives array size
+	shl ecx,3			// gives array size
 	call ebp			// save actual array
 	ret
 

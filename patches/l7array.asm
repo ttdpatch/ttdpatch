@@ -8,6 +8,7 @@
 // 50		Station tile flags (L7STAT_*)
 // 80		Industry tile triggers
 // 90/bridge	Higher bridges, height
+// 90/tunnel	enhanctunnels bridge
 
 #include <std.inc>
 #include <flags.inc>

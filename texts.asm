@@ -20,11 +20,12 @@
 %endif
 %endif
 
+%include "inc/ourtext.inc"
+
 definesegment
 
 global _ingamelang_num,_ingamelang_ptr
 global ingamelang_num,ingamelang_ptr
-;,_ingamelang_maxsize
 
 ;
 ; -------------------------------------
@@ -32,17 +33,17 @@ global ingamelang_num,ingamelang_ptr
 ; -------------------------------------
 ;
 
-%assign i 0
-%macro entry 1	; entryname
-	%ifdef entries
-		%xdefine entries entries %+ ,%1
-	%else
-		%define entries %1
+%define lastend NONE
+%macro def 1-2+	; entryname [, initialization]
+	%ifnidn lastend,NONE
+		lastend:
 	%endif
-
-	; for perl/texts.pl
-	%1 equ i
-	%assign i i+1
+	%define laststart thisshort %+ _%1
+	%define lastend lastlang %+ _%1_end
+laststart:
+	dw ourtext_%1 & 0x7ff, lastend - %%start
+%%start:
+	%2
 %endmacro
 
 %assign langnum 0
@@ -51,17 +52,12 @@ global ingamelang_num,ingamelang_ptr
 %macro setend 1 ; nextlang
 	%ifdef lastlang
 
+		lastend:
+			dw -1
 		lastlang %+ end :
+		%define lastend NONE
 
-;		%define cursize lastlang %+ end - lastlang %+ start
 		%ifndef PREPROCESSONLY
-;			%if cursize > vardatasize
-;				%error "Increase vardatasize!"
-;			%endif
-;			%if cursize > maxsize
-;				%define maxsize cursize
-;			%endif
-
 			checkall lastlang,entries
 		%endif
 	%endif
@@ -72,26 +68,12 @@ global ingamelang_num,ingamelang_ptr
 %macro allentries 3-* ; name,short,entries...
 	%define thisname %1
 	%define thisshort %2
-	%rotate 2
-	%rep %0-2
-		ofs(thisshort %+ _%1 - thisname %+ start)
-		%rotate 1
-	%endrep
 %endmacro
 
 %macro checkall 2-* ; name,entries...
 	%define thisname %1
 	%rotate 1
 	%assign lastofs 0
-	%rep %0-1
-		%assign thisofs thisshort %+ _%1 - $$
-		%if thisofs < lastofs
-			%define thisofsname %1
-			%error "thisname thisofsname is in wrong order!"
-		%endif
-		%assign lastofs thisofs
-		%rotate 1
-	%endrep
 %endmacro
 	
 
@@ -166,3 +148,7 @@ _ingamelang_ptr:
 	ofs(lang %+ i)
 	%assign i i+1
 %endrep
+
+txt_last:
+_txt_last:
+	dd ourtext_last

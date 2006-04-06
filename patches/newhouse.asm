@@ -57,7 +57,9 @@ uvard orghouseoffsets,12
 // Offsets to the new house arrays in the same order as their original counterparts
 // appear in the TTD executable. Needed to simplify updating offsets in vars.ah
 // (see patches.ah)
-var newhouseoffsets, dd newhousepartflags
+vard newhouseoffsets
+
+dd newhousepartflags
 dd newhouseflags
 dd newhouseyears
 dd newhousepopulations
@@ -69,6 +71,8 @@ dd newhouseremoveratings
 dd newhouseremovemultipliers
 dd newhousenames
 dd newhouseavailmasks
+
+section .text
 
 // Set to 1 while generating the houses of a new town
 uvarb newtownconstr
@@ -2074,10 +2078,10 @@ processhouseconstruction:
 	or al,al
 	ret
 
-var refreshrectxleft, dd 31
-var refreshrectxright, dd 36
-var refreshrectyup, dd 122
-var refreshrectydown, dd 32
+vard refreshrectxleft, 31
+vard refreshrectxright, 36
+vard refreshrectyup, 122
+vard refreshrectydown, 32
 
 // Called in RefreshTile, to calculate the rectangle that needs to be redrawn
 // in:	ax,dx=absolute x coordinate of N corner of tile

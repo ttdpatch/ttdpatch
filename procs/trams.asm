@@ -10,6 +10,7 @@
 #include <patchproc.inc>
 #include <ptrvar.inc>
 #include <textdef.inc>
+#include <misc.inc>
 
 patchproc trams, patchtrams
 
@@ -24,7 +25,7 @@ extern insertTramsIntoGetGroundAltitude, insertTramsIntoGetGroundAltitude.origfn
 extern stopTramOvertaking, rvcheckovertake, patchflags, editTramMode,stdRoadElemListPtr
 extern tramtracks,saTramConstrWindowElemList,tramtracksprites
 extern setTramXPieceTool,setTramYPieceTool
-extern bTempNewBridgeDirection, checkIfThisShouldBeATramStop
+extern bTempNewBridgeDirection, checkIfThisShouldBeATramStop, addsprite,paRoadConstrWinClickProcs
 
 extern updateBridgeData1, updateBridgeData2, updateBridgeData1.origfn, updateBridgeData2.origfn
 
@@ -58,7 +59,7 @@ begincodefragments
 
 	codefragment newStartRVProcessing
 		icall	storeVehIDAndContinue
-		setfragmentsize 7
+		setfragmentsize 12
 
 	//hack the end of RVProcessing to cancel the stored IDX
 	codefragment oldEndRVProcessing, 2
@@ -171,7 +172,7 @@ begincodefragments
 	#endif
 
 	codefragment newRVProcCheckOvertake
-		icall	stopTramOvertaking
+		ijmp	stopTramOvertaking
 		retn
 
 	codefragment oldroadmenudropdown,-9
@@ -241,7 +242,7 @@ begincodefragments
 	codefragment oldSetupLevelCrossingViaRail
 		and     byte [landscape4(bx)], 0Fh
 		or      byte [landscape4(bx)], 10h
-		or      [landscape5(bx)], dh
+		or      byte [landscape5(bx)], dh
 
 	
 	codefragment newSetupLevelCrossingViaRail
@@ -285,6 +286,42 @@ begincodefragments
 
 	codefragment findRVMovementArray
 		db 0x00, 0x00, 0x00, 0x10, 0x00, 0x02, 0x08, 0x1A, 0x00, 0x04
+
+
+	//-------------------Find creation of road Depot-----------------
+	codefragment oldCreateRoadDepot
+	#if WINTTDX
+		mov     byte [landscape5(di)], bh
+	#else
+		db 0x67, 0x65, 0x88, 0x3D
+	#endif
+		mov     [esi+depot.XY], di
+		push    ax
+		push    di
+		push    esi
+	codefragment newCreateRoadDepot
+		icall	insertTramDepotFlag
+	#if WINTTDX
+		setfragmentsize 9
+	#else
+		setfragmentsize 7
+	#endif
+	//------------------Hack the drawing to show our new depots--------
+	codefragment oldDrawRoadDepot, -7
+		pop     edi
+		pop     cx
+		pop     ax
+		add     edi, 8
+	codefragment newDrawRoadDepot
+		icall	drawTramOrRoadDepot
+		setfragmentsize 7
+	//------------------------------------------------------------
+	
+	codefragment oldFindRoadDepot, 35
+		mov     bp, 100h
+	codefragment newFindRoadDepot
+		icall	insertTramTracksIntoFindRoadDepot
+		setfragmentsize 8
     
 endcodefragments
 
@@ -292,21 +329,25 @@ patchtrams:
 	stringaddress olddrawgroundspriteroad
 	chainfunction DrawTramTracks, .origfn, 1
 
-	stringaddress oldDrawRoadStationCode, 1, 3
+	#if WINTTDX
+		stringaddress oldDrawRoadStationCode, 1, 3
+	#else
+		stringaddress oldDrawRoadStationCode, 2, 3
+	#endif
 	chainfunction drawTramTracksOnStation, .origfn, 1
 
 	stringaddress oldGroundAltidudeGetTileInfo, 1
 	chainfunction insertTramsIntoGetGroundAltitude, .origfn, 1
+    
+	mov eax, [ophandler+0x02*8]
+	mov ecx, [eax+0x1C]
+	mov [oldClass2DrawLand], ecx
+	mov dword [eax+0x1C],addr(newStartToClass2DrawLand)
 
 	patchcode oldStartRVProcessing, newStartRVProcessing, 1, 1
 	patchcode oldEndRVProcessing, newEndRVProcessing, 3, 4
 	patchcode oldClass2Chunk1, newClass2Chunk1, 1, 1
 	patchcode oldGetTileHeightMapChunk, newGetTileHeightMapChunk, 1, 1
-
-	mov eax, [ophandler+0x02*8]
-	mov ecx, [eax+0x1C]
-	mov [oldClass2DrawLand], ecx
-	mov dword [eax+0x1C],addr(newStartToClass2DrawLand)
 
 	storeaddress findClass0DrawLand, 1, 1, Class0DrawLand
 	patchcode oldSendRoadBytesToL5, newSendRoadBytesToL5, 1, 1
@@ -317,6 +358,17 @@ patchtrams:
 	patchcode oldRVProcCheckOvertake,newRVProcCheckOvertake,1,1
 
 	patchcode oldBuildBusStop, newBuildBusStop, 1, 2
+
+	#if WINTTDX
+		patchcode oldCreateRoadDepot, newCreateRoadDepot, 1, 2
+		patchcode oldDrawRoadDepot, newDrawRoadDepot, 1, 4
+		patchcode oldFindRoadDepot, newFindRoadDepot, 1, 3
+	#else
+		patchcode oldCreateRoadDepot, newCreateRoadDepot, 2, 2
+		patchcode oldDrawRoadDepot, newDrawRoadDepot, 3, 4
+		patchcode oldFindRoadDepot, newFindRoadDepot, 3, 3
+	#endif
+	
 	
 	//----------------------------LEVEL CROSSINGS
 	
@@ -340,13 +392,15 @@ patchtrams:
 	
 	//-----------------------------------------------------
 
-	testmultiflags onewayroads
-	jnz .dontTryInsertTramCode
-	patchcode oldClass2End, newClass2End, 1, 1
 	stringaddress findRVMovementArray
 	mov dword [noOneWaySetTramTurnAround.rvmovement], edi
-.dontTryInsertTramCode:
+	stringaddress oldClass2End,1,1
+    
+	testmultiflags onewayroads
+	jnz .dontTryInsertTramCode
+	storefragment newClass2End
 
+.dontTryInsertTramCode:
 	//GUI CODE:
 	stringaddress oldCreateRoadConsWindow,1,1
 	mov eax,[edi+1Fh]
@@ -364,8 +418,7 @@ patchtrams:
 
 	patchcode oldSetRoadXPieceTool,newSetRoadXPieceTool,1,1
 	patchcode oldSetRoadYPieceTool,newSetRoadYPieceTool,1,1
-	
-.dontDoShit:
+
 	or byte [newgraphicssetsenabled+1],1 << (11 - 8)
 	retn
 

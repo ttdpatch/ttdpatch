@@ -473,7 +473,8 @@ SWITCHTEXT(irrstations, "Enable irregular station construction", "")
 SWITCHTEXT(autoreplace, "Upgrade vehicles when they get old", "%d%% min. reliability for new model")
 SWITCHTEXT(autoslope, "Allows terraforming without removeing structures", "")
 SWITCHTEXT(followvehicle, "Follow vehicle motion in main map", "")
-SWITCHTEXT(followvehicle, "Enable Trams on Roads", "")
+SWITCHTEXT(trams, "Enable Trams on Roads", "")
+SWITCHTEXT(enhancetunnels, "Allows to build virtual bridges on tunnel entrances", "")
 
 
 // A cfg file (%s) could not be found and is ignored.
@@ -700,7 +701,7 @@ SETTEXT(CFG_AUTOREPLACE, "`%s' (%s) upgrades vehicles to the best available new 
 SETTEXT(CFG_AUTOSLOPE, "`%s' (%s) allows to terraform without removeing structure.")
 SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) allows the main view to follow a vehicle with a right mouse click on the Center View button in the vehicles window.")
 SETTEXT(CFG_TRAMS, "`%s' (%s) allows trams to be built.")
-
+SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) allows to build virtual bridges on tunnel entrances")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

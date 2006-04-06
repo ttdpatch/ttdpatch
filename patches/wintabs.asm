@@ -1,3 +1,11 @@
+// Revised By Lakie, December 2005
+//
+// Fixed the Fragments for DropDown Windows to work correctly with Tabs
+//
+// Modified:
+//  - DropDownMenuResetActiveButtons
+//  - DropDownMenuSetActiveButtons
+//  - DropDownMenuGetElements
 
 #include <std.inc>
 #include <window.inc>
@@ -219,11 +227,33 @@ ovar .ddmParentWinIdPtr2, -4,$,CloseDropDownMenu
 
 global DropDownMenuResetActiveButtons
 DropDownMenuResetActiveButtons:
-	movzx ecx, cx
-	push ecx
-	xor ch, ch
-	btr [esi+window.activebuttons], ecx
+// Old Code
+//
+//	movzx ecx, cx
+//	push ecx
+//	xor ch, ch
+//	btr [esi+window.activebuttons], ecx
+//	pop ecx
+
+	movzx ecx, cx // Move the tab and element in to the whole of ecx
+	push ecx // This will be modified and the tab must be preserved
+	cmp ch, 0 // Is it tab 0
+	jne .tab
+	xor ch, ch // Set the tab to 0
+	btr [esi+window.activebuttons], ecx // Set the clicked element to active
 	pop ecx
+	ret
+
+.tab:
+	push edi // Used to store the location of memory to change the bit of
+	pop edi // Restore Registor
+	dec ch // Decrease ch for this
+	movzx edi, ch // Move the current tab to edi
+	imul edi, 8 // There are 2 dwords per tab
+	add edi, dword [esi+window.data] // Add the pointer for the actual data
+	xor ch, ch // Clear the tab bit
+	btr [edi], ecx // Reset the bit
+	pop ecx // Restore the tab number
 	ret
 //btr [esi+window.activebuttons], ecx
 //db 66h, 9ch
@@ -231,20 +261,74 @@ DropDownMenuResetActiveButtons:
 
 global DropDownMenuSetActiveButtons
 DropDownMenuSetActiveButtons:
-	push ecx
-	xor ch, ch
-	bts [esi+window.activebuttons], ecx
+// Old Code
+//
+//	push ecx
+//	xor ch, ch
+//	bts [esi+window.activebuttons], ecx
+//	pop ecx
+//	mov bx, [esi+window.id]
+
+
+	movzx ecx, cx // Move the tab and element in to the whole of ecx
+	push ecx // This will be modified and the tab must be preserved
+	cmp ch, 0 // Is it tab 0
+	jne .tab
+	xor ch, ch // Set the tab to 0
+	bts [esi+window.activebuttons], ecx // Set the clicked element to active
 	pop ecx
-	mov bx, [esi+window.id]
+	ret
+
+.tab:
+	push edi // Used to store the location of memory to change the bit of
+	pop edi // Restore Registor
+	dec ch // Decrease ch for this
+	movzx edi, ch // Move the current tab to edi
+	imul edi, 8 // There are 2 dwords per tab
+	add edi, dword [esi+window.data] // Add the pointer for the actual data
+	xor ch, ch // Clear the tab bit
+	bts [edi], ecx // Reset the bit
+	pop ecx // Restore the tab number
 	ret
 //bts [esi+window.activebuttons], ecx
 //mov bx, [esi+window.id]
 
 global DropDownMenuGetElements
 DropDownMenuGetElements:
-	movzx ebp, cl
-	imul ebp, 0Ch
-	add ebp, [esi+window.elemlistptr]
+// Old Code
+//
+//	movzx ebp, cl
+//	imul ebp, 0x0C
+//	add ebp, [esi+window.elemlistptr]
+
+	cmp ch, 0 // Is the click from a tab
+	je .failed
+
+	push dx // Backup this Registor
+	mov dh, cWinDataTabs // Data to search for
+	call FindWindowData // Find the tab data in the elemenet list
+	jc .failed // Couldn't find the data (VERY BAD)
+	pop dx // Restore what ever dx was
+
+	push edi // Used to store the location(s) of the tab element lists
+	push ecx // Backup the counter registor
+	movzx ecx, byte [esi+window.selecteditem] // Get the tab active
+	imul ecx, 4 // 4 bytes in one dword and a dword per tab
+	mov edi, dword [edi] // Get the address index of tab elements
+	mov edi, dword [edi+ecx] // Get the actual tab element list
+	pop ecx // Restore the orginal ecx values
+	movzx ebp, cl // Move the actual element clicked
+	imul ebp, 0x0C // Multiple the element by the bytes per element
+	add ebp, edi // Make ebp hold the path to the actual element
+	pop edi // Restore this registor
+	jmp .worked // Skip the no tab method
+
+.failed:
+	movzx ebp, cl // Move the actual element clicked
+	imul ebp, 0x0C // Multiple the element by the bytes per element
+	add ebp, [esi+window.elemlistptr] // Make ebp hold the path to the actual element
+
+.worked:
 	ret
 //mov ebp, ecx
 //imul ebp, 0Ch

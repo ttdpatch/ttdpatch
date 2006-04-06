@@ -22,6 +22,9 @@ vard cargounitweightsptr, cargounitweights
 // -------------------
 
 ptrvar trainpower
+ptrvar rvspeed
+ptrvar shipsprite
+ptrvar planesprite
 
 
 // ----------------------------------
@@ -241,6 +244,7 @@ uvard ScreenToLandscapeCoords,1,s// in AX,CX = screen X,Y; Return AX,CX = X,Y/AX
 uvard RefreshLandscapeHighlights,1,s
 uvard GetMainViewWindow,1,s
 uvard RefreshWindows,1,s
+uvard CreateTextInputWindow,1,s
 #if WINTTDX
 uvard FindTopmostWindowAtXY,1,s
 #endif
@@ -363,7 +367,6 @@ vard cachevehvar40x, cachevehvar40x_def	// bitmask of actually cacheable 40+x va
 // constants since newcargos may modify them.
 vard stationcargowaitingmask, 0x0fff
 vard stationcargowaitingnotmask, 0xf000
-
 
 uvard ttdplatform	// 0: TTDPatch
 

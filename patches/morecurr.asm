@@ -8,7 +8,7 @@
 #include <patchdata.inc>
 #include <bitvars.inc>
 
-extern morecurropts,newsmessagefn,patchflags
+extern morecurropts,newsmessagefn,patchflags,getnumber,gettextandtableptrs,malloccrit
 
 // Currencies are in order: pound, dollar, franc, deutschmark, yen, peseta, hungarian forint,
 // polish zloty, austrian shilling, belgian franc, danish krone, finnish markka, greek drachma,
@@ -18,30 +18,43 @@ extern morecurropts,newsmessagefn,patchflags
 
 // Texts to show in the currency dropdown list, terminated by -1
 // The last but one -1 will be changed to Euro after 2002 if it's enabled
-var currtextlist,dw 0x133,0x134,0x135,0x136,0x137,0x138,ourtext(curr_HUF),ourtext(curr_PLN),
-dw ourtext(curr_ATS),ourtext(curr_BEF),ourtext(curr_DKK),ourtext(curr_FIM),ourtext(curr_GRD),
-dw ourtext(curr_CHF),ourtext(curr_NLG),ourtext(curr_ITL),ourtext(curr_SEK),ourtext(curr_RUB),-1,-1
+svarw currtextlist,currcount+1
+
+// Where to read currency definitions from
+varw currtextlistsrc
+	dw ourtext(curr_pound), ourtext(curr_dollar), ourtext(curr_franc), ourtext(curr_deutschmark)
+	dw ourtext(curr_yen), ourtext(curr_peseta), ourtext(curr_HUF), ourtext(curr_PLN), ourtext(curr_ATS)
+	dw ourtext(curr_BEF), ourtext(curr_DKK), ourtext(curr_FIM), ourtext(curr_GRD), ourtext(curr_CHF)
+	dw ourtext(curr_NLG), ourtext(curr_ITL), ourtext(curr_SEK), ourtext(curr_RUB), ourtext(curr_EUR)
 
 // Currency multipliers. Their last three decimal digits will be assumed to be after the decimal point,
 // so 1234567 will mean 1234.567
-var currmultis,dd 1000,2000,10000,4000,200000,200000,400000,6000,20000,60000,10000,8000,
+vard currmultis
+dd 1000,2000,10000,4000,200000,200000,400000,6000,20000,60000,10000,8000,
 dd 500000,2000,3000,3000000,15000,5000,2000
 
 // Currency options: thousand separator char in the low byte, the high byte is 1 if currency symbol should
 // be shown after the number.
-var curropts,dw "," , "," , "." , "." , "," , "." , 0x100 | "." , 0x100 | " " , "," , "," , "," , "," , "," ,
+varw curropts
+dw "," , "," , "." , "." , "," , "." , 0x100 | "." , 0x100 | " " , "," , "," , "," , "," , "," ,
 dw "," , "," , "," , "," , 0x100 | " " , ","
 
 // What currency symbol to use if it's before and after the number. Two separate lists are needed because
 // if a symbol needs to be separated with a space, the positon of the space will be different.
 // All symbols are stored in a dword, and can be maximum four chars long
-var currsymsbefore,dd 0xA3,"$","FF ","DM ",0xA5,"Pts","Ft ","zl ","S.","FB ","kr ","Mk",
+vard currsymsbefore
+dd 0xA3,"$","FF ","DM ",0xA5,"Pts","Ft ","zl ","S.","FB ","kr ","Mk",
 dd "Dr.","FS ","fl.","L.","kr ","P",0x9e
-var currsymsafter,dd 0xA3,"$"," FF"," DM",0xA5,"Pts"," Ft"," zl"," S."," FB"," kr","Mk",
+
+vard currsymsafter
+dd 0xA3,"$"," FF"," DM",0xA5,"Pts"," Ft"," zl"," S."," FB"," kr","Mk",
 dd " Dr."," FS"," fl.","L."," kr","P",0x9e
 
 // If nonzero, the year when Euro will be introduced instead of the currency
-var eurointr, dw 0,0,2002,2002,0,2002,2008,2010,2002,2002,0,2002,2002,0,2002,2002,0,0,0
+varw eurointr
+dw 0,0,2002,2002,0,2002,2008,2010,2002,2002,0,2002,2002,0,2002,2002,0,0,0
+
+endvar
 
 // bitmask of what currencies are disabled
 uvard disabledcurrs
@@ -185,6 +198,220 @@ isspecialyear:
 	cmp byte [currentyear],130	// overwritten
 	ret
 
+uvard pCurrencyDataBackup
+
+// Back up all currency data so it can be restored when GRFs are modified
+// just dump all arrays into a dynamically allocated buffer
+global backupcurrencydata
+backupcurrencydata:
+
+	push dword currcount*(2+4+2+4+4+2)
+	call malloccrit
+	pop edi
+
+	mov [pCurrencyDataBackup],edi
+
+	mov ecx,currcount
+	mov esi,currtextlist
+	rep movsw
+
+	mov cl,currcount
+	mov esi,currmultis
+	rep movsd
+
+	mov cl,currcount
+	mov esi,curropts
+	rep movsw
+
+	mov cl,currcount
+	mov esi,currsymsbefore
+	rep movsd
+
+	mov cl,currcount
+	mov esi,currsymsafter
+	rep movsd
+
+	mov cl,currcount
+	mov esi,eurointr
+	rep movsw
+
+	ret
+
+// restore all saved currency data saved in the previous proc
+global restorecurrencydata
+restorecurrencydata:
+
+	mov esi,[pCurrencyDataBackup]
+
+	mov ecx,currcount
+	mov edi,currtextlist
+	rep movsw
+
+	mov cl,currcount
+	mov edi,currmultis
+	rep movsd
+
+	mov cl,currcount
+	mov edi,curropts
+	rep movsw
+
+	mov cl,currcount
+	mov edi,currsymsbefore
+	rep movsd
+
+	mov cl,currcount
+	mov edi,currsymsafter
+	rep movsd
+
+	mov cl,currcount
+	mov edi,eurointr
+	rep movsw
+
+	ret
+
+// apply currency changes given in special currency ourtext()-s
+// see the wiki for the format of those texts
+global applycurrencychanges
+applycurrencychanges:
+	pusha
+
+	// set default TTD currency texts
+	xor ecx,ecx
+	mov ax,0x133	// default text for Pound
+.nextdefault:
+	cmp ecx,6
+	jb .ttdcurr
+	mov ax,[currtextlistsrc+ecx*2]
+.ttdcurr:
+	mov [currtextlist+ecx*2],ax
+	inc eax
+	inc ecx
+	cmp ecx,currcount
+	jb .nextdefault
+
+	xor ebx,ebx
+
+.dataloop:
+	movzx eax,word [currtextlistsrc+ebx*2]
+	push eax
+	call gettextandtableptrs
+	pop eax
+
+	cmp byte [edi],0
+	je .keepdefault
+
+	mov [currtextlist+ebx*2],ax
+
+.keepdefault:
+	xor al,al
+	xor ecx,ecx
+	dec ecx
+	repnz scasb	// skip the menu entry text
+
+	call .readnum
+	jz .nonewmulti
+	mov [currmultis+ebx*4],edx
+
+.nonewmulti:
+	mov al,[edi]
+	inc edi
+	or al,al
+	jz .nonewopts
+	mov ah,[edi]
+	mov [curropts+ebx*2],ax
+	xor al,al
+	repnz scasb
+
+.nonewopts:
+	lea esi,[currsymsbefore+ebx*4]
+	call .readsym
+
+	lea esi,[currsymsafter+ebx*4]
+	call .readsym
+
+	call .readnum
+	jz .noneweurointr
+	mov [eurointr+ebx*2],dx
+
+.noneweurointr:
+	inc ebx
+	cmp ebx,currcount
+	jb .dataloop
+
+	mov al,[morecurropts]
+
+	mov bh,','
+	test al,morecurrencies_comma
+	jnz .setchar
+
+	mov bh,'.'
+	test al,morecurrencies_period
+	jz .defaultchar
+
+.setchar:
+	mov ecx,currcount //apply it for all currencies
+
+.setcharloop:
+	mov [curropts-2+ecx*2],bh
+	loop .setcharloop
+
+.defaultchar:
+	and al,morecurrencies_symbefore+morecurrencies_symafter
+	jz .default // zero means leave them default
+	dec eax // else, dec it, so bl is 1 for "after", 0 for "before", just like in curropts
+	mov ecx,currcount //apply it for all currencies
+
+.overwriteloop:
+	mov [curropts-1+ecx*2],al // overwrite the high bytes of curropts to the given value
+	loop .overwriteloop
+
+.default:
+	popa
+	ret
+
+// helper functions
+
+// read a number from [edi] and return it in edx
+// zf set on error
+.readnum:
+	xor esi,esi
+	push ebx
+	mov ebx,edi
+	call getnumber
+	pop ebx
+	xor al,al
+	repnz scasb
+	cmp edx,-1
+	ret
+
+// read a curr. symbol from [edi] and write it to [esi] if not empty
+.readsym:
+	xchg edi,esi
+	lodsb
+	or al,al
+	jz .symreadexit
+
+	mov dl,4
+	and dword [edi],0
+	jmp short .storechar
+
+.loadchar:
+	lodsb
+	or al,al
+	jz .symreadexit
+.storechar:
+	stosb
+	dec dl
+	jnz .loadchar
+
+	xchg edi,esi
+	xor al,al
+	repnz scasb
+	ret
+
+.symreadexit:
+	xchg edi,esi
+	ret
 
 // Euro glyph in three font sizes
 var euroglyph

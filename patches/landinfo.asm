@@ -44,7 +44,8 @@ addlandinfoheightstring:
 	push	edi
 	movzx	esi, word [tilealtitude]			//grab the stored tileXY
 	call	[gettileinfoshort]					//re-get the altitude
-	mov		[textrefstack], dl					//push onto string
+	movzx edx,dl
+	mov		[textrefstack], edx					//push onto string
 	pop		edi
 	pop		esi
 	pop		ebx

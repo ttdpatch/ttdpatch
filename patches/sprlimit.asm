@@ -230,6 +230,7 @@ exsshowstats:
 
 // in: 	EBX = spritenumber (real)
 // out:	EBX = spritenumber (faked)
+global exsrealtofeaturesprite
 exsrealtofeaturesprite:
 	push eax
 	push esi
@@ -259,6 +260,7 @@ exsrealtofeaturespriteeax:
 
 // in: 	EBX = spritenumber (faked) => baseoursprites
 // out:	EBX = spritenumber (real)
+global exsfeaturespritetoreal
 exsfeaturespritetoreal:
 	cmp ebx, baseoursprites
 	jb .ttdorgsprite
@@ -275,6 +277,7 @@ exsfeaturespritetoreal:
 	ret
 
 // same but useing eax
+global exsfeaturespritetorealeax
 exsfeaturespritetorealeax:
 	cmp eax, baseoursprites
 	jb .ttdorgsprite

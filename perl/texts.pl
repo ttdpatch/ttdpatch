@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # Generate names and version ID of ourtext() variables
 #
-# Input: texts.lst   Output: patches/texts.ah
+# Input: inc/ourtexts.inc   Output: inc/ourtext.h
 #
 use strict;
 use FindBin qw($Bin);
@@ -15,13 +15,12 @@ print <<INTRO;
 INTRO
 
 my ($ind,$vardatasize,$maxname,@textnames);
+$ind = -1;
 while (<>) {
-	my @F = split;
-	
-	next unless /equ/ && @F==4;
-	next if $F[3] eq '$';
+	next unless /^\s*defourtext (\w+)/;
 
-	my ($name, $ind) = @F[1,3];
+	my $name = $1;
+	$ind++;
 
 	$maxname = $ind if !$maxname || $ind>$maxname;
 	print "#define TXT_$name $ind\n";

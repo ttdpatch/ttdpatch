@@ -6,6 +6,7 @@ extern class9routemaphandler,drawrailwaytile,newclass9drawland
 extern oldclass9drawland2,oldclass9routemaphandler
 extern temptracktypeptr
 
+glob_frag oldremovetunneltrack
 
 global patchbridgeheads
 
@@ -28,6 +29,10 @@ codefragment oldremovebridgetrack, -14
 	mov dl, dh
 	and dl, 0C7h
 	test dh, 1
+
+// tunbridg.asm
+glob_frag oldremovetunneltrack
+reusecodefragment oldremovetunneltrack, oldremovebridgetrack, -6
 
 codefragment newremovebridgetrack
 	icall removebridgetrack

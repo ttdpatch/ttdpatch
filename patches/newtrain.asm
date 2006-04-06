@@ -729,11 +729,11 @@ showvehrefittable:
 	jb .notrefittable	// no room in window
 
 	// now show refittable cargo types
-	mov di,ax
+	movzx edi,al
 	xor ecx,ecx
 	mov eax,[lastrefitmask]
 
-	cmp di,1
+	cmp edi,1
 	jb .shownext
 	ja .haveall
 
@@ -873,7 +873,9 @@ showvehinfosprite:
 	add dx,[trainspritemove]
 	ret
 
-	uvard isfreight
+uvard isfreight		// whether cargo type is freight or not
+uvard isfreightmult	// same as above, but only set if freighttrains is on
+			// i.e. sets whether weight should be multiplied
 
 // called to display the current wagon load amount
 //
@@ -896,7 +898,7 @@ prepfreightstack:
 	jne .notfreight
 
 	movzx eax,byte [edi+veh.cargotype]
-	bt [isfreight],eax
+	bt [isfreightmult],eax
 	jnc .notfreight
 
 	push dword [esi+veh.owner-1]

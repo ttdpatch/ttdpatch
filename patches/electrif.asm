@@ -14,7 +14,7 @@ extern bridgemiddlezcorrectforpylonswires,getbridgefoundationtype
 extern getnewstationsprite,gettileinfo,gettrackfoundationtype
 extern invalidatehandle,isengine,locationtoxy,patchflags,stationidgrfmap
 extern stationnowires,stationpylons,unimaglevmode
-
+extern gettextandtableptrs,gettextintableptr
 
 
 
@@ -192,6 +192,7 @@ getcrossingspriteset:
 ; endp getcrossingspriteset
 
 
+uvarb dontdisplaywireattunnel,1
 // ...and same for tunnel entrances/exits
 global gettunnelspriteset
 gettunnelspriteset:
@@ -204,6 +205,9 @@ gettunnelspriteset:
 
 	cmp dh,4	// rail tunnel?
 	jae .donedrawing
+
+	cmp byte [dontdisplaywireattunnel], 0
+	jnz .nowire
 
 	pusha
 
@@ -229,6 +233,7 @@ gettunnelspriteset:
 	call [addsprite]
 
 	popa
+.nowire:
 	pusha
 
 	call makesingleexitmap
@@ -337,10 +342,13 @@ getunderbridgespriteset:
 //	ESI -> vehicle
 // out:	AL = effective track type (compared then with veh.tracktype)
 // safe:EAX,EBX
+global istrackrighttype.tracktypeset
 global istrackrighttype
 istrackrighttype:
-	mov ah,[esi+veh.tracktype]
+//	mov ah,[esi+veh.tracktype]
 	mov al,[landscape3+ebx*2]	// overwritten
+.tracktypeset:	// used for enhancetunnels
+	mov ah,[esi+veh.tracktype]
 	and al,0xF
 	cmp ah,0
 	jne short .done
@@ -478,6 +486,10 @@ var monorailtextreplace
 	dw 0x8106,0x8107	// new engine
 	dw 0x881d,0x881e	// new waggon
 	dw ourtext(monorailwagon),ourtext(maglevwagon)
+
+	// text IDs to save and restore (all TTD IDs in the above list)
+varw railtypetextids, 0x100b,0x100c,0x1016,0x1017,0x8106,0x8107,0x881d,0x881e
+uvard railtypetextbackup,8	// as many as there are IDs in railtypetextids
 
 global nummonorailtextreplace
 nummonorailtextreplace equ (addr($)-monorailtextreplace)/4
@@ -1628,6 +1640,7 @@ drawpylons_diagonal:
 drawpylons_makeesi:
 	call locationtoxy
 
+global drawpylons
 // use this entry point if ESI = XY index already
 drawpylons:
 		// make sure badpylondirs is reset the next time drawpylons is called
@@ -1798,6 +1811,7 @@ displaywires_return:
 //		(normally set/reset and returned by drawpylon)
 //	DI = height layout
 // uses:everything
+global displaywires
 displaywires:
 	movzx ebx,word [catenaryspritebase]
 	or bh,bh
@@ -1976,3 +1990,41 @@ drawcrossing:
 	mov bx,1371		// overwritten
 	ret
 ; endp drawcrossing
+
+// Set menu texts etc
+global setelrailstexts
+setelrailstexts:
+	// restore default strings
+	xor ecx,ecx
+	mov esi,railtypetextids
+.next:
+	lodsw
+	cmp ax,byte -1
+	je .done
+	call gettextintableptr
+	mov ebx,[railtypetextbackup+ecx*4]
+	mov [eax+edi*4],ebx
+	inc ecx
+	jmp .next
+
+.done:
+	cmp byte [unimaglevmode],1
+	jne .notmonorail
+
+	mov esi,monorailtextreplace
+	mov ecx,nummonorailtextreplace
+	call .nextelectrtext
+
+.notmonorail:
+	mov esi,electrtextreplace
+	mov ecx,numelectrtextreplace
+
+.nextelectrtext:
+	lodsd		// now ax=new text ID, [esi-2]=text ID to replace
+	call gettextandtableptrs
+	push edi
+	mov eax,[esi-2]
+	call gettextintableptr
+	pop dword [eax+edi*4]
+	loop .nextelectrtext
+	ret

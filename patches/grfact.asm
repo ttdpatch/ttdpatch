@@ -50,7 +50,9 @@ extern setsubstbuilding,setsubstindustile,setsubstindustry,specialtext1
 extern specialtext2,specialtext3,spriteblockptr,spriteerror,spriteerrortype
 extern spritehandlertable,stationidgrfmap,temp_snowline,totalmem
 extern ttdpatchvercode,ttdplatform
-extern vehtypedataptr
+extern vehtypedataptr,textclass_maxid,restoretranstexts
+extern currtextlist,currmultis,curropts,currsymsbefore,currsymsafter,eurointr
+extern languagesettings
 
 uvarb action1lastfeature
 
@@ -426,6 +428,7 @@ action0cargo:
 action1:
 	// Four extra bytes in front of this sprite data are used this way:
 	// - unused
+	// - (word) grfhelper: stores faked spritenumber
 
 newspriteblock:
 	mov byte [action1lastfeature], al
@@ -450,6 +453,7 @@ newspriteblock:
 ; endp newspriteblock
 
 activatevehspriteblock:
+	push esi
 	mov byte [exscurfeature], al	//needed to resolve the action 1 feature later ...
 	lodsb
 	mov ecx,eax
@@ -459,6 +463,9 @@ activatevehspriteblock:
 	jecxz .nosprites
 	call insertactivespriteblockaction1
 .nosprites:
+	// grfhelper
+	pop esi
+	mov word [esi-2-2], ax		// esi is on pseudspritedata+2
 	mov [spritebase],eax
 	ret
 
@@ -1187,8 +1194,18 @@ action4:
 checklanguage:
 	lodsb
 	mov ecx,[languageid]
+	test al,0x40
+	jnz .oneid
 	inc ecx
 	sar al,cl
+	ret
+
+.oneid:
+	xor cl,al
+	and cl,0x3f
+	jnz .notright
+	stc
+.notright:
 	ret
 
 initnewvehnames:
@@ -1232,9 +1249,15 @@ initnewvehnames:
 
 	push edi
 	lodsw
+	movzx edi,ax
+	shr edi,11
+	cmp ax,[textclass_maxid+edi*2]
+	ja .badidpop
 	call gettextintableptr
 	test eax,eax
 	jg .ok
+
+.badidpop:
 	pop edi
 
 .badid:
@@ -1303,7 +1326,7 @@ undogentextnames:	// not an actual action handler, but best fits in here
 	jnz .undoit
 
 .done:
-	ret
+	jmp restoretranstexts		// restore E0xx texts
 
 .undoit:
 	mov edx,[esi]	// get orggentext struc
@@ -1324,8 +1347,12 @@ undogentextnames:	// not an actual action handler, but best fits in here
 
 applynewvehnames:
 	movzx ebx,byte [vehbase+eax]
-	lodsb
+	call checklanguage
+	jc .rightlanguage
+.trans:
+	ret
 
+.rightlanguage:
 	btr eax,7		// general texts instead of vehicle names?
 	sbb edx,edx		// 0 for vehnames, -1 for general texts
 
@@ -1335,14 +1362,6 @@ applynewvehnames:
 	je .trans	// skip translated general texts
 #endif
 
-	mov ecx,[languageid]
-	inc ecx
-	shr al,cl
-	jc .rightlanguage
-.trans:
-	ret
-
-.rightlanguage:
 	xor ebp,ebp
 
 	lodsb
@@ -1399,6 +1418,7 @@ applynewvehnames:
 action5:
 	// Four extra bytes in front of this sprite data are used this way:
 	// - unused
+	// - (word) grfhelper: stores faked spritenumber
 
 checknewgraphicsblock:
 	mov ebp,eax
@@ -1449,6 +1469,7 @@ activatenewgraphics:
 	jc skipnewgraphicsblock
 
 .useset:
+	push esi
 	call getextendedbyte
 	mov esi,[newgraphicsspritenums+ecx-4*4]
 	test esi,esi
@@ -1460,6 +1481,9 @@ activatenewgraphics:
 	xchg eax,ecx
 	call insertactivespriteblock
 
+	//grfhelper
+	pop esi
+	mov word [esi-2-2], ax		// esi is on pseudspritedata+2
 	mov [ebx],ax
 	ret
 
@@ -2669,13 +2693,12 @@ newtownnameparts:
 	lodsb
 	or al,al
 	jz .endofnames
-	mov ecx,[languageid]		// is this the name we need?
-	inc ecx
-	sar al,cl
+	dec esi		// checklanguage wants to lodsb too
+	call checklanguage
 	jnc .notthis
 	mov [currtownstylename],esi	// yes, store offset in temp. var
 .notthis:
-	and ecx,byte -1			// then skip name
+	or ecx,byte -1			// then skip name
 	xor al,al
 	xchg esi,edi
 	repnz scasb
@@ -3052,7 +3075,8 @@ defvehdata spechousedata
 defvehdata spclhousedata, F,F,w,B,B,B,B,B,w,B,t,w,B,F,B,d,B,B,B,B,F,B,d	// 08..1e
 
 defvehdata specglobaldata
-defvehdata spclglobaldata, B,F				// 08..09
+defvehdata spclglobaldata, B,F,t,d,w,d,d,w		// 08..0F
+		
 
 defvehdata specindustiledata
 defvehdata spclindustiledata, F,F,w,w,w,B,B,w,B,B	// 08..11
@@ -3261,6 +3285,7 @@ var externalvars		// for variational cargo IDs and action 7/9/D
 	dd lastcalcresult	// 1C	9C
 	dd ttdplatform		// 1D	9D
 	dd grfmodflags		// 1E   9E
+	dd languagesettings	// 1F	9F
 
 global numextvars
 numextvars equ (addr($)-externalvars)/4
@@ -3320,7 +3345,7 @@ var newtrainvehdata
 	dd traincargoclasses,trainnotcargoclasses		// 28,29
 
 var newrvvehdata
-	dd rvpowers, rvweight, rvspeed, newrvrefit		// 13,14,15,16
+	dd rvpowers, rvweight, rvhspeed, newrvrefit		// 13,14,15,16
 	dd rvcallbackflags, rvtecoeff, rvc2coeff, rvrefitcost	// 17,18,19,1A
 	dd rvphase2dec,rvmiscflags,rvcargoclasses		// 1B,1C,1D
 	dd rvnotcargoclasses					// 1E
@@ -3373,6 +3398,8 @@ var housedata
 	
 var globaldata
 	dd basecostmult,addr(setcargotranstbl)			// 08..09
+	dd currtextlist,currmultis,curropts,currsymsbefore	// 0A..0D
+	dd currsymsafter,eurointr				// 0E..0F
 
 var industiledata
 	dd addr(setsubstindustile),addr(setindustileoverride)	// 08..09

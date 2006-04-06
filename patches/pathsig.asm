@@ -1315,6 +1315,21 @@ lastwagoncleartile:
 	cmp byte [landscape5(di,1)],4
 	jnb .nottunnel
 
+	// enhancetunnels hotfix
+	test byte [landscape5(di,1)], 1
+	jz .othertunneldir
+	cmp ebp, 1
+	je .ontunnelbridge
+	cmp ebp, 5
+	je .ontunnelbridge
+	jmp .withouttunnelbridge
+.othertunneldir:
+	cmp ebp, 3
+	je .ontunnelbridge
+	cmp ebp, 7
+	je .ontunnelbridge
+.withouttunnelbridge:
+
 	// train left tunnel entrance; we need to clear the pieces in front
 	// of the other end instead
 
@@ -1324,6 +1339,7 @@ lastwagoncleartile:
 	call [gettunnelotherend]
 	or byte [lastmovementstat],0x80
 
+.ontunnelbridge:
 .nottunnel:
 	push edi
 

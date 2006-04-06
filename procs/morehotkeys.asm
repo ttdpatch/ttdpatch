@@ -16,18 +16,24 @@ codefragment newhotkeycenter
 	call runindex(hotkeyfunction)
 	db 0x74	 //jz
 
-codefragment oldtoolselect
+codefragment oldrailtoolselect
 	sub al,'1'
 	cmp al,4
 maxtoolnum equ $-1
 
-codefragment newtoolselect
+codefragment newrailtoolselect
 	nop
 	mov ah,0
-tooltype equ $-1
 	call runindex(toolselect)
 	setfragmentsize 9
 
+reusecodefragment oldrvtoolselect,oldrailtoolselect,-4
+
+codefragment newrvtoolselect
+	push ax
+	icall rvtoolselect
+	jne fragmentstart+0x18c-0x178
+	setfragmentsize 13
 
 endcodefragments
 
@@ -38,9 +44,9 @@ patchmorehotkeys:
 	mov byte [edi+lastediadj+23],0
 	mov byte [edi+lastediadj+52],0x90
 
-	patchcode oldtoolselect,newtoolselect,1,1
+	patchcode railtoolselect
 	mov ebx,maxtoolnum
 	mov byte [ebx],2	// 2 tools selectable for road vehicles
-	mov byte [byte ebx+tooltype-maxtoolnum],1	// mark as road vehicles
-	patchcode oldtoolselect,newtoolselect,1,1
+	patchcode rvtoolselect
 	ret
+

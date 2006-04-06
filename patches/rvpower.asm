@@ -193,7 +193,7 @@ showrvweightpurchase:
 	div bl
 	xchg eax,edx
 
-	movzx eax,byte [rvspeed+edx-ROADVEHBASE]
+	movzx eax,byte [rvhspeed+edx-ROADVEHBASE]
 	test eax,eax
 	jz .keepregularspeed
 
@@ -269,7 +269,7 @@ showrvweightpurchase:
 // safe:esi
 global rvnewvehinfo
 rvnewvehinfo:
-	movzx esi,byte [rvspeed+ebx-ROADVEHBASE]
+	movzx esi,byte [rvhspeed+ebx-ROADVEHBASE]
 	test esi,esi
 	jz .keepregularspeed
 
@@ -292,10 +292,10 @@ rvnewvehinfo:
 //	esi=vehicle
 global setrvspeed
 setrvspeed:
-	cmp byte [rvspeed+ebx-ROADVEHBASE],0
+	cmp byte [rvhspeed+ebx-ROADVEHBASE],0
 	je .keepregularspeed
 
-	movzx eax,byte [rvspeed+ebx-ROADVEHBASE]
+	movzx eax,byte [rvhspeed+ebx-ROADVEHBASE]
 	shl eax,2
 
 .keepregularspeed:

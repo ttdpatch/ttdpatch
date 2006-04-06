@@ -145,6 +145,7 @@ ttdvar(interestrate,0x77118)		// W: Interest rate in percent
 ttdvar(economy,0x7712a)			// W: Economy difficulty setting
 ttdvar(disasters,0x7712e)		// W: Disasters difficulty setting
 ttdvar(currency,0x770fb)			// B: currency used in display: 0=pound, 1=dollar, ...
+ttdvar(measuresys,0x770fc)			// B: measurement system: 0=imperial, 1=metric
 
 ttdvar(human1,0x770f8)			// B: Player number of human player
 ttdvar(human2,0x770f9)			// B: and of other player if multiplayer, ff if none
@@ -238,7 +239,11 @@ ttdvar(actionnestlevel,0x9edec)		// B: nesting level of [actionhandler] calls (s
 
 
 ttdvar(uiflags,0x9f1e6)			// W: bit 10: edit control active; other bits=??
+
+
 ttdvar(scurrspriteheader,0x9f186)	// 8B: current sprite header used in when drawing sprite
+ttdvar(baTempBuffer1,0x9f1e8)		// 256B: tempbuffer1 for various TTD functions
+ttdvar(baTextInputBuffer,0x9f629)	// 64B
 ttdvar(temprecolormapsprite,0x9f18E)	// 6B: pointer to recolor spritedata
 ttdvar(initialspriteline, 0x9F1AC)	// W: initialspriteline when drawing tile compressed sprite
 

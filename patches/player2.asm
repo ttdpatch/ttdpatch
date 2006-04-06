@@ -10,6 +10,7 @@
 #include <ptrvar.inc>
 
 extern tempvehcols,isengine,isfreight,isrvtypebus,newvehdata
+extern cargoclass,getdefvehcargotype
 
 uvard player2array
 
@@ -33,18 +34,19 @@ global getvehiclecolors
 getvehiclecolors:
 	push eax
 	push ebx
-	mov eax,[esp+12]
+	push edx
+	mov eax,[esp+16]
 	movzx ebx,byte [eax+veh.owner]
+	movzx edx,byte [eax+veh.cargotype]
 	movzx eax,byte [eax+veh.vehtype]
 .getcolor:
-	// here eax=vehtype ebx=player
+	// here eax=vehtype ebx=player edx=cargotype
 	mov ah,[companycolors+ebx]
 	mov [tempvehcols+0],ah
 	imul ebx,0+player2_size
 	add ebx,[player2array]
-	mov ah,cColorSchemeDarkGreen	// default 2nd col to use (maps green->green)
 	test byte [ebx+player2.colschemes],1<<COLSCHEME_HAS2CC
-	jz .no2ndcol
+	jz .no2ndcol			// if no secondary colour set, use primary instead
 	mov ah,[ebx+player2.col2]
 .no2ndcol:
 	mov [tempvehcols+1],ah
@@ -55,22 +57,43 @@ getvehiclecolors:
 	jb .train
 
 	cmp al,SHIPBASE
-	jb .rv
+	jb near .rv
 
 	cmp al,AIRCRAFTBASE
-	jb .ship
+	jb near .ship
 
 .aircraft:
-	mov al,COLSCHEME_AIRCRAFT
-	jmp short .special
+	test byte [cargoclass+edx*2],1
+	jz near .freightplane
+
+	cmp byte [planeisheli+(eax-AIRCRAFTBASE)],2
+	jb .heli
+
+	cmp byte [planeislarge+(eax-AIRCRAFTBASE)],1
+	sbb al,al			// -1 if small, 0 if large
+	add al,COLSCHEME_LAPLANE	// _LAPLANE if large, _SAPLANE if not
+	jmp .special
+
+.heli:
+	mov al,COLSCHEME_HELI
+	jmp .special
+
+.freightplane:
+	mov al,COLSCHEME_FRPLANE
+	jmp .special
 
 .train:
 	bt [isengine],eax
 	jnc .wagon
 
+	test byte [vehmiscflags+eax],VEHMISCFLAG_MULTIPLEUNIT
 	mov ah,[traintractiontype+eax]
+	jnz .ismu
+
+	cmp ah,0x38
+	jae .maglev
 	cmp ah,0x32
-	jae .monorailmaglev
+	jae .monorail
 	cmp ah,0x28
 	jae .electric
 	cmp ah,0x08
@@ -84,8 +107,17 @@ getvehiclecolors:
 .electric:
 	mov al,COLSCHEME_ELECTRIC
 	jmp short .special
-.monorailmaglev:
-	mov al,COLSCHEME_MR_MAGLEV
+.monorail:
+	mov al,COLSCHEME_MONORAIL
+	jmp short .special
+.maglev:
+	mov al,COLSCHEME_MAGLEV
+	jmp short .special
+
+.ismu:	
+	cmp ah,0x28
+	sbb al,al		// -1 for DMU, 0 for EMU
+	add al,COLSCHEME_EMU
 	jmp short .special
 
 .wagon:
@@ -97,13 +129,28 @@ getvehiclecolors:
 	jmp short .special
 
 .rv:
+	test byte [vehmiscflags+eax],VEHMISCFLAG_RVISTRAM
+	jnz .tram
+	sub al,ROADVEHBASE
 	call isrvtypebus
 	setnz al
+	add al,al
 	add al,COLSCHEME_BUS
 	jmp short .special
 
+.tram:
+	mov al,COLSCHEME_TRAM
+	jmp short .special
+
 .ship:
-	mov al,COLSCHEME_SHIP
+	test byte [cargoclass+edx*2],1
+	jz .freightship
+
+	mov al,COLSCHEME_PASHIP
+	jmp short .special
+
+.freightship:
+	mov al,COLSCHEME_FRSHIP
 
 .special:
 	movzx eax,al
@@ -114,6 +161,7 @@ getvehiclecolors:
 	mov [tempvehcols],ax
 
 .done:
+	pop edx
 	pop ebx
 	pop eax
 	ret 4
@@ -123,6 +171,12 @@ global getvehiclecolors_vehtype
 getvehiclecolors_vehtype:
 	push eax
 	push ebx
-	mov eax,[esp+12]
+	push edx
+	mov eax,[esp+16]
 	movzx ebx,byte [human1]
+
+	push eax
+	call getdefvehcargotype
+	pop edx
 	jmp getvehiclecolors.getcolor
+

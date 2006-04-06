@@ -169,10 +169,6 @@ gettilealtmergemap:
 #if 0
 	pusha
 	call [gettileinfo]
-//	cmp dh, 0
-//	jnz .dontInsertTramTracks
-//	mov dh, [landscape3+esi*2]
-//.dontInsertTramTracks:
 	cmp bl,9 << 3
 	clc
 	jne .notbridgehead

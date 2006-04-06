@@ -26,7 +26,7 @@ codefragment newrvstationcolldet
 	bt [dorvstationcolldet],ebx
 	setfragmentsize 11
 
-codefragment_call newclass5routemaphandler,NewClass5RouteMapHandler,5
+codefragment_jmp newclass5routemaphandler,NewClass5RouteMapHandler,5
 
 endcodefragments
 

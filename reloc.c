@@ -5,6 +5,9 @@
 
 RELOC(ttdvar_base)
 RELOC(trainpower)
+RELOC(rvspeed)
+RELOC(shipsprite)
+RELOC(planesprite)
 RELOC(ophandler)
 RELOC(landscape6)
 RELOC(landscape7)

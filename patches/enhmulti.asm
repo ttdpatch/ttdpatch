@@ -30,7 +30,7 @@ uvarb localplayeridnum	// index of local player in playerids
 uvarb orighumanplayers	// bit mask of "genuine" human players, for subsidiaries support
 
 uvarb playersfound
-var playersfoundbefore, db 1
+varb playersfoundbefore, 1
 uvarb realplayernum	// Real number of players. Numplayers can't be used because TTD assumes it's either 1 or 2
 
 uvard DebugMsg,1,s
@@ -258,13 +258,13 @@ waitforconnection1:
 
 uvarb temprecbuffer,54
 
-var startstring, db "TTDPatchStartMulti"
+varb startstring, "TTDPatchStartMulti"
 
-var PlayernumStr, db 0," player(s) connected.",0
+varb PlayernumStr,  0," player(s) connected.",0
 
-var StartStr, db "Start",0
+varb StartStr, "Start",0
 
-var CancelStr, db "Cancel",0
+varb CancelStr, "Cancel",0
 
 // Called after the second part.
 // Call dorecbuffer to remove waiting DirectPlay system messages and reset our notify event

@@ -16,7 +16,7 @@ ttdpatch.obj: types.h error.h versiond.h language.h loadlng.h osfunc.h switches.
 error.obj:    error.h switches.h language.h osfunc.h
 grep.obj:     grep.h
 switches.obj: codepage.h error.h switches.h language.h types.h common.h flagdata.h sw_lists.h bitnames.h versiond.h
-loadlng.obj:  zlib.h grep.h common.h error.h loadlng.h versiond.h types.h language.h patches/texts.h auxfiles.h
+loadlng.obj:  zlib.h grep.h common.h error.h loadlng.h versiond.h types.h language.h auxfiles.h
 checkexe.obj: language.h error.h grep.h checkexe.h switches.h flagdata.h loadver.h versions.h types.h common.h systexts.h
 dos.obj:      error.h exec.h osfunc.h common.h checkexe.h grep.h switches.h flagdata.h memsize.h loadlng.h versions.h types.h language.h auxfiles.h
 
@@ -24,14 +24,15 @@ ttdpatch.o	host/ttdpatch.o:	types.h error.h versionw.h language.h loadlng.h osfu
 error.o		host/error.o:		error.h switches.h language.h osfunc.h
 grep.o		host/grep.o:		grep.h
 switches.o	host/switches.o:	codepage.h error.h switches.h language.h types.h common.h flagdata.h sw_lists.h bitnames.h versionw.h
-loadlng.o	host/loadlng.o:		zlib.h grep.h common.h error.h loadlng.h versionw.h types.h language.h patches/texts.h auxfiles.h
+loadlng.o	host/loadlng.o:		zlib.h grep.h common.h error.h loadlng.h versionw.h types.h language.h auxfiles.h
 checkexe.o	host/checkexe.o:	language.h error.h grep.h checkexe.h switches.h flagdata.h loadver.h versions.h types.h common.h systexts.h
 windows.o	host/windows.o:		osfunc.h types.h error.h checkexe.h switches.h flagdata.h loadlng.h versions.h types.h language.h common.h auxfiles.h
 codepage.o	host/codepage.o:	osfunc.h codepage.h error.h loadlng.h types.h language.h
 makelang.o	host/makelang.o:	langerr.h versionw.h auxfiles.h
 auxfiles.o	host/auxfiles.o:	auxfiles.h
 
-texts.lst texts.o host/texts.o texts_f.o texts.asp: texts.asm texts.inc
+mkpttxt.o host/mkpttxt.o:	inc/ourtext.h
+texts.lst texts.o host/texts.o texts_f.o texts.asp: texts.asm texts.inc inc/ourtext.inc
 
 ttdpatchw.res:	ttdpatchw.rc versionw.h
 

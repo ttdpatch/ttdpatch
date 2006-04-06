@@ -30,7 +30,7 @@ extern elrailsprites.trackicons,enhancegui_newgame
 extern euroglyph,exsresetspritecounts,externalvars
 extern findcurrtownname,gettexttableptr,grferror,grfidlistnum,grfresources
 extern grfstat_titleclimate,grfvarreinitstart,industileoverrides,initisengine
-extern initrailvehsorttable,initveh2,isengine,isfreight,lastextrahousedata
+extern initrailvehsorttable,initveh2,isengine,isfreight,isfreightmult,lastextrahousedata
 extern lastextraindustiledata,lastperfcachereset,lasttreepos
 extern monthlyengineloop,morecurropts,newgraphicsspritebases,newspritedata
 extern newspritenum,newttdsprites,newvehdata,newvehicles,numactsprites
@@ -48,7 +48,8 @@ extern stationclassesused,stationidgrfmap,stationpylons,temp_snowline
 extern textcolortablewithcompany,undogentextnames,unimaglevmode
 extern updatecurrlist,veh2ptr,vehbnum,vehsorttable,setwillbeactive
 extern vehtypedataptr,numpredefstationclasses,spritecache,editTramMode
-extern cargobits
+extern cargobits,resetourtextptr,restorecurrencydata,applycurrencychanges
+extern languagesettings,languageid,setdeflanguage
 
 // New class 0xF (vehtype management) initialization handler
 // does additional things before calling the original function
@@ -411,7 +412,7 @@ infoapply:
 
 	mov eax,spritereserveaction
 	call procallsprites
-	call resolvecargotranslations
+	call postinforeserve
 
 	// reset "(in)active" to "will be (in)active"
 	call setwillbeactive
@@ -425,6 +426,17 @@ infoapply:
 	popa
 	ret
 
+	// at this point, only newcargo action 0, action D and action E are processed
+global postinforeserve
+postinforeserve:
+	call resolvecargotranslations
+	call setdeflanguage
+	mov eax,[languagesettings]
+	cmp eax,-1
+	je .nonewsetting
+	mov [languageid],al
+.nonewsetting:
+	ret
 
 	// reset each of the new TTDPatch vehicle properties
 global initttdpatchdata
@@ -642,8 +654,10 @@ initttdpatchdata:
 	// reset freight train bits
 	testflags freighttrains	// by default everything 
 	sbb eax,eax		// unless freighttrains is off
-	and eax,byte ~0101b	// and remove pass+mail
-	mov [isfreight],eax	
+	mov edx,~0101b		// default freight types: all but pass+mail
+	and eax,edx		// and remove pass+mail
+	mov [isfreightmult],eax	// set to 0 if freight trains off, else default freight types
+	mov [isfreight],edx	// set to default freight types
 
 	// also clear all TTDPatch overridden graphics
 	// (i.e. those that have the immutable flag set)
@@ -714,6 +728,8 @@ initttdpatchdata:
 preinfoapply:
 	mov edx,patchflags
 	testflagbase edx
+
+	call resetourtextptr
 
 	call initisengine
 
@@ -887,6 +903,12 @@ preinfoapply:
 	or eax,byte -1
 	mov cl,NUMCARGOS-12
 	rep stosd
+
+	testflags morecurrencies
+	jnc .nocurrs
+	call restorecurrencydata
+.nocurrs:
+
 	ret
 
 var cargowagonspeedlimit, db 0,96,0,96,80,120,96,96,96,96,120,120
@@ -1330,7 +1352,7 @@ postinfoapply:
 	cmp dl,NTRAINTYPES
 	jb .trainspeed
 
-	movzx eax,byte [rvspeed+edx-NTRAINTYPES]
+	movzx eax,byte [rvhspeed+edx-NTRAINTYPES]
 	shl eax,maxrvspeedshift
 	jnz .gotspeed
 
@@ -1386,7 +1408,14 @@ postinfoapply:
 
 	// *********
 
+	testflags morecurrencies
+	jnc .nomorecurr
+
+	call applycurrencychanges
 	call updatecurrlist
+
+.nomorecurr:
+
 // moreindustriesperclimate: for adding new cargo
 	testflags moreindustriesperclimate
 	jnc .nomoreindustriesperclimate

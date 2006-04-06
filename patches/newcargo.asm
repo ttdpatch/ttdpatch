@@ -9,11 +9,12 @@
 #include <veh.inc>
 #include <misc.inc>
 #include <newvehdata.inc>
+#include <ptrvar.inc>
 
 extern DrawGraph,DrawWindowElements,WindowClicked,calcprofitfn,cargoclass
 extern cargoclasscargos,cargoid,curspriteblock,drawtextfn
 extern fillrectangle,getnewsprite,getwincolorfromdoscolor
-extern grffeature,invalidatehandle,isfreight
+extern grffeature,invalidatehandle,isfreight,isfreightmult
 extern malloc,patchflags,pdaTempStationPtrsInCatchArea,randomstationtrigger
 extern cargobits,cargotypes,spriteblockptr,stationarray2ofst
 extern updatestationgraphics,newvehdata,specificpropertybase
@@ -54,11 +55,11 @@ global newcargodatasize
 newcargodatasize equ 6*2*32+3*1*32+8*1*32+2*32
 
 #if !WINTTDX
-var defcargocolors, db 0x98, 0x06, 0x0F, 0xAE, 0xD0, 0xC2, 0xBF, 0x37, 0xB8, 0x0A, 0xBF, 0x30
-var defcargographcolors, db 0x98, 0x06, 0x0F, 0xAE, 0xD0, 0xC2, 0xBF, 0x54, 0xB8, 0x0A, 0xCA, 0x01
+varb defcargocolors,  0x98, 0x06, 0x0F, 0xAE, 0xD0, 0xC2, 0xBF, 0x37, 0xB8, 0x0A, 0xBF, 0x30
+varb defcargographcolors,  0x98, 0x06, 0x0F, 0xAE, 0xD0, 0xC2, 0xBF, 0x54, 0xB8, 0x0A, 0xCA, 0x01
 #else
-var defcargocolors, db 0x98, 0x20, 0x0F, 0xAE, 0xD0, 0xC2, 0xBF, 0x37, 0xB8, 0x0A, 0xBF, 0x30
-var defcargographcolors, db 0x98, 0x20, 0x0F, 0xAE, 0xD0, 0xC2, 0xBF, 0x54, 0xB8, 0x0A, 0xCA, 0xD7
+varb defcargocolors,  0x98, 0x20, 0x0F, 0xAE, 0xD0, 0xC2, 0xBF, 0x37, 0xB8, 0x0A, 0xBF, 0x30
+varb defcargographcolors,  0x98, 0x20, 0x0F, 0xAE, 0xD0, 0xC2, 0xBF, 0x54, 0xB8, 0x0A, 0xCA, 0xD7
 #endif
 
 %macro copyarray 3
@@ -529,8 +530,7 @@ isrvbus:
 global isrvtypebus
 isrvtypebus:
 	push eax
-	add eax,[specificpropertybase+1*4]
-	movzx eax,byte [eax+NROADVEHTYPES*8]
+	movzx eax,byte [rvcargotype+eax]
 	jmp isrvbus.checkcargo
 
 // insert road vehicle order
@@ -1033,10 +1033,14 @@ setfreighttrainsbit:
 	sbb ah,ah
 .next:
 	btr dword [isfreight],ebx
+	btr dword [isfreightmult],ebx
 	lodsb
-	and al,ah
+	test al,al
 	jz .notset
 	bts dword [isfreight],ebx
+	and al,ah
+	jz .notset
+	bts dword [isfreightmult],ebx
 .notset:
 	inc ebx
 	loop .next

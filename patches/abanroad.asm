@@ -112,7 +112,7 @@ setclass9owner:
 	popa
 	ret	
 
-var roadadjacent, dw -0x100-1, -0x100, -0x100+1, -1, +1, +0x100-1, +0x100, +0x100+1
+varw roadadjacent,  -0x100-1, -0x100, -0x100+1, -1, +1, +0x100-1, +0x100, +0x100+1
 
 // Auxiliary function to decide wether a road is in a town
 // in: ebx: XY of tile

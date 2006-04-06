@@ -75,8 +75,9 @@ stxt numplus7, 0x98,"+7",0
 //stxt num14, 0x98,"14",0
 //stxt num15, 0x98,"15",0
 //
-//stxt numplus, 0x98,"+",0
 
+stxt numplus, 0x98,"+",0
+stxt numminus, 0x98,"-",0
 
 stxt towncargo3typesandamounts, 0x98,"  ",0x80,": ",0x8e,0x7b	// continued in the next string
 stxt towncargo2typesandamounts, 0x98,"  ",0x80,": ",0x8e,0x7b	// continued in the next string
@@ -233,3 +234,6 @@ stxt ellipsis, '...', 0
 
 stxt checkmark, 0xad, 0
 
+stxt grfhelpercaption, 0x94,"GRF Author Helper",0
+stxt grfhelper_displxrelyrel, 0x94, "Sprite: ", 0x7E, " xrel: ", 0x7C, " yrel: ", 0x7C, 0
+stxt textsprite, 0x98,"Sprite",0

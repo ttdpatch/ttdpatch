@@ -53,16 +53,19 @@ extern setcharwidthtablefn,setmainviewxy,setmousecursor,setmousetool
 extern shipcosttable,showsteamsmoke,signalchangeopptr,specificpropertybase
 extern specificpropertyofs,splittextlines,spritecacheptr,startsignalloopfn
 extern stationbuildcostptr,statusbarnewsitem,subsidyfn
-extern tempSplittextlinesNumlinesptr,traincosttable,trainpower,trainpower_ptr
+extern tempSplittextlinesNumlinesptr,traincosttable,trainpower
+extern trainpower_ptr, rvspeed_ptr, shipsprite_ptr, planesprite_ptr
 extern treeplantfn,ttdpatchversion,ttdtexthandler,veh2ptr,vehbase,vehbnum
 extern vehclassorder,vehtypedataptr,pickrandomtreefn
 extern waterbanksprites,exitcleanup,oldclass6maphandler,addcargotostation
 extern reduceyeartobyte,reduceyeartoword
 extern titlescreenloading, class0procmidsection, checkroadremovalconditions
 extern drawcenteredtextfn,drawsplitcenteredtextfn, RefreshWindows
+extern CreateTextInputWindow
 extern addrailfence1,addrailfence2,addrailfence3,addrailfence4
 extern addrailfence5,addrailfence6,addrailfence7,addrailfence8
 extern rvcheckovertake
+
 
 begincodefragments
 
@@ -1135,6 +1138,10 @@ codefragment finddrawsplitcenteredtextfn,9
 	push    dx
 	mov     bp, 276
 
+codefragment findCreateTextInputWindow, 7 
+ 	mov bp, 0x2A9
+ 	mov bl, 0xF6
+
 #if !WINTTDX
 codefragment findexitcleanup,-4
 	mov ax,0x4C00
@@ -1238,6 +1245,9 @@ ext_frag oldloadfilemask,oldgetdisasteryear
 
 %assign maxverstringlen 64
 uvarb newversionstring, maxverstringlen
+
+// pointers to the ptrvar ptrs for the specific properties of each vehicle class
+vard vehclassspecptr, trainpower_ptr, rvspeed_ptr, shipsprite_ptr, planesprite_ptr
 
 	// syntax of patchcode et.al.:
 	//
@@ -1433,6 +1443,8 @@ dogeneralpatching:
 	storeaddress findwaterbanksprites,1,1,waterbanksprites
 	storeaddress findgetgroundaltitude,1,1,getgroundaltitude
 	storefunctiontarget 12,gettileinfo	// depends on ^^
+	add eax, 0x29
+	mov [gettileinfoshort], eax
 	mov eax,[edi+40]
 	mov [groundaltsubroutines],eax
 	// steep slope support (should be in buildonslopes)
@@ -1651,9 +1663,10 @@ dogeneralpatching:
 	jnz .nottrains
 
 	add eax,trainpower-AIspecialflag
-	param_call reloc, eax,trainpower_ptr
 
 .nottrains:
+	param_call reloc, eax,dword [vehclassspecptr+ORDER*4]
+
 	setbase none
 %undef ORDER
 
@@ -1840,6 +1853,7 @@ dogeneralpatching:
 	storefunctionaddress findDestroyWindow,1,1,DestroyWindow
 	storefunctionaddress findWindowTitleBarClicked,1,1,WindowTitleBarClicked
 	storefunctionaddress findDrawWindowElements,1,2,DrawWindowElements
+	storefunctionaddress findCreateTextInputWindow,1,1,CreateTextInputWindow
 	storeaddress findFindWindow,1,1,FindWindow
 	storeaddress findGenerateDropDownMenu,1,1,GenerateDropDownMenu
 	storeaddress findCreateTooltip,1,1,CreateTooltip

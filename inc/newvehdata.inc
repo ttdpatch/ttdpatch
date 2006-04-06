@@ -12,7 +12,7 @@ struc newvehdatastruc
 
 	.rvpowers:	resb NROADVEHTYPES		//  74..CB
 	.rvweight:	resb NROADVEHTYPES		//  CC..123
-	.rvspeed:	resb NROADVEHTYPES		// 124..17B
+	.rvhspeed:	resb NROADVEHTYPES		// 124..17B
 
 		// .rvrefit and .shiprefit can both be accessed
 		// via [.refit1+vehtype*4]
@@ -59,9 +59,10 @@ struc newvehdatastruc
 	.cargolabels:	resd NUMCARGOS			// 1220..129F
 endstruc_32
 
-#define VEHMISCFLAG_TRAINTILT	1
-#define VEHMISCFLAG_RVISTRAM	1
-#define VEHMISCFLAG_TWOCOL	2
+#define VEHMISCFLAG_TRAINTILT		1	// Trains: train is tilting and can run faster in curves
+#define VEHMISCFLAG_RVISTRAM		1	// RVs: RV requires tram track
+#define VEHMISCFLAG_TWOCOL		2	// All vehicle types: has 2nd company colour support
+#define VEHMISCFLAG_MULTIPLEUNIT	4	// Trains: Vehicle is multiple unit (for colour selection)
 
 // aliases for each of the entries
 // can't use EQU or %assign because the variable hasn't actually
@@ -84,7 +85,7 @@ endstruc_32
 %define trainnotcargoclasses (newvehdata+newvehdatastruc.cargonotclasses)
 %define rvpowers (newvehdata+newvehdatastruc.rvpowers)
 %define rvweight (newvehdata+newvehdatastruc.rvweight)
-%define rvspeed (newvehdata+newvehdatastruc.rvspeed)
+%define rvhspeed (newvehdata+newvehdatastruc.rvhspeed)
 %define rvtecoeff (newvehdata+newvehdatastruc.tecoeff+ROADVEHBASE)
 %define rvc2coeff (newvehdata+newvehdatastruc.c2coeff+ROADVEHBASE)
 %define rvmiscflags (newvehdata+newvehdatastruc.vehmiscflags+ROADVEHBASE)

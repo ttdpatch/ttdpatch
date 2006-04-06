@@ -7,10 +7,11 @@
 #include <flags.inc>
 #include <textdef.inc>
 #include <window.inc>
+#include <smartpad.inc>
 
 extern FindWindow,errorpopup,hexdigits,patchflags,redrawscreen,setgamespeed
 extern setgamespeed.set,specialerrtext1
-extern texthandler
+extern texthandler,saTramConstrWindowElemList
 
 
 
@@ -239,3 +240,27 @@ toolselect:
 	pop esi
 	add dword [esp],7	// skip the call
 	ret
+
+// called when checking whether road toolbar is active
+//
+// in:	esi->toolbar window
+//	al=key code
+//	ZF=1 if is road toolbar
+// out:	ZF=1 if road/tram toolbar, ZF=0 if not
+//	al=tool index if road toolbar
+// safe:eax
+global rvtoolselect
+rvtoolselect:
+	je .isroad
+	cmp dword [esi+window.elemlistptr],saTramConstrWindowElemList
+	jne .notroad
+
+.isroad:
+	mov ah,1
+	call toolselect
+	pad 5		// because toolselect skips 7 bytes if no match and returns with ZF=0
+	test al,0	// make sure ZF=1
+
+.notroad:
+	ret
+

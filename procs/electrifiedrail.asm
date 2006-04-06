@@ -2,11 +2,12 @@
 #include <frag_mac.inc>
 
 
-extern aicargovehinittables,electrtextreplace,gettextandtableptrs
-extern gettextintableptr,gettrackspriteset.tracktypetemp,monorailtextreplace
+extern aicargovehinittables,electrtextreplace
+extern gettrackspriteset.tracktypetemp,monorailtextreplace
 extern newgraphicssetsenabled,numelectrtextreplace,nummonorailtextreplace
 extern realtracktypes,tracktypes
-extern unimaglevmode
+extern unimaglevmode,railtypetextids,gettextandtableptrs,railtypetextbackup
+
 
 
 global patchelectrifiedrail
@@ -110,27 +111,17 @@ patchelectrifiedrail:
 
 	or byte [newgraphicssetsenabled],1 << 5
 
-	// change menu texts etc.
-
-	cmp byte [unimaglevmode],1
-	jne .notmonorail
-
-	mov esi,monorailtextreplace
-	mov ecx,nummonorailtextreplace
-	call .nextelectrtext
-
-.notmonorail:
-	mov esi,electrtextreplace
-	mov ecx,numelectrtextreplace
-
-.nextelectrtext:
-	lodsd		// now ax=new text ID, [esi-2]=text ID to replace
+	// make backup of default strings
+	xor ecx,ecx
+	mov esi,railtypetextids
+.next:
+	lodsw
+	cmp ax,byte -1
+	je .done
 	call gettextandtableptrs
-	push edi
-	mov eax,[esi-2]
-	call gettextintableptr
-	pop dword [eax+edi*4]
-	loop .nextelectrtext
-
-	sub [eax+edi*4],eax	// was an ourtext() ID which is relative
+	mov [railtypetextbackup+ecx*4],edi
+	inc ecx
+	jmp .next
+.done:
 	ret
+

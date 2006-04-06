@@ -127,6 +127,7 @@ cheatentry "WATER",landwatercheat,0
 cheatentry "WHEREAMI",positioncheat,0
 cheatentry "SNOWLINE",snowlinecheat,0
 cheatentry "GOTOXY",gotocheat,0
+cheatentry "TEXTID",textidcheat,0
 #endif
 
 uvard activesign	// pointer to current sprite structure, or -1 if about to set
@@ -421,7 +422,7 @@ gethexnumber:
 	sub al,"0" & (uppercase>>24)
 	jb .done
 	cmp al,9
-	jb .havedigit
+	jbe .havedigit
 	sub al,"A"-("0" & (uppercase>>24))
 	jb .done
 	cmp al,6
@@ -2455,4 +2456,18 @@ resetinducheat:
 
 	call redrawscreen
 	clc
+	ret
+
+textidcheat:
+	call gethexnumber
+	jc .error
+
+	mov ebx,edx
+	or edx,-1
+	xor eax,eax
+	xor ecx,ecx
+	call [errorpopup]
+
+	clc
+.error:
 	ret

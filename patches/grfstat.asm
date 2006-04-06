@@ -25,6 +25,8 @@ extern spriteblockptr,spritetestactaction,tempSplittextlinesNumlinesptr
 extern totalmem
 extern totalnewsprites
 
+extern currentselectedgrf
+extern win_grfhelper_create
 
 
 %assign win_grfstat_nument 10		// entries in the list (max. possible is 16)
@@ -409,7 +411,14 @@ win_grfstat_clickhandler:
 	dopatchaction actiongrfstat
 
 .notresetbutton:
+	cmp cl, 6
+	jne .nogrfhelper
 
+	push CTRL_ANY
+	call ctrlkeystate
+	jne .nogrfhelper
+	call win_grfhelper_create
+.nogrfhelper:
 .done:
 	ret
 
@@ -537,9 +546,12 @@ win_grfstat_redraw:
 	add cx, 4
 	add dx, 15
 
+	mov dword [currentselectedgrf], 0
 	mov bh,[esi+window.selecteditem]
 	call findgrfoffset
 	jnz .showgeneral
+
+	mov dword [currentselectedgrf], eax
 
 	// fill info box at bottom
 	mov bl,1
@@ -573,6 +585,7 @@ win_grfstat_redraw:
 var grfstat_grfiddisp,	db 0x94,"GRF-ID: ",0x95
 var grfstat_hexdisplay,	db "00000000",13	// 0 terminator is in following line
 var grfstat_nothing,	db 0
+global grfstat_nothing
 
 win_grfstat_showgeneralinfo:
 	pusha

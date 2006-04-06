@@ -12,6 +12,7 @@
 #include <patchdata.inc>
 #include <newvehdata.inc>
 #include <grf.inc>
+#include <ptrvar.inc>
 
 extern cargoamountnnamesptr,cargoclass
 extern cargotypes,deftwocolormaps,exscurfeature
@@ -20,7 +21,7 @@ extern initrailvehsorttable,miscgrfvar,newvehdata,patchflags,randomtrigger
 extern showvehinfo.callback,trainspritemove
 extern trainuserbits,vehids,vehsorttable,vehvarhandler
 extern wagonoverride,getvehiclecolors,getvehiclecolors_vehtype
-extern isengine,checkoverride
+extern isengine,checkoverride,newrefitvars
 
 // called when TTD decides which sprite should be used for any
 // particular type of orientation and spritenum of a ship
@@ -1671,6 +1672,37 @@ vehtypecallback:
 	mov byte [curcallback],0
 	ret
 
+// get default cargo type from vehicle type
+//
+// in:	on stack: vehtype
+// out:	on stack: cargo type
+// uses:---
+global getdefvehcargotype
+getdefvehcargotype:
+	push eax
+	mov eax,[esp+8]
+
+	cmp al,AIRCRAFTBASE
+	jb .notplane
+
+.plane:
+	shl eax,2
+	add eax,[newrefitvars+3*4]
+	bsf eax,[eax]	// get first refittable cargo type
+	jmp short .done
+
+.notplane:
+	push ebx
+	movzx ebx,byte [vehtypeclass+eax]
+	add eax,[vehclasscargotype+ebx*4]
+	movzx eax,byte [eax]
+	pop ebx
+
+.done:
+	mov [esp+8],eax
+	pop eax
+	ret
+
 	align 4
 
 var orgsetspriteofs, db -7, -7, -5, -5
@@ -1692,6 +1724,17 @@ var orgspritebases
 	var orgshipspritebase, dd -1
 	var orgplanespritebase, dd -1
 #endif
+
+	// variable that holds cargo type
+vard vehclasscargotype, traincargotype,rvcargotype-ROADVEHBASE,shipcargotype-SHIPBASE,-1
+
+	// get class from vehtype
+varb vehtypeclass
+	times NTRAINTYPES db 0
+	times NROADVEHTYPES db 1
+	times NSHIPTYPES db 2
+	times NAIRCRAFTTYPES db 3
+endvar
 
 	// sprites used if vehicle has sprite FF but no new graphics available
 uvarb defvehsprites,256

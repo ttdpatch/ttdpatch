@@ -1,4 +1,3 @@
-
 // Text handler
 // Allows displaying our own text by setting a flag
 
@@ -7,12 +6,14 @@
 #include <systexts.inc>
 #include <grf.inc>
 #include <ptrvar.inc>
+#include <flags.inc>
 
 extern curspriteblock,customtextptr,gethousetexttable,getmiscgrftable
 extern getstationtexttable,gettextintableptr,ntxtptr
-extern systemtextptr,mainstringtable
+extern systemtextptr,mainstringtable,getextratranstable
+extern setelrailstexts,patchflags,applycurrencychanges
 
-
+uvard ourtext_ptr, ourtext(last)-ourtext(base)
 
 uvarb textprocesstodisplay		// set to 1 if the text will be displayed, so the text. ref. stack can be modified
 svarb textrecursionlevel		// -1 = primary call, 0+ = recursive
@@ -216,7 +217,7 @@ textprocessing:
 	cmp al,0xb8
 	ja .gotchar
 
-	mov al,[.chartrl+eax-0x9e]
+	mov al,[.chartrl+(eax-0x9e)*2]
 
 section .dataw
 .chartrl:
@@ -352,22 +353,30 @@ section .text
 ; endp texthandler
 
 
-	align 4
 	// patch text table handlers
 	//
 	// in:	edi=textID&7ff
 	// out:	eax->string table
 	//	edi=index into table
 	//	carry set if eax has to be added to value in table
-var getttdpatchtables
+vard getttdpatchtables
 	dd addr(getstationtexttable)	// C000
 	dd addr(gethousetexttable)	// C800
 	dd addr(getmiscgrftable)	// D000
 	dd addr(getpersistentgrftable)	// D800
-	dd addr(getnotable)		// E000
+	dd addr(getextratranstable)	// E000
 	dd addr(getnewstexttable)	// E800
 	dd addr(getnotable)		// F000	(used by TTD's critical error numbers?)
 	dd addr(getcustomtexttable)	// F800
+endvar
+
+// maximum ID defined in each class, for action 4
+varw textclass_maxid
+	dw 0x0334,0x0810,0x1024,0x1818,0x205c,0x2810,0x306c,0x3807
+	dw 0x4010,0x483b,0x5029,0x5807,0x6018,0x6838,0x707f,0
+	dw 0x8107,0x886b,0x9037,0x9842,0xa043,0,     0xb005,0
+	dw 0xc3ff,0xcbff,0xd3ff,0xdbff,0xe04a,0,     0,     ourtext(last)-1
+endvar
 
 
 global getnotable
@@ -386,18 +395,17 @@ getnewstexttable:
 
 
 getcustomtexttable:
+	mov eax,ourtext_ptr
 	cmp edi,ourtext(last) & 0x7ff		// last available entry
-	jb .custom
+	jnb .notourtext
+	clc
+	ret
 
+.notourtext:
 	sub edi,statictext(first) & 0x7ff
 	jb getnotable
 
 	mov eax,stxtptr
-	ret
-
-.custom:
-	mov eax,[customtextptr]
-	stc
 	ret
 
 
@@ -620,3 +628,43 @@ clearpersistenttexts:
 	mov ecx,$400
 	rep stosd
 	ret
+
+global initourtextptr
+initourtextptr:
+	mov edi,ourtext_ptr
+	mov eax,emptytext
+	mov ecx,ourtext(last)-ourtext(base)
+	push edi
+	rep stosd
+	pop edi
+
+	mov esi,[customtextptr]
+	xor eax,eax
+.nexttxt:
+	lodsw
+	mov ebx,eax
+	cmp ax,byte -1
+	je .done
+	cmp ax,ourtext(last)-ourtext(base)
+	jbe .ok
+	ud2
+.ok:
+	lodsw
+	mov [edi+ebx*4],esi
+	add esi,eax
+	jmp .nexttxt
+.done:
+	ret
+
+global resetourtextptr
+resetourtextptr:
+	pusha
+	call initourtextptr
+	testmultiflags electrifiedrail
+	jz .noelrails
+	call setelrailstexts
+.noelrails:
+	call applycurrencychanges
+	popa
+	ret
+

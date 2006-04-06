@@ -6,7 +6,8 @@ struc player
 			resd 1	// 08h:?
 			resd 1	// 0ah:?
 	.cash: 		resd 1	// 10h:	cash of player	(use [addexpenses] to modify for overflow protection)
-			resb 0x19-$
+			resb 0x18-$
+	.colourscheme	resb 1	// 18h: Company's Colour Scheme
 	.cashfract:	resb 1	// 19h: fraction of cash, for subtracting sub-dollar amounts
 			resb 0x26-$
 	.thisyearexpenses:resd 12//26h: several types of expenses in this year
@@ -32,20 +33,27 @@ endstruc_32
 #define COLSCHEME_STEAM 1	// ...steam engines	
 #define COLSCHEME_DIESEL 2	// ...diesel engines
 #define COLSCHEME_ELECTRIC 3	// ...electric engines
-#define COLSCHEME_MR_MAGLEV 4	// ...monorail/maglev engines
-//#define COLSCHEME_MONORAIL 4	// ...monorail engines (not used (yet?))
-//#define COLSCHEME_MAGLEV 5	// ...maglev engines (not used (yet?))
-#define COLSCHEME_MU 6		// ...DMU/EMU
-//#define COLSCHEME_DMU 6		// ...DMU (not used (yet?))
-//#define COLSCHEME_EMU 7		// ...EMU (not used (yet?))
+#define COLSCHEME_MONORAIL 4	// ...monorail engines
+#define COLSCHEME_MAGLEV 5	// ...maglev engines
+#define COLSCHEME_DMU 6		// ...DMU
+#define COLSCHEME_EMU 7		// ...EMU
 #define COLSCHEME_PASS 8	// ...passenger wagons
 #define COLSCHEME_FREIGHT 9	// ...freight wagons
-#define COLSCHEME_BUS 10	// ...busses/trams
-#define COLSCHEME_TRUCK 11	// ...trucks
-#define COLSCHEME_SHIP 12	// ...ships
-#define COLSCHEME_AIRCRAFT 13	// ...aircraft
 
-#define COLSCHEME_NUM 13	// total number of special colours above
+#define COLSCHEME_BUS 10	// ...busses
+#define COLSCHEME_TRAM 11	// ...trams
+#define COLSCHEME_TRUCK 12	// ...trucks
+
+#define COLSCHEME_PASHIP 13	// ...passenger ships
+#define COLSCHEME_FRSHIP 14	// ...freight ships
+
+#define COLSCHEME_SAPLANE 15	// ...small airport
+#define COLSCHEME_LAPLANE 16	// ...large airport
+#define COLSCHEME_FRPLANE 17	// ...freight plane
+#define COLSCHEME_HELI 18 	// ...helicopter
+
+#define COLSCHEME_NUM 18	// total number of special colours above
+
 
 // WARNING: If you use this, you must add your switch to the patchproc
 // in procs/player2.asm
@@ -57,4 +65,5 @@ struc player2
 	.specialcol:	resb 2*COLSCHEME_NUM	// special colours, 1st and 2nd
 	ALIGNB 4		// make struct size a multiple of 4
 endstruc_32
+
 

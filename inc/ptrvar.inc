@@ -8,6 +8,8 @@ ptrvardec ophandler		// Array of pointers to tables of various object handlers
 ptrvardec newhousedatablock
 ptrvardec industrydatablock
 
+// the standard vehicle properties for each vehicle class
+
 ptrvardec trainpower
 ptrvarofs AIspecialflag,trainpower,-NTRAINTYPES*3	// offset to count from the train power array
 							// to get a special flag that should be set for all
@@ -23,4 +25,33 @@ ptrvarofs traincargotype,trainpower,NTRAINTYPES*10	// ...and the cargo type [b]
 ptrvarofs trainweight,trainpower,NTRAINTYPES*11		// ...and the weight of one engine/waggon [b]
 ptrvarofs traincost,trainpower,NTRAINTYPES*12		// ...and the cost multiplier [b]
 ptrvarofs AIenginerank,trainpower,NTRAINTYPES*13	// ...and the AI's engine rank [b]
+
+ptrvardec rvspeed
+ptrvarofs rvruncostfactor,rvspeed,NROADVEHTYPES*1
+ptrvarofs rvruncostbase,rvspeed,NROADVEHTYPES*2
+ptrvarofs rvsprite,rvspeed,NROADVEHTYPES*6
+ptrvarofs rvcapacity,rvspeed,NROADVEHTYPES*7
+ptrvarofs rvcargotype,rvspeed,NROADVEHTYPES*8
+ptrvarofs rvcostfactor,rvspeed,NROADVEHTYPES*9
+ptrvarofs rvsoundeffect,rvspeed,NROADVEHTYPES*10
+
+ptrvardec shipsprite
+ptrvarofs shiprefittable,shipsprite,NSHIPTYPES*1
+ptrvarofs shipcostfactor,shipsprite,NSHIPTYPES*2
+ptrvarofs shipspeed,shipsprite,NSHIPTYPES*3
+ptrvarofs shipcargotype,shipsprite,NSHIPTYPES*4
+ptrvarofs shipcapacity,shipsprite,NSHIPTYPES*5
+ptrvarofs shipruncostfactor,shipsprite,NSHIPTYPES*7
+ptrvarofs shipsoundeffect,shipsprite,NSHIPTYPES*8
+
+ptrvardec planesprite
+ptrvarofs planeisheli,planesprite,NAIRCRAFTTYPES*1
+ptrvarofs planeislarge,planesprite,NAIRCRAFTTYPES*2
+ptrvarofs planecostfactor,planesprite,NAIRCRAFTTYPES*3
+ptrvarofs planedefspeed,planesprite,NAIRCRAFTTYPES*4		// can't use "planespeed" because that's a switch name...
+ptrvarofs planeaccel,planesprite,NAIRCRAFTTYPES*5
+ptrvarofs planeruncostfactor,planesprite,NAIRCRAFTTYPES*6
+ptrvarofs planepasscap,planesprite,NAIRCRAFTTYPES*7
+ptrvarofs planemailcap,planesprite,NAIRCRAFTTYPES*9
+ptrvarofs planesoundeffect,planesprite,NAIRCRAFTTYPES*10
 
