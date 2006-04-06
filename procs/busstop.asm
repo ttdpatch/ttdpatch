@@ -11,6 +11,7 @@ extern paStationbusstop1,paStationbusstop2,rvmovementscheme
 extern rvmovementschemestops,salorrystationguielements
 extern ttdstationspritelayout
 
+extern paStationtramstop1, paStationtramstop2
 
 global patchbusstop
 
@@ -152,6 +153,8 @@ patchbusstop:
 	add edi, 0x53*4
 	mov dword [edi], paStationbusstop1
 	mov dword [edi+4], paStationbusstop2
+	mov dword [edi+8], paStationtramstop1
+	mov dword [edi+12], paStationtramstop2
 
 	// rewrite the window system
 	stringaddress findwindowlorrystationelements,1,1

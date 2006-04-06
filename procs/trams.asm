@@ -22,7 +22,6 @@ extern Class2RouteMapHandlerChunk1, Class2RouteMapHandlerChunk2, roadtoolbarelem
 extern invalidatetile,oldClass2DrawLand, newStartToClass2DrawLand, attemptRemoveTramTracks
 extern insertTramTrackIntoRemove, noOneWaySetTramTurnAround,noOneWaySetTramTurnAround.rvmovement
 extern RoadToolBarDropDown,Class0DrawLand, updateRoadRemovalConditions, checkroadremovalconditions
-extern drawTramTracksOnStation, drawTramTracksOnStation.origfn
 extern insertTramsIntoGetGroundAltitude, insertTramsIntoGetGroundAltitude.origfn
 extern stopTramOvertaking, rvcheckovertake, patchflags, editTramMode,stdRoadElemListPtr
 extern tramtracks,saTramConstrWindowElemList,tramtracksprites
@@ -41,10 +40,6 @@ begincodefragments
 		cmp dh, 1
 		jbe $+2+0x04
 		add bx, byte -19
-
-	codefragment oldDrawRoadStationCode, -5
-		pop	ebp
-		add	ebp,4
 
 	codefragment oldGroundAltidudeGetTileInfo, 11
 		push	ebx
@@ -473,13 +468,6 @@ patchtrams:
 
 	patchcode oldfindcreatebusstopwindow, newfindcreatebusstopwindow, 1, 2
 	patchcode oldSetSelectedBusStop, newSetSelectedBusStop, 1, 1
-
-	#if WINTTDX
-		stringaddress oldDrawRoadStationCode, 1, 3
-	#else
-		stringaddress oldDrawRoadStationCode, 2, 3
-	#endif
-	chainfunction drawTramTracksOnStation, .origfn, 1
 
 	stringaddress oldGroundAltidudeGetTileInfo, 1
 	chainfunction insertTramsIntoGetGroundAltitude, .origfn, 1

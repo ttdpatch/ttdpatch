@@ -55,6 +55,7 @@ extern disabledoldhouses,enhancetunnelshelpersprite
 extern initglyphtables,setcharwidthtables,fonttables,hasaction12
 extern snowlinetableptr,getymd,restoresnowytrees,snowytemptreespritebase
 extern applysnowytemptrees,alwaysminusone
+extern updateTramStopSpriteLayout
 
 // New class 0xF (vehtype management) initialization handler
 // does additional things before calling the original function
@@ -1510,6 +1511,10 @@ postinfoapply:
 	call applysnowytemptrees
 
 .notempsnow:
+	testflags trams
+	jnc .notrams
+	call updateTramStopSpriteLayout
+.notrams:
 	ret
 
 // List of vehicles the should be made eternal

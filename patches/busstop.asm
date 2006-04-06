@@ -24,14 +24,6 @@ var paStationbusstop1
 	db 9,14,7,2,2,3
 	dd 4079
 	db 8,1,7,2,2,3
-	dd 4079 //will be replaced, as much data already filled in
-	db 0x80,0,0,1,2,16 //BLANK SPaCE FOR TRAM STOP Stuff
-	dd 4079	//unknown		  //inserted on the fly!
-	db 8,14,0,1,2,16
-	dd 4079 //unknown
-	db 8,14,0,1,2,16
-	dd 4079 //unknown
-	db 8,14,0,1,2,16
 	dd 4079
 	db 0x80
 
@@ -44,14 +36,6 @@ var paStationbusstop2
 	db 1,8,7,2,2,3
 	dd 4079
 	db 14,9,7,2,2,3
-	dd 4079 //will be replaced, as much data already filled in
-	db 0x80,0,0,1,2,16 //BLANK SPaCE FOR TRAM STOP Stuff
-	dd 4079	//unknown		  //inserted on the fly!
-	db 8,14,0,1,2,16
-	dd 4079 //unknown
-	db 8,14,0,1,2,16
-	dd 4079 //unknown
-	db 8,14,0,1,2,16
 	dd 4079
 	db 0x80
 
@@ -272,12 +256,26 @@ BusLorryStationDrawHandler:
 	jnz .busstops
 	ret
 .busstops:
+	cmp byte [editTramMode], 1
+	jz .drawTramStops
 	pusha
 	add cx, 0x44
 	mov bl, 0x53
 	xor al, al
 	call [DrawStationImageInSelWindow]
 	mov bl, 0x54
+	add dx, 0x34
+	xor al, al
+	call [DrawStationImageInSelWindow]
+	popa
+	ret
+.drawTramStops:
+	pusha
+	add cx, 0x44
+	mov bl, 0x55
+	xor al, al
+	call [DrawStationImageInSelWindow]
+	mov bl, 0x56
 	add dx, 0x34
 	xor al, al
 	call [DrawStationImageInSelWindow]

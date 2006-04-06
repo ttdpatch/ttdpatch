@@ -74,11 +74,27 @@ uvard	checkdepot5return,1,s
 vard paStationtramstop, paStationtramstop1, paStationtramstop2
 var paStationtramstop1
 	dd 1314
-	db 0x80
+	db 0,0,0,0,0,0
+	dd 4079
+	db 3,3,7,2,2,3
+	dd 4079
+	db 0,0,0,24,2,16
+	dd 4079
+	db 0,0,0,24,16,16
+	dd 4079
+	db 80h
+
 var paStationtramstop2
 	dd 1313
-	db 0x80
-
+	db 0,0,0,0,0,0
+	dd 4079
+	db 3,3,7,2,2,3
+	dd 4079
+	db 0,0,0,24,2,16
+	dd 4079	//unknown
+	db 0,0,0,24,16,16
+	dd 4079 //unknown
+	db 80h
 uvard roadmenuelemlisty2
 
 global setTramPtrWhilstRVProcessing
@@ -482,86 +498,7 @@ updateRoadRemovalConditions:
 .dontCheckWithAuthority:
 	retn
 
-global drawTramTracksOnStation
-drawTramTracksOnStation:
-	call	near $
-ovar .origfn, -4, $, drawTramTracksOnStation
 
-	cmp	word [tramtracks], 0
-	jle	near .dontAddTramTracks
-	mov	esi, dword [Class5LandPointer]
-	test	byte [landscape3+esi*2], 0x10
-	jz	near .dontAddTramTracks
-	movzx	bx, byte [landscape5(si)] //also check if L5 reports that we are in a bus stop!
-	cmp	bx, 54h
-	jnz	.tryNextDirection
-	mov	bx, 17h
-	jmp	.weGotItSoDraw
-
-.tryNextDirection:
-	mov	esi, dword [Class5LandPointer]
-	movzx	bx, byte [landscape5(si)]
-	cmp	bx, 53h
-	jnz	near .dontAddTramTracks
-	mov	bx, 18h
-
-.weGotItSoDraw:
-	push	ebx
-	add	bx, [tramtracks]
-	mov	si, 6h
-	mov	di, 6h
-	mov	dh, 1h
-	push	ebx
-	call	[addsprite]
-	pop	ebx
-	add	bx, 2
-	mov	di, 8h
-	mov	si, 8h
-	mov	dh, 8h
-	call	[addsprite]
-	pop	ebx
-
-	cmp	bx, 18h
-	jne	.drawWiresOtherDirection
-	jmp	.drawOtherWires
-
-.drawWiresOtherDirection:
-	xor	ebx,ebx
-	mov	bl, 05h
-	push	ebx
-	movzx	bx, [trambackpolesprites+ebx]
-	add	bx, [tramtracks]
-	mov	di, 0Ah
-	mov	si, 0Ah
-	mov	dh, 8h
-	call	[addsprite]
-	pop	ebx
-	movzx	bx, [tramfrontwiresprites+ebx]
-	add	bx, [tramtracks]
-	mov	di, 6h
-	mov	si, 6h
-	mov	dh, 1h
-	call	[addsprite]
-	jmp 	.dontAddTramTracks
-.drawOtherWires:
-	xor	ebx,ebx
-	mov	bl, 0Ah
-	push	ebx
-	movzx	bx, [trambackpolesprites+ebx]
-	add	bx, [tramtracks]
-	mov	di, 14h
-	mov	si, 14h
-	mov	dh, 8h
-	call	[addsprite]
-	pop	ebx
-	movzx	bx, [tramfrontwiresprites+ebx]
-	add	bx, [tramtracks]
-	mov	di, 6h
-	mov	si, 6h
-	mov	dh, 1h
-	call	[addsprite]
-.dontAddTramTracks:
-	retn
 
 global insertTramsIntoGetGroundAltitude
 insertTramsIntoGetGroundAltitude:
@@ -573,6 +510,37 @@ ovar .origfn, -4, $, insertTramsIntoGetGroundAltitude
 	jnz	.skipInsertingTramTracks
 	mov	byte dh, [landscape3+esi*2]
 .skipInsertingTramTracks:
+	retn
+
+global updateTramStopSpriteLayout
+updateTramStopSpriteLayout:
+	push	ecx
+	xor	ecx,ecx
+	mov	cx, 18h
+	add	cx, word [tramtracks]
+	mov	dword [paStationtramstop1+10], ecx
+	mov	cx, 1Ah
+	add	cx, word [tramtracks]
+	mov	dword [paStationtramstop1+20], ecx
+	mov	cx, 37h
+	add	cx, word [tramtracks]
+	mov	dword [paStationtramstop1+30], ecx
+	mov	cx, 39h
+	add	cx, word [tramtracks]
+	mov	dword [paStationtramstop1+40], ecx
+	mov	cx, 17h
+	add	cx, word [tramtracks]
+	mov	dword [paStationtramstop2+10], ecx
+	mov	cx, 19h
+	add	cx, word [tramtracks]
+	mov	dword [paStationtramstop2+20], ecx
+	mov	cx, 37h
+	add	cx, word [tramtracks]
+	mov	dword [paStationtramstop2+30], ecx
+	mov	cx, 38h
+	add	cx, word [tramtracks]
+	mov	dword [paStationtramstop2+40], ecx
+	pop	ecx
 	retn
 
 global stopTramOvertaking
@@ -594,6 +562,7 @@ stopTramOvertaking:
 uvarb	lastselection,1,s
 global createRoadConstructionWindow
 createRoadConstructionWindow:
+
 	cmp	al, 0FFh
 	jne	.dontShiftInLastValue
 	mov	al, byte [lastselection]
@@ -605,46 +574,6 @@ createRoadConstructionWindow:
 	push	ecx
 	mov	edi, dword [busstationwindow]
 	mov	word [edi], ourtext(txtetramstationheader)
-	//hack in the tram stop gfx into the GUI
-	push	ecx
-	xor	ecx,ecx
-	mov	cx, 18h
-	add	cx, word [tramtracks]
-	mov	dword [paStationbusstop1+30], ecx
-	mov	word [paStationbusstop1+24], 0303h
-	mov	cx, 1Ah
-	add	cx, word [tramtracks]
-	mov	dword [paStationbusstop1+40], ecx
-	mov	word [paStationbusstop1+34], 0303h
-	mov	cx, 37h
-	add	cx, word [tramtracks]
-	mov	dword [paStationbusstop1+50], ecx
-	mov	word [paStationbusstop1+44], 0000h
-	mov	cx, 39h
-	add	cx, word [tramtracks]
-	mov	dword [paStationbusstop1+60], ecx
-	mov	word [paStationbusstop1+54], 0000h
-	mov	dword [paStationbusstop1+70], 4079
-	mov	byte [paStationbusstop1+74], 0x80
-	mov	cx, 17h
-	add	cx, word [tramtracks]
-	mov	dword [paStationbusstop2+30], ecx
-	mov	word [paStationbusstop2+24], 0303h
-	mov	cx, 19h
-	add	cx, word [tramtracks]
-	mov	dword [paStationbusstop2+40], ecx
-	mov	word [paStationbusstop2+34], 0303h
-	mov	cx, 37h
-	add	cx, word [tramtracks]
-	mov	dword [paStationbusstop2+50], ecx
-	mov	word [paStationbusstop2+44], 0000h
-	mov	cx, 38h
-	add	cx, word [tramtracks]
-	mov	dword [paStationbusstop2+60], ecx
-	mov	word [paStationbusstop2+54], 0000h
-	mov	dword [paStationbusstop2+70], 4079
-	mov	byte [paStationbusstop2+74], 0x80
-	pop	ecx
 	mov	edi, dword [busdepotwindow]
 	mov	word [edi], ourtext(txtetramdepotheader)
 	mov	edi, dword [buildtruckstopprocarea]
@@ -667,14 +596,6 @@ createRoadConstructionWindow:
 	mov	dword [edi], eax
 	pop	edi
 	pop	eax
-	mov	dword [paStationbusstop1+30], 4079
-	mov	byte [paStationbusstop1+34], 0x80
-	mov	byte [paStationbusstop1+24], 09
-	mov	byte [paStationbusstop1+25], 14
-	mov	dword [paStationbusstop2+30], 4079
-	mov	byte [paStationbusstop2+34], 0x80
-	mov	byte [paStationbusstop2+24], 14
-	mov	byte [paStationbusstop2+25], 09
 .movedInData:
 	mov	byte [lastselection], al
 	mov	eax, 356 + (22 << 16)
@@ -1983,13 +1904,13 @@ checkIfTramDepot3:
 	pop	esi
 	jne	.jumpToReturn
 .tramdepot:
-	test	byte [vehmiscflags+eax], VEHMISCFLAG_RVISTRAM
+	test	byte [vehmiscflags+ebx], VEHMISCFLAG_RVISTRAM
 	jz	.jumpToStoredPointer
 	jmp	[checkdepot3return]
 .jumpToStoredPointer:
 	jmp	[checkdepot3jump]
 .jumpToReturn:
-	test	byte [vehmiscflags+eax], VEHMISCFLAG_RVISTRAM
+	test	byte [vehmiscflags+ebx], VEHMISCFLAG_RVISTRAM
 	jnz	.jumpToStoredPointer
 	jmp	[checkdepot3return]
 
