@@ -2054,5 +2054,5 @@ checkIfTramDepot5:
 global resetL3DataToo
 resetL3DataToo:
 	mov	byte [landscape2 + esi], 0
-	mov	byte [landscape3 + esi * 2], 0
+	and	word [landscape3 + esi * 2], ~1111b
 	retn

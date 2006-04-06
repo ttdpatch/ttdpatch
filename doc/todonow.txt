@@ -502,6 +502,11 @@
 
 - crash: http://www.tt-forums.net/viewtopic.php?p=423846#423846
 
+- in unicode mode, newspaper headings not centered, and signs in zoomed-out
+  view have wrong width
+
+- incorrect PBS signal promotion http://www.tt-forums.net/viewtopic.php?p=426083#426083
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -763,3 +768,7 @@ CHANGELOG
 
 
 2.5 beta 3
+- fixed "OK" button in text input window in unicode mode corrupting characters
+- fixed messed up F800+x text IDs, added check to prevent this in the future
+- fixed bug with secondary industries constantly closing down
+- default state of "experimentalfeatures on" no longer includes mandatory GRM
