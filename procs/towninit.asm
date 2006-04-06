@@ -3,11 +3,6 @@
 #include <town.inc>
 
 global patchtowninit
-patchtowninit:
-	patchcode oldinitializetown,newinitializetown,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -19,3 +14,7 @@ codefragment newinitializetown
 
 
 endcodefragments
+
+patchtowninit:
+	patchcode oldinitializetown,newinitializetown,1,1
+	ret

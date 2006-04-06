@@ -10,6 +10,74 @@ extern savedstrcmp1, savedstrcmp2
 def_indirect alignedsendstring
 
 global patchwin2k
+
+begincodefragments
+
+codefragment newint21handler
+	jmp runindex(alignedint21handler)
+
+codefragment oldtickcount
+	call dword [GetTickCount]
+	// 0x423000 is the .idata section, so it should be .idata+03e8h, can't use getds
+	// this is a patch changing code in the .text segment,
+	// .text and .idata segments are constant between english/american/spanish/german/spanish
+	// comments ?
+
+codefragment newtickcount
+	xor  edx,edx
+	setfragmentsize 6
+
+codefragment oldselectremover
+	cli
+	db 0x66, 0x0f, 0xba	//bts	word ptr [4F81A6h],5
+
+codefragment oldplaysound
+	push	ecx
+	push	ebx
+	push	eax
+	db 0xe8		// call playsound
+	
+codefragment newplaysound
+	jmp	runindex(alignedplaysound)
+
+codefragment oldcheckifplaying
+	push	0x41E51C	// db "playing",0
+	// this needs to be done better!
+	// prehaps find a better string to search on
+	// this was the best i could find :-(
+
+codefragment newcheckifplaying
+	call	runindex(strcmpplayingseeking)
+	setfragmentsize 20,1
+
+codefragment oldsetupvehwindow
+	movzx eax,dx
+	shl eax,vehicleshift
+
+codefragment newsetupvehwindow
+	call runindex(setupvehwindow)
+
+codefragment oldmovfsax
+	db 0x66,0x8e,0xe0	// mov fs,ax [nasm doesn't like making the 66 prefix]
+
+codefragment newmovfsax
+	setfragmentsize 3
+
+codefragment oldmovfsmem
+	db 0x66,0x36,0x8e,0x25	// mov fs,[mem]
+
+codefragment newmovfsmem
+	setfragmentsize 8
+
+codefragment oldlfserx
+	db 0x36,0x0f,0xb4	// lfs ebx/ecx,[mem]
+
+codefragment newlfserx
+	setfragmentsize 2
+	db 0x8b			// lfs ebx/ecx -> mov ebx/ecx
+
+endcodefragments
+
 patchwin2k:
 	mov edi,dword [int21handler]
 	copyrelative int21seekfrombegin,6
@@ -74,55 +142,11 @@ patchwin2k:
 	mov byte [edi-1],0x26	// mov al,[es:eax+ebx]
 	jmp .findnextfs
 .done:
+	// prevent changes to FS
+	patchcode movfsax
+	multipatchcode movfsmem,6
+	multipatchcode lfserx,9
 	ret
 
-begincodefragments
-
-codefragment newint21handler
-	jmp runindex(alignedint21handler)
-
-codefragment oldtickcount
-	call dword [GetTickCount]
-	// 0x423000 is the .idata section, so it should be .idata+03e8h, can't use getds
-	// this is a patch changing code in the .text segment,
-	// .text and .idata segments are constant between english/american/spanish/german/spanish
-	// comments ?
-
-codefragment newtickcount
-	xor  edx,edx
-	setfragmentsize 6
-
-codefragment oldselectremover
-	cli
-	db 0x66, 0x0f, 0xba	//bts	word ptr [4F81A6h],5
-
-codefragment oldplaysound
-	push	ecx
-	push	ebx
-	push	eax
-	db 0xe8		// call playsound
-	
-codefragment newplaysound
-	jmp	runindex(alignedplaysound)
-
-codefragment oldcheckifplaying
-	push	0x41E51C	// db "playing",0
-	// this needs to be done better!
-	// prehaps find a better string to search on
-	// this was the best i could find :-(
-
-codefragment newcheckifplaying
-	call	runindex(strcmpplayingseeking)
-	setfragmentsize 20,1
-
-codefragment oldsetupvehwindow
-	movzx eax,dx
-	shl eax,vehicleshift
-
-codefragment newsetupvehwindow
-	call runindex(setupvehwindow)
-
-endcodefragments
 
 #endif
-

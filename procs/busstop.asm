@@ -13,6 +13,83 @@ extern ttdstationspritelayout
 
 
 global patchbusstop
+
+begincodefragments
+
+codefragment findrvmovementscheme, 8
+	and edx, 0x7F
+	add dl, bl
+
+codefragment oldcheckfield63busstop
+	cmp byte [edi+veh.targetairport], 0
+	jnz $+2+0x5A+WINTTDX*7
+
+codefragment newcheckfield63busstop
+	icall Class5VehEnterLeaveBusStop
+
+codefragment oldclass5cleartilebusstop
+	cmp dh, 0x47
+	jb $+2+0x05
+	cmp dh, 0x4B
+	jb $+2+0x38
+
+codefragment newclass5cleartilebusstop
+	icall Class5ClearTileBusStop
+	nop 
+	nop
+	db 0x72
+
+codefragment findrvmovementschemestops, 21
+	movzx ebx, byte [esi+veh.movementstat]
+	sub bl, 0x20
+
+codefragment findwindowlorrystationelements, 26
+	mov cx, 0x9A
+	mov ebx, 0xB1008C
+
+codefragment findwindowbusstationelements, -12
+	db 0x0A,0x07,0x0B,0x00,0x8B,0x00,0x00,0x00,0x0D,0x00,0x42,0x30
+
+codefragment findwindowbusstationcreatesize, 5
+	mov cx, 0x99
+	mov ebx, 0xB1008C
+
+codefragment oldbuslorrystationwindowclickhandler, -6
+	cmp cl, 7
+	je $+2+0x5D
+	cmp cl, 8
+
+codefragment newbuslorrystationwindowclickhandler
+	icall BusLorryStationWindowClickHandler
+
+codefragment findwindowbusstationtooltipdisp, 22
+	js $+6+0x274
+	movzx ebx, cx
+	
+codefragment oldclass5queryhandlerbusstop
+	mov ax, 0x3062
+	cmp cl, 0x4B
+
+codefragment newclass5queryhandlerbusstop
+	icall Class5QueryHandlerBusStop
+	nop
+
+codefragment oldclass5cleartilebusstoperror, 2
+	jb $+2+0x05
+	cmp dh, 0x4B
+	jb $+2+0x4B
+
+codefragment_call newclass5cleartilebusstoperror,Class5ClearTileBusStopError,5
+
+codefragment oldbuslorrystationwindowdrawhandler, -5
+	add dx, 34h
+	inc bl
+	xor al, al
+
+codefragment_call newbuslorrystationwindowdrawhandler,BusLorryStationDrawHandler,5
+
+endcodefragments
+
 patchbusstop:
 	storeaddresspointer findrvmovementscheme,1,1,rvmovementscheme
 	patchcode oldcheckfield63busstop, newcheckfield63busstop,1,1
@@ -122,84 +199,6 @@ patchbusstop:
 
 	// Some Error Handler...
 	patchcode oldclass5queryhandlerbusstop, newclass5queryhandlerbusstop,1,1
-	stringaddress oldclass5cleartilebusstoperror,1,1
-	storefunctioncall Class5ClearTileBusStopError
-
-	stringaddress oldbuslorrystationwindowdrawhandler,1,1
-	storefunctioncall BusLorryStationDrawHandler
+	patchcode class5cleartilebusstoperror
+	patchcode buslorrystationwindowdrawhandler
 	ret
-
-
-
-begincodefragments
-
-codefragment findrvmovementscheme, 8
-	and edx, 0x7F
-	add dl, bl
-
-codefragment oldcheckfield63busstop
-	cmp byte [edi+veh.targetairport], 0
-	jnz $+2+0x5A+WINTTDX*7
-
-codefragment newcheckfield63busstop
-	icall Class5VehEnterLeaveBusStop
-
-codefragment oldclass5cleartilebusstop
-	cmp dh, 0x47
-	jb $+2+0x05
-	cmp dh, 0x4B
-	jb $+2+0x38
-
-codefragment newclass5cleartilebusstop
-	icall Class5ClearTileBusStop
-	nop 
-	nop
-	db 0x72
-
-codefragment findrvmovementschemestops, 21
-	movzx ebx, byte [esi+veh.movementstat]
-	sub bl, 0x20
-
-codefragment findwindowlorrystationelements, 26
-	mov cx, 0x9A
-	mov ebx, 0xB1008C
-
-codefragment findwindowbusstationelements, -12
-	db 0x0A,0x07,0x0B,0x00,0x8B,0x00,0x00,0x00,0x0D,0x00,0x42,0x30
-
-codefragment findwindowbusstationcreatesize, 5
-	mov cx, 0x99
-	mov ebx, 0xB1008C
-
-codefragment oldbuslorrystationwindowclickhandler, -6
-	cmp cl, 7
-	je $+2+0x5D
-	cmp cl, 8
-
-codefragment newbuslorrystationwindowclickhandler
-	icall BusLorryStationWindowClickHandler
-
-codefragment findwindowbusstationtooltipdisp, 22
-	js $+6+0x274
-	movzx ebx, cx
-	
-codefragment oldclass5queryhandlerbusstop
-	mov ax, 0x3062
-	cmp cl, 0x4B
-
-codefragment newclass5queryhandlerbusstop
-	icall Class5QueryHandlerBusStop
-	nop
-
-codefragment oldclass5cleartilebusstoperror, 2
-	jb $+2+0x05
-	cmp dh, 0x4B
-	jb $+2+0x4B
-
-codefragment oldbuslorrystationwindowdrawhandler, -5
-	add dx, 34h
-	inc bl
-	xor al, al
-
-
-endcodefragments

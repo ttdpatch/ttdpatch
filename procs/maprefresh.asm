@@ -8,6 +8,34 @@ patchproc maprefresh,enhancegui, patchmaprefresh
 extern maprefreshfrequency
 extern patchflags
 
+begincodefragments
+
+codefragment oldupdatemap1
+	test al,0x1f
+	jnz $+2+0x62
+
+codefragment newupdatemap1
+	setfragmentsize 8
+
+codefragment newupdatemap4
+	icall updatemappos
+
+codefragment newupdatemap5
+	icall CheckMapPosition
+	setfragmentsize 8
+
+codefragment newupdatemap2
+	call runindex(updatemap)
+
+codefragment oldupdatemap3
+	shr bp,1
+
+codefragment newupdatemap3
+	setfragmentsize 3
+
+
+endcodefragments
+
 
 patchmaprefresh:
 	mov bl,[maprefreshfrequency]
@@ -40,33 +68,3 @@ patchmaprefresh:
 	storefragment newupdatemap3
 .seconddone:
 	ret
-
-
-
-begincodefragments
-
-codefragment oldupdatemap1
-	test al,0x1f
-	jnz $+2+0x62
-
-codefragment newupdatemap1
-	setfragmentsize 8
-
-codefragment newupdatemap4
-	icall updatemappos
-
-codefragment newupdatemap5
-	icall CheckMapPosition
-	setfragmentsize 8
-
-codefragment newupdatemap2
-	call runindex(updatemap)
-
-codefragment oldupdatemap3
-	shr bp,1
-
-codefragment newupdatemap3
-	setfragmentsize 3
-
-
-endcodefragments

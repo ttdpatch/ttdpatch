@@ -4,14 +4,6 @@
 
 patchprocandor experimentalfeatures,BIT(EXP_COOPERATIVE),, patchcoop
 
-patchcoop:
-	// Experimental cooperative play (Bit 1)
-	patchcode oldadddenyorder, newadddenyorder,1,1
-	patchcode olddenytrainonothercompany, newdenytrainonothercompany,1,1
-	ret
-
-
-
 begincodefragments
 
 codefragment oldadddenyorder, -2
@@ -31,3 +23,9 @@ codefragment newdenytrainonothercompany
 
 
 endcodefragments
+
+patchcoop:
+	// Experimental cooperative play (Bit 1)
+	patchcode oldadddenyorder, newadddenyorder,1,1
+	patchcode olddenytrainonothercompany, newdenytrainonothercompany,1,1
+	ret

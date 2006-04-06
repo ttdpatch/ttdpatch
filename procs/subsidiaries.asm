@@ -2,24 +2,6 @@
 #include <frag_mac.inc>
 
 global patchsubsidiaries
-patchsubsidiaries:
-	patchcode oldclickhq,newclickhq,1,1
-	mov al,[edi+2]
-	inc al
-	stosb
-
-	patchcode oldborrowamount,newloanamount,1,1
-	patchcode oldrepayamount,newloanamount,1,1
-	patchcode oldaibuyout,newaibuyout,1,1
-	ret
-
-global patchmaxloanwithctrl
-patchmaxloanwithctrl:
-	patchcode oldborrow,newborrow,1,1
-	patchcode oldrepay,newrepay,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -67,3 +49,20 @@ codefragment newaibuyout
 
 
 endcodefragments
+
+patchsubsidiaries:
+	patchcode oldclickhq,newclickhq,1,1
+	mov al,[edi+2]
+	inc al
+	stosb
+
+	patchcode oldborrowamount,newloanamount,1,1
+	patchcode oldrepayamount,newloanamount,1,1
+	patchcode oldaibuyout,newaibuyout,1,1
+	ret
+
+global patchmaxloanwithctrl
+patchmaxloanwithctrl:
+	patchcode oldborrow,newborrow,1,1
+	patchcode oldrepay,newrepay,1,1
+	ret

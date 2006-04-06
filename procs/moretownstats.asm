@@ -4,12 +4,6 @@
 ext_frag oldenddisplaytownstats
 
 global patchmoretownstats
-patchmoretownstats:
-	patchcode oldenddisplaytownstats,newenddisplaytownstats,1,1
-	multipatchcode oldcreatetownwindow,newcreatetownwindow,2
-	ret
-
-
 
 begincodefragments
 
@@ -26,3 +20,8 @@ codefragment newcreatetownwindow
 
 
 endcodefragments
+
+patchmoretownstats:
+	patchcode oldenddisplaytownstats,newenddisplaytownstats,1,1
+	multipatchcode oldcreatetownwindow,newcreatetownwindow,2
+	ret

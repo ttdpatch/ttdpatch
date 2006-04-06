@@ -9,31 +9,6 @@ extern tempraiseloweraffectedtilearraycount,tempraiseloweraffectedtilearraycount
 extern bTempRaiseLowerDirection_ptr,bTempRaiseLowerCorner_ptr
 extern reloc,canraiselowertrack.done
 
-patchautoslope:
-	stringaddress findtempraiselowerdirection
-	
-	mov eax, dword [edi+0x1E]
-	mov dword [tempraiseloweraffectedtilearray], eax
-
-	mov eax, dword [edi+0x32]
-	mov dword [tempraiseloweraffectedtilearraycount], eax
-	mov dword [tempraiseloweraffectedtilearraycount2], eax
-
-	mov eax, dword [edi]
-	param_call reloc, eax, bTempRaiseLowerDirection_ptr
-	
-	stringaddress findtempraiselowercorner
-	mov eax, dword [edi]
-	param_call reloc, eax, bTempRaiseLowerCorner_ptr
-
-	mov byte [canraiselowertrack.done], 0x90
-
-	patchcode oldtunneltryremovewhenterraform,newtunneltryremovewhenterraform,1,1
-	patchcode oldtunneltryremovewhenterraform2,newtunneltryremovewhenterraform2,1,1
-	ret
-
-
-
 begincodefragments
 
 codefragment findtempraiselowerdirection, -10
@@ -65,3 +40,26 @@ codefragment newtunneltryremovewhenterraform2
 
 
 endcodefragments
+
+patchautoslope:
+	stringaddress findtempraiselowerdirection
+	
+	mov eax, dword [edi+0x1E]
+	mov dword [tempraiseloweraffectedtilearray], eax
+
+	mov eax, dword [edi+0x32]
+	mov dword [tempraiseloweraffectedtilearraycount], eax
+	mov dword [tempraiseloweraffectedtilearraycount2], eax
+
+	mov eax, dword [edi]
+	param_call reloc, eax, bTempRaiseLowerDirection_ptr
+	
+	stringaddress findtempraiselowercorner
+	mov eax, dword [edi]
+	param_call reloc, eax, bTempRaiseLowerCorner_ptr
+
+	mov byte [canraiselowertrack.done], 0x90
+
+	patchcode oldtunneltryremovewhenterraform,newtunneltryremovewhenterraform,1,1
+	patchcode oldtunneltryremovewhenterraform2,newtunneltryremovewhenterraform2,1,1
+	ret

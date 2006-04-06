@@ -144,9 +144,21 @@ dropdownmenustrings:
 	mov ebx,[esp+12+4+4]
 	mov bx,[ebx+0x30]
 	cmp bx,0x2C3	// tool menu drop down?
+	je  .doToolMenu
+	cmp	bx, 180Ah
+	je	.doRoadMenu
 	pop ebx
-	jne .done
+	jmp	.done
 
+.doRoadMenu:
+	pop ebx
+	cmp bx, 180Bh
+	jne .done
+	mov bx, ourtext(txteroadmenu)
+	jmp .done
+
+.doToolMenu:
+	pop ebx
 	cmp bx,0x02C7
 	jb .done
 

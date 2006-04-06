@@ -11,168 +11,6 @@ patchproc morecurrencies, patchmorecurr
 extern currmultis,curropts,currsymsafter,currsymsbefore,eurointr,getnumber
 extern gettextandtableptrs,morecurropts
 
-patchmorecurr:
-	patchcode olduserightcurrency,newuserightcurrency,1,1
-	patchcode oldisspecialyear,newisspecialyear,1,1
-	patchcode oldfillcurrlist,newfillcurrlist,1,1
-	patchcode oldwhatcurrtoshow,newwhatcurrtoshow,1,1
-	patchcode oldcurrselect,newcurrselect,1,1
-	patchcode oldcurrprint,newcurrprint,2,7
-
-	// set up table of 64-bit factors of 10
-	lea ebx,[ecx+10]	// mov ebx,10 in 3 bytes (ecx is zero)
-	lea eax,[ecx+100]
-	add ecx,num_powersoften
-	push edx
-	cdq
-	mov edi,powersoften_last
-	std
-
-.nextpower:
-	mov esi,edx
-	mul ebx			// now edx:eax = org. eax*10
-	stosd
-	xchg eax,esi
-	mov esi,edx		// esi = this edx
-	mul ebx			// now eax= org. edx*10
-	add eax,esi
-	stosd
-	xchg eax,edx
-	mov eax,[edi+8]
-	loop .nextpower
-	cld
-
-	mov ebx,CURR_FIRSTCUSTOM
-
-.dataloop:
-	mov ax,firstcuscurrtext-CURR_FIRSTCUSTOM
-	add eax,ebx
-	call gettextandtableptrs
-
-	xor al,al
-	xor ecx,ecx
-	dec ecx
-	repnz scasb	// skip the menu entry text
-
-	call .readnum
-	jz .nonewmulti
-	mov [currmultis+ebx*4],edx
-
-.nonewmulti:
-	mov al,[edi]
-	inc edi
-	or al,al
-	jz .nonewopts
-	mov ah,[edi]
-	mov [curropts+ebx*2],ax
-	xor al,al
-	repnz scasb
-
-.nonewopts:
-	lea esi,[currsymsbefore+ebx*4]
-	call .readsym
-
-	lea esi,[currsymsafter+ebx*4]
-	call .readsym
-
-	call .readnum
-	jz .noneweurointr
-	mov [eurointr+ebx*2],dx
-
-.noneweurointr:
-	inc ebx
-	cmp ebx,currcount
-	jb .dataloop
-
-	pop edx
-
-	mov al,[morecurropts]
-
-	mov bh,','
-	test al,morecurrencies_comma
-	jnz .setchar
-
-	mov bh,'.'
-	test al,morecurrencies_period
-	jz .defaultchar
-
-.setchar:
-	mov ecx,currcount //apply it for all currencies
-
-.setcharloop:
-	mov [curropts-2+ecx*2],bh
-	loop .setcharloop
-
-.defaultchar:
-	and al,morecurrencies_symbefore+morecurrencies_symafter
-	jz .default // zero means leave them default
-	dec eax // else, dec it, so bl is 1 for "after", 0 for "before", just like in curropts
-	mov ecx,currcount //apply it for all currencies
-
-.overwriteloop:
-	mov [curropts-1+ecx*2],al // overwrite the high bytes of curropts to the given value
-	loop .overwriteloop
-
-.default:
-	ret
-
-// helper functions for patchmorecurr
-
-// read a number from [edi] and return it in edx
-// zf set on error
-.readnum:
-	xor esi,esi
-	push ebx
-	mov ebx,edi
-	call getnumber
-	pop ebx
-	xor al,al
-	repnz scasb
-	cmp edx,-1
-	ret
-
-// read a curr. symbol from [edi] and write it to [esi] if not empty
-.readsym:
-	xchg edi,esi
-	lodsb
-	or al,al
-	jz .symreadexit
-
-	mov dl,4
-	and dword [edi],0
-	jmp short .storechar
-
-.loadchar:
-	lodsb
-	or al,al
-	jz .symreadexit
-.storechar:
-	stosb
-	dec dl
-	jnz .loadchar
-
-	xchg edi,esi
-	xor al,al
-	repnz scasb
-	ret
-
-.symreadexit:
-	xchg edi,esi
-	ret
-
-// this is here because it shares a codefragment
-global patch2070servint
-patch2070servint:
-	patchcode oldlimityear,newlimityear,1,1
-	mov byte [edi+lastediadj-2],0x72	// JNZ -> JB
-	ret
-
-// new code to write money
-
-num_powersoften equ 16
-uvard powersoften,num_powersoften*2
-powersoften_last equ powersoften+num_powersoften*2*4-4
-
 begincodefragments
 
 codefragment oldcurrprint,1
@@ -354,3 +192,165 @@ codefragment newcurrselect
 	setfragmentsize 8
 
 endcodefragments
+
+patchmorecurr:
+	patchcode olduserightcurrency,newuserightcurrency,1,1
+	patchcode oldisspecialyear,newisspecialyear,1,1
+	patchcode oldfillcurrlist,newfillcurrlist,1,1
+	patchcode oldwhatcurrtoshow,newwhatcurrtoshow,1,1
+	patchcode oldcurrselect,newcurrselect,1,1
+	patchcode oldcurrprint,newcurrprint,2,7
+
+	// set up table of 64-bit factors of 10
+	lea ebx,[ecx+10]	// mov ebx,10 in 3 bytes (ecx is zero)
+	lea eax,[ecx+100]
+	add ecx,num_powersoften
+	push edx
+	cdq
+	mov edi,powersoften_last
+	std
+
+.nextpower:
+	mov esi,edx
+	mul ebx			// now edx:eax = org. eax*10
+	stosd
+	xchg eax,esi
+	mov esi,edx		// esi = this edx
+	mul ebx			// now eax= org. edx*10
+	add eax,esi
+	stosd
+	xchg eax,edx
+	mov eax,[edi+8]
+	loop .nextpower
+	cld
+
+	mov ebx,CURR_FIRSTCUSTOM
+
+.dataloop:
+	mov ax,firstcuscurrtext-CURR_FIRSTCUSTOM
+	add eax,ebx
+	call gettextandtableptrs
+
+	xor al,al
+	xor ecx,ecx
+	dec ecx
+	repnz scasb	// skip the menu entry text
+
+	call .readnum
+	jz .nonewmulti
+	mov [currmultis+ebx*4],edx
+
+.nonewmulti:
+	mov al,[edi]
+	inc edi
+	or al,al
+	jz .nonewopts
+	mov ah,[edi]
+	mov [curropts+ebx*2],ax
+	xor al,al
+	repnz scasb
+
+.nonewopts:
+	lea esi,[currsymsbefore+ebx*4]
+	call .readsym
+
+	lea esi,[currsymsafter+ebx*4]
+	call .readsym
+
+	call .readnum
+	jz .noneweurointr
+	mov [eurointr+ebx*2],dx
+
+.noneweurointr:
+	inc ebx
+	cmp ebx,currcount
+	jb .dataloop
+
+	pop edx
+
+	mov al,[morecurropts]
+
+	mov bh,','
+	test al,morecurrencies_comma
+	jnz .setchar
+
+	mov bh,'.'
+	test al,morecurrencies_period
+	jz .defaultchar
+
+.setchar:
+	mov ecx,currcount //apply it for all currencies
+
+.setcharloop:
+	mov [curropts-2+ecx*2],bh
+	loop .setcharloop
+
+.defaultchar:
+	and al,morecurrencies_symbefore+morecurrencies_symafter
+	jz .default // zero means leave them default
+	dec eax // else, dec it, so bl is 1 for "after", 0 for "before", just like in curropts
+	mov ecx,currcount //apply it for all currencies
+
+.overwriteloop:
+	mov [curropts-1+ecx*2],al // overwrite the high bytes of curropts to the given value
+	loop .overwriteloop
+
+.default:
+	ret
+
+// helper functions for patchmorecurr
+
+// read a number from [edi] and return it in edx
+// zf set on error
+.readnum:
+	xor esi,esi
+	push ebx
+	mov ebx,edi
+	call getnumber
+	pop ebx
+	xor al,al
+	repnz scasb
+	cmp edx,-1
+	ret
+
+// read a curr. symbol from [edi] and write it to [esi] if not empty
+.readsym:
+	xchg edi,esi
+	lodsb
+	or al,al
+	jz .symreadexit
+
+	mov dl,4
+	and dword [edi],0
+	jmp short .storechar
+
+.loadchar:
+	lodsb
+	or al,al
+	jz .symreadexit
+.storechar:
+	stosb
+	dec dl
+	jnz .loadchar
+
+	xchg edi,esi
+	xor al,al
+	repnz scasb
+	ret
+
+.symreadexit:
+	xchg edi,esi
+	ret
+
+// this is here because it shares a codefragment
+global patch2070servint
+patch2070servint:
+	patchcode oldlimityear,newlimityear,1,1
+	mov byte [edi+lastediadj-2],0x72	// JNZ -> JB
+	ret
+
+// new code to write money
+
+num_powersoften equ 16
+uvard powersoften,num_powersoften*2
+powersoften_last equ powersoften+num_powersoften*2*4-4

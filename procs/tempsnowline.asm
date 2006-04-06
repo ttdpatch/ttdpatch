@@ -4,16 +4,6 @@
 
 patchproc tempsnowline, patchtempsnowline
 
-patchtempsnowline:
-	patchcode oldclass0_snow,enabletemp_long,1,1
-	patchcode oldfields_snow,enabletemp_short,1,1
-	patchcode oldclass4_snow,enabletemp_long,1,1
-	patchcode oldclass1_snow,enabletemp_short,1,1
-	multipatchcode oldclass2_9_snow,enabletemp_short,2
-	patchcode map_snow
-	ret
-
-
 begincodefragments
 
 codefragment oldclass0_snow,8
@@ -51,3 +41,12 @@ codefragment newmap_snow
 
 
 endcodefragments
+
+patchtempsnowline:
+	patchcode oldclass0_snow,enabletemp_long,1,1
+	patchcode oldfields_snow,enabletemp_short,1,1
+	patchcode oldclass4_snow,enabletemp_long,1,1
+	patchcode oldclass1_snow,enabletemp_short,1,1
+	multipatchcode oldclass2_9_snow,enabletemp_short,2
+	patchcode map_snow
+	ret

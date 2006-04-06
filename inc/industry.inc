@@ -31,3 +31,58 @@ struc industry
 	.unused3:	resd 1	// 32h:unused by TTD, initialized to 0
 endstruc_32
 
+ptrvardec industrydatablock
+
+struc industrydatastruc
+
+// production flags:
+// bit	meaning
+// 0	extractive
+// 1	organic
+// 2	processing
+ptrvarofs industryproductionflags,industrydatablock,$
+resb NINDUSTRIES
+
+// closure messages
+ptrvarofs industryclosuremsgs,industrydatablock,$
+resw NINDUSTRIES
+
+// production increase messages
+ptrvarofs industryprodincmsgs,industrydatablock,$
+resw NINDUSTRIES
+
+// production decrease messages
+ptrvarofs industryproddecmsgs,industrydatablock,$
+resw NINDUSTRIES
+
+// fund cost multipliers
+ptrvarofs industryfundcostmultis,industrydatablock,$
+resb NINDUSTRIES
+
+// produced cargo types
+ptrvarofs industryproducedcargos,industrydatablock,$
+resw NINDUSTRIES
+
+// accepted cargo types
+ptrvarofs industryacceptedcargos,industrydatablock,$
+resd NINDUSTRIES
+
+// production rates
+ptrvarofs industryprod1rates,industrydatablock,$
+resb NINDUSTRIES
+ptrvarofs industryprod2rates,industrydatablock,$
+resb NINDUSTRIES
+
+// minimum amounts of cargo distributed from the industry
+ptrvarofs industrymindistramounts,industrydatablock,$
+resb NINDUSTRIES
+
+// placement check procedures
+ptrvarofs industryplacecheckprocs,industrydatablock,$
+resd NINDUSTRIES
+
+// pointers to random sound effect lists
+ptrvarofs industryrandomsoundptrs,industrydatablock,$
+resd NINDUSTRIES
+
+endstruc_32

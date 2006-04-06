@@ -9,7 +9,7 @@
 #include <human.inc>
 #include <town.inc>
 
-extern actionhandler,ishumanplayer,patchflags
+extern actionhandler,ishumanplayer,patchflags,demolishroadflag
 
 
 
@@ -79,8 +79,6 @@ demolishroadcall:
 	and byte [demolishroadflag],0
 	ret
 ; endp demolishroadcall 
-
-uvarb demolishroadflag
 
 
 	// called to check if the player can remove a bridge

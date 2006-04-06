@@ -4,12 +4,6 @@
 
 patchproc newagerating, patchagerating
 
-patchagerating:
-	patchcode oldsetagerating,newsetagerating,1,1
-	ret
-
-
-
 begincodefragments
 
 codefragment oldsetagerating,4
@@ -40,3 +34,7 @@ codefragment newsetagerating
 
 
 endcodefragments
+
+patchagerating:
+	patchcode oldsetagerating,newsetagerating,1,1
+	ret

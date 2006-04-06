@@ -16,5 +16,3 @@ patchlandscape6:
 	push landscape6_ptr
 	call reloc
 	ret
-
-

@@ -7,21 +7,6 @@ extern yeartodate
 
 
 global patchstartyear
-patchstartyear:
-//	patchcode oldinitvehtypeavail,newinitvehtypeavail,1,1
-	patchcode oldexpirevehtype,newexpirevehtype,1,1
-
-	patchcode olddatelowerbound,newdatelowerbound,1,1
-	patchcode olddateupperbound,newdateupperbound,1,1
-	changeloadedvalue initdatecode,1,1,b,startyear
-	movzx eax,al
-	pusha
-	call yeartodate			// preserves EDI
-	mov [edi-10],ebx
-	popa
-	ret
-
-
 
 begincodefragments
 
@@ -50,3 +35,17 @@ codefragment initdatecode,6
 
 
 endcodefragments
+
+patchstartyear:
+//	patchcode oldinitvehtypeavail,newinitvehtypeavail,1,1
+	patchcode oldexpirevehtype,newexpirevehtype,1,1
+
+	patchcode olddatelowerbound,newdatelowerbound,1,1
+	patchcode olddateupperbound,newdateupperbound,1,1
+	changeloadedvalue initdatecode,1,1,b,startyear
+	movzx eax,al
+	pusha
+	call yeartodate			// preserves EDI
+	mov [edi-10],ebx
+	popa
+	ret

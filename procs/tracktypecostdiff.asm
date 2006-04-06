@@ -4,13 +4,6 @@
 
 patchproc tracktypecostdiff, patchtracktypecostdiff
 
-patchtracktypecostdiff:
-	patchcode oldaddremovetrackcost,newaddremovetrackcost,1,1
-	patchcode oldmovremovetrackcost, newmovremovetrackcost,1,1
-	ret
-
-
-
 begincodefragments
 
 codefragment oldaddremovetrackcost
@@ -27,3 +20,8 @@ codefragment newmovremovetrackcost
 
 
 endcodefragments
+
+patchtracktypecostdiff:
+	patchcode oldaddremovetrackcost,newaddremovetrackcost,1,1
+	patchcode oldmovremovetrackcost, newmovremovetrackcost,1,1
+	ret

@@ -2,12 +2,6 @@
 #include <frag_mac.inc>
 
 global patchsignalsontrafficside
-patchsignalsontrafficside:
-	multipatchcode oldsignaloffsets,newsignaloffsets,12,{inc byte [esi-8]}
-		// the INC increases patch count (the imm8 operand of "mov bl,x" in codefragment newsignaloffsets)
-	ret
-
-
 
 begincodefragments
 
@@ -23,3 +17,8 @@ codefragment newsignaloffsets
 
 
 endcodefragments
+
+patchsignalsontrafficside:
+	multipatchcode oldsignaloffsets,newsignaloffsets,12,{inc byte [esi-8]}
+		// the INC increases patch count (the imm8 operand of "mov bl,x" in codefragment newsignaloffsets)
+	ret

@@ -6,11 +6,6 @@ extern newvehcount
 
 
 global patchincreaservcount
-patchincreaservcount:
-	changeloadedvalue rvcountcode,1,1,b,newvehcount,1
-	ret
-
-
 
 begincodefragments
 
@@ -20,3 +15,7 @@ codefragment rvcountcode,2
 
 
 endcodefragments
+
+patchincreaservcount:
+	changeloadedvalue rvcountcode,1,1,b,newvehcount,1
+	ret

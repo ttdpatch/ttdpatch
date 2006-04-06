@@ -2,12 +2,6 @@
 #include <frag_mac.inc>
 
 global patchenroutetime
-patchenroutetime:
-	patchcode oldenroutetimenextveh,newenroutetimenextveh,1,2
-	patchcode oldenroutetimenextveh,newenroutetimenextveh,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -19,3 +13,8 @@ codefragment newenroutetimenextveh
 	or di,byte -1
 
 endcodefragments
+
+patchenroutetime:
+	patchcode oldenroutetimenextveh,newenroutetimenextveh,1,2
+	patchcode oldenroutetimenextveh,newenroutetimenextveh,1,1
+	ret

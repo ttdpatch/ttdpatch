@@ -74,8 +74,8 @@ langobjs:=	$(langhsources:%.h=%.o)
 hostlangobjs:=	$(langhsources:%.h=host/%.o)
 makelangobjs:=	makelang.o switches.o codepage.o texts.o
 
-asmdobjs:=	$(asmsources:%.asm=%.dpo) $(asmcsources:%.c=%.dpo)
-asmwobjs:=	$(asmsources:%.asm=%.wpo) $(asmcsources:%.c=%.wpo)
+asmdobjs:=	$(asmsources:%.asm=${OTMP}%.dpo) $(asmcsources:%.c=${OTMP}%.dpo)
+asmwobjs:=	$(asmsources:%.asm=${OTMP}%.wpo) $(asmcsources:%.c=${OTMP}%.wpo)
 dos:	ttdprotd.bin
 dosobjs:=	$(doscsources:%.c=%.obj)
 win:	ttdprotw.bin
@@ -89,7 +89,7 @@ hostwinobjs:=	$(wincsources:%.c=host/%.o)
 Makefile.dep%:
 	@touch $@
 	@make -o Makefile.depd -o Makefile.depw -s INCLUDES
-	$(CPP) -x assembler-with-cpp -Iinc -D${WDEF_$*} -MM $(asmmainsrc) patches/*.asm procs/*.asm ${asmcsources} -I. | perl -pe 's/\.o/.$*po/; s#\w+/\.\./##g; print "$$1/" if /: (patches|procs)\//' > $@
+	$(CPP) -x assembler-with-cpp -Iinc -D${WDEF_$*} -MM $(asmmainsrc) patches/*.asm procs/*.asm ${asmcsources} -I. | perl -pe 's/\.o/.$*po/; s#\w+/\.\./##g; print "${OTMP}" if /^\S/; print "$$1/" if /: (patches|procs)\//' > $@
 
 include Makefile.dep
 include Makefile.depd
@@ -99,7 +99,7 @@ include Makefile.depw
 #           special targets
 # =======================================================================
 
-.PHONY:	all allw dos win nodebug clean cleantemp remake
+.PHONY:	all allw dos win nodebug clean cleantemp remake mrproper
 
 # automatic compilation: make the listing with correct addresses and
 # the DOS executable file
@@ -131,7 +131,7 @@ endif
 cleantemp:
 	rm -f *.asp
 	rm -f *.{o,obj,OBJ}
-	rm -f *.*po patches/*.*po procs/*.*po
+	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po
 	rm -f lang/*.{o,map,exe} lang/language.*
 	rm -f host/*.o host/lang/* host/mkpttxt host/makelang
 	rm -f *.*lst *.LST patches/*.*lst
@@ -141,7 +141,7 @@ cleantemp:
 # remove files that depend on compiler flags (DEBUG, etc.)
 remake:
 	rm -f *.{o,obj,OBJ,bin,bil} lang/*.o host/*.o host/lang/*.o
-	rm -f *.*po patches/*.*po procs/*.*po reloc.a
+	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po reloc.a
 	rm -f mkpttxt.exe host/mkpttxt
 
 # remove temporary files and all compilation results that can be
@@ -154,15 +154,25 @@ clean:	cleantemp
 	rm -f lang/*.{new,o}
 	rm -f *.{bin,bil}
 	rm -f *.{map,MAP}
+	rm -f reloc.a
 	rm -f *.{res,RES}
 	rm -f langerr.h
 	rm -f sw_lists.h
 	rm -f patches/texts.h
 	rm -f version{d,w}.h
 
+# also remove Makefile.dep?, listings and bak files
+mrproper: clean
+	rm -f Makefile.dep?
+	rm -f *.{d,w,l}lst patches/*.{d,w,l}lst procs/*.{d,w,l}lst
+	rm -f patches/*.ba* procs/*.ba*
+
 # files that need to be created to check include dependencies
 .PHONY: INCLUDES
 INCLUDES:	patches/texts.h versiond.h versionw.h
+
+# if a command fails, delete its output
+.DELETE_ON_ERROR:
 
 # ========================================================================
 #            Actual compilation rules for the C sources
@@ -227,19 +237,35 @@ host/%.o : %.asm
 %.wpo %.wlst:	XASMDEF =  $(foreach DEF,$(WINDEFS),-D$(DEF))
 %.lpo %.llst:	XASMDEF =  $(foreach DEF,$(LINDEFS),-D$(DEF))
 
-# in general how to make a preprocessed nasm source
-%.dpo %.wpo %.lpo : %.asm
-	$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< | perl perl/lineinfo.pl > _src_.asm
-	$(NASM) -f win32 _src_.asm -o $@
-	@rm -f _src_.asm
+# commands for making object and list files from the asm sources
+# (using a define here because we need the same commands for the 
+# various versions)
+define A-PO-COMMANDS
+	$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< | perl perl/lineinfo.pl > $@.asp
+	$(NASM) -f win32 $@.asp -o $@
+	@rm -f $@.asp
+endef
+define A-LST-COMMANDS
+	$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< | perl perl/lineinfo.pl > $@.asp
+	$(NASM) -f win32 $@.asp -o /dev/null -l $@
+	@rm -f $@.asp
+endef
+C-PO-COMMANDS =	$(CC) ${XASMDEF} -c -o $@ $< -Iinc
 
-%.dlst %.wlst : %.asm
-	$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< | perl perl/lineinfo.pl > _src_.asm
-	$(NASM) -f win32 _src_.asm -o /dev/null -l $@
-	@rm -f _src_.asm
+${OTMP}%.dpo : %.asm
+	${A-PO-COMMANDS}
+${OTMP}%.wpo : %.asm
+	${A-PO-COMMANDS}
 
-%.dpo %.wpo %.lpo : %.c
-	$(CC) ${XASMDEF} -c -o $@ $< -Iinc
+%.dlst : %.asm
+	${A-LST-COMMANDS}
+%.wlst : %.asm
+	${A-LST-COMMANDS}
+
+${OTMP}%.dpo : %.c
+	${C-PO-COMMANDS}
+${OTMP}%.wpo : %.c
+	${C-PO-COMMANDS}
 
 # link all assembly modules into ttdprot?.pe
 ttdprotd.pe ttdprotd.map: $(asmdobjs) reloc.a
@@ -251,7 +277,7 @@ ttdprotw.pe ttdprotw.map: IMAGEBASE=0x600000
 # call the linker explicitly (not via gcc), and pass the patches/ object
 # files via the shell expansion instead of one giant make command line
 ttdprot%.pe ttdprot%.map:
-	$(LDEXP) $(LDEXPFLAGS) -Map ttdprot$*.map -o ttdprot$*.pe $(filter-out procs/%.$*po,$(filter-out patches/%.$*po,$^)) patches/*.$*po procs/*.$*po reloc.a
+	$(LDEXP) $(LDEXPFLAGS) -Map ttdprot$*.map -o ttdprot$*.pe $(filter-out ${OTMP}procs/%.$*po,$(filter-out ${OTMP}patches/%.$*po,$^)) ${OTMP}patches/*.$*po ${OTMP}procs/*.$*po reloc.a
 
 ttdprot%.bin: ttdprot%.pe
 	$(OBJCOPY) -O binary -j .ptext $< $@
@@ -290,6 +316,9 @@ reloc%.inc:	ttdprot%.map
 
 reloc%.bin:	reloc.asm reloc%.inc
 	$(NASM) $(NASMOPT) -f bin $(NASMDEF) -dINCFILE=$(filter %.inc,$^) $< -o $@
+
+pproc%.h:	ttdprot%.map
+	perl perl/pproc.pl -os=$* < $< > $@
 
 patchsnd.bin:	patchsnd.asm patchsnd/patchsnd.dll
 	$(NASM) $(NASMOPT) -f bin $(NASMDEF) $< -o $@

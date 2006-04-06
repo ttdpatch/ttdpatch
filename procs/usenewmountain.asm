@@ -1,12 +1,32 @@
 #include <defs.inc>
 #include <frag_mac.inc>
+#include <flagdata.inc>
 
-
-extern mountaintype,mountaintypes
+extern mountaintypes
 extern patchflags
 
 
 global patchusenewmountain
+
+begincodefragments
+
+codefragment oldmountain
+	cmp dl,[esi+veh.zpos]
+	je $+2+29
+
+codefragment newmountain
+	jmp runindex(mountain)
+
+codefragment oldrvhillhandler
+	cmp dl,[esi+veh.zpos]
+	je $+2+0x21
+
+//codefragment newrvhillhandler
+//	jmp runindex(rvhillhandler)
+//
+
+endcodefragments
+
 patchusenewmountain:
 	mov edi,mountaintypes
 
@@ -29,24 +49,3 @@ patchusenewmountain:
 	patchcode oldmountain,newmountain
 	patchcode oldrvhillhandler,newmountain,1,1
 	ret
-
-
-
-begincodefragments
-
-codefragment oldmountain
-	cmp dl,[esi+veh.zpos]
-	je $+2+29
-
-codefragment newmountain
-	jmp runindex(mountain)
-
-codefragment oldrvhillhandler
-	cmp dl,[esi+veh.zpos]
-	je $+2+0x21
-
-//codefragment newrvhillhandler
-//	jmp runindex(rvhillhandler)
-//
-
-endcodefragments

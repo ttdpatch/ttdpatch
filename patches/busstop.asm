@@ -296,6 +296,3 @@ Class5CreateLorryWinOrient:
 	mov byte [buslorrystationorientation], 0
 .done:
 	jmp [oldclass5createlorrywinorient]
-
-
-

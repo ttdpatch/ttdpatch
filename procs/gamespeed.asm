@@ -9,20 +9,6 @@ patchproc gamespeed, patchgamespeed
 extern initgamespeed,setgamespeed
 extern waitforretrace
 
-
-patchgamespeed:
-#if WINTTDX
-	patchcode oldtickcheck,newtickcheck,1,1
-#else
-	patchcode oldcalcsimticks,newcalcsimticks,1,1
-	storeaddress findwaitforretrace,3,3,waitforretrace
-#endif
-
-	mov cl,[initgamespeed]
-	add cl,GS_DEFAULTFACTOR
-	call setgamespeed
-	ret
-
 begincodefragments
 
 #if !WINTTDX
@@ -42,7 +28,6 @@ codefragment findwaitforretrace
 
 
 endcodefragments
-
 begincodefragments
 
 #if WINTTDX
@@ -57,3 +42,17 @@ codefragment newtickcheck
 
 
 endcodefragments
+
+
+patchgamespeed:
+#if WINTTDX
+	patchcode oldtickcheck,newtickcheck,1,1
+#else
+	patchcode oldcalcsimticks,newcalcsimticks,1,1
+	storeaddress findwaitforretrace,3,3,waitforretrace
+#endif
+
+	mov cl,[initgamespeed]
+	add cl,GS_DEFAULTFACTOR
+	call setgamespeed
+	ret

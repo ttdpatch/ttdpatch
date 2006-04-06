@@ -6,6 +6,70 @@ extern newgraphicssetsenabled
 
 
 global patchnewvehs
+
+begincodefragments
+
+codefragment oldstartstopveh,-5
+	xor word [edx+veh.vehstatus],2
+
+codefragment newstartstopveh
+	icall startstopveh
+	jc newstartstopveh_start+53
+	jz newstartstopveh_start+38
+	setfragmentsize 10
+
+
+codefragment newgettrainsprite
+	call runindex(gettrainsprite)
+	jnc $+35
+	setfragmentsize 14
+
+codefragment newgetrvsprite
+	call runindex(getrvsprite)
+	setfragmentsize 18
+
+codefragment newgetshipsprite
+	call runindex(getshipsprite)
+	nop
+
+codefragment newgetplanesprite
+	call runindex(getplanesprite)
+	nop
+
+codefragment newdisplay2ndeng
+	call runindex(display2ndengine)
+	setfragmentsize 21
+
+codefragment newdisplay2ndeng_noplayer
+	call runindex(display2ndengine_noplayer)
+	setfragmentsize 24
+
+codefragment newdisplayrv
+	call runindex(displayrv)
+	nop
+
+codefragment newdisplayrv_noplayer
+	call runindex(displayrv_noplayer)
+	setfragmentsize 10
+
+codefragment newdisplayship
+	call runindex(displayship)
+	nop
+
+codefragment newdisplayship_noplayer
+	call runindex(displayship_noplayer)
+	setfragmentsize 10
+
+codefragment newdisplayplane
+	call runindex(displayplane)
+	nop
+
+codefragment newdisplayplane_noplayer
+	call runindex(displayplane_noplayer)
+	setfragmentsize 10
+
+endcodefragments
+
 patchnewvehs:
 	multipatchcode startstopveh,4
 	or byte [newgraphicssetsenabled+1],1 << (10-8)
@@ -84,67 +148,3 @@ var newdisplayhandlersize_np
 	db newdisplayship_noplayer_end-newdisplayship_noplayer_start
 	db newdisplayplane_noplayer_end-newdisplayplane_noplayer_start
 #endif
-
-
-begincodefragments
-
-codefragment oldstartstopveh,-5
-	xor word [edx+veh.vehstatus],2
-
-codefragment newstartstopveh
-	icall startstopveh
-	jc newstartstopveh_start+53
-	jz newstartstopveh_start+38
-	setfragmentsize 10
-
-
-codefragment newgettrainsprite
-	call runindex(gettrainsprite)
-	jnc $+35
-	setfragmentsize 14
-
-codefragment newgetrvsprite
-	call runindex(getrvsprite)
-	setfragmentsize 18
-
-codefragment newgetshipsprite
-	call runindex(getshipsprite)
-	nop
-
-codefragment newgetplanesprite
-	call runindex(getplanesprite)
-	nop
-
-codefragment newdisplay2ndeng
-	call runindex(display2ndengine)
-	setfragmentsize 21
-
-codefragment newdisplay2ndeng_noplayer
-	call runindex(display2ndengine_noplayer)
-	setfragmentsize 24
-
-codefragment newdisplayrv
-	call runindex(displayrv)
-	nop
-
-codefragment newdisplayrv_noplayer
-	call runindex(displayrv_noplayer)
-	setfragmentsize 10
-
-codefragment newdisplayship
-	call runindex(displayship)
-	nop
-
-codefragment newdisplayship_noplayer
-	call runindex(displayship_noplayer)
-	setfragmentsize 10
-
-codefragment newdisplayplane
-	call runindex(displayplane)
-	nop
-
-codefragment newdisplayplane_noplayer
-	call runindex(displayplane_noplayer)
-	setfragmentsize 10
-
-endcodefragments

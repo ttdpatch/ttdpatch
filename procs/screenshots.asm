@@ -2,27 +2,6 @@
 #include <frag_mac.inc>
 
 global patchscreenshots
-patchscreenshots:
-	// fix screenshot keys
-	patchcode oldcheckscreenshotkeys,newcheckscreenshotkeys,1,1
-	mov byte [edi+lastediadj-5],0xbb
-	mov word [edi+lastediadj+8],0x2588
-	mov byte [edi+lastediadj+14],0x90
-	mov byte [edi+lastediadj+26],0xeb	// avoid repeated check with a remapped key
-
-#if WINTTDX
-	// the rest of the stuff is WinTTDX-specific
-	patchcode oldreadpalette,newreadpalette,1,2
-	patchcode oldreadpalette,newreadpalette,1,1
-	patchcode oldint21create,newint21create,1,1
-	patchcode oldbackspacefrombuffer,newbackspacefrombuffer,1,1
-	multipatchcode oldisbackspace,newisbackspace,2
-	stringaddress oldgenbackspace
-	mov byte [edi],0x2e
-	mov byte [edi+8],0x7f		// delete generates character 0x7f (ASCII DEL)
-#endif
-	ret
-
 
 begincodefragments
 
@@ -85,3 +64,24 @@ codefragment oldgenbackspace,-1
 #endif
 
 endcodefragments
+
+patchscreenshots:
+	// fix screenshot keys
+	patchcode oldcheckscreenshotkeys,newcheckscreenshotkeys,1,1
+	mov byte [edi+lastediadj-5],0xbb
+	mov word [edi+lastediadj+8],0x2588
+	mov byte [edi+lastediadj+14],0x90
+	mov byte [edi+lastediadj+26],0xeb	// avoid repeated check with a remapped key
+
+#if WINTTDX
+	// the rest of the stuff is WinTTDX-specific
+	patchcode oldreadpalette,newreadpalette,1,2
+	patchcode oldreadpalette,newreadpalette,1,1
+	patchcode oldint21create,newint21create,1,1
+	patchcode oldbackspacefrombuffer,newbackspacefrombuffer,1,1
+	multipatchcode oldisbackspace,newisbackspace,2
+	stringaddress oldgenbackspace
+	mov byte [edi],0x2e
+	mov byte [edi+8],0x7f		// delete generates character 0x7f (ASCII DEL)
+#endif
+	ret

@@ -7,27 +7,6 @@ extern spritecache
 
 
 global patchsetspritecache
-patchsetspritecache:
-	stringaddress oldloadspriteheader,1,1
-	mov eax,[edi-4]
-	mov [tempspriteheaderp1],eax
-	storefragment newloadspriteheader
-	patchcode oldloadspriteheader2,newloadspriteheader,1,1
-
-#if !WINTTDX
-		// patch DOS version to use DS memory for sprite cache
-	call allocspritecache
-	patchcode oldallocspritecache,newallocspritecache,1,1
-	mov byte [edi+lastediadj+0xe2],0x89	// xor -> mov
-	multipatchcode oldgetspritecache,newgetspritecache,3
-	patchcode oldgetspritecachess,newgetspritecachess,1,1
-
-	mov edi,[removespritefromcache]
-	add edi,12
-	storefragment newremovespritefromcache
-#endif
-	ret
-
 
 begincodefragments
 
@@ -47,7 +26,6 @@ tempspriteheaderp1 equ $-4
 
 
 endcodefragments
-
 begincodefragments
 
 #if !WINTTDX
@@ -88,3 +66,24 @@ codefragment newremovespritefromcache
 
 
 endcodefragments
+
+patchsetspritecache:
+	stringaddress oldloadspriteheader,1,1
+	mov eax,[edi-4]
+	mov [tempspriteheaderp1],eax
+	storefragment newloadspriteheader
+	patchcode oldloadspriteheader2,newloadspriteheader,1,1
+
+#if !WINTTDX
+		// patch DOS version to use DS memory for sprite cache
+	call allocspritecache
+	patchcode oldallocspritecache,newallocspritecache,1,1
+	mov byte [edi+lastediadj+0xe2],0x89	// xor -> mov
+	multipatchcode oldgetspritecache,newgetspritecache,3
+	patchcode oldgetspritecachess,newgetspritecachess,1,1
+
+	mov edi,[removespritefromcache]
+	add edi,12
+	storefragment newremovespritefromcache
+#endif
+	ret

@@ -8,6 +8,21 @@ patchproc generalfixes,morecurrencies, patchdiffsettings
 extern fndrawstring
 extern gettextandtableptrs
 
+begincodefragments
+
+codefragment oldshowdifficultynums,-10
+	pop ebp
+	pop dx
+	pop cx
+	add dx,0xb
+
+codefragment newshowdifficultynums
+	call runindex(showdifficultynums)
+	setfragmentsize 10
+
+
+endcodefragments
+
 
 patchdiffsettings:
 	mov ax,0x6809	// "Initial loan size:..."
@@ -33,20 +48,3 @@ patchdiffsettings:
 	copyrelative fndrawstring,lastediadj+6
 	storefragment newshowdifficultynums
 	ret
-
-
-
-begincodefragments
-
-codefragment oldshowdifficultynums,-10
-	pop ebp
-	pop dx
-	pop cx
-	add dx,0xb
-
-codefragment newshowdifficultynums
-	call runindex(showdifficultynums)
-	setfragmentsize 10
-
-
-endcodefragments

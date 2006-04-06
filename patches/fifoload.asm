@@ -74,5 +74,3 @@ clearfifodata:
 	jnz .stationloop
 .done:
 	ret
-
-

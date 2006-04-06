@@ -32,7 +32,13 @@ unsigned int grep_blksize = 4096;
 #include "switches.h"
 #include "checkexe.h"
 #include "auxfiles.h"
-
+#if DEBUG
+#if WINTTDX
+#include "pprocw.h"
+#else
+#include "pprocd.h"
+#endif
+#endif
 
 langinfo *linfo;
 
@@ -41,7 +47,7 @@ void saveversion(int wasgood)
 {
   char s1[40], s2[40], verfilename[40];
   FILE *f;
-  int i, count;
+  int i, count, pproc_num;
 
   curversion->h.version = newversion;
   curversion->h.filesize = newfilesize;
@@ -63,12 +69,21 @@ void saveversion(int wasgood)
   f = fopen(verfilename, "wt");
   fprintf(f, "// Version information for %s\n"
 	     "\n"
-	     "\t{ 0x%lX, 0x%lX, %ld,\n\n\t  ",
+	     "\t{ 0x%lX, 0x%lX, %ld,",
 	     s2, curversion->h.version, curversion->h.filesize, curversion->h.numoffsets);
 
+  pproc_num = 0;
   for (i=count=0; i<curversion->h.numoffsets; i++, count++) {
-	if(curversion->versionoffsets[i] & 0xff000000 || (count ==5)) {
-		fprintf(f, "%s\n\t  ", curversion->versionoffsets[i] & 0xff000000 ? "\n" : "");
+	if(curversion->versionoffsets[i] & 0xff000000 || (count == 5) || 
+			(WINTTDX && (count == 0)) ) {
+		if (curversion->versionoffsets[i] & 0xff000000 ||
+				(WINTTDX && (count == 0)) )
+#if DEBUG
+			fprintf(f, "\n\n\t  // %s", pproc_names[pproc_num++]);
+#else
+			fprintf(f, "\n\n\t  // #%d", pproc_num++);
+#endif
+		fputs("\n\t  ", f);
 		count=0;
 	}
 	fprintf(f, "0x%lX%s", curversion->versionoffsets[i],

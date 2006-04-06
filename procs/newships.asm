@@ -9,49 +9,6 @@ extern vehtickproc.oldships
 ext_frag oldshipplanestartsound,newvehstartsound,newbreakdownsound
 
 global patchnewships
-patchnewships:
-	patchcode oldshiptopspeed,newshiptopspeed
-
-	// increase width of the new ships window to accomodate for larger sprites
-	xor ebx,ebx
-	mov bl,20		// X size increase
-
-	stringaddress drawnewshipnamexy
-	add [edi],bl
-	stringaddress drawshipdetails2xy
-	add [edi],bl
-	mov cl,2		// ECX=0 after the stringaddress above
-.crnswsizeloop:
-	push ecx
-	stringaddress createnewshipswindowsize,ecx,2
-	add [edi],ebx
-	add word [edi+2],50
-	pop ecx
-	loop .crnswsizeloop
-	call patchnewtrains.expandnewvehwindow
-
-	// also make the info box longer by five lines
-	mov ebx,(50 << 16)+50
-	add [edi+56],bx
-	add [edi+66],ebx
-	add [edi+78],ebx
-
-	mov esi,vehtickproc
-	mov eax,[ophandler+0x12*8]	// ship vehicle class
-	xchg esi,[eax+0x14]		// vehtickproc
-	mov [vehtickproc.oldships],esi
-
-	mov esi,dailyvehproc
-	xchg esi,[eax+0x1c]		// dailyvehproc
-	mov [dailyvehproc.oldships],esi
-
-	patchcode oldshowshipinfo,newshowvehinfo
-
-	patchcode oldtrainshipbreakdownsound,newbreakdownsound,2,2
-	patchcode oldshipplanestartsound,newvehstartsound,2+WINTTDX,3
-	ret
-
-
 
 begincodefragments
 
@@ -94,3 +51,45 @@ codefragment oldtrainshipbreakdownsound,-11
 
 
 endcodefragments
+
+patchnewships:
+	patchcode oldshiptopspeed,newshiptopspeed
+
+	// increase width of the new ships window to accomodate for larger sprites
+	xor ebx,ebx
+	mov bl,20		// X size increase
+
+	stringaddress drawnewshipnamexy
+	add [edi],bl
+	stringaddress drawshipdetails2xy
+	add [edi],bl
+	mov cl,2		// ECX=0 after the stringaddress above
+.crnswsizeloop:
+	push ecx
+	stringaddress createnewshipswindowsize,ecx,2
+	add [edi],ebx
+	add word [edi+2],50
+	pop ecx
+	loop .crnswsizeloop
+	call patchnewtrains.expandnewvehwindow
+
+	// also make the info box longer by five lines
+	mov ebx,(50 << 16)+50
+	add [edi+56],bx
+	add [edi+66],ebx
+	add [edi+78],ebx
+
+	mov esi,vehtickproc
+	mov eax,[ophandler+0x12*8]	// ship vehicle class
+	xchg esi,[eax+0x14]		// vehtickproc
+	mov [vehtickproc.oldships],esi
+
+	mov esi,dailyvehproc
+	xchg esi,[eax+0x1c]		// dailyvehproc
+	mov [dailyvehproc.oldships],esi
+
+	patchcode oldshowshipinfo,newshowvehinfo
+
+	patchcode oldtrainshipbreakdownsound,newbreakdownsound,2,2
+	patchcode oldshipplanestartsound,newvehstartsound,2+WINTTDX,3
+	ret

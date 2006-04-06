@@ -712,5 +712,3 @@ getirrplatformlength:
 	pop edx		// clear esi off the stack
 	pop edx
 	ret
-
-

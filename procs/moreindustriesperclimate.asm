@@ -5,7 +5,7 @@
 patchproc moreindustriesperclimate, patchmoreindustriesperclimate
 
 
-extern CreateNewRandomIndustry,defscenariocargo,fundcostmultipliers
+extern CreateNewRandomIndustry,defclimatecargobits,fundcostmultipliers
 extern fundguitoindustrytablearctic,fundguitoindustrytabletemperate
 extern fundguitoindustrytabletoyland,fundguitoindustrytabletropic
 extern fundindustrytooltips_arctic,fundindustrytooltips_temperate
@@ -17,74 +17,6 @@ extern newfundindustrygui_tropic
 
 #include <window.inc>
 #include <industry.inc>
-
-patchmoreindustriesperclimate:
-	patchcode oldcreatenewindustry, newcreatenewindustry,1,1
-	
-	stringaddress findfundguitoindustrytableptrs,1,1
-	mov ebx, [edi]
-	mov dword [ebx], fundguitoindustrytabletemperate
-       mov dword [ebx+4], fundguitoindustrytablearctic
-       mov dword [ebx+8], fundguitoindustrytabletropic
-       mov dword [ebx+12], fundguitoindustrytabletoyland
-	
-	stringaddress findoldindustryguielements,1,1
-	mov dword [locindustryguielements], edi
-
-	//patchcode oldindustryguielementstemperate, newindustryguielementstemperate,1,1
-	stringaddress oldindustryguielementstemperate,1,1
-       mov dword [edi+3], newfundindustrygui_temperate
-       mov dword [edi-18], 009C0154h
-
-       // arctic
-       sub edi, 31
-       mov dword [edi+3], newfundindustrygui_arctic
-       mov dword [edi-18], 009C0154h
-
-	// desert
-       sub edi, 31
-       mov dword [edi+3], newfundindustrygui_tropic
-       mov dword [edi-18], 009C0154h
-
-       // toyland
-       sub edi, 31
-       mov dword [edi+3], newfundindustrygui_toyland
-       mov dword [edi-18], 009C0154h
-
-	//Find accept lists in memory
-	stringaddress oldindustryquerryacceptlist1,1,1
-	mov eax, [edi]
-	mov dword [industryquerryacceptlist1],eax
-
-	stringaddress oldindustryquerryacceptlist3,1,1
-	mov eax, [edi]
-	mov dword [industryquerryacceptlist3],eax
-
-	stringaddress oldindustryquerryacceptlist2,1,1
-	mov eax, [edi]
-	mov dword [industryquerryacceptlist2],eax
-
-	bts dword [defscenariocargo],27
-	// bts dword [scenariocargo+4],28	// for new arctic cargo when defined
-
-       storeaddress findCreateNewRandomIndustry,1,1,CreateNewRandomIndustry
-       storeaddress findFundCostMultipliers,1,1,fundcostmultipliers
-       patchcode oldFundNewIndustryWindowHandler, newFundNewIndustryWindowHandler,1,1
-       patchcode oldDrawFundNewIndustryWindow, newDrawFundNewIndustryWindow, 1, 1
-
-       // patch tooltips
-       stringaddress findfundnewindustrytooltip,2,2
-       mov dword [edi+4], fundindustrytooltips_toyland
-       add edi, 13
-       mov dword [edi+4], fundindustrytooltips_tropic
-       add edi, 13
-       mov dword [edi+4], fundindustrytooltips_arctic
-       add edi, 13
-       mov dword [edi+4], fundindustrytooltips_temperate
-
-	ret
-
-
 
 begincodefragments
 
@@ -171,3 +103,69 @@ codefragment findfundnewindustrytooltip,12
 
 
 endcodefragments
+
+patchmoreindustriesperclimate:
+	patchcode oldcreatenewindustry, newcreatenewindustry,1,1
+	
+	stringaddress findfundguitoindustrytableptrs,1,1
+	mov ebx, [edi]
+	mov dword [ebx], fundguitoindustrytabletemperate
+       mov dword [ebx+4], fundguitoindustrytablearctic
+       mov dword [ebx+8], fundguitoindustrytabletropic
+       mov dword [ebx+12], fundguitoindustrytabletoyland
+	
+	stringaddress findoldindustryguielements,1,1
+	mov dword [locindustryguielements], edi
+
+	//patchcode oldindustryguielementstemperate, newindustryguielementstemperate,1,1
+	stringaddress oldindustryguielementstemperate,1,1
+       mov dword [edi+3], newfundindustrygui_temperate
+       mov dword [edi-18], 009C0154h
+
+       // arctic
+       sub edi, 31
+       mov dword [edi+3], newfundindustrygui_arctic
+       mov dword [edi-18], 009C0154h
+
+	// desert
+       sub edi, 31
+       mov dword [edi+3], newfundindustrygui_tropic
+       mov dword [edi-18], 009C0154h
+
+       // toyland
+       sub edi, 31
+       mov dword [edi+3], newfundindustrygui_toyland
+       mov dword [edi-18], 009C0154h
+
+	//Find accept lists in memory
+	stringaddress oldindustryquerryacceptlist1,1,1
+	mov eax, [edi]
+	mov dword [industryquerryacceptlist1],eax
+
+	stringaddress oldindustryquerryacceptlist3,1,1
+	mov eax, [edi]
+	mov dword [industryquerryacceptlist3],eax
+
+	stringaddress oldindustryquerryacceptlist2,1,1
+	mov eax, [edi]
+	mov dword [industryquerryacceptlist2],eax
+
+	bts dword [defclimatecargobits],27
+	// bts dword [scenariocargo+4],28	// for new arctic cargo when defined
+
+       storeaddress findCreateNewRandomIndustry,1,1,CreateNewRandomIndustry
+       storeaddress findFundCostMultipliers,1,1,fundcostmultipliers
+       patchcode oldFundNewIndustryWindowHandler, newFundNewIndustryWindowHandler,1,1
+       patchcode oldDrawFundNewIndustryWindow, newDrawFundNewIndustryWindow, 1, 1
+
+       // patch tooltips
+       stringaddress findfundnewindustrytooltip,2,2
+       mov dword [edi+4], fundindustrytooltips_toyland
+       add edi, 13
+       mov dword [edi+4], fundindustrytooltips_tropic
+       add edi, 13
+       mov dword [edi+4], fundindustrytooltips_arctic
+       add edi, 13
+       mov dword [edi+4], fundindustrytooltips_temperate
+
+	ret

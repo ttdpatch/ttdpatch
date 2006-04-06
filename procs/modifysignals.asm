@@ -6,13 +6,6 @@ extern newgraphicssetsenabled
 
 
 global patchmodifysignals
-patchmodifysignals:
-	patchcode oldmodifysignals,newmodifysignals,1,1
-	patchcode oldshowtrackinfo,newshowtrackinfo,1,1
-	or byte [newgraphicssetsenabled],1 << 4
-	ret
-
-
 
 begincodefragments
 
@@ -34,3 +27,9 @@ codefragment newshowtrackinfo
 
 
 endcodefragments
+
+patchmodifysignals:
+	patchcode oldmodifysignals,newmodifysignals,1,1
+	patchcode oldshowtrackinfo,newshowtrackinfo,1,1
+	or byte [newgraphicssetsenabled],1 << 4
+	ret

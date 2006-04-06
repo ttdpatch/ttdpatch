@@ -6,24 +6,6 @@ extern patchflags
 
 
 global patchenterstation
-patchenterstation:
-	testflags gradualloading
-	sbb bl,bl
-
-	testflags feederservice
-	sbb bl,0	// now bl==0 if neither gradualloading nor feederservice are on
-
-	patchcode oldenterstation,newentertrainstation,1+WINTTDX,2	// trains
-	patchcode oldenterstation,newenterrvstation,1,1,,{test bl,bl},nz// truck/bus
-	patchcode oldenterairport,newenterairport,1,1,,{test bl,bl},nz
-	patchcode oldenterdock,newenterdock,1,1,,{test bl,bl},nz
-	ret
-
-
-		// test for either presignals or extpresignals
-		// if either is set we can have pre-signals
-		// only presignals is set: only automatic setups
-		// only extpresignals is set: no automatic setups
 
 begincodefragments
 
@@ -54,3 +36,22 @@ codefragment newenterdock
 
 
 endcodefragments
+
+patchenterstation:
+	testflags gradualloading
+	sbb bl,bl
+
+	testflags feederservice
+	sbb bl,0	// now bl==0 if neither gradualloading nor feederservice are on
+
+	patchcode oldenterstation,newentertrainstation,1+WINTTDX,2	// trains
+	patchcode oldenterstation,newenterrvstation,1,1,,{test bl,bl},nz// truck/bus
+	patchcode oldenterairport,newenterairport,1,1,,{test bl,bl},nz
+	patchcode oldenterdock,newenterdock,1,1,,{test bl,bl},nz
+	ret
+
+
+		// test for either presignals or extpresignals
+		// if either is set we can have pre-signals
+		// only presignals is set: only automatic setups
+		// only extpresignals is set: no automatic setups

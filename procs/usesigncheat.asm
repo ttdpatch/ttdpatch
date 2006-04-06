@@ -2,13 +2,6 @@
 #include <frag_mac.inc>
 
 global patchusesigncheat
-patchusesigncheat:
-	patchcode oldsetsignsize,newsetsignsize,1,1
-	patchcode oldputsign,newputsign,1+WINTTDX,7
-	patchcode oldcheckduplicate,newcheckduplicate,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -42,3 +35,9 @@ codefragment newcheckduplicate
 	setfragmentsize 12
 
 endcodefragments
+
+patchusesigncheat:
+	patchcode oldsetsignsize,newsetsignsize,1,1
+	patchcode oldputsign,newputsign,1+WINTTDX,7
+	patchcode oldcheckduplicate,newcheckduplicate,1,1
+	ret

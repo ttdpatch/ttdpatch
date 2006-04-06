@@ -7,36 +7,6 @@ extern trainwindowsize
 
 
 global patchallowtrainrefit
-patchallowtrainrefit:
-	patchcode oldcheckinhangar,newcheckinhangar,1,1
-
-	// also copy some other code
-	add edi,byte 0x3b+lastediadj+3*WINTTDX
-	storefragment newcalcrefitcap
-
-	storeaddress trainwindowdata,1,1,normaltrainwindowptr
-
-		// create the new window setup with refit button
-	mov esi,edi
-	mov edi,trainwindowrefit
-	mov ecx,trainwindowsize
-	rep movsb
-	mov word [trainwindowrefit+0x6a],0x2b4
-
-	patchcode oldsetuptrainwindow,newsetuptrainwindow,1,1
-	patchcode oldtrainwindowfunc,newtrainwindowfunc,1,1
-
-	storeaddress refitplane,1,1,oldrefitplane
-
-	patchcode oldtrainreverse,newtrainreverse,1,1
-	patchcode oldsetnewengine,newsetnewengine,1,1
-	add edi,byte lastediadj-0x26
-	storefragment newrefitstorecap
-	add edi,lastediadj+0x6f
-	storefragment newcalcrefitcost
-	ret
-
-
 
 begincodefragments
 
@@ -111,3 +81,32 @@ codefragment newcalcrefitcost
 
 
 endcodefragments
+
+patchallowtrainrefit:
+	patchcode oldcheckinhangar,newcheckinhangar,1,1
+
+	// also copy some other code
+	add edi,byte 0x3b+lastediadj+3*WINTTDX
+	storefragment newcalcrefitcap
+
+	storeaddress trainwindowdata,1,1,normaltrainwindowptr
+
+		// create the new window setup with refit button
+	mov esi,edi
+	mov edi,trainwindowrefit
+	mov ecx,trainwindowsize
+	rep movsb
+	mov word [trainwindowrefit+0x6a],0x2b4
+
+	patchcode oldsetuptrainwindow,newsetuptrainwindow,1,1
+	patchcode oldtrainwindowfunc,newtrainwindowfunc,1,1
+
+	storeaddress refitplane,1,1,oldrefitplane
+
+	patchcode oldtrainreverse,newtrainreverse,1,1
+	patchcode oldsetnewengine,newsetnewengine,1,1
+	add edi,byte lastediadj-0x26
+	storefragment newrefitstorecap
+	add edi,lastediadj+0x6f
+	storefragment newcalcrefitcost
+	ret

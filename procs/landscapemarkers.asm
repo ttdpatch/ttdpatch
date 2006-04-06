@@ -4,12 +4,6 @@
 
 patchproc locomotiongui,enhancegui, patchlandscapemarkers
 
-patchlandscapemarkers:
-	patchcode oldcollectlandscapemarkers,newcollectlandscapemarkers,1,1
-	patchcode oldresetmarkedtiles,newresetmarkedtiles,1,1
-	ret
-
-
 begincodefragments
 
 codefragment oldcollectlandscapemarkers,6
@@ -34,3 +28,8 @@ codefragment newresetmarkedtiles
 
 
 endcodefragments
+
+patchlandscapemarkers:
+	patchcode oldcollectlandscapemarkers,newcollectlandscapemarkers,1,1
+	patchcode oldresetmarkedtiles,newresetmarkedtiles,1,1
+	ret

@@ -3,8 +3,10 @@
 #include <vehtype.inc>
 
 ptrvardec ophandler		// Array of pointers to tables of various object handlers
+#define opclass(n) ophandler+(n)*8
 
 ptrvardec newhousedatablock
+ptrvardec industrydatablock
 
 ptrvardec trainpower
 ptrvarofs AIspecialflag,trainpower,-NTRAINTYPES*3	// offset to count from the train power array

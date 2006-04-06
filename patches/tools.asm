@@ -12,6 +12,7 @@
 #include <misc.inc>
 #include <systexts.inc>
 #include <ptrvar.inc>
+#include <player.inc>
 
 extern MessageBoxW,addexpenses,clearindustrygameids,clearindustryincargos
 extern clearpersistenttexts,companystatsclear,companystatsptr
@@ -24,7 +25,7 @@ extern mainstringtable,newshistclear,newshistinit,newshistoryptr
 extern orighumanplayers,patchflags,randomfn,recalchousecounts
 extern searchcollidingvehs,specialtext1,station2clear,station2init
 extern stationarray2ptr,tmpbuffer1,ttdpatchactions,ttdtexthandler
-extern varheap,exitcleanup
+extern varheap,exitcleanup,player2clear,player2array
 
 
 #define __no_extern_vars__ 1
@@ -845,6 +846,10 @@ initializeveharray:
 	je .no_companystats
 	call companystatsclear
 .no_companystats:
+	cmp dword [player2array],0
+	jle .noplayer2
+	call player2clear
+.noplayer2:
 
 	call clearpersistenttexts
 
@@ -1417,12 +1422,16 @@ ovar .origfn,-4,$,changecolorscheme
 	ret
 
 	// set second company colour
-	extern companysecondcol
 .second:
 	test bl,1
 	jz .done	// always succeeds (need not be unique)
+	cmp dword [player2array],0
+	jle .done	// no player 2 array??
 	movzx esi,byte [curplayer]
-	mov [companysecondcol],dh
+	imul esi,0+player2_size
+	add esi,[player2array]
+	mov [esi+player2.col2],dh
+	or byte [esi+player2.colschemes],1<<COLSCHEME_HAS2CC
 	call resetcolmapcache
 	call redrawscreen
 .done:
@@ -1438,4 +1447,3 @@ resetcolmapcache:
 	cmp esi,[veharrayendptr]
 	jb .next	
 	ret
-

@@ -9,50 +9,6 @@ extern selectgroundforbridge
 
 
 global patchhigherbridges
-patchhigherbridges:
-	multipatchcode oldvehzisonthebridge, newvehzisonthebridge,2
-	
-	patchcode oldbridgemiddlezcorrect, newbridgemiddlezcorrect,1,1
-	
-	stringaddress findbridgevehmaxspeed,1,1
-	storefunctioncall bridgevehmaxspeed
-	mov word [edi-9], 0x9090
-	
-	patchcode oldbridgedrawmiddlepart, newbridgedrawmiddlepart,1,1
-	
-	stringaddress oldbridgedrawrouterail,1,1
-	storefunctioncall bridgedrawrailunder
-	stringaddress oldbridgedrawrouteroad,1,1
-	storefunctioncall bridgedrawroadunder
-
-	stringaddress oldbridgedrawmiddlepartpillar,1,1
-	storefunctioncall bridgedrawmiddlepartpillar
-
-	stringaddress oldselectgroundforbridge
-	storefunctioncall selectgroundforbridge
-
-// Manage Bridge building
-	stringaddress oldbridgecheckzstartend,1,2
-	storefunctioncall bridgechecklandscapeforstartorend
-	stringaddress oldbridgecheckzstartend,2,2		// just find the next one
-	storefunctioncall bridgechecklandscapeforstartorend
-	patchcode oldbridgemiddlecheckslopeok,newbridgemiddlecheckslopeok,1,1
-
-	multipatchcode oldbridgeendsaveinlandscape, newbridgeendsaveinlandscape,2
-	patchcode oldbridgemiddlesaveinlandscape,newbridgemiddlesaveinlandscape,1,1
-
-	// switch slope build mask
-	mov esi, [bridgeendfoundationhigherbridges]
-	mov [bridgeendfoundation], esi
-	mov esi, [bridgeendfoundationhigherbridges+4]
-	mov [bridgeendfoundation+4], esi
-
-	patchcode oldremovebridgewater,newremovebridgewater,1,1
-
-	patchcode oldgetnormalclassunderbridge, newgetnormalclassunderbridge,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -160,3 +116,46 @@ codefragment newgetnormalclassunderbridge
 
 
 endcodefragments
+
+patchhigherbridges:
+	multipatchcode oldvehzisonthebridge, newvehzisonthebridge,2
+	
+	patchcode oldbridgemiddlezcorrect, newbridgemiddlezcorrect,1,1
+	
+	stringaddress findbridgevehmaxspeed,1,1
+	storefunctioncall bridgevehmaxspeed
+	mov word [edi-9], 0x9090
+	
+	patchcode oldbridgedrawmiddlepart, newbridgedrawmiddlepart,1,1
+	
+	stringaddress oldbridgedrawrouterail,1,1
+	storefunctioncall bridgedrawrailunder
+	stringaddress oldbridgedrawrouteroad,1,1
+	storefunctioncall bridgedrawroadunder
+
+	stringaddress oldbridgedrawmiddlepartpillar,1,1
+	storefunctioncall bridgedrawmiddlepartpillar
+
+	stringaddress oldselectgroundforbridge
+	storefunctioncall selectgroundforbridge
+
+// Manage Bridge building
+	stringaddress oldbridgecheckzstartend,1,2
+	storefunctioncall bridgechecklandscapeforstartorend
+	stringaddress oldbridgecheckzstartend,2,2		// just find the next one
+	storefunctioncall bridgechecklandscapeforstartorend
+	patchcode oldbridgemiddlecheckslopeok,newbridgemiddlecheckslopeok,1,1
+
+	multipatchcode oldbridgeendsaveinlandscape, newbridgeendsaveinlandscape,2
+	patchcode oldbridgemiddlesaveinlandscape,newbridgemiddlesaveinlandscape,1,1
+
+	// switch slope build mask
+	mov esi, [bridgeendfoundationhigherbridges]
+	mov [bridgeendfoundation], esi
+	mov esi, [bridgeendfoundationhigherbridges+4]
+	mov [bridgeendfoundation+4], esi
+
+	patchcode oldremovebridgewater,newremovebridgewater,1,1
+
+	patchcode oldgetnormalclassunderbridge, newgetnormalclassunderbridge,1,1
+	ret

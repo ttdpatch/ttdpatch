@@ -7,16 +7,6 @@ patchproc irrstations, patchirregularstations
 
 extern irrremoverailstation.origfn
 
-patchirregularstations:
-	patchcode oldremoverailwaystation,newremoverailwaystation,1,1
-	stringaddress findremoverailwaystation2
-	storerelative irrremoverailstation.origfn, edi
-
-	// overwrites newgetplatformsforcargoacceptlist !!!
-	patchcode oldgetrailsouthacceptlist, newgetrailsouthacceptlist,1,1
-	ret
-
-
 begincodefragments
 
 codefragment oldremoverailwaystation
@@ -41,3 +31,12 @@ codefragment newgetrailsouthacceptlist
 
 
 endcodefragments
+
+patchirregularstations:
+	patchcode oldremoverailwaystation,newremoverailwaystation,1,1
+	stringaddress findremoverailwaystation2
+	storerelative irrremoverailstation.origfn, edi
+
+	// overwrites newgetplatformsforcargoacceptlist !!!
+	patchcode oldgetrailsouthacceptlist, newgetrailsouthacceptlist,1,1
+	ret

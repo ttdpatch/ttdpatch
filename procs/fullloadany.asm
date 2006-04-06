@@ -2,11 +2,6 @@
 #include <frag_mac.inc>
 
 global patchfullloadany
-patchfullloadany:
-	patchcode oldcheckfull,newcheckfull,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -20,3 +15,7 @@ codefragment newcheckfull
 
 
 endcodefragments
+
+patchfullloadany:
+	patchcode oldcheckfull,newcheckfull,1,1
+	ret

@@ -9,6 +9,22 @@ extern miscmodsflags,patchflags,spritesorter,spritesorter.spritelistptr
 extern spritesorter.spritesorttableofs
 extern usecurrspritedescptr
 
+begincodefragments
+
+codefragment oldsavecurrspritedescptr
+	mov [tempvar],edi
+	db 0x83			// add...
+
+codefragment newsavecurrspritedescptr
+	call runindex(savecurrspritedescptr)
+currspritedescptr.fn equ $-4-fragmentstart
+
+codefragment oldcallspritesorter,-24
+	add esp,21000
+
+
+endcodefragments
+
 def_indirect usecurrspritedescptr
 def_indirect savecurrspritedescptr
 
@@ -40,21 +56,3 @@ patchspritesorting:
 	sub eax,edi
 	mov [edi],eax
 	ret
-
-
-
-begincodefragments
-
-codefragment oldsavecurrspritedescptr
-	mov [tempvar],edi
-	db 0x83			// add...
-
-codefragment newsavecurrspritedescptr
-	call runindex(savecurrspritedescptr)
-currspritedescptr.fn equ $-4-fragmentstart
-
-codefragment oldcallspritesorter,-24
-	add esp,21000
-
-
-endcodefragments

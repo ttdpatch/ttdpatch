@@ -49,7 +49,7 @@ langproc *languagedata[] = {
 #else
 	&english,
 #ifndef TESTMAKELANG
-	&czech, &danish, &dutch, /*&finnish,*/ &french, &german, &hungaria,
+	&czech, &danish, &dutch, &finnish, &french, &german, &hungaria,
 	&italian, &norwegia, &polish, &russian, &spanish,
 #endif
 #endif

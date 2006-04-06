@@ -6,11 +6,6 @@ extern newvehcount
 
 
 global patchincreasetraincount
-patchincreasetraincount:
-	changeloadedvalue traincountcode,1,1,b,newvehcount
-	ret
-
-
 
 begincodefragments
 
@@ -20,3 +15,7 @@ codefragment traincountcode,2
 
 
 endcodefragments
+
+patchincreasetraincount:
+	changeloadedvalue traincountcode,1,1,b,newvehcount
+	ret

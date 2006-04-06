@@ -6,15 +6,6 @@
 
 patchprocandor generalfixes,BIT(MISCMODS_DISPLAYTOWNSIZE),, patchdisplaytownsize
 
-patchdisplaytownsize:
-	multipatchcode oldtowntextid,newtowntextid,2
-	patchcode olddrawtownsize,newdrawtownsize,1,3
-	patchcode olddrawtownsize,newdrawtownsize,1,0
-	multipatchcode oldSetTownNamePosition,newSetTownNamePosition,3
-	patchcode settownnamepositionend
-	ret
-
-
 begincodefragments
 
 codefragment oldtowntextid,2
@@ -47,3 +38,11 @@ codefragment newsettownnamepositionend
 
 
 endcodefragments
+
+patchdisplaytownsize:
+	multipatchcode oldtowntextid,newtowntextid,2
+	patchcode olddrawtownsize,newdrawtownsize,1,3
+	patchcode olddrawtownsize,newdrawtownsize,1,0
+	multipatchcode oldSetTownNamePosition,newSetTownNamePosition,3
+	patchcode settownnamepositionend
+	ret

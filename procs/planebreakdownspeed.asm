@@ -4,12 +4,6 @@
 
 patchproc generalfixes,newplanes,planespeed, patchplanebreakdownspeed
 
-patchplanebreakdownspeed:
-	patchcode oldplanebreakdownspeed,newplanebreakdownspeed,1,1
-	ret
-
-
-
 begincodefragments
 
 codefragment oldplanebreakdownspeed,-2
@@ -20,3 +14,7 @@ codefragment newplanebreakdownspeed
 
 
 endcodefragments
+
+patchplanebreakdownspeed:
+	patchcode oldplanebreakdownspeed,newplanebreakdownspeed,1,1
+	ret

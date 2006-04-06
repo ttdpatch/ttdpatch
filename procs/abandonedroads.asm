@@ -7,22 +7,6 @@ patchproc abandonedroads, patchabandonedroads
 
 extern tunnelotherendfn
 
-
-patchabandonedroads:
-	//expiring road ownership
-	patchcode oldvehleaveroadtile,newvehleaveroadtile,2,2
-	patchcode oldperiodicroadproc,newperiodicroadproc,1,2
-	patchcode oldbuildnewroad,newbuildnewroad,1,1
-	patchcode oldbuildroadtorail,newbuildroadtorail,1,1
-	patchcode oldbuildroadunderbridge,newbuildroadunderbridge,1,1
-	patchcode oldbuildtunnel1,newbuildtunnel,1,1
-	patchcode oldbuildtunnel2,newbuildtunnel,1,1
-	storeaddress findtunnelotherend,1,1,tunnelotherendfn
-	patchcode oldvehenterleaveclass9,newvehenterleaveclass9,1,1
-	patchcode oldperiodicclass9proc,newperiodicclass9proc,1,1
-	patchcode oldbuildbridgenorthhead,newbuildbridgenorthhead,1,2
-	ret
-
 begincodefragments
 
 codefragment oldvehleaveroadtile,2
@@ -123,3 +107,19 @@ codefragment newbuildbridgenorthhead
 
 
 endcodefragments
+
+
+patchabandonedroads:
+	//expiring road ownership
+	patchcode oldvehleaveroadtile,newvehleaveroadtile,2,2
+	patchcode oldperiodicroadproc,newperiodicroadproc,1,2
+	patchcode oldbuildnewroad,newbuildnewroad,1,1
+	patchcode oldbuildroadtorail,newbuildroadtorail,1,1
+	patchcode oldbuildroadunderbridge,newbuildroadunderbridge,1,1
+	patchcode oldbuildtunnel1,newbuildtunnel,1,1
+	patchcode oldbuildtunnel2,newbuildtunnel,1,1
+	storeaddress findtunnelotherend,1,1,tunnelotherendfn
+	patchcode oldvehenterleaveclass9,newvehenterleaveclass9,1,1
+	patchcode oldperiodicclass9proc,newperiodicclass9proc,1,1
+	patchcode oldbuildbridgenorthhead,newbuildbridgenorthhead,1,2
+	ret

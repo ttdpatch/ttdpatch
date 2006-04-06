@@ -767,6 +767,9 @@ setwillbeactive:
 	mov eax,[spriteblockptr]
 .next:
 	or byte [eax+spriteblock.active],2
+	jns .ok
+	mov byte [eax+spriteblock.active],0x80
+.ok:
 	mov eax,[eax+spriteblock.next]
 	test eax,eax
 	jnz .next

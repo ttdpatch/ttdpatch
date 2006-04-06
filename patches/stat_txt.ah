@@ -231,3 +231,5 @@ stxt whitedword, 0x94,0x7B,0
 
 stxt ellipsis, '...', 0
 
+stxt checkmark, 0xad, 0
+

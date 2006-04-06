@@ -3202,7 +3202,6 @@ before 1.6
 - (devel) changed compilation to assemble all patches individually
   then link them
 - added support for second company colour (choose with ctrl-click)
-- added bit 2 to veh.misc.flags to disable showing refit list
 - added support for two company colours to house callback 1E
 - fixed bug with loading at a second station resetting origin of full wagons too
 - random rectangular tree planting now plants correct tree types in tropic, and
@@ -3217,3 +3216,32 @@ before 1.6
 - by stevenh: now scrolling resets follow function
 - (devel) changed *.ver output to be grouped by patchproc
 - fixed problem in grf activation and active checks
+
+2.0.1 alpha 68
+- prevent performance score from overflowing when it would be >255
+- (devel) fixed reported numbers when search failed
+- (devel) changed variables to new var{b,w,d} macro
+- automatically pick cargo type for vehicle from refittability list if
+  default cargo type is not available
+- by stevenh: fixed vehicle view window being scrollable
+- by stevenh: added action D var 9E bit 0, enables desert revegetation
+- enabled finnish translation again (accidentally left out of alpha 67)
+- (devel) removed multi-climate scenariocargo and cargotypes arrays
+- fixed grf error messages reporting wrong error sprite number
+- added list of current text IDs to crash log
+- initial support for UTF-8 texts, although currently only the existing
+  character set is supported
+- prevent crash when attempting to display undefined text ID
+- added sorting by first destination to vehicle list
+- allow trucks to go to non-stop bus stops
+- (devel) added player2 array to store additional player data in savegame
+- actually save 2nd CC selection, and prepared for more colour schemes
+- by stevenh: new switch "trams on" enables building tram and light rail
+  tracks and operation of trams
+- by Csaba:
+  * (devel) added comments to newindu.asm
+  * various small bugfixes and optimizations in newindu.asm
+  * (devel) made the industry data block a ptrvar and made its data arrays
+    directly accessable
+  * now industry tiles have correct merged foundations similarly to roads
+    and rails

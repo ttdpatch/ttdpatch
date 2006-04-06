@@ -2,14 +2,6 @@
 #include <frag_mac.inc>
 
 global patchautorenew
-patchautorenew:
-	patchcode oldautoreplace12,newautoreplace12,2-WINTTDX,2
-	patchcode oldautoreplace3,newautoreplace34,1,1
-	patchcode oldautoreplace4,newautoreplace34,1,1
-	patchcode oldgetoldmsg,newgetoldmsg,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -40,3 +32,10 @@ codefragment newgetoldmsg
 
 
 endcodefragments
+
+patchautorenew:
+	patchcode oldautoreplace12,newautoreplace12,2-WINTTDX,2
+	patchcode oldautoreplace3,newautoreplace34,1,1
+	patchcode oldautoreplace4,newautoreplace34,1,1
+	patchcode oldgetoldmsg,newgetoldmsg,1,1
+	ret

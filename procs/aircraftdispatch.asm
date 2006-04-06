@@ -6,13 +6,6 @@ extern dispatchaircraftop.optable
 
 
 global patchaircraftdispatch
-patchaircraftdispatch:
-	patchcode olddispatchaircraftop,newdispatchaircraftop,1,1
-	lea eax,[edi+lastediadj+7]
-	mov [dispatchaircraftop.optable],eax
-	ret
-
-
 
 begincodefragments
 
@@ -25,3 +18,9 @@ codefragment newdispatchaircraftop
 
 
 endcodefragments
+
+patchaircraftdispatch:
+	patchcode olddispatchaircraftop,newdispatchaircraftop,1,1
+	lea eax,[edi+lastediadj+7]
+	mov [dispatchaircraftop.optable],eax
+	ret

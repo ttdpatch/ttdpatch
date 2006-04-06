@@ -5,8 +5,15 @@
 // Fix displaying code (refresh tile)
 
 #include <std.inc>
+#include <veh.inc>
+#include <newvehdata.inc>
 
 extern addsprite,curplayerctrlkey,getroutemap,invalidatetile
+
+//needed by StevenHs Tram Check!---------
+extern tramVehPtr,tramMovement,newvehdata
+//---------------------------------------
+
 
 
 uvarw newonewayarrows,1,s
@@ -15,6 +22,22 @@ var numonewayarrows, dd 6
 uvarb ignoreonewayroads,1
 global GetClass2RouteMap
 GetClass2RouteMap:
+//------------------INSERTED BY STEVEN HOEFEL TO MAKE TRAMS DRIVE ON TRACKS---------------
+	cmp dword [tramVehPtr], 0
+	jle .normalRoadVehicleMovement
+	push esi
+	push edx
+	mov esi, [tramVehPtr]
+	movzx edx, byte [esi+veh.vehtype]
+	test byte [vehmiscflags+edx], VEHMISCFLAG_RVISTRAM
+	pop edx
+	pop esi
+	jz .normalRoadVehicleMovement
+	mov al, byte [tramMovement+eax]
+	mov ah, al
+	retn
+.normalRoadVehicleMovement:
+//----------------------------------------------------------------------------------------
 	mov al, byte [eax+0x10000]
 ovar roadroutetable,-4
 	mov ah, al

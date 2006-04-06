@@ -6,9 +6,11 @@
 
 %macro defbitvar 2.nolist	// argument: patchflag,variablename
 	%push bitvar
+	%define %$curbitvar %2
+	extern %$curbitvar
 %endmacro
 %macro defbit 2.nolist		// argument: bitname,bitnumber
-	extern %1_VAR
+	%xdefine %1_VAR %$curbitvar
 	%xdefine %1_NUM %2
 	%assign %1 1<<%2
 %endmacro

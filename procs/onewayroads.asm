@@ -9,30 +9,6 @@ extern Class2DrawLandOneWay,Class2DrawLandOneWay.origfn,FailIsRoadPieceBuild
 extern GetClass2RouteMap,RVGetRouteOvertakeing,newgraphicssetsenabled
 extern roadroutetable
 
-
-patchonewayroads:
-	stringaddress oldroadroutemapreturn
-	mov eax, [edi+2]
-	mov [roadroutetable], eax
-	storefunctionjump GetClass2RouteMap
-
-	stringaddress olddrawgroundspriteroad
-	chainfunction Class2DrawLandOneWay,.origfn, 1
-
-	stringaddress oldfailisroadpiecebuild
-	changereltarget 2, addr(FailIsRoadPieceBuild)
-
-	stringaddress findrvgetrouteovertakeing,1,2
-	storefunctioncall RVGetRouteOvertakeing
-
-	stringaddress findrvgetrouteovertakeing,1,0
-	storefunctioncall RVGetRouteOvertakeing
-
-	or byte [newgraphicssetsenabled+1],1 << (9-8)
-	ret
-
-
-
 begincodefragments
 
 codefragment oldroadroutemapreturn, 8
@@ -57,3 +33,25 @@ codefragment findrvgetrouteovertakeing, 5
 
 
 endcodefragments
+
+
+patchonewayroads:
+	stringaddress oldroadroutemapreturn
+	mov eax, [edi+2]
+	mov [roadroutetable], eax
+	storefunctionjump GetClass2RouteMap
+
+	stringaddress olddrawgroundspriteroad
+	chainfunction Class2DrawLandOneWay,.origfn, 1
+
+	stringaddress oldfailisroadpiecebuild
+	changereltarget 2, addr(FailIsRoadPieceBuild)
+
+	stringaddress findrvgetrouteovertakeing,1,2
+	storefunctioncall RVGetRouteOvertakeing
+
+	stringaddress findrvgetrouteovertakeing,1,0
+	storefunctioncall RVGetRouteOvertakeing
+
+	or byte [newgraphicssetsenabled+1],1 << (9-8)
+	ret

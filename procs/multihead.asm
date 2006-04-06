@@ -6,78 +6,6 @@ patchproc fastwagonsell,newtrains, patchwagonsell
 
 extern gettextandtableptrs,trainmaintcostarray,trainmaintbasecostarray
 
-uvard vehiclecosttables,4,s
-
-global traincosttable,roadvehcosttable,shipcosttable,aircraftcosttable
-traincosttable equ	(vehiclecosttables+0*4)	// Table of cost multipliers of train engines and waggons
-roadvehcosttable equ	(vehiclecosttables+1*4)	// Table of cost multipliers of road vehicles
-shipcosttable equ	(vehiclecosttables+2*4)	// Table of cost multipliers of ships
-aircraftcosttable equ	(vehiclecosttables+3*4)	// Table of cost multipliers of aircraft
-
-global patchmultihead
-patchmultihead:
-	mov ax,0x885e
-	call gettextandtableptrs
-
-	// power text is now the second occurence of "7c".
-	mov al,0x7c
-	dec ecx		// ecx was zero
-	repne scasb
-	repne scasb
-	xor ecx,ecx	// and leave it zero
-	dec edi
-
-	mov byte [edi],0x7b		// edi points to next byte
-
-	stringaddress oldshowpower,1,1
-	add dword [edi+14],byte 2
-	add edi,byte 18
-	storefragment newshowpower
-
-	patchcode oldwaggonvalue,newwaggonvalue1,1,2
-	patchcode oldwaggonvalue,newwaggonvalue2,1,1,-6
-	mov eax,dword [traincosttable]
-	mov dword [edi-10],eax
-	patchcode oldenginevalue,newenginevalue1,1,2
-	patchcode oldenginevalue,newenginevalue2,1,1,-7
-	mov eax,dword [traincosttable]
-	mov dword [edi-13],eax
-	patchcode oldengineselldualhead,newengineselldualhead,1,1
-//	patchcode oldsecondenginevalue,newsecondenginevalue,1,1
-//	patchcode oldbuysecondengine,newbuysecondengine,1,1
-
-#if WINTTDX
-	stringaddress oldtrainmaintcost,2,2
-#else
-	stringaddress oldtrainmaintcost,1,2
-#endif
-	mov eax,[edi+7]
-	mov dword [trainmaintcostarray],eax
-	mov eax,[edi+14]
-	mov dword [trainmaintbasecostarray],eax
-	storefragment newtrainmaintcost
-
-#if WINTTDX
-	patchcode oldshowtrainmaintcost,newshowtrainmaintcost,2,2
-#else
-	patchcode oldshowtrainmaintcost,newshowtrainmaintcost,1,2
-#endif
-	ret
-
-
-// shares code fragments
-patchwagonsell:
-	patchcode oldenginesellcost,newenginesellcost,1,1
-	patchcode oldsellengine,newsellengine,1,1
-
-	patchcode oldsellwagon,newsellwagon,1,1
-	add edi,lastediadj+63
-	storefragment newsellwagon2
-	patchcode oldwagonsellcost,newwagonsellcost,1,0
-	ret
-
-
-
 begincodefragments
 
 codefragment newenginesellcost
@@ -197,3 +125,73 @@ codefragment newshowtrainmaintcost
 
 
 endcodefragments
+
+uvard vehiclecosttables,4,s
+
+global traincosttable,roadvehcosttable,shipcosttable,aircraftcosttable
+traincosttable equ	(vehiclecosttables+0*4)	// Table of cost multipliers of train engines and waggons
+roadvehcosttable equ	(vehiclecosttables+1*4)	// Table of cost multipliers of road vehicles
+shipcosttable equ	(vehiclecosttables+2*4)	// Table of cost multipliers of ships
+aircraftcosttable equ	(vehiclecosttables+3*4)	// Table of cost multipliers of aircraft
+
+global patchmultihead
+patchmultihead:
+	mov ax,0x885e
+	call gettextandtableptrs
+
+	// power text is now the second occurence of "7c".
+	mov al,0x7c
+	dec ecx		// ecx was zero
+	repne scasb
+	repne scasb
+	xor ecx,ecx	// and leave it zero
+	dec edi
+
+	mov byte [edi],0x7b		// edi points to next byte
+
+	stringaddress oldshowpower,1,1
+	add dword [edi+14],byte 2
+	add edi,byte 18
+	storefragment newshowpower
+
+	patchcode oldwaggonvalue,newwaggonvalue1,1,2
+	patchcode oldwaggonvalue,newwaggonvalue2,1,1,-6
+	mov eax,dword [traincosttable]
+	mov dword [edi-10],eax
+	patchcode oldenginevalue,newenginevalue1,1,2
+	patchcode oldenginevalue,newenginevalue2,1,1,-7
+	mov eax,dword [traincosttable]
+	mov dword [edi-13],eax
+	patchcode oldengineselldualhead,newengineselldualhead,1,1
+//	patchcode oldsecondenginevalue,newsecondenginevalue,1,1
+//	patchcode oldbuysecondengine,newbuysecondengine,1,1
+
+#if WINTTDX
+	stringaddress oldtrainmaintcost,2,2
+#else
+	stringaddress oldtrainmaintcost,1,2
+#endif
+	mov eax,[edi+7]
+	mov dword [trainmaintcostarray],eax
+	mov eax,[edi+14]
+	mov dword [trainmaintbasecostarray],eax
+	storefragment newtrainmaintcost
+
+#if WINTTDX
+	patchcode oldshowtrainmaintcost,newshowtrainmaintcost,2,2
+#else
+	patchcode oldshowtrainmaintcost,newshowtrainmaintcost,1,2
+#endif
+	ret
+
+
+// shares code fragments
+patchwagonsell:
+	patchcode oldenginesellcost,newenginesellcost,1,1
+	patchcode oldsellengine,newsellengine,1,1
+
+	patchcode oldsellwagon,newsellwagon,1,1
+	add edi,lastediadj+63
+	storefragment newsellwagon2
+	patchcode oldwagonsellcost,newwagonsellcost,1,0
+	ret

@@ -4,15 +4,6 @@
 #include <station.inc>
 
 global patchmorenews
-patchmorenews:
-	patchcode olddestroylargeufo,newdestroylargeufo,1,1
-	patchcode oldlmillcuttree1,newlmillcuttree1,1,1
-	patchcode oldlmillcuttree2,newlmillcuttree2,1,1
-	patchcode oldclearzeppelin,newclearzeppelin,1,1
-	patchcode oldclearcrashedaircraft,newclearcrashedaircraft,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -57,3 +48,11 @@ codefragment newclearcrashedaircraft
 
 
 endcodefragments
+
+patchmorenews:
+	patchcode olddestroylargeufo,newdestroylargeufo,1,1
+	patchcode oldlmillcuttree1,newlmillcuttree1,1,1
+	patchcode oldlmillcuttree2,newlmillcuttree2,1,1
+	patchcode oldclearzeppelin,newclearzeppelin,1,1
+	patchcode oldclearcrashedaircraft,newclearcrashedaircraft,1,1
+	ret

@@ -2,11 +2,6 @@
 #include <frag_mac.inc>
 
 global patchclearcrashedtrain
-patchclearcrashedtrain:
-	patchcode oldclearcrashedtrain,newclearcrashedtrain,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -19,3 +14,7 @@ codefragment newclearcrashedtrain
 
 
 endcodefragments
+
+patchclearcrashedtrain:
+	patchcode oldclearcrashedtrain,newclearcrashedtrain,1,1
+	ret

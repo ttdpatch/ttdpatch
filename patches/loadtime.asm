@@ -171,9 +171,7 @@ checkstationcargoemptytrigger:
 
 .notthis:
 	// not empty, clear appropriate bit
-	movzx eax,byte [climate]
-	shl eax,5
-	movzx eax,byte [cargotypes+eax+ecx]
+	movzx eax,byte [cargotypes+ecx]
 	btr edx,eax
 
 .empty:

@@ -11,12 +11,12 @@
 #include <newvehdata.inc>
 
 extern DrawGraph,DrawWindowElements,WindowClicked,calcprofitfn,cargoclass
-extern cargoclasscargos,cargoid,cargotypes,curspriteblock,drawtextfn
+extern cargoclasscargos,cargoid,curspriteblock,drawtextfn
 extern fillrectangle,getnewsprite,getwincolorfromdoscolor
 extern grffeature,invalidatehandle,isfreight
 extern malloc,patchflags,pdaTempStationPtrsInCatchArea,randomstationtrigger
-extern scenariocargo,spriteblockptr,stationarray2ofst
-extern updatestationgraphics,newvehdata
+extern cargobits,cargotypes,spriteblockptr,stationarray2ofst
+extern updatestationgraphics,newvehdata,specificpropertybase
 
 
 // In most places, the cargo type is stored in at least a byte, so it isn't too hard to
@@ -518,17 +518,32 @@ global isrvbus
 isrvbus:
 	push eax
 	movzx eax,byte [esi+veh.cargotype]
+.checkcargo:
 	mov al,[cargoclass+eax*2]
 	xor al,1
 	test al,1
 	pop eax
 	ret
 
+// same as above, but in eax=vehtype
+global isrvtypebus
+isrvtypebus:
+	push eax
+	add eax,[specificpropertybase+1*4]
+	movzx eax,byte [eax+NROADVEHTYPES*8]
+	jmp isrvbus.checkcargo
+
 // insert road vehicle order
 global insrvorder
 insrvorder:
 	mov ah,4	// overwritten
-	jmp isrvbus
+	test byte [edi+station.flags],1<<6
+	jz isrvbus
+
+	// allow busses and trucks to go to non-stop bus stops
+	mov ah,6
+	test al,0	// set ZF
+	ret
 
 // check if rv is bus, and skip next four bytes if not
 global checkrvtype1
@@ -918,21 +933,19 @@ initcargodata:
 // Property 8 - set cargo bit
 global setcargobit
 setcargobit:
-	movzx edx,byte [climate]
-	shl edx,2
 	xor eax,eax
 .next:
 	// clear previous cargo bit, if any
-	mov al,[cargotypes+edx*8+ebx]
+	mov al,[cargotypes+ebx]
 	cmp al,0xff
 	je .nooldbit
-	btr dword [scenariocargo+edx], eax
+	btr [cargobits], eax
 .nooldbit:
 	lodsb
 	cmp al,0xff		// FFh means clearing the bit only
 	je .nonewbit
-	bts dword [scenariocargo+edx], eax
-	mov [cargotypes+edx*8+ebx], al
+	bts [cargobits], eax
+	mov [cargotypes+ebx], al
 	mov [cargoid+eax],bl
 .nonewbit:
 	inc ebx
@@ -1042,9 +1055,7 @@ setcargoclasses:
 	jz .gotclasses
 	btr eax,edi
 	// now edi=cargo class, ebx=cargo ID
-	movzx edx,byte [climate]
-	shl edx,5
-	mov dl,[cargotypes+edx+ebx]		// edx=cargo bit
+	movzx edx, byte [cargotypes+ebx]		// edx=cargo bit
 	bts [cargoclasscargos+edi*4],edx	// set cargo bit in given class
 	jmp .nextclass
 
@@ -1118,9 +1129,7 @@ resolvecargotranslations:
 
 .found:
 	// eax=label ebx->cargotrans ecx=translation edx=slot
-	movzx eax,byte [climate]
-	shl eax,5
-	mov al,[cargotypes+eax+edx]	// now eax=bit
+	movzx eax,byte [cargotypes+edx]	// now eax=bit
 
 	mov [ebx+cargotrans.fromslot+edx],cl
 	mov [ebx+cargotrans.frombit+eax],cl
@@ -1153,14 +1162,12 @@ initpaymentwindow:
 	mov byte [esi+window.itemsvisible],12
 
 // now count all cargoes available on the current climate
-	movzx ebx,byte [climate]
-	shl ebx,2
 	mov ecx,31
 .nextslot:
-	movzx eax,byte [cargotypes+ebx*8+ecx]
+	movzx eax,byte [cargotypes+ecx]
 	cmp al, 0xff
 	je .skip			// cargo undefined
-	bt [scenariocargo+ebx],eax
+	bt [cargobits],eax
 	adc byte [esi+window.itemstotal],0
 .skip:
 	dec ecx
@@ -1182,14 +1189,12 @@ paymentwindow_listclick:
 	add bl, [esi+window.itemsoffset]
 
 // try finding the cargo associated with the index
-	movzx ecx,byte [climate]
-	shl ecx,2
 	xor eax,eax
 .loop:
-	movzx edx,byte [cargotypes+ecx*8+eax]
+	movzx edx,byte [cargotypes+eax]
 	cmp dl,0xff
 	je .skip			// cargo undefined
-	bt [scenariocargo+ecx],edx
+	bt [cargobits],edx
 	sbb ebx,0
 	js .gotit
 .skip:
@@ -1225,12 +1230,10 @@ drawpaymentwindow:
 	movzx ebp,byte [esi+window.itemsoffset]
 	xor esi,esi
 .namesloop:
-	movzx ebx,byte [climate]
-	shl ebx,2
-	movzx eax,byte [cargotypes+ebx*8+esi]
+	movzx eax,byte [cargotypes+esi]
 	cmp al, 0xff
 	je .skipname			// cargo undefined
-	bt [scenariocargo+ebx],eax
+	bt [cargobits],eax
 	jnc .skipname			// cargo isn't enabled for this climate
 	dec ebp
 	jns .skipname			// this cargo is above the visible part

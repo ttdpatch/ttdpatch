@@ -33,14 +33,15 @@
 %define cWinElemPushedInBox	6
 %define cWinElemTiledBox	7
 %define cWinElemSlider		8
-%define cWinElemFrameWithText 9
+%define cWinElemFrameWithText	9
 %define cWinElemTitleBar	0Ah
 %define cWinElemLast		0Bh
 %define cWinElemSizer		0Ch
 %define cWinElemExtraData	0Dh	// fake window element, to save some extra data with window definitions
 %define cWinElemTab		0Eh
 %define cWinElemTabButton	0Fh
-%define cWinElemMax		cWinElemTabButton
+%define cWinElemCheckBox	10h
+%define cWinElemMax		cWinElemCheckBox
 
 %define cWinDataSizer		0
 %define cWinDataTabs		1
@@ -127,3 +128,9 @@ struc windowbox
 	.xtiles:	resb 1	// ah	number of tiles for class 7
 	.ytiles:	resb 1	// bh
 endstruc_32
+
+// For checkboxes, extra is layed out like this:
+//	bits 0..3:   colour of check mark (0..15)
+//	bits 4..10:  bit mask of elements to disable, based on the above (up to 7 consecutive elements)
+//	bits 11..15: base element ID of IDs to disable when unchecked (0..31)
+

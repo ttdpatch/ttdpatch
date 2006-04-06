@@ -10,6 +10,33 @@ extern MPtransferbuffer,MPpacketnum,MPtimeout
 
 
 global patchnetplay
+
+begincodefragments
+
+codefragment oldtransmitendofactions
+	cmp byte [numplayers],1
+	jz $+2+14
+
+codefragment newtransmitendofactions
+	call runindex(transmitendofactions)
+	setfragmentsize 7
+
+
+endcodefragments
+begincodefragments
+
+#if WINTTDX
+codefragment oldretrytransfer
+	add eax,1000
+
+codefragment newretrytransfer
+	call runindex(retrytransfer)
+	setfragmentsize 10
+#endif
+
+
+endcodefragments
+
 patchnetplay:
 #if WINTTDX
 // Replace functions loaded from dplay.dll with ones loaded from dplayx.dll.
@@ -94,30 +121,3 @@ aOutputDebugStringA: db "OutputDebugStringA",0
 
 	// fix screenshots (and other keyboard-related things)
 	// if win2k or generalfixes or enhancedkbdhandler is turned on
-
-begincodefragments
-
-codefragment oldtransmitendofactions
-	cmp byte [numplayers],1
-	jz $+2+14
-
-codefragment newtransmitendofactions
-	call runindex(transmitendofactions)
-	setfragmentsize 7
-
-
-endcodefragments
-
-begincodefragments
-
-#if WINTTDX
-codefragment oldretrytransfer
-	add eax,1000
-
-codefragment newretrytransfer
-	call runindex(retrytransfer)
-	setfragmentsize 10
-#endif
-
-
-endcodefragments

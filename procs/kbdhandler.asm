@@ -6,28 +6,6 @@ extern keyscantochar.chartable,translatewinchar.addtoqueuefn
 
 
 global patchkbdhandler
-patchkbdhandler:
-#if WINTTDX
-	stringaddress findoldaddchartoqueue
-	mov edi,[edi]
-	add edi,3
-	copyrelative translatewinchar.addtoqueuefn,2
-	storefragment newaddchartoqueue
-#else
-	stringaddress oldkeyscantochar,1,2
-	mov eax,[edi+4]
-	mov [keyscantochar.chartable],eax
-	storefragment newkeyscantochar
-	patchcode oldkeyscantochar,newkeyscantochar,1,0
-	mov byte [edi+lastediadj+newkeyscantochar.jumpoffset+1],8
-
-	patchcode oldcheckmouseemualt,newcheckmouseemualt,1,1
-#endif
-	patchcode oldcheckforexitkey,newcheckforexitkey,1,1
-	patchcode oldcheckforarrowkeys,newcheckforarrowkeys,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -80,3 +58,24 @@ codefragment newcheckforarrowkeys
 
 
 endcodefragments
+
+patchkbdhandler:
+#if WINTTDX
+	stringaddress findoldaddchartoqueue
+	mov edi,[edi]
+	add edi,3
+	copyrelative translatewinchar.addtoqueuefn,2
+	storefragment newaddchartoqueue
+#else
+	stringaddress oldkeyscantochar,1,2
+	mov eax,[edi+4]
+	mov [keyscantochar.chartable],eax
+	storefragment newkeyscantochar
+	patchcode oldkeyscantochar,newkeyscantochar,1,0
+	mov byte [edi+lastediadj+newkeyscantochar.jumpoffset+1],8
+
+	patchcode oldcheckmouseemualt,newcheckmouseemualt,1,1
+#endif
+	patchcode oldcheckforexitkey,newcheckforexitkey,1,1
+	patchcode oldcheckforarrowkeys,newcheckforarrowkeys,1,1
+	ret

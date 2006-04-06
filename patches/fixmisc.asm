@@ -2332,6 +2332,7 @@ ovar .spritelistptr,-4,$,spritesorter
 	mov [tempvar],eax
 	mov [currspritedescpp],eax
 
+.a_infront:
 .checknext:
 	add eax,4
 	mov ebp,[eax]
@@ -2405,6 +2406,7 @@ ovar .spritesorttableofs,-5,$,spritesorter
 	pop eax
 	je .checknext
 
+.b_infront:
 .swapthem:
 	push ebx
 	mov ebx,[currspritedescpp]

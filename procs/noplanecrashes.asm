@@ -4,11 +4,6 @@
 ext_frag oldcontrolplanecrashes
 
 global patchnoplanecrashes
-patchnoplanecrashes:
-	patchcode oldcontrolplanecrashes,newcontrolplanecrashes,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -18,3 +13,7 @@ codefragment newcontrolplanecrashes
 
 
 endcodefragments
+
+patchnoplanecrashes:
+	patchcode oldcontrolplanecrashes,newcontrolplanecrashes,1,1
+	ret

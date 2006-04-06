@@ -12,6 +12,50 @@ patchproc mousewheel, patchmousewheel
 extern FindTopmostWindowAtXY,currmapmode,ScreenToClient,user32hnd
 extern wheel_msg,wheelscrollines,mousewheelsettings
 
+begincodefragments
+
+// no codefragment oldhandlemouseeventmsgs - the offset is the same in all Win versions
+
+codefragment newhandlemouseeventmsgs
+	call runindex(handlemouseeventmsgs)
+	setfragmentsize 7
+
+codefragment oldprocessmouseevents,38
+	xor ax,ax
+	mov cx,ax
+	mov bl,1
+	mov esi,0x30038
+
+codefragment newprocessmouseevents
+	call runindex(processmouseevents)
+
+codefragment findFindTopmostWindowAtXY,-15
+	jb $+2+0x25
+	mov dx,[esi+window.x]
+
+codefragment oldmainwindowhandler,8
+	mov bx, cx
+	mov esi, edi
+	cmp dl, cWinEventRedraw
+	jz near $+6-409
+	retn
+
+codefragment newmainwindowhandler
+	call runindex(mainwindowhandler)
+
+codefragment findcurrentmapmode,14
+	and dword [esi+window.activebuttons],~0x7e0
+
+codefragment oldmapwindowhandler,13
+	shr bx,1
+	add bx,word [esi+window.y]
+
+codefragment newmapwindowhandler
+	call runindex(mapwindowhandler)
+	setfragmentsize 8
+
+endcodefragments
+
 #if 0
 %macro errmsg 2
 	j%-1 %%skip
@@ -181,48 +225,4 @@ aMSH_MOUSEWHEEL: db "MSWHEEL_ROLLMSG",0
 aMSH_WHEELSUPPORT: db "MSH_WHEELSUPPORT_MSG",0
 aMSH_SCROLL_LINES: db "MSH_SCROLL_LINES_MSG",0
 
-begincodefragments
-
-// no codefragment oldhandlemouseeventmsgs - the offset is the same in all Win versions
-
-codefragment newhandlemouseeventmsgs
-	call runindex(handlemouseeventmsgs)
-	setfragmentsize 7
-
-codefragment oldprocessmouseevents,38
-	xor ax,ax
-	mov cx,ax
-	mov bl,1
-	mov esi,0x30038
-
-codefragment newprocessmouseevents
-	call runindex(processmouseevents)
-
-codefragment findFindTopmostWindowAtXY,-15
-	jb $+2+0x25
-	mov dx,[esi+window.x]
-
-codefragment oldmainwindowhandler,8
-	mov bx, cx
-	mov esi, edi
-	cmp dl, cWinEventRedraw
-	jz near $+6-409
-	retn
-
-codefragment newmainwindowhandler
-	call runindex(mainwindowhandler)
-
-codefragment findcurrentmapmode,14
-	and dword [esi+window.activebuttons],~0x7e0
-
-codefragment oldmapwindowhandler,13
-	shr bx,1
-	add bx,word [esi+window.y]
-
-codefragment newmapwindowhandler
-	call runindex(mapwindowhandler)
-	setfragmentsize 8
-
-endcodefragments
 #endif
-

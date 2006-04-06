@@ -8,6 +8,8 @@
 #include <patchdata.inc>
 #include <window.inc>
 #include <veh.inc>
+#include <misc.inc>
+#include <station.inc>
 
 extern FindWindow,GenerateDropDownMenu,invalidatehandle,sortfrequency
 
@@ -150,6 +152,7 @@ var sortfuncs
 	dd addr(sort_maxspeed)
 	dd addr(sort_reliability)
 	dd addr(sort_cargo)
+	dd sort_destination
 
 %ifndef PREPROCESSONLY
 %assign SORTCOUNT (addr($)-sortfuncs)/4
@@ -210,6 +213,18 @@ sort_cargo:
 	call get_cargo_types
 	cmp cx,[esp]
 	pop ecx
+	ret
+
+sort_destination:
+	push eax
+	call getdestination
+	mov ecx,eax
+	push esi
+	mov esi,ebp
+	call getdestination
+	pop esi
+	cmp ecx,eax
+	pop eax
 	ret
 
 
@@ -283,6 +298,48 @@ get_cargo_types:
 	pop edi
 	pop eax
 	ret
+
+getdestination:
+	push ebx
+	cmp byte [esi+veh.totalorders],1
+	jbe .noorders
+	mov eax,[esi+veh.scheduleptr]
+	mov ebx,[eax]
+	and bl,0x1f
+	jz .noorders
+	cmp bl,2
+	movzx ebx,bh
+	jb .station
+	ja .noorders
+.depot:
+	add ebx,ebx
+	lea eax,[depotarray+ebx*3]
+	jmp short .getxy
+
+.station:
+	imul eax,ebx,station_size
+	add eax,[stationarrayptr]
+
+.getxy:
+	// get XY of first destination, and calculate (X+Y)*100h+X-Y
+	movzx eax,word [eax]
+	mov bl,al
+	sub bl,ah
+	sbb bh,bh
+	movsx ebx,bx	// ebx=X-Y
+	add al,ah
+	mov ah,0
+	adc ah,ah
+	shl eax,8	// eax=(X+Y)*100h
+	add eax,ebx
+	pop ebx
+	ret
+
+.noorders:
+	or eax,byte -1
+	pop ebx
+	ret
+
 
 
 // Functions to decide whether a vehicle entry is valid for the list

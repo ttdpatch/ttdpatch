@@ -2,11 +2,6 @@
 #include <frag_mac.inc>
 
 global patchdiskmenu
-patchdiskmenu:
-	patchcode olddiskmenu,newdiskmenu,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -21,3 +16,7 @@ codefragment newdiskmenu
 
 
 endcodefragments
+
+patchdiskmenu:
+	patchcode olddiskmenu,newdiskmenu,1,1
+	ret

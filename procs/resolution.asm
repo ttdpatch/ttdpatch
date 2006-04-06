@@ -12,6 +12,315 @@ extern resheight,reswidth,screenblocks,screenblocksx
 extern screenblocksy
 
 global patchresolution
+
+begincodefragments
+
+codefragment oldmov_eax_mainwinsizestart, 1
+	mov ebx, 1E00280h
+
+codefragment newwinsize
+	dw 0xFFFF
+newwinsize.x equ $-2
+	dw 0xFFFF
+newwinsize.y equ $-2
+
+codefragment oldmov_eax_mainwinsizeedit, 1
+	mov ebx, 1CA0280h
+
+codefragment oldmov_eax_mainwinsizegame, 1
+	mov ebx, 1BE0280h
+
+codefragment oldmov_eax_maintoolbar, 1
+	mov ebx, 160280h
+
+codefragment findmov_eaxstatusbarpos, 1
+	mov eax, 1D40000h
+
+codefragment finddragmodebound, 3
+	cmp bx, 1D4h
+
+codefragment findmov_dxstatusbartexty, 2
+	mov dx, 1D5h
+
+codefragment newdxxother
+	dw 0xFFFF
+dxxother equ $-2
+
+
+codefragment findmov_bxstatusbarscry, 2
+	mov bx, 1D5h
+	db 0x66
+
+codefragment findmov_esinewsfiny1, 4
+	mov word [esi+30h], 189h
+
+codefragment findmov_esinewsfiny2, 4
+	mov word [esi+30h], 136h
+
+codefragment findmov_esinewsfiny3, 4
+	mov word [esi+30h], 15Eh
+
+
+codefragment oldaddbp_1E0h, 3
+//Found 1
+add     bp, 1E0h
+
+codefragment newdxmaxy
+	dw 0xFFFF
+dxmaxy equ $-2
+
+codefragment oldmovbx_27Fh, 2
+//Found 3
+mov     bx, 27Fh
+
+codefragment newdxmaxx_1
+	dw 0xFFFF
+dxmaxx_1 equ $-2
+
+codefragment oldcmpax_1E0h, 2
+//Found 1
+cmp     ax, 1E0h
+
+codefragment oldmovebx_280h, 1
+//Found 3
+mov     ebx, 280h
+
+global dxmaxx
+codefragment newdxmaxx
+	dw 0xFFFF
+dxmaxx equ $-2
+
+codefragment oldcmpdword_ebp_0CCh__280h, 6
+//Found 3
+cmp     dword [ebp-0CCh], 280h
+
+codefragment oldpush1E0h, 1
+//Found 6
+push    1E0h
+
+codefragment oldmoveax_280h, 1
+//Found 3
+mov     eax, 280h
+
+codefragment oldpush280h, 1
+//Found 6
+push    280h
+
+codefragment oldsubax_1E0h, 2
+//Found 2
+sub     ax, 1E0h
+
+codefragment oldmovdword_ebp_98h__280h, 6
+//Found 1
+mov     dword [ebp-98h], 280h
+
+codefragment oldsubbp_1E0h, 3
+//Found 1
+sub     bp, 1E0h
+
+codefragment oldsubax_280h, 2
+//Found 2
+sub     ax, 280h
+
+codefragment oldaddedx_280h, 2
+//Found 1
+add     edx, 280h
+
+codefragment oldmovdx_1DFh, 2
+//Found 8
+mov     dx, 1DFh
+
+codefragment newdxmaxy_1
+	dw 0xFFFF
+dxmaxy_1 equ $-2
+
+codefragment oldmovcx_1E0h, 2
+//Found 1
+mov     cx, 1E0h
+
+codefragment oldmovdx_280h, 2
+//Found 4
+mov     dx, 280h
+
+codefragment oldmovesi_280h, 1
+//Found 1
+mov     esi, 280h
+
+codefragment oldcmpdword_ebp_8__280h, 3
+//Found 3
+cmp     dword [ebp-8], 280h
+
+codefragment oldmovdi_280h, 2
+//Found 1
+mov     di, 280h
+
+codefragment oldmovbp_1E0h, 2
+//Found 3
+mov     bp, 1E0h
+
+codefragment oldmovdword_ebp_4__1E0h, 3
+//Found 1
+mov     dword [ebp-4], 1E0h
+
+codefragment oldmovbp_280h, 2
+//Found 4
+mov     bp, 280h
+
+codefragment oldcmpbp_280h, 3
+//Found 1
+cmp     bp, 280h
+
+codefragment oldcmpdword_ebp_28h__27Fh, 3
+//Found 1
+cmp     dword [ebp-28h], 27Fh
+
+
+codefragment oldmovcx_27Fh, 2
+//Found 5
+mov     cx, 27Fh
+
+codefragment oldcmpcx_280h, 3
+//Found 1
+cmp     cx, 280h
+
+codefragment oldcmpdword_ebp_4__1E0h, 3
+//Found 3
+cmp     dword [ebp-4], 1E0h
+
+codefragment oldcmpbp_1E0h, 3
+//Found 2
+cmp     bp, 1E0h
+
+codefragment oldmovdword_ebp_2Ch__1DFh, 3
+//Found 1
+mov     dword [ebp-2Ch], 1DFh
+
+codefragment oldmovdword_ebp_8__280h, 3
+//Found 1
+mov     dword [ebp-8], 280h
+
+codefragment oldcmpdx_1DFh, 3
+//Found 1
+cmp     dx, 1DFh
+
+codefragment oldcmpdword_ebp_14h__280h, 3
+//Found 3
+cmp     dword [ebp-14h], 280h
+
+
+codefragment oldcmpdx_280h, 3
+//Found 2
+cmp     dx, 280h
+
+codefragment oldmovdword_ebp_28h__27Fh, 3
+//Found 1
+mov     dword [ebp-28h], 27Fh
+
+codefragment oldcmpcx_27Fh, 3
+//Found 1
+cmp     cx, 27Fh
+
+codefragment oldsubcx_280h, 3
+//Found 1
+sub     cx, 280h
+
+codefragment oldsubeax_280h, 1
+//Found 1
+sub     eax, 280h
+
+codefragment oldimulcx_280h, 3
+//Found 1
+imul    cx, 280h
+
+codefragment oldmovebp_280h, 1
+//Found 2
+mov     ebp, 280h
+
+codefragment oldmovcx_280h, 2
+//Found 1
+mov     cx, 280h
+
+codefragment oldcmpdword_ebp_10h__1E0h, 3
+//Found 3
+cmp     dword [ebp-10h], 1E0h
+
+codefragment oldcmpdword_ebp_0ACh__280h, 6
+//Found 3
+cmp     dword [ebp-0ACh], 280h
+
+
+codefragment oldsubbp_280h, 3
+//Found 1
+sub     bp, 280h
+
+codefragment oldcmpax_280h, 2
+//Found 1
+cmp     ax, 280h
+
+codefragment oldcmpeax_280h, 1
+//Found 2
+cmp     eax, 280h
+
+
+codefragment oldcmpdx_1E0h, 3
+//Found 1
+cmp     dx, 1E0h
+
+codefragment oldmovdword_ebp_94h__1E0h, 6
+//Found 1
+mov     dword [ebp-94h], 1E0h
+
+codefragment oldcmpdword_ebp_0C8h__1E0h, 6
+//Found 3
+cmp     dword [ebp-0C8h], 1E0h
+
+codefragment oldmovecx_280h, 1
+//Found 1
+mov     ecx, 280h
+
+codefragment oldaddbx_1E0h, 3
+//Found 1
+add     bx, 1E0h
+
+codefragment oldaddbp_280h, 3
+//Found 1
+add     bp, 280h
+
+codefragment oldcmpcx_1E0h, 3
+//Found 2
+cmp     cx, 1E0h
+
+codefragment oldcmpdword_ebp_2Ch__1DFh, 3
+//Found 1
+cmp     dword [ebp-2Ch], 1DFh
+
+codefragment oldmovbx_280h, 2
+//Found 1
+mov     bx, 280h
+
+codefragment oldcmpeax_1E0h, 1
+//Found 2
+cmp     eax, 1E0h
+
+codefragment oldmovsi_280h, 2 
+//Found 1
+mov     si, 280h
+
+codefragment oldcmpdword_ebp_0A8h__1E0h, 6
+//Found 3
+cmp     dword [ebp-0A8h], 1E0h
+
+codefragment findtooltipchecky, 2
+	mov ax, 1B4h
+
+codefragment findscreenshotsize, 3
+	mov dword [edi+8], 1DF027Fh
+
+codefragment newaddscreenmode
+	icall addscreenmode
+
+endcodefragments
+
 patchresolution:	
 	// Some sanity checks would be good here ...
 	
@@ -461,311 +770,4 @@ resgettarget:
 	pop eax
 	ret
 
-begincodefragments
-
-codefragment oldmov_eax_mainwinsizestart, 1
-	mov ebx, 1E00280h
-
-codefragment newwinsize
-	dw 0xFFFF
-newwinsize.x equ $-2
-	dw 0xFFFF
-newwinsize.y equ $-2
-
-codefragment oldmov_eax_mainwinsizeedit, 1
-	mov ebx, 1CA0280h
-
-codefragment oldmov_eax_mainwinsizegame, 1
-	mov ebx, 1BE0280h
-
-codefragment oldmov_eax_maintoolbar, 1
-	mov ebx, 160280h
-
-codefragment findmov_eaxstatusbarpos, 1
-	mov eax, 1D40000h
-
-codefragment finddragmodebound, 3
-	cmp bx, 1D4h
-
-codefragment findmov_dxstatusbartexty, 2
-	mov dx, 1D5h
-
-codefragment newdxxother
-	dw 0xFFFF
-dxxother equ $-2
-
-
-codefragment findmov_bxstatusbarscry, 2
-	mov bx, 1D5h
-	db 0x66
-
-codefragment findmov_esinewsfiny1, 4
-	mov word [esi+30h], 189h
-
-codefragment findmov_esinewsfiny2, 4
-	mov word [esi+30h], 136h
-
-codefragment findmov_esinewsfiny3, 4
-	mov word [esi+30h], 15Eh
-
-
-codefragment oldaddbp_1E0h, 3
-//Found 1
-add     bp, 1E0h
-
-codefragment newdxmaxy
-	dw 0xFFFF
-dxmaxy equ $-2
-
-codefragment oldmovbx_27Fh, 2
-//Found 3
-mov     bx, 27Fh
-
-codefragment newdxmaxx_1
-	dw 0xFFFF
-dxmaxx_1 equ $-2
-
-codefragment oldcmpax_1E0h, 2
-//Found 1
-cmp     ax, 1E0h
-
-codefragment oldmovebx_280h, 1
-//Found 3
-mov     ebx, 280h
-
-global dxmaxx
-codefragment newdxmaxx
-	dw 0xFFFF
-dxmaxx equ $-2
-
-codefragment oldcmpdword_ebp_0CCh__280h, 6
-//Found 3
-cmp     dword [ebp-0CCh], 280h
-
-codefragment oldpush1E0h, 1
-//Found 6
-push    1E0h
-
-codefragment oldmoveax_280h, 1
-//Found 3
-mov     eax, 280h
-
-codefragment oldpush280h, 1
-//Found 6
-push    280h
-
-codefragment oldsubax_1E0h, 2
-//Found 2
-sub     ax, 1E0h
-
-codefragment oldmovdword_ebp_98h__280h, 6
-//Found 1
-mov     dword [ebp-98h], 280h
-
-codefragment oldsubbp_1E0h, 3
-//Found 1
-sub     bp, 1E0h
-
-codefragment oldsubax_280h, 2
-//Found 2
-sub     ax, 280h
-
-codefragment oldaddedx_280h, 2
-//Found 1
-add     edx, 280h
-
-codefragment oldmovdx_1DFh, 2
-//Found 8
-mov     dx, 1DFh
-
-codefragment newdxmaxy_1
-	dw 0xFFFF
-dxmaxy_1 equ $-2
-
-codefragment oldmovcx_1E0h, 2
-//Found 1
-mov     cx, 1E0h
-
-codefragment oldmovdx_280h, 2
-//Found 4
-mov     dx, 280h
-
-codefragment oldmovesi_280h, 1
-//Found 1
-mov     esi, 280h
-
-codefragment oldcmpdword_ebp_8__280h, 3
-//Found 3
-cmp     dword [ebp-8], 280h
-
-codefragment oldmovdi_280h, 2
-//Found 1
-mov     di, 280h
-
-codefragment oldmovbp_1E0h, 2
-//Found 3
-mov     bp, 1E0h
-
-codefragment oldmovdword_ebp_4__1E0h, 3
-//Found 1
-mov     dword [ebp-4], 1E0h
-
-codefragment oldmovbp_280h, 2
-//Found 4
-mov     bp, 280h
-
-codefragment oldcmpbp_280h, 3
-//Found 1
-cmp     bp, 280h
-
-codefragment oldcmpdword_ebp_28h__27Fh, 3
-//Found 1
-cmp     dword [ebp-28h], 27Fh
-
-
-codefragment oldmovcx_27Fh, 2
-//Found 5
-mov     cx, 27Fh
-
-codefragment oldcmpcx_280h, 3
-//Found 1
-cmp     cx, 280h
-
-codefragment oldcmpdword_ebp_4__1E0h, 3
-//Found 3
-cmp     dword [ebp-4], 1E0h
-
-codefragment oldcmpbp_1E0h, 3
-//Found 2
-cmp     bp, 1E0h
-
-codefragment oldmovdword_ebp_2Ch__1DFh, 3
-//Found 1
-mov     dword [ebp-2Ch], 1DFh
-
-codefragment oldmovdword_ebp_8__280h, 3
-//Found 1
-mov     dword [ebp-8], 280h
-
-codefragment oldcmpdx_1DFh, 3
-//Found 1
-cmp     dx, 1DFh
-
-codefragment oldcmpdword_ebp_14h__280h, 3
-//Found 3
-cmp     dword [ebp-14h], 280h
-
-
-codefragment oldcmpdx_280h, 3
-//Found 2
-cmp     dx, 280h
-
-codefragment oldmovdword_ebp_28h__27Fh, 3
-//Found 1
-mov     dword [ebp-28h], 27Fh
-
-codefragment oldcmpcx_27Fh, 3
-//Found 1
-cmp     cx, 27Fh
-
-codefragment oldsubcx_280h, 3
-//Found 1
-sub     cx, 280h
-
-codefragment oldsubeax_280h, 1
-//Found 1
-sub     eax, 280h
-
-codefragment oldimulcx_280h, 3
-//Found 1
-imul    cx, 280h
-
-codefragment oldmovebp_280h, 1
-//Found 2
-mov     ebp, 280h
-
-codefragment oldmovcx_280h, 2
-//Found 1
-mov     cx, 280h
-
-codefragment oldcmpdword_ebp_10h__1E0h, 3
-//Found 3
-cmp     dword [ebp-10h], 1E0h
-
-codefragment oldcmpdword_ebp_0ACh__280h, 6
-//Found 3
-cmp     dword [ebp-0ACh], 280h
-
-
-codefragment oldsubbp_280h, 3
-//Found 1
-sub     bp, 280h
-
-codefragment oldcmpax_280h, 2
-//Found 1
-cmp     ax, 280h
-
-codefragment oldcmpeax_280h, 1
-//Found 2
-cmp     eax, 280h
-
-
-codefragment oldcmpdx_1E0h, 3
-//Found 1
-cmp     dx, 1E0h
-
-codefragment oldmovdword_ebp_94h__1E0h, 6
-//Found 1
-mov     dword [ebp-94h], 1E0h
-
-codefragment oldcmpdword_ebp_0C8h__1E0h, 6
-//Found 3
-cmp     dword [ebp-0C8h], 1E0h
-
-codefragment oldmovecx_280h, 1
-//Found 1
-mov     ecx, 280h
-
-codefragment oldaddbx_1E0h, 3
-//Found 1
-add     bx, 1E0h
-
-codefragment oldaddbp_280h, 3
-//Found 1
-add     bp, 280h
-
-codefragment oldcmpcx_1E0h, 3
-//Found 2
-cmp     cx, 1E0h
-
-codefragment oldcmpdword_ebp_2Ch__1DFh, 3
-//Found 1
-cmp     dword [ebp-2Ch], 1DFh
-
-codefragment oldmovbx_280h, 2
-//Found 1
-mov     bx, 280h
-
-codefragment oldcmpeax_1E0h, 1
-//Found 2
-cmp     eax, 1E0h
-
-codefragment oldmovsi_280h, 2 
-//Found 1
-mov     si, 280h
-
-codefragment oldcmpdword_ebp_0A8h__1E0h, 6
-//Found 3
-cmp     dword [ebp-0A8h], 1E0h
-
-codefragment findtooltipchecky, 2
-	mov ax, 1B4h
-
-codefragment findscreenshotsize, 3
-	mov dword [edi+8], 1DF027Fh
-
-codefragment newaddscreenmode
-	icall addscreenmode
-
-endcodefragments
 #endif

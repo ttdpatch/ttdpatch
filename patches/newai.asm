@@ -113,9 +113,7 @@ getaiselectioncallback:
 	rcr al,1
 	mov [esi+aiselectioninfo.distance],al
 
-	movzx edi,byte [climate]
-	shl edi,5
-	mov al,[cargotypes+edi+edx]
+	mov al,[cargotypes+edx]
 	mov [esi+aiselectioninfo.altcargotype],al
 
 	movzx eax,bl
@@ -253,9 +251,7 @@ ai_buildrailvehicle:
 	mov ebx,currefitlist
 	mov [ebx+refitinfo.ctype],dl
 	mov byte [ebx+refitinfo.cycle],0
-	movzx eax,byte [climate]
-	imul eax,32
-	mov al,[cargotypes+eax+edx]
+	movzx eax,byte [cargotypes+edx]
 	mov [ebx+refitinfo.type],al
 
 	xor esi,esi
@@ -635,9 +631,7 @@ aigetvehlist:
 	mov ebp,currefitlist
 	mov [ebp+refitinfo.ctype],dl
 	mov byte [ebp+refitinfo.cycle],0
-	movzx eax,byte [climate]
-	imul eax,32
-	mov al,[cargotypes+eax+edx]
+	movzx eax,byte [cargotypes+edx]
 	mov [ebp+refitinfo.type],al
 
 	mov al,0

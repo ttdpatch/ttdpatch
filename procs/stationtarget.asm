@@ -6,21 +6,6 @@ extern prepareforrailroutecheck
 
 
 global patchstationtarget
-patchstationtarget:
-	patchcode istargetstation
-	mov word [edi+lastediadj-6],0x1d8b	// cmp di, -> mov bx
-	patchcode oldstoretargetstation,newstoretargetstation,1,2
-	mov word [edi+lastediadj-7],0x368d	// 2-byte nop
-	mov byte [edi+lastediadj-5],0xbb	// mov word [] -> mov ebx,
-	lea eax,[byte edi+lastediadj-30]
-	mov [prepareforrailroutecheck],eax
-	patchcode oldstoretargetstation,newstoretargetstation,2,2
-	mov word [edi+lastediadj-7],0x368d	// 2-byte nop
-	mov byte [edi+lastediadj-5],0xbb	// mov word [] -> mov ebx,
-	ret
-
-
-	// en-route time calculation if generalfixes or feederservice is on
 
 begincodefragments
 
@@ -52,3 +37,19 @@ codefragment newstoretargetstation
 
 
 endcodefragments
+
+patchstationtarget:
+	patchcode istargetstation
+	mov word [edi+lastediadj-6],0x1d8b	// cmp di, -> mov bx
+	patchcode oldstoretargetstation,newstoretargetstation,1,2
+	mov word [edi+lastediadj-7],0x368d	// 2-byte nop
+	mov byte [edi+lastediadj-5],0xbb	// mov word [] -> mov ebx,
+	lea eax,[byte edi+lastediadj-30]
+	mov [prepareforrailroutecheck],eax
+	patchcode oldstoretargetstation,newstoretargetstation,2,2
+	mov word [edi+lastediadj-7],0x368d	// 2-byte nop
+	mov byte [edi+lastediadj-5],0xbb	// mov word [] -> mov ebx,
+	ret
+
+
+	// en-route time calculation if generalfixes or feederservice is on

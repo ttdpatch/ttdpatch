@@ -8,16 +8,6 @@ patchproc planespeed, patchplanespeed
 extern moveplane.doit,moveplane.factor
 extern planespeedfactor
 
-
-patchplanespeed:
-	patchcode oldmoveplane,newmoveplane,1,1
-	storerelative moveplane.doit,edi+lastediadj+6
-	mov al,[planespeedfactor]
-	mov [moveplane.factor],al
-	ret
-
-
-
 begincodefragments
 
 codefragment oldmoveplane
@@ -30,3 +20,11 @@ codefragment newmoveplane
 
 
 endcodefragments
+
+
+patchplanespeed:
+	patchcode oldmoveplane,newmoveplane,1,1
+	storerelative moveplane.doit,edi+lastediadj+6
+	mov al,[planespeedfactor]
+	mov [moveplane.factor],al
+	ret

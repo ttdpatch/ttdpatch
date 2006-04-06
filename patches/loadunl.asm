@@ -624,9 +624,7 @@ SetupGradualLoad:
 	cmp	word [edi+veh.capacity],0
 	je	.getnextveh
 
-	imul	ebx,[climate],32
-	add	bl,[edi+veh.cargotype]
-	movzx	ebx,bl
+	movzx 	ebx,byte [edi+veh.cargotype]
 	mov	bl,[cargotypes+ebx]
 	bts	[cargotypesloading],ebx
 

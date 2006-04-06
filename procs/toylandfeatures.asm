@@ -7,21 +7,6 @@ patchproc moretoylandfeatures, patchtoylandfeatures
 
 extern toylandfeatures
 
-
-patchtoylandfeatures:
-	mov bl,[toylandfeatures]
-	stringaddress oldskiptoylandclassa,1,1
-	test bl,1
-	jz .nolighthouses
-	mov byte [edi],-1			// impossible climate, so the test always fails
-.nolighthouses:
-	stringaddress oldskiptoylandwoodlands,1,1
-	test bl,2
-	jz .nowoodlands
-	mov byte [edi],-1			// ditto
-.nowoodlands:
-	ret
-
 begincodefragments
 
 codefragment oldskiptoylandclassa,6
@@ -37,3 +22,18 @@ codefragment oldskiptoylandwoodlands,6
 // codefragment newskiptoylandwoodlands in patches.ah
 
 endcodefragments
+
+
+patchtoylandfeatures:
+	mov bl,[toylandfeatures]
+	stringaddress oldskiptoylandclassa,1,1
+	test bl,1
+	jz .nolighthouses
+	mov byte [edi],-1			// impossible climate, so the test always fails
+.nolighthouses:
+	stringaddress oldskiptoylandwoodlands,1,1
+	test bl,2
+	jz .nowoodlands
+	mov byte [edi],-1			// ditto
+.nowoodlands:
+	ret

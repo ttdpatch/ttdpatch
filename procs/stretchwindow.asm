@@ -11,6 +11,23 @@ extern aStretchBlt, gdi32hnd
 extern StretchBlt, aSetStretchBltMode, gdi32hnd
 extern SetStretchBltMode,newbitblt,clienttoscreen
 
+begincodefragments
+
+codefragment newgetwindowsize
+	call runindex(getwindowsize)
+	push ecx
+	setfragmentsize 12
+
+codefragment newwm_mousemove
+	call runindex(wm_mousemove)
+	setfragmentsize 8
+
+codefragment newwm_mousebutton
+	call runindex(wm_mousebutton)
+	setfragmentsize 7
+
+endcodefragments
+
 def_indirect newbitblt
 def_indirect clienttoscreen
 
@@ -40,22 +57,5 @@ patchstretchwindow:
 	ret
 
 
-begincodefragments
-
-codefragment newgetwindowsize
-	call runindex(getwindowsize)
-	push ecx
-	setfragmentsize 12
-
-codefragment newwm_mousemove
-	call runindex(wm_mousemove)
-	setfragmentsize 8
-
-codefragment newwm_mousebutton
-	call runindex(wm_mousebutton)
-	setfragmentsize 7
-
-endcodefragments
 
 #endif
-

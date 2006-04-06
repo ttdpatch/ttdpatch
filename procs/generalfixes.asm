@@ -27,414 +27,6 @@ extern wait27ms_nogiveaway
 ext_frag oldrecordlastactionxy
 
 global patchgeneralfixes
-patchgeneralfixes:
-#if WINTTDX
-	stringaddress olddemolish6x6,1,1
-	mov byte [edi],0x90		// PUSH BX -> PUSH EBX
-	mov byte [edi+11],0x90		// POP BX -> POP EBX
-#endif
-
-	// fix custom vehtype names not deallocated if Play Scenario used
-	mov edi,[reloadenginesfn]
-	add edi,[edi-4]			// follow a call
-	mov word [edi],0x13EB		// jmp short $+2+0x13
-
-	patchcode oldbuildhousegetdate,newbuildhousegetdate,1,1
-
-	mov ebx,[miscmodsflags]
-	patchcode oldamountinlitres,newamountinlitres,1,1,,{test bl,MISCMODS_DONTFIXLITRES},z
-	patchcode oldtownraiselowermaxcost,newtownraiselowermaxcost,1,1,,{test bl,MISCMODS_OLDTOWNTERRMODLIMIT},z
-	stringaddress findrandomindtypetables,1,1
-	test bl,MISCMODS_DONTFIXTROPICBANKS
-	jnz .tropicbanksdone
-	mov edi,[edi]
-	mov edi,[edi+2*4]
-	mov cl,32		// (ECX was 0 after stringaddress)
-	mov al,0xc		// search for industry type: temperate-climate bank
-
-.tropicbanksloop:
-	repne scasb
-	jne .tropicbanksdone
-	mov byte [edi-1],0x10	// replacement industry type: arctic/tropical-climate bank
-	jecxz .tropicbanksdone
-	jmp .tropicbanksloop
-
-.tropicbanksdone:
-	test bl,MISCMODS_DONTFIXHOUSESPRITES
-	jnz .shopsspritesdone
-	mov eax,[housespritetable]
-	mov byte [eax+0x4c2f],0xe1	// 31C8000h+4579 -> 31C8000h+4577
-
-.shopsspritesdone:
-	patchcode oldgeneratezeppelin,newgeneratezeppelin,1,1,,{test bh,MISCMODS_NOZEPPELINONLARGEAP>>8},nz
-	patchcode oldfindcompanygraphmax,newfindcompanygraphmax,1,1,,{test BH,MISCMODS_NORESCALECOMPANYGRAPH>>8},z
-	patchcode oldendofyear,newendofyear,1,1,,{test bh,MISCMODS_NOYEARLYFINANCES>>8},nz
-
-// Giving time slices away is done differently for the DOS and Windows versions
-#if WINTTDX
-	stringaddress oldwaitforkey,1,1
-	test bh,MISCMODS_NOTIMEGIVEAWAY>>8
-	jnz .nokeywaitpatch
-	mov eax,[edi+3]
-	mov [waitforkey.timeroffset],eax
-	storefragment newwaitforkey
-.nokeywaitpatch:
-
-	// Waitloop moved to patchwaitloop (Sander)
-
-	patchcode oldcreatesenderplayer,newcreatesenderplayer,1,1,,{test bh,MISCMODS_NOTIMEGIVEAWAY>>8},z
-	patchcode oldcreatereceiverplayer,newcreatereceiverplayer,1,1,,{test bh,MISCMODS_NOTIMEGIVEAWAY>>8},z
-	patchcode oldrecbuffer,newrecbuffer,1,1,,{test bh,MISCMODS_NOTIMEGIVEAWAY>>8},z
-	patchcode oldwaitforconnection1,newwaitforconnection1,1,1,,{test bh,MISCMODS_NOTIMEGIVEAWAY>>8},z
-	test bh,MISCMODS_NOTIMEGIVEAWAY>>8
-	jnz .giveawaydone
-	pusha
-	push aWaitForSingleObject
-	push dword [kernel32hnd]
-	call dword [GetProcAddress]	// GetProcAddress(kernel, "WaitForSingleObject")
-	mov [WaitForSingleObject],eax
-	push aResetEvent
-	push dword [kernel32hnd]
-	call dword [GetProcAddress]	// GetProcAddress(kernel, "ResetEvent")
-	mov [ResetEvent],eax
-
-	push aMsgWaitForMultipleObjects
-	push dword [user32hnd]
-	call dword [GetProcAddress]	// GetProcAddress(user32, "MsgWaitForMultipleObjects")
-	mov [MsgWaitForMultipleObjects],eax
-	popa
-.giveawaydone:
-#else
-// try to give away a timeslice to check if it's supported
-	mov ax,0x1680
-	test bh,MISCMODS_NOTIMEGIVEAWAY>>8	// make it automatically fail if disabled
-	jnz .al_ok
-	int 0x2f	// call the interrupt
-// The interrupt returns with al=0 if the call is supported.
-// Install the patches only in this case (otherwise they have no use).
-.al_ok:
-	movzx ebp,al
-	stringaddress oldwait27ms,1,1
-	test ebp,ebp
-	jz .dogiveaway
-	testflags gamespeed
-	jnc .nogiveaway
-
-	// gamespeed is on, but we can't (or shouldn't) give away time slices
-	mov dword [wait27ms_indirect],addr(wait27ms_nogiveaway)
-.dogiveaway:
-	storefragment newwait27ms
-.nogiveaway:
-	multipatchcode oldwaittitle,newwaittitle,3,,{or ebp,ebp},z
-	patchcode oldwaitforkey,newwaitforkey,1,1,,{or ebp,ebp},z
-#endif
-
-// apply a little tweak on the RLE compression algorithm (see details in fixmisc.asm at newrlesave)
-
-	stringaddress oldrlesave1
-	test ebx,MISCMODS_NOENHANCEDCOMP
-	jnz .norle1
-	mov eax,[edi+2]
-	mov [newrlesave.chunkptr],eax
-	storefragment newrlesave1
-
-.norle1:
-	stringaddress oldrlesave2
-	test ebx,MISCMODS_NOENHANCEDCOMP
-	jnz .norle2
-
-	// old code:
-	//	push ax
-	//	dec byte [bBytesInRLEChunk]
-	//
-	// new code:
-	//	push eax	// to save one byte
-	//	sub byte [bBytesInRLEChunk],2
-
-	mov eax,[edi+4]
-	mov dword [edi],0x002d8050
-	mov [edi+3],eax
-	mov byte [edi+7],2
-
-	// pop ax -> pop eax (because of modifying the push above)
-	mov byte [edi+41],0x90
-
-	// mov byte [bBytesInRLEChunk],2 -> mov byte [bBytesInRLEChunk],3
-	mov byte [edi+61],3
-
-.norle2:
-	// fix trains breaking down while waiting on a red signal
-	patchcode oldcanvehiclebreakdown,newcanvehiclebreakdown,1,1,,{test ebx,MISCMODS_BREAKDOWNATSIGNAL},z
-
-	patchcode oldinitpaymentrategraph,newinitpaymentrategraph,1,1,,{test ebx,MISCMODS_DONTFIXPAYMENTGRAPH},z
-
-	stringaddress oilfieldaccepts,1,1
-	mov dword [edi],airportdimensions
-	patchcode oldclearoilfield,newclearoilfield,1,1
-	patchcode oldplanecrash,newplanecrash,1,1
-	multipatchcode oldsendtohangar,newsendtohangar,2
-	multipatchcode oldgetrvmovementbyte1,newgetrvmovementbyte1,2
-	multipatchcode oldgetrvmovementbyte2,newgetrvmovementbyte2,2
-	multipatchcode oldvehiclelist,newvehiclelist,4
-	patchcode oldinitbubble,newinitbubble,1,1
-	patchcode oldrememberzoomlevel,newrememberzoomlevel,1,1
-	patchcode oldmakegiantscreenshot,newmakegiantscreenshot,1,1
-	patchcode oldissubsidytotown1,newissubsidytotown1,1,1
-	patchcode oldissubsidytotown2,newissubsidytotown2,1,1
-	patchcode oldchksubsidytotown,newchksubsidytotown,1,1
-	patchcode olddisplsubsidyowner,newdisplsubsidyowner,1,1
-	patchcode olddeletestationrefs,newdeletestationrefs,1,1
-
-	// when a player owns the station of the oilfield and then the 
-	// oilfield is removed, the station is screwed...
-	// this will fix this oil station behavior ...
-	stringaddress removeoilstation,1,1
-	copyrelative fixremoveoilstation.delstation
-	changereltarget 0,addr(fixremoveoilstation)
-
-	mov eax,[deductvehruncost]
-	lea edi,[eax+39]
-	storefragment newdeductvehruncost
-	mov eax,[addexpenses]
-	lea edi,[eax+26]
-	storefragment newaddexpenses
-	patchcode oldcompanyvalue,newcompanyvalue,1,1
-	patchcode oldaddmergermoney,newaddmergermoney
-
-	patchcode oldgeneratezeppelin,newgeneratezeppelin,1,1,,{test word [miscmodsflags],MISCMODS_NOZEPPELINONLARGEAP},nz
-	multipatchcode oldcheckzeppelincrasharea1,newcheckzeppelincrasharea,2
-	patchcode oldcheckzeppelincrasharea2,newcheckzeppelincrasharea,1,1
-
-	multipatchcode oldcantbuildbridgepopup,newcantbuildbridgepopup,2
-	patchcode oldturnbackship,newturnbackship,1,1
-	patchcode oldtownactionthreshold,newtownactionthreshold,1,1
-
-	patchcode oldrecordlastactionxy,newrecordlastactionxy,1,1
-	chainfunction newtransmitaction,.oldfn,lastediadj-5
-	patchcode oldcanplacebuoy,newcanplacebuoy,1,1
-
-	patchcode oldroadsellout,newroadsellout,1,1
-	patchcode oldtownclaimroad,newtownclaimroad,1,1
-
-	patchcode olddeletetown,newdeletetown,1,1
-
-	patchcode oldmakedropdownmenu1,newmakedropdownmenu1,1,1
-	patchcode oldmakedropdownmenu2,newmakedropdownmenu2,1,1
-
-	// Fix trains and RVs on water bug
-	patchcode oldwaterroutehandler,newwaterroutehandler,1,1
-
-#if WINTTDX
-	multipatchcode oldflashcrossing,newflashcrossing,2
-	patchcode oldpalanim,newpalanim,1,1
-#endif
-	stringaddress findlorryhints,2,2
-	mov dword [edi],lorryhints
-
-	patchcode oldcheckforrocks,newcheckforrocks,1,1
-
-	patchcode oldupdatehedges1,newupdatehedges1,1,1
-	patchcode oldupdatehedges2,newupdatehedges2,1,1
-
-	patchcode oldcalciconstodraw,newcalciconstodraw,1,1
-
-	patchcode olddepotroutehandler,newdepotroutehandler,1,1
-
-	patchcode oldcrashplane,newcrashplane,1,1
-	patchcode oldcrashzeppelin,newcrashzeppelin,1,1
-	patchcode oldwhatvehicleintheway,newwhatvehicleintheway,1,1
-
-	mov ebx,[miscmodsflags]
-
-	// make edges of the world flood too
-	mov eax,[ophandler+0x30]// class 6
-	mov edi,[eax+0x20]	// class 6 periodic proc handler
-
-	push eax
-	storefunctiontarget 40,floodtile
-
-#if WINTTDX
-	// fix Fish UK not knowing the difference between signed short and unsigned short
-	mov byte [eax+1],0xbf	// change movzx to movsx in Windows version
-	mov byte [eax+23],0xbf	// (otherwise it uses the wrong offset)
-	inc ah
-	mov byte [eax-158],0x90
-	mov byte [eax-151],0x90
-	mov byte [eax-148],0x90
-#endif
-
-	pop eax
-
-	test bh,MISCMODS_NOWORLDEDGEFLOODING>>8
-	jnz .noedgeflood
-
-	mov edi,addr(class6periodicproc)
-	xchg edi,[eax+0x20]	// class 6 periodic proc handler
-
-.noedgeflood:
-
-	// ------- change vehicle messages to show vehicle name --------
-
-	// fragments use ESI EDI EDI ESI ESI in that order
-	patchcode oldgenvehmessage,newgenvehmessage,1,5,,{test bh,MISCMODS_USEVEHNNUMBERNOTNAME>>8},z
-	scasd		// otherwise below finds same place again
-	patchcode oldgenvehmessage,newgenvehmessageedi,1,0,,{test bh,MISCMODS_USEVEHNNUMBERNOTNAME>>8},z
-	scasd
-	patchcode oldgenvehmessage,newgenvehmessageedi,1,0,,{test bh,MISCMODS_USEVEHNNUMBERNOTNAME>>8},z
-	scasd
-	patchcode oldgenvehmessage,newgenvehmessage,1,0,,{test bh,MISCMODS_USEVEHNNUMBERNOTNAME>>8},z
-	scasd
-	patchcode oldgenvehmessage,newgenvehmessage,1,0,,{test bh,MISCMODS_USEVEHNNUMBERNOTNAME>>8},z
-
-	// patch the lost vehicles code too
-	test bh,MISCMODS_USEVEHNNUMBERNOTNAME>>8
-	jnz near .notwithname
-
-	mov edi,addr(agevehicle.lostvehmessage)
-	storefragment newgenvehmessage
-
-	mov edi,addr(reversetrain.cantreversemessage)
-	storefragment newgenvehmessage
-
-	mov esi,vehnametextids
-
-.fixnextmsg:
-	lodsw
-	test ax,ax
-	jz near .donefixing
-
-// First check if the user specified an explicit replacement in custom texts
-	push eax
-	mov eax,esi
-	sub eax,vehnametextids
-	shr eax,2
-	add eax,ourtext(newtrainindepot)	// not newstext, we want the actual string data
-	call gettextandtableptrs
-	cmp byte [edi],0
-	je .defaultchange	// do it automatically if the replacement string is empty
-
-// we have a replacement - replace the original pointer with a pointer to it
-	mov ebx,edi
-	lodsw
-	call gettextintableptr
-	jnc .nosubtract
-	sub ebx,eax
-.nosubtract:
-	mov [eax+edi*4],ebx
-	pop edi
-	jmp short .fixnextmsg	
-
-
-.defaultchange:
-	pop eax
-
-	mov edi,genericvehmsg
-	mov ebp,0xffffff00	// mask for which bytes count when cmp'ing
-
-	cmp ax,byte -1
-	je .fixmsg	// got edi=genericvehmsg already
-
-	call gettextandtableptrs
-	or ebp,byte -1
-.fixmsg:
-	mov al,0	// now edi=>what the vehicle type+number looks like
-	or ecx,byte -1	// e.g. "Train ",7c
-	repne scasb	// find string terminator
-	mov ebx,[edi-5]
-
-	lodsw
-	call gettextandtableptrs
-	push esi
-	mov esi,edi
-
-	// now ecx = length of text we're searching for
-	// ebx = last four bytes of text, esi=edi=>text to change
-
-.nextbyte:
-	mov eax,[edi]
-	and eax,ebp
-	cmp eax,ebx
-	je .foundit
-	inc edi
-	cmp al,0x7c
-	je .badfix
-	cmp al,0
-	jne .nextbyte
-.fail:
-	mov dword [esi],0x003F3F80	// show only "name??" for safety reasons
-	jmp short .done
-
-.badfix:	// didn't find entire message, only change 7c to 80
-		// so it'll say "Train Train 50", oh well...
-	mov byte [edi-1],0x80
-	jmp short .done
-
-.foundit:
-	// remove part without the 7c
-
-	lea esi,[edi+4]
-	lea edi,[esi+ecx+2]
-
-	mov al,0x80
-	stosb
-
-	// now edi=>text to remove, esi=>last byte, ecx=num bytes to remove
-.copynext:
-	lodsb
-	stosb
-	test al,al
-	jnz .copynext
-
-.done:
-	pop esi
-	jmp .fixnextmsg
-
-.donefixing:
-
-.notwithname:
-
-	// -----------------------------------------------------
-
-	patchcode oldintrocheckkey,newintrocheckkey,1,3+WINTTDX,,{test byte [miscmodsflags+2],MISCMODS_DOSHOWINTRO>>16},z
-#if WINTTDX
-	patchcode oldcomparefilenames,newcomparefilenames,1,1
-//	stringaddress oldsoundeffectvolume,1,1
-//	mov eax,[edi+3]
-//	mov [soundeffectvolume.relvolume],eax
-//	storefragment newsoundeffectvolume
-#endif
-
-	multipatchcode subtractruncosts,4
-	
-	// extend the allowed distance between station sign and industry
-	patchcode oldcheckstationindustrydist,newcheckstationindustrydist,1,1,,{test dword [miscmodsflags],MISCMODS_NOEXTENDSTATIONRANGE},z
-	patchcode oldcalccatchment,newcalccatchment,1,4,,{test dword [miscmodsflags],MISCMODS_NOEXTENDSTATIONRANGE},z
-	storeaddress findUpdateStationAcceptList,1,1,UpdateStationAcceptList
-	// disable news messages for old vehicles
-	patchcode oldoldvehiclenews,newoldvehiclenews,1,1,,{test dword [miscmodsflags],MISCMODS_NOOLDVEHICLENEWS},nz
-
-	// better error message when placing industry fails because of too many
-	patchcode getindustryslot
-	ret
-
-// shares some code fragments
-global patchbribe
-patchbribe:
-	patchcode oldtownmenu1,newtownmenu1,1,1
-	patchcode oldtownmenu2,newtownmenu2,1,1
-	mov byte [edi+0x23+lastediadj],8
-	patchcode oldtownmenu3,newtownmenu3,1,1
-	patchcode oldtownmenu4,newtownmenu4,1,1
-	patchcode oldtownselmax,newtownselmax,1,1
-	patchcode oldtownselfixidx,newtownselfixidx,1,1
-	ret
-
-#if WINTTDX
-aWaitForSingleObject: db "WaitForSingleObject",0
-aResetEvent: db "ResetEvent",0
-
-aMsgWaitForMultipleObjects:db "MsgWaitForMultipleObjects",0
-#endif
 
 begincodefragments
 
@@ -1028,3 +620,412 @@ codefragment newcomparefilenames
 #endif
 
 endcodefragments
+
+patchgeneralfixes:
+#if WINTTDX
+	stringaddress olddemolish6x6,1,1
+	mov byte [edi],0x90		// PUSH BX -> PUSH EBX
+	mov byte [edi+11],0x90		// POP BX -> POP EBX
+#endif
+
+	// fix custom vehtype names not deallocated if Play Scenario used
+	mov edi,[reloadenginesfn]
+	add edi,[edi-4]			// follow a call
+	mov word [edi],0x13EB		// jmp short $+2+0x13
+
+	patchcode oldbuildhousegetdate,newbuildhousegetdate,1,1
+
+	mov ebx,[miscmodsflags]
+	patchcode oldamountinlitres,newamountinlitres,1,1,,{test bl,MISCMODS_DONTFIXLITRES},z
+	patchcode oldtownraiselowermaxcost,newtownraiselowermaxcost,1,1,,{test bl,MISCMODS_OLDTOWNTERRMODLIMIT},z
+	stringaddress findrandomindtypetables,1,1
+	test bl,MISCMODS_DONTFIXTROPICBANKS
+	jnz .tropicbanksdone
+	mov edi,[edi]
+	mov edi,[edi+2*4]
+	mov cl,32		// (ECX was 0 after stringaddress)
+	mov al,0xc		// search for industry type: temperate-climate bank
+
+.tropicbanksloop:
+	repne scasb
+	jne .tropicbanksdone
+	mov byte [edi-1],0x10	// replacement industry type: arctic/tropical-climate bank
+	jecxz .tropicbanksdone
+	jmp .tropicbanksloop
+
+.tropicbanksdone:
+	test bl,MISCMODS_DONTFIXHOUSESPRITES
+	jnz .shopsspritesdone
+	mov eax,[housespritetable]
+	mov byte [eax+0x4c2f],0xe1	// 31C8000h+4579 -> 31C8000h+4577
+
+.shopsspritesdone:
+	patchcode oldgeneratezeppelin,newgeneratezeppelin,1,1,,{test bh,MISCMODS_NOZEPPELINONLARGEAP>>8},nz
+	patchcode oldfindcompanygraphmax,newfindcompanygraphmax,1,1,,{test BH,MISCMODS_NORESCALECOMPANYGRAPH>>8},z
+	patchcode oldendofyear,newendofyear,1,1,,{test bh,MISCMODS_NOYEARLYFINANCES>>8},nz
+
+// Giving time slices away is done differently for the DOS and Windows versions
+#if WINTTDX
+	stringaddress oldwaitforkey,1,1
+	test bh,MISCMODS_NOTIMEGIVEAWAY>>8
+	jnz .nokeywaitpatch
+	mov eax,[edi+3]
+	mov [waitforkey.timeroffset],eax
+	storefragment newwaitforkey
+.nokeywaitpatch:
+
+	// Waitloop moved to patchwaitloop (Sander)
+
+	patchcode oldcreatesenderplayer,newcreatesenderplayer,1,1,,{test bh,MISCMODS_NOTIMEGIVEAWAY>>8},z
+	patchcode oldcreatereceiverplayer,newcreatereceiverplayer,1,1,,{test bh,MISCMODS_NOTIMEGIVEAWAY>>8},z
+	patchcode oldrecbuffer,newrecbuffer,1,1,,{test bh,MISCMODS_NOTIMEGIVEAWAY>>8},z
+	patchcode oldwaitforconnection1,newwaitforconnection1,1,1,,{test bh,MISCMODS_NOTIMEGIVEAWAY>>8},z
+	test bh,MISCMODS_NOTIMEGIVEAWAY>>8
+	jnz .giveawaydone
+	pusha
+	push aWaitForSingleObject
+	push dword [kernel32hnd]
+	call dword [GetProcAddress]	// GetProcAddress(kernel, "WaitForSingleObject")
+	mov [WaitForSingleObject],eax
+	push aResetEvent
+	push dword [kernel32hnd]
+	call dword [GetProcAddress]	// GetProcAddress(kernel, "ResetEvent")
+	mov [ResetEvent],eax
+
+	push aMsgWaitForMultipleObjects
+	push dword [user32hnd]
+	call dword [GetProcAddress]	// GetProcAddress(user32, "MsgWaitForMultipleObjects")
+	mov [MsgWaitForMultipleObjects],eax
+	popa
+.giveawaydone:
+#else
+// try to give away a timeslice to check if it's supported
+	mov ax,0x1680
+	test bh,MISCMODS_NOTIMEGIVEAWAY>>8	// make it automatically fail if disabled
+	jnz .al_ok
+	int 0x2f	// call the interrupt
+// The interrupt returns with al=0 if the call is supported.
+// Install the patches only in this case (otherwise they have no use).
+.al_ok:
+	movzx ebp,al
+	stringaddress oldwait27ms,1,1
+	test ebp,ebp
+	jz .dogiveaway
+	testflags gamespeed
+	jnc .nogiveaway
+
+	// gamespeed is on, but we can't (or shouldn't) give away time slices
+	mov dword [wait27ms_indirect],addr(wait27ms_nogiveaway)
+.dogiveaway:
+	storefragment newwait27ms
+.nogiveaway:
+	multipatchcode oldwaittitle,newwaittitle,3,,{or ebp,ebp},z
+	patchcode oldwaitforkey,newwaitforkey,1,1,,{or ebp,ebp},z
+#endif
+
+// apply a little tweak on the RLE compression algorithm (see details in fixmisc.asm at newrlesave)
+
+	stringaddress oldrlesave1
+	test ebx,MISCMODS_NOENHANCEDCOMP
+	jnz .norle1
+	mov eax,[edi+2]
+	mov [newrlesave.chunkptr],eax
+	storefragment newrlesave1
+
+.norle1:
+	stringaddress oldrlesave2
+	test ebx,MISCMODS_NOENHANCEDCOMP
+	jnz .norle2
+
+	// old code:
+	//	push ax
+	//	dec byte [bBytesInRLEChunk]
+	//
+	// new code:
+	//	push eax	// to save one byte
+	//	sub byte [bBytesInRLEChunk],2
+
+	mov eax,[edi+4]
+	mov dword [edi],0x002d8050
+	mov [edi+3],eax
+	mov byte [edi+7],2
+
+	// pop ax -> pop eax (because of modifying the push above)
+	mov byte [edi+41],0x90
+
+	// mov byte [bBytesInRLEChunk],2 -> mov byte [bBytesInRLEChunk],3
+	mov byte [edi+61],3
+
+.norle2:
+	// fix trains breaking down while waiting on a red signal
+	patchcode oldcanvehiclebreakdown,newcanvehiclebreakdown,1,1,,{test ebx,MISCMODS_BREAKDOWNATSIGNAL},z
+
+	patchcode oldinitpaymentrategraph,newinitpaymentrategraph,1,1,,{test ebx,MISCMODS_DONTFIXPAYMENTGRAPH},z
+
+	stringaddress oilfieldaccepts,1,1
+	mov dword [edi],airportdimensions
+	patchcode oldclearoilfield,newclearoilfield,1,1
+	patchcode oldplanecrash,newplanecrash,1,1
+	multipatchcode oldsendtohangar,newsendtohangar,2
+	multipatchcode oldgetrvmovementbyte1,newgetrvmovementbyte1,2
+	multipatchcode oldgetrvmovementbyte2,newgetrvmovementbyte2,2
+	multipatchcode oldvehiclelist,newvehiclelist,4
+	patchcode oldinitbubble,newinitbubble,1,1
+	patchcode oldrememberzoomlevel,newrememberzoomlevel,1,1
+	patchcode oldmakegiantscreenshot,newmakegiantscreenshot,1,1
+	patchcode oldissubsidytotown1,newissubsidytotown1,1,1
+	patchcode oldissubsidytotown2,newissubsidytotown2,1,1
+	patchcode oldchksubsidytotown,newchksubsidytotown,1,1
+	patchcode olddisplsubsidyowner,newdisplsubsidyowner,1,1
+	patchcode olddeletestationrefs,newdeletestationrefs,1,1
+
+	// when a player owns the station of the oilfield and then the 
+	// oilfield is removed, the station is screwed...
+	// this will fix this oil station behavior ...
+	stringaddress removeoilstation,1,1
+	copyrelative fixremoveoilstation.delstation
+	changereltarget 0,addr(fixremoveoilstation)
+
+	mov eax,[deductvehruncost]
+	lea edi,[eax+39]
+	storefragment newdeductvehruncost
+	mov eax,[addexpenses]
+	lea edi,[eax+26]
+	storefragment newaddexpenses
+	patchcode oldcompanyvalue,newcompanyvalue,1,1
+	patchcode oldaddmergermoney,newaddmergermoney
+
+	patchcode oldgeneratezeppelin,newgeneratezeppelin,1,1,,{test word [miscmodsflags],MISCMODS_NOZEPPELINONLARGEAP},nz
+	multipatchcode oldcheckzeppelincrasharea1,newcheckzeppelincrasharea,2
+	patchcode oldcheckzeppelincrasharea2,newcheckzeppelincrasharea,1,1
+
+	multipatchcode oldcantbuildbridgepopup,newcantbuildbridgepopup,2
+	patchcode oldturnbackship,newturnbackship,1,1
+	patchcode oldtownactionthreshold,newtownactionthreshold,1,1
+
+	patchcode oldrecordlastactionxy,newrecordlastactionxy,1,1
+	chainfunction newtransmitaction,.oldfn,lastediadj-5
+	patchcode oldcanplacebuoy,newcanplacebuoy,1,1
+
+	patchcode oldroadsellout,newroadsellout,1,1
+	patchcode oldtownclaimroad,newtownclaimroad,1,1
+
+	patchcode olddeletetown,newdeletetown,1,1
+
+	patchcode oldmakedropdownmenu1,newmakedropdownmenu1,1,1
+	patchcode oldmakedropdownmenu2,newmakedropdownmenu2,1,1
+
+	// Fix trains and RVs on water bug
+	patchcode oldwaterroutehandler,newwaterroutehandler,1,1
+
+#if WINTTDX
+	multipatchcode oldflashcrossing,newflashcrossing,2
+	patchcode oldpalanim,newpalanim,1,1
+#endif
+	stringaddress findlorryhints,2,2
+	mov dword [edi],lorryhints
+
+	patchcode oldcheckforrocks,newcheckforrocks,1,1
+
+	patchcode oldupdatehedges1,newupdatehedges1,1,1
+	patchcode oldupdatehedges2,newupdatehedges2,1,1
+
+	patchcode oldcalciconstodraw,newcalciconstodraw,1,1
+
+	patchcode olddepotroutehandler,newdepotroutehandler,1,1
+
+	patchcode oldcrashplane,newcrashplane,1,1
+	patchcode oldcrashzeppelin,newcrashzeppelin,1,1
+	patchcode oldwhatvehicleintheway,newwhatvehicleintheway,1,1
+
+	mov ebx,[miscmodsflags]
+
+	// make edges of the world flood too
+	mov eax,[ophandler+0x30]// class 6
+	mov edi,[eax+0x20]	// class 6 periodic proc handler
+
+	push eax
+	storefunctiontarget 40,floodtile
+
+#if WINTTDX
+	// fix Fish UK not knowing the difference between signed short and unsigned short
+	mov byte [eax+1],0xbf	// change movzx to movsx in Windows version
+	mov byte [eax+23],0xbf	// (otherwise it uses the wrong offset)
+	inc ah
+	mov byte [eax-158],0x90
+	mov byte [eax-151],0x90
+	mov byte [eax-148],0x90
+#endif
+
+	pop eax
+
+	test bh,MISCMODS_NOWORLDEDGEFLOODING>>8
+	jnz .noedgeflood
+
+	mov edi,addr(class6periodicproc)
+	xchg edi,[eax+0x20]	// class 6 periodic proc handler
+
+.noedgeflood:
+
+	// ------- change vehicle messages to show vehicle name --------
+
+	// fragments use ESI EDI EDI ESI ESI in that order
+	patchcode oldgenvehmessage,newgenvehmessage,1,5,,{test bh,MISCMODS_USEVEHNNUMBERNOTNAME>>8},z
+	scasd		// otherwise below finds same place again
+	patchcode oldgenvehmessage,newgenvehmessageedi,1,0,,{test bh,MISCMODS_USEVEHNNUMBERNOTNAME>>8},z
+	scasd
+	patchcode oldgenvehmessage,newgenvehmessageedi,1,0,,{test bh,MISCMODS_USEVEHNNUMBERNOTNAME>>8},z
+	scasd
+	patchcode oldgenvehmessage,newgenvehmessage,1,0,,{test bh,MISCMODS_USEVEHNNUMBERNOTNAME>>8},z
+	scasd
+	patchcode oldgenvehmessage,newgenvehmessage,1,0,,{test bh,MISCMODS_USEVEHNNUMBERNOTNAME>>8},z
+
+	// patch the lost vehicles code too
+	test bh,MISCMODS_USEVEHNNUMBERNOTNAME>>8
+	jnz near .notwithname
+
+	mov edi,addr(agevehicle.lostvehmessage)
+	storefragment newgenvehmessage
+
+	mov edi,addr(reversetrain.cantreversemessage)
+	storefragment newgenvehmessage
+
+	mov esi,vehnametextids
+
+.fixnextmsg:
+	lodsw
+	test ax,ax
+	jz near .donefixing
+
+// First check if the user specified an explicit replacement in custom texts
+	push eax
+	mov eax,esi
+	sub eax,vehnametextids
+	shr eax,2
+	add eax,ourtext(newtrainindepot)	// not newstext, we want the actual string data
+	call gettextandtableptrs
+	cmp byte [edi],0
+	je .defaultchange	// do it automatically if the replacement string is empty
+
+// we have a replacement - replace the original pointer with a pointer to it
+	mov ebx,edi
+	lodsw
+	call gettextintableptr
+	jnc .nosubtract
+	sub ebx,eax
+.nosubtract:
+	mov [eax+edi*4],ebx
+	pop edi
+	jmp short .fixnextmsg	
+
+
+.defaultchange:
+	pop eax
+
+	mov edi,genericvehmsg
+	mov ebp,0xffffff00	// mask for which bytes count when cmp'ing
+
+	cmp ax,byte -1
+	je .fixmsg	// got edi=genericvehmsg already
+
+	call gettextandtableptrs
+	or ebp,byte -1
+.fixmsg:
+	mov al,0	// now edi=>what the vehicle type+number looks like
+	or ecx,byte -1	// e.g. "Train ",7c
+	repne scasb	// find string terminator
+	mov ebx,[edi-5]
+
+	lodsw
+	call gettextandtableptrs
+	push esi
+	mov esi,edi
+
+	// now ecx = length of text we're searching for
+	// ebx = last four bytes of text, esi=edi=>text to change
+
+.nextbyte:
+	mov eax,[edi]
+	and eax,ebp
+	cmp eax,ebx
+	je .foundit
+	inc edi
+	cmp al,0x7c
+	je .badfix
+	cmp al,0
+	jne .nextbyte
+.fail:
+	mov dword [esi],0x003F3F80	// show only "name??" for safety reasons
+	jmp short .done
+
+.badfix:	// didn't find entire message, only change 7c to 80
+		// so it'll say "Train Train 50", oh well...
+	mov byte [edi-1],0x80
+	jmp short .done
+
+.foundit:
+	// remove part without the 7c
+
+	lea esi,[edi+4]
+	lea edi,[esi+ecx+2]
+
+	mov al,0x80
+	stosb
+
+	// now edi=>text to remove, esi=>last byte, ecx=num bytes to remove
+.copynext:
+	lodsb
+	stosb
+	test al,al
+	jnz .copynext
+
+.done:
+	pop esi
+	jmp .fixnextmsg
+
+.donefixing:
+
+.notwithname:
+
+	// -----------------------------------------------------
+
+	patchcode oldintrocheckkey,newintrocheckkey,1,3+WINTTDX,,{test byte [miscmodsflags+2],MISCMODS_DOSHOWINTRO>>16},z
+#if WINTTDX
+	patchcode oldcomparefilenames,newcomparefilenames,1,1
+//	stringaddress oldsoundeffectvolume,1,1
+//	mov eax,[edi+3]
+//	mov [soundeffectvolume.relvolume],eax
+//	storefragment newsoundeffectvolume
+#endif
+
+	multipatchcode subtractruncosts,4
+	
+	// extend the allowed distance between station sign and industry
+	patchcode oldcheckstationindustrydist,newcheckstationindustrydist,1,1,,{test dword [miscmodsflags],MISCMODS_NOEXTENDSTATIONRANGE},z
+	patchcode oldcalccatchment,newcalccatchment,1,4,,{test dword [miscmodsflags],MISCMODS_NOEXTENDSTATIONRANGE},z
+	storeaddress findUpdateStationAcceptList,1,1,UpdateStationAcceptList
+	// disable news messages for old vehicles
+	patchcode oldoldvehiclenews,newoldvehiclenews,1,1,,{test dword [miscmodsflags],MISCMODS_NOOLDVEHICLENEWS},nz
+
+	// better error message when placing industry fails because of too many
+	patchcode getindustryslot
+	ret
+
+// shares some code fragments
+global patchbribe
+patchbribe:
+	patchcode oldtownmenu1,newtownmenu1,1,1
+	patchcode oldtownmenu2,newtownmenu2,1,1
+	mov byte [edi+0x23+lastediadj],8
+	patchcode oldtownmenu3,newtownmenu3,1,1
+	patchcode oldtownmenu4,newtownmenu4,1,1
+	patchcode oldtownselmax,newtownselmax,1,1
+	patchcode oldtownselfixidx,newtownselfixidx,1,1
+	ret
+
+#if WINTTDX
+aWaitForSingleObject: db "WaitForSingleObject",0
+aResetEvent: db "ResetEvent",0
+
+aMsgWaitForMultipleObjects:db "MsgWaitForMultipleObjects",0
+#endif

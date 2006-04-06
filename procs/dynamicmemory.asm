@@ -22,4 +22,3 @@ patchdynamicmemory:
 	sub eax, 4
 	mov dword [edi], eax
 	ret
-

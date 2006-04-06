@@ -13,6 +13,53 @@ extern initializeveharraysizeptr,newnormalvehicles,newnormalvehsize
 extern newspecialvehicles,newvehicles,datasize
 extern vehicledatafactor
 
+begincodefragments
+
+
+#if WINTTDX
+glob_frag oldfixcommandaddr
+codefragment oldfixcommandaddr,5
+	mov ecx,oldvehicles
+	db 0xbe		// mov esi,oldveharray
+
+codefragment newfixcommandaddr
+	mov esi,[veharrayptr]
+	jmp runindex(bcfixcommandaddr)	// 1.7 compatibility fix
+#endif
+
+glob_frag oldloadfilemask
+codefragment oldloadfilemask
+	mov dword [esi+1],"TRT?"
+
+codefragment doagevehicles,2
+	mov cx,12
+	push cx
+
+codefragment createnewvehiclea,2
+	mov cx,oldnormalvehicles
+	db 0x66		// would be xor ax,ax
+
+codefragment createnewvehicleb,2
+	mov cx,oldnormalvehicles
+	db 0xf6		// test bl,2
+
+codefragment createnewvehiclec,2	// and ,8
+	add esi,oldnormalvehsize
+	mov cx,oldspecialvehicles
+
+codefragment createnewvehicled,2
+	add esi,oldnormalvehsize
+	xor bx,bx
+
+codefragment createnewvehiclee,2
+	cmp ax,oldvehicles
+
+codefragment createnewvehiclef,2
+	mov dx,oldvehicles
+
+
+endcodefragments
+
 global newveharraysize
 newveharraysize equ 40*oldveharraysize
 
@@ -97,51 +144,3 @@ cleardata:
 
 	ret
 ; endp cleardata
-
-
-begincodefragments
-
-
-#if WINTTDX
-glob_frag oldfixcommandaddr
-codefragment oldfixcommandaddr,5
-	mov ecx,oldvehicles
-	db 0xbe		// mov esi,oldveharray
-
-codefragment newfixcommandaddr
-	mov esi,[veharrayptr]
-	jmp runindex(bcfixcommandaddr)	// 1.7 compatibility fix
-#endif
-
-glob_frag oldloadfilemask
-codefragment oldloadfilemask
-	mov dword [esi+1],"TRT?"
-
-codefragment doagevehicles,2
-	mov cx,12
-	push cx
-
-codefragment createnewvehiclea,2
-	mov cx,oldnormalvehicles
-	db 0x66		// would be xor ax,ax
-
-codefragment createnewvehicleb,2
-	mov cx,oldnormalvehicles
-	db 0xf6		// test bl,2
-
-codefragment createnewvehiclec,2	// and ,8
-	add esi,oldnormalvehsize
-	mov cx,oldspecialvehicles
-
-codefragment createnewvehicled,2
-	add esi,oldnormalvehsize
-	xor bx,bx
-
-codefragment createnewvehiclee,2
-	cmp ax,oldvehicles
-
-codefragment createnewvehiclef,2
-	mov dx,oldvehicles
-
-
-endcodefragments

@@ -11,6 +11,23 @@ patchproc gamespeed,generalfixes, patchwaitloop
 
 extern dynprevtickcount,miscmodsflags,patchflags,prevtickcount
 
+begincodefragments
+
+codefragment oldwaitloop
+	mov ebx,eax
+	db 0x2b,5	// sub eax,[....]
+
+codefragment newwaitloop
+	call runindex(waitloop)
+	setfragmentsize 11
+
+codefragment newdynwaitloop
+	call runindex(dynwaitloop)
+	setfragmentsize 11
+
+
+endcodefragments
+
 
 patchwaitloop:
 	stringaddress oldwaitloop,1,1
@@ -30,20 +47,4 @@ patchwaitloop:
 .endwaitloop:
 	ret
 
-begincodefragments
-
-codefragment oldwaitloop
-	mov ebx,eax
-	db 0x2b,5	// sub eax,[....]
-
-codefragment newwaitloop
-	call runindex(waitloop)
-	setfragmentsize 11
-
-codefragment newdynwaitloop
-	call runindex(dynwaitloop)
-	setfragmentsize 11
-
-
-endcodefragments
 #endif

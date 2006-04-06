@@ -8,15 +8,14 @@
 
 #include <ttdvar.inc>
 
-	align 4
-var windowstack,dd windowstack_default
-var viewsarray,dd viewsarray_default	// array of view descriptors
+vard windowstack, windowstack_default
+vard viewsarray, viewsarray_default	// array of view descriptors
 
-var cargotypenamesptr, dd cargotypenames	// pointers to the above, can be overwritten by newcargos
-var cargounitnamesptr, dd cargounitnames
-var cargoamount1namesptr, dd cargoamount1names
-var cargoamountnnamesptr, dd cargoamountnnames
-var cargounitweightsptr, dd cargounitweights
+vard cargotypenamesptr, cargotypenames	// pointers to the above, can be overwritten by newcargos
+vard cargounitnamesptr, cargounitnames
+vard cargoamount1namesptr, cargoamount1names
+vard cargoamountnnamesptr, cargoamountnnames
+vard cargounitweightsptr, cargounitweights
 
 // -------------------
 // General definitions
@@ -51,8 +50,14 @@ uvard spritecacheptr,1,s	// Pointer to pointer to sprite cache
 uvard spritecache,1,s		// Sprite cache
 #endif
 uvard orggentextptr		// Pointer to first orggentext struc in linked list
-var newspritedata, dd spritedata// New sprite data array pointer
-var newspritenum, dd totalsprites//Number of sprites in each sprite data array
+vard newspritenum, totalsprites	// Number of sprites in each sprite data array
+vard newspritedata, spritedata	// New sprite data array pointer
+vard newspritesize, spritedata+totalsprites*4
+vard newspritexsize, spritedata+totalsprites*6
+vard newspriteysize, spritedata+totalsprites*8
+vard newspritexofs, spritedata+totalsprites*10
+vard newspriteyofs, spritedata+totalsprites*12
+
 uvard numactsprites,1,z		// Number of active sprites in TTD's sprite number space
 uvard specialtext,1,z		// Special text used with ourtext(special)
 uvard datasize,1,z		// New size of vehicle struct
@@ -117,7 +122,6 @@ uvard MPtimeout,1,s
 
 	// Several TTD functions that are called by the patch
 
-	align 4
 uvard getymd,1,s		// Index to function getymd. In ax=[0]; Out al=Y-1920, dl=M, bl=D
 uvard getfullymd,1,s		// Alt. entry point to get uncapped Y-1920 in EAX with eternalgame
 uvard loadchunkfn,1,s		// Load a chunk of game data
@@ -140,6 +144,8 @@ uvard ttdtexthandler,1,s
 uvard gettextwidth,1,s
 uvard setmousetool,1,s		// AL=tooltype,AH=window type,DX=window id, EBX=mouse cursor sprite,ESI=cursor animation
 uvard setmousecursor,1,s	// EBX=mouse cursor sprite,ESI=cursor animation
+
+uvard class0procmidsection,1,s	// Steven's hack to get back into the class0periodicproc
 
 uvard currscreenupdateblock,1,s
 uvard drawspritefn,1,s
@@ -179,6 +185,7 @@ uvard prevtrainveh,1,s		// previous train vehicle to follow when moving (0 if no
 uvard recordtraincrash,1,s	// place where a train crash gets recorded
 uvard cleartilefn,1,s		// clears a tile and set for redraw
 uvard checkvehiclesinthewayfn,1,s // checks for vehicles in the way in di
+uvard	checkroadremovalconditions,1,s
 uvard subsidyfn,1,s		// creates a new subsidy
 uvard addexpenses,1,s		// subtract from current player cash; EBX=amount to deduct; destroys EDX
 uvard deductvehruncost,1,s	// same for running costs; bl=player, edx=amount*8; destroys eax
@@ -189,8 +196,18 @@ uvard copyvehordersfn,1,s	// copies the orders from the buffer pointed by edi to
 uvard removespritefromcache,1,s	// removes sprite from sprite cache; ECX=sprite number; destroys EDX, ESI
 uvard fetchspriteincache,1,s	// fetch a sprite into cache; EAX=sprite number; destroys EAX, ECX, EDX, ESI
 
+uvard addrailfence1,1,s //adds the REAR rail fence to tile on slope SW->NE
+uvard addrailfence2,1,s //adds the FRONT rail fence to tile on slope SW->NE
+uvard addrailfence3,1,s //adds the WEST rail fence to tile on slope SE->NW
+uvard addrailfence4,1,s //adds the EAST rail fence to tile on slope SE->NW
+uvard addrailfence5,1,s //adds the REAR fence on flat tile SW->NE
+uvard addrailfence6,1,s //adds the FRONT fence on flat tile SW->NE
+uvard addrailfence7,1,s //adds the WEST fence on flat tile SE->NW
+uvard addrailfence8,1,s //adds the EAST fence on flat tile SE->NW
+
 
 uvard getroutemap,1,s		// map of possible routes on tile: in EDI=XY, AX=0/2/4 for rail/road/water; out EAX=bitcoded
+uvard rvcheckovertake,1,s    //check if an RV can overtake, no idea how it works... ask Josef :)
 uvard generatesoundeffect,1,s	// generate sound effect; eax=sound number, ESI=>vehicle or ESI=-1, BX,CX=landscape X,Y or ESI=-2, EBP=(pixel Y << 16)+pixel X
 uvard tunnelotherendfn,1,s	// find the other end of a tunnel
 uvard setmainviewxy,1,s		// in AX,CX = landscape X,Y; out cf clear if changed, set if not changed
@@ -203,6 +220,9 @@ uvard DrawPlannedStationAcceptsList,1,s
 uvard UpdateStationAcceptList,1,s
 uvard DistributeProducedCargo,1,s
 uvard DrawGraph,1,s
+
+
+uvarb demolishroadflag //----when removing roads, we need to know if it's the dynamite or bulldoze
 
 // Several TTD GUI Functions
 uvard BringWindowToForeground,1,s
@@ -220,6 +240,7 @@ uvard RefreshLandscapeRect,1,s
 uvard ScreenToLandscapeCoords,1,s// in AX,CX = screen X,Y; Return AX,CX = X,Y/AX=-1 on failure
 uvard RefreshLandscapeHighlights,1,s
 uvard GetMainViewWindow,1,s
+uvard RefreshWindows,1,s
 #if WINTTDX
 uvard FindTopmostWindowAtXY,1,s
 #endif
@@ -241,20 +262,20 @@ uvard exitcleanup,1,s		// cleanup exit function
 
 
 	// Other stuff
-var didinitialize, dd 0		// bit 0 set: initialize started; bit 1 set: initialize finished
+vard didinitialize, 0		// bit 0 set: initialize started; bit 1 set: initialize finished
 #if WINTTDX
-var loaderdata, dd -1		// loader's data structure
+vard loaderdata, -1		// loader's data structure
 #endif
-var findstring, dd addr(useknownaddress)
+vard findstring, useknownaddress
 
 
-var railenginetypenames, dw 0x8102,0x8106,0x8107	// text IDs for {railway,monorail,maglev} locomotive
+varw railenginetypenames, 0x8102,0x8106,0x8107	// text IDs for {railway,monorail,maglev} locomotive
 							// and the same for wagons
-var railwagontypenames, dw ourtext(railwaywagon),ourtext(monorailwagon),ourtext(maglevwagon)
+varw railwagontypenames, ourtext(railwaywagon),ourtext(monorailwagon),ourtext(maglevwagon)
 
 
-var signal1waittime, dw 0xfd	// time for a train to wait on a 1-way red signal;
-var signal2waittime, dw 0xfd	//  same for a 2-way signal
+varw signal1waittime, 0xfd	// time for a train to wait on a 1-way red signal;
+varw signal2waittime, 0xfd	//  same for a 2-way signal
 			//  if this number of time units is exceeded, the train turns back
 			//  253 is the TTD default
 
@@ -264,7 +285,7 @@ uvard bridgespritetables,1,s		// Bridge Sprite Tables
 uvarw newmaglevbridgespeeds,4,z	// new max. speeds on two highest-speed monorail and maglev bridge types
 
 // how much airports "weigh" - i.e. how many of the allowed points they use up
-var airportweight, db 2,3,1,0
+varb airportweight, 2,3,1,0
 
 //	align 4
 //
@@ -280,9 +301,9 @@ uvarb vehsorttable, 256
 
 // global variables needed for the manytrees patch
 
-var normalplant, db 0	//if 1,patched parts act like they weren't patched to achieve normal functionality in recursive calls
-var treenum, db 12,8,12,9 //how many tree types are there in a climate
-var treestart, db 0x00,0x0c,0x14,0x20 //number of the first tree type in a climate
+varb normalplant, 0	//if 1,patched parts act like they weren't patched to achieve normal functionality in recursive calls
+varb treenum, 12,8,12,9 //how many tree types are there in a climate
+varb treestart, 0x00,0x0c,0x14,0x20 //number of the first tree type in a climate
 
 // #include <curr.inc>
 
@@ -310,22 +331,22 @@ uvard newshistoryptr
 // #include <news.inc>
 
 // Dimensions of airport types (X,Y pairs)
-var airportdimensions, db 4,3,6,6,1,1,2,3
+varb airportdimensions, 4,3,6,6,1,1,2,3
 
 // Aircraft notional sizes (for the 3D bounding box) for 4 directions
 // (the other 4 directions are symmetric)
-var aircraftbboxtable, db 7,7, 12,2, 7,7, 2,12
+varb aircraftbboxtable, 7,7, 12,2, 7,7, 2,12
 
 // These will contain copies of flags at fixed bit positions
 uvard patchflagsfixed,4
 
 
 // Bit masks for values returned by [getroutemap] for 4 directions (the other 4 directions are symmetric)
-var vehdirectionroutemasks, db 0x30,1,0xc,2
+varb vehdirectionroutemasks, 0x30,1,0xc,2
 
 // track type list, considering electrifiedrailways and/or unimaglev mode
 // values:	0=railroad, 1=electric, 2=monorail, 3=maglev
-var tracktypes, db 0,2,3	// by default: regular, monorail, maglev
+varb tracktypes, 0,2,3	// by default: regular, monorail, maglev
 
 // and the inverse of the above: which in-game track type to use for
 // each of railroad,electric,monorail and maglev
@@ -336,25 +357,24 @@ uvard stationarray2ptr
 // Offset from the station array to the secondary station array, 0 if not available
 uvard stationarray2ofst
 
-	align 4
-var cachevehvar40x, dd cachevehvar40x_def	// bitmask of actually cacheable 40+x vars
+vard cachevehvar40x, cachevehvar40x_def	// bitmask of actually cacheable 40+x vars
 
 // Masks for accessing stationcargo.amount. Use these variables instead of hardcoding the
 // constants since newcargos may modify them.
-var stationcargowaitingmask, dd 0x0fff
-var stationcargowaitingnotmask, dd 0xf000
+vard stationcargowaitingmask, 0x0fff
+vard stationcargowaitingnotmask, 0xf000
 
 
 uvard ttdplatform	// 0: TTDPatch
 
 #if WINTTDX
-var dorecbuffer, dd 0x40123f	// receive buffer procedure
-var dosendbuffer, dd 0x401d39	// send buffer procedure
-var closedirectplay, dd 0x401c44	// procedure to close DirectPlay
-var recaction, dd 0x401875	// receive action
-var sendaction, dd 0x401eec	// send action
-var receiveanddoactions, dd 0x401901
-var doallplayeractions, dd 0x40139d
-var transmitendofactionsfn, dd 0x401e7e
-var restartgame, dd 0x4018c0
+vard dorecbuffer, 0x40123f	// receive buffer procedure
+vard dosendbuffer, 0x401d39	// send buffer procedure
+vard closedirectplay, 0x401c44	// procedure to close DirectPlay
+vard recaction, 0x401875	// receive action
+vard sendaction, 0x401eec	// send action
+vard receiveanddoactions, 0x401901
+vard doallplayeractions, 0x40139d
+vard transmitendofactionsfn, 0x401e7e
+vard restartgame, 0x4018c0
 #endif

@@ -143,6 +143,17 @@ struc spritedesc
 	.linked:	resd 1	// 18h
 endstruc_32
 
+struc scrnblockdesc
+	.buffer:	resd 1	// 00h
+	.buffersel:	resw 1	// 04h
+	.x:		resw 1	// 06h
+	.y:		resw 1	// 08h
+	.width:		resw 1	// 0ah
+	.height:	resw 1	// 0ch
+	.nextlineofs:	resw 1	// 0eh
+	.zoom:		resw 1	// 10h
+endstruc_32
+
 %macro dopatchaction 1-2 call
 	mov esi,%1_actionnum
 	%2 dword [actionhandler]

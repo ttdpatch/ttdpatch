@@ -2,12 +2,6 @@
 #include <frag_mac.inc>
 
 global patchofficefood
-patchofficefood:
-	multipatchcode oldcollectaccepts,newcollectaccepts,6
-	ret
-
-
-	// enable the sign cheats
 
 begincodefragments
 
@@ -23,3 +17,10 @@ codefragment newcollectaccepts
 
 
 endcodefragments
+
+patchofficefood:
+	multipatchcode oldcollectaccepts,newcollectaccepts,6
+	ret
+
+
+	// enable the sign cheats

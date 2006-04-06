@@ -4,12 +4,6 @@
 
 patchproc plantmanytrees,generalfixes, patchtreecost
 
-patchtreecost:
-	patchcode oldgettreecost,newgettreecost,1,1
-	ret
-
-
-
 begincodefragments
 
 codefragment oldgettreecost
@@ -34,3 +28,7 @@ codefragment newgettreecost
 
 
 endcodefragments
+
+patchtreecost:
+	patchcode oldgettreecost,newgettreecost,1,1
+	ret

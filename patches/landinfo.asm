@@ -52,4 +52,3 @@ addlandinfoheightstring:
 	pop		ecx
 	call	[drawcenteredtextfn]				//draw it.
 	retn
-

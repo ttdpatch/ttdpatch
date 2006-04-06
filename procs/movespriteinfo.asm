@@ -4,11 +4,26 @@
 
 extern dofindstring.failmiserably,exsgetspritecount,malloc
 extern lastsearchcalladdr,newspritedata,newspritenum,patchflags
+extern newspritesize,newspritexsize,newspriteysize,newspritexofs,newspriteyofs
 extern spritearraysize,spriteblockptr
 extern storespritelastrequestnum
 
 
 global patchmovespriteinfo
+
+begincodefragments
+
+codefragment findspriteprocstart,-17
+	mov es,[spritecacheselector]
+
+codefragment newtranslatesprite
+	nop
+	call runindex(translatesprite)
+	nop
+
+
+endcodefragments
+
 patchmovespriteinfo:
 		// patch TTD to use new variables for all
 		// sprite arrays between 7f9e8 and 9c458
@@ -50,15 +65,22 @@ patchmovespriteinfo:
 
 .havememory:
 	mov [newspritedata],ebx
-	
-#if 1
+	mov esi,ebx
+
 	push ebx
 	call exsgetspritecount
 	mov dword [newspritenum], ebx
+	lea esi,[esi+ebx*4]
+	mov [newspritesize],esi
+	lea esi,[esi+ebx*2]
+	mov [newspritexsize],esi
+	lea esi,[esi+ebx*2]
+	mov [newspriteysize],esi
+	lea esi,[esi+ebx*2]
+	mov [newspritexofs],esi
+	lea esi,[esi+ebx*2]
+	mov [newspriteyofs], esi
 	pop ebx
-#else
-	mov dword [newspritenum],16384
-#endif	
 	xor esi,esi
 
 #if WINTTDX
@@ -139,18 +161,3 @@ patchmovespriteinfo:
 	cmp esi,121
 	jne near dofindstring.failmiserably
 	ret
-
-
-
-begincodefragments
-
-codefragment findspriteprocstart,-17
-	mov es,[spritecacheselector]
-
-codefragment newtranslatesprite
-	nop
-	call runindex(translatesprite)
-	nop
-
-
-endcodefragments

@@ -4,12 +4,6 @@
 
 patchproc mammothtrains,newtrains,manualconvert, patchtrainlengthcheck
 
-patchtrainlengthcheck:
-	patchcode oldlimittrainlength,newlimittrainlength,1,1
-	ret
-
-
-
 begincodefragments
 
 codefragment oldlimittrainlength,-9
@@ -23,3 +17,7 @@ codefragment newlimittrainlength
 
 
 endcodefragments
+
+patchtrainlengthcheck:
+	patchcode oldlimittrainlength,newlimittrainlength,1,1
+	ret

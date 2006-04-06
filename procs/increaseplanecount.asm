@@ -6,11 +6,6 @@ extern newvehcount
 
 
 global patchincreaseplanecount
-patchincreaseplanecount:
-	changeloadedvalue planecountcode,1,1,b,newvehcount,2
-	ret
-
-
 
 begincodefragments
 
@@ -19,3 +14,7 @@ codefragment planecountcode,2
 
 
 endcodefragments
+
+patchincreaseplanecount:
+	changeloadedvalue planecountcode,1,1,b,newvehcount,2
+	ret

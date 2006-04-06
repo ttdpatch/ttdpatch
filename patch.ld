@@ -44,8 +44,11 @@ SECTIONS
 
 	/* and the .text and .data of the remaining files */
 	*/*.*po(.text)
-	*.*po(.data)
-	*/*.*po(.data)
+
+	*(.datad)
+	*(.dataw)
+	*(.datab)
+	. = ALIGN(4);
 	__ptext_end = .;
   }
 
@@ -58,10 +61,8 @@ SECTIONS
 	__pbss_start = .;
 	*.*po(.bss)
 	*/*.*po(.bss)
-	*.*po(.bss2)
-	*/*.*po(.bss2)
-	*.*po(.bss1)
-	*/*.*po(.bss1)
+	*(.bss2)
+	*(.bss1)
 	. = ALIGN(4);
 	__pbss_end = .;
 
@@ -75,6 +76,7 @@ SECTIONS
 	*/*.*po(.sbss1)
 	. = ALIGN(4);
 	__psbss_end = .;
+	currentversion = .;
 	*.*po(.aux)
   }
   __pbss_size_dwords = ((__pbss_end - __pbss_start + 3) >> 2);

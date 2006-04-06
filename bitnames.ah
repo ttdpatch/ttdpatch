@@ -57,7 +57,7 @@ defbit MISCMODS_NOYEARLYFINANCES,	12 // don't display yearly finances on Jan 1st
 defbit MISCMODS_NOTIMEGIVEAWAY,		13 // don't try to give time slices away to conserve power
 defbit MISCMODS_NODESYNCHWARNING,	14 // don't warn about multiplayer games being desynched
 defbit MISCMODS_NOWORLDEDGEFLOODING,	15 // don't let the edge of the map flood
-defbit MISCMODS_DOSHOWINTRO,		16 // don't skip the game intro
+defbit MISCMODS_DOSHOWINTRO,		16 // show the game intro (don't skip it)
 defbit MISCMODS_NONEWSPRITESORTER,	17 // don't use new sprite sorting algorithm
 //defbit MISCMODS_NOAUTOMATICPBSBLOCKS,	18 // don't automatically convert pre-signal blocks to path-based signalling
 defbit MISCMODS_NOENHANCEDCOMP,		19 // don't enhance savegame compression algorithm

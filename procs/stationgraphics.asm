@@ -9,26 +9,6 @@ extern ttdstationspritelayout
 ext_frag newgetstationtracktrl
 
 global patchstationgraphics
-patchstationgraphics:
-	patchcode oldgetstationspriteset,newgetstationspriteset,1,1
-	patchcode olddisplaystationorient,newdisplaystationorient,1,1
-
-	add edi,lastediadj+22
-	mov eax,[edi+3]
-	mov [ttdstationspritelayout],eax
-	storefragment newgetstationdisplayspritelayout
-
-	mov byte [edi+lastediadj+25],0x7f
-
-	add edi,lastediadj+50
-	storefragment newgetstationtracktrl
-
-	mov dword [getnewstationsprite_noelrails_indirect],addr(drawstationtile)
-
-.notelectrified:
-	ret
-
-
 
 begincodefragments
 
@@ -52,3 +32,22 @@ codefragment newgetstationdisplayspritelayout
 
 
 endcodefragments
+
+patchstationgraphics:
+	patchcode oldgetstationspriteset,newgetstationspriteset,1,1
+	patchcode olddisplaystationorient,newdisplaystationorient,1,1
+
+	add edi,lastediadj+22
+	mov eax,[edi+3]
+	mov [ttdstationspritelayout],eax
+	storefragment newgetstationdisplayspritelayout
+
+	mov byte [edi+lastediadj+25],0x7f
+
+	add edi,lastediadj+50
+	storefragment newgetstationtracktrl
+
+	mov dword [getnewstationsprite_noelrails_indirect],addr(drawstationtile)
+
+.notelectrified:
+	ret

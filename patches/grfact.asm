@@ -13,6 +13,7 @@
 #include <house.inc>
 #include <flagdata.inc>
 
+extern tramtracks,numtramtracks
 extern newonewayarrows,numonewayarrows
 extern newwaterspritebase,numnewwatersprites
 extern guispritebase,numguisprites
@@ -318,7 +319,7 @@ proc processnewinfo
 
 	cmp dl,1
 	jb .invalidprop		// 0
-	je .bytevalue		// 1
+	je near .bytevalue	// 1
 	js .pointervalue	// 0x84
 
 	cmp dl,4
@@ -327,22 +328,37 @@ proc processnewinfo
 	jp .functionnotranslate	// 0x40 (40-4=3C=PE but 80-4=7C=PO)
 				// 0x80
 
+	// handler functions are called with the following registers:
+	// in:	eax=prop-num
+	//	ebx=offset (translated for type "F", untranslated for type "H")
+	//	ecx=num-info (for type "H" only; type "F" should assume num-info=1)
+	//	edx->feature specific data offset
+	//	esi->data
+	// out:	esi->after data
+	//	carry clear if successful
+	//	carry set if error, then ax=error message
+	// safe:eax ebx ecx edx edi ebp
+
 .specialfunction:
-	mov al,[%$curprop]
-	mov bl,[%$offset]
+	mov eax,[%$curprop]
+	mov ebx,[%$offset]
 	mov edx,[%$dataptrofs]
+	push ebp
 	call edi
+	pop ebp
 	jnc .next
 
 	pop ecx
 	jmp .seterror
 
 .functionnotranslate:
-	mov al,[%$curprop]
-	mov bl,[%$orgoffset]
+	mov eax,[%$curprop]
+	mov ebx,[%$orgoffset]
 	mov ecx,[%$numinfo]
 	mov edx,[%$dataptrofs]
+	push ebp
 	call edi
+	pop ebp
 	jnc .notoneatatime
 
 	pop ecx
@@ -935,9 +951,6 @@ setvehcargomap:
 %endif
 	pop edi
 
-	movzx ecx,byte [climate]
-	push dword [scenariocargo+ecx*4]
-
 	mov edx,[curspriteblock]
 	mov edx,[edx+spriteblock.cargotransptr]
 
@@ -977,7 +990,7 @@ setvehcargomap:
 	jmp short .havetrans
 
 .notranstbl:
-	bt [esp],ebx	// valid in climate?
+	bt [cargobits],ebx	// valid in climate?
 	jnc .notset
 
 	mov bl,[cargoid+ebx]
@@ -992,7 +1005,6 @@ setvehcargomap:
 	mov [ebp+action3info.defcid],ax
 
 .done:
-	pop eax
 	ret
 
 .badres:
@@ -1389,6 +1401,7 @@ action5:
 	// - unused
 
 checknewgraphicsblock:
+	mov ebp,eax
 	call getextendedbyte
 	add edi,eax
 	cmp di,[edx+spriteblock.numsprites]
@@ -1403,6 +1416,10 @@ checknewgraphicsblock:
 	test ebx,ebx
 	jle .invalid	// signed or zero = bad value
 
+	cmp dword [edx+spriteblock.grfid],byte -1
+	jne .notstandard
+	bts [newgraphicssetsavail],ebp
+.notstandard:
 	ret
 
 	// jmp here with al=INVSP_* error code
@@ -3041,7 +3058,7 @@ defvehdata specindustiledata
 defvehdata spclindustiledata, F,F,w,w,w,B,B,w,B,B	// 08..11
 
 defvehdata specindustrydata
-defvehdata spclindustrydata, F,H,F, F,F,F,F,F,F,F,F,F,F	,F,F,B,B,F,d,t, d,d,d,t,d,B		// 08..21
+defvehdata spclindustrydata, F,H,F, B,t,t,t,B,w,d,B,B,B	,F,F,B,B,F,d,t, d,d,d,t,d,B		// 08..21
 
 defvehdata speccargodata
 defvehdata spclcargodata, F,t,t,t,t,t,w,B,B,B,F,F,F,F,F,d	// 08..17
@@ -3243,6 +3260,7 @@ var externalvars		// for variational cargo IDs and action 7/9/D
 	dd displayoptions	// 1B	9B
 	dd lastcalcresult	// 1C	9C
 	dd ttdplatform		// 1D	9D
+	dd grfmodflags		// 1E   9E
 
 global numextvars
 numextvars equ (addr($)-externalvars)/4
@@ -3366,7 +3384,16 @@ var industiledata
 var industrydata
 	dd addr(setsubstindustry),addr(setindustryoverride)	// 08..09
 	dd addr(setindustrylayout)				// 0a
-	times 10 dd addr(setnormalindustryprop)			// 0b..14
+	dd industryproductionflags-1				// 0b
+	dd industryclosuremsgs-2				// 0c
+	dd industryprodincmsgs-2				// 0d
+	dd industryproddecmsgs-2				// 0e
+	dd industryfundcostmultis-1				// 0f
+	dd industryproducedcargos-2				// 10
+	dd industryacceptedcargos-4				// 11
+	dd industryprod1rates-1					// 12
+	dd industryprod2rates-1					// 13
+	dd industrymindistramounts-1				// 14
 	dd addr(setindustrysoundeffects),addr(setconflindustry)	// 15..16
 	dd initialindustryprobs-1,ingameindustryprobs-1		// 17..18
 	dd addr(setindustrymapcolors),industryspecialflags-4	// 19..1a
@@ -3510,8 +3537,8 @@ numgrfvarreinit equ (grfvarreinitend-grfvarreinitstart)/4
 
 	// for action 5, where to store the first sprite number
 	// (the ones that are -1 are safe to be reused)
-var newgraphicsspritebases, dd presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,deftwocolormaps
-var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,-1
+var newgraphicsspritebases, dd presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,deftwocolormaps,tramtracks
+var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,-1,numtramtracks
 
 global numnewgraphicssprites
 numnewgraphicssprites equ (newgraphicsspritenums-newgraphicsspritebases)/4
@@ -3522,6 +3549,8 @@ numnewgraphicssprites equ (newgraphicsspritenums-newgraphicsspritebases)/4
 %endif
 
 uvard newgraphicssetsenabled	// bit mask of action 5 sets that are turned on
+uvard newgraphicssetsavail	// bit mask of action 5 sets that are available
+				// (counting only those with an FFFFFFFF GRFID)
 
 %macro grfswitchpar 1.nolist
 	db %1_OFS
@@ -3552,13 +3581,13 @@ global numgrfswitchparam
 numgrfswitchparam equ addr($)-grfswitchparamlist
 uvard grfswitchparam,numgrfswitchparam
 
-// cargo types available in each scenario
+// cargo types available in each climate
 // for each of the values in the cargotypes list below, that bit is set
 // in the variable here
 // (new cargos 27 and 28 for moreindustriesperclimate will be set in patches.ah)
-var defscenariocargo, dd 0x7ff,0x1cff,0x1f4ed,0x7fe0005
+var defclimatecargobits, dd 0x7ff,0x1cff,0x1f4ed,0x7fe0005
 
-uvard scenariocargo,4
+uvard cargobits		// bit mask of defined cargo bits in current climate
 
 // cargo types for refitting, for all climates
 var defcargotypes
@@ -3571,14 +3600,14 @@ var defcargotypes
 	db  0,17, 2,18,19,20,21,22,23,24,25,26	// Toyland
 	times 20 db 0xff
 
-uvarb cargotypes, 4*32
+uvarb cargotypes, 32	// list of cargo bits for each cargo type, FF if unused slot
 
 // and the inverse of the above list
 // for each of the above numbers, this specifies the real TTD cargo type,
 // i.e. the horizontal position in the above table
 var defcargoid, db 0,1,2,3,4,5,6,7,8,9,10,9,11,4,8,9,1,1,3,4,5,6,7,8,9,10,11,11,8,0,0,0
 
-uvarb cargoid, 32
+uvarb cargoid, 32	// list of cargo types for each cargo bit, only valid if bit set in cargobits
 
 // patchflags bit numbers for each of the newgrf features
 var newgrfflags, db newtrains,newrvs,newships,newplanes,newstations,canals,newbridges,newhouses
@@ -3603,4 +3632,7 @@ uvard miscgrfvar	// Misc. use for callbacks
 
 global articulatedvehicle
 articulatedvehicle equ miscgrfvar
+
+global grfmodflags
+uvard grfmodflags
 

@@ -1,6 +1,6 @@
 //
 // GRF initialization code
-// also does some other, non-grf vehicle initializatio
+// also does some other, non-grf vehicle initialization
 // (such as unimaglev conversion)
 //
 
@@ -24,10 +24,10 @@ extern addnewtemperatecargo,basecostmult,bridgespritetables,callbackflags
 extern cargoid,cargotypes,catenaryspritebase,clearhousedataids
 extern clearindustiledataids,clearstationgameids,copyorghousedata,costrailmul
 extern costrailmuldefault,currsymsafter,currsymsbefore,currtownname
-extern defaultindustriesofclimate,defcargoid,defcargotypes,defscenariocargo
+extern defaultindustriesofclimate,defcargoid,defcargotypes,defclimatecargobits
 extern deftwocolormaps,defvehsprites,desynchtimeout,dummyspriteblock
-extern elrailsprites.trackicons,enhancegui_newgame,eternalvehicleslist
-extern eternalvehicleslistwagons,euroglyph,exsresetspritecounts,externalvars
+extern elrailsprites.trackicons,enhancegui_newgame
+extern euroglyph,exsresetspritecounts,externalvars
 extern findcurrtownname,gettexttableptr,grferror,grfidlistnum,grfresources
 extern grfstat_titleclimate,grfvarreinitstart,industileoverrides,initisengine
 extern initrailvehsorttable,initveh2,isengine,isfreight,lastextrahousedata
@@ -39,16 +39,16 @@ extern numstationsinclass,oldplanerefitlist,oldshiprefitlist
 extern overrideembeddedsprite,patchflags,procallsprites
 extern procallsprites_noreset,procallsprites_replaygrm,recalchousecounts
 extern reloadspriteheaders,resolvecargotranslations,restoreindustrydata
-extern rvpowerinit,savedvehclass,saveindustrydata,scenariocargo,setactivegrfs
+extern rvpowerinit,savedvehclass,saveindustrydata,setactivegrfs
 extern setbasecostmult,setbridgespeedlimits,setcargoclasses
-extern setcharwidthtablefn,shipsrefittable,soundoverrides
+extern setcharwidthtablefn,setdefaultcargo,soundoverrides
 extern specificpropertybase,specificpropertylist,specificpropertyofs
 extern spriteactivateaction,spritecacheptr,spriteerror,spritereserveaction
 extern stationclassesused,stationidgrfmap,stationpylons,temp_snowline
 extern textcolortablewithcompany,undogentextnames,unimaglevmode
 extern updatecurrlist,veh2ptr,vehbnum,vehsorttable,setwillbeactive
-extern vehtypedataptr,numpredefstationclasses,spritecache
-
+extern vehtypedataptr,numpredefstationclasses,spritecache,editTramMode
+extern cargobits
 
 // New class 0xF (vehtype management) initialization handler
 // does additional things before calling the original function
@@ -79,6 +79,7 @@ newvehtypeinit:
 					// but not for Cht: ResetVehicles
 	test ah,ah
 	jnz .dontresetgraphics
+    mov byte [editTramMode], 0h
 	mov al,[grfstat_titleclimate]
 	cmp al,[climate]
 	je .usegrflist
@@ -621,7 +622,7 @@ initttdpatchdata:
 	// now mark the bits that are in use
 	xor ecx,ecx
 .nextcargobit:
-	bt [defscenariocargo+ebx*4],ecx
+	bt [defclimatecargobits+ebx*4],ecx
 	sbb eax,eax
 	and eax,[dummyspriteblock]
 	stosd
@@ -845,13 +846,14 @@ preinfoapply:
 
 	testflagbase none
 
-	mov esi,defscenariocargo
-	mov edi,scenariocargo
-	times 4 movsd
+	movzx ecx,byte [climate]
+	mov eax,[defclimatecargobits+ecx*4]
+	mov [cargobits],eax
 
-	mov esi,defcargotypes
+	imul esi,ecx,32
+	add esi,defcargotypes
 	mov edi,cargotypes
-	mov ecx,(32*4)/4
+	mov ecx,32/4
 	rep movsd
 
 	mov esi,defcargoid
@@ -1001,7 +1003,7 @@ postinfoapply:
 
 .nonewbridgespeeds:
 	call initisengine
-	call shipsrefittable
+	call setdefaultcargo
 
 	// *********
 
@@ -1406,3 +1408,23 @@ postinfoapply:
 
 	ret
 
+// List of vehicles the should be made eternal
+// first+second list if persistenengines is on
+// second list otherwise (makes train wagons eternal)
+varb eternalvehicleslist
+	// start with ranges (number, increment, start ID)
+	db  3,1,24	// SH.40, TIM and Asiastar
+	db  3,1,54	// X2001, Z1, Z99
+	db  3,1,86	// Pegasus, Chimera, Rocketeer
+	db 29,3,119	// 29 Road vehicles, one per cargo type
+	db  2,2,205	// Oil tanker and Ferry
+	db  4,2,208	// Hovercraft, Toyland Ferry, Cargo ships (reg.&toyland)
+	db  2,1,246	// Dinger 200,1000
+	db  2,1,250	// Toyland planes
+	db  2,1,254	// Regular and Toyland helicopters
+var eternalvehicleslistwagons
+	db 27,1,27	// Rail wagons
+	db 27,1,57	// Monorail wagons
+	db 27,1,89	// Maglev wagons
+	// end of list
+	db 0

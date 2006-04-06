@@ -8,13 +8,259 @@ extern mapwindowelementsptr,mapwindowsizes,newgraphicssetsenabled
 extern railvehoffset,roadvehoffset,rvdepotwindowsizes,shipdepotwindowsizes
 extern shipvehoffset,temp_windowclicked_element,traindepotwindowsizes
 extern variabletofind,variabletowrite,vehlistwinsizesptr,windowsizesbufferptr
-extern winelemdrawptrs,drawresizebox
+extern winelemdrawptrs,drawresizebox,DrawWinElemCheckBox
 
 #include <window.inc>
 
 ext_frag findvariableaccess,newvariable
 
 global patchwindowsizer
+
+begincodefragments
+
+codefragment finddrawwindowelementslist,7
+	movzx ebx, byte [ebp+windowbox.type]
+	db 0xff // jmp ...
+
+codefragment oldwindowclicked, 5
+	db 0xEB, 0xAA
+	mov cx, di
+	
+codefragment newwindowclicked
+	icall windowclicked
+
+codefragment oldprocwindowdragmode
+	test word [esi+window.flags], 8
+
+codefragment newprocwindowdragmode
+	icall procwindowdragmode
+
+codefragment oldclosewindow
+	mov cl, [esi+window.type]
+	mov dx, [esi+window.id]
+	push cx
+	push dx
+	push esi
+
+codefragment newclosewindow
+	icall CloseWindow
+
+codefragment olddrawwindowelements
+	mov ebp, [esi+window.elemlistptr]
+	db 0xbf	// mov edi,
+
+codefragment newdrawwindowelements
+	icall drawwindowelements
+	setfragmentsize 8
+
+codefragment oldwindowclickedelement
+	cmp dl, cWinElemDummyBox
+	db 0x74, 0x42
+
+codefragment newwindowclickedelement
+	icall windowclickedelement
+	setfragmentsize 8
+
+codefragment findmapwindowelements, -12
+	db cWinElemTitleBar, cColorSchemeBrown
+	dw 11, 233
+
+codefragment oldmapwindowdragmode, -13
+	cmp cx, 0xFE0
+
+codefragment newmapwindowdragmode
+	setfragmentsize 14*4-1
+
+codefragment oldopenmapwindowpre
+	mov ebx, 248 + (212 << 16)
+
+codefragment newopenmapwindowpre
+	icall openmapwindowpre
+	setfragmentsize 9
+
+codefragment oldopenmapwindowpost
+	bts dword [esi+window.activebuttons], 5
+	bts dword [esi+window.activebuttons], 11
+
+codefragment newopenmapwindowpost
+	icall openmapwindowpost
+	setfragmentsize 10
+
+codefragment newopenmapwindowxadjust
+	icall openmapwindowxadjust
+	setfragmentsize 8
+
+codefragment newopenmapwindowyadjust
+	icall openmapwindowyadjust
+	setfragmentsize 8
+
+codefragment olddrawmapwindow
+//	push esi
+//	push bx
+//	mov bx, ax
+	mov cx, [esi+window.x]
+	mov dx, [esi+window.y]
+	add dx, [esi+window.height]
+
+codefragment newdrawmapwindow
+	icall drawmapwindow
+	setfragmentsize 8
+
+codefragment oldlast7vehdrawn
+	cmp bl, -7
+
+codefragment newlastrailvehdrawn
+	setfragmentsize 3
+	icall lastrailvehdrawn
+
+codefragment newlastroadvehdrawn
+	setfragmentsize 3
+	icall lastroadvehdrawn
+
+codefragment oldlast4vehdrawn
+	cmp bl, -4
+
+codefragment newlastshipvehdrawn
+	setfragmentsize 3
+	icall lastshipvehdrawn
+
+codefragment newlastairvehdrawn
+	setfragmentsize 3
+	icall lastairvehdrawn
+
+codefragment olddrawtrainlist
+	add dx, 6
+	mov al, 10
+
+codefragment newdrawtrainlist
+	icall drawtrainlist
+
+codefragment oldvehlist7click,2
+	div dl
+	cmp al, 7
+
+codefragment newvehlistclick
+	setfragmentsize 8
+
+codefragment oldvehlist4click,2
+	div dl
+	cmp al, 4
+	db 0x0f, 0x83	// jnb ...
+
+codefragment findgreywinelemlist,-12
+	db cWinElemTitleBar, cColorSchemeGrey
+	dw 0xFF, 0xFF
+greywinelemx1 equ $-4
+greywinelemx2 equ $-2
+
+codefragment oldlastdepotrowdrawn
+	cmp bl, -15
+negdepotsize equ $-1
+	db 0x0f, 0x8c	// jl ...
+
+codefragment newlastdepotrowdrawn
+	push eax
+	mov al, 0xFF
+depotjmpoffset equ $-1
+	setfragmentsize 3
+	icall lastdepotrowdrawn
+
+codefragment oldlasttraindepotrowdrawn,-4
+	cmp bl, -6
+	db 0x7c, 0x3f	// jl short ...
+
+codefragment newlasttraindepotrowdrawn
+	icall lasttraindepotrowdrawn
+	setfragmentsize 7
+
+codefragment olddrawtrainindepot
+	add cx, 21
+	mov al, 10
+
+codefragment newdrawtrainindepot
+	icall drawtrainindepot
+
+codefragment olddrawtrainwagonsindepot
+	add cx, 50
+	mov al, 9
+
+codefragment newdrawtrainwagonsindepot
+	icall drawtrainwagonsindepot
+	
+codefragment oldtraindepotclick, 2
+	div dl
+	cmp al, 6
+
+codefragment newtraindepotclick
+	setfragmentsize 8
+
+codefragment oldtraindepotwindowhandler
+	mov bx, cx
+	mov esi, edi
+	cmp dl, cWinEventRedraw
+	db 0x74, 0xF1	// jz ...
+	cmp dl, cWinEventClick
+	db 0x0F, 0x84, 0xB1	// jz near ...
+
+codefragment newtraindepotwindowhandler
+	icall traindepotwindowhandler
+	setfragmentsize 8
+
+codefragment oldlastdepotcoldrawn
+	add cx, 56
+depotcolsize equ $-1
+	inc bh
+
+codefragment newlastdepotcoldrawn
+	icall lastdepotcoldrawn
+
+codefragment olddepotdrawoffset
+	imul bx, 5
+depotdrawoffset_sizex equ $-1
+	mov cx, [esi+window.x]
+
+codefragment newdepotdrawoffset
+	icall depotdrawoffset
+	setfragmentsize 8
+
+codefragment olddepotwindowxytoveh_checkx
+	cmp al, 5
+depotcheckx_size equ $-1
+	db 0x73, 0x50	// jnb ...
+depotcheckx_jump equ $-1
+
+codefragment newdepotwindowxytoveh_checkx
+	icall depotwindowxytoveh.checkx
+
+codefragment olddepotwindowxytoveh_checky
+	cmp al, 3
+depotchecky_size equ $-1
+	db 0x73, 0x3c	// jnb ...
+depotchecky_jump equ $-1
+
+codefragment newdepotwindowxytoveh_checky
+	icall depotwindowxytoveh.checky
+
+codefragment olddepotwindowxytoveh_calcoffset
+	xor ah, ah
+	imul ax, 5
+depotcalcoffset_sizex equ $-1
+
+codefragment newdepotwindowxytoveh_calcoffset
+	icall depotwindowxytoveh.calcoffset
+
+codefragment oldcalcdepottotalitems
+	add ax, 4
+depottotalsizexdec equ $-1
+	mov bl, 5
+depottotalsizex equ $-1
+
+codefragment newcalcdepottotalitems
+	icall calcdepottotalitems
+
+
+endcodefragments
+
 patchwindowsizer:
 	//first patch the code to make resizing possible at all
 	stringaddress finddrawwindowelementslist
@@ -26,6 +272,7 @@ patchwindowsizer:
 	pop edi
 	mov dword [edi], winelemdrawptrs
 	mov dword [winelemdrawptrs+4*cWinElemSizer], addr(drawresizebox)
+	mov dword [winelemdrawptrs+4*cWinElemCheckBox], addr(DrawWinElemCheckBox)
 	mov eax, [winelemdrawptrs+4*cWinElemDummyBox]
 	mov dword [winelemdrawptrs+4*cWinElemExtraData], eax
 	stringaddress oldwindowclicked
@@ -282,249 +529,3 @@ patchwindowsizer:
 	mov dword [esi+ebx+1*12+2], edi
 	mov dword [esi+ebx+1*12+6], edx
 	ret
-
-
-begincodefragments
-
-codefragment finddrawwindowelementslist,7
-	movzx ebx, byte [ebp+windowbox.type]
-	db 0xff // jmp ...
-
-codefragment oldwindowclicked, 5
-	db 0xEB, 0xAA
-	mov cx, di
-	
-codefragment newwindowclicked
-	icall windowclicked
-
-codefragment oldprocwindowdragmode
-	test word [esi+window.flags], 8
-
-codefragment newprocwindowdragmode
-	icall procwindowdragmode
-
-codefragment oldclosewindow
-	mov cl, [esi+window.type]
-	mov dx, [esi+window.id]
-	push cx
-	push dx
-	push esi
-
-codefragment newclosewindow
-	icall CloseWindow
-
-codefragment olddrawwindowelements
-	mov ebp, [esi+window.elemlistptr]
-	db 0xbf	// mov edi,
-
-codefragment newdrawwindowelements
-	icall drawwindowelements
-	setfragmentsize 8
-
-codefragment oldwindowclickedelement
-	cmp dl, cWinElemDummyBox
-	db 0x74, 0x42
-
-codefragment newwindowclickedelement
-	icall windowclickedelement
-	setfragmentsize 8
-
-codefragment findmapwindowelements, -12
-	db cWinElemTitleBar, cColorSchemeBrown
-	dw 11, 233
-
-codefragment oldmapwindowdragmode, -13
-	cmp cx, 0xFE0
-
-codefragment newmapwindowdragmode
-	setfragmentsize 14*4-1
-
-codefragment oldopenmapwindowpre
-	mov ebx, 248 + (212 << 16)
-
-codefragment newopenmapwindowpre
-	icall openmapwindowpre
-	setfragmentsize 9
-
-codefragment oldopenmapwindowpost
-	bts dword [esi+window.activebuttons], 5
-	bts dword [esi+window.activebuttons], 11
-
-codefragment newopenmapwindowpost
-	icall openmapwindowpost
-	setfragmentsize 10
-
-codefragment newopenmapwindowxadjust
-	icall openmapwindowxadjust
-	setfragmentsize 8
-
-codefragment newopenmapwindowyadjust
-	icall openmapwindowyadjust
-	setfragmentsize 8
-
-codefragment olddrawmapwindow
-//	push esi
-//	push bx
-//	mov bx, ax
-	mov cx, [esi+window.x]
-	mov dx, [esi+window.y]
-	add dx, [esi+window.height]
-
-codefragment newdrawmapwindow
-	icall drawmapwindow
-	setfragmentsize 8
-
-codefragment oldlast7vehdrawn
-	cmp bl, -7
-
-codefragment newlastrailvehdrawn
-	setfragmentsize 3
-	icall lastrailvehdrawn
-
-codefragment newlastroadvehdrawn
-	setfragmentsize 3
-	icall lastroadvehdrawn
-
-codefragment oldlast4vehdrawn
-	cmp bl, -4
-
-codefragment newlastshipvehdrawn
-	setfragmentsize 3
-	icall lastshipvehdrawn
-
-codefragment newlastairvehdrawn
-	setfragmentsize 3
-	icall lastairvehdrawn
-
-codefragment olddrawtrainlist
-	add dx, 6
-	mov al, 10
-
-codefragment newdrawtrainlist
-	icall drawtrainlist
-
-codefragment oldvehlist7click,2
-	div dl
-	cmp al, 7
-
-codefragment newvehlistclick
-	setfragmentsize 8
-
-codefragment oldvehlist4click,2
-	div dl
-	cmp al, 4
-	db 0x0f, 0x83	// jnb ...
-
-codefragment findgreywinelemlist,-12
-	db cWinElemTitleBar, cColorSchemeGrey
-	dw 0xFF, 0xFF
-greywinelemx1 equ $-4
-greywinelemx2 equ $-2
-
-codefragment oldlastdepotrowdrawn
-	cmp bl, -15
-negdepotsize equ $-1
-	db 0x0f, 0x8c	// jl ...
-
-codefragment newlastdepotrowdrawn
-	push eax
-	mov al, 0xFF
-depotjmpoffset equ $-1
-	setfragmentsize 3
-	icall lastdepotrowdrawn
-
-codefragment oldlasttraindepotrowdrawn,-4
-	cmp bl, -6
-	db 0x7c, 0x3f	// jl short ...
-
-codefragment newlasttraindepotrowdrawn
-	icall lasttraindepotrowdrawn
-	setfragmentsize 7
-
-codefragment olddrawtrainindepot
-	add cx, 21
-	mov al, 10
-
-codefragment newdrawtrainindepot
-	icall drawtrainindepot
-
-codefragment olddrawtrainwagonsindepot
-	add cx, 50
-	mov al, 9
-
-codefragment newdrawtrainwagonsindepot
-	icall drawtrainwagonsindepot
-	
-codefragment oldtraindepotclick, 2
-	div dl
-	cmp al, 6
-
-codefragment newtraindepotclick
-	setfragmentsize 8
-
-codefragment oldtraindepotwindowhandler
-	mov bx, cx
-	mov esi, edi
-	cmp dl, cWinEventRedraw
-	db 0x74, 0xF1	// jz ...
-	cmp dl, cWinEventClick
-	db 0x0F, 0x84, 0xB1	// jz near ...
-
-codefragment newtraindepotwindowhandler
-	icall traindepotwindowhandler
-	setfragmentsize 8
-
-codefragment oldlastdepotcoldrawn
-	add cx, 56
-depotcolsize equ $-1
-	inc bh
-
-codefragment newlastdepotcoldrawn
-	icall lastdepotcoldrawn
-
-codefragment olddepotdrawoffset
-	imul bx, 5
-depotdrawoffset_sizex equ $-1
-	mov cx, [esi+window.x]
-
-codefragment newdepotdrawoffset
-	icall depotdrawoffset
-	setfragmentsize 8
-
-codefragment olddepotwindowxytoveh_checkx
-	cmp al, 5
-depotcheckx_size equ $-1
-	db 0x73, 0x50	// jnb ...
-depotcheckx_jump equ $-1
-
-codefragment newdepotwindowxytoveh_checkx
-	icall depotwindowxytoveh.checkx
-
-codefragment olddepotwindowxytoveh_checky
-	cmp al, 3
-depotchecky_size equ $-1
-	db 0x73, 0x3c	// jnb ...
-depotchecky_jump equ $-1
-
-codefragment newdepotwindowxytoveh_checky
-	icall depotwindowxytoveh.checky
-
-codefragment olddepotwindowxytoveh_calcoffset
-	xor ah, ah
-	imul ax, 5
-depotcalcoffset_sizex equ $-1
-
-codefragment newdepotwindowxytoveh_calcoffset
-	icall depotwindowxytoveh.calcoffset
-
-codefragment oldcalcdepottotalitems
-	add ax, 4
-depottotalsizexdec equ $-1
-	mov bl, 5
-depottotalsizex equ $-1
-
-codefragment newcalcdepottotalitems
-	icall calcdepottotalitems
-
-
-endcodefragments

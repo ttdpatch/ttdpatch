@@ -10,21 +10,6 @@ extern CloseDropDownMenu.ddmParentWinIdPtr1
 extern CloseDropDownMenu.ddmParentWinIdPtr2
 extern winelemdrawptrs,DrawWinElemTab,DrawWinElemTabButton
 
-
-patchtabbedwindows:
-	mov dword [winelemdrawptrs+4*cWinElemTab], addr(DrawWinElemTab)
-	mov dword [winelemdrawptrs+4*cWinElemTabButton], addr(DrawWinElemTabButton)
-	stringaddress oldclosedropdownmenu
-	mov eax, [edi+7]
-	mov [CloseDropDownMenu.ddmParentWinIdPtr1], eax
-	mov [CloseDropDownMenu.ddmParentWinIdPtr2], eax
-	storefragment newclosedropdownmenu
-	patchcode oldgeneratedropdownmenu1,newgeneratedropdownmenu1
-	patchcode oldgeneratedropdownmenu2,newgeneratedropdownmenu2
-	patchcode oldgeneratedropdownmenu3,newgeneratedropdownmenu3
-	ret
-
-
 begincodefragments
 
 codefragment oldclosedropdownmenu
@@ -62,3 +47,17 @@ codefragment newgeneratedropdownmenu3
 
 
 endcodefragments
+
+
+patchtabbedwindows:
+	mov dword [winelemdrawptrs+4*cWinElemTab], addr(DrawWinElemTab)
+	mov dword [winelemdrawptrs+4*cWinElemTabButton], addr(DrawWinElemTabButton)
+	stringaddress oldclosedropdownmenu
+	mov eax, [edi+7]
+	mov [CloseDropDownMenu.ddmParentWinIdPtr1], eax
+	mov [CloseDropDownMenu.ddmParentWinIdPtr2], eax
+	storefragment newclosedropdownmenu
+	patchcode oldgeneratedropdownmenu1,newgeneratedropdownmenu1
+	patchcode oldgeneratedropdownmenu2,newgeneratedropdownmenu2
+	patchcode oldgeneratedropdownmenu3,newgeneratedropdownmenu3
+	ret

@@ -2,11 +2,6 @@
 #include <frag_mac.inc>
 
 global patchrailconsmenu
-patchrailconsmenu:
-	patchcode oldopentrackconstruction,newopentrackconstruction,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -19,3 +14,7 @@ codefragment newopentrackconstruction
 
 
 endcodefragments
+
+patchrailconsmenu:
+	patchcode oldopentrackconstruction,newopentrackconstruction,1,1
+	ret

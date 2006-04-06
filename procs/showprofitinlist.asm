@@ -8,6 +8,21 @@ patchproc showprofitinlist, patchshowprofitinlist
 extern gettextintableptr
 extern malloc
 
+begincodefragments
+
+codefragment oldshowprofitdata
+	mov eax,[edi+veh.profit]
+	mov [textrefstack],eax
+	mov eax,[edi+veh.previousprofit]
+	mov [textrefstack+4],eax
+
+codefragment newshowprofitdata
+	call runindex(showprofitdata)
+	setfragmentsize 16
+
+
+endcodefragments
+
 
 patchshowprofitinlist:
 	mov ax,0x198		// get the textarray entry
@@ -60,20 +75,3 @@ patchshowprofitinlist:
 
 	multipatchcode oldshowprofitdata,newshowprofitdata,4
 	ret
-
-
-
-begincodefragments
-
-codefragment oldshowprofitdata
-	mov eax,[edi+veh.profit]
-	mov [textrefstack],eax
-	mov eax,[edi+veh.previousprofit]
-	mov [textrefstack+4],eax
-
-codefragment newshowprofitdata
-	call runindex(showprofitdata)
-	setfragmentsize 16
-
-
-endcodefragments

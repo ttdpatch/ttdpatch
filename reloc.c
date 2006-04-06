@@ -9,6 +9,7 @@ RELOC(ophandler)
 RELOC(landscape6)
 RELOC(landscape7)
 RELOC(newhousedatablock)
+RELOC(industrydatablock)
 RELOC(bTempRaiseLowerDirection)
 RELOC(bTempRaiseLowerCorner)
 

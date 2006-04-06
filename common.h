@@ -132,6 +132,7 @@
 #define morestats		110	// save some more company statistics
 #define autoreplace		111	// autoreplace old vehicle
 #define followvehicle		112	// follow vehicle motion in main map
+#define	trams			113 //TRAMMIES!
 
 // NOTE!! If you add a bit here, also add it to patchflagsfixedmap in vars.ah!!
 

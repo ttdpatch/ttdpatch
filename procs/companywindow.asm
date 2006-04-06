@@ -8,6 +8,20 @@ extern playerwndbase
 #include <textdef.inc>
 
 global patchcompanywindow
+
+begincodefragments
+
+codefragment oldredrawplayerwindow,-7
+	jnz $+2+0x11
+	db 0x66,0x83,0xbb		// cmp [ebx.hqlocation],-1
+
+codefragment newredrawplayerwindow
+	call runindex(redrawplayerwindow)
+	nop
+
+
+endcodefragments
+
 patchcompanywindow:
 	stringaddress oldredrawplayerwindow,1,1
 
@@ -32,18 +46,3 @@ patchcompanywindow:
 
 	storefragment newredrawplayerwindow
 	ret
-
-
-
-begincodefragments
-
-codefragment oldredrawplayerwindow,-7
-	jnz $+2+0x11
-	db 0x66,0x83,0xbb		// cmp [ebx.hqlocation],-1
-
-codefragment newredrawplayerwindow
-	call runindex(redrawplayerwindow)
-	nop
-
-
-endcodefragments

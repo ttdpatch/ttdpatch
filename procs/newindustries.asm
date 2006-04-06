@@ -1,6 +1,7 @@
 #include <defs.inc>
 #include <frag_mac.inc>
 #include <patchproc.inc>
+#include <ptrvar.inc>
 
 patchproc newindustries, patchnewindustries
 patchproc enhanceddiffsettings, patchdifficultysettings
@@ -10,144 +11,12 @@ extern baIndustryTileTransformOnDistr,canindubuiltonwater,caninduonlybigtown
 extern caninduonlyneartown,caninduonlytown,checkindustileslope
 extern createinitialindustry_nolookup,fundcostmultipliers,getindunamebp
 extern getindunamebx,industilespritetable,industry_closedown,industry_decprod
-extern industry_incprod,industry_primaryprodchange,industrydatablockptr
+extern industry_incprod,industry_primaryprodchange
 extern malloccrit,newinduwindowitemlist
-extern oldinduwindowitemlist
+extern oldinduwindowitemlist,displayfoundation,correctexactalt.chkslope
 
 #include <industry.inc>
 #include <textdef.inc>
-
-ext_frag findCreateNewRandomIndustry,oldindustryclosedown
-
-patchnewindustries:
-	// these two are needed for the prospecting code, so it works even with moreindustriesperclimate disabled
-	storeaddress findCreateNewRandomIndustry,1,1,CreateNewRandomIndustry
-	mov eax,[industrydatablockptr]
-	add eax,7*NINDUSTRIES
-	mov [fundcostmultipliers],eax
-
-	patchcode getindustrytilegraphics
-	mov eax,[edi+lastediadj+35]
-	mov [industilespritetable],eax
-	patchcode industileconststatechange
-	patchcode class8periodicproc0
-	patchcode class8periodicproc1
-	stringaddress oldclass8periodicproc2
-	mov eax,[edi+2]
-	mov [baIndustryTileTransformBack],eax
-	storefragment newclass8periodicproc2
-	patchcode distributeindustrycargo1
-	stringaddress olddistributeindustrycargo2
-	mov eax,[edi+2]
-	mov [baIndustryTileTransformOnDistr],eax
-	storefragment newdistributeindustrycargo2
-	patchcode class8animationhandler
-	patchcode getlayoutbyte
-	patchcode putindutile
-	storeaddress findcreateinitialindustry_nolookup,1,1,createinitialindustry_nolookup
-	patchcode createinitialindustries
-	patchcode ingamerandomindustry
-	patchcode drawmapindustrymode
-
-	// patch industry names
-	stringaddress oldgetindunamebx,1,2
-	storefunctioncall getindunamebx
-	stringaddress oldgetindunamebx,1,0
-	storefunctioncall getindunamebx
-	stringaddress oldgetindunamebp,1,3
-	storefunctioncall getindunamebp
-	stringaddress oldgetindunamebp,1,0
-	storefunctioncall getindunamebp
-	stringaddress oldgetindunamebp,1,0
-	storefunctioncall getindunamebp
-	patchcode getindunameaxecx
-	patchcode getindunameaxedi
-	multipatchcode oldgetindunameaxesi,newgetindunameaxesi,2
-
-	patchcode putfarmfields1
-	patchcode cutlmilltrees
-	patchcode inducheckempty
-	stringaddress oldcanindubuiltonwater,1,1
-	storefunctioncall canindubuiltonwater
-	stringaddress oldcaninduonlybigtown,1,1
-	storefunctioncall caninduonlybigtown
-	stringaddress oldcaninduonlytown
-	storefunctioncall caninduonlytown
-	stringaddress oldcaninduonlyneartown,1,1
-	storefunctioncall caninduonlyneartown
-	patchcode caninduonlytown2
-	patchcode putfarmfields2
-	stringaddress oldinducantincrease,1,1
-	mov [industry_primaryprodchange],edi
-	storefragment newinducantincrease
-	patchcode randominducantcreate
-	patchcode oldaioilrigcheck1,newaioilrigcheck,1,1
-	patchcode oldaioilrigcheck2,newaioilrigcheck,1,1
-	patchcode genmilairplane
-	patchcode tickprocmilairplane
-	patchcode genmilhelicopter
-	patchcode tickprocmilhelicopter
-	patchcode gencoalminesubs
-	patchcode newindumessage
-
-	patchcode checkinduinput
-	patchcode industryproducecargo
-
-	patchcode openfundindustrywindow
- 	patchcode opengenerateindustrywindow
-
-	patchcode initnewindustry
-
-	stringaddress oldcreateindustrywindow,1,1
-	mov eax,[edi+17]
-	mov [oldinduwindowitemlist],eax
-	storefragment newcreateindustrywindow
-
-	mov ecx,85
-	push ecx
-	call malloccrit
-	pop edi
-	mov [newinduwindowitemlist],edi
-	mov esi,[oldinduwindowitemlist]
-
-	rep movsb
-
-	mov eax,[newinduwindowitemlist]
-
-	add word [eax+56],30
-	add word [eax+66],30
-	add word [eax+68],30
-	add word [eax+78],30
-	add word [eax+80],30
-
-	patchcode drawinduacceptlist
-
-	patchcode createindustry_chkplacement
-	patchcode fundindustry_chkplacement
-	patchcode fundindustry_overwriteerrmsg
-
-	patchcode industryrandomprodchange
-	storeaddress findindustrydecprod,1,1,industry_decprod
-	storeaddress findindustryincprod,1,1,industry_incprod
-	storeaddress oldindustryclosedown,1,1,industry_closedown
-
-	stringaddress oldcheckindustileslope,2-WINTTDX,2
-	storefunctioncall checkindustileslope
-
-	// for newsounds support, the random sound code needs patched
-	patchcode industryrandomsound
-
-	ret
-
-// shares a code fragment
-global patchdifficultysettings
-patchdifficultysettings:
-	stringaddress findDifficultySettingsData, 1,1
-	mov word [edi+24], -1
-	mov word [edi+30], ourtext(low)
-	patchcode oldCreateInitialRandomIndustries,newCreateInitialRandomIndustries,1,1
-	ret
-
 
 begincodefragments
 
@@ -567,4 +436,148 @@ codefragment newindustryrandomsound
 	icall industryrandomsound
 	setfragmentsize 9
 
+codefragment olddrawindustryfundation
+	mov di,0x10
+	mov si,di
+
+codefragment newdrawindustryfundation
+	mov ebp,edi
+	add dl,8
+	icall displayfoundation
+	setfragmentsize 14
+
 endcodefragments
+
+ext_frag findCreateNewRandomIndustry,oldindustryclosedown
+
+patchnewindustries:
+	// these two are needed for the prospecting code, so it works even with moreindustriesperclimate disabled
+	storeaddress findCreateNewRandomIndustry,1,1,CreateNewRandomIndustry
+	mov dword [fundcostmultipliers],industryfundcostmultis
+
+	patchcode getindustrytilegraphics
+	mov eax,[edi+lastediadj+35]
+	mov [industilespritetable],eax
+	patchcode industileconststatechange
+	patchcode class8periodicproc0
+	patchcode class8periodicproc1
+	stringaddress oldclass8periodicproc2
+	mov eax,[edi+2]
+	mov [baIndustryTileTransformBack],eax
+	storefragment newclass8periodicproc2
+	patchcode distributeindustrycargo1
+	stringaddress olddistributeindustrycargo2
+	mov eax,[edi+2]
+	mov [baIndustryTileTransformOnDistr],eax
+	storefragment newdistributeindustrycargo2
+	patchcode class8animationhandler
+	patchcode getlayoutbyte
+	patchcode putindutile
+	storeaddress findcreateinitialindustry_nolookup,1,1,createinitialindustry_nolookup
+	patchcode createinitialindustries
+	patchcode ingamerandomindustry
+	patchcode drawmapindustrymode
+
+	// patch industry names
+	stringaddress oldgetindunamebx,1,2
+	storefunctioncall getindunamebx
+	stringaddress oldgetindunamebx,1,0
+	storefunctioncall getindunamebx
+	stringaddress oldgetindunamebp,1,3
+	storefunctioncall getindunamebp
+	stringaddress oldgetindunamebp,1,0
+	storefunctioncall getindunamebp
+	stringaddress oldgetindunamebp,1,0
+	storefunctioncall getindunamebp
+	patchcode getindunameaxecx
+	patchcode getindunameaxedi
+	multipatchcode oldgetindunameaxesi,newgetindunameaxesi,2
+
+	patchcode putfarmfields1
+	patchcode cutlmilltrees
+	patchcode inducheckempty
+	stringaddress oldcanindubuiltonwater,1,1
+	storefunctioncall canindubuiltonwater
+	stringaddress oldcaninduonlybigtown,1,1
+	storefunctioncall caninduonlybigtown
+	stringaddress oldcaninduonlytown
+	storefunctioncall caninduonlytown
+	stringaddress oldcaninduonlyneartown,1,1
+	storefunctioncall caninduonlyneartown
+	patchcode caninduonlytown2
+	patchcode putfarmfields2
+	stringaddress oldinducantincrease,1,1
+	mov [industry_primaryprodchange],edi
+	storefragment newinducantincrease
+	patchcode randominducantcreate
+	patchcode oldaioilrigcheck1,newaioilrigcheck,1,1
+	patchcode oldaioilrigcheck2,newaioilrigcheck,1,1
+	patchcode genmilairplane
+	patchcode tickprocmilairplane
+	patchcode genmilhelicopter
+	patchcode tickprocmilhelicopter
+	patchcode gencoalminesubs
+	patchcode newindumessage
+
+	patchcode checkinduinput
+	patchcode industryproducecargo
+
+	patchcode openfundindustrywindow
+ 	patchcode opengenerateindustrywindow
+
+	patchcode initnewindustry
+
+	stringaddress oldcreateindustrywindow,1,1
+	mov eax,[edi+17]
+	mov [oldinduwindowitemlist],eax
+	storefragment newcreateindustrywindow
+
+	mov ecx,85
+	push ecx
+	call malloccrit
+	pop edi
+	mov [newinduwindowitemlist],edi
+	mov esi,[oldinduwindowitemlist]
+
+	rep movsb
+
+	mov eax,[newinduwindowitemlist]
+
+	add word [eax+56],30
+	add word [eax+66],30
+	add word [eax+68],30
+	add word [eax+78],30
+	add word [eax+80],30
+
+	patchcode drawinduacceptlist
+
+	patchcode createindustry_chkplacement
+	patchcode fundindustry_chkplacement
+	patchcode fundindustry_overwriteerrmsg
+
+	patchcode industryrandomprodchange
+	storeaddress findindustrydecprod,1,1,industry_decprod
+	storeaddress findindustryincprod,1,1,industry_incprod
+	storeaddress oldindustryclosedown,1,1,industry_closedown
+
+	stringaddress oldcheckindustileslope,2-WINTTDX,2
+	storefunctioncall checkindustileslope
+
+	// for newsounds support, the random sound code needs patched
+	patchcode industryrandomsound
+
+// allow merging adjacent industry tiles by modifying the altitude correction func and
+// the foundation drawing code
+	mov eax,[ophandler+(8*8)]
+	mov dword [eax+0x14],correctexactalt.chkslope
+	patchcode olddrawindustryfundation,newdrawindustryfundation,2-WINTTDX,2
+	ret
+
+// shares a code fragment
+global patchdifficultysettings
+patchdifficultysettings:
+	stringaddress findDifficultySettingsData, 1,1
+	mov word [edi+24], -1
+	mov word [edi+30], ourtext(low)
+	patchcode oldCreateInitialRandomIndustries,newCreateInitialRandomIndustries,1,1
+	ret

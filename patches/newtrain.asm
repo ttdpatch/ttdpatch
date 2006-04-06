@@ -13,7 +13,7 @@
 #include <newvehdata.inc>
 #include <ptrvar.inc>
 
-extern newvehdata,recordtraincrash,scenariocargo,setmiscgrferror,specialtext1
+extern newvehdata,recordtraincrash,cargobits,setmiscgrferror,specialtext1
 extern trainspritemove,traintoolong,vehcallback
 extern vehtypecallback
 extern SplittextlinesMaxlines,articulatedvehicle,callbackflags
@@ -685,9 +685,8 @@ showvehrefittable:
 	
 	// try counting the inverse
 	mov eax,[lastrefitmask]
-	movzx ecx,byte [climate]
 	not eax
-	and eax,[scenariocargo+ecx*4]
+	and eax,[cargobits]
 	xor ecx,ecx
 
 .countnextnot:
@@ -738,9 +737,8 @@ showvehrefittable:
 	jb .shownext
 	ja .haveall
 
-	movzx ecx,byte [climate]
 	not eax
-	and eax,[scenariocargo+ecx*4]
+	and eax,[cargobits]
 	xor ecx,ecx
 
 .shownext:
@@ -1497,4 +1495,3 @@ startstopveh:
 
 .done:
 	ret
-

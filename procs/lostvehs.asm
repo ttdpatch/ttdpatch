@@ -8,6 +8,27 @@ patchproc losttrains,lostrvs,lostships,lostaircraft, patchlostvehs
 extern aircraftlosttime,patchflags,rvlosttime,shiplosttime
 extern trainlosttime
 
+begincodefragments
+
+codefragment oldagevehicle
+	mov ax,[esi+veh.age]
+	sub ax,[esi+veh.maxage]
+	db 0x72
+
+codefragment newagevehicle
+	call runindex(agevehicle)
+	jo $+70
+
+codefragment oldcreatevehicle
+	mov word [esi+2],-1
+	db 0xc7
+
+codefragment newcreatevehicle
+	call runindex(createvehicle)
+
+
+endcodefragments
+
 
 patchlostvehs:
 	testflags losttrains
@@ -30,25 +51,3 @@ patchlostvehs:
 	patchcode oldagevehicle,newagevehicle,1,1
 	patchcode oldcreatevehicle,newcreatevehicle,1,1
 	ret
-
-
-begincodefragments
-
-codefragment oldagevehicle
-	mov ax,[esi+veh.age]
-	sub ax,[esi+veh.maxage]
-	db 0x72
-
-codefragment newagevehicle
-	call runindex(agevehicle)
-	jo $+70
-
-codefragment oldcreatevehicle
-	mov word [esi+2],-1
-	db 0xc7
-
-codefragment newcreatevehicle
-	call runindex(createvehicle)
-
-
-endcodefragments

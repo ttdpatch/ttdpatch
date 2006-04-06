@@ -2,6 +2,21 @@
 #include <frag_mac.inc>
 
 global patchnewdepottypeandcost
+
+begincodefragments
+
+codefragment oldcanplacedepot,-2
+	cmp ebp,0x80000000
+	db 0xf,0x84		// jz near somewhere
+
+codefragment newcanplacedepot
+	push byte 0x12			// Note: this is vehicle type
+newcanplacedepotarg equ $-1
+	call runindex(marknewdepottype)
+
+
+endcodefragments
+
 patchnewdepottypeandcost:
 #if WINTTDX
 	patchcode oldcanplacedepot,newcanplacedepot,3,3			// ship
@@ -17,19 +32,3 @@ patchnewdepottypeandcost:
 	patchcode oldcanplacedepot,newcanplacedepot,1,1			// rail
 #endif
 	ret
-
-
-
-begincodefragments
-
-codefragment oldcanplacedepot,-2
-	cmp ebp,0x80000000
-	db 0xf,0x84		// jz near somewhere
-
-codefragment newcanplacedepot
-	push byte 0x12			// Note: this is vehicle type
-newcanplacedepotarg equ $-1
-	call runindex(marknewdepottype)
-
-
-endcodefragments

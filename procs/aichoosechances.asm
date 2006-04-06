@@ -8,6 +8,15 @@ patchproc aichoosechances, patchaichoosechances
 extern aibuildairchance,aibuildrailchance
 extern aibuildrvchance
 
+begincodefragments
+
+codefragment findaiplannewroute,11
+	mov cx, 200
+	push cx
+
+
+endcodefragments
+
 
 patchaichoosechances:
 	stringaddress findaiplannewroute,1,1
@@ -21,14 +30,3 @@ patchaichoosechances:
 	add edi, 6
 	mov [edi], ax
 	ret
-
-
-
-begincodefragments
-
-codefragment findaiplannewroute,11
-	mov cx, 200
-	push cx
-
-
-endcodefragments

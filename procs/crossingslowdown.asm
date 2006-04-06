@@ -4,13 +4,6 @@
 
 patchprocandor experimentalfeatures,BIT(EXP_SLOWCROSSING),, patchcrossingslowdown
 
-patchcrossingslowdown:
-	// Slow down before Rail Crossing (Bit 0)
-	patchcode trainactivatecrossingmove
-	ret
-
-
-
 begincodefragments
 
 codefragment oldtrainactivatecrossingmove
@@ -26,3 +19,8 @@ codefragment newtrainactivatecrossingmove
 
 
 endcodefragments
+
+patchcrossingslowdown:
+	// Slow down before Rail Crossing (Bit 0)
+	patchcode trainactivatecrossingmove
+	ret

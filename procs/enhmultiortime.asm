@@ -3,11 +3,6 @@
 #include <frag_mac.inc>
 
 global patchenhmultiortime
-patchenhmultiortime:
-	patchcode oldwaitforconnection2,newwaitforconnection2,1,1
-	patchcode oldrecresult,newrecresult,1,1
-	ret
-
 
 begincodefragments
 
@@ -39,5 +34,12 @@ codefragment newsendresult
 #endif
 
 endcodefragments
+
+patchenhmultiortime:
+	patchcode oldwaitforconnection2,newwaitforconnection2,1,1
+	patchcode oldrecresult,newrecresult,1,1
+	ret
+
+
 
 #endif

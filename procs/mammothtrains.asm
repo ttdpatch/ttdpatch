@@ -4,20 +4,6 @@
 
 patchproc mammothtrains, patchmammothtrains
 
-patchmammothtrains:
-	patchcode oldcounttrainsindepot,newcounttrainsindepot,1,1
-	patchcode oldfindnexttrain,newchecktrainindepot,1,2
-	add edi,lastediadj+67
-	storefragment newshowtrain
-	add edi,lastediadj+37
-	storefragment newshowtrainnum
-	add edi,lastediadj+51
-	storefragment newshowtrainflag
-	patchcode olddepotclick,newdepotclick,1,1
-	ret
-
-
-
 begincodefragments
 
 codefragment oldcounttrainsindepot,13
@@ -61,3 +47,15 @@ codefragment newdepotclick
 
 
 endcodefragments
+
+patchmammothtrains:
+	patchcode oldcounttrainsindepot,newcounttrainsindepot,1,1
+	patchcode oldfindnexttrain,newchecktrainindepot,1,2
+	add edi,lastediadj+67
+	storefragment newshowtrain
+	add edi,lastediadj+37
+	storefragment newshowtrainnum
+	add edi,lastediadj+51
+	storefragment newshowtrainflag
+	patchcode olddepotclick,newdepotclick,1,1
+	ret

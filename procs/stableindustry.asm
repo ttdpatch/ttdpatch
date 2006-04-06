@@ -5,12 +5,6 @@
 
 patchproc stableindustry, patchstableindustry
 
-patchstableindustry:
-	patchcode oldindustryclosedown,newindustryclosedown,1,1
-	ret
-
-
-
 begincodefragments
 
 glob_frag oldindustryclosedown
@@ -23,3 +17,7 @@ codefragment newindustryclosedown
 
 
 endcodefragments
+
+patchstableindustry:
+	patchcode oldindustryclosedown,newindustryclosedown,1,1
+	ret

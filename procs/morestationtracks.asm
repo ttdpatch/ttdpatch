@@ -6,39 +6,6 @@ extern largestationlayout
 
 
 global patchmorestationtracks
-patchmorestationtracks:
-	patchcode oldcheckistrainstation,newcheckistrainstation,1,1
-	patchcode oldcheckhastrainstation,newcheckhastrainstation,1,1
-	patchcode oldsetstationsize,newsetstationsize,1,1
-
-	patchcode oldgetstationlayout,newgetstationlayout,1,1
-
-#if 0
-	testflags enhancegui
-	sbb bl,bl		// 0 = patch it, -1 = only search
-#endif
-
-	patchcode oldtracknumsel,newtracknumsel // ,1,1,,{test bl,bl},z
-	stringaddress oldtracklensel,1,1
-#if 0
-	test bl,bl
-	jnz short .wehaveenhguidone
-	storefragment newtracklensel
-	mov esi,[edi]
-	mov dword [stationsizeofs],esi
-	mov eax,0x90909090
-	stosd
-	stosw
-
-.wehaveenhguidone:
-#endif
-	// Patches for real big stations
-	//patchcode oldcalcplatformsfornewstation, newcalcplatformsfornewstation,1,1
-	patchcode oldgetplatformsforremovestation,newgetplatformsforremovestation,1,1
-	patchcode oldgetplatformsforcargoacceptlist,newgetplatformsforcargoacceptlist,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -121,3 +88,35 @@ codefragment newgetplatformsforcargoacceptlist
 
 
 endcodefragments
+
+patchmorestationtracks:
+	patchcode oldcheckistrainstation,newcheckistrainstation,1,1
+	patchcode oldcheckhastrainstation,newcheckhastrainstation,1,1
+	patchcode oldsetstationsize,newsetstationsize,1,1
+
+	patchcode oldgetstationlayout,newgetstationlayout,1,1
+
+#if 0
+	testflags enhancegui
+	sbb bl,bl		// 0 = patch it, -1 = only search
+#endif
+
+	patchcode oldtracknumsel,newtracknumsel // ,1,1,,{test bl,bl},z
+	stringaddress oldtracklensel,1,1
+#if 0
+	test bl,bl
+	jnz short .wehaveenhguidone
+	storefragment newtracklensel
+	mov esi,[edi]
+	mov dword [stationsizeofs],esi
+	mov eax,0x90909090
+	stosd
+	stosw
+
+.wehaveenhguidone:
+#endif
+	// Patches for real big stations
+	//patchcode oldcalcplatformsfornewstation, newcalcplatformsfornewstation,1,1
+	patchcode oldgetplatformsforremovestation,newgetplatformsforremovestation,1,1
+	patchcode oldgetplatformsforcargoacceptlist,newgetplatformsforcargoacceptlist,1,1
+	ret

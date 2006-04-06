@@ -7,24 +7,6 @@ extern railvehspriteofs
 
 
 global patchwaggoncheck
-patchwaggoncheck:
-	patchcode oldchecknewtrainisengine2,newchecknewtrainisengine2,1,1
-	// this must be patched if multihead is set OR the waggon base IDs are modified
-	patchcode oldiswaggontypea,newchecknewtrainisengine,1,2
-	// the test we replace appears twice in the depot window handler,
-	// so we patch both occurences even though the second one isn't required for multihead
-	patchcode oldiswaggontypea,newiswaggontypea,1,1	// (don't use newchecknewtrainisengine here!)
-
-	patchcode oldselliswaggon,newselliswaggon,1,1
-	patchcode oldaisellnextwagon,newaisellnextwagon
-
-	storeaddresspointer oldattachwaggon,1,1,railvehspriteofs,0,3
-	storefragment newattachwaggon
-	ret
-
-
-	// allow many changes to the railway vehicle set
-	// e.g. different numbers and order of railroad/monorail/maglev engines and waggons
 
 begincodefragments
 
@@ -71,3 +53,22 @@ codefragment newattachwaggon
 
 
 endcodefragments
+
+patchwaggoncheck:
+	patchcode oldchecknewtrainisengine2,newchecknewtrainisengine2,1,1
+	// this must be patched if multihead is set OR the waggon base IDs are modified
+	patchcode oldiswaggontypea,newchecknewtrainisengine,1,2
+	// the test we replace appears twice in the depot window handler,
+	// so we patch both occurences even though the second one isn't required for multihead
+	patchcode oldiswaggontypea,newiswaggontypea,1,1	// (don't use newchecknewtrainisengine here!)
+
+	patchcode oldselliswaggon,newselliswaggon,1,1
+	patchcode oldaisellnextwagon,newaisellnextwagon
+
+	storeaddresspointer oldattachwaggon,1,1,railvehspriteofs,0,3
+	storefragment newattachwaggon
+	ret
+
+
+	// allow many changes to the railway vehicle set
+	// e.g. different numbers and order of railroad/monorail/maglev engines and waggons

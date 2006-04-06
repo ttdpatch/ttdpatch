@@ -15,52 +15,6 @@ rvwindowsize equ 0x8d
 uvarb rvwindowrefit,rvwindowsize
 
 global patchnewrvs
-patchnewrvs:
-	stringaddress oldcreatervwindow,1,1
-	mov eax,[edi+3]
-	mov [normalrvwindowptr],eax
-	lea esi,[edi+7]
-	mov cl,18
-	rep movsb
-	storefragment newcreatervwindow
-
-	mov esi,eax
-	mov edi,rvwindowrefit
-	mov ecx,rvwindowsize
-	rep movsb
-	mov word [rvwindowrefit+0x5e],0x2b4
-
-	patchcode oldrvwindowfunc,newrvwindowfunc,1+WINTTDX,3
-	patchcode oldrvreverse,newrvreverse,1,1
-	stringaddress dorefitship,4+WINTTDX,5
-	storerelative callrefitship,edi+48
-
-	patchcode oldcheckindock,newcheckindock,1,1
-
-	stringaddress oldaibuyrv,1,2
-	mov dword [edi],ai_buildroadvehicle_actionnum
-
-	stringaddress oldaigetrvcost
-	mov dword [edi],ai_buildroadvehicle_actionnum
-
-	stringaddress oldaibuyrv,1,0
-	mov dword [edi],ai_buildroadvehicle_actionnum
-
-	mov esi,vehtickproc
-	mov eax,[ophandler+0x11*8]	// rv vehicle class
-	xchg esi,[eax+0x14]		// vehtickproc
-	mov [vehtickproc.oldrv],esi
-
-	mov esi,dailyvehproc
-	xchg esi,[eax+0x1c]		// dailyvehproc
-	mov [dailyvehproc.oldrv],esi
-
-	patchcode oldrvstartsound,newvehstartsound
-	patchcode oldrvbreakdownsound,newbreakdownsound
-	patchcode rventertunnel
-	ret
-
-
 
 begincodefragments
 
@@ -129,3 +83,48 @@ codefragment newrventertunnel
 
 
 endcodefragments
+
+patchnewrvs:
+	stringaddress oldcreatervwindow,1,1
+	mov eax,[edi+3]
+	mov [normalrvwindowptr],eax
+	lea esi,[edi+7]
+	mov cl,18
+	rep movsb
+	storefragment newcreatervwindow
+
+	mov esi,eax
+	mov edi,rvwindowrefit
+	mov ecx,rvwindowsize
+	rep movsb
+	mov word [rvwindowrefit+0x5e],0x2b4
+
+	patchcode oldrvwindowfunc,newrvwindowfunc,1+WINTTDX,3
+	patchcode oldrvreverse,newrvreverse,1,1
+	stringaddress dorefitship,4+WINTTDX,5
+	storerelative callrefitship,edi+48
+
+	patchcode oldcheckindock,newcheckindock,1,1
+
+	stringaddress oldaibuyrv,1,2
+	mov dword [edi],ai_buildroadvehicle_actionnum
+
+	stringaddress oldaigetrvcost
+	mov dword [edi],ai_buildroadvehicle_actionnum
+
+	stringaddress oldaibuyrv,1,0
+	mov dword [edi],ai_buildroadvehicle_actionnum
+
+	mov esi,vehtickproc
+	mov eax,[ophandler+0x11*8]	// rv vehicle class
+	xchg esi,[eax+0x14]		// vehtickproc
+	mov [vehtickproc.oldrv],esi
+
+	mov esi,dailyvehproc
+	xchg esi,[eax+0x1c]		// dailyvehproc
+	mov [dailyvehproc.oldrv],esi
+
+	patchcode oldrvstartsound,newvehstartsound
+	patchcode oldrvbreakdownsound,newbreakdownsound
+	patchcode rventertunnel
+	ret

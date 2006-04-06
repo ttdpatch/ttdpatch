@@ -66,6 +66,12 @@ followvehiclefunc:						//run on right-click of ANY vehicle window eye-click
 	
 global cancelfollowvehicle
 cancelfollowvehicle:
+	push	edi
+	call 	[GetMainViewWindow]
+	cmp	edi, esi
+	pop	edi
+	jnz	.skipmovinglocation
+	
 	mov 	[esi+window.data],word -1		//firstly tell the main window to stop following
 	
 	mov	edi, [followvehicleidx]			//check if we had saved a vehicle id that we were following
@@ -94,4 +100,3 @@ cancelfollowonsetxy:
 	mov		cx,dx
 	mov		[followvehicleidx],dword -1		//reset it so we don't try and jump back to the old position
 	retn
-	

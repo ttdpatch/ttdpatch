@@ -5,25 +5,6 @@
 
 patchproc buildwhilepaused, patchbuildwhilepaused
 
-
-patchbuildwhilepaused:
-	stringaddress checkpauseconstruction,1,1
-	mov byte [edi],0
-	stringaddress checkpausetextedit,1,1
-	mov byte [edi],0
-
-	// make text effects reuse oldest slot if no unused ones available
-	// (will probably move this to generalfixes when tested a little more)
-	mov eax,[ophandler+0x14*8]
-	mov eax,[eax+1*4]
-	mov eax,[eax+3]
-	mov edi,[eax]
-	add edi,14
-	storefragment newfindemptytexteffect
-	ret
-
-
-
 begincodefragments
 
 codefragment checkpauseconstruction,14
@@ -41,3 +22,20 @@ codefragment newfindemptytexteffect
 
 
 endcodefragments
+
+
+patchbuildwhilepaused:
+	stringaddress checkpauseconstruction,1,1
+	mov byte [edi],0
+	stringaddress checkpausetextedit,1,1
+	mov byte [edi],0
+
+	// make text effects reuse oldest slot if no unused ones available
+	// (will probably move this to generalfixes when tested a little more)
+	mov eax,[ophandler+0x14*8]
+	mov eax,[eax+1*4]
+	mov eax,[eax+3]
+	mov edi,[eax]
+	add edi,14
+	storefragment newfindemptytexteffect
+	ret

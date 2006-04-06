@@ -12,7 +12,7 @@ checkexe.obj:	$(versiondatad)
 checkexe.o:	$(versiondataw)
 
 # Header files used by C files
-ttdpatch.obj: types.h error.h versiond.h language.h loadlng.h osfunc.h switches.h flagdata.h checkexe.h types.h language.h common.h versions.h auxfiles.h
+ttdpatch.obj: types.h error.h versiond.h language.h loadlng.h osfunc.h switches.h flagdata.h checkexe.h types.h language.h common.h versions.h auxfiles.h pprocd.h
 error.obj:    error.h switches.h language.h osfunc.h
 grep.obj:     grep.h
 switches.obj: codepage.h error.h switches.h language.h types.h common.h flagdata.h sw_lists.h bitnames.h versiond.h
@@ -20,7 +20,7 @@ loadlng.obj:  zlib.h grep.h common.h error.h loadlng.h versiond.h types.h langua
 checkexe.obj: language.h error.h grep.h checkexe.h switches.h flagdata.h loadver.h versions.h types.h common.h systexts.h
 dos.obj:      error.h exec.h osfunc.h common.h checkexe.h grep.h switches.h flagdata.h memsize.h loadlng.h versions.h types.h language.h auxfiles.h
 
-ttdpatch.o	host/ttdpatch.o:	types.h error.h versionw.h language.h loadlng.h osfunc.h switches.h flagdata.h checkexe.h types.h language.h common.h versions.h auxfiles.h
+ttdpatch.o	host/ttdpatch.o:	types.h error.h versionw.h language.h loadlng.h osfunc.h switches.h flagdata.h checkexe.h types.h language.h common.h versions.h auxfiles.h pprocw.h
 error.o		host/error.o:		error.h switches.h language.h osfunc.h
 grep.o		host/grep.o:		grep.h
 switches.o	host/switches.o:	codepage.h error.h switches.h language.h types.h common.h flagdata.h sw_lists.h bitnames.h versionw.h

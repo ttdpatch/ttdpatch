@@ -5,51 +5,6 @@
 extern airankcheck.bestrankofs,isengine
 
 global patchrailvehiclelist
-patchrailvehiclelist:
-	multipatchcode oldskiprailvehsinwindow,newskiprailvehsinwindow,3
-	mov esi,[edi+lastediadj-15]
-	lodsd			// this is pointer to engine array (dsbase+0x751A2)
-	mov edi,esi
-	times 2 stosd		// copy it over the next 2 dwords
-	xor eax,eax
-	mov al,NTRAINTYPES
-	times 3 stosb
-	xor eax,eax
-	stosd
-	stosw
-	mov eax,[edi+8]
-	times 3 stosd
-	xor eax,eax
-	stosd
-	stosw
-	mov al,NTRAINTYPES
-	times 3 stosw
-
-	patchcode oldcountrailvehtypes,newcountrailvehtypes,1,2
-	patchcode oldisrailvehonlist,newisrailvehonlist,1,1
-	add edi,byte lastediadj+40
-	storefragment newisrailvehonlist2
-	mov byte [edi+lastediadj+0xD0],0x5D			// o16 -> pop ebp (see israilvehonlist2)
-	patchcode oldiswaggontypeb,newiswaggontypeb,1,1
-	multipatchcode oldcanaiusedualhead,newcanaiusedualhead,2
-	patchcode oldisaipassengerservice,newisaipassengerservice,1,1
-	patchcode oldgethighestrailtype,newgethighestrailtype,1,1
-	patchcode oldadjustenginereliab,newadjustenginereliab,1,1
-	stringaddress oldairankcheck
-	mov eax,[edi+2]
-	mov [airankcheck.bestrankofs],eax
-	storefragment newairankcheck
-	ret
-
-
-// shares some code fragments
-global patchpersistentengines
-patchpersistentengines:
-	patchcode oldmonthlyengineloop,newmonthlyengineloop,1,1
-	patchcode vehphase2
-	add edi,lastediadj+9
-	storefragment newvehphase3
-	ret
 
 begincodefragments
 
@@ -145,3 +100,49 @@ codefragment newairankcheck
 
 
 endcodefragments
+
+patchrailvehiclelist:
+	multipatchcode oldskiprailvehsinwindow,newskiprailvehsinwindow,3
+	mov esi,[edi+lastediadj-15]
+	lodsd			// this is pointer to engine array (dsbase+0x751A2)
+	mov edi,esi
+	times 2 stosd		// copy it over the next 2 dwords
+	xor eax,eax
+	mov al,NTRAINTYPES
+	times 3 stosb
+	xor eax,eax
+	stosd
+	stosw
+	mov eax,[edi+8]
+	times 3 stosd
+	xor eax,eax
+	stosd
+	stosw
+	mov al,NTRAINTYPES
+	times 3 stosw
+
+	patchcode oldcountrailvehtypes,newcountrailvehtypes,1,2
+	patchcode oldisrailvehonlist,newisrailvehonlist,1,1
+	add edi,byte lastediadj+40
+	storefragment newisrailvehonlist2
+	mov byte [edi+lastediadj+0xD0],0x5D			// o16 -> pop ebp (see israilvehonlist2)
+	patchcode oldiswaggontypeb,newiswaggontypeb,1,1
+	multipatchcode oldcanaiusedualhead,newcanaiusedualhead,2
+	patchcode oldisaipassengerservice,newisaipassengerservice,1,1
+	patchcode oldgethighestrailtype,newgethighestrailtype,1,1
+	patchcode oldadjustenginereliab,newadjustenginereliab,1,1
+	stringaddress oldairankcheck
+	mov eax,[edi+2]
+	mov [airankcheck.bestrankofs],eax
+	storefragment newairankcheck
+	ret
+
+
+// shares some code fragments
+global patchpersistentengines
+patchpersistentengines:
+	patchcode oldmonthlyengineloop,newmonthlyengineloop,1,1
+	patchcode vehphase2
+	add edi,lastediadj+9
+	storefragment newvehphase3
+	ret

@@ -52,6 +52,7 @@ extern station2clear,station2init,stationarray2ptr,stationidgrfmap
 extern townarray2ofst,ttdpatchvercode,veh2ptr,vehicledatafactor
 extern vehtypedataconvbackupptr,vehtypedataptr
 extern windowsizesbufferptr
+extern player2array,player2clear,cargoids
 
 // Known (defined) extra chunks.
 // The first table defines chunk IDs.
@@ -80,6 +81,7 @@ var knownextrachunkids
 	dw 0x8009	// Secondary station array
 	dw 0x800a	// incoming industry cargo data
 	dw 0x800b	// new cargo type data
+	dw 0x800c	// player 2 array
 
 knownextrachunknum equ (addr($)-knownextrachunkids)/2
 
@@ -107,6 +109,7 @@ var knownextrachunkloadfns
 	dd addr(loadstation2array)
 	dd addr(loadinduincargodata)
 	dd addr(loadnewcargotypes)
+	dd addr(loadplayer2array)
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkloadfns)/4
 	%error "Inconsistent number of chunk functions"
@@ -137,6 +140,7 @@ var knownextrachunksavefns
 	dd addr(savestation2array)
 	dd addr(saveinduincargodata)
 	dd addr(savenewcargotypes)
+	dd addr(saveplayer2array)
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunksavefns)/4
 	%error "Inconsistent number of chunk functions"
@@ -169,6 +173,7 @@ var knownextrachunkqueryfns
 	dd addr(canhavestation2array)
 	dd addr(canhaveinduincargodata)
 	dd addr(canhavenewcargotypes)
+	dd addr(canhaveplayer2array)
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkqueryfns)/4
 	%error "Inconsistent number of chunk functions"
@@ -208,6 +213,7 @@ uvarw loadremovedsfxs	// ... and this many pseudo-/special vehicles
 %assign LOADED_X2_STATION2		0x08
 %assign LOADED_X2_INDUINCARGO		0x10
 %assign LOADED_X2_NEWCARGOTYPES		0x20
+%assign LOADED_X2_PLAYER2		0x40
 
 uvarb extrachunksloaded1		// a combination of LOADED_X1_*
 uvarb extrachunksloaded2		// a combination of LOADED_X2_*
@@ -874,6 +880,15 @@ newloadtitleproc:
 .station2_ok:
 	call station2init
 .no_station2:
+
+	// check player2 array
+	cmp dword [player2array],0
+	jle .noplayer2
+	test byte [extrachunksloaded2],LOADED_X2_PLAYER2
+	jnz .player2ok
+	call player2clear
+.player2ok:
+.noplayer2:
 
 	testflags newcargos
 	jnc .copynewcargodata	// initialize newcargo* vars with default TTD values
@@ -1884,6 +1899,63 @@ loadsavecompanystats:
 	mov esi,[companystatsptr]
 	call ebp
 	ret
+
+// Player 2 array function
+canhaveplayer2array:
+	mov eax,[player2array]
+	neg eax				// set CF if EAX is nonzero
+	ret
+
+loadplayer2array:
+	call player2clear
+	push eax
+	mov esi,esp
+	mov ecx,4
+	call ebp			// load saved array size into [esp]
+	imul ecx,[esp],8
+	cmp ecx,eax
+	jne badchunk
+
+	xor eax,eax
+
+.loadnextplayer:
+	push eax
+	imul esi,eax,0+player2_size
+	add esi,[player2array]
+	mov ecx,[esp+4]		// now ecx=saved array size
+	cmp ecx,0+player2_size
+	jbe .ok
+	mov ecx,player2_size	// load only as much as fits
+	call ebp
+	mov esi,cargoids	// use as temporary storage; it'll be reset anyway
+	mov ecx,[esp+4]
+	sub ecx,player2_size	// and skip the rest
+.ok:
+	call ebp
+	pop eax
+	inc eax
+	cmp eax,8
+	jb .loadnextplayer
+	pop ecx
+	or byte [extrachunksloaded2],LOADED_X2_PLAYER2
+	ret
+
+saveplayer2array:
+	mov ecx,player2_size
+	push ecx
+	lea eax,[4+ecx*8]
+	call savechunkheader
+
+	mov ecx,4
+	mov esi,esp
+	call ebp			// save array entry size
+
+	mov esi,[player2array]
+	pop ecx
+	mov ecx,eax			// gives array size
+	call ebp			// save actual array
+	ret
+
 
 //
 // End of extra chunk load/save/query functions

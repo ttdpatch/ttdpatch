@@ -2,12 +2,6 @@
 #include <frag_mac.inc>
 
 global patchnewlineup
-patchnewlineup:
-	patchcode oldlineuptruckstation,newlineupstation,1,1
-	patchcode oldlineupbusstation,newlineupstation,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -23,3 +17,8 @@ codefragment oldlineupbusstation,7
 
 
 endcodefragments
+
+patchnewlineup:
+	patchcode oldlineuptruckstation,newlineupstation,1,1
+	patchcode oldlineupbusstation,newlineupstation,1,1
+	ret

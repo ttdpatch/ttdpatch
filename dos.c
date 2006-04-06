@@ -119,6 +119,11 @@ void checkpatch(void)
 
   fread(p_initfunc, 1, initfunclen, prcode);
 
+#if DEBUG
+  printf("New code: %lx, old code: %lx\nNew aux data ptr: %lx, old aux data ptr: %lx\n",
+	newcode, *(u32*) p_initfunc, auxdataptr, *(s32*) (p_initfunc+8));
+#endif
+
   if ( (newcode != *(u32*) p_initfunc) || (auxdataptr != *(s32*) (p_initfunc+8)) ) {
 
 	// loader not installed or wrong version

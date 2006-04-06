@@ -8,119 +8,6 @@ patchproc sortvehlist, patchsortvehlist
 
 extern vehlistwindowsizes,patchflags,vehlistwindowconstraints
 
-ext_frag oldfindnexttrain
-
-patchsortvehlist:
-// do the ordering if necessary
-	patchcode oldfindlisttrains,newfindlisttrains,1,1
-	multipatchcode oldfindlistvehs,newfindlistvehs,3
-
-// find the next vehicle to show in vehicle lists
-	patchcode oldfindnexttrain,newfindnexttrain,1,1
-	patchcode oldnextveh,newnextveh,1,0
-	patchcode oldfindnextrv,newfindnextrv,1+WINTTDX,3
-	patchcode oldnextveh,newnextveh,1,0
-	patchcode oldfindnextship,newfindnextship,1+WINTTDX,2
-	patchcode oldnextveh,newnextveh,1,0
-	patchcode oldfindnextaircraft,newfindnextaircraft,1,1
-	patchcode oldnextveh,newnextveh,1,0
-
-// find the correct vehicle when clicking on an entry
-	patchcode oldclicktrainlist, newclicktrainlist,1,1
-	patchcode oldclickrvlist, newclickrvlist,1,1
-	patchcode oldclickshiplist, newclickshiplist,1,1
-	patchcode oldclickaircraftlist, newclickaircraftlist,1,1
-
-// Modify the empty button in the veh. list windows to show our text
-	mov ebx, vehlistwindowsizes
-	stringaddress oldemptybuttontrain
-	call .patchemptybutton
-	stringaddress oldemptybuttonroad
-	call .patchemptybutton
-	stringaddress oldemptybuttonship
-	call .patchemptybutton
-	stringaddress oldemptybuttonair
-	call .patchemptybutton
-
-// Change the event handler so we can respond to clicking the new button
-// The hint handler should also be modified
-	patchcode oldclicktrainlistwindow,newclicklistwindow,1,1
-	patchcode oldlistwindowhint,newlistwindowhint,1,0
-	patchcode oldclickrvlistwindow,newclicklistwindow,1,1
-	patchcode oldlistwindowhint,newlistwindowhint,1,0
-	patchcode oldclickshiplistwindow,newclicklistwindow,1,1
-	patchcode oldlistwindowhint,newlistwindowhint,1,0
-	patchcode oldclickaircraftlistwindow,newclicklistwindow,1,1
-	patchcode oldlistwindowhint,newlistwindowhint,1,0
-
-// Change hints for the formerly empty button
-	patchcode oldemptyhinttrain,newemptyhint,1,1
-	patchcode oldemptyhintroad,newemptyhint,1,1
-	patchcode oldemptyhintship,newemptyhint,1,1
-	patchcode oldemptyhintair,newemptyhint,1,1
-
-// install our timing routine
-	multipatchcode oldlistguitimer,newlistguitimer,4
-// fill textrefstack correctly to supply the caption of the new button
-	multipatchcode oldsetvehlisttext,newsetvehlisttext,4
-// show the two buttons on the bottom even for AI player windows...
-	multipatchcode oldislistwindowhuman,newislistwindowhuman,4
-// ...but disable the "New Vehicles" button. Then apply the last selected
-// sorting method and start the timer.
-	multipatchcode oldcreatelistwindow1,newcreatelistwindow,4
-	multipatchcode oldcreatelistwindow2,newcreatelistwindow,4
-
-// make sure lists are reordered when deleting/creating vehicles
-	patchcode olddelveharrayentry,newdelveharrayentry,1,1
-	patchcode oldnewveharrayentry,newnewveharrayentry,1,1
-	ret
-
-// Create two buttons instead of the old empty button
-// Since the second window (without buttons) is no longer used, we can use
-// its space for the extra button.
-.patchemptybutton:
-	mov byte [edi+windowbox.type],cWinElemTextBox	// Change the empty button to a text button
-	mov word [edi+windowbox.text],statictext(vehlist_sortbutton)	// set its caption
-	mov ecx,0xd	// make a second copy of this button (copy the end marker, too)
-.copyloop:
-	mov al,[edi+ecx-1]
-	mov [edi+ecx+0xc-1],al
-	loop .copyloop
-
-	mov ax,[edi+windowbox.x2]		// x2 of the old button
-	sub ax,16
-	mov [edi+windowbox.x2],ax		// make it 16 pixels shorter
-	inc ax
-	mov [edi+0xc+windowbox.x1],ax	// the new button goes to the remaining part
-	mov word [edi+0xc+windowbox.text],statictext(vehlist_menubutton)	// Caption (downward pointing triangle)
-
-	testmultiflags enhancegui
-	jz .noresize
-	mov byte [edi+2*12+windowbox.type], cWinElemSizer
-	mov byte [edi+2*12+windowbox.bgcolor], cColorSchemeGrey
-	add ax, 5
-	mov word [edi+2*12+windowbox.x1], ax
-	add ax, 10
-	mov word [edi+2*12+windowbox.x2], ax
-	mov ax, [edi+windowbox.y1]
-	mov word [edi+2*12+windowbox.y1], ax
-	mov ax, [edi+windowbox.y2]
-	mov word [edi+2*12+windowbox.y2], ax
-	sub word [edi+windowbox.x2], 11
-	sub word [edi+12+windowbox.x1], 11
-	sub word [edi+12+windowbox.x2], 11
-	mov byte [edi+3*12+0], cWinElemExtraData
-	mov byte [edi+3*12+1], cWinDataSizer
-	mov dword [edi+3*12+2], vehlistwindowconstraints
-	mov eax, [ebx]
-	mov dword [edi+3*12+6], eax
-	add ebx, 4
-	mov byte [edi+4*12+windowbox.type], cWinElemLast
-.noresize:
-	ret
-
-
-
 begincodefragments
 
 codefragment oldfindlisttrains
@@ -361,3 +248,114 @@ codefragment newnewveharrayentry
 
 
 endcodefragments
+
+ext_frag oldfindnexttrain
+
+patchsortvehlist:
+// do the ordering if necessary
+	patchcode oldfindlisttrains,newfindlisttrains,1,1
+	multipatchcode oldfindlistvehs,newfindlistvehs,3
+
+// find the next vehicle to show in vehicle lists
+	patchcode oldfindnexttrain,newfindnexttrain,1,1
+	patchcode oldnextveh,newnextveh,1,0
+	patchcode oldfindnextrv,newfindnextrv,1+WINTTDX,3
+	patchcode oldnextveh,newnextveh,1,0
+	patchcode oldfindnextship,newfindnextship,1+WINTTDX,2
+	patchcode oldnextveh,newnextveh,1,0
+	patchcode oldfindnextaircraft,newfindnextaircraft,1,1
+	patchcode oldnextveh,newnextveh,1,0
+
+// find the correct vehicle when clicking on an entry
+	patchcode oldclicktrainlist, newclicktrainlist,1,1
+	patchcode oldclickrvlist, newclickrvlist,1,1
+	patchcode oldclickshiplist, newclickshiplist,1,1
+	patchcode oldclickaircraftlist, newclickaircraftlist,1,1
+
+// Modify the empty button in the veh. list windows to show our text
+	mov ebx, vehlistwindowsizes
+	stringaddress oldemptybuttontrain
+	call .patchemptybutton
+	stringaddress oldemptybuttonroad
+	call .patchemptybutton
+	stringaddress oldemptybuttonship
+	call .patchemptybutton
+	stringaddress oldemptybuttonair
+	call .patchemptybutton
+
+// Change the event handler so we can respond to clicking the new button
+// The hint handler should also be modified
+	patchcode oldclicktrainlistwindow,newclicklistwindow,1,1
+	patchcode oldlistwindowhint,newlistwindowhint,1,0
+	patchcode oldclickrvlistwindow,newclicklistwindow,1,1
+	patchcode oldlistwindowhint,newlistwindowhint,1,0
+	patchcode oldclickshiplistwindow,newclicklistwindow,1,1
+	patchcode oldlistwindowhint,newlistwindowhint,1,0
+	patchcode oldclickaircraftlistwindow,newclicklistwindow,1,1
+	patchcode oldlistwindowhint,newlistwindowhint,1,0
+
+// Change hints for the formerly empty button
+	patchcode oldemptyhinttrain,newemptyhint,1,1
+	patchcode oldemptyhintroad,newemptyhint,1,1
+	patchcode oldemptyhintship,newemptyhint,1,1
+	patchcode oldemptyhintair,newemptyhint,1,1
+
+// install our timing routine
+	multipatchcode oldlistguitimer,newlistguitimer,4
+// fill textrefstack correctly to supply the caption of the new button
+	multipatchcode oldsetvehlisttext,newsetvehlisttext,4
+// show the two buttons on the bottom even for AI player windows...
+	multipatchcode oldislistwindowhuman,newislistwindowhuman,4
+// ...but disable the "New Vehicles" button. Then apply the last selected
+// sorting method and start the timer.
+	multipatchcode oldcreatelistwindow1,newcreatelistwindow,4
+	multipatchcode oldcreatelistwindow2,newcreatelistwindow,4
+
+// make sure lists are reordered when deleting/creating vehicles
+	patchcode olddelveharrayentry,newdelveharrayentry,1,1
+	patchcode oldnewveharrayentry,newnewveharrayentry,1,1
+	ret
+
+// Create two buttons instead of the old empty button
+// Since the second window (without buttons) is no longer used, we can use
+// its space for the extra button.
+.patchemptybutton:
+	mov byte [edi+windowbox.type],cWinElemTextBox	// Change the empty button to a text button
+	mov word [edi+windowbox.text],statictext(vehlist_sortbutton)	// set its caption
+	mov ecx,0xd	// make a second copy of this button (copy the end marker, too)
+.copyloop:
+	mov al,[edi+ecx-1]
+	mov [edi+ecx+0xc-1],al
+	loop .copyloop
+
+	mov ax,[edi+windowbox.x2]		// x2 of the old button
+	sub ax,16
+	mov [edi+windowbox.x2],ax		// make it 16 pixels shorter
+	inc ax
+	mov [edi+0xc+windowbox.x1],ax	// the new button goes to the remaining part
+	mov word [edi+0xc+windowbox.text],statictext(vehlist_menubutton)	// Caption (downward pointing triangle)
+
+	testmultiflags enhancegui
+	jz .noresize
+	mov byte [edi+2*12+windowbox.type], cWinElemSizer
+	mov byte [edi+2*12+windowbox.bgcolor], cColorSchemeGrey
+	add ax, 5
+	mov word [edi+2*12+windowbox.x1], ax
+	add ax, 10
+	mov word [edi+2*12+windowbox.x2], ax
+	mov ax, [edi+windowbox.y1]
+	mov word [edi+2*12+windowbox.y1], ax
+	mov ax, [edi+windowbox.y2]
+	mov word [edi+2*12+windowbox.y2], ax
+	sub word [edi+windowbox.x2], 11
+	sub word [edi+12+windowbox.x1], 11
+	sub word [edi+12+windowbox.x2], 11
+	mov byte [edi+3*12+0], cWinElemExtraData
+	mov byte [edi+3*12+1], cWinDataSizer
+	mov dword [edi+3*12+2], vehlistwindowconstraints
+	mov eax, [ebx]
+	mov dword [edi+3*12+6], eax
+	add ebx, 4
+	mov byte [edi+4*12+windowbox.type], cWinElemLast
+.noresize:
+	ret

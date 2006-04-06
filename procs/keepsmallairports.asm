@@ -2,12 +2,6 @@
 #include <frag_mac.inc>
 
 global patchkeepsmallairports
-patchkeepsmallairports:
-	stringaddress oldcanselectsmallap,1,1
-	mov byte [edi],0xeb		// JMP instead of JNZ
-	ret
-
-
 
 begincodefragments
 
@@ -16,3 +10,8 @@ codefragment oldcanselectsmallap,7
 
 
 endcodefragments
+
+patchkeepsmallairports:
+	stringaddress oldcanselectsmallap,1,1
+	mov byte [edi],0xeb		// JMP instead of JNZ
+	ret

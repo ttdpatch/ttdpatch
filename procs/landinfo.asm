@@ -5,13 +5,6 @@
 patchprocandor miscmods,NOTBIT(MISCMODS_DONTSHOWALTITUDE),,patchshowaltitude
 
 extern variabletofind
-ext_frag findvariableaccess
-
-patchshowaltitude:
-	patchcode oldsizelandinfowindow1,newsizelandinfowindow1,1,2
-	patchcode oldsizelandinfowindow2,newsizelandinfowindow2,1,1
-	patchcode oldlandinfotextinsert,newlandinfotextinsert,1,1
-	ret
 
 begincodefragments
 
@@ -40,3 +33,11 @@ codefragment newlandinfotextinsert
 	setfragmentsize 13
 
 endcodefragments
+
+ext_frag findvariableaccess
+
+patchshowaltitude:
+	patchcode oldsizelandinfowindow1,newsizelandinfowindow1,1,2
+	patchcode oldsizelandinfowindow2,newsizelandinfowindow2,1,1
+	patchcode oldlandinfotextinsert,newlandinfotextinsert,1,1
+	ret

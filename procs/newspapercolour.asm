@@ -7,17 +7,6 @@ patchproc newspapercolour, patchnewspapercolour
 
 extern makenewsblackandwhite.fillrectangle
 
-
-patchnewspapercolour:
-	// Makes News Colorfull
-	stringaddress oldmakenewsblackandwhite,1,7
-	copyrelative makenewsblackandwhite.fillrectangle,5
-	multipatchcode oldmakenewsblackandwhite,newmakenewsblackandwhite,7
-	multipatchcode oldsetnewsbackground,newsetnewsbackground,4
-	ret
-
-
-
 begincodefragments
 
 codefragment oldmakenewsblackandwhite
@@ -37,3 +26,12 @@ codefragment newsetnewsbackground
 
 
 endcodefragments
+
+
+patchnewspapercolour:
+	// Makes News Colorfull
+	stringaddress oldmakenewsblackandwhite,1,7
+	copyrelative makenewsblackandwhite.fillrectangle,5
+	multipatchcode oldmakenewsblackandwhite,newmakenewsblackandwhite,7
+	multipatchcode oldsetnewsbackground,newsetnewsbackground,4
+	ret

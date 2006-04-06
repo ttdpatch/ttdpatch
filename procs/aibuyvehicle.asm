@@ -7,6 +7,37 @@ extern patchflags
 
 
 global patchaibuyvehicle
+
+begincodefragments
+
+codefragment oldcanaibuyvehicle
+	movzx bp,byte [curplayer]
+
+codefragment newcanaibuyloco
+	icall canaibuyloco
+	jnc short $+2+4			// skip over the BT [EDX],BP above
+
+codefragment newcanaibuyrv
+	icall canaibuyrv
+	jnc short $+2+4
+
+codefragment newaigetrvlist
+	icall aigetrvlist
+
+codefragment newcanaibuyplane
+	icall canaibuyplane
+	jnc short $+2+4
+
+codefragment newcanaibuyship
+	icall canaibuyship
+	jnc short $+2+4
+
+codefragment newaigetshiplist
+	icall aigetshiplist
+
+
+endcodefragments
+
 patchaibuyvehicle:
 	mov ebx,patchflags
 	testflagbase ebx
@@ -54,35 +85,3 @@ patchaibuyvehicle:
 .nonewships:
 	testflagbase none
 	ret
-
-
-
-begincodefragments
-
-codefragment oldcanaibuyvehicle
-	movzx bp,byte [curplayer]
-
-codefragment newcanaibuyloco
-	icall canaibuyloco
-	jnc short $+2+4			// skip over the BT [EDX],BP above
-
-codefragment newcanaibuyrv
-	icall canaibuyrv
-	jnc short $+2+4
-
-codefragment newaigetrvlist
-	icall aigetrvlist
-
-codefragment newcanaibuyplane
-	icall canaibuyplane
-	jnc short $+2+4
-
-codefragment newcanaibuyship
-	icall canaibuyship
-	jnc short $+2+4
-
-codefragment newaigetshiplist
-	icall aigetshiplist
-
-
-endcodefragments

@@ -527,4 +527,3 @@ randomindustrytrigger:
 
 	popa
 	jmp randomcalldone
-

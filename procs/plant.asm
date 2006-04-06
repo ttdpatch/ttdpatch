@@ -8,19 +8,6 @@ patchproc plantmanytrees, patchplant
 extern treeplantfn
 extern treeplantmode
 
-
-patchplant:
-	mov bl,[treeplantmode]
-	mov edi,[treeplantfn]
-
-	add edi,byte 24
-	storefragment newplanttree
-
-	patchcode oldmultitree,newmultitree,1,0,,{test bl,plantmanytrees_morethanonepersquare},nz
-	ret
-
-
-
 begincodefragments
 
 codefragment newplanttree
@@ -36,3 +23,14 @@ codefragment newmultitree
 
 
 endcodefragments
+
+
+patchplant:
+	mov bl,[treeplantmode]
+	mov edi,[treeplantfn]
+
+	add edi,byte 24
+	storefragment newplanttree
+
+	patchcode oldmultitree,newmultitree,1,0,,{test bl,plantmanytrees_morethanonepersquare},nz
+	ret

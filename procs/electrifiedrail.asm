@@ -10,65 +10,6 @@ extern unimaglevmode
 
 
 global patchelectrifiedrail
-patchelectrifiedrail:
-	mov byte [tracktypes+1],1
-	mov al,[unimaglevmode]
-	inc eax
-	mov [tracktypes+2],al
-	mov byte [realtracktypes+1],1
-	mov al,[realtracktypes+3]
-	mov [realtracktypes+2],al
-
-	stringaddress oldgettrackspriteset,1,2
-	mov eax,[edi+7]
-	mov [gettrackspriteset.tracktypetemp],eax
-	storefragment newgettrackspriteset
-	patchcode oldgettrackspriteset,newgettrackspriteset,1,0
-	patchcode oldgetcrossingspriteset,newgetcrossingspriteset,1,1
-	patchcode oldgettunnelspriteset,newgettunnelspriteset,1,1
-	patchcode oldgetbridgespriteset,newgetbridgespriteset,1,1
-	patchcode oldgetunderbridgespriteset,newgetunderbridgespriteset,1,1
-
-	patchcode olddisplaytrackdetails,newdisplaytrackdetails,1,1
-	patchcode olddrawcrossing,newdrawcrossing,1,1
-
-	// conversion of types is now done in tools.asm/postinfoapply.typeconversion
-
-	// tell AI to use type=0 waggons for type=1 railways
-	mov esi,[aicargovehinittables]
-	mov eax,[esi-12]
-	mov [esi-8],eax
-
-	patchcode oldistrackrighttype,newistrackrighttype,1,1
-
-	or byte [newgraphicssetsenabled],1 << 5
-
-	// change menu texts etc.
-
-	cmp byte [unimaglevmode],1
-	jne .notmonorail
-
-	mov esi,monorailtextreplace
-	mov ecx,nummonorailtextreplace
-	call .nextelectrtext
-
-.notmonorail:
-	mov esi,electrtextreplace
-	mov ecx,numelectrtextreplace
-
-.nextelectrtext:
-	lodsd		// now ax=new text ID, [esi-2]=text ID to replace
-	call gettextandtableptrs
-	push edi
-	mov eax,[esi-2]
-	call gettextintableptr
-	pop dword [eax+edi*4]
-	loop .nextelectrtext
-
-	sub [eax+edi*4],eax	// was an ourtext() ID which is relative
-	ret
-
-
 
 begincodefragments
 
@@ -135,3 +76,61 @@ codefragment newistrackrighttype
 
 
 endcodefragments
+
+patchelectrifiedrail:
+	mov byte [tracktypes+1],1
+	mov al,[unimaglevmode]
+	inc eax
+	mov [tracktypes+2],al
+	mov byte [realtracktypes+1],1
+	mov al,[realtracktypes+3]
+	mov [realtracktypes+2],al
+
+	stringaddress oldgettrackspriteset,1,2
+	mov eax,[edi+7]
+	mov [gettrackspriteset.tracktypetemp],eax
+	storefragment newgettrackspriteset
+	patchcode oldgettrackspriteset,newgettrackspriteset,1,0
+	patchcode oldgetcrossingspriteset,newgetcrossingspriteset,1,1
+	patchcode oldgettunnelspriteset,newgettunnelspriteset,1,1
+	patchcode oldgetbridgespriteset,newgetbridgespriteset,1,1
+	patchcode oldgetunderbridgespriteset,newgetunderbridgespriteset,1,1
+
+	patchcode olddisplaytrackdetails,newdisplaytrackdetails,1,1
+	patchcode olddrawcrossing,newdrawcrossing,1,1
+
+	// conversion of types is now done in tools.asm/postinfoapply.typeconversion
+
+	// tell AI to use type=0 waggons for type=1 railways
+	mov esi,[aicargovehinittables]
+	mov eax,[esi-12]
+	mov [esi-8],eax
+
+	patchcode oldistrackrighttype,newistrackrighttype,1,1
+
+	or byte [newgraphicssetsenabled],1 << 5
+
+	// change menu texts etc.
+
+	cmp byte [unimaglevmode],1
+	jne .notmonorail
+
+	mov esi,monorailtextreplace
+	mov ecx,nummonorailtextreplace
+	call .nextelectrtext
+
+.notmonorail:
+	mov esi,electrtextreplace
+	mov ecx,numelectrtextreplace
+
+.nextelectrtext:
+	lodsd		// now ax=new text ID, [esi-2]=text ID to replace
+	call gettextandtableptrs
+	push edi
+	mov eax,[esi-2]
+	call gettextintableptr
+	pop dword [eax+edi*4]
+	loop .nextelectrtext
+
+	sub [eax+edi*4],eax	// was an ourtext() ID which is relative
+	ret

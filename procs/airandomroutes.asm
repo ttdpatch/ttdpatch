@@ -8,6 +8,16 @@ extern goodairoutefnofst
 
 
 global patchairandomroutes
+
+begincodefragments
+
+codefragment aitryrandomroute,7
+	cmp ax,0xd89b
+	jb short $+2+0x15
+
+
+endcodefragments
+
 patchairandomroutes:
 	stringaddress aitryrandomroute
 	mov ebx,[edi]
@@ -22,14 +32,3 @@ patchairandomroutes:
 	changereltarget 792,addr(aitryroadcargoroute)
 	changereltarget 0,addr(aitryshipcargoroute),ebx
 	ret
-
-
-
-begincodefragments
-
-codefragment aitryrandomroute,7
-	cmp ax,0xd89b
-	jb short $+2+0x15
-
-
-endcodefragments

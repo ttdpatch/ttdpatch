@@ -22,166 +22,6 @@ extern newcargotypenames,pdaTempStationPtrsInCatchArea
 extern stationarray2ofst,stationcargowaitingmask
 extern stationcargowaitingnotmask,variabletofind,variabletowrite
 
-
-ext_frag newvariable,findvariableaccess
-
-patchnewcargos:
-// cargotypenames
-	mov dword[variabletofind], cargotypenames
-	mov dword [variabletowrite], newcargotypenames
-	multipatchcode findvariableaccess,newvariable,17
-// cargounitnames
-	mov dword[variabletofind], cargounitnames
-	mov dword [variabletowrite], newcargounitnames
-	multipatchcode findvariableaccess,newvariable,1 // this one is only written, and never read???
-// cargoamount1names
-	mov dword[variabletofind], cargoamount1names
-	mov dword [variabletowrite], newcargoamount1names
-	multipatchcode findvariableaccess,newvariable,9
-// cargoamountnnames
-	mov dword[variabletofind], cargoamountnnames
-	mov dword [variabletowrite], newcargoamountnnames
-	multipatchcode findvariableaccess,newvariable,15
-// cargoshortnames
-	mov dword[variabletofind], cargoshortnames
-	mov dword [variabletowrite], newcargoshortnames
-	multipatchcode findvariableaccess,newvariable,2
-// cargoicons
-	mov dword[variabletofind], cargoicons
-	mov dword [variabletowrite], newcargoicons
-	multipatchcode findvariableaccess,newvariable,2
-// cargounitweights
-	mov dword[variabletofind], cargounitweights
-	mov dword [variabletowrite], newcargounitweights
-	multipatchcode findvariableaccess,newvariable,3
-// cargodelaypenaltytresholds1
-	mov dword[variabletofind], cargodelaypenaltythresholds1
-	mov dword [variabletowrite], newcargodelaypenaltythresholds1
-	multipatchcode findvariableaccess,newvariable,2
-// cargodelaypenaltytresholds2
-	mov dword[variabletofind], cargodelaypenaltythresholds2
-	mov dword [variabletowrite], newcargodelaypenaltythresholds2
-	multipatchcode findvariableaccess,newvariable,2
-// cargopricefactors
-//	mov dword[variabletofind], cargopricefactors
-//	mov dword [variabletowrite], newcargopricefactors
-//	multipatchcode findvariableaccess,newvariable,4
-
-	patchcode initcargoprices
-	multipatchcode oldreadcargoprices,newreadcargoprices,2
-	patchcode inflatecargoprices
-
-	mov dword [cargotypenamesptr],newcargotypenames
-	mov dword [cargounitnamesptr],newcargounitnames
-	mov dword [cargoamount1namesptr],newcargoamount1names
-	mov dword [cargoamountnnamesptr],newcargoamountnnames
-	mov dword [cargounitweightsptr],newcargounitweights
-
-//patch the payment rate graph window
-
-	patchcode cargopaymentrateswinelemlist
-	patchcode initpaymentwindow
-	patchcode paymentwindow_listclick
-	patchcode drawpaymentwindow
-	patchcode paymentwindoweventhandler
-	storeaddress findDrawGraph,1,4,DrawGraph
-
-	patchcode oldaddcargotostation,newaddcargotostation,1,1
-
-	patchcode distribcargo_foundstation
-	patchcode distribcargo_1station
-	stringaddress olddistribcargo_2stations,1,1
-	mov ebx, [edi+2]
-	mov [pdaTempStationPtrsInCatchArea], ebx
-//	mov ebx, [edi+12]
-//	mov [pbaTempStationIdxsInCatchArea], ebx
-	storefragment newdistribcargo_2stations
-
-//patch the station window handler
-	patchcode oldmovbxcargoicons,newmovbxcargoicons,1,1
-	multipatchcode oldmovbxcargoamountnames,newmovbxcargoamountnames,2
-	patchcode oldmovaxcargotypenames,newmovaxcargotypenames,1,1
-
-//patch the vehicle window handlers
-	multipatchcode oldmovbxcargoamountname2,newmovbxcargoamountname2,4
-
-//patch the station list window handler
-	patchcode oldmovbxcargoshortnames,newmovbxcargoshortnames,1,1
-	patchcode getcargocolor
-
-//patch the industry window handler
-	multipatchcode oldmovaxcargoamountnames,newmovaxcargoamountnames,2
-
-//patch the UpdateStationAcceptList function
-	stringaddress findupdatestationacceptlist1,1,1
-	mov byte [edi+2], (12+20)*2	// change the number of bytes reserved on stack
-	mov dword [edi+7], 11+20	// change the number of words initialized to 0
-	stringaddress findupdatestationacceptlist2,1,1
-	mov byte [edi+4], (12+20)*2	// change the number of bytes freed on stack
-	sub edi, 27+36
-	storefragment newupdatestationacceptlist
-
-	// patch cargo class 0 for bus stations
-	patchcode displayconstacceptlist
-	mov byte [edi+lastediadj+22],0	// disarm the jz
-
-	patchcode insrvorder
-	patchcode oldcheckrvtype1,newcheckrvtype1,2,3
-	patchcode oldcheckrvtype2,newcheckrvtype2,1,2
-	patchcode oldcheckrvtype2,newcheckrvtype2,1,0
-	patchcode checkrvstation
-	patchcode checkdistcargo
-
-	patchcode setupstationstruct_2
-	patchcode setupoilfield
-
-	patchcode getacceptbitmask
-	patchcode collectacceptedcargos
-	patchcode genacceptmessages
-
-	patchcode drawplannedaccepts1
-	patchcode drawplannedaccepts2
-	patchcode drawplannedaccepts3
-
-	mov ax,0x300c
-	call gettextandtableptrs
-
-	mov [variabletofind], edi
-
-	push dword 170
-	call malloccrit
-	pop dword [variabletowrite]
-
-	multipatchcode findvariableaccess,newvariable,3
-	add dword [variabletofind],3
-	add dword [variabletowrite],3
-	multipatchcode findvariableaccess,newvariable,2
-
-	multipatchcode oldgetcargounitnames,newgetcargounitnames,2
-
-	patchcode initcargodata
-
-//	call copyorgcargodata
-
-// patch some AI functions
-	multipatchcode oldaitestcargotypes1,newaitestcargotypes1,4
-	multipatchcode oldaitestcargotypes2,newaitestcargotypes2,4
-
-// use all 16 bits of stationcargo.amout instead of just 10
-	patchcode oldstationwindow_linenum,newcargowaitingmask,1,1
-	multipatchcode oldtestemptyslot_esi,newcargowaitingmask,2
-	multipatchcode oldgetcargowaiting_esi,newcargowaitingmask,3
-	patchcode oldgetcargowaiting_ebxesi,newcargowaitingmask,1,1
-	multipatchcode oldmodifycargowaiting_ebxesi,newcargowaiting_notmask,2
-	patchcode oldgetcargowaiting_esiebp,newcargowaitingmask,1,1
-	patchcode oldclearcargowaiting,newcargowaiting_notmask,1,1
-
-	mov dword [stationcargowaitingmask],0x7fff
-	and dword [stationcargowaitingnotmask],0x8000
-	ret
-
-// Enable adding new house types
-
 begincodefragments
 
 codefragment oldinitcargoprices
@@ -545,3 +385,163 @@ codefragment oldclearcargowaiting,5
 
 
 endcodefragments
+
+
+ext_frag newvariable,findvariableaccess
+
+patchnewcargos:
+// cargotypenames
+	mov dword[variabletofind], cargotypenames
+	mov dword [variabletowrite], newcargotypenames
+	multipatchcode findvariableaccess,newvariable,17
+// cargounitnames
+	mov dword[variabletofind], cargounitnames
+	mov dword [variabletowrite], newcargounitnames
+	multipatchcode findvariableaccess,newvariable,1 // this one is only written, and never read???
+// cargoamount1names
+	mov dword[variabletofind], cargoamount1names
+	mov dword [variabletowrite], newcargoamount1names
+	multipatchcode findvariableaccess,newvariable,9
+// cargoamountnnames
+	mov dword[variabletofind], cargoamountnnames
+	mov dword [variabletowrite], newcargoamountnnames
+	multipatchcode findvariableaccess,newvariable,15
+// cargoshortnames
+	mov dword[variabletofind], cargoshortnames
+	mov dword [variabletowrite], newcargoshortnames
+	multipatchcode findvariableaccess,newvariable,2
+// cargoicons
+	mov dword[variabletofind], cargoicons
+	mov dword [variabletowrite], newcargoicons
+	multipatchcode findvariableaccess,newvariable,2
+// cargounitweights
+	mov dword[variabletofind], cargounitweights
+	mov dword [variabletowrite], newcargounitweights
+	multipatchcode findvariableaccess,newvariable,3
+// cargodelaypenaltytresholds1
+	mov dword[variabletofind], cargodelaypenaltythresholds1
+	mov dword [variabletowrite], newcargodelaypenaltythresholds1
+	multipatchcode findvariableaccess,newvariable,2
+// cargodelaypenaltytresholds2
+	mov dword[variabletofind], cargodelaypenaltythresholds2
+	mov dword [variabletowrite], newcargodelaypenaltythresholds2
+	multipatchcode findvariableaccess,newvariable,2
+// cargopricefactors
+//	mov dword[variabletofind], cargopricefactors
+//	mov dword [variabletowrite], newcargopricefactors
+//	multipatchcode findvariableaccess,newvariable,4
+
+	patchcode initcargoprices
+	multipatchcode oldreadcargoprices,newreadcargoprices,2
+	patchcode inflatecargoprices
+
+	mov dword [cargotypenamesptr],newcargotypenames
+	mov dword [cargounitnamesptr],newcargounitnames
+	mov dword [cargoamount1namesptr],newcargoamount1names
+	mov dword [cargoamountnnamesptr],newcargoamountnnames
+	mov dword [cargounitweightsptr],newcargounitweights
+
+//patch the payment rate graph window
+
+	patchcode cargopaymentrateswinelemlist
+	patchcode initpaymentwindow
+	patchcode paymentwindow_listclick
+	patchcode drawpaymentwindow
+	patchcode paymentwindoweventhandler
+	storeaddress findDrawGraph,1,4,DrawGraph
+
+	patchcode oldaddcargotostation,newaddcargotostation,1,1
+
+	patchcode distribcargo_foundstation
+	patchcode distribcargo_1station
+	stringaddress olddistribcargo_2stations,1,1
+	mov ebx, [edi+2]
+	mov [pdaTempStationPtrsInCatchArea], ebx
+//	mov ebx, [edi+12]
+//	mov [pbaTempStationIdxsInCatchArea], ebx
+	storefragment newdistribcargo_2stations
+
+//patch the station window handler
+	patchcode oldmovbxcargoicons,newmovbxcargoicons,1,1
+	multipatchcode oldmovbxcargoamountnames,newmovbxcargoamountnames,2
+	patchcode oldmovaxcargotypenames,newmovaxcargotypenames,1,1
+
+//patch the vehicle window handlers
+	multipatchcode oldmovbxcargoamountname2,newmovbxcargoamountname2,4
+
+//patch the station list window handler
+	patchcode oldmovbxcargoshortnames,newmovbxcargoshortnames,1,1
+	patchcode getcargocolor
+
+//patch the industry window handler
+	multipatchcode oldmovaxcargoamountnames,newmovaxcargoamountnames,2
+
+//patch the UpdateStationAcceptList function
+	stringaddress findupdatestationacceptlist1,1,1
+	mov byte [edi+2], (12+20)*2	// change the number of bytes reserved on stack
+	mov dword [edi+7], 11+20	// change the number of words initialized to 0
+	stringaddress findupdatestationacceptlist2,1,1
+	mov byte [edi+4], (12+20)*2	// change the number of bytes freed on stack
+	sub edi, 27+36
+	storefragment newupdatestationacceptlist
+
+	// patch cargo class 0 for bus stations
+	patchcode displayconstacceptlist
+	mov byte [edi+lastediadj+22],0	// disarm the jz
+
+	patchcode insrvorder
+	patchcode oldcheckrvtype1,newcheckrvtype1,2,3
+	patchcode oldcheckrvtype2,newcheckrvtype2,1,2
+	patchcode oldcheckrvtype2,newcheckrvtype2,1,0
+	patchcode checkrvstation
+	patchcode checkdistcargo
+
+	patchcode setupstationstruct_2
+	patchcode setupoilfield
+
+	patchcode getacceptbitmask
+	patchcode collectacceptedcargos
+	patchcode genacceptmessages
+
+	patchcode drawplannedaccepts1
+	patchcode drawplannedaccepts2
+	patchcode drawplannedaccepts3
+
+	mov ax,0x300c
+	call gettextandtableptrs
+
+	mov [variabletofind], edi
+
+	push dword 170
+	call malloccrit
+	pop dword [variabletowrite]
+
+	multipatchcode findvariableaccess,newvariable,3
+	add dword [variabletofind],3
+	add dword [variabletowrite],3
+	multipatchcode findvariableaccess,newvariable,2
+
+	multipatchcode oldgetcargounitnames,newgetcargounitnames,2
+
+	patchcode initcargodata
+
+//	call copyorgcargodata
+
+// patch some AI functions
+	multipatchcode oldaitestcargotypes1,newaitestcargotypes1,4
+	multipatchcode oldaitestcargotypes2,newaitestcargotypes2,4
+
+// use all 16 bits of stationcargo.amout instead of just 10
+	patchcode oldstationwindow_linenum,newcargowaitingmask,1,1
+	multipatchcode oldtestemptyslot_esi,newcargowaitingmask,2
+	multipatchcode oldgetcargowaiting_esi,newcargowaitingmask,3
+	patchcode oldgetcargowaiting_ebxesi,newcargowaitingmask,1,1
+	multipatchcode oldmodifycargowaiting_ebxesi,newcargowaiting_notmask,2
+	patchcode oldgetcargowaiting_esiebp,newcargowaitingmask,1,1
+	patchcode oldclearcargowaiting,newcargowaiting_notmask,1,1
+
+	mov dword [stationcargowaitingmask],0x7fff
+	and dword [stationcargowaitingnotmask],0x8000
+	ret
+
+// Enable adding new house types

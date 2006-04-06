@@ -8,17 +8,6 @@ patchproc newtrains,wagonspeedlimits, patchwagoninfo
 extern drawsplittextfn
 extern drawtextfn
 
-
-patchwagoninfo:
-	patchcode oldshowwagoninfo,newshowwagoninfo,1,1
-	mov dword [edi+lastediadj+46],0x26748d	// lea esi,[byte 0+1*esi] (nop)
-	mov eax,[drawsplittextfn]
-	sub eax,[drawtextfn]
-	add [edi+lastediadj+56],eax
-	ret
-
-
-
 begincodefragments
 
 codefragment oldshowwagoninfo,-46
@@ -30,3 +19,12 @@ codefragment newshowwagoninfo
 
 
 endcodefragments
+
+
+patchwagoninfo:
+	patchcode oldshowwagoninfo,newshowwagoninfo,1,1
+	mov dword [edi+lastediadj+46],0x26748d	// lea esi,[byte 0+1*esi] (nop)
+	mov eax,[drawsplittextfn]
+	sub eax,[drawtextfn]
+	add [edi+lastediadj+56],eax
+	ret

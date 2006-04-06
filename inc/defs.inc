@@ -1,7 +1,7 @@
 //
 // Basic setup of the assembly environment
 //
-// *Every* asm file must include either this of std.inc at the very top
+// *Every* asm file must include either this or std.inc at the very top
 //
 
 //#if !WINTTDX && !LINTTDX
@@ -41,10 +41,8 @@ bits 32
 [warning +orphan-labels]	  // enable warnings about orphaned labels
 [warning +opsize-from-immediate]  // and about undefined opsizes with imm8 op
 
-[list sectionnames]	// add section names to relocations in .lst file
-[list hexwidth 22]	// make hex column a bit wider
-
-bits 32
+;[list sectionnames]	// add section names to relocations in .lst file
+;[list hexwidth 22]	// make hex column a bit wider
 
 %ifdef PREPROCESSONLY
 %error Do not compile the results of preprocessing!	// no "", so it's a warning
@@ -57,15 +55,18 @@ bits 32
 %endmacro
 
 // define section attributes
-section .bss nobits align=4
+section .bss nobits align=4	// zero-initialized space, D/W/B sized
 section .bss2 nobits align=2
 section .bss1 nobits align=1
-section .sbss nobits align=4
+section .sbss nobits align=4	// all-ones-initialized space, D/W/B sized
 section .sbss2 nobits align=2
 section .sbss1 nobits align=1
-section .indrct align=4
-section .pproc align=1
-section .relocv align=4
+section .datab align=1		// initialized variables, D/W/B sized
+section .dataw align=2
+section .datad align=4
+section .indrct align=4		// holds list of indirect call/jmp pointers
+section .pproc align=1		// holds list of patchproc definitions
+section .relocv align=4		// holds order of ptrvar definitions
 
 // default section
 section .text align=4

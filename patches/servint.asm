@@ -167,10 +167,8 @@ getreplacevehicle:
 	push word [esi+veh.class]
 	push ax
 	call getrefitmask
-	movzx ebx,byte [climate]
-	shl ebx,5
 	movzx edx,byte [esi+veh.cargotype]
-	mov dl,[cargotypes+ebx+edx]
+	mov dl,[cargotypes+edx]
 	pop ebx
 	bt ebx,edx
 	jnc .next

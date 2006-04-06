@@ -6,13 +6,6 @@ extern exchtrainvehicles
 
 
 global patchtrainreverse
-patchtrainreverse:
-	stringaddress oldreversetrain,1,1
-	copyrelative exchtrainvehicles,1
-	storefragment newreversetrain
-	ret
-
-
 
 begincodefragments
 
@@ -25,3 +18,9 @@ codefragment newreversetrain
 
 
 endcodefragments
+
+patchtrainreverse:
+	stringaddress oldreversetrain,1,1
+	copyrelative exchtrainvehicles,1
+	storefragment newreversetrain
+	ret

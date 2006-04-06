@@ -11,6 +11,30 @@ extern resolvesprites
 ext_frag findwindowstructuse
 
 global patchsetnewgraphics
+
+begincodefragments
+
+codefragment olddrawsignal
+	mov di,1
+	mov si,di
+	mov dh,0xa
+	db 0xe8	// call addsprite
+
+codefragment newdrawsignal
+	call runindex(drawsignal)
+	setfragmentsize 7
+	mov dh,0x10		// pre-signals may be higher
+
+codefragment findgameoptionswindowstruc,-20
+	dw 13
+	dw 0xb1
+
+codefragment newgameoptionsclick
+	ijmp gameoptionsclick
+
+
+endcodefragments
+
 patchsetnewgraphics:
 	patchcode olddrawsignal,newdrawsignal,1,1
 
@@ -72,27 +96,3 @@ patchsetnewgraphics:
 
 global spritearraysize
 spritearraysize: db 4,2,2,2,2,2,4,1,1,2,2
-
-
-begincodefragments
-
-codefragment olddrawsignal
-	mov di,1
-	mov si,di
-	mov dh,0xa
-	db 0xe8	// call addsprite
-
-codefragment newdrawsignal
-	call runindex(drawsignal)
-	setfragmentsize 7
-	mov dh,0x10		// pre-signals may be higher
-
-codefragment findgameoptionswindowstruc,-20
-	dw 13
-	dw 0xb1
-
-codefragment newgameoptionsclick
-	ijmp gameoptionsclick
-
-
-endcodefragments

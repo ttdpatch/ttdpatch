@@ -10,6 +10,49 @@ extern companystatsptr,malloccrit
 extern player1CompanyWHQWindowElemList,player1CompanyWindowElemList
 extern otherCompanyWindowElemList,otherCompanyManageWindowElemList
 
+begincodefragments
+
+codefragment newacceptvehiclecargo
+	icall acceptvehiclecargo
+	setfragmentsize 7
+
+codefragment findcompanyelems,17
+#if 0
+	// this doesn't work in all versions; different window sizes :/
+	db cWinElemTextBox, cColorSchemeGrey
+	dw 0, 10, 0, 13, 0x00C5
+	db cWinElemTitleBar, cColorSchemeGrey
+	dw 11, 359, 0, 13, 0x7001
+#endif
+	mov dx,0x68
+	mov ebp,1
+
+codefragment oldopencompanywindow,1
+	ret
+	mov cl, 0x1D
+
+codefragment newopencompanywindow
+	icall opencompanywindow
+	setfragmentsize 7
+
+codefragment oldcompanywindowclicked,3
+	cmp cl, 9
+	jz near $+6+0xB9
+
+codefragment newcompanywindowclicked
+	icall companywindowclicked
+
+codefragment oldcompanywindowtimer, 6
+	jnz near $+6+0x9B
+	btr dword [esi+window.activebuttons], 4
+
+codefragment newcompanywindowtimer
+	icall companywindowtimer
+	setfragmentsize 7
+
+
+endcodefragments
+
 
 patchmorestats:
 	push dword 8*4*32
@@ -66,47 +109,3 @@ patchmorestats:
 	patchcode companywindowclicked
 	patchcode companywindowtimer
 	ret
-
-
-begincodefragments
-
-codefragment newacceptvehiclecargo
-	icall acceptvehiclecargo
-	setfragmentsize 7
-
-codefragment findcompanyelems,17
-#if 0
-	// this doesn't work in all versions; different window sizes :/
-	db cWinElemTextBox, cColorSchemeGrey
-	dw 0, 10, 0, 13, 0x00C5
-	db cWinElemTitleBar, cColorSchemeGrey
-	dw 11, 359, 0, 13, 0x7001
-#endif
-	mov dx,0x68
-	mov ebp,1
-
-codefragment oldopencompanywindow,1
-	ret
-	mov cl, 0x1D
-
-codefragment newopencompanywindow
-	icall opencompanywindow
-	setfragmentsize 7
-
-codefragment oldcompanywindowclicked,3
-	cmp cl, 9
-	jz near $+6+0xB9
-
-codefragment newcompanywindowclicked
-	icall companywindowclicked
-
-codefragment oldcompanywindowtimer, 6
-	jnz near $+6+0x9B
-	btr dword [esi+window.activebuttons], 4
-
-codefragment newcompanywindowtimer
-	icall companywindowtimer
-	setfragmentsize 7
-
-
-endcodefragments

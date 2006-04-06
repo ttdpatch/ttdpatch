@@ -16,18 +16,67 @@
 
 extern cachevehvar40x,callbackflags
 extern cargoamountnnamesptr,cargoclasscargos,cargoid
-extern cargotypenamesptr,cargotypes,consistcallbacks,curmiscgrf,drawtextfn
+extern cargotypenamesptr,consistcallbacks,curmiscgrf,drawtextfn
 extern invalidatehandle,isengine,mostrecentspriteblock
-extern normaltrainwindowptr,oldrefitplane,scenariocargo
+extern normaltrainwindowptr,oldrefitplane
 extern patchflags,postredrawhandle,specificpropertybase
-extern trainwindowrefit,vehcallback,newvehdata,newrefitvars
+extern trainwindowrefit,vehcallback,newvehdata
 extern vehids,traincargosize,traincargotype
-extern vehtypecallback
+extern vehtypecallback,vehbase,vehbnum,cargotypes,cargobits
 
+vard newrefitvars
+	dd newvehdata+newvehdatastruc.refit2,newvehdata+newvehdatastruc.refit1
+	dd newvehdata+newvehdatastruc.refit1,newvehdata+newvehdatastruc.refit2
+
+	// what property is the cargo type for each class (except planes)
+varb classcargoprop, 0x15-8,0x10-8,0x0c-8
+
+	// check that all vehicles have a valid cargo type; if not
+	// use first available refit cargo
+global setdefaultcargo
+setdefaultcargo:
+	pusha
+	xor ebp,ebp		// class
+	mov edx,0x100000	// (veh.class<<16)+vehicle ID (not within class!)
+.nextclass:
+	movzx eax,byte [vehbnum+ebp]
+	mul byte [classcargoprop+ebp]
+	mov esi,[specificpropertybase+ebp*4]
+	add esi,eax
+.nextveh:
+	movzx eax,byte [esi]
+	cmp al,0xff
+	je .bad
+	mov al,[cargotypes+eax]
+	bt [cargobits],eax
+	jc .ok
+
+.bad:
+	push edx
+	call getrefitmask
+	pop eax
+
+	bsf eax,eax
+	jz .ok	// no cargo??
+
+	mov al,[cargoid+eax]
+	mov [esi],al
+
+.ok:
+	inc esi
+	inc edx
+	cmp dl,[vehbase+ebp+1]
+	jb .nextveh
+	inc ebp
+	add edx,0x10000
+	cmp ebp,3
+	jb .nextclass
+	popa
+
+	// fall through
 
 	// go through all ships, figure out the valid cargo types, and if
 	// there is more than one, make the ship refittable
-global shipsrefittable
 shipsrefittable:
 	testflags newships
 	jc .isnewships
@@ -40,18 +89,16 @@ shipsrefittable:
 	mov esi,dword [specificpropertybase+2*4]
 	add esi,byte NSHIPTYPES
 
-	movzx edx,byte [climate]
-	mov ebx,dword [scenariocargo+edx*4]
-	imul edx,byte 32
-
 .nextship:
 	xor eax,eax
 
 	cmp [esi+edi],al
 	je .goodcargo	// not refittable
 
-	mov ebp,dword [newshiprefit+edi*4]
-	and ebp,ebx
+	lea ebp,[edi+0x120000]
+	push ebp
+	call getrefitmask
+	pop ebp
 
 	// count number of bits set
 	lea ecx,[eax+32]
@@ -72,7 +119,7 @@ shipsrefittable:
 	seta byte [esi+edi]
 
 	mov al,byte [esi+edi+NSHIPTYPES*3]
-	mov al,byte [cargotypes+edx+eax]
+	mov al,byte [cargotypes+eax]
 	bt ebp,eax
 
 	jc .goodcargo
@@ -161,9 +208,7 @@ getrefitmask:
 	jmp .transnext
 
 .found:
-	movzx esi,byte [climate]
-	shl esi,5
-	mov bl,[cargotypes+esi+ebx]
+	mov bl,[cargotypes+ebx]
 	bts edi,ebx
 	jmp .transnext
 
@@ -175,8 +220,7 @@ getrefitmask:
 .donetrans:
 	xor ecx,edi
 
-	movzx eax,byte [climate]
-	and ecx,[scenariocargo+eax*4]
+	and ecx,[cargobits]
 .done:
 	mov [lastrefitmask],ecx
 	mov [esp+0x24],ecx
@@ -551,10 +595,12 @@ checkcargotextcallback:
 	// safe:eax
 global isplanerefittable
 isplanerefittable:
-	movzx edx,byte [edi+veh.vehtype]
-	movzx eax,byte [climate]
-	mov edx,[newplanerefit+(edx-AIRCRAFTBASE)*4]
-	and edx,[scenariocargo+eax*4]
+	mov edx,[edi+veh.class-2]	// set edx(16:23)=class
+	mov dx,[edi+veh.vehtype]
+	push edx
+	call getrefitmask
+	pop edx
+	test edx,edx
 	setnz al
 	sub al,1
 

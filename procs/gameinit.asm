@@ -5,16 +5,6 @@
 
 patchproc newtownnames,newhouses, patchgameinit
 
-patchgameinit:
-	patchcode randomgame1
-	stringaddress oldrandomgame2
-	add edi,181
-	storefragment newrandomgame2
-	ret
-
-uvard newanimarray
-
-
 begincodefragments
 
 codefragment oldrandomgame1,58
@@ -31,3 +21,12 @@ codefragment newrandomgame2
 
 
 endcodefragments
+
+patchgameinit:
+	patchcode randomgame1
+	stringaddress oldrandomgame2
+	add edi,181
+	storefragment newrandomgame2
+	ret
+
+uvard newanimarray

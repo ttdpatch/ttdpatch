@@ -8,21 +8,6 @@ patchproc enhancegui, patchstickywindows
 extern olddrawtitlebar,temp_drawwindow_active_ptr
 extern winelemdrawptrs,drawtitlebar
 
-
-patchstickywindows:
-	patchcode closeallwindows
-	mov eax, dword [winelemdrawptrs+4*cWinElemTitleBar]
-	mov [olddrawtitlebar], eax
-	mov dword [winelemdrawptrs+4*cWinElemTitleBar], addr(drawtitlebar)
-	mov ebx, dword [winelemdrawptrs+4*cWinElemSpriteBox]
-	mov eax, [ebx+39]
-	mov [temp_drawwindow_active_ptr], eax
-
-	patchcode replacewindow
-	ret
-
-
-
 begincodefragments
 
 codefragment oldcloseallwindows
@@ -42,3 +27,16 @@ codefragment newreplacewindow
 
 
 endcodefragments
+
+
+patchstickywindows:
+	patchcode closeallwindows
+	mov eax, dword [winelemdrawptrs+4*cWinElemTitleBar]
+	mov [olddrawtitlebar], eax
+	mov dword [winelemdrawptrs+4*cWinElemTitleBar], addr(drawtitlebar)
+	mov ebx, dword [winelemdrawptrs+4*cWinElemSpriteBox]
+	mov eax, [ebx+39]
+	mov [temp_drawwindow_active_ptr], eax
+
+	patchcode replacewindow
+	ret

@@ -4,13 +4,6 @@
 
 
 global patchmoreairports
-patchmoreairports:
-	patchcode oldairportcount,newairportcount,1,1
-	add edi,byte 10
-	storefragment newairportcheck
-	ret
-
-
 
 begincodefragments
 
@@ -28,3 +21,9 @@ codefragment newairportcheck
 
 
 endcodefragments
+
+patchmoreairports:
+	patchcode oldairportcount,newairportcount,1,1
+	add edi,byte 10
+	storefragment newairportcheck
+	ret

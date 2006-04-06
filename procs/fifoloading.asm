@@ -4,12 +4,6 @@
 
 patchproc fifoloading, patchfifoloading
 
-patchfifoloading:
-	patchcode oldtrainleavestation,newtrainleavestation
-	patchcode oldsendtraintodepot,newsendtraintodepot
-	ret
-
-
 begincodefragments
 
 codefragment oldtrainleavestation, 5
@@ -30,3 +24,8 @@ codefragment newsendtraintodepot
 
 
 endcodefragments
+
+patchfifoloading:
+	patchcode oldtrainleavestation,newtrainleavestation
+	patchcode oldsendtraintodepot,newsendtraintodepot
+	ret

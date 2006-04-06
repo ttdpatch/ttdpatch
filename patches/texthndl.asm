@@ -6,35 +6,102 @@
 #include <textdef.inc>
 #include <systexts.inc>
 #include <grf.inc>
+#include <ptrvar.inc>
 
 extern curspriteblock,customtextptr,gethousetexttable,getmiscgrftable
 extern getstationtexttable,gettextintableptr,ntxtptr
-extern systemtextptr
+extern systemtextptr,mainstringtable
 
 
 
 uvarb textprocesstodisplay		// set to 1 if the text will be displayed, so the text. ref. stack can be modified
+svarb textrecursionlevel		// -1 = primary call, 0+ = recursive
+uvard textrefstackind			// current index into textrefstack
+uvard textutf8flag			// 32 bits of UTF-8-ness for each recursion level
+uvard continueflag			// same but just specifying whether we've check UTF-8-ness or not
+uvard textprocchar			// handler to process one character (UTF-8 or regular)
+uvard textspechandler			// TTD's handlers for special text codes
 
-// in:  eax = text code
-//	text code & 07ff is the offset into an array of pointers for TTD
-//	text code & f800 is a code indicating what type of text to display
-// out:	CF=0, si=ax and eax &= 7ff for TTD strings
-//	CF=1 and esi=stringptr for TTDPatch strings (custom or static)
+// in:  ax=text ID
+//	text ID & 07ff is the offset into an array of pointers for TTD
+//	text ID & f800 is a code indicating what type of text to display
+//	edi->buffer where to store text
+// safe:eax ebx (ecx?) edx esi ebp
+global newtexthandler,textprocessing
+newtexthandler:
+	push .strangeret		// for detecting handlers that do not return
+	shl dword [continueflag],1
+	jc .rectoodeep
+	shl dword [textutf8flag],1
+	or esi,byte -1
+	add byte [textrecursionlevel],1
+	js .strangeadd
+	adc esi,0
+	and [textrefstackind],esi	// set to 0 for primary call, leave alone for recursive ones
+
+	movzx esi,byte [textrecursionlevel]
+	mov word [lasttextids+esi*2],ax
+
+	movzx esi,ah
+	and eax,0x7ff
+	cmp esi,0xc0
+	jae short .ourtext
+
+	and esi,byte -8
+	jnz .classtext
+
+.generaltext:
+	mov esi,[mainstringtable]
+	mov esi,[esi+eax*4]
+	jmp short .doproc
+
+.rectoodeep:	// more than 32 levels of recursion
+	ud2
+
+.strangeret:	// something messed up the stack
+	ud2
+
+.strangeadd:	// overflow, should be impossible
+	ud2
+
+.strangedec:	// underflow, should be impossible
+	ud2
+
+.ourtext:
+	call texthandler.ourtext
+
+.doproc:
+	call textprocessing
+	jmp short .done
+
+.classtext:
+	mov ebp,[ophandler+esi-8]
+	call [ebp+8]
+
+.done:
+	pop eax
+	movzx eax,byte [textrecursionlevel]
+	mov word [lasttextids+eax*2],-1
+	dec byte [textrecursionlevel]
+	jo .strangedec
+	shr dword [textutf8flag],1
+	shr dword [continueflag],1
+	mov al,0
+	mov [edi],al
+	ret
+
 global texthandler
 texthandler:
-	movzx esi,ax
-#if DEBUG
-	mov word [.lastcode],ax
-#endif
+	movzx esi,ah
 	and eax,0x7ff
-	cmp si,0xc000
-	jae short .ourtext
+	cmp esi,0xc0
+	jae .ourtext
 .noitsnotourtext:
 	clc
 	ret
 
 .ourtext:
-	shr esi,11
+	shr esi,3
 	push edi
 	mov edi,eax
 
@@ -50,12 +117,237 @@ texthandler:
 	stc
 	ret
 
+textprocessing:
+	bts dword [continueflag],0
+	jc .continue
+
+	test esi,esi
+	jle .undef
+
+.resumeundef:
+	cmp word [esi],0x9EC3		// first char = Thorn Þ (C3 9E) -> UTF-8
+	jne .continue
+
+.utf8:
+	lodsw				// remove code character from string
+	or dword [textutf8flag],1	// set bit 0
+
+.continue:
+	bt dword [textutf8flag],0
+	sbb ebx,ebx
+	and ebx,byte .procutf8-.procnonutf8
+	add ebx,.procnonutf8
+	mov [textprocchar],ebx
+	jmp ebx
+
+.undef:
+	movzx eax,byte [textrecursionlevel]
+	mov ax,[lasttextids+eax*2]
+	mov esi,undefid
+	mov ecx,4
+.nextdigit:
+	mov ebx,eax
+	and ebx,15
+	extern hexdigits
+	mov bl,[hexdigits+ebx]
+	mov [esi+undefid.id1-undefid+ecx-1],bl
+	mov [esi+undefid.id2-undefid+ecx-1],bl
+	shr eax,4
+	loop .nextdigit
+	jmp .resumeundef
+
+.done:
+	ret
+
+.procutf8:		// get UTF-8 sequence start byte and validate
+	xor eax,eax
+	lodsb
+	cmp al,0x80	// is it ASCII?
+	jb .trlchar	// C0 and C1 would decode to ASCII, so they're invalid
+	cmp al,0xc2	// and 80..BF are continuation characters, they cannot
+	jb .trlchar	// start a sequence, so use them verbatim to support
+	cmp al,0xfe 	// the old-style \80 etc. codes;
+	ja .trlchar	// FE/FF are always invalid in UTF-8
+
+	// otherwise, decode the UTF-8 sequence
+	mov dl,al
+	mov dh,-1
+	mov bl,0xff	// first count how many bytes are in the sequence
+.count:			// which is given by how many high bits al had set
+	inc dh		// so count those by shifting them out until SF=0
+	shr bl,1	// also adjust the mask in BL that we'll use to
+	add dl,dl	// extract value bits from al
+	js .count
+
+	// we could do some more validation here, we have an overlong (invalid)
+	// sequence if [esi] & bl == 80; but since these have security
+	// implications only if comparing UTF-8 strings, we'll skip this
+
+	and ebx,eax	// ebx will contain the full character code
+
+	// now dh=sequence length-1; ebx=value of first byte
+.getbyte:
+	lodsb
+	cmp al,0x80	// make sure the next byte is a continuation character
+	jb .invutf8	// which means it must be 80..BF; below is ASCII and
+	cmp al,0xbf	// above is a sequence start character; both would be
+	ja .invutf8	// invalid here
+
+	shl ebx,6	// next byte in sequence provides 6 new bits (LSB)
+	and al,0x3f
+	or bl,al
+	dec dh
+	jnz .getbyte
+	mov eax,ebx
+	jmp short .gotchar
+
+.invutf8:	// invalid UTF-8 sequence; have to put the new byte back
+	dec esi
+	mov [esi],al
+	mov al,' '	// substitute a space; FIXME: use a "invalid char" code here
+	jmp short .gotchar
+
+.trlchar:	// invalid UTF-8 start character, use it as TTD string code
+#if UNICODE
+	// when using unicode fonts, translate old codes to allow access
+	// to full latin-1 supplement block (U+00A0..U+00FF)
+	cmp al,0x9e
+	jb .gotchar
+	cmp al,0xb8
+	ja .gotchar
+
+	mov al,[.chartrl+eax-0x9e]
+
+section .dataw
+.chartrl:
+	dw 0x20AC	// 9E Euro character "€"
+	dw 0x0178	// 9F Capital Y umlaut "Ÿ"
+	dw 0xE0A0	// A0 Scroll button up
+	dw 0xA1,0xA2,0xA3,0xA4,0xA5,0xA6,0xA7,0xA8,0xA9
+	dw 0xE0AA	// AA Scroll button down
+	dw 0xAB
+	dw 0xE0AC	// AC Tick mark
+	dw 0xE0AD	// AD X mark
+	dw 0xAE
+	dw 0xE0AF	// AF Scroll button right
+	dw 0xB0,0xB1,0xB2,0xB3
+	dw 0xE0B4	// B4 Train symbol
+	dw 0xE0B5	// B5 Truck symbol
+	dw 0xE0B6	// B6 Bus symbol
+	dw 0xE0B7	// B7 Plane symbol
+	dw 0xE0B8	// B8 Ship symbol
+section .text
+#endif
+	jmp short .gotchar
+
+.procnonutf8:
+	xor eax,eax
+	lodsb
+
+.gotchar:
+	mov bl,1
+	test eax,eax
+	jz .done
+
+	cmp eax,10
+	jbe .two
+
+	cmp eax,15
+	jbe .store
+
+	cmp eax,31
+	jbe .three
+
+	cmp eax,0x7b
+	jb .store
+
+	cmp eax,0x9f
+	jnb .store
+
+.special:
+	cmp al,0x88
+	jnb .store
+	mov ebx,[textspechandler]
+	jmp [ebx+(eax-0x7b)*4]
+
+.three:
+	inc bl
+
+.two:
+	inc bl
+
+.store:
+global storetextcharacter
+storetextcharacter:
+	stosb			// this and the jmp will be nopped out
+	jmp short .storenext	// if unicode fonts are loaded
+	nop			// nop to make it exactly 4 bytes
+
+.storeutf8:
+	cmp eax,0x7f		// ASCII?
+	jbe .gotutf8code
+
+	mov edx,eax		// edx: all-but-last sequence bytes
+	and edx,0x3f		// LSB of eax will be last byte in sequence
+
+	// check how long the sequence will be
+	// bl is the high-bit mask for the start-of-sequence byte
+	mov bl,011100000b	// for U+0080..U+07FF, use two-byte sequence
+	cmp eax,0x7ff
+	jbe .nextutf8byte
+
+	mov bl,011110000b	// for U+0800..U+FFFF, use three-byte sequence
+	cmp eax,0xffff
+	jbe .nextutf8byte
+
+			// U+10000 and above not supported (beyond the BMP)
+	mov eax,' '	// substitute a space; FIXME: use a "invalid char" code here
+	jmp .storeutf8
+
+.nextutf8byte:
+	shl edx,8		// push back bytes so far
+	shr eax,6		// and get next 6 bits from eax
+	cmp eax,0x40		// do we have more bits after this?
+	jb .lastutf8byte
+	mov dl,al
+	and dl,0x3f
+	or dl,0x80		// make dl the next sequence byte
+	jmp .nextutf8byte
+.die:
+	ud2
+.lastutf8byte:
+	or eax,edx
+	test al,bl	// check that eax has no high bits set
+	jnz .die	// if this happens, something is wrong in the algorithm above
+	add bl,bl	// remove lowest high bit from bl
+	or al,bl	// and use bl to make al the sequence start byte
+
+.gotutf8code:	// now eax holds the 1-byte ASCII code or
+		// 2-3 bytes of the UTF-8 sequence in LSB->MSB order
+
+.storenextutf8:
+	stosb
+	shr eax,8
+	jnz .storenextutf8
+
+.storenext:
+	dec bl
+	jz .resume
+	// copy arguments for codes 01 and 1F
+	movsb
+	jmp .storenext
+.resume:
+	jmp [textprocchar]
+
 	// this is useful to trap on access to a certain string in memory
 	// and then use this variable to figure out what the text index was
-#if DEBUG
-	align 2
-.lastcode: dw 0
-#endif
+svarw lasttextids, 32
+
+varb undefid
+	db "(",0x8b,"UD:"
+.id1:	db "####",0x98,":"
+.id2:	db "####)",0
+section .text
 
 ; endp texthandler
 

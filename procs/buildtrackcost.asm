@@ -4,12 +4,6 @@
 
 patchproc manualconvert,tracktypecostdiff, patchbuildtrackcost
 
-patchbuildtrackcost:
-	patchcode oldaddbuildtrackcost,newaddbuildtrackcost,1,1
-	ret
-
-
-
 begincodefragments
 
 codefragment oldaddbuildtrackcost
@@ -20,3 +14,7 @@ codefragment newaddbuildtrackcost
 
 
 endcodefragments
+
+patchbuildtrackcost:
+	patchcode oldaddbuildtrackcost,newaddbuildtrackcost,1,1
+	ret

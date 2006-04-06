@@ -12,6 +12,69 @@ extern spriteerror, spriteerrortype
 
 #include <textdef.inc>
 
+begincodefragments
+
+codefragment oldgeneratesound
+	imul bx,dx
+	shr bx, 7
+
+codefragment newgeneratesound
+	icall generatesound
+	setfragmentsize 8
+
+#if !WINTTDX
+codefragment findsoundcomstring
+	db "SOUND.COM",0
+
+codefragment oldexecsoundcom
+	mov edx, 0
+soundcomoffset equ $-4
+
+codefragment newexecsoundcom
+	jmp short fragmentstart+28
+
+codefragment oldinitsounddriver,-7
+	dd 0
+	push 0
+	db 0x68
+
+codefragment newinitsounddriver
+	ijmp initsounddriver
+
+codefragment oldallocmemfordriver
+	jz $+2+0x3a
+	db 0x31,0xf6		// "xor esi,esi" , with different encoding than NASM generates by default
+
+codefragment newallocmemfordriver
+	db 0xeb
+
+codefragment oldkeepsoundplaying,-7
+	dd 3
+	push 0
+
+codefragment newkeepsoundplaying
+	ijmp keepsoundplaying
+
+codefragment oldstopsound,-6
+	dd 1
+	push 0
+
+codefragment newstopsound
+	icall stopsound
+	setfragmentsize 31, 1
+
+codefragment olduninstallsound,-6
+	dd 0x14
+	push 0
+
+codefragment newuninstallsound
+	icall uninstallsound
+	setfragmentsize 26, 1
+#endif
+
+
+endcodefragments
+
 patchnewsounds:
 	stringaddress oldgeneratesound,1,1
 	mov eax,[edi+11]
@@ -158,68 +221,3 @@ SoundFuncNamePtrs: dd aReleaseBankFile,aSoundInit,aInitializeBankFile,aStartFx,a
 #else
 SampleCatName: db "SAMPLE.CAT",0
 #endif
-
-
-
-begincodefragments
-
-codefragment oldgeneratesound
-	imul bx,dx
-	shr bx, 7
-
-codefragment newgeneratesound
-	icall generatesound
-	setfragmentsize 8
-
-#if !WINTTDX
-codefragment findsoundcomstring
-	db "SOUND.COM",0
-
-codefragment oldexecsoundcom
-	mov edx, 0
-soundcomoffset equ $-4
-
-codefragment newexecsoundcom
-	jmp short fragmentstart+28
-
-codefragment oldinitsounddriver,-7
-	dd 0
-	push 0
-	db 0x68
-
-codefragment newinitsounddriver
-	ijmp initsounddriver
-
-codefragment oldallocmemfordriver
-	jz $+2+0x3a
-	db 0x31,0xf6		// "xor esi,esi" , with different encoding than NASM generates by default
-
-codefragment newallocmemfordriver
-	db 0xeb
-
-codefragment oldkeepsoundplaying,-7
-	dd 3
-	push 0
-
-codefragment newkeepsoundplaying
-	ijmp keepsoundplaying
-
-codefragment oldstopsound,-6
-	dd 1
-	push 0
-
-codefragment newstopsound
-	icall stopsound
-	setfragmentsize 31, 1
-
-codefragment olduninstallsound,-6
-	dd 0x14
-	push 0
-
-codefragment newuninstallsound
-	icall uninstallsound
-	setfragmentsize 26, 1
-#endif
-
-
-endcodefragments

@@ -6,10 +6,6 @@ extern generateincometexteffect
 
 
 global patchloadunload
-patchloadunload:
-	patchcode loadunloadcargo
-	storeaddress findgenerateincometexteffect,generateincometexteffect
-	ret
 
 begincodefragments
 
@@ -27,3 +23,8 @@ codefragment findgenerateincometexteffect
 	db 0xe8
 
 endcodefragments
+
+patchloadunload:
+	patchcode loadunloadcargo
+	storeaddress findgenerateincometexteffect,generateincometexteffect
+	ret

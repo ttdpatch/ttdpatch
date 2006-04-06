@@ -14,22 +14,74 @@ extern drawspritefn
 
 
 global patchextendedspritelimit
+
+begincodefragments
+
+codefragment olddrawgroundspritesgetsprite, 9
+	mov dx, cx
+	mov cx, ax
+	mov ebx, [ebp]
+	db 0xE8
+
+codefragment_call newdrawgroundspritesgetsprite,drawgroundspritesgetsprite,5
+
+codefragment olddisplayregularspritegetsprite, 11
+	mov dx, cx
+	mov cx, ax
+	mov ebx, [ebp]
+	push edi
+
+codefragment_call newdisplayregularspritegetsprite,displayregularspritesstdspritedescgetsprite,5
+
+codefragment olddisplayregularspriterelativegetsprite, 6
+	add dx, [ebp+6]
+	mov ebx, [esi]
+
+codefragment_call newdisplayregularspriterelativegetsprite,displayregularspritesrelspritedescgetsprite,5
+
+codefragment olddisplayregularspritelinkedgetsprite, 8
+	mov dx, cx
+	mov cx, ax
+	mov ebx, [esi]
+
+codefragment_call newdisplayregularspritelinkedgetsprite,displayregularspriteslinkedspritedescgetsprite,5
+
+codefragment oldcollectvehiclesprites
+	movsx si, [esi+veh.ysize]
+
+codefragment_call newcollectvehiclesprites,collectvehiclesprites,5
+
+codefragment oldupdatevehiclespritebox
+	and ebp, 0x3FFF
+
+codefragment newupdatevehiclespritebox
+	icall updatevehiclespritebox
+
+
+codefragment oldsetmousecursor, 6
+	mov [curmousecursor], ebx
+	and ebx, 0x3FFF
+
+codefragment newsetmousecursor
+	icall setmousecursorsprite
+
+codefragment olddrawmousecursor
+	mov ebx, [curmousecursor]
+
+codefragment newdrawmousecursor
+	icall drawmousecursor
+
+
+endcodefragments
+
 patchextendedspritelimit:
-	stringaddress olddrawgroundspritesgetsprite
-	storefunctioncall drawgroundspritesgetsprite
-
-	stringaddress olddisplayregularspritegetsprite
-	storefunctioncall displayregularspritesstdspritedescgetsprite
-
-	stringaddress olddisplayregularspriterelativegetsprite
-	storefunctioncall displayregularspritesrelspritedescgetsprite
-
-	stringaddress olddisplayregularspritelinkedgetsprite
-	storefunctioncall displayregularspriteslinkedspritedescgetsprite
+	patchcode drawgroundspritesgetsprite
+	patchcode displayregularspritegetsprite
+	patchcode displayregularspriterelativegetsprite
+	patchcode displayregularspritelinkedgetsprite
 
 	// feature specific patches
-	stringaddress oldcollectvehiclesprites
-	storefunctioncall collectvehiclesprites
+	patchcode collectvehiclesprites
 
 	patchcode updatevehiclespritebox
 	patchcode setmousecursor
@@ -86,53 +138,3 @@ patchextendedspritelimit:
 .fullerror:
 	UD2	// we can't find the target, let's crash :/
 	ret
-
-
-begincodefragments
-
-codefragment olddrawgroundspritesgetsprite, 9
-	mov dx, cx
-	mov cx, ax
-	mov ebx, [ebp]
-	db 0xE8
-
-codefragment olddisplayregularspritegetsprite, 11
-	mov dx, cx
-	mov cx, ax
-	mov ebx, [ebp]
-	push edi
-
-codefragment olddisplayregularspriterelativegetsprite, 6
-	add dx, [ebp+6]
-	mov ebx, [esi]
-
-codefragment olddisplayregularspritelinkedgetsprite, 8
-	mov dx, cx
-	mov cx, ax
-	mov ebx, [esi]
-
-codefragment oldcollectvehiclesprites
-	movsx si, [esi+veh.ysize]
-
-codefragment oldupdatevehiclespritebox
-	and ebp, 0x3FFF
-
-codefragment newupdatevehiclespritebox
-	icall updatevehiclespritebox
-
-
-codefragment oldsetmousecursor, 6
-	mov [curmousecursor], ebx
-	and ebx, 0x3FFF
-
-codefragment newsetmousecursor
-	icall setmousecursorsprite
-
-codefragment olddrawmousecursor
-	mov ebx, [curmousecursor]
-
-codefragment newdrawmousecursor
-	icall drawmousecursor
-
-
-endcodefragments

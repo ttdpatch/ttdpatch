@@ -5,28 +5,6 @@
 extern orderhints,patchflags,copyvehordersfn
 
 global patchschedulefuncs
-patchschedulefuncs:
-	multipatchcode oldfullloadtext,newfullloadtext,4
-	patchcode olddeletetext1,newdeletetext,1,1
-	storeaddress findorderhints,1,1,orderhints
-	multipatchcode olddeletetext2,newdeletetext,3
-	patchcode oldcheckgotostation,newcheckgotostation,1,1
-
-	testflags gotodepot
-	jnc .skip
-
-	add edi,byte 0x5e+lastediadj+8*WINTTDX
-	storefragment newcheckgotoowner
-	add edi,byte 0x34+lastediadj
-	storefragment newcheckgototype
-
-.skip:
-	patchcode oldselectorder,newselectorder,1,1
-	mov edi,[copyvehordersfn]
-	add edi,17
-	storefragment newcopyoldorder
-	patchcode oldshoworderhint,newshoworderhint,1,1
-	ret
 
 begincodefragments
 
@@ -105,3 +83,26 @@ codefragment newshoworderhint
 	setfragmentsize 8
 
 endcodefragments
+
+patchschedulefuncs:
+	multipatchcode oldfullloadtext,newfullloadtext,4
+	patchcode olddeletetext1,newdeletetext,1,1
+	storeaddress findorderhints,1,1,orderhints
+	multipatchcode olddeletetext2,newdeletetext,3
+	patchcode oldcheckgotostation,newcheckgotostation,1,1
+
+	testflags gotodepot
+	jnc .skip
+
+	add edi,byte 0x5e+lastediadj+8*WINTTDX
+	storefragment newcheckgotoowner
+	add edi,byte 0x34+lastediadj
+	storefragment newcheckgototype
+
+.skip:
+	patchcode oldselectorder,newselectorder,1,1
+	mov edi,[copyvehordersfn]
+	add edi,17
+	storefragment newcopyoldorder
+	patchcode oldshoworderhint,newshoworderhint,1,1
+	ret

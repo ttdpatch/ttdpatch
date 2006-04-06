@@ -9,20 +9,6 @@ extern defaultstylename,gettextandtableptrs
 
 #include <textdef.inc>
 
-patchnewtownnames:
-	patchcode oldmakeenglishgermanname,newmakeenglishgermanname,1,1
-	patchcode oldensuretownnamelength,newensuretownnamelength,1,1
-	patchcode oldmakeenglishgermanseed,newmakeenglishgermanseed,1,1
-	mov ax,ourtext(unnamedtownnamestyle)
-	call gettextandtableptrs
-	mov [defaultstylename],edi
-	patchcode oldtownnamestyledropdown,newtownnamestyledropdown,1,1
-	patchcode oldtownnamestyledisplay,newtownnamestyledisplay,1,1
-	patchcode oldtownnameselect,newtownnameselect,1,1
-	ret
-
-
-
 begincodefragments
 
 codefragment oldmakeenglishgermanname
@@ -74,3 +60,15 @@ codefragment newtownnameselect
 	call runindex(townnameselect)
 
 endcodefragments
+
+patchnewtownnames:
+	patchcode oldmakeenglishgermanname,newmakeenglishgermanname,1,1
+	patchcode oldensuretownnamelength,newensuretownnamelength,1,1
+	patchcode oldmakeenglishgermanseed,newmakeenglishgermanseed,1,1
+	mov ax,ourtext(unnamedtownnamestyle)
+	call gettextandtableptrs
+	mov [defaultstylename],edi
+	patchcode oldtownnamestyledropdown,newtownnamestyledropdown,1,1
+	patchcode oldtownnamestyledisplay,newtownnamestyledisplay,1,1
+	patchcode oldtownnameselect,newtownnameselect,1,1
+	ret

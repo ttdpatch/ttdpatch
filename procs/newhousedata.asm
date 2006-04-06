@@ -17,128 +17,6 @@ ptrvarall newhousedatablock
 ext_frag findvariableaccess,newvariable
 
 global patchnewhousedata
-patchnewhousedata:
-	push newhousedata_size
-	call malloccrit
-	// leave on stack for reloc
-	push newhousedatablock_ptr
-	call reloc
-
-	call clearnewhousesafeguard
-
-// To allow more building types, we redirect the old TTD arrays to
-// bigger ones
-// Before doing that, save the offsets of the old arrays so we can
-// access them later
-	mov esi,housepartflags
-	mov edi,orghouseoffsets
-	xor ecx,ecx
-	mov cl,12
-	rep movsd
-// Update offset vars defined in vars.ah, so all patch code uses the
-// new arrays
-	mov esi,newhouseoffsets
-	mov edi,housepartflags
-	mov cl,12
-	rep movsd
-// Now we need to replace all TTD references to house arrays to use the new
-// ones.
-//baHousePartFlags
-	mov eax,[orghouseoffsets]
-	mov [variabletofind],eax
-	mov dword [variabletowrite],newhousepartflags
-	multipatchcode findvariableaccess,newvariable,2
-//baHouseFlags (also accessed with offsets -1,-2 and -3)
-	mov eax,[orghouseoffsets+4*1]
-	mov [variabletofind],eax
-	mov dword [variabletowrite],newhouseflags
-	multipatchcode findvariableaccess,newvariable,14
-	dec dword [variabletofind]
-	dec dword [variabletowrite]
-	multipatchcode findvariableaccess,newvariable,2
-	dec dword [variabletofind]
-	dec dword [variabletowrite]
-	patchcode findvariableaccess,newvariable,1,1
-	dec dword [variabletofind]
-	dec dword [variabletowrite]
-	patchcode findvariableaccess,newvariable,1,1
-//baHouseAvailYears
-	mov eax,[orghouseoffsets+4*2]
-	mov [variabletofind],eax
-	mov [houseyearsoffset],eax
-	mov dword [variabletowrite],newhouseyears
-	patchcode oldaccesshouseyears,newvariable,1,1
-	mov eax, newhouseyears+1
-	mov [edi+lastediadj+9],eax
-//baHousePopulations
-// 3 of the 4 accesses are overwritten by patchmoretowndata
-// the remaining one needs to be overwritten for the production
-// callback anyway
-	patchcode generatehousecargo
-//baHouseMailGens
-	mov eax,[orghouseoffsets+4*4]
-	mov [variabletofind],eax
-	mov dword [variabletowrite],newhousemailprods
-	patchcode findvariableaccess,newvariable,1,1
-// Accept maps
-	patchcode oldgethouseaccept,newgethouseaccept
-//waHouseRemoveRatings
-	mov eax,[orghouseoffsets+4*8]
-	mov [variabletofind],eax
-	mov dword [variabletowrite],newhouseremoveratings
-	patchcode findvariableaccess,newvariable,1,1
-//baHouseRemoveCostMultipliers
-	mov eax,[orghouseoffsets+4*9]
-	mov [variabletofind],eax
-	mov dword [variabletowrite],newhouseremovemultipliers
-	patchcode findvariableaccess,newvariable,1,1
-//waTownBuildingNames
-	mov eax,[orghouseoffsets+4*10]
-	mov [variabletofind],eax
-	mov dword [variabletowrite],newhousenames
-	patchcode findvariableaccess,newvariable,1,1
-//waHouseAvailMaskTable is accessed from one place only and we need to
-//overwrite it anyway
-	patchcode oldgetrandomhousetype,newgetrandomhousetype,1,1
-
-//	patchcode oldclass3init,newclass3init,1,1
-
-// Now patch codes that assume the house ID being in L2 to use our
-// gameid function instead
-	patchcode oldgethouseidedxebx,newgethouseidedxebx,1,1
-	multipatchcode oldgethouseidebpebx13,newgethouseidebpebx134,2
-	patchcode oldgethouseidebpebx24,newgethouseidebpebx2,1,2
-	patchcode oldgethouseidebpebx24,newgethouseidebpebx134,1,1
-	patchcode oldgethouseidedxedi1,newgethouseidedxedi,1,1
-	patchcode oldgethouseidedxedi2,newcanremovehouse,1,1
-	patchcode oldgethouseidebpesi,newgethouseidebpesi,1,1
-	patchcode oldgethouseidecxedi,newgethouseidecxedi,1,1
-	patchcode oldgethouseidesiebx,newgethouseidesiebx,1,1
-
-	patchcode oldtestcreatechurchorstadium,newtestcreatechurchorstadium,1,1
-	patchcode oldcreatechurchorstadium,newcreatechurchorstadium,1,1
-	patchcode oldremovechurchorstadium,newremovechurchorstadium,1,1
-
-	patchcode oldputhousetolandscape,newputhousetolandscape,1,1
-	patchcode oldgethousegraphics,newgethousegraphics,1,1
-	patchcode oldclass3periodicproc,newclass3periodicproc
-	stringaddress oldmakenewtown,1,2
-	chainfunction expandnewtown,.oldfn
-	patchcode oldclass3animation,newclass3animation,1,1
-	patchcode oldclass3drawfoundation,newclass3drawfoundation,1+WINTTDX,2
-	patchcode oldcheckhouseslopes_short,newcheckhouseslopes,1,4
-	patchcode oldcheckhouseslopes_long,newcheckhouseslopes,2,4
-	patchcode oldcheckhouseslopes_short,newcheckhouseslopes,3,4
-	patchcode oldcheckhouseslopes_long,newcheckhouseslopes,4,4
-	patchcode oldprocesshouseconstruction,newprocesshouseconstruction,1,1
-	patchcode oldchangeconststate,newchangeconststate,1,1
-
-	patchcode placerocks
-
-	patchcode removehousetilefromlandscape
-	ret
-
-
 
 begincodefragments
 
@@ -349,3 +227,124 @@ codefragment newremovehousetilefromlandscape
 
 
 endcodefragments
+
+patchnewhousedata:
+	push newhousedata_size
+	call malloccrit
+	// leave on stack for reloc
+	push newhousedatablock_ptr
+	call reloc
+
+	call clearnewhousesafeguard
+
+// To allow more building types, we redirect the old TTD arrays to
+// bigger ones
+// Before doing that, save the offsets of the old arrays so we can
+// access them later
+	mov esi,housepartflags
+	mov edi,orghouseoffsets
+	xor ecx,ecx
+	mov cl,12
+	rep movsd
+// Update offset vars defined in vars.ah, so all patch code uses the
+// new arrays
+	mov esi,newhouseoffsets
+	mov edi,housepartflags
+	mov cl,12
+	rep movsd
+// Now we need to replace all TTD references to house arrays to use the new
+// ones.
+//baHousePartFlags
+	mov eax,[orghouseoffsets]
+	mov [variabletofind],eax
+	mov dword [variabletowrite],newhousepartflags
+	multipatchcode findvariableaccess,newvariable,2
+//baHouseFlags (also accessed with offsets -1,-2 and -3)
+	mov eax,[orghouseoffsets+4*1]
+	mov [variabletofind],eax
+	mov dword [variabletowrite],newhouseflags
+	multipatchcode findvariableaccess,newvariable,14
+	dec dword [variabletofind]
+	dec dword [variabletowrite]
+	multipatchcode findvariableaccess,newvariable,2
+	dec dword [variabletofind]
+	dec dword [variabletowrite]
+	patchcode findvariableaccess,newvariable,1,1
+	dec dword [variabletofind]
+	dec dword [variabletowrite]
+	patchcode findvariableaccess,newvariable,1,1
+//baHouseAvailYears
+	mov eax,[orghouseoffsets+4*2]
+	mov [variabletofind],eax
+	mov [houseyearsoffset],eax
+	mov dword [variabletowrite],newhouseyears
+	patchcode oldaccesshouseyears,newvariable,1,1
+	mov eax, newhouseyears+1
+	mov [edi+lastediadj+9],eax
+//baHousePopulations
+// 3 of the 4 accesses are overwritten by patchmoretowndata
+// the remaining one needs to be overwritten for the production
+// callback anyway
+	patchcode generatehousecargo
+//baHouseMailGens
+	mov eax,[orghouseoffsets+4*4]
+	mov [variabletofind],eax
+	mov dword [variabletowrite],newhousemailprods
+	patchcode findvariableaccess,newvariable,1,1
+// Accept maps
+	patchcode oldgethouseaccept,newgethouseaccept
+//waHouseRemoveRatings
+	mov eax,[orghouseoffsets+4*8]
+	mov [variabletofind],eax
+	mov dword [variabletowrite],newhouseremoveratings
+	patchcode findvariableaccess,newvariable,1,1
+//baHouseRemoveCostMultipliers
+	mov eax,[orghouseoffsets+4*9]
+	mov [variabletofind],eax
+	mov dword [variabletowrite],newhouseremovemultipliers
+	patchcode findvariableaccess,newvariable,1,1
+//waTownBuildingNames
+	mov eax,[orghouseoffsets+4*10]
+	mov [variabletofind],eax
+	mov dword [variabletowrite],newhousenames
+	patchcode findvariableaccess,newvariable,1,1
+//waHouseAvailMaskTable is accessed from one place only and we need to
+//overwrite it anyway
+	patchcode oldgetrandomhousetype,newgetrandomhousetype,1,1
+
+//	patchcode oldclass3init,newclass3init,1,1
+
+// Now patch codes that assume the house ID being in L2 to use our
+// gameid function instead
+	patchcode oldgethouseidedxebx,newgethouseidedxebx,1,1
+	multipatchcode oldgethouseidebpebx13,newgethouseidebpebx134,2
+	patchcode oldgethouseidebpebx24,newgethouseidebpebx2,1,2
+	patchcode oldgethouseidebpebx24,newgethouseidebpebx134,1,1
+	patchcode oldgethouseidedxedi1,newgethouseidedxedi,1,1
+	patchcode oldgethouseidedxedi2,newcanremovehouse,1,1
+	patchcode oldgethouseidebpesi,newgethouseidebpesi,1,1
+	patchcode oldgethouseidecxedi,newgethouseidecxedi,1,1
+	patchcode oldgethouseidesiebx,newgethouseidesiebx,1,1
+
+	patchcode oldtestcreatechurchorstadium,newtestcreatechurchorstadium,1,1
+	patchcode oldcreatechurchorstadium,newcreatechurchorstadium,1,1
+	patchcode oldremovechurchorstadium,newremovechurchorstadium,1,1
+
+	patchcode oldputhousetolandscape,newputhousetolandscape,1,1
+	patchcode oldgethousegraphics,newgethousegraphics,1,1
+	patchcode oldclass3periodicproc,newclass3periodicproc
+	stringaddress oldmakenewtown,1,2
+	chainfunction expandnewtown,.oldfn
+	patchcode oldclass3animation,newclass3animation,1,1
+	patchcode oldclass3drawfoundation,newclass3drawfoundation,1+WINTTDX,2
+	patchcode oldcheckhouseslopes_short,newcheckhouseslopes,1,4
+	patchcode oldcheckhouseslopes_long,newcheckhouseslopes,2,4
+	patchcode oldcheckhouseslopes_short,newcheckhouseslopes,3,4
+	patchcode oldcheckhouseslopes_long,newcheckhouseslopes,4,4
+	patchcode oldprocesshouseconstruction,newprocesshouseconstruction,1,1
+	patchcode oldchangeconststate,newchangeconststate,1,1
+
+	patchcode placerocks
+
+	patchcode removehousetilefromlandscape
+	ret

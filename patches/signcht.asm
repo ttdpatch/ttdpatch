@@ -20,7 +20,7 @@ extern actionhandler,actionmakewater_actionnum,addexpenses
 extern clearfifodata,clearindustryincargos,deleteconsist
 extern do_win_grfstat_create,errorpopup,findengines,findusedengines
 extern generatesoundeffect,getcurtrainweights,gethouseidebpebx,getymd
-extern hexnibbles,houseflags,industrydatablockptr,int21handler
+extern hexnibbles,houseflags,int21handler
 extern invalidatehandle,isengine,loadremovedvehs,makegrfidlist,makerisingcost
 extern newspritedata,newspritenum,newvehtypeinit,ophandler,patchflags
 extern planttreearea,redrawscreen,redrawtile,resetnewsprites
@@ -2432,21 +2432,20 @@ gotocheat:
 
 resetinducheat:
 	call clearindustryincargos
-	mov esi,[industrydatablockptr]
 	mov edi,[industryarrayptr]
 	mov ecx,90
 .nextindu:
 	cmp word [edi+industry.XY],0
 	je .skipindu
 	movzx eax,byte [edi+industry.type]
-	mov ebx,[esi+8*NINDUSTRIES+eax*2]
+	mov ebx,[industryproducedcargos+eax*2]
 	mov [edi+industry.producedcargos],bx
 	and dword [edi+industry.amountswaiting],0
-	mov bl,[esi+14*NINDUSTRIES+eax]
-	mov bh,[esi+15*NINDUSTRIES+eax]
+	mov bl,[industryprod1rates+eax]
+	mov bh,[industryprod2rates+eax]
 	mov [edi+industry.prodrates],bx
 	mov byte [edi+industry.prodmultiplier],0x10
-	mov ebx,[esi+10*NINDUSTRIES+eax*4]
+	mov ebx,[industryacceptedcargos+eax*4]
 	mov [edi+industry.accepts],bx
 	shr ebx,16
 	mov [edi+industry.accepts+2],bl

@@ -29,4 +29,3 @@ patchstation2array:
 	mov [stationarray2ofst], edi
 .dontdoit:
 	ret
-

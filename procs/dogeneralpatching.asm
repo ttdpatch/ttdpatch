@@ -33,7 +33,7 @@ extern generatesoundeffect,gennewrailvehtypemsg,getdesertmap,getfullymd
 extern getgroundaltitude,getroutemap,gettextwidth,gettileinfo
 extern gettileinfoshort,gettunnelotherend,getymd,groundaltsubroutines
 extern malloccrit,housepartflags,housespritetable,incomequarterstatslist
-extern industrydatabackupptr,industrydatablockptr,industrylayouttableptr
+extern industrydatabackupptr,industrylayouttableptr
 extern infosave,initializegraphics,initializekeymap,initializeveharraysizeptr
 extern int21handler,invalidatehandle,invalidaterect,invalidatetile
 extern isbigplanetable,landshapetospriteptr,loadchunkfn,mainstringtable
@@ -43,7 +43,7 @@ extern newdisplayhandlers,newdisplayhandlers_np,newdisplayhandlersize
 extern newdisplayhandlersize_np,newgraphicssetsenabled,newscenarioinit
 extern newscenarioinit.origfn,newsmessagefn,newspritehandlers
 extern newspritehandlersize,newvehicles,newvehtypeinit,newvehtypeinit.oldfn
-extern oldindutileacceptsbase,openfilefn,ophandler
+extern oldindutileacceptsbase,openfilefn,ophandler,textspechandler
 extern ophandler_ptr,orgsetsprite,orgsetspriteofs,orgspritebases,patchflags
 extern pushownerontextstack,randomfn,readspriteinfofn,readwordfn
 extern reloadenginesfn,reloc,removespritefromcache,resetplanesprite
@@ -56,743 +56,13 @@ extern stationbuildcostptr,statusbarnewsitem,subsidyfn
 extern tempSplittextlinesNumlinesptr,traincosttable,trainpower,trainpower_ptr
 extern treeplantfn,ttdpatchversion,ttdtexthandler,veh2ptr,vehbase,vehbnum
 extern vehclassorder,vehtypedataptr,pickrandomtreefn
-extern waterbanksprites,exitcleanup
+extern waterbanksprites,exitcleanup,oldclass6maphandler,addcargotostation
 extern reduceyeartobyte,reduceyeartoword
-extern titlescreenloading
-extern drawcenteredtextfn,drawsplitcenteredtextfn
-
-ext_frag oldloadfilemask,oldgetdisasteryear
-
-%assign maxverstringlen 64
-uvarb newversionstring, maxverstringlen
-
-	// syntax of patchcode et.al.:
-	//
-	// patchcode oldcode,newcode,hitnum,occur
-	// oldcode is the code fragment with the old code, and newcode
-	// is the code to be replaced with newcode
-	// hitnum is the number of the occurence we want out of a total
-	// of occur occurences.
-	//
-	// there are a few alternative ways of using it, see ttdprot.ah
-	// in particular patchcode stuff which expands to
-	// patchcode oldstuff,newstuff,1,1
-	//
-	// syntax of storeaddress:
-	// storeaddres code,hitnum,occur,index
-	// code, hitnum, occur and labelname are as in patchcode
-	// index is the index where the address is to be saved
-	//
-	// NOTE: You MUST NOT skip searches within a patchproc.
-	//	 If you have to skip a patch under some conditions,
-	//	 use the extended version of the patchcode macro
-	//	 (see ttdprot.ah).
-
-
-	// NOTE! EDX is sacred and may not be modified!
-	//       Also, ECX must be zero before each storefragment.
-	//	 This is automatically the case if you use the
-	//	 predefined macros.
-
-global dogeneralpatching
-dogeneralpatching:
-
-	// this variable is sometimes not initialized properly
-	// it should be the current mouse cursor, but sometimes the
-	// mouse moves before this variable is initialized
-	mov dword [curmousecursor],1
-
-#if !WINTTDX
-	storefunctionaddress findexitcleanup,1,1,exitcleanup
-#else
-	storeaddress oldint21handler,1,1,int21handler
-#endif
-//	storeaddress findttdcriterrorfn,1,1,ttdcriterrorfn
-
-	storeaddress oldtexthandler,1,1,ttdtexthandler
-	storefragment newtexthandler
-
-	// get the address of the main handler array
-//	mov eax,[edi+lastediadj+0x1c]
-//	mov [mainhandlertable],eax
-	param_call reloc, dword [edi+lastediadj+0x1c],ophandler_ptr
-
-	// and the general text table
-	mov eax,[edi+lastediadj+0x27]
-	mov [mainstringtable],eax
-
-	mov esi,newversionstring
-	mov edi,esi
-	mov [eax+0x15b*4],esi
-	xchg esi,[eax+0x307*4]
-
-	// build new version string; append TTDPatch version
-	mov ecx,maxverstringlen-1
-.nextbyte:
-	lodsb
-	test al,al
-	jnz .notdone
-	mov al,','
-.notdone:
-	stosb
-	loopnz .nextbyte
-
-	mov esi,ttdpatchversion
-
-.nextbyte2:
-	lodsb
-	cmp al,'('
-	jne .notdone2
-	mov al,0
-.notdone2:
-	stosb
-	loopne .nextbyte2
-
-	storeaddress findgetymd,3,3,getymd
-	mov [getfullymd],edi
-
-	call initializekeymap
-
-	// install a new vehtype data init handler
-	mov edi,[ophandler+0xF*8]
-	mov eax,[edi]
-	mov [newvehtypeinit.oldfn],eax
-	mov dword [edi],addr(newvehtypeinit)
-
-	// while we're at it, get a few other TTD locations
-	add eax,byte 11
-	mov [reloadenginesfn],eax
-	lea edi,[eax+24]
-	mov eax,[eax+1]
-	mov [vehtypedataptr],eax
-	storefragment newsetintrodate
-
-#if WINTTDX
-	storeaddresspointer findvehiclecosttable,3,4,traincosttable
-	storeaddresspointer findvehiclecosttable,2,4,roadvehcosttable
-	storeaddresspointer findvehiclecosttable,4,4,shipcosttable
-	storeaddresspointer findvehiclecosttable,1,4,aircraftcosttable
-	storeaddresspointer findddrawpaletteobj,1,1,ddrawpaletteptr
-#else
-	storeaddresspointer findvehiclecosttable,1,4,traincosttable
-	storeaddresspointer findvehiclecosttable,2,4,roadvehcosttable
-	storeaddresspointer findvehiclecosttable,3,4,shipcosttable
-	storeaddresspointer findvehiclecosttable,4,4,aircraftcosttable
-#endif
-	storefunctionaddress findinvalidaterect,1,1,invalidaterect
-	storefunctionaddress findinvalidatehandle,1,0,invalidatehandle
-	storeaddress findinvalidatetile,1,1,invalidatetile
-	patchcode oldredrawdone,newredrawdone,1,1
-	storefunctionaddress finderrorpopup,1,1,errorpopup
-	storefunctionaddress findrandomfn,1,1,randomfn
-	storefunctionaddress findactionhandler,1,1,actionhandler
-	storeaddress findmakerisingcost,1,1,makerisingcost
-	stringaddress oldloadfilemask,1,1
-	mov eax,[edi+0x23]
-	mov dword [scenedactiveptr],eax
-
-	storefunctionaddress findacceptcargo,1,1,acceptcargofn
-	storeaddress findprofitcalc,1,1,calcprofitfn
-
-	storeaddresspointer findstatusbarnewsitem,1,1,statusbarnewsitem
-	storeaddresspointer brakeindex,1,1,brakespeedtable
-	storeaddresspointer findisbigplane,1,1,isbigplanetable
-	storefunctionaddress finddeleteveharrayentry,1,1,delveharrayentry
-	storeaddress finddeletevehschedule,1,1,delvehschedule
-	storefunctionaddress findnewsmsgfunction,1,1,newsmessagefn
-	storeaddresspointer findaicargovehinittables,1,1,aicargovehinittables
-	storeaddresspointer findcurtooltracktype,1,1,curtooltracktypeptr
-	storeaddress findaddsprite,1,1,addsprite
-	add edi,0x10c
-	mov [addlinkedsprite],edi
-	add edi,0xf1
-	mov [addrelsprite],edi
-	mov eax,[ophandler]
-	mov edi,[eax+0x1c]
-#if WINTTDX
-	// in WinTTDX it's a jump to the function, not the function itself
-	mov eax,[edi+0x40]
-	lea edi,[edi+eax+0x44]
-	storefunctiontarget 1,addgroundsprite
-#else
-	storefunctiontarget 0x40,addgroundsprite
-#endif
-	mov [addrailgroundsprite],eax
-
-	storeaddresspointer findlandshapetosprite,1,1,landshapetospriteptr
-	storeaddress findwaterbanksprites,1,1,waterbanksprites
-	storeaddress findgetgroundaltitude,1,1,getgroundaltitude
-	storefunctiontarget 12,gettileinfo	// depends on ^^
-	mov eax,[edi+40]
-	mov [groundaltsubroutines],eax
-	// steep slope support (should be in buildonslopes)
-	add edi, 24
-	mov byte [edi-1], 0x90
-	storefunctioncall calcexactgroundcornermapcopy
-
-	mov eax, [gettileinfo]
-	add eax, 0x29
-	mov [gettileinfoshort], eax
-
-	storeaddress findgetroutemap,1,1,getroutemap
-	storeaddress findgetdesertmap,1,1,getdesertmap
-	storefunctionaddress findcleartilefn,1,1,cleartilefn
-	storefunctionaddress findcallcheckvehiclesintheway,1,1,checkvehiclesinthewayfn
-
-	stringaddress findhousepopulationtable,1,1
-	mov eax,[edi]
-	mov edi,housepartflags
-	sub eax,443
-	stosd		//baHousePartFlags
-	add eax,113
-	stosd		//baHouseFlags
-	add eax,110
-	stosd		//baHouseAvailYears
-	add eax,220
-	stosd		//baHousePopulations
-	add eax,110
-	stosd		//baHouseMailGens
-	add eax,110
-	stosd		//baHouseAcceptPass
-	add eax,110
-	stosd		//baHouseAcceptMail
-	add eax,110
-	stosd		//baHouseAcceptGoodsOrFood
-	add eax,110
-	stosd		//waHouseRemoveRatings
-	add eax,220
-	stosd		//baHouseRemoveCostMultipliers
-	add eax,110
-	stosd		//waTownBuildingNames
-	add eax,220
-	stosd		//waHouseAvailMaskTable
-	
-	storeaddresspointer findhousespritetable,1,1,housespritetable
-	storeaddresspointer findbridgespritetables,1,1,bridgespritetables
-
-	sub eax,0x40
-	mov [specificpropertybase+6*4],eax
-
-	storeaddress findbridgespeeds,1,1,bridgedata+0*4
-
-	storeaddresspointer findaiactiontable,1,2,aiactiontable
-
-	patchcode oldinitializeveharray,newinitializeveharray
-	lea eax,[edi+lastediadj-10+6*WINTTDX]
-	mov [initializeveharraysizeptr],eax
-
-	storeaddresspointer findcurrscreenupdateblockptr,1,1,currscreenupdateblock
-	storefunctionaddress finddrawspritefn,1,1,drawspritefn
-	storefunctionaddress finddrawtextfn,1,1,drawtextfn
-	storefunctionaddress finddrawrighttextfn,1,1,drawrighttextfn
-	storefunctionaddress finddrawcenteredtextfn,1,1,drawcenteredtextfn
-	storefunctionaddress finddrawsplitcenteredtextfn,1,1,drawsplitcenteredtextfn
-	storeaddress finddrawsplittextfn,2,2,drawsplittextfn
-	add edi,173
-	mov [splittextlines],edi
-	mov eax,[edi+12]
-	mov [tempSplittextlinesNumlinesptr],eax
-	add edi,132
-	storefragment newsplittextlines_done
-	storeaddress findfillrectangle,1,1,fillrectangle
-	storeaddress finddrawrectangle,1,1,drawrectangle
-
-	storeaddress findDrawStationImageInSelWindow,DrawStationImageInSelWindow
-	storeaddresspointer findstationbuildcostptr,1,2,stationbuildcostptr
-	storeaddress findpushownerontextstack,1,1,pushownerontextstack
-	storeaddress findTransmitAction,1,1,TransmitAction
-
-	storeaddress findDistributeProducedCargo,1,1,DistributeProducedCargo
-
-	// these offsets are needed for newindustries save/restore
-	// this code *must* run before initializegraphics or industry action 0s will break
-	storeaddresspointer findindustrydatablock,1,1,industrydatablockptr
-	storeaddresspointer findindustrylayouttable,1,1,industrylayouttableptr
-
-	stringaddress oldclass8queryhandler
-	mov eax,[edi+9+2*WINTTDX]
-	mov [oldindutileacceptsbase],eax
-
-	testflags newindustries
-	jnc .nonewindus
-	storefunctioncall class8queryhandler
-	#if WINTTDX
-	mov word [edi+5],0x9090		// the Win version has two more bytes to be overwritten
-	#endif
-	push dword 925+296
-	call malloccrit
-	pop dword [industrydatabackupptr]
-
-.nonewindus:
-
-	stringaddress findgraphicsroutines,1,1
-
-	storefunctiontarget 12,openfilefn
-	add edi,56+3*WINTTDX
-	mov eax,[edi+8]
-	mov dword [curfileofsptr],eax
-
-	storefunctiontarget 17,readwordfn
-	add eax,17
-	mov [copyspriteinfofn],eax
-	add eax,64
-	mov [readspriteinfofn],eax
-	add eax,0x89
-	mov [decodespritefn],eax
-
-	call initializegraphics
-
-	patchcode oldchkactionshiftkeys,newchkactionshiftkeys,1,1
-	add edi,lastediadj+0x98
-	storefragment setcurplayershiftkeys
-	add edi,lastediadj+0xe1
-	storefragment setcurplayershiftkeys
-
-	patchcode oldmakenewhumans,newmakenewhumans,1,1
-	mov eax,[ophandler+0xc*8]
-	mov eax,[eax+4]
-	mov eax,[eax+3]
-	mov edi,[eax+6*4]
-	mov dword [byte eax+6*4],addr(newscenarioinit)
-	storerelative newscenarioinit.origfn,edi
-
-	patchcode oldaistationrating,newaistationrating,1,1
-	patchcode oldplayertype1,newplayertype1,1,1
-	patchcode oldplayertype2,newplayertype2,1,2
-	patchcode oldplayertype2,newplayertype2,2,2
-	patchcode oldplayertype3,newplayertype3,1,1
-	patchcode oldplayertype4,newplayertype4,1,1
-	patchcode oldaibuilding,newaibuilding,1,1
-
-		// this code must always be patched so that games
-		// saved with new graphics don't crash or display wrong
-	xor ebp,ebp
-.nextvehclass:
-	lea eax,[ebp+1]
-	stringaddress oldgetvehsprite,eax,4
-
-	mov eax,[edi+3]
-	mov [orgspritebases+ebp*4],eax
-
-#if WINTTDX
-		// numbers 0 and 2 change place in WINTTDX
-	movzx esi,byte [vehclassorder+ebp]
-	%define ORDER esi
-#else
-	%define ORDER ebp
-#endif
-
-	movsx eax,byte [orgsetspriteofs+ORDER]
-	add eax,edi
-	mov [orgsetsprite+ORDER*4],eax
-
-	// can't do a computed storefragment, so do it by hand...
-	mov esi,[newspritehandlers+ebp*4]
-	mov cl,[newspritehandlersize+ebp]
-	rep movsb
-
-	lea eax,[ebp-4]
-	add eax,eax
-	neg eax
-
-	stringaddress olddisplayveh,1,eax	// find number 1 out of 8-2*ebp
-
-	mov esi,[newdisplayhandlers+ebp*4]
-	mov cl,[newdisplayhandlersize+ebp]
-	rep movsb
-
-	stringaddress olddisplayveh,1,0		// just find the next one
-						// (this one is for exclusive offers/newspaper announcements)
-
-	mov esi,[newdisplayhandlers_np+ebp*4]
-	mov cl,[newdisplayhandlersize_np+ebp]
-	rep movsb
-
-	lea eax,[ebp+1]
-	stringaddress findvehinfo,eax,4
-
-#if WINTTDX
-		// numbers 0 and 2 change place in WINTTDX
-	movzx esi,byte [vehclassorder+ebp]
-#endif
-	setbase ebx,specificpropertybase
-
-	mov edi,[edi]
-	mov al,[vehbase+ORDER]
-	add edi,eax
-
-	mov al,[vehbnum+ORDER]
-	imul byte [specificpropertyofs+ORDER]
-	cwde
-
-	add eax,edi
-	mov [specificpropertybase+ORDER*4],eax
-
-	test ORDER,ORDER
-	jnz .nottrains
-
-	add eax,trainpower-AIspecialflag
-	param_call reloc, eax,trainpower_ptr
-
-.nottrains:
-	setbase none
-%undef ORDER
-
-	inc ebp
-	cmp ebp,4
-	jb .nextvehclass
-
-	// a coupl more for planes: the shadow sprite...
-	patchcode oldgetothervehsprite,newgetshadowsprite,1,1
-
-	// and the helicopter rotor
-	patchcode olddisprotor1,newdisprotor1,1,1
-	patchcode olddisprotor2,newdisprotor2,1,2
-	patchcode olddisprotor2,newdisprotor2,1,0
-	patchcode oldinitrotor,newinitrotor,1,1
-	patchcode oldcheckrotor,newcheckrotor,1,2
-	patchcode oldstoprotor,newstoprotor,1,1
-	add edi,lastediadj+34
-	storefragment newadvancerotor
-	mov eax,addr(resetplanesprite)
-	xchg eax,[orgsetsprite+3*4]
-	storerelative resetplanesprite.oldfn,eax
-
-	// and two more for trains: showing the first engine
-	// (above codes finds showing the second one)
-	patchcode olddisplay1steng,newdisplay1steng,1,2
-	patchcode olddisplay1steng,newdisplay1steng_noplayer,1,0
-
-	call infosave
-
-	patchcode olddecidesmoke,newdecidesmoke,1,1
-	storerelative showsteamsmoke,edi+lastediadj+11
-	mov byte [edi+lastediadj+12],0x20
-	mov byte [edi+lastediadj+16],0x30
-	mov byte [edi+lastediadj+24],0x40
-
-	patchcode oldsteamposition,newsteamposition,1,0
-
-	patchcode olddecidesound,newdecidesound,1,1
-
-	patchcode oldtunnelsound,newtunnelsound,1,1
-
-	stringaddress olddoessteamelectricsmoke,1,3
-	inc byte [edi+1]
-	inc byte [edi+8]
-	inc byte [edi+15]
-
-	stringaddress olddoessteamelectricsmoke,1,0
-	inc byte [edi+8+4*WINTTDX]
-	inc byte [edi+15+4*WINTTDX]
-	storefragment newsteamamount
-
-	patchcode olddoesdieselsmoke,newdoesdieselsmoke,1,1
-	inc byte [edi+lastediadj-9]
-	inc byte [edi+lastediadj+13]
-
-	patchcode oldsparkprobab,newsparkprobab,1,1
-
-	patchcode olddieselsmoke,newdieselsmoke,1,1
-	stringaddress oldadvancesteamplume,2,2
-
-	mov cl,[moresteamsetting]	// 1x=>7, 2x=>15, 3x=>31 etc.
-	shr cl,4
-	mov al,4
-	shl al,cl
-	dec al
-	mov [edi],al
-
-.notmoresteam:
-
-	patchcode collectsprites_vehcolor
-	multipatchcode oldvehinwindow_color,newvehinwindow_color,8
-	multipatchcode oldbuyvehwindow_color,newbuyvehwindow_color,4
-
-	patchcode oldcompanysold,newcompanysold,1,1
-	storeaddress findclosecompanywindows,1,1,closecompanywindows
-//	storeaddresspointer findcargoweights,1,1,cargoweightfactors
-
-	// following patchcodes are to maintain veh.engineidx
-	patchcode oldclearnextunitidx,newcreatevehentry,byte (1+WINTTDX),7
-
-	// buy waggon/2nd engine and attach to train
-	patchcode oldattachtoedi,newattachboughtveh,1,3
-	patchcode oldattachtoedi,newattachboughtveh,1,0
-
-#if WINTTDX
-	patchcode oldattachtoesi,newattachtoesi,1,2
-	add edi,lastediadj+88
-	storefragment newattachtoedx
-#endif
-
-	// move waggon in depot
-	patchcode oldattachtoedi,newdetachveh,1,0		 // detach
-	mov byte [edi+lastediadj+24],0x40			 // change esi->eax
-	add edi,lastediadj-15
-	storefragment newnextfirstwagon
-	patchcode oldattachtoesi,newinsertveh,1,byte 2-2*WINTTDX // reattach
-
-#if !WINTTDX
-	patchcode oldattachtoesi,newattachtoesi,1,0
-	add edi,lastediadj+88
-	storefragment newattachtoedx
-#endif
-
-	multipatchcode oldattachdisasterveh,newattachdisasterveh,7
-
-	patchcode oldsellwagonnewleader,newsellwagonnewleader
-
-	patchcode oldmovedcheckiswaggon,newmovedcheckiswaggonp2,1,1
-	add edi,lastediadj-12
-	storefragment newmovedcheckiswaggon
-
-	patchcode oldmovedcheckiswaggonui,newmovedcheckiswaggonui,1,1
-
-		// must be in dogeneralpatching not generalfixes
-	multipatchcode oldgettrainrunningcost,newgettrainrunningcost,2
-
-		// this fixes a crash with exclusive offers of new wagons
-		// better would be to display a different window which
-		// does not display speed/power/running cost at all
-		// but that's for later
-	add edi,lastediadj+13
-	storefragment newgettrainrunningcostmultiplier
-
-	add edi,lastediadj+72
-	copyrelative doshownewrailveh,5
-	storefragment newshownewrailveh
-
-	patchcode oldnewvehavailable,newnewvehavailable,1,1
-
-	// prevent wagons that may appear during gameplay
-	// from affecting construction options;
-	// also make sure they display the correct type name
-	patchcode oldgetrailengclassname,newgetrailengclassname,1,2
-	add edi,lastediadj+115
-	dec byte [edi]					// MOVZX reg32,r/m16 -> MOVZX reg32,r/m8
-	add edi,80
-	dec byte [edi]					// same here
-	dec byte [edi+85]				// same here
-	add edi,104
-	storefragment newgetrailengclassname
-	dec byte [edi+lastediadj+39]			// and once again
-	patchcode oldgetvehclassname,newgetvehclassname,1,1
-	patchcode oldupdaterailtype1,newupdaterailtype1,1,1
-	changereltarget lastediadj+0x51,addr(gennewrailvehtypemsg)
-	patchcode oldupdaterailtype2,newupdaterailtype2,1,1
-
-	stringaddress findclosevehwindow,4,4
-	mov ebx,edi
-	stringaddress findclosevehwindow,1+WINTTDX,4
-	mov byte [edi],0xe9
-	lea eax,[ebx-5]
-	sub eax,edi
-	mov [edi+1],eax
-	stringaddress findclosevehwindow,1,0
-	mov byte [edi],0xe9
-	lea eax,[ebx-5]
-	sub eax,edi
-	mov [edi+1],eax
-
-	patchcode oldfirstrvarrival,newfirstrvarrival,1,1
-
-	storeaddress findplanttree,1,3,treeplantfn
-
-	stringaddress skipnonprintingchars,1,1
-	mov byte [edi],0x7b
-	mov byte [edi+0x6f],0x5b
-	mov byte [edi+0xde],0x3b
-	add edi,byte -0x60
-	mov [setcharwidthtablefn],edi
-
-	storeaddress finddeductvehruncost,1,1,deductvehruncost
-	mov eax,[edi+lastediadj+0x39]
-	mov [incomequarterstatslist],eax
-	storeaddress findaddexpenses,1,1,addexpenses
-
-	storeaddress findmakesubsidy,1,1,subsidyfn
-	storeaddress findsearchcollidingvehs,1,1,searchcollidingvehs
-	
-	// find some GUI functions in TTD
-	storefunctionaddress findBringWindowToForeground,1,1,BringWindowToForeground
-	storefunctionaddress findCreateWindow,1,2,CreateWindow
-	storefunctionaddress findWindowClicked,1,1,WindowClicked
-	storefunctionaddress findDestroyWindow,1,1,DestroyWindow
-	storefunctionaddress findWindowTitleBarClicked,1,1,WindowTitleBarClicked
-	storefunctionaddress findDrawWindowElements,1,2,DrawWindowElements
-	storeaddress findFindWindow,1,1,FindWindow
-	storeaddress findGenerateDropDownMenu,1,1,GenerateDropDownMenu
-	storeaddress findCreateTooltip,1,1,CreateTooltip
-	storeaddress findRefreshWindowArea,1,1,RefreshWindowArea
-	storeaddress findRefreshLandscapeRect,1,1,RefreshLandscapeRect
-	storeaddress findScreenToLandscapeCoords,1,1,ScreenToLandscapeCoords
-	storeaddress findRefreshLandscapeHighlights,1,1,RefreshLandscapeHighlights
-	storeaddress findsetmousetool,1,1,setmousetool
-	storeaddress findsetmousecursor,1,1,setmousecursor
-	storeaddress findgetmainviewwindow,1,1,GetMainViewWindow
-	storeaddress findCreateWindowRelative,1,1,CreateWindowRelative
-	storeaddress findsetmainviewxy,1,1,setmainviewxy
-
-	mov eax,[ophandler+0x0b*8]
-	mov dword [eax+0x10],addr(newclass0Bactionhandler)
-
-	// patch the load and save code - four occurences: LSLL
-
-	// find the addresses needed by the load and save functions
-	storeaddress findloadchunkfn,1,1,loadchunkfn
-	storeaddress findsavechunkfn,1,1,savechunkfn
-
-	// patch all four occurences of the save/load routine
-	patchcode oldloadsave,newload,1,4	// Load savegame
-	patchcode oldloadsave,newsave,1,0	// Save
-	patchcode oldloadsave,newloadtitle,1,0	// Load title
-	patchcode oldloadsave,newload,1,0	// Load predefined game
-
-	// catch the end of a game load, to signal any errors
-	stringaddress oldendofload,1,1
-	copyrelative endofloadtarget,2
-	storefragment newendofload
-
-	patchcode oldendoftitleload,newendoftitleload,2,3
-
-	mov eax,[ophandler+0x0d*8]
-	mov esi,addr(newclassdinithnd)
-	xchg esi,[eax]
-	storerelative newclassdinithnd.oldfn,esi
-	call setbasecostmultdefault
-
-	storefunctionaddress findgeneratesoundeffect,1,1,generatesoundeffect
-
-	patchcode oldsettracktypedefault,newsettracktypedefault,1,1
-	storeaddress findremovespritefromcache,1,1,removespritefromcache
-#if WINTTDX
-	storeaddresspointer findspritecacheptr,1,1,spritecacheptr
-#endif
-	storeaddress oldsavevehorders,1,1,savevehordersfn
-	storeaddress oldcopyoldorder,1,1,copyvehordersfn
-
-	multipatchcode oldshowvehstat,newshowvehstat,4
-
-	imul eax,[newvehicles],byte veh2_size
-	push eax
-	call malloccrit
-	pop dword [veh2ptr]
-	// don't init here yet, it'll mess up searching...
-
-	patchcode cleartile
-
-	// fix some slider bugs
-	patchcode oldgetsliderposition,newgetsliderposition,1,1
-
-	// make dropdown-menu's always wide enought to fit contents
-	patchcode oldcalcdropdownmenuwidth,newcalcdropdownmenuwidth,1,1
-	storefunctionaddress findgettextwidth,gettextwidth
-	
-	stringaddress findgettunnellength
-	dec word [edi]		// TTD always counts one tile too many
-	sub edi,7
-	mov [gettunnelotherend],edi
-
-	patchcode lookforsamewagontype
-	patchcode preparenewveharrentry
-
-		// refresh caches when changing player color
-	mov eax,[ophandler+0x0d*8]
-	mov edi,[eax+0x10]	// actionhandler
-	mov edi,[edi+8]
-	mov esi,addr(changecolorscheme)
-	xchg esi,[edi]
-	storerelative changecolorscheme.origfn,esi
-
-	storeaddress pickrandomtreefn
-	ret
-
-global newsavename
-newsavename:
-	// set default file name
-	patchcode oldsavedefaultname,newsavedefaultname,1,1
-	mov word [edi+lastediadj-6],0x6890	// nop; push imm32; to push address
-	ret
-
-// shares code fragments
-global patchusenewnonstop
-patchusenewnonstop:
-	patchcode nonstop1old,nonstop1new,1,1
-	patchcode nonstop2old,nonstop2new,1,1
-	patchcode showordertype
-	ret
-
-global patcheternalgame
-patcheternalgame:
-	patchcode oldprintdate,newprintdate,1,3
-	patchcode oldprintdate,newprintdate,1,0
-	mov edi,[getymd]
-	lea eax,[edi+getymd.fullyearentryoffset]
-	mov [getfullymd],eax
-	storefragment newgetymd
-	patchcode oldisnewyear,newisnewyear,1,1
-	patchcode oldgetdisasteryear,newgetdisasteryear,1,1
-	multipatchcode oldgetvehintroyear,newgetvehintroyear,4
-	stringaddress getfinanceswindowyears,1,1
-#if WINTTDX
-	mov eax,[getymd]				// WinTTD calls a jump to getymd, not getymd itself
-	sub eax,edi					// we have to calculate [getymd]-edi, storerelative can't do it
-	add eax,byte getymd.wordyearentryoffset-4	// so we do it manually
-	mov [edi],eax
-#else
-	add dword [edi],byte getymd.wordyearentryoffset	// direct call -- we can save on space
-#endif
-	stringaddress reccompanylaunchyear,1,1
-#if WINTTDX
-	mov eax,[getymd]				// same here
-	sub eax,edi
-	add eax,byte getymd.wordyearentryoffset-4
-	mov [edi],eax
-#else
-	add dword [edi],byte getymd.wordyearentryoffset
-#endif
-	patchcode oldgetgraphstartyear,newgetgraphstartyear,1,1
-	multipatchcode oldshowyearbuilt,newshowyearbuilt,4
-	ret
-
-patchsharedorders:
-	patchcode oldshowendoforders,newshowendoforders,1,1
-	multipatchcode oldadjustorders,newadjustorders,2
-	patchcode olddeletepressed,newdeletepressed,1,1
-	patchcode olddeletevehschedule,newdeletevehschedule,1,1
-	ret
-
-
-
-global patchsignals
-patchsignals:
-	storeaddress oldstartsignalsloop,1,1,startsignalloopfn
-	testmultiflags presignals,extpresignals
-	jz near .nopresignals
-	storefragment newstartsignalsloop
-	add edi,byte 0x44+lastediadj
-
-	storefragment newsignalsloop
-	mov eax,[edi+18+lastediadj]
-	mov dword [signalchangeopptr],eax
-
-	add edi,byte 0x9d-0x44+lastediadj
-	storefragment newsignalsloopend
-
-	copyrelative fnredrawsquare,lastediadj-15
-
-	patchcode oldnewsignalsetup,newnewsignalsetup,1,1
-	patchcode oldremovesignal,newremovesignal,1,1
-	mov byte [edi+0xa],-1	// disarm the AND
-	patchcode oldremovesignalcost,newremovesignalcost,1,1
-	patchcode olddemolishtrackcall,newdemolishtrackcall,1,1
-
-	patchcode oldenterdepot,newenterdepot,1,1
-
-	or byte [newgraphicssetsenabled],1 << 4
-.nopresignals:
-	ret
+extern titlescreenloading, class0procmidsection, checkroadremovalconditions
+extern drawcenteredtextfn,drawsplitcenteredtextfn, RefreshWindows
+extern addrailfence1,addrailfence2,addrailfence3,addrailfence4
+extern addrailfence5,addrailfence6,addrailfence7,addrailfence8
+extern rvcheckovertake
 
 begincodefragments
 
@@ -977,9 +247,8 @@ codefragment oldtexthandler
 	mov si,ax
 	and eax,0x7ff
 
-codefragment newtexthandler
-	call runindex(texthandler)
-	jc $+2+0x23
+codefragment_jmp newtexthandler,newtexthandler,5
+codefragment_jmp newtextprocessing,textprocessing,5
 
 codefragment newsetintrodate
 	call runindex(setintrodate)
@@ -1078,6 +347,8 @@ codefragment findgetgroundaltitude
 	push cx
 	and al,0xF0
 
+codefragment_call newcalcexactgroundcornermapcopy,calcexactgroundcornermapcopy,5
+
 codefragment findgetroutemap,-23-2*WINTTDX
 	call dword [ebp+0x24]
 	ret
@@ -1100,6 +371,11 @@ codefragment findcleartilefn,-4
 codefragment findcallcheckvehiclesintheway,-10
 	mov word [operrormsg2],0x1007
 	push bx
+
+codefragment findcheckroadremovalconditions,-17
+	mov     word [operrormsg2], 0FFFFh
+	push    bx
+
 
 glob_frag oldcompletehousecreated
 codefragment oldcompletehousecreated,-8
@@ -1202,6 +478,8 @@ codefragment oldclass8queryhandler
 #else
 	db 0x67,0x65,0xf,0xb6,0x1d
 #endif
+
+codefragment_call newclass8queryhandler,class8queryhandler,5+2*WINTTDX
 
 codefragment findgraphicsroutines
 	push ax
@@ -1678,6 +956,10 @@ codefragment findCreateWindowRelative
 	or cl,cl
 	jns $+2+0x6b
 
+codefragment findRefreshWindows, 7
+	mov     al, 2
+	mov     bx, 0
+
 codefragment findsetmainviewxy
 	push esi
 	mov esi, windowstack_default
@@ -1853,12 +1135,6 @@ codefragment finddrawsplitcenteredtextfn,9
 	push    dx
 	mov     bp, 276
 
-
-endcodefragments
-
-begincodefragments
-
-
 #if !WINTTDX
 codefragment findexitcleanup,-4
 	mov ax,0x4C00
@@ -1877,5 +1153,880 @@ codefragment findpickrandomtreefn,-27
 	xor ch,ch
 	imul cx,12
 
+codefragment findclass0procmidsection,1
+	pop	ebx
+	cmp	byte [climate], 1
+
+codefragment findaddcargotostation,-9
+	and cx, 0FFFh
+	add cx, ax
+
+codefragment findrvcheckovertake, 5
+	mov     dword [esi+veh.delx], ebx
+	pop     ebx
+	retn
+	
+codefragment olddemolishroadcall,1
+	push edi
+	mov esi,0x10010
+
+codefragment newdemolishroadcall
+	call runindex(demolishroadcall)
+	setfragmentsize 10
+
+codefragment findAddRailFenceSprite1,-3
+        push    edi
+        push    esi
+        inc     cl
+        mov     ebx, 1301
+
+
+codefragment findAddRailFenceSprite2,-3
+        push    edi
+        push    esi
+        add     cl, 0Fh
+
+codefragment findAddRailFenceSprite3, -3
+        push    edi
+        push    esi
+        inc     al
+        mov     ebx, 1302
+
+codefragment findAddRailFenceSprite4, -3
+        push    edi
+        push    esi
+        add     al, 0Fh
+        mov     ebx, 1302
+
+codefragment findAddRailFenceSprite5, -3
+        push    edi
+        push    esi
+        add     al, 8
+        add     cl, 8
+        mov     ebx, 1303
+        test    di, 1
+
+codefragment findAddRailFenceSprite6, -3
+        push    edi
+        push    esi
+        add     al, 8
+        add     cl, 8
+        mov     ebx, 1303
+        test    di, 4
+
+codefragment findAddRailFenceSprite7, -3
+        push    edi
+        push    esi
+        add     al, 8
+        add     cl, 8
+        mov     ebx, 1304
+        test    di, 8
+
+codefragment findAddRailFenceSprite8, -3
+        push    edi
+        push    esi
+        add     al, 8
+        add     cl, 8
+        mov     ebx, 1304
+        test    di, 2
 
 endcodefragments
+
+ptrvarall industrydatablock
+
+ext_frag oldloadfilemask,oldgetdisasteryear
+
+%assign maxverstringlen 64
+uvarb newversionstring, maxverstringlen
+
+	// syntax of patchcode et.al.:
+	//
+	// patchcode oldcode,newcode,hitnum,occur
+	// oldcode is the code fragment with the old code, and newcode
+	// is the code to be replaced with newcode
+	// hitnum is the number of the occurence we want out of a total
+	// of occur occurences.
+	//
+	// there are a few alternative ways of using it, see ttdprot.ah
+	// in particular patchcode stuff which expands to
+	// patchcode oldstuff,newstuff,1,1
+	//
+	// syntax of storeaddress:
+	// storeaddres code,hitnum,occur,index
+	// code, hitnum, occur and labelname are as in patchcode
+	// index is the index where the address is to be saved
+	//
+	// NOTE: You MUST NOT skip searches within a patchproc.
+	//	 If you have to skip a patch under some conditions,
+	//	 use the extended version of the patchcode macro
+	//	 (see ttdprot.ah).
+
+
+	// NOTE! EDX is sacred and may not be modified!
+	//       Also, ECX must be zero before each storefragment.
+	//	 This is automatically the case if you use the
+	//	 predefined macros.
+
+global dogeneralpatching
+dogeneralpatching:
+
+	// this variable is sometimes not initialized properly
+	// it should be the current mouse cursor, but sometimes the
+	// mouse moves before this variable is initialized
+	mov dword [curmousecursor],1
+
+#if !WINTTDX
+	storefunctionaddress findexitcleanup,1,1,exitcleanup
+#else
+	storeaddress oldint21handler,1,1,int21handler
+#endif
+//	storeaddress findttdcriterrorfn,1,1,ttdcriterrorfn
+
+	//CALLINT3
+	storeaddress oldtexthandler,1,1,ttdtexthandler
+	storefragment newtexthandler
+	add edi,lastediadj+43
+	storefragment newtextprocessing
+	lea eax,[edi+lastediadj+62]
+	mov [textspechandler],eax
+
+	// get the address of the main handler array
+//	mov eax,[edi+lastediadj+0x1c]
+//	mov [mainhandlertable],eax
+	param_call reloc, dword [edi+lastediadj-15],ophandler_ptr
+
+#if 0
+	// fix some text handlers to return to texthandler.done when done
+	mov eax,[opclass(3)]
+	mov eax,[eax+8]		// texthandler
+	mov esi,[eax+10]
+	add esi,0xc1*4
+%macro storewrap 2
+	extern gen%1_wrap,gen%1_wrap.orgfn
+	mov eax,gen%1_wrap
+	xchg eax,[esi+%2]
+	storerelative gen%1_wrap.orgfn,eax
+%endmacro
+	storewrap townname1,0
+	storewrap townname2,4
+	mov eax,[opclass(5)]
+	mov eax,[eax+8]
+	mov esi,[eax+10]
+	storewrap statname,0xd1*4
+	mov esi,[opclass(14)]
+	storewrap custname,8
+	mov eax,[opclass(13)]
+	mov eax,[eax+8]
+	mov esi,[eax+9]
+	add esi,0xe4*4
+	// skip 1st and 6th entries, they do proper returning
+	storewrap compname2,4
+	storewrap compname3,8
+	storewrap compname4,12
+	storewrap compname5,16
+#endif
+
+	// and get the general text table
+	mov eax,[edi+lastediadj-4]
+	mov [mainstringtable],eax
+
+	mov esi,newversionstring
+	mov edi,esi
+	mov [eax+0x15b*4],esi
+	xchg esi,[eax+0x307*4]
+
+	// build new version string; append TTDPatch version
+	mov ecx,maxverstringlen-1
+.nextbyte:
+	lodsb
+	test al,al
+	jnz .notdone
+	mov al,','
+.notdone:
+	stosb
+	loopnz .nextbyte
+
+	mov esi,ttdpatchversion
+
+.nextbyte2:
+	lodsb
+	cmp al,'('
+	jne .notdone2
+	mov al,0
+.notdone2:
+	stosb
+	loopne .nextbyte2
+
+	storeaddress findgetymd,3,3,getymd
+	mov [getfullymd],edi
+
+	call initializekeymap
+
+	// install a new vehtype data init handler
+	mov edi,[ophandler+0xF*8]
+	mov eax,[edi]
+	mov [newvehtypeinit.oldfn],eax
+	mov dword [edi],addr(newvehtypeinit)
+
+	// while we're at it, get a few other TTD locations
+	add eax,byte 11
+	mov [reloadenginesfn],eax
+	lea edi,[eax+24]
+	mov eax,[eax+1]
+	mov [vehtypedataptr],eax
+	storefragment newsetintrodate
+
+#if WINTTDX
+	storeaddresspointer findvehiclecosttable,3,4,traincosttable
+	storeaddresspointer findvehiclecosttable,2,4,roadvehcosttable
+	storeaddresspointer findvehiclecosttable,4,4,shipcosttable
+	storeaddresspointer findvehiclecosttable,1,4,aircraftcosttable
+	storeaddresspointer findddrawpaletteobj,1,1,ddrawpaletteptr
+#else
+	storeaddresspointer findvehiclecosttable,1,4,traincosttable
+	storeaddresspointer findvehiclecosttable,2,4,roadvehcosttable
+	storeaddresspointer findvehiclecosttable,3,4,shipcosttable
+	storeaddresspointer findvehiclecosttable,4,4,aircraftcosttable
+#endif
+	storefunctionaddress findinvalidaterect,1,1,invalidaterect
+	storefunctionaddress findinvalidatehandle,1,0,invalidatehandle
+	storeaddress findinvalidatetile,1,1,invalidatetile
+	patchcode oldredrawdone,newredrawdone,1,1
+	storefunctionaddress finderrorpopup,1,1,errorpopup
+	storefunctionaddress findrandomfn,1,1,randomfn
+	storefunctionaddress findactionhandler,1,1,actionhandler
+	storeaddress findmakerisingcost,1,1,makerisingcost
+	stringaddress oldloadfilemask,1,1
+	mov eax,[edi+0x23]
+	mov dword [scenedactiveptr],eax
+
+	storefunctionaddress findacceptcargo,1,1,acceptcargofn
+	storeaddress findprofitcalc,1,1,calcprofitfn
+	storeaddress findaddcargotostation,1,1,addcargotostation
+
+	storeaddresspointer findstatusbarnewsitem,1,1,statusbarnewsitem
+	storeaddresspointer brakeindex,1,1,brakespeedtable
+	storeaddresspointer findisbigplane,1,1,isbigplanetable
+	storefunctionaddress finddeleteveharrayentry,1,1,delveharrayentry
+	storeaddress finddeletevehschedule,1,1,delvehschedule
+	storefunctionaddress findnewsmsgfunction,1,1,newsmessagefn
+	storeaddresspointer findaicargovehinittables,1,1,aicargovehinittables
+	storeaddresspointer findcurtooltracktype,1,1,curtooltracktypeptr
+	storeaddress findaddsprite,1,1,addsprite
+	add edi,0x10c
+	mov [addlinkedsprite],edi
+	add edi,0xf1
+	mov [addrelsprite],edi
+	mov eax,[ophandler]
+	mov edi,[eax+0x1c]
+#if WINTTDX
+	// in WinTTDX it's a jump to the function, not the function itself
+	mov eax,[edi+0x40]
+	lea edi,[edi+eax+0x44]
+	storefunctiontarget 1,addgroundsprite
+#else
+	storefunctiontarget 0x40,addgroundsprite
+#endif
+	mov [addrailgroundsprite],eax
+
+	storeaddresspointer findlandshapetosprite,1,1,landshapetospriteptr
+	storeaddress findwaterbanksprites,1,1,waterbanksprites
+	storeaddress findgetgroundaltitude,1,1,getgroundaltitude
+	storefunctiontarget 12,gettileinfo	// depends on ^^
+	mov eax,[edi+40]
+	mov [groundaltsubroutines],eax
+	// steep slope support (should be in buildonslopes)
+	add edi, 24
+	mov byte [edi-1], 0x90
+	storefragment newcalcexactgroundcornermapcopy
+
+	mov eax,[ophandler+0x06*8]
+	mov eax, [eax+0x24]
+	mov [oldclass6maphandler], eax
+
+	storeaddress findgetroutemap,1,1,getroutemap
+	storeaddress findgetdesertmap,1,1,getdesertmap
+	storefunctionaddress findcleartilefn,1,1,cleartilefn
+	storefunctionaddress findcallcheckvehiclesintheway,1,1,checkvehiclesinthewayfn
+	storefunctionaddress findcheckroadremovalconditions,1,1,checkroadremovalconditions
+	
+	patchcode olddemolishroadcall,newdemolishroadcall,1,1
+	add edi,byte 0x33+lastediadj
+	storefragment newdemolishroadcall
+
+	stringaddress findhousepopulationtable,1,1
+	mov eax,[edi]
+	mov edi,housepartflags
+	sub eax,443
+	stosd		//baHousePartFlags
+	add eax,113
+	stosd		//baHouseFlags
+	add eax,110
+	stosd		//baHouseAvailYears
+	add eax,220
+	stosd		//baHousePopulations
+	add eax,110
+	stosd		//baHouseMailGens
+	add eax,110
+	stosd		//baHouseAcceptPass
+	add eax,110
+	stosd		//baHouseAcceptMail
+	add eax,110
+	stosd		//baHouseAcceptGoodsOrFood
+	add eax,110
+	stosd		//waHouseRemoveRatings
+	add eax,220
+	stosd		//baHouseRemoveCostMultipliers
+	add eax,110
+	stosd		//waTownBuildingNames
+	add eax,220
+	stosd		//waHouseAvailMaskTable
+	
+	storeaddresspointer findhousespritetable,1,1,housespritetable
+	storeaddresspointer findbridgespritetables,1,1,bridgespritetables
+
+	sub eax,0x40
+	mov [specificpropertybase+6*4],eax
+
+	storeaddress findbridgespeeds,1,1,bridgedata+0*4
+
+	storeaddresspointer findaiactiontable,1,2,aiactiontable
+
+	patchcode oldinitializeveharray,newinitializeveharray
+	lea eax,[edi+lastediadj-10+6*WINTTDX]
+	mov [initializeveharraysizeptr],eax
+
+	storeaddresspointer findcurrscreenupdateblockptr,1,1,currscreenupdateblock
+	storefunctionaddress finddrawspritefn,1,1,drawspritefn
+	storefunctionaddress finddrawtextfn,1,1,drawtextfn
+	storefunctionaddress finddrawrighttextfn,1,1,drawrighttextfn
+	storefunctionaddress finddrawcenteredtextfn,1,1,drawcenteredtextfn
+	storefunctionaddress finddrawsplitcenteredtextfn,1,1,drawsplitcenteredtextfn
+	storeaddress finddrawsplittextfn,2,2,drawsplittextfn
+	add edi,173
+	mov [splittextlines],edi
+	mov eax,[edi+12]
+	mov [tempSplittextlinesNumlinesptr],eax
+	add edi,132
+	storefragment newsplittextlines_done
+	storeaddress findfillrectangle,1,1,fillrectangle
+	storeaddress finddrawrectangle,1,1,drawrectangle
+
+	storeaddress findDrawStationImageInSelWindow,DrawStationImageInSelWindow
+	storeaddresspointer findstationbuildcostptr,1,2,stationbuildcostptr
+	storeaddress findpushownerontextstack,1,1,pushownerontextstack
+	storeaddress findTransmitAction,1,1,TransmitAction
+
+	storeaddress findDistributeProducedCargo,1,1,DistributeProducedCargo
+
+	// these offsets are needed for newindustries save/restore
+	// this code *must* run before initializegraphics or industry action 0s will break
+
+	// we have variables relative to the industry data block, so we need a reloc
+	stringaddress findindustrydatablock,1,1
+	push dword [edi]
+	push industrydatablock_ptr
+	call reloc
+	storeaddresspointer findindustrylayouttable,1,1,industrylayouttableptr
+
+	storeaddress findclass0procmidsection,1,1,class0procmidsection
+
+	stringaddress oldclass8queryhandler
+	mov eax,[edi+9+2*WINTTDX]
+	mov [oldindutileacceptsbase],eax
+
+	testflags newindustries
+	jnc .nonewindus
+	storefragment newclass8queryhandler
+	push dword 925+296
+	call malloccrit
+	pop dword [industrydatabackupptr]
+
+.nonewindus:
+
+	stringaddress findgraphicsroutines,1,1
+
+	storefunctiontarget 12,openfilefn
+	add edi,56+3*WINTTDX
+	mov eax,[edi+8]
+	mov dword [curfileofsptr],eax
+
+	storefunctiontarget 17,readwordfn
+	add eax,17
+	mov [copyspriteinfofn],eax
+	add eax,64
+	mov [readspriteinfofn],eax
+	add eax,0x89
+	mov [decodespritefn],eax
+
+	call initializegraphics
+
+	patchcode oldchkactionshiftkeys,newchkactionshiftkeys,1,1
+	add edi,lastediadj+0x98
+	storefragment setcurplayershiftkeys
+	add edi,lastediadj+0xe1
+	storefragment setcurplayershiftkeys
+
+	patchcode oldmakenewhumans,newmakenewhumans,1,1
+	mov eax,[ophandler+0xc*8]
+	mov eax,[eax+4]
+	mov eax,[eax+3]
+	mov edi,[eax+6*4]
+	mov dword [byte eax+6*4],addr(newscenarioinit)
+	storerelative newscenarioinit.origfn,edi
+
+	patchcode oldaistationrating,newaistationrating,1,1
+	patchcode oldplayertype1,newplayertype1,1,1
+	patchcode oldplayertype2,newplayertype2,1,2
+	patchcode oldplayertype2,newplayertype2,2,2
+	patchcode oldplayertype3,newplayertype3,1,1
+	patchcode oldplayertype4,newplayertype4,1,1
+	patchcode oldaibuilding,newaibuilding,1,1
+
+		// this code must always be patched so that games
+		// saved with new graphics don't crash or display wrong
+	xor ebp,ebp
+.nextvehclass:
+	lea eax,[ebp+1]
+	stringaddress oldgetvehsprite,eax,4
+
+	mov eax,[edi+3]
+	mov [orgspritebases+ebp*4],eax
+
+#if WINTTDX
+		// numbers 0 and 2 change place in WINTTDX
+	movzx esi,byte [vehclassorder+ebp]
+	%define ORDER esi
+#else
+	%define ORDER ebp
+#endif
+
+	movsx eax,byte [orgsetspriteofs+ORDER]
+	add eax,edi
+	mov [orgsetsprite+ORDER*4],eax
+
+	// can't do a computed storefragment, so do it by hand...
+	mov esi,[newspritehandlers+ebp*4]
+	mov cl,[newspritehandlersize+ebp]
+	rep movsb
+
+	lea eax,[ebp-4]
+	add eax,eax
+	neg eax
+
+	stringaddress olddisplayveh,1,eax	// find number 1 out of 8-2*ebp
+
+	mov esi,[newdisplayhandlers+ebp*4]
+	mov cl,[newdisplayhandlersize+ebp]
+	rep movsb
+
+	stringaddress olddisplayveh,1,0		// just find the next one
+						// (this one is for exclusive offers/newspaper announcements)
+
+	mov esi,[newdisplayhandlers_np+ebp*4]
+	mov cl,[newdisplayhandlersize_np+ebp]
+	rep movsb
+
+	lea eax,[ebp+1]
+	stringaddress findvehinfo,eax,4
+
+#if WINTTDX
+		// numbers 0 and 2 change place in WINTTDX
+	movzx esi,byte [vehclassorder+ebp]
+#endif
+	setbase ebx,specificpropertybase
+
+	mov edi,[edi]
+	mov al,[vehbase+ORDER]
+	add edi,eax
+
+	mov al,[vehbnum+ORDER]
+	imul byte [specificpropertyofs+ORDER]
+	cwde
+
+	add eax,edi
+	mov [specificpropertybase+ORDER*4],eax
+
+	test ORDER,ORDER
+	jnz .nottrains
+
+	add eax,trainpower-AIspecialflag
+	param_call reloc, eax,trainpower_ptr
+
+.nottrains:
+	setbase none
+%undef ORDER
+
+	inc ebp
+	cmp ebp,4
+	jb .nextvehclass
+
+	// a coupl more for planes: the shadow sprite...
+	patchcode oldgetothervehsprite,newgetshadowsprite,1,1
+
+	// and the helicopter rotor
+	patchcode olddisprotor1,newdisprotor1,1,1
+	patchcode olddisprotor2,newdisprotor2,1,2
+	patchcode olddisprotor2,newdisprotor2,1,0
+	patchcode oldinitrotor,newinitrotor,1,1
+	patchcode oldcheckrotor,newcheckrotor,1,2
+	patchcode oldstoprotor,newstoprotor,1,1
+	add edi,lastediadj+34
+	storefragment newadvancerotor
+	mov eax,addr(resetplanesprite)
+	xchg eax,[orgsetsprite+3*4]
+	storerelative resetplanesprite.oldfn,eax
+
+	// and two more for trains: showing the first engine
+	// (above codes finds showing the second one)
+	patchcode olddisplay1steng,newdisplay1steng,1,2
+	patchcode olddisplay1steng,newdisplay1steng_noplayer,1,0
+
+	call infosave
+
+	patchcode olddecidesmoke,newdecidesmoke,1,1
+	storerelative showsteamsmoke,edi+lastediadj+11
+	mov byte [edi+lastediadj+12],0x20
+	mov byte [edi+lastediadj+16],0x30
+	mov byte [edi+lastediadj+24],0x40
+
+	patchcode oldsteamposition,newsteamposition,1,0
+
+	patchcode olddecidesound,newdecidesound,1,1
+
+	patchcode oldtunnelsound,newtunnelsound,1,1
+
+	stringaddress olddoessteamelectricsmoke,1,3
+	inc byte [edi+1]
+	inc byte [edi+8]
+	inc byte [edi+15]
+
+	stringaddress olddoessteamelectricsmoke,1,0
+	inc byte [edi+8+4*WINTTDX]
+	inc byte [edi+15+4*WINTTDX]
+	storefragment newsteamamount
+
+	patchcode olddoesdieselsmoke,newdoesdieselsmoke,1,1
+	inc byte [edi+lastediadj-9]
+	inc byte [edi+lastediadj+13]
+
+	patchcode oldsparkprobab,newsparkprobab,1,1
+
+	patchcode olddieselsmoke,newdieselsmoke,1,1
+	stringaddress oldadvancesteamplume,2,2
+
+	mov cl,[moresteamsetting]	// 1x=>7, 2x=>15, 3x=>31 etc.
+	shr cl,4
+	mov al,4
+	shl al,cl
+	dec al
+	mov [edi],al
+
+.notmoresteam:
+
+	patchcode collectsprites_vehcolor
+	multipatchcode oldvehinwindow_color,newvehinwindow_color,8
+	multipatchcode oldbuyvehwindow_color,newbuyvehwindow_color,4
+
+	patchcode oldcompanysold,newcompanysold,1,1
+	storeaddress findclosecompanywindows,1,1,closecompanywindows
+//	storeaddresspointer findcargoweights,1,1,cargoweightfactors
+
+	// following patchcodes are to maintain veh.engineidx
+	patchcode oldclearnextunitidx,newcreatevehentry,byte (1+WINTTDX),7
+
+	// buy waggon/2nd engine and attach to train
+	patchcode oldattachtoedi,newattachboughtveh,1,3
+	patchcode oldattachtoedi,newattachboughtveh,1,0
+
+#if WINTTDX
+	patchcode oldattachtoesi,newattachtoesi,1,2
+	add edi,lastediadj+88
+	storefragment newattachtoedx
+#endif
+
+	// move waggon in depot
+	patchcode oldattachtoedi,newdetachveh,1,0		 // detach
+	mov byte [edi+lastediadj+24],0x40			 // change esi->eax
+	add edi,lastediadj-15
+	storefragment newnextfirstwagon
+	patchcode oldattachtoesi,newinsertveh,1,byte 2-2*WINTTDX // reattach
+
+#if !WINTTDX
+	patchcode oldattachtoesi,newattachtoesi,1,0
+	add edi,lastediadj+88
+	storefragment newattachtoedx
+#endif
+
+	multipatchcode oldattachdisasterveh,newattachdisasterveh,7
+
+	patchcode oldsellwagonnewleader,newsellwagonnewleader
+
+	patchcode oldmovedcheckiswaggon,newmovedcheckiswaggonp2,1,1
+	add edi,lastediadj-12
+	storefragment newmovedcheckiswaggon
+
+	patchcode oldmovedcheckiswaggonui,newmovedcheckiswaggonui,1,1
+
+		// must be in dogeneralpatching not generalfixes
+	multipatchcode oldgettrainrunningcost,newgettrainrunningcost,2
+
+		// this fixes a crash with exclusive offers of new wagons
+		// better would be to display a different window which
+		// does not display speed/power/running cost at all
+		// but that's for later
+	add edi,lastediadj+13
+	storefragment newgettrainrunningcostmultiplier
+
+	add edi,lastediadj+72
+	copyrelative doshownewrailveh,5
+	storefragment newshownewrailveh
+
+	patchcode oldnewvehavailable,newnewvehavailable,1,1
+
+	// prevent wagons that may appear during gameplay
+	// from affecting construction options;
+	// also make sure they display the correct type name
+	patchcode oldgetrailengclassname,newgetrailengclassname,1,2
+	add edi,lastediadj+115
+	dec byte [edi]					// MOVZX reg32,r/m16 -> MOVZX reg32,r/m8
+	add edi,80
+	dec byte [edi]					// same here
+	dec byte [edi+85]				// same here
+	add edi,104
+	storefragment newgetrailengclassname
+	dec byte [edi+lastediadj+39]			// and once again
+	patchcode oldgetvehclassname,newgetvehclassname,1,1
+	patchcode oldupdaterailtype1,newupdaterailtype1,1,1
+	changereltarget lastediadj+0x51,addr(gennewrailvehtypemsg)
+	patchcode oldupdaterailtype2,newupdaterailtype2,1,1
+
+	stringaddress findclosevehwindow,4,4
+	mov ebx,edi
+	stringaddress findclosevehwindow,1+WINTTDX,4
+	mov byte [edi],0xe9
+	lea eax,[ebx-5]
+	sub eax,edi
+	mov [edi+1],eax
+	stringaddress findclosevehwindow,1,0
+	mov byte [edi],0xe9
+	lea eax,[ebx-5]
+	sub eax,edi
+	mov [edi+1],eax
+
+	patchcode oldfirstrvarrival,newfirstrvarrival,1,1
+
+	storeaddress findplanttree,1,3,treeplantfn
+
+	stringaddress skipnonprintingchars,1,1
+	mov byte [edi],0x7b
+	mov byte [edi+0x6f],0x5b
+	mov byte [edi+0xde],0x3b
+	add edi,byte -0x60
+	mov [setcharwidthtablefn],edi
+
+	storeaddress finddeductvehruncost,1,1,deductvehruncost
+	mov eax,[edi+lastediadj+0x39]
+	mov [incomequarterstatslist],eax
+	storeaddress findaddexpenses,1,1,addexpenses
+
+	storeaddress findmakesubsidy,1,1,subsidyfn
+	storeaddress findsearchcollidingvehs,1,1,searchcollidingvehs
+	
+	// find some GUI functions in TTD
+	storefunctionaddress findBringWindowToForeground,1,1,BringWindowToForeground
+	storefunctionaddress findCreateWindow,1,2,CreateWindow
+	storefunctionaddress findWindowClicked,1,1,WindowClicked
+	storefunctionaddress findDestroyWindow,1,1,DestroyWindow
+	storefunctionaddress findWindowTitleBarClicked,1,1,WindowTitleBarClicked
+	storefunctionaddress findDrawWindowElements,1,2,DrawWindowElements
+	storeaddress findFindWindow,1,1,FindWindow
+	storeaddress findGenerateDropDownMenu,1,1,GenerateDropDownMenu
+	storeaddress findCreateTooltip,1,1,CreateTooltip
+	storeaddress findRefreshWindowArea,1,1,RefreshWindowArea
+	storeaddress findRefreshLandscapeRect,1,1,RefreshLandscapeRect
+	storeaddress findScreenToLandscapeCoords,1,1,ScreenToLandscapeCoords
+	storeaddress findRefreshLandscapeHighlights,1,1,RefreshLandscapeHighlights
+	storeaddress findsetmousetool,1,1,setmousetool
+	storeaddress findsetmousecursor,1,1,setmousecursor
+	storeaddress findgetmainviewwindow,1,1,GetMainViewWindow
+	storeaddress findCreateWindowRelative,1,1,CreateWindowRelative
+	storeaddress findsetmainviewxy,1,1,setmainviewxy
+	#if WINTTDX
+		storefunctionaddress findRefreshWindows,1,6,RefreshWindows
+	#else
+		storefunctionaddress findRefreshWindows,1,5,RefreshWindows
+	#endif
+	
+	#if WINTTDX
+		storeaddress findrvcheckovertake,1,3,rvcheckovertake
+	#else
+		storeaddress findrvcheckovertake,2,3,rvcheckovertake
+	#endif
+    
+    storeaddress findAddRailFenceSprite1, 1, 1, addrailfence1
+    storeaddress findAddRailFenceSprite2, 1, 1, addrailfence2
+    storeaddress findAddRailFenceSprite3, 1, 1, addrailfence3
+    storeaddress findAddRailFenceSprite4, 1, 1, addrailfence4
+    storeaddress findAddRailFenceSprite5, 1, 1, addrailfence5
+    storeaddress findAddRailFenceSprite6, 1, 1, addrailfence6
+    storeaddress findAddRailFenceSprite7, 1, 1, addrailfence7
+    storeaddress findAddRailFenceSprite8, 1, 1, addrailfence8
+
+	mov eax,[ophandler+0x0b*8]
+	mov dword [eax+0x10],addr(newclass0Bactionhandler)
+
+	// patch the load and save code - four occurences: LSLL
+
+	// find the addresses needed by the load and save functions
+	storeaddress findloadchunkfn,1,1,loadchunkfn
+	storeaddress findsavechunkfn,1,1,savechunkfn
+
+	// patch all four occurences of the save/load routine
+	patchcode oldloadsave,newload,1,4	// Load savegame
+	patchcode oldloadsave,newsave,1,0	// Save
+	patchcode oldloadsave,newloadtitle,1,0	// Load title
+	patchcode oldloadsave,newload,1,0	// Load predefined game
+
+	// catch the end of a game load, to signal any errors
+	stringaddress oldendofload,1,1
+	copyrelative endofloadtarget,2
+	storefragment newendofload
+
+	patchcode oldendoftitleload,newendoftitleload,2,3
+
+	mov eax,[ophandler+0x0d*8]
+	mov esi,addr(newclassdinithnd)
+	xchg esi,[eax]
+	storerelative newclassdinithnd.oldfn,esi
+	call setbasecostmultdefault
+
+	storefunctionaddress findgeneratesoundeffect,1,1,generatesoundeffect
+
+	patchcode oldsettracktypedefault,newsettracktypedefault,1,1
+	storeaddress findremovespritefromcache,1,1,removespritefromcache
+#if WINTTDX
+	storeaddresspointer findspritecacheptr,1,1,spritecacheptr
+#endif
+	storeaddress oldsavevehorders,1,1,savevehordersfn
+	storeaddress oldcopyoldorder,1,1,copyvehordersfn
+
+	multipatchcode oldshowvehstat,newshowvehstat,4
+
+	imul eax,[newvehicles],byte veh2_size
+	push eax
+	call malloccrit
+	pop dword [veh2ptr]
+	// don't init here yet, it'll mess up searching...
+
+	patchcode cleartile
+
+	// fix some slider bugs
+	patchcode oldgetsliderposition,newgetsliderposition,1,1
+
+	// make dropdown-menu's always wide enought to fit contents
+	patchcode oldcalcdropdownmenuwidth,newcalcdropdownmenuwidth,1,1
+	storefunctionaddress findgettextwidth,gettextwidth
+	
+	stringaddress findgettunnellength
+	dec word [edi]		// TTD always counts one tile too many
+	sub edi,7
+	mov [gettunnelotherend],edi
+
+	patchcode lookforsamewagontype
+	patchcode preparenewveharrentry
+
+		// refresh caches when changing player color
+	mov eax,[ophandler+0x0d*8]
+	mov edi,[eax+0x10]	// actionhandler
+	mov edi,[edi+8]
+	mov esi,addr(changecolorscheme)
+	xchg esi,[edi]
+	storerelative changecolorscheme.origfn,esi
+
+	storeaddress pickrandomtreefn
+	ret
+
+global newsavename
+newsavename:
+	// set default file name
+	patchcode oldsavedefaultname,newsavedefaultname,1,1
+	mov word [edi+lastediadj-6],0x6890	// nop; push imm32; to push address
+	ret
+
+// shares code fragments
+global patchusenewnonstop
+patchusenewnonstop:
+	patchcode nonstop1old,nonstop1new,1,1
+	patchcode nonstop2old,nonstop2new,1,1
+	patchcode showordertype
+	ret
+
+global patcheternalgame
+patcheternalgame:
+	patchcode oldprintdate,newprintdate,1,3
+	patchcode oldprintdate,newprintdate,1,0
+	mov edi,[getymd]
+	lea eax,[edi+getymd.fullyearentryoffset]
+	mov [getfullymd],eax
+	storefragment newgetymd
+	patchcode oldisnewyear,newisnewyear,1,1
+	patchcode oldgetdisasteryear,newgetdisasteryear,1,1
+	multipatchcode oldgetvehintroyear,newgetvehintroyear,4
+	stringaddress getfinanceswindowyears,1,1
+#if WINTTDX
+	mov eax,[getymd]				// WinTTD calls a jump to getymd, not getymd itself
+	sub eax,edi					// we have to calculate [getymd]-edi, storerelative can't do it
+	add eax,byte getymd.wordyearentryoffset-4	// so we do it manually
+	mov [edi],eax
+#else
+	add dword [edi],byte getymd.wordyearentryoffset	// direct call -- we can save on space
+#endif
+	stringaddress reccompanylaunchyear,1,1
+#if WINTTDX
+	mov eax,[getymd]				// same here
+	sub eax,edi
+	add eax,byte getymd.wordyearentryoffset-4
+	mov [edi],eax
+#else
+	add dword [edi],byte getymd.wordyearentryoffset
+#endif
+	patchcode oldgetgraphstartyear,newgetgraphstartyear,1,1
+	multipatchcode oldshowyearbuilt,newshowyearbuilt,4
+	ret
+
+patchsharedorders:
+	patchcode oldshowendoforders,newshowendoforders,1,1
+	multipatchcode oldadjustorders,newadjustorders,2
+	patchcode olddeletepressed,newdeletepressed,1,1
+	patchcode olddeletevehschedule,newdeletevehschedule,1,1
+	ret
+
+global patchsignals
+patchsignals:
+	storeaddress oldstartsignalsloop,1,1,startsignalloopfn
+	testmultiflags presignals,extpresignals
+	jz near .nopresignals
+	storefragment newstartsignalsloop
+	add edi,byte 0x44+lastediadj
+
+	storefragment newsignalsloop
+	mov eax,[edi+18+lastediadj]
+	mov dword [signalchangeopptr],eax
+
+	add edi,byte 0x9d-0x44+lastediadj
+	storefragment newsignalsloopend
+
+	copyrelative fnredrawsquare,lastediadj-15
+
+	patchcode oldnewsignalsetup,newnewsignalsetup,1,1
+	patchcode oldremovesignal,newremovesignal,1,1
+	mov byte [edi+0xa],-1	// disarm the AND
+	patchcode oldremovesignalcost,newremovesignalcost,1,1
+	patchcode olddemolishtrackcall,newdemolishtrackcall,1,1
+
+	patchcode oldenterdepot,newenterdepot,1,1
+
+	or byte [newgraphicssetsenabled],1 << 4
+.nopresignals:
+	ret

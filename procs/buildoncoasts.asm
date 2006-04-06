@@ -7,16 +7,6 @@ patchproc buildoncoasts, patchbuildoncoasts
 
 extern dofloodcoast
 
-
-patchbuildoncoasts:
-	patchcode oldcanbuildonwater,newcanbuildonwater,1,1
-	patchcode oldcanalwaysremoveroad,newcanalwaysremoveroad,1,1
-	stringaddress prepfloodcoast,1,1
-	changereltarget 0,addr(dofloodcoast)
-	ret
-
-
-
 begincodefragments
 
 codefragment oldcanbuildonwater,-3
@@ -42,3 +32,11 @@ codefragment prepfloodcoast,13
 
 
 endcodefragments
+
+
+patchbuildoncoasts:
+	patchcode oldcanbuildonwater,newcanbuildonwater,1,1
+	patchcode oldcanalwaysremoveroad,newcanalwaysremoveroad,1,1
+	stringaddress prepfloodcoast,1,1
+	changereltarget 0,addr(dofloodcoast)
+	ret

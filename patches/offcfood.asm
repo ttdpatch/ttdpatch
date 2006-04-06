@@ -50,4 +50,3 @@ collectaccepts:
 .nothingaccepted:
 	ret
 ; endp collectaccepts 
-

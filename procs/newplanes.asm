@@ -8,6 +8,57 @@ extern vehtickproc_aircraft
 
 
 global patchnewplanes
+
+begincodefragments
+
+codefragment oldsetplanecargotype
+	mov byte [esi+veh.cargotype],0
+	mov byte [edi+veh.cargotype],2
+
+codefragment newsetplanecargotype
+	icall setplanecargotype
+	setfragmentsize 8
+
+codefragment oldshowplanestats
+	mov bx,0xa007
+
+codefragment newshowplanestats
+	icall showplanestats
+	call [drawsplittextfn]
+	setfragmentsize 14
+
+codefragment oldshownewplaneinfo,-8
+	mov bx,0xa02e
+
+codefragment newshownewplaneinfo
+	icall shownewplaneinfo
+	setfragmentsize 8
+
+codefragment findopennewplanewnd
+	dw 98h	// aircraft class offset
+	mov ebp,4
+
+glob_frag oldshipplanestartsound
+codefragment oldshipplanestartsound,12
+	push eax
+	movzx eax,word [esi+veh.vehtype]
+
+glob_frag newvehstartsound
+codefragment newvehstartsound
+	icall vehstartsound
+	pop eax
+	ret
+
+codefragment oldtouchdownsound
+	mov eax,0x15
+
+codefragment newtouchdownsound
+	icall touchdownsound
+	setfragmentsize 10
+
+
+endcodefragments
+
 patchnewplanes:
 	patchcode setplanecargotype
 	patchcode showplanestats
@@ -68,55 +119,3 @@ patchnewplanes:
 	test al,al
 	loopnz .copynext
 	ret
-
-
-
-begincodefragments
-
-codefragment oldsetplanecargotype
-	mov byte [esi+veh.cargotype],0
-	mov byte [edi+veh.cargotype],2
-
-codefragment newsetplanecargotype
-	icall setplanecargotype
-	setfragmentsize 8
-
-codefragment oldshowplanestats
-	mov bx,0xa007
-
-codefragment newshowplanestats
-	icall showplanestats
-	call [drawsplittextfn]
-	setfragmentsize 14
-
-codefragment oldshownewplaneinfo,-8
-	mov bx,0xa02e
-
-codefragment newshownewplaneinfo
-	icall shownewplaneinfo
-	setfragmentsize 8
-
-codefragment findopennewplanewnd
-	dw 98h	// aircraft class offset
-	mov ebp,4
-
-glob_frag oldshipplanestartsound
-codefragment oldshipplanestartsound,12
-	push eax
-	movzx eax,word [esi+veh.vehtype]
-
-glob_frag newvehstartsound
-codefragment newvehstartsound
-	icall vehstartsound
-	pop eax
-	ret
-
-codefragment oldtouchdownsound
-	mov eax,0x15
-
-codefragment newtouchdownsound
-	icall touchdownsound
-	setfragmentsize 10
-
-
-endcodefragments

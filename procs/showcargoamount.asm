@@ -4,15 +4,6 @@
 
 patchproc freighttrains,newships,newrvs,newtrains,newplanes, patchshowcargoamount
 
-patchshowcargoamount:
-	patchcode oldshowwagoncap,newshowwagoncap
-	patchcode oldshowrvcap,newshowsinglecap
-	patchcode oldshowshipcap,newshowsinglecap
-	patchcode oldshowplanecap,newshowdoublecap
-	ret
-
-
-
 begincodefragments
 
 codefragment oldshowwagoncap
@@ -41,3 +32,10 @@ codefragment newshowdoublecap
 
 
 endcodefragments
+
+patchshowcargoamount:
+	patchcode oldshowwagoncap,newshowwagoncap
+	patchcode oldshowrvcap,newshowsinglecap
+	patchcode oldshowshipcap,newshowsinglecap
+	patchcode oldshowplanecap,newshowdoublecap
+	ret

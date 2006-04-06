@@ -13,57 +13,6 @@ extern dockwinpurchaselandico,newgraphicssetsenabled,oldclass9drawlandfnc
 extern oldclass5drawlandfnc,Class5DrawLand,actionmakewater_actionnum
 extern class9drawland
 
-ext_frag oldselectgroundforbridge
-
-patchcanals:
-	// Disable next line for simple movement handler
-	patchcode oldshipmovement80h, newshipmovement80h,2,2
-	patchcode olddocktoolpurchaseland, newdocktoolpurchaseland,3+WINTTDX,4
-	patchcode oldclass6cleartile, newclass6cleartile,1,1
-
-	mov eax,[ophandler+0x06*8]
-	//if you want simple movement handler:
-	//mov dword [eax+0x28],addr(Class6VehEnterLeaveSimple)
-	mov ecx, [eax+0x24]
-	mov [oldclass6maphandler], ecx
-	mov dword [eax+0x24],addr(Class6RouteMapHandler)
-
-	mov dword [eax+0x28],addr(Class6VehEnterLeave)
-
-	mov ecx, [eax+0x20]
-	mov [oldclass6periodicproc], ecx
-	mov dword [eax+0x20],addr(Class6PeriodicProc)
-
-	mov ecx, [eax+0x1C]
-	mov [oldclass6drawlandfnc], ecx
-	mov dword [eax+0x1C],addr(Class6DrawLand)
-	
-	stringaddress oldselectgroundforbridge
-	storefunctioncall selectgroundforbridge
-
-	storeaddress finddockwinpurchaselandico, 1, 1, dockwinpurchaselandico
-	or byte [newgraphicssetsenabled+1],1 << (8-8)
-
-	//extra patching, to display coasts under bridges
-	mov eax, [ophandler+0x09*8]
-	mov ecx, [eax+0x1C]
-	mov [oldclass9drawlandfnc], ecx
-	mov dword [eax+0x1C],addr(class9drawland)
-
-	//patch flat docks
-	patchcode oldcanbuilddockhere,newcanbuilddockhere,1,1
-	patchcode olddockconstrwinhandler,newdockconstrwinhandler,1,1
-
-	//and drawing of them+buoys with dikes
-	mov eax,[ophandler+0x05*8]
-	mov ecx, [eax+0x1C]
-	mov [oldclass5drawlandfnc], ecx
-	mov dword [eax+0x1C],addr(Class5DrawLand)
-
-	ret
-
-
-
 begincodefragments
 
 codefragment oldshipmovement80h
@@ -124,5 +73,50 @@ codefragment olddockconstrwinhandler, 6
 codefragment newdockconstrwinhandler
 	ijmp dockconstrwinhandler
 
+ext_frag oldselectgroundforbridge
+
+codefragment_call newselectgroundforbridge,selectgroundforbridge,5
 
 endcodefragments
+
+patchcanals:
+	// Disable next line for simple movement handler
+	patchcode oldshipmovement80h, newshipmovement80h,2,2
+	patchcode olddocktoolpurchaseland, newdocktoolpurchaseland,3+WINTTDX,4
+	patchcode oldclass6cleartile, newclass6cleartile,1,1
+
+	mov eax,[ophandler+0x06*8]
+	mov dword [eax+0x24],addr(Class6RouteMapHandler)
+
+	mov dword [eax+0x28],addr(Class6VehEnterLeave)
+
+	mov ecx, [eax+0x20]
+	mov [oldclass6periodicproc], ecx
+	mov dword [eax+0x20],addr(Class6PeriodicProc)
+
+	mov ecx, [eax+0x1C]
+	mov [oldclass6drawlandfnc], ecx
+	mov dword [eax+0x1C],addr(Class6DrawLand)
+
+	patchcode selectgroundforbridge
+
+	storeaddress finddockwinpurchaselandico, 1, 1, dockwinpurchaselandico
+	or byte [newgraphicssetsenabled+1],1 << (8-8)
+
+	//extra patching, to display coasts under bridges
+	mov eax, [ophandler+0x09*8]
+	mov ecx, [eax+0x1C]
+	mov [oldclass9drawlandfnc], ecx
+	mov dword [eax+0x1C],addr(class9drawland)
+
+	//patch flat docks
+	patchcode oldcanbuilddockhere,newcanbuilddockhere,1,1
+	patchcode olddockconstrwinhandler,newdockconstrwinhandler,1,1
+
+	//and drawing of them+buoys with dikes
+	mov eax,[ophandler+0x05*8]
+	mov ecx, [eax+0x1C]
+	mov [oldclass5drawlandfnc], ecx
+	mov dword [eax+0x1C],addr(Class5DrawLand)
+
+	ret

@@ -2,68 +2,6 @@
 #include <frag_mac.inc>
 
 global patchgotodepot
-patchgotodepot:
-	patchcode oldinsertorder,newinsertorder,1,1
-	patchcode oldshoworder,newshoworder,1,1
-	patchcode oldisshiporder,newisshiporder,1,1
-	mov word [edi+lastediadj+17],0x9090
-	add edi,byte lastediadj+33
-	storefragment newisshiporder2
-
-	mov byte [newordertargetjc],30+10*WINTTDX
-	patchcode oldnewordertarget,newnewordertarget,1,3
-	mov byte [newordertargetjc],40-10*WINTTDX
-	patchcode oldnewordertarget,newnewordertarget,2,3
-	mov byte [newordertargetjc],48+5*WINTTDX
-	patchcode oldnewordertarget,newnewordertarget,3,3
-
-	patchcode oldnextplaneorder,newnextplaneorder,1,1
-	add edi,byte lastediadj-57
-	storefragment newnextplaneorder0
-	patchcode oldisgoingtohangar,newisgoingtohangar,1,1
-	patchcode oldnewaircrafttarget,newnewaircrafttarget,1,1
-
-	patchcode oldarriveatdepot,newarriveatdepot,1,2
-	patchcode oldarriveatdepot,newarriveatdepot,1,1
-
-	dec byte [oldarriveatdepotvar]
-	dec byte [newarriveatdepotvar]
-
-#if WINTTDX
-	patchcode oldarriveatdepot,newarriveatdepot,1,2
-	mov byte [newarriveatdepotjmp],0x2d
-	patchcode oldarriveatdepot,newarriveatdepot,1,1
-
-	patchcode oldremovedepotfromarray,newremovedepotfromarray,3,3	// ship
-	dec byte [newremovedepotfromarrayarg]
-	patchcode oldremovedepotfromarray,newremovedepotfromarray,1,2	// road
-	dec byte [newremovedepotfromarrayarg]
-	patchcode oldremovedepotfromarray,newremovedepotfromarray,1,1	// rail
-#else
-	patchcode oldarriveatdepot,newarriveatdepot,2,2
-	mov byte [newarriveatdepotjmp],0x2d
-	patchcode oldarriveatdepot,newarriveatdepot,1,1
-
-	patchcode oldremovedepotfromarray,newremovedepotfromarray,1,3	// ship
-	dec byte [newremovedepotfromarrayarg]
-	patchcode oldremovedepotfromarray,newremovedepotfromarray,2,2	// road
-	dec byte [newremovedepotfromarrayarg]
-	patchcode oldremovedepotfromarray,newremovedepotfromarray,1,1	// rail
-#endif
-
-	patchcode oldfindunuseddepot,newfindunuseddepot,1,1
-	patchcode oldisdelstationorder,newisdelstationorder,1,1
-
-	patchcode oldleavehangar,newleavehangar,1,1
-
-	patchcode oldskipbutton,newskipbutton,1,1
-	patchcode oldfullloadbutton,newfullloadbutton,1,1
-	mov dword [edi+lastediadj+36],0x90007520
-
-	multipatchcode oldcanceldepot,newcanceldepot,4
-	ret
-
-
 
 begincodefragments
 
@@ -207,3 +145,64 @@ codefragment newcanceldepot
 
 
 endcodefragments
+
+patchgotodepot:
+	patchcode oldinsertorder,newinsertorder,1,1
+	patchcode oldshoworder,newshoworder,1,1
+	patchcode oldisshiporder,newisshiporder,1,1
+	mov word [edi+lastediadj+17],0x9090
+	add edi,byte lastediadj+33
+	storefragment newisshiporder2
+
+	mov byte [newordertargetjc],30+10*WINTTDX
+	patchcode oldnewordertarget,newnewordertarget,1,3
+	mov byte [newordertargetjc],40-10*WINTTDX
+	patchcode oldnewordertarget,newnewordertarget,2,3
+	mov byte [newordertargetjc],48+5*WINTTDX
+	patchcode oldnewordertarget,newnewordertarget,3,3
+
+	patchcode oldnextplaneorder,newnextplaneorder,1,1
+	add edi,byte lastediadj-57
+	storefragment newnextplaneorder0
+	patchcode oldisgoingtohangar,newisgoingtohangar,1,1
+	patchcode oldnewaircrafttarget,newnewaircrafttarget,1,1
+
+	patchcode oldarriveatdepot,newarriveatdepot,1,2
+	patchcode oldarriveatdepot,newarriveatdepot,1,1
+
+	dec byte [oldarriveatdepotvar]
+	dec byte [newarriveatdepotvar]
+
+#if WINTTDX
+	patchcode oldarriveatdepot,newarriveatdepot,1,2
+	mov byte [newarriveatdepotjmp],0x2d
+	patchcode oldarriveatdepot,newarriveatdepot,1,1
+
+	patchcode oldremovedepotfromarray,newremovedepotfromarray,3,3	// ship
+	dec byte [newremovedepotfromarrayarg]
+	patchcode oldremovedepotfromarray,newremovedepotfromarray,1,2	// road
+	dec byte [newremovedepotfromarrayarg]
+	patchcode oldremovedepotfromarray,newremovedepotfromarray,1,1	// rail
+#else
+	patchcode oldarriveatdepot,newarriveatdepot,2,2
+	mov byte [newarriveatdepotjmp],0x2d
+	patchcode oldarriveatdepot,newarriveatdepot,1,1
+
+	patchcode oldremovedepotfromarray,newremovedepotfromarray,1,3	// ship
+	dec byte [newremovedepotfromarrayarg]
+	patchcode oldremovedepotfromarray,newremovedepotfromarray,2,2	// road
+	dec byte [newremovedepotfromarrayarg]
+	patchcode oldremovedepotfromarray,newremovedepotfromarray,1,1	// rail
+#endif
+
+	patchcode oldfindunuseddepot,newfindunuseddepot,1,1
+	patchcode oldisdelstationorder,newisdelstationorder,1,1
+
+	patchcode oldleavehangar,newleavehangar,1,1
+
+	patchcode oldskipbutton,newskipbutton,1,1
+	patchcode oldfullloadbutton,newfullloadbutton,1,1
+	mov dword [edi+lastediadj+36],0x90007520
+
+	multipatchcode oldcanceldepot,newcanceldepot,4
+	ret

@@ -11,9 +11,7 @@ extern autoslopechecklandscape,bridgemiddlezcorrectslope,coastdirections
 extern getgroundalt,gettileinfo,groundaltsubroutines
 extern isrealhumanplayer,locationtoxy,patchflags,saved_ebx
 extern stationbuildcostptr
-extern waterbanksprites
-
-
+extern waterbanksprites, curplayerctrlkey
 
 
 
@@ -50,6 +48,7 @@ var steepslopefoundationmap, dd 0x30, 0x4A, 0x1F, 0x0A, 0x30, 0x4A, 0x1F, 0x0A, 
 //	EBP = foundation type and direction (22 possible combinations) in lowest 7 bits
 // out:	clears the upper 25 bits of EBP
 // preserves: everything else
+global displayfoundation
 displayfoundation:
 	and ebp,0xfff
 	pusha
@@ -170,6 +169,10 @@ gettilealtmergemap:
 #if 0
 	pusha
 	call [gettileinfo]
+//	cmp dh, 0
+//	jnz .dontInsertTramTracks
+//	mov dh, [landscape3+esi*2]
+//.dontInsertTramTracks:
 	cmp bl,9 << 3
 	clc
 	jne .notbridgehead
@@ -288,6 +291,11 @@ gettrackfoundationtype:
 
 // Same for a road tile (DH = road piece map; preserved)
 getroadfoundationtype:
+	cmp dh, 0   //check for tram tracks...
+	jne 	.dontInsertTramTracks0
+	mov	dh, [landscape3+esi*2]
+	
+.dontInsertTramTracks0:
 	push edx
 	cmp byte [alwaysraiseland], 0
 	jz .normal
@@ -299,6 +307,11 @@ getroadfoundationtype:
 	mov cx,0x50a
 
 .common:
+	cmp	dh, 0   //check for tram tracks...
+	jnz 	.dontInsertTramTracks
+	mov	dh, [landscape3+esi*2]
+	
+.dontInsertTramTracks:
 	call auxisinclinedfoundation
 	jna .done
 
@@ -467,6 +480,10 @@ displstationgroundsprite:
 
 global displbasewithfoundation
 displbasewithfoundation:
+    cmp	dh, 0
+    jne .dontInsertTracks
+    mov dh, [landscape3+esi*2]
+.dontInsertTracks:
 	call displayfoundation
 
 displfoundationrelsprite:
@@ -481,6 +498,9 @@ displfoundationrelsprite:
 	add ecx,8
 
 .relok:
+    mov     di, 6
+    mov     si, 6
+    mov     dh, 10
 	call [addrelsprite]
 	popa
 	ret
@@ -578,6 +598,10 @@ initrailspritedispl:
 // safe:EBX
 global initroadspritedispl
 initroadspritedispl:
+//    cmp dh,0
+//    jnz .skipInsertingTramTracks
+//    mov dh, [landscape3+esi*2]
+//.skipInsertingTramTracks:
 	movzx esi,bx			// the overwritten part
 	mov ebp,addr(getroadfoundationtype)
 
@@ -791,6 +815,7 @@ correctexactalt.getfoundationtype:
 	jne correctexactalt.fix
 	jmp correctexactalt.done
 
+global correctexactalt.chkslope
 correctexactalt.chkslope:		// jump here if slope means a level foundation
 	test edi,edi
 	jz correctexactalt.done
@@ -858,6 +883,11 @@ correctbridgeendexactalt:
 	and al, 0xF0
 	and cl, 0xF0
 	call [gettileinfo]
+	cmp dh, 0
+	jnz .dontInsertTramTracks
+	mov dh, byte [landscape3 + 2*esi]
+	
+.dontInsertTramTracks:
 	test word [landscape3 + 2*esi], 3 << 13
 	popa
 	jnz .bridgeend
@@ -1156,6 +1186,11 @@ chklighthouseflatland:
 //	(also EDI on fail)
 global chkbuildroadslope
 chkbuildroadslope:
+	cmp	byte [landscape3+esi*2], 0   //check for tram tracks...
+	jz 	.dontInsertTramTracks
+	mov	dh, [landscape3+esi*2]
+
+.dontInsertTramTracks:
 	mov word [operrormsg2],0x1800	// "Land sloped in wrong direction for road"
 					// (overwritten by runindex call)
 	mov esi,edi			// cheap way to ensure ESI<>0
@@ -1165,6 +1200,12 @@ chkbuildroadslope:
 	push ebx
 	xor edi,edi			// this ensures EDI<31:16>=0 for the subsequent code
 	call [gettileinfo]
+	
+	cmp	byte [landscape3+esi*2], 0   //check for tram tracks...
+	jz 	.dontInsertTramTracks2
+	mov	dh, [landscape3+esi*2]
+	
+.dontInsertTramTracks2:
 	xor esi,esi
 	cmp bl,0x10
 	pop ebx
@@ -1234,6 +1275,12 @@ buildroadslopeext:
 
 	// check if there's already road (in which case we don't add the foundation cost)
 	call [gettileinfo]
+	
+	cmp	byte [landscape3+esi*2], 0   //check for tram tracks...
+	jz 	.dontInsertTramTracks3
+	mov	dh, [landscape3+esi*2]
+.dontInsertTramTracks3:
+	
 	xor edi,edi
 	cmp bl,0x10
 	jz .skip
@@ -1252,6 +1299,12 @@ ovar .goodexit,-4,$,buildroadslopeext
 // safe:EDI,EBP
 global removeroadonslope
 removeroadonslope:
+	cmp	byte [curplayerctrlkey], 0
+	jz	.dontLoadTramArray
+	mov	byte dh, [landscape3+esi*2]
+.dontLoadTramArray:
+	//mov byte [landscape3+esi*2], 0   //TrAsH! tram tracks...
+
 	call getroadfoundationtype
 	ja .done
 

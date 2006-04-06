@@ -26,7 +26,7 @@ extern piececonnections,randomfn,randomstationtrigger
 extern setstationdisabledbuttons,stationarray2ofst,stationcallbackflags
 extern stationcargowaitingmask,stationclass,stationclassesused,stationflags
 extern stationspritelayout,stsetids
-extern unimaglevmode
+extern unimaglevmode, Class5LandPointer
 
 
 // bits in L7:
@@ -564,10 +564,23 @@ setstationclass:
 	ret
 
 
+vard stationspritelayoutinfo, stationspritelayout,curgrfstationlist,ttdstationspritelayout
+
 global setstationspritelayout
 setstationspritelayout:
-	// note, this is called with untranslated offset in ebx
+	mov ebp,stationspritelayoutinfo
+	// jmp short setgeneralspritelayout
+	// fall through
 
+
+	// call with standard action 0 prop registers for type "H", and also
+	// ebp->sprite layout info
+	//	where	[ebp+0]->table where to store sprite layouts
+	//		[ebp+4]->ID translation table (may be 0 if none)
+	//		[ebp+8]->default sprite layouts
+	// note, the offset in ebx must be untranslated
+	//	 (i.e. type "H" in the defvehdata argument in grfact.asm)
+setgeneralspritelayout:
 	mov edi,[edx]
 	test edi,0xffff0000
 	jnz .gotptr
@@ -587,12 +600,16 @@ setstationspritelayout:
 
 .next:
 	push ebx
-	mov bl,[curgrfstationlist+ebx]
-
+	mov eax,[ebp+4]
+	test eax,eax
+	jz .notrl
+	mov bl,[eax+ebx]
+.notrl:
 	push ecx
 	mov [edi],edx	// store number of valid sprite slots
 	add edi,4
-	mov [stationspritelayout+ebx*4],edi
+	mov eax,[ebp]
+	mov [eax+ebx*4],edi
 
 	call getextendedbyte
 	mov ecx,eax
@@ -608,10 +625,10 @@ setstationspritelayout:
 	test eax,eax
 	jnz .nextsprite	// has new layout data, skip to next tile
 
-	// use TTD's layout
+	// use default layout
 	imul eax,ecx,byte -4
 	lea eax,[eax+edx*4]
-	add eax,[ttdstationspritelayout]
+	add eax,[ebp+8]
 	mov [edi-4],eax
 	jmp short .tiledone
 
@@ -950,7 +967,7 @@ getnewstationsprite:
 	mov [stationspritesetofs],eax
 	mov [stationcurgameid],eax
 
-	cmp dh,	8	// rail station tile?
+	cmp dh,	8
 	jae near .nosprites
 
 	// get dataid
@@ -1148,6 +1165,11 @@ uvard modtiletype
 // safe:ebx
 global getstationspritelayout
 getstationspritelayout:
+
+	//---------INSERTED BY STEVEN HOEFEL-----------------
+	mov dword [Class5LandPointer], ebx
+	//-------------------------------------------------------
+
 	cmp dh,0xff
 	je .modtype
 

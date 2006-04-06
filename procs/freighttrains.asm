@@ -4,10 +4,6 @@
 
 patchproc freighttrains, patchfreighttrains
 
-patchfreighttrains:
-	patchcode oldshowwagonload,newshowwagonload,1,1
-	ret
-
 begincodefragments
 
 codefragment oldshowwagonload,-6
@@ -20,3 +16,7 @@ codefragment newshowwagonload
 
 
 endcodefragments
+
+patchfreighttrains:
+	patchcode oldshowwagonload,newshowwagonload,1,1
+	ret

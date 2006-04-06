@@ -9,7 +9,7 @@ extern BringWindowToForeground,CreateTooltip,DestroyWindow,FindWindow
 extern RefreshWindowArea,TabClicked,TitleBarClicked,currscreenupdateblock
 extern dfree,dmalloc,errorpopup,fillrectangle,redrawscreen
 extern win_newshistory_constraints,win_newshistory_elements
-extern windowstack
+extern windowstack,CheckBoxClicked
 
 
 
@@ -51,12 +51,11 @@ ovar temp_windowclicked_element, -4
 	mov cx, -1
 .notsizer:
 	cmp byte [ebp+windowbox.type], cWinElemTab
-	jne .notabclicked
-	jmp TabClicked
-.notabclicked:
+	je near TabClicked
 	cmp byte [ebp+windowbox.type], cWinElemTitleBar
-	jnz .nothingclicked
-	jmp TitleBarClicked
+	je near TitleBarClicked
+	cmp byte [ebp+windowbox.type], cWinElemCheckBox
+	je near CheckBoxClicked
 .nothingclicked:
 	ret
 

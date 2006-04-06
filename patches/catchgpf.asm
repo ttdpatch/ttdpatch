@@ -7,8 +7,9 @@
 #include <flagdata.inc>
 #include <version.inc>
 #include <win32.inc>
+#include <grf.inc>
 
-extern cargoids,curcallback,curgrffeature
+extern cargoids,curcallback,curgrffeature,lasttextids,curmiscgrf
 extern curgrffile,curgrfid,curgrfsprite,currentversion,hexdigits
 extern startflagdata
 
@@ -369,6 +370,7 @@ catchgpf:
 .isopen:
 	push eax
 	call makegrfmsg
+	call maketextidmsg
 	pop eax
 
 #if WINTTDX
@@ -543,6 +545,66 @@ makegrfmsg:
 	mov [cargoids],ecx
 	ret
 
+maketextidmsg:
+	mov edi,[cargoids]
+	lea edi,[edi+cargoids+4]	// append to grf msg, if any
+
+	cmp word [lasttextids],byte -1
+	je .done
+
+	mov esi,gpftextidstart
+	mov ecx,gpftextidfile-gpftextidstart
+	rep movsb
+
+	mov esi,lasttextids
+.nextid:
+	mov ebx,1
+	call hexwords
+	sub edi,5
+	mov byte [edi-1]," "
+	sub esi,2
+	cmp word [esi],byte -1
+	jne .nextid
+	dec edi
+
+	mov eax,[curmiscgrf]
+	lea esi,[eax+1]		// make esi=1 if eax=0
+	test eax,eax
+	jz .nogrffile
+	mov eax,[eax+spriteblock.filenameptr]
+	test eax,eax
+	jz .nogrffile
+
+	mov esi,gpftextidfile
+	mov cl,gpftextidtail-gpftextidfile
+	rep movsb
+
+	mov esi,eax
+	mov ebx,256		// we will print at most 256 characters
+	call checkbounds	// will exit this proc on error
+
+	mov al,0
+	mov ecx,ebx
+	lodsb
+.nextbyte:
+	stosb
+	lodsb
+	test al,al
+	loopnz .nextbyte
+
+	xor esi,esi
+
+.nogrffile:
+	add esi,gpftextidtail	// skip first byte ")" if no grf file
+	mov ecx,gpdtextidend
+	sub ecx,gpftextidtail
+	rep movsb
+
+.done:
+	mov ecx,edi
+	sub ecx,cargoids+4+1
+	mov [cargoids],ecx
+	ret
 
 	// make sure we don't accidentally cause a GPF ourselves!
 	// Check the segment limit, and reduce the number of output
@@ -779,11 +841,11 @@ var gpfhstk,	db "########  ########  ########  ########  ########  ########  ###
 var gpfflags
 	times ((nflagdata-1) / 8) db "########  ########  ########  ########  ########  ########  ########  ########",13,10
 	times ((nflagdata-1) % 8) db "########  "
-		db "########",13,10
+		db "########",13,10,13,10
 
 var gpfdumpend
 
-var gpfprocessing, db 13,10,"While processing sprites for "
+var gpfprocessing, db "While processing sprites for "
 var gpfprocessingend
 
 var gpfgetsprite, db "ID "
@@ -803,6 +865,11 @@ var gpfgrfsprite
 var gpfgrfspritenum
 		db		   "#### (hex); "
 var gpfgrfspriteend
+
+var gpftextidstart, db "Processing text ID(s) "
+var gpftextidfile, db " (misc GRF IDs from "
+var gpftextidtail, db ")",13,10
+var gpdtextidend
 
 	// Define TTDPatch version as a DWORD
 	// MMmrbbbb  MM=major  m=minor  r=revision  bbbb=build

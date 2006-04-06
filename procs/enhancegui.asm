@@ -14,73 +14,6 @@ extern windowDepotDropHandle1
 extern windowDepotDropHandle2,windowDepotDropHandle3
 extern windowRailDepotDropHandle
 
-
-patchenhancegui:
-	// Find memory locations for new Depot trash handler
-	stringaddress findwindowraildepotdrophandle,1,1
-	mov [windowRailDepotDropHandle], edi
-	
-	stringaddress oldwindowstreetdepotdrophandle,1,3
-	mov [windowDepotDropHandle1], edi
-	stringaddress oldwindowstreetdepotdrophandle,2,3
-	mov [windowDepotDropHandle2], edi
-	stringaddress oldwindowstreetdepotdrophandle,3,3
-	mov [windowDepotDropHandle3], edi
-
-#if 0
-	// Find memory locations for new Rail Depot 
-	stringaddress findwindowraildepotsize,1,1
-	mov [windowRailDepotSize], edi
-	stringaddress findwindowraildepotdrawwithengine,1,1
-	mov [windowRailDepotDrawWithEngine], edi
-	stringaddress findwindowraildepotdrawnoengine,1,1
-	mov [windowRailDepotDrawWithNoEngine], edi
-#endif
-
-	// Transparent Station Signs
-	multipatchcode oldaddstationsigntotexteffect,newaddstationsigntotexteffect,3
-	patchcode oldtextcolorrange,newtextcolorrange,1,1
-
-	push 12
-	call malloccrit
-	pop dword [enhanceguioptions_defaultdata]
-
-	push 12
-	call malloccrit
-	pop dword [enhanceguioptions_savedata]
-
-	call loadenhanceguisettingsfromfile // reset to file default
-	call enhancegui_settingschanged
-
-	// Fixable map window
-	patchcode oldmapwindowclicked,newmapwindowclicked,1,1
-
-	// Draggable dynamite
-	patchcode oldDemolishTile,newDemolishTile,1,1
-	patchcode oldRailConstrWinHandler,newRailConstrWinHandler,1,1
-	patchcode oldRoadConstrWinHandler,newRoadConstrWinHandler,1,1
-	patchcode oldDockConstrWinHandlerEnd,newDockConstrWinHandlerEnd,1,1
-	patchcode oldAirportConstrWinHandler,newAirportConstrWinHandler,1,1
-	patchcode oldLandscapeGenWinHandler,newLandscapeGenWinHandler,1,1
-	stringaddress findrailroadtoolmousedragdirection,1+WINTTDX,2
-	mov eax, [edi]
-	mov [RailToolMouseDragDirectionPtr], eax
-	stringaddress findrailroadtoolmousedragdirection,2-WINTTDX,2
-	mov eax, [edi]
-	mov [RoadToolMouseDragDirectionPtr], eax
-
-	// Draggable N-S and E-W rails
-	stringaddress findRailConstrToolClickProcs,1,1
-	mov edi, [edi]
-	mov [RailConstrToolClickProcs], edi
-	mov dword [edi+8], addr(RailNSPieceToolClick)
-	mov dword [edi+16], addr(RailEWPieceToolClick)
-
-	patchcode oldRailConstrMouseToolClose,newRailConstrMouseToolClose,1,1
-	ret
-
-
-
 begincodefragments
 
 codefragment findwindowraildepotdrophandle
@@ -187,3 +120,68 @@ codefragment newRailConstrMouseToolClose
 
 
 endcodefragments
+
+
+patchenhancegui:
+	// Find memory locations for new Depot trash handler
+	stringaddress findwindowraildepotdrophandle,1,1
+	mov [windowRailDepotDropHandle], edi
+	
+	stringaddress oldwindowstreetdepotdrophandle,1,3
+	mov [windowDepotDropHandle1], edi
+	stringaddress oldwindowstreetdepotdrophandle,2,3
+	mov [windowDepotDropHandle2], edi
+	stringaddress oldwindowstreetdepotdrophandle,3,3
+	mov [windowDepotDropHandle3], edi
+
+#if 0
+	// Find memory locations for new Rail Depot 
+	stringaddress findwindowraildepotsize,1,1
+	mov [windowRailDepotSize], edi
+	stringaddress findwindowraildepotdrawwithengine,1,1
+	mov [windowRailDepotDrawWithEngine], edi
+	stringaddress findwindowraildepotdrawnoengine,1,1
+	mov [windowRailDepotDrawWithNoEngine], edi
+#endif
+
+	// Transparent Station Signs
+	multipatchcode oldaddstationsigntotexteffect,newaddstationsigntotexteffect,3
+	patchcode oldtextcolorrange,newtextcolorrange,1,1
+
+	push 12
+	call malloccrit
+	pop dword [enhanceguioptions_defaultdata]
+
+	push 12
+	call malloccrit
+	pop dword [enhanceguioptions_savedata]
+
+	call loadenhanceguisettingsfromfile // reset to file default
+	call enhancegui_settingschanged
+
+	// Fixable map window
+	patchcode oldmapwindowclicked,newmapwindowclicked,1,1
+
+	// Draggable dynamite
+	patchcode oldDemolishTile,newDemolishTile,1,1
+	patchcode oldRailConstrWinHandler,newRailConstrWinHandler,1,1
+	patchcode oldRoadConstrWinHandler,newRoadConstrWinHandler,1,1
+	patchcode oldDockConstrWinHandlerEnd,newDockConstrWinHandlerEnd,1,1
+	patchcode oldAirportConstrWinHandler,newAirportConstrWinHandler,1,1
+	patchcode oldLandscapeGenWinHandler,newLandscapeGenWinHandler,1,1
+	stringaddress findrailroadtoolmousedragdirection,1+WINTTDX,2
+	mov eax, [edi]
+	mov [RailToolMouseDragDirectionPtr], eax
+	stringaddress findrailroadtoolmousedragdirection,2-WINTTDX,2
+	mov eax, [edi]
+	mov [RoadToolMouseDragDirectionPtr], eax
+
+	// Draggable N-S and E-W rails
+	stringaddress findRailConstrToolClickProcs,1,1
+	mov edi, [edi]
+	mov [RailConstrToolClickProcs], edi
+	mov dword [edi+8], addr(RailNSPieceToolClick)
+	mov dword [edi+16], addr(RailEWPieceToolClick)
+
+	patchcode oldRailConstrMouseToolClose,newRailConstrMouseToolClose,1,1
+	ret

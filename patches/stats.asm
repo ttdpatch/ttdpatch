@@ -117,7 +117,6 @@ var otherCompanyWindowElemList
 	dw 0, 179, 158, 169, 0x7077
 	db cWinElemTextBox, cColorSchemeGrey
 	dw 180, 359, 158, 169, 0x7078
-
 	db cWinElemTextBox, cColorSchemeGrey
 	dw 266, 355, 32, 43, ourtext(statistics)
 	db cWinElemLast
@@ -312,4 +311,3 @@ companywindowtimer:
 	add dword [esp], 1+0x0F
 .noskip:
 	ret
-

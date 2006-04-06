@@ -2,10 +2,6 @@
 #include <frag_mac.inc>
 
 global patchremovebridgeortunnel
-patchremovebridgeortunnel:
-	patchcode oldbridgeremovable,newbridgeremovable,1,1
-	patchcode oldtunnelremovable,newtunnelremovable,1,1
-	ret
 
 begincodefragments
 
@@ -24,3 +20,8 @@ codefragment newtunnelremovable
 
 
 endcodefragments
+
+patchremovebridgeortunnel:
+	patchcode oldbridgeremovable,newbridgeremovable,1,1
+	patchcode oldtunnelremovable,newtunnelremovable,1,1
+	ret

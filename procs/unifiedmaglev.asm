@@ -10,6 +10,25 @@ extern vehtypedataconvbackupptr
 #include <vehtype.inc>
 
 global patchunifiedmaglev
+
+begincodefragments
+
+codefragment oldtrackconstmenusize
+	movzx ecx,byte [edx+player.tracktypes]
+
+codefragment newtrackconstmenusize
+	call runindex(trackconstmenusize)
+	setfragmentsize 7
+
+codefragment oldsettraintype
+	mov al,[vehtypearray+ebx+vehtype.enginetraintype]
+
+codefragment newsettraintype
+	call runindex(settraintype)
+
+
+endcodefragments
+
 patchunifiedmaglev:
 	mov bl,[unimaglevmode]
 
@@ -49,23 +68,3 @@ patchunifiedmaglev:
 
 	multipatchcode oldsettraintype,newsettraintype,2
 	ret
-
-
-
-begincodefragments
-
-codefragment oldtrackconstmenusize
-	movzx ecx,byte [edx+player.tracktypes]
-
-codefragment newtrackconstmenusize
-	call runindex(trackconstmenusize)
-	setfragmentsize 7
-
-codefragment oldsettraintype
-	mov al,[vehtypearray+ebx+vehtype.enginetraintype]
-
-codefragment newsettraintype
-	call runindex(settraintype)
-
-
-endcodefragments

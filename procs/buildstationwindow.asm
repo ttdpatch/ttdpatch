@@ -9,6 +9,29 @@ extern addnewtrackbuttons,createstationwindow,stationwindowclickhandler
 extern createstationwindow.old,stationwindoweventhandler
 extern stationwindoweventhandler.oldhandler,malloccrit
 
+begincodefragments
+
+codefragment findwindowrailstationelements, -12
+	db 0x0A,0x07,0x0B,0x00,0x93,0x00,0x00,0x00,0x0D,0x00,0x00,0x30
+
+codefragment findwindowrailstationselhandleronoff
+	cmp cl, 0Eh		// 80 F9 0E
+      jz $+2+0x67		// 74 67
+	cmp cl, 0Fh		// 80 F9 0F                               
+	jz $+2+0x43		// 74 43
+
+codefragment findwindowrailstationbuttonstate, 3
+	shr bp, 0Fh		// 66 C1 ED 0F
+	add bp, 3		// 66 83 C5 03
+
+codefragment newstationwindowactivehandler
+	call runindex(stationwindowactivehandler)
+	setfragmentsize 33
+
+codefragment_call newstationwindowclickhandler,stationwindowclickhandler,9
+
+endcodefragments
+
 
 patchbuildstationwindow:
 	// build rail station select win add buttons
@@ -63,8 +86,7 @@ adjuststationwindow:
 
 	push edi
 	sub edi, 1Bh
-	storefunctioncall stationwindowclickhandler
-	mov dword [edi+5], 0x90909090 //0xC3 // retn
+	storefragment newstationwindowclickhandler
 	pop edi
 
 // Tooltips
@@ -100,27 +122,3 @@ adjuststationwindow:
 	mov ecx, (2+4)
 	rep stosw
 	ret
-
-
-
-
-begincodefragments
-
-codefragment findwindowrailstationelements, -12
-	db 0x0A,0x07,0x0B,0x00,0x93,0x00,0x00,0x00,0x0D,0x00,0x00,0x30
-
-codefragment findwindowrailstationselhandleronoff
-	cmp cl, 0Eh		// 80 F9 0E
-      jz $+2+0x67		// 74 67
-	cmp cl, 0Fh		// 80 F9 0F                               
-	jz $+2+0x43		// 74 43
-
-codefragment findwindowrailstationbuttonstate, 3
-	shr bp, 0Fh		// 66 C1 ED 0F
-	add bp, 3		// 66 83 C5 03
-
-codefragment newstationwindowactivehandler
-	call runindex(stationwindowactivehandler)
-	setfragmentsize 33
-
-endcodefragments

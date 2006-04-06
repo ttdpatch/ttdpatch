@@ -2,16 +2,56 @@
 #define __VAR_INC__
 
 // macros for defining variables in TTD's and TTDPatch's memory space
+// THIS IS OBSOLETE NOW, DON'T USE IT IN NEW CODE
 %define addr(x) (x) //-protectedstart+runindexbase)
 
-// all TTDPatch variables need to be counted relative to protectedstart,
-// which is really located at runindexbase, so calculate them accordingly
+// preferred form of variable declaration:
+// var{b,w,d} <var> [, <value>, ...]
+// b/w/d specifies the alignment
+// this puts the variable in the data segment which improves performance
+// for some CPUs
+// if the value is not given, the section will remain .data{b,w,d} and
+// has to be manually reset to .text
+%macro varb 1-2+.nolist	// params: variablename, value
+	[section .datab]
+	global %1
+	%if %0>1
+		%1: db %2
+		__SECT__
+	%else
+		%1:
+	%endif
+%endmacro
+%macro varw 1-2+.nolist	// params: variablename, value
+	[section .dataw]
+	global %1
+	align 2
+	%if %0>1
+		%1: dw %2
+		__SECT__
+	%else
+		%1:
+	%endif
+%endmacro
+%macro vard 1-2+.nolist	// params: variablename, value
+	[section .datad]
+	global %1
+	align 4
+	%if %0>1
+		%1: dd %2
+		__SECT__
+	%else
+		%1:
+	%endif
+%endmacro
+
+// define global variable
 %macro var 1-2+.nolist	// params: variablename [, initialization]
 	global %1
 	%1: %2;
 %endmacro
 
-// ovar defines a variable with an offset to the current position (or
+// ovar defines a global variable with an offset to the current position (or
 // another variable)
 %macro ovar 2-4.nolist $, // params: variablename, offset [, basis [, fullname]]
 	global %4%1
@@ -22,9 +62,6 @@
 // (really it'll be initialized to 0 or -1, but take no space in the .exe file)
 // initval can be either z for zero or s for signed (-1) initialization
 
-%macro uvar 1-4.nolist d,1,z	; params: name [,size [,number [,initval]]]
-	%error "The uvar macro is no longer supported, please use uvard,uvarw oder uvarb"
-%endmacro
 %define sectname_1z .bss1
 %define sectname_1s .sbss1
 %define sectname_2z .bss2
@@ -46,6 +83,17 @@
 %endmacro
 %macro uvard 1-3.nolist 1,z
 	sdef 4%3,%1,resd %2
+%endmacro
+
+// same as uvar{b,w,d} but signed by default
+%macro svarb 1-2.nolist 1	; params: name [,number]
+	sdef 1s,%1,resb %2
+%endmacro
+%macro svarw 1-2.nolist 1	; params: name [,number]
+	sdef 2s,%1,resw %2
+%endmacro
+%macro svard 1-2.nolist 1	; params: name [,number]
+	sdef 4s,%1,resd %2
 %endmacro
 
 //
@@ -75,10 +123,10 @@
 %macro ptrvarall 1.nolist
 	global %1,%1_ptr,_%1_var
 	[section .relocv]
-	_%1_var: dd $
+	_%1_var: dd $		// only needed to get the order in reloc?.inc right
 	__SECT__
 	align 4
-	%1_ptr: dd %1, _%1_var
+	vard %1_ptr, %1, _%1_var
 %endmacro
 
 // This one does both

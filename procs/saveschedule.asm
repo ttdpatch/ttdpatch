@@ -6,17 +6,6 @@ extern savevehordersfn
 
 
 global patchsaveschedule
-patchsaveschedule:
-	// store custom name (if any) when selling vehicle, and restore when buying
-	mov edi,[savevehordersfn]
-	storefragment newsavevehorders
-
-	patchcode oldrestorevehorders,newrestorevehorders,1,1
-
-	patchcode oldcalcrefreshrect,newcalcrefreshrect,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -41,3 +30,13 @@ codefragment newcalcrefreshrect
 
 
 endcodefragments
+
+patchsaveschedule:
+	// store custom name (if any) when selling vehicle, and restore when buying
+	mov edi,[savevehordersfn]
+	storefragment newsavevehorders
+
+	patchcode oldrestorevehorders,newrestorevehorders,1,1
+
+	patchcode oldcalcrefreshrect,newcalcrefreshrect,1,1
+	ret

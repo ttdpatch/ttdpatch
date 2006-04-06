@@ -119,6 +119,7 @@ proc getvehiclescore
 	jl .foundit
 	inc bl
 	jnz .perfloop	// if bl=0 we've looped, which means eax was 0 and so we break the infinite loop
+	mov bl,0xff	// limit score to 255
 .foundit:
 	mov [%$score],bl
 	popa

@@ -1,51 +1,55 @@
 
 Hi Hackers!
 
-If you are brave enough to try and modify the source, you'll soon realize
-that it's in quite a mess, and that's unlikely to change, ever.  The reasons
-for that are explained in 0COMPILE.TXT
+To make TTDPatch compatible with both the DOS and Windows versions of TTD
+at the same time, there are a couple of things that you absolutely have to
+pay attention to when writing code:
 
-There are a couple of things that you absolutely have to pay attention to
-if you want it to work:
-
-1) Use "var" to declare all variables initialized to something other than
-   0 or -1, uvar{b,w,d} for variables initialized to 0 or -1, and "ttdvar"
-   to declare all fixed-location variables in TTD's memory.  Use ptrvar or
-   ptrvarofs to declare variables holding pointers that are unknown at
-   compilation time.
+1) Use "var{b,w,d}" to declare all variables initialized to something other
+   than 0 or -1, uvar{b,w,d} for variables initialized to 0 or -1, and 
+   "ttdvar" to declare all fixed-location variables in TTD's memory.  Use
+   ptrvar or ptrvarofs to declare variables holding pointers that are unknown
+   at compilation time.
 2) Do not specify any segment overrides other than CS or DS without 
    some thought
 
 I'll explain this a bit below.  In addition
 
-3) Be memory efficient rather than speed efficient.
+3) Be speed efficient rather than memory efficient except in GUI code and
+   other code that isn't called very often.
 4) When adding stuff, keep to the present format
 5) How to add patches
 
 
 -----------
 
- 1) Use "var" to declare all variables
-=======================================
+ 1) Use "var{b,w,d}" to declare all variables
+=============================================
 
-Your assembler code must work in both the DOS and Windows versions, and it
-must work no matter at what address it happens to be loaded.
+The preferred way of defining variables works like this:
 
-The var macro defines a variable in TTDPatch's memory that makes sure all
-of this works correctly.  Use it like this:
+vard myofs, 0x403124
 
-	var mynewvariable, dd 55
+This declares a DWORD variable and puts it in the right section with proper
+alignment.  The word and byte variants work similarly.  There's also a
+"var" macro that puts variables in the current section.  It's not recommended
+to put variables in the .text section though.
 
-You can also declare it without an initializer on the same line, if it is 
-initialized in the following source line(s):
+You can also declare a variable like this:
 
-	var mynewvariable
-		db "Hello",0
+varb longtable
+	db 1,2,3,4
+	...
+	db 252,253,254,255
+section .text
+
+Note the "section .text" at the end, which is necessary because the
+"open-ended" form of var{b,w,d} does not reset the section to its former value.
 
 If you have a variable that needs to be initialized to either 0 or -1 (or if
-it doesn't matter to what it is initialized), use the uvar{b,w,d} macros.
-These ensure that your variable isn't stored in the patching code, thus
-reducing the executable file size.
+it doesn't matter to what it is initialized), use the uvar{b,w,d} macros
+instead.  These ensure that your variable isn't stored in the patching code,
+thus reducing the executable file size.
 
 To make a variable initialized to zero, use
 
@@ -152,20 +156,26 @@ is 1.  Note that you need to ensure that ecx is not greater than 0xffff,
 otherwise this instruction will cause a GPF in the DOS version.
 
 
- 3) Be memory efficient rather than speed efficient.
+ 3) Be speed efficient rather than memory efficient.
 =====================================================
 
-Note: this is no longer as important as it used to be.  The patch size
-is now pretty much unlimited, however except for pieces of code that
-runs hundreds of times per second, it's still better to use less memory
-than more speed.
+Since nowadays the patch size is not strictly limited as it used to be,
+it is often better to choose faster code over smaller code.  This doesn't
+mean that you need to obsessively fine-tune and optimize your code, but
+it's a good idea to keep optimization guidelines in mind while writing
+code.
+
+Especially code called many times a second (such as vehicle engine ticks,
+drawing graphics, etc.) speed is important.  For GUI code and rarely used
+code it doesn't matter much.
 
 If you need data, try to allocate the least amount of memory possible.
 Use the uvar* macros to allocate uninitialized memory wherever possible.
 If some patch needs a larger chunk of data, use the malloc function,
 or the malloccrit function to terminate without returning if out of memory
 (in patches/tools.asm) and allocate memory only if the patch is actually
-enabled.
+enabled.  Note that it's only possible to malloc memory before TTD starts
+running.
 
 
  4) When adding stuff, keep to the present format
@@ -230,7 +240,19 @@ Things to avoid (because they tend to be different in each version):
 (2) Tell TTDPatch how to find it
 ********************************
 
-Edit fragment.ah and add your patch.  It consists of two parts
+Create a new file in the procs/ directory.  Look at some of the smaller files
+in there for examples.  You need to add three things here:
+
+1) The patchproc definition
+2) The code fragments to search for and what to replace them with
+3) The actual patch proc that patches TTD
+
+The patchproc definition should go at the top, right after the necessary
+include statements, which at the very least must use defs.inc, frag_mac.inc
+and patchproc.inc.  (Note that if your patchproc needs to be called in a
+certain order, its patchproc definition must go in patches.asm instead.)
+
+This is followed by the code fragments; after "begincodefragments", you define
 
 a) the old code to search for
    Define this using "codefragment old<yourpatchname>"
@@ -258,59 +280,59 @@ b) the replacement code
      for small differences in size, or JMP to the place if it's more than a
      few bytes.
 
+And finally, after "endcodefragments" you add your actual patch proc that
+uses the patchcode/stringaddress/etc macros to search and replace the
+necessary TTD code.
+
+Don't try to implement your own search, it won't work. Use the macros
+defined in frag_def.inc, the most straightforward one being:
+      patchcode <yourpatch>
+
+This will search for the codefragment old<yourpatch>, find the
+first occurence and make sure that it's unique.  Then it will replace 
+the fragment by new<yourpatch>.
+
+For more elaborate patching, use
+      patchcode old<yourpatch>,new<yourpatch>,occurence,numoccurences
+which works as the above, but you can specify that the fragment may occur
+several times, and which of these should be patched.
+
+When you do this, you will need to generate the version info again,
+because TTD needs to find the new location and store it.  To do this,
+run TTDPatch once with "-!v+" (that's lowercase v, not uppercase V)
+as the first argument.  If successful, it will write a *.VER file
+that you then copy to the versions directory and recompile TTD.
+
+Note: DO NOT skip any patchcode or stringaddress lines conditionally.
+This would cause incorrect version data to be collected and/or used.
+Never skip a stringaddress line. Period. You may skip a corresponding
+storefragment though. It is also safe to skip the entire remainder of
+a patchproc, as long as you ensure that this doesn't happen when version
+data is being collected.
+
+To make patchcode conditional, you have to use the patchcondition 
+argument to it like this:
+      patchcode old,new,occ,num,,{comparison},condition code
+e.g.
+      patchcode old,new,occ,num,,{test [somevar],1},z
+This example would do the stringaddress part of patchcode, but only do
+the storefragment unless test [somevar],1 sets the zero flag so that a
+jz skips the storefragment.
+
+However, for testing bits of bitswitches, the BIT or NOTBIT macros to
+skip the entire patchproc as appropriate would be a better option.
+
 (3) Define a new switch
 ***********************
 
 You need to add your patch to TTDPatch's switches.
-- edit common.h and add a #define for the next unused bit. Also make sure
-  lastbitused and lastbit will reflect the change
-- add your patch procedure to the patchlist in patches.ah
-  (the format is explained at the beginning)
-- write the code that does the actual patching (i.e. the patch procedure)
-  at the end of patches.ah; use the macros defined in ttdprot.ah for
-  searching and replacing.  Don't try to implement your own search,
-  it won't work. Use the functions defined at the end of ttdprot.ah,
-  the most straightforward one being:
-	patchcode <yourpatch>
 
-  This will search for the codefragment old<yourpatch>, find the
-  first occurence and make sure that it's unique.  Then it will replace 
-  the fragment by new<yourpatch>.
+Edit common.h and add a #define for the next unused bit. Also make sure
+lastbitused and lastbit will reflect the change.  Patches that change
+TTD's fundamental engine should be off by default, patches that require
+user intervention to become used should be on by default.
 
-  For more elaborate patching, use
-	patchcode old<yourpatch>,new<yourpatch>,occurence,numoccurences
-  which works as the above, but you can specify that the fragment may occur
-  several times, and which of these should be patched.
-
-  When you do this, you will need to generate the version info again,
-  because TTD needs to find the new location and store it.  To do this,
-  run TTDPatch once with "-!v+" (that's lowercase v, not uppercase V)
-  as the first argument.  If successful, it will write a *.VER file
-  that you then copy to the versions directory and recompile TTD.
-
-  Note: DO NOT skip any patchcode or stringaddress lines conditionally.
-  This would cause incorrect version data to be collected and/or used.
-  Never skip a stringaddress line. Period. You may skip a corresponding
-  storefragment though. It is also safe to skip the entire remainder of
-  a patchproc, as long as you ensure that this doesn't happen when version
-  data is being collected.
-
-  To make patchcode conditional, you have to use the patchcondition 
-  argument to it like this:
-	patchcode old,new,occ,num,,{comparison},condition code
-  e.g.
-	patchcode old,new,occ,num,,{test [somevar],1},z
-  This example would do the stringaddress part of patchcode, but only do
-  the storefragment unless test [somevar],1 sets the zero flag so that a
-  jz skips the storefragment.
-
-  However, for testing bits of bitswitches, the BIT or NOTBIT macros to
-  skip the entire patchproc as appropriate would be a better option.
-
-(4) Add it to the configuration options
-***************************************
-
-You need to make your switch an option in the loading program.  Open
+Then, to make your switch an option in the loading program.  Open
 sw_list.h, choose an unused letter (or an unused number above 128),
 and a name for the .cfg file option.  Then use the YESNO, RANGE or BITS
 macros to define an on/off or a valued switch.
@@ -321,6 +343,8 @@ structure you want it to store the code.
 You also need to add it to the verbose switch display, and the command
 line help text.  Again in sw_list.h, after the SWITCHORDER pseudo-label,
 insert your switch into the list somewhere.
+
+Finally, edit header.asm and put your switch in the patchflagsfixedmap list.
 
 (5) Add it to the language strings
 **********************************

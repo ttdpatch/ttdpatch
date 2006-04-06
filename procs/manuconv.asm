@@ -8,21 +8,6 @@ extern wantedtracktypeofs
 ext_frag oldchecktracktype
 
 global patchmanuconv
-patchmanuconv:
-	stringaddress oldtrackbuildcheckvehs,1,1
-	copyrelative fncheckvehintheway,-4
-	storefragment newtrackbuildcheckvehs
-	patchcode oldbuildtrackoncrossing,newbuildtrackoncrossing,1,1
-	patchcode oldbuildtrackunderbridge,newbuildtrackunderbridge,1,1
-	patchcode oldbuildtrackonbridgeortunnel,newbuildtrackonbridgeortunnel,1,1
-	stringaddress oldchecktracktype,1,1
-	mov ebx,[edi+lastediadj+16]
-	mov [wantedtracktypeofs],ebx
-	storefragment newchecktracktype
-	ret
-
-
-	// allocate the extra town array if needed; patch in common town data code
 
 begincodefragments
 
@@ -72,3 +57,19 @@ codefragment newchecktracktype
 
 
 endcodefragments
+
+patchmanuconv:
+	stringaddress oldtrackbuildcheckvehs,1,1
+	copyrelative fncheckvehintheway,-4
+	storefragment newtrackbuildcheckvehs
+	patchcode oldbuildtrackoncrossing,newbuildtrackoncrossing,1,1
+	patchcode oldbuildtrackunderbridge,newbuildtrackunderbridge,1,1
+	patchcode oldbuildtrackonbridgeortunnel,newbuildtrackonbridgeortunnel,1,1
+	stringaddress oldchecktracktype,1,1
+	mov ebx,[edi+lastediadj+16]
+	mov [wantedtracktypeofs],ebx
+	storefragment newchecktracktype
+	ret
+
+
+	// allocate the extra town array if needed; patch in common town data code

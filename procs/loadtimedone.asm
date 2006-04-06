@@ -6,11 +6,6 @@ extern fullloadtest
 
 
 global patchloadtimedone
-patchloadtimedone:
-	multipatchcode oldloadtimedone,newloadtimedone,4
-	mov byte [fullloadtest],1 << MOD_NOTDONEYET
-	ret
-
 
 begincodefragments
 
@@ -26,3 +21,8 @@ codefragment newloadtimedone
 
 
 endcodefragments
+
+patchloadtimedone:
+	multipatchcode oldloadtimedone,newloadtimedone,4
+	mov byte [fullloadtest],1 << MOD_NOTDONEYET
+	ret

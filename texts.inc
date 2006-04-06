@@ -166,6 +166,7 @@
 	entry sortmaxspeed
 	entry sortreliability
 	entry sortcargo
+	entry sortdestination
 	entry sorthint
 
 	entry performance
@@ -295,6 +296,9 @@
 	entry totalcargo
 
 	entry landareainfoheight
+
+	entry txteroadmenu
+	entry txtetramwindowheader
 
 	; the following two should probably remain the last entries
 	; because they aren't really text, but rather a list of key codes
@@ -503,6 +507,7 @@ a_sortage db "Age",0
 a_sortmaxspeed db "Max. Speed",0
 a_sortreliability db "Reliability",0
 a_sortcargo db "Cargo",0
+a_sortdestination db "First destination",0
 a_sorthint db "Select sorting method of vehicles in this list",0
 
 a_performance db " (Perf. score: ",0x7e,")",0
@@ -634,6 +639,9 @@ a_statistics_white db 0x94, "Statistics",0
 a_totalcargo db 0x8E, "Total amount of cargo transported",0
 
 a_landareainfoheight db 0x98,"Altitude: ",0x95,0x7B,0
+
+a_txteroadmenu db "Tramway construction",0
+a_txtetramwindowheader db 0x94,"Tramway Construction",0
 
 a_hotkeylistdos db "xqwe!@#$t%1234567890-=",1eh,5ch,0
 a_hotkeylistwin db "xqwe!@#$t%1234567890-=`",5ch,0
@@ -834,6 +842,7 @@ e_sortage db "Age",0
 e_sortmaxspeed db "Max. Speed",0
 e_sortreliability db "Reliability",0
 e_sortcargo db "Cargo",0
+e_sortdestination db "First destination",0
 e_sorthint db 0x98,"Select sorting method of vehicles in this list",0
 
 e_performance db " (Perf. score: ",0x7e,")",0
@@ -964,6 +973,9 @@ e_statistics_white db 0x94, "Statistics",0
 e_totalcargo db 0x8E, "Total amount of cargo transported",0
 
 e_landareainfoheight db 0x98,"Altitude: ",0x95,0x7B,0
+
+e_txteroadmenu db "Tramway construction",0
+e_txtetramwindowheader db 0x94,"Tramway Construction",0
 
 e_hotkeylistdos db "xqwe!",22h,0xa3,"$t%1234567890-=",1eh,5ch,0
 e_hotkeylistwin db "xqwe!",22h,0xa3,"$t%1234567890-=~",5ch,0
@@ -1164,6 +1176,7 @@ g_sortage db "Age",0
 g_sortmaxspeed db "Max. Speed",0
 g_sortreliability db "Reliability",0
 g_sortcargo db "Cargo",0
+g_sortdestination db "First destination",0
 g_sorthint db 0x98,"Select sorting method of vehicles in this list",0
 
 g_performance db " (Perf. score: ",0x7e,")",0
@@ -1294,6 +1307,9 @@ g_statistics_white db 0x94, "Statistics",0
 g_totalcargo db 0x8E, "Total amount of cargo transported",0
 
 g_landareainfoheight db 0x98,"Altitude: ",0x95,0x7B,0
+
+g_txteroadmenu db "Tramway construction",0
+g_txtetramwindowheader db 0x94,"Tramway Construction",0
 
 g_hotkeylistdos db "xqwe!",0x22,"-$t%1234567890",0xdf,1eh,5ch,0
 g_hotkeylistwin db "xqwe!",0x22,"§$t%1234567890-=~]",0
@@ -1493,6 +1509,7 @@ f_sortage db "Age",0
 f_sortmaxspeed db "Max. Speed",0
 f_sortreliability db "Reliability",0
 f_sortcargo db "Cargo",0
+f_sortdestination db "First destination",0
 f_sorthint db 0x98,"Select sorting method of vehicles in this list",0
 
 f_performance db " (Perf. score: ",0x7e,")",0
@@ -1623,6 +1640,9 @@ f_statistics_white db 0x94, "Statistics",0
 f_totalcargo db 0x8E, "Total amount of cargo transported",0
 
 f_landareainfoheight db 0x98,"Altitude: ",0x95,0x7B,0
+
+f_txteroadmenu db "Tramway construction",0
+f_txtetramwindowheader db 0x94,"Tramway Construction",0
 
 f_hotkeylistdos db "xqwe!",0x22,0x9C,"$t%1234567890-=",1eh,5ch,0
 f_hotkeylistwin db "xqwe1234t5&",0xE9,0x22,"'(-",0xE8,"_",0xE7,")=$",0xB2,"*",0
@@ -1822,6 +1842,7 @@ s_sortage db "Age",0
 s_sortmaxspeed db "Max. Speed",0
 s_sortreliability db "Reliability",0
 s_sortcargo db "Cargo",0
+s_sortdestination db "First destination",0
 s_sorthint db 0x98,"Select sorting method of vehicles in this list",0
 
 s_performance db " (Perf. score: ",0x7e,")",0
@@ -1952,6 +1973,9 @@ s_statistics_white db 0x94, "Statistics",0
 s_totalcargo db 0x8E, "Total amount of cargo transported",0
 
 s_landareainfoheight db 0x98,"Altitude: ",0x95,0x7B,0
+
+s_txteroadmenu db "Tramway construction",0
+s_txtetramwindowheader db 0x94,"Tramway Construction",0
 
 s_hotkeylistdos db "xqwe!",0x22,"$%t&1234567890'",0xa1,1eh,5ch,0
 s_hotkeylistwin db "xqwe!",0x22,0xb7,"$t%1234567890'",0xa1,0xba,0xe7,0

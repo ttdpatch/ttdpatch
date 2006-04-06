@@ -4,12 +4,6 @@
 
 patchproc windowsnap, patchwindowsnap
 
-patchwindowsnap:
-	patchcode oldbeginwindowdrag,newbeginwindowdrag,1,1
-	patchcode oldhandlewindowdrag,newhandlewindowdrag,1,1
-	ret
-
-
 begincodefragments
 
 codefragment oldbeginwindowdrag
@@ -30,3 +24,8 @@ codefragment newhandlewindowdrag
 
 
 endcodefragments
+
+patchwindowsnap:
+	patchcode oldbeginwindowdrag,newbeginwindowdrag,1,1
+	patchcode oldhandlewindowdrag,newhandlewindowdrag,1,1
+	ret

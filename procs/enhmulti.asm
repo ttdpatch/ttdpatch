@@ -9,42 +9,6 @@
 extern recnetack.bytetocheck,newenumplayers
 
 global patchenhmulti
-patchenhmulti:
-	patchcode oldmaxplayernum,newmaxplayernum,1,1
-	patchcode oldplayerenumerate,newplayerenumerate,1,1
-	patchcode oldcheckcancel,newcheckcancel,1,1
-	stringaddress oldrecnetack,1,1
-	mov eax,[edi+2]
-	mov [recnetack.bytetocheck],eax
-	storefragment newrecnetack
-	patchcode oldsendnetack,newsendnetack1,1,3
-	patchcode oldsendnetack,newsendnetack1,1,2
-	patchcode oldsendnetack,newsendnetack2,1,1
-	patchcode oldinitclient,newinitclient,1,3
-	patchcode oldinitserver,newinitserver,1,4
-	multipatchcode oldcheckhuman2al,newcheckhuman2al,13
-	patchcode oldcheckhuman2ah,newcheckhuman2ah,1,1
-	multipatchcode oldcheckhuman2bl,newcheckhuman2bl,13
- 	patchcode oldcheckhuman2bh,newcheckhuman2bh,1,1
-	patchcode oldcheckhuman2cl,newcheckhuman2cl,1,1
-	multipatchcode oldcheckhuman2dl,newcheckhuman2dl,6
-	patchcode oldtickprocallcompanies,newtickprocallcompanies,1,1
-	patchcode oldstartnewgame,newstartnewgame,1,2
-	patchcode oldstartnewgame,newstartnewgame2,1,1
-	patchcode oldloadtitlescreen,newloadtitlescreen,1,1
-//	patchcode oldrandom,newrandom,1,1
-	patchcode oldcreateplayermsgwindow,newcreateplayermsgwindow,1,1
-	patchcode oldplayermsgtitle,newplayermsgtitle,1,1
-	patchcode oldplayermsgface,newplayermsgface,1,1
-	patchcode oldfindzeppelintarget,newfindzeppelintarget,1,1
-	patchcode oldswitchbacktosingle,newswitchbacktosingle,1,1
-	patchcode oldloadfilemask2pl,newloadfilemask2pl,1,1
-	patchcode oldtransmitloadfail,newtransmitloadfail,1,1
-	patchcode oldtransmitloadsuccess,newtransmitloadsuccess,1,1
-
-	patchcode mainmenu2playerbutton
-	patchcode mainmenu2playertooltip
-	ret
 
 begincodefragments
 
@@ -244,5 +208,43 @@ codefragment newmainmenu2playertooltip
 	dw ourtext(multiplayer_tooltip)
 
 endcodefragments
+
+patchenhmulti:
+	patchcode oldmaxplayernum,newmaxplayernum,1,1
+	patchcode oldplayerenumerate,newplayerenumerate,1,1
+	patchcode oldcheckcancel,newcheckcancel,1,1
+	stringaddress oldrecnetack,1,1
+	mov eax,[edi+2]
+	mov [recnetack.bytetocheck],eax
+	storefragment newrecnetack
+	patchcode oldsendnetack,newsendnetack1,1,3
+	patchcode oldsendnetack,newsendnetack1,1,2
+	patchcode oldsendnetack,newsendnetack2,1,1
+	patchcode oldinitclient,newinitclient,1,3
+	patchcode oldinitserver,newinitserver,1,4
+	multipatchcode oldcheckhuman2al,newcheckhuman2al,13
+	patchcode oldcheckhuman2ah,newcheckhuman2ah,1,1
+	multipatchcode oldcheckhuman2bl,newcheckhuman2bl,13
+ 	patchcode oldcheckhuman2bh,newcheckhuman2bh,1,1
+	patchcode oldcheckhuman2cl,newcheckhuman2cl,1,1
+	multipatchcode oldcheckhuman2dl,newcheckhuman2dl,6
+	patchcode oldtickprocallcompanies,newtickprocallcompanies,1,1
+	patchcode oldstartnewgame,newstartnewgame,1,2
+	patchcode oldstartnewgame,newstartnewgame2,1,1
+	patchcode oldloadtitlescreen,newloadtitlescreen,1,1
+//	patchcode oldrandom,newrandom,1,1
+	patchcode oldcreateplayermsgwindow,newcreateplayermsgwindow,1,1
+	patchcode oldplayermsgtitle,newplayermsgtitle,1,1
+	patchcode oldplayermsgface,newplayermsgface,1,1
+	patchcode oldfindzeppelintarget,newfindzeppelintarget,1,1
+	patchcode oldswitchbacktosingle,newswitchbacktosingle,1,1
+	patchcode oldloadfilemask2pl,newloadfilemask2pl,1,1
+	patchcode oldtransmitloadfail,newtransmitloadfail,1,1
+	patchcode oldtransmitloadsuccess,newtransmitloadsuccess,1,1
+
+	patchcode mainmenu2playerbutton
+	patchcode mainmenu2playertooltip
+	ret
+
 
 #endif

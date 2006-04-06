@@ -612,7 +612,3 @@ convertplatformsincargoacceptlist:
 	sub al, (80h - 8h)
 .issmall:
 	ret
-
-
-
-

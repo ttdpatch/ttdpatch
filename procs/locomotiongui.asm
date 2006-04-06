@@ -7,15 +7,6 @@ extern DrawPlannedStationAcceptsList
 
 
 global patchlocomotiongui
-patchlocomotiongui:
-	patchcode oldopenrailconstrwindow,newopenrailconstrwindow,1,1
-	storeaddress findDrawPlannedStationAcceptsList,DrawPlannedStationAcceptsList
-	storeaddress findAcceptsListDrawWidth,AcceptsListDrawWidthPtr
-	storeaddress findAcceptsTextId,AcceptsTextIdPtr
-
-	patchcode oldcreaterailstationselectwindow,newcreaterailstationselectwindow,1,2
-	ret
-
 
 begincodefragments
 
@@ -48,3 +39,12 @@ codefragment newcreaterailstationselectwindow
 
 
 endcodefragments
+
+patchlocomotiongui:
+	patchcode oldopenrailconstrwindow,newopenrailconstrwindow,1,1
+	storeaddress findDrawPlannedStationAcceptsList,DrawPlannedStationAcceptsList
+	storeaddress findAcceptsListDrawWidth,AcceptsListDrawWidthPtr
+	storeaddress findAcceptsTextId,AcceptsTextIdPtr
+
+	patchcode oldcreaterailstationselectwindow,newcreaterailstationselectwindow,1,2
+	ret

@@ -8,6 +8,37 @@ patchproc moreanimation, patchmoreanimation
 extern animarraysize,malloccrit
 extern newanimarray
 
+begincodefragments
+
+codefragment findanimlist1
+	movzx ebx,word [esi]
+	or bx,bx
+
+codefragment findanimlist2
+	or ax,ax
+	jnz $+2+0x17
+
+codefragment findanimlist3
+	mov bx,[esi]
+	or bx,bx
+	jz $+2+0x14
+
+codefragment findanimlist4
+	mov bx,[esi]
+	or bx,bx
+	jz $+2+0x10
+
+codefragment findanimlist5
+	xor ebx,ebx
+	mov dx,0x100
+
+codefragment findanimlist6
+	mov bx,[esi+2]
+	mov [esi],bx
+
+
+endcodefragments
+
 
 patchmoreanimation:
 	mov eax,[animarraysize]
@@ -39,36 +70,3 @@ patchmoreanimation:
 	dec eax
 	mov [edi-6],eax
 	ret
-
-
-
-begincodefragments
-
-codefragment findanimlist1
-	movzx ebx,word [esi]
-	or bx,bx
-
-codefragment findanimlist2
-	or ax,ax
-	jnz $+2+0x17
-
-codefragment findanimlist3
-	mov bx,[esi]
-	or bx,bx
-	jz $+2+0x14
-
-codefragment findanimlist4
-	mov bx,[esi]
-	or bx,bx
-	jz $+2+0x10
-
-codefragment findanimlist5
-	xor ebx,ebx
-	mov dx,0x100
-
-codefragment findanimlist6
-	mov bx,[esi+2]
-	mov [esi],bx
-
-
-endcodefragments

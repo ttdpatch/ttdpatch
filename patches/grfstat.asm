@@ -911,4 +911,3 @@ gameoptionstimer:
 	btr dword [esi+window.activebuttons],23
 .done:
 	ret
-

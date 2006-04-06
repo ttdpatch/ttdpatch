@@ -14,5 +14,3 @@ patchperfcache:			// alloc a cache for performance scores so vehicle lists can b
 	call malloccrit
 	pop dword [perfcacheptr]
 	ret
-
-

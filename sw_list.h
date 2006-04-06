@@ -288,6 +288,7 @@
 	RANGE(181,"autoreplace", CFG_AUTOREPLACE, autoreplace, 0, 0, FLAGDATA(replaceminreliab), 1, 100, 80),
 	RANGE(182,"autoslope", CFG_AUTOSLOPE, autoslope, 0, 1, FLAGDATA(autoslopevalue), 1, 3, 1),
 	YESNO(183,"followvehicle", CFG_FOLLOWVEHICLE, followvehicle),
+	YESNO(184,"trams", CFG_TRAMS, trams),
 
 
 //
@@ -440,3 +441,4 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	autoreplace,
 	autoslope,
 	followvehicle,
+	trams,

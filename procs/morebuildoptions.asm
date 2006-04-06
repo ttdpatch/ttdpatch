@@ -7,18 +7,6 @@ extern morebuildoptionsflags
 
 
 global patchmorebuildoptions
-patchmorebuildoptions:
-	mov bl, [morebuildoptionsflags]	// we let the preprocessor do the work... *eg*
-	patchcode oldcrosstunnel,newcrosstunnel,1,1,,{test bl,MOREBUILDOPTIONS_CTUNNEL},nz
-	patchcode oldbuildonlyone,newbuildonlyone,1,1,,{test bl,MOREBUILDOPTIONS_MOREINDUSTRIES},nz
-	patchcode oldbuildonlynearmapedge, newbuildonlynearmapedge,1,1,,{test bl,MOREBUILDOPTIONS_OILREFINERY},nz
-	patchcode oldremoveindustrydeny,newremoveindustrydeny,1,1,,{test bl,MOREBUILDOPTIONS_REMOVEINDUSTRY},nz
-	patchcode oldremoveindustrydeny2,newremoveindustrydeny2,1,1,,{test bl,MOREBUILDOPTIONS_REMOVEINDUSTRY},nz
-	patchcode oldplacebuoy,newplacebuoy,1,1,,{test bl,MOREBUILDOPTIONS_ENHANCEDBUOYS},nz
-	patchcode oldremovetracksignals,newremovetracksignals,1,1,,{test bl,MOREBUILDOPTIONS_BULLDOZESIGNALS},nz
-	ret
-
-
 
 begincodefragments
 
@@ -89,3 +77,14 @@ codefragment newremovetracksignals
 
 
 endcodefragments
+
+patchmorebuildoptions:
+	mov bl, [morebuildoptionsflags]	// we let the preprocessor do the work... *eg*
+	patchcode oldcrosstunnel,newcrosstunnel,1,1,,{test bl,MOREBUILDOPTIONS_CTUNNEL},nz
+	patchcode oldbuildonlyone,newbuildonlyone,1,1,,{test bl,MOREBUILDOPTIONS_MOREINDUSTRIES},nz
+	patchcode oldbuildonlynearmapedge, newbuildonlynearmapedge,1,1,,{test bl,MOREBUILDOPTIONS_OILREFINERY},nz
+	patchcode oldremoveindustrydeny,newremoveindustrydeny,1,1,,{test bl,MOREBUILDOPTIONS_REMOVEINDUSTRY},nz
+	patchcode oldremoveindustrydeny2,newremoveindustrydeny2,1,1,,{test bl,MOREBUILDOPTIONS_REMOVEINDUSTRY},nz
+	patchcode oldplacebuoy,newplacebuoy,1,1,,{test bl,MOREBUILDOPTIONS_ENHANCEDBUOYS},nz
+	patchcode oldremovetracksignals,newremovetracksignals,1,1,,{test bl,MOREBUILDOPTIONS_BULLDOZESIGNALS},nz
+	ret

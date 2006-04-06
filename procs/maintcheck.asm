@@ -2,11 +2,6 @@
 #include <frag_mac.inc>
 
 global patchmaintcheck
-patchmaintcheck:
-	multipatchcode oldneedsmaintcheck,newneedsmaintcheck,4
-	ret
-
-
 
 begincodefragments
 
@@ -20,3 +15,7 @@ codefragment newneedsmaintcheck
 
 
 endcodefragments
+
+patchmaintcheck:
+	multipatchcode oldneedsmaintcheck,newneedsmaintcheck,4
+	ret

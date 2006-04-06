@@ -31,6 +31,7 @@
 #include <systexts.inc>
 #include <ptrvar.inc>
 #include <ttdvar.inc>
+#include <smartpad.inc>
 
 // prevent calldofindstring and dopatchcode from being declared extern
 #define __no_extern__ 1
@@ -315,8 +316,8 @@ initialize:
 	dec eax
 	mov ecx,__psbss_size_dwords
 	rep stosd
-#if 0&DEBUG
-	cmp edi,section.aux.start
+#if DEBUG
+	cmp edi,currentversion
 	je .isgoodsbss2
 	ud2
 .isgoodsbss2:
@@ -324,16 +325,6 @@ initialize:
 
 #if WINTTDX
 	call dorelocations	// only do this once
-#endif
-
-	// initialize the .ptr variables
-#if 0
-	FIXME ??
-	mov edi,[ptr_ofs]
-	lea eax,[edi+0x80000000]
-	add edi,4		// skip ttdvar relocations
-	mov ecx,section.ptr.size/4-1
-	rep stosd
 #endif
 
 .notagain:
@@ -846,7 +837,27 @@ proc applypatches
 	mov ecx,[eax]
 	xor eax,eax
 	lodsb
+	test al,0x40
+	jnz .vartest
+.bittest:
 	bt ecx,eax	// using only bits 0..4 of al
+	jmp short .checkflag
+.vartest:
+	CALLINT3
+	mov ah,al
+	and ah,0x7f
+	cmp ah,0x7e
+	jb .bytevar
+	je .wordvar
+.dwordvar:
+	cmp ecx,1
+	jmp short .checkflag
+.wordvar:
+	cmp cx,1
+	jmp short .checkflag
+.bytevar:
+	cmp cl,1
+.checkflag:
 	mov cl,al
 	mov al,0
 	adc al,0	// now al=1 if bit was set and al=0 if bit was clear
@@ -1062,7 +1073,7 @@ proc dofindstring
 	// note! If the argument list changes, make sure to adjust the ret xx
 	// in useknownaddresses accordingly
 
-	local found,granularity,orgcount
+	local found,granularity,orgcount,findcount
 
 	_enter
 	push ebx
@@ -1102,6 +1113,7 @@ proc dofindstring
 
 	mov ecx,[%$maxcount]
 	mov [%$orgcount],ecx
+	and dword [%$findcount],0
 	inc ecx
 	cmp ecx,[%$occurence]	// if maxcount+1==occurence, continue at edi
 	je short .notfromstart
@@ -1148,6 +1160,7 @@ proc dofindstring
 	jne short .lookagain	// no, not all bytes matched
 
 .stringmatched:
+	inc dword [%$findcount]
 	dec dword [%$occurence]	// is this the occurence we want?
 	jnz short .itsnottheone	// no.
 
@@ -1186,14 +1199,12 @@ proc dofindstring
 	call hexnibbles
 
 	add edi,byte findstringerr_occurence-findstringerr_callfrom-8
-	mov eax,[%$orgcount]
-	sub eax,[%$occurence]
+	mov eax,[%$findcount]
 	mov cl,2
 	call hexnibbles
 
 	inc edi	// add edi,byte findstringerr_outof-findstringerr_occurence-2
 	mov eax,[%$orgcount]
-	sub eax,[%$maxcount]
 	mov cl,2
 	call hexnibbles
 
@@ -1252,7 +1263,60 @@ proc dopatchcode
 	param_call [findstring],dword [%$string],dword [%$strlen],dword [%$occurence],dword [%$maxcount],dword [%$correction]
 
 	mov esi,[%$patch]
-	movzx ecx,byte [%$patchlen]
+	mov ecx,[%$patchlen]
+	test esi,0xff000000
+	jnz .store_cf
 	rep movsb
+.done:
 	_ret	// does leave automatically
+.store_cf:
+	push esi
+	push ecx
+	call store_cj_fragment
+	jmp .done
 endproc // dopatchcode
+
+// Store a call/jmp fragment
+global store_cj_fragment
+proc store_cj_fragment
+	arg target,size
+
+	_enter
+	mov esi,[%$target]
+	mov ecx,[%$size]
+.gotargs:
+	shld eax,esi,8
+	stosb
+	and esi,0xffffff
+	lea eax,[esi-4]
+	sub eax,edi
+	stosd
+	sub ecx,5
+	jz .done
+	cmp ecx,8
+	jb .pad
+	mov al,0xeb		// do pads 8+ with a jmp short
+	stosb
+	lea eax,[ecx-2]
+	stosb
+	jmp short .done
+.pad:
+	lea esi,[ecx-1]		// pad with the appropriate entry from below
+	imul esi,ecx		// calculate esi=fragpad+ecx*(ecx-1)/2
+	shr esi,1
+	add esi,fragpad
+	rep movsb
+.done:
+	_ret
+endproc
+
+varb fragpad
+	db __pad_1
+	db __pad_2
+	db __pad_3
+	db __pad_4
+	db __pad_5
+	db __pad_6
+	db __pad_7
+section .text	// in case someone wants to put some code below
+

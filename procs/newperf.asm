@@ -4,13 +4,6 @@
 
 patchproc newperformance, patchnewperf
 
-patchnewperf:
-	patchcode oldcalcperf1,newcalcperf1,1,1
-	patchcode oldcalcperf2,newcalcperf2,1,1
-	ret
-
-
-
 begincodefragments
 
 codefragment oldcalcperf1
@@ -45,3 +38,8 @@ codefragment newcalcperf2
 
 
 endcodefragments
+
+patchnewperf:
+	patchcode oldcalcperf1,newcalcperf1,1,1
+	patchcode oldcalcperf2,newcalcperf2,1,1
+	ret

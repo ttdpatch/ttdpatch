@@ -412,6 +412,10 @@ bridgechecksexit:
 
 global bridgemiddlecheckslopeok
 bridgemiddlecheckslopeok:
+    cmp dh, 00h
+    jne .skipTramTracks
+    mov dh, [landscape3+esi*2]
+.skipTramTracks:
 	//fix coasts
 	cmp bx, 6*8
 	jne .notwater
@@ -502,5 +506,3 @@ getnormalclassunderbridge:
 	shr eax, 1
 	ret
 ;endp getnormalclassunderbridge
-
-

@@ -17,8 +17,6 @@
 			%error Fragment length > 255 not supported
 		%endif
 	%endif
-
-	begincodefragments
 %endmacro
 
 %macro codefragment 1-3.nolist // params: name[,addedi,addediw]
@@ -53,6 +51,33 @@
 	fragmentstart:
 %endmacro
 
+// don't use this one directly...
+%macro mk_cj_codefragment 4.nolist
+	%ifdef %1_isglobal
+		%error "call/jmp fragment cannot be global"
+	%endif
+	%if %3<5
+		%error "size must be a minimum of 5"
+	%endif
+	%define %1_cj_type %4
+	%define %1_target %2
+	%assign %1_len %3
+	%assign %1_adj -%3
+	extern %2
+%endmacro
+
+// use these instead
+
+// store a call to procname and pad to size
+%macro codefragment_call 2-3.nolist 6	// params: fragname,procname [,size]
+	mk_cj_codefragment %1,%2,%3,0xe8	// E8 = call rel32
+%endmacro
+
+// store a jmp to procname and pad to size
+%macro codefragment_jmp 2-3.nolist 6	// params: fragname,procname [,size]
+	mk_cj_codefragment %1,%2,%3,0xe9	// E9 = jmp rel32
+%endmacro
+
 // check if fragment is available in the right size
 %macro testsize 2.nolist	; params: name, size
 	%ifnum %1_ispadded
@@ -74,6 +99,9 @@
 	%ifdef %2_isextern
 		%error "Old fragment must not be external"
 	%endif
+	%ifdef %2_cj_type
+		%error "Old fragment must not be call/jmp fragment"
+	%endif
 
 	%define fragmentstart %1_start
 	%define fragmentend %1_end
@@ -93,7 +121,7 @@
 		%assign addedi %3
 	%else
 %ifndef PREPROCESSONLY
-		%define addedi %2_add
+		%assign addedi %2_add
 %endif
 	%endif
 
@@ -129,6 +157,8 @@
 
 	%undef addedi
 	%undef newsize
+
+	begincodefragments
 %endmacro
 
 // use codefragment of an extern patchproc
@@ -144,6 +174,7 @@
 %macro glob_frag 1-*.nolist
 	%rep %0
 		global %1_start,%1_len,%1_add,%1_adj
+		%define %1_isglobal
 		%rotate 1
 	%endrep
 %endmacro
@@ -246,8 +277,8 @@
 	%define _add %1_add
 	%ifndef PREPROCESSONLY
 		%ifndef %1_isextern
-			%define _size byte %1_len
-			%define _add byte %1_add
+			%xdefine _size byte %1_len
+			%xdefine _add byte %1_add
 		%endif
 	%endif
 
@@ -265,18 +296,30 @@
 %macro storefragment 1.nolist	// param: fragment
 
 	%%_storefragment_%1_:
+	%ifdef %1_cj_type
+		param_call store_cj_fragment,%1_target+(%1_cj_type<<24),%1_len
+	%else
 	// then write the new code to it
 	mov esi,%1_start
 
-	mov ecx,%1_len
-
-	%define lastediadj %1_adj
+	%define lastfraglen %1_len
+	%ifdef %1_isextern
+		mov ecx,lastfraglen
+	%elif lastfraglen < 0xff
+		mov cl,lastfraglen	// assumes ecx=0 before
+	%else
+		mov ecx,lastfraglen
+	%endif
+	%undef lastfraglen
 
 	rep movsb
+	%endif
+
+	%define lastediadj %1_adj
 %endmacro
 
 #ifndef __no_extern__
-extern dopatchcode,calldofindstring
+extern dopatchcode,calldofindstring,store_cj_fragment
 #endif
 
 // this is a macro to patch an element of code
@@ -284,15 +327,22 @@ extern dopatchcode,calldofindstring
 // sets ECX=0, ESI->oldcode-lastediadj, EDI->newcode-lastediadj
 %macro patchcode 4.nolist	// params: oldcode,newcode,occurence,maxcount
 	%%patchcode_%1_%2_:
+	%define callpatchcode param_call dopatchcode
+	%ifdef %2_cj_type
+		%define %%addr2 %2_target+(%2_cj_type<<24)
+	%else
+		%define %%addr2 %2_start
+	%endif
 %ifdef %1_isextern
-	param_call dopatchcode, %1_start, %2_start, %1_len, %3, %4, %1_add, %2_len
+	callpatchcode, %1_start, %%addr2, %1_len, %3, %4, %1_add, %2_len
 %elifdef %2_isextern
-	param_call dopatchcode, %1_start, %2_start, byte %1_len, %3, %4, %1_add, %2_len
+	callpatchcode, %1_start, %%addr2, 0+%1_len, %3, %4, 0+%1_add, %2_len
 %else
-	param_call dopatchcode, %1_start, %2_start, byte %1_len, %3, %4, byte %1_add, byte %2_len
+	callpatchcode, %1_start, %%addr2, 0+%1_len, %3, %4, 0+%1_add, 0+%2_len
 %endif
 
 	%define lastediadj %2_adj
+	%undef callpatchcode
 %endmacro
 
 // simplest version of the above, expands to patchcode old<code>,new<code>,1,1
@@ -373,16 +423,17 @@ extern dopatchcode,calldofindstring
 
 	%4
 
-#if 0		// FIXME ?
+%ifndef %1_isextern
 	%if %1_add<0
 		add edi,byte -%1_add	// make sure we find the next occurence, not this one again
 	%endif
-#endif
+%else
 	mov eax,%1_add
 	test eax,eax
 	jge %%notneg
 	sub edi,eax
 %%notneg:
+%endif
 
 	%undef ediadj
 	pop ecx
@@ -550,8 +601,9 @@ extern dopatchcode,calldofindstring
 	storefunctionaddress find%1,1,1,%1
 %endmacro
 
-
 // store a call to our function (not an indirect entry) at edi+offset (overwrite 5 bytes)
+// note: a better way may be using a codefragment_call and storefragment, especiall
+//	 if you need to pad the fragment
 %macro storefunctioncall 1-2 0	// param: label [,offset]
 	mov byte [edi+%2],0xe8		// CALL imm
 	changereltarget 1+%2,%1
@@ -562,7 +614,6 @@ extern dopatchcode,calldofindstring
 	mov byte [%3+%2],0xe9		// JMP near
 	changereltarget 1+%2,%1,%3
 %endmacro
-
 
 // have our function called before or after the original code
 // typically used with code like this:

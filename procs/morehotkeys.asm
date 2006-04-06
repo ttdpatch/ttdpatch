@@ -4,22 +4,6 @@
 
 patchproc morehotkeys, patchmorehotkeys
 
-patchmorehotkeys:
-	patchcode oldhotkeycenter,newhotkeycenter,1,1
-
-	mov byte [edi+lastediadj+19],0
-	mov byte [edi+lastediadj+23],0
-	mov byte [edi+lastediadj+52],0x90
-
-	patchcode oldtoolselect,newtoolselect,1,1
-	mov ebx,maxtoolnum
-	mov byte [ebx],2	// 2 tools selectable for road vehicles
-	mov byte [byte ebx+tooltype-maxtoolnum],1	// mark as road vehicles
-	patchcode oldtoolselect,newtoolselect,1,1
-	ret
-
-
-
 begincodefragments
 
 codefragment oldhotkeycenter
@@ -46,3 +30,17 @@ tooltype equ $-1
 
 
 endcodefragments
+
+patchmorehotkeys:
+	patchcode oldhotkeycenter,newhotkeycenter,1,1
+
+	mov byte [edi+lastediadj+19],0
+	mov byte [edi+lastediadj+23],0
+	mov byte [edi+lastediadj+52],0x90
+
+	patchcode oldtoolselect,newtoolselect,1,1
+	mov ebx,maxtoolnum
+	mov byte [ebx],2	// 2 tools selectable for road vehicles
+	mov byte [byte ebx+tooltype-maxtoolnum],1	// mark as road vehicles
+	patchcode oldtoolselect,newtoolselect,1,1
+	ret

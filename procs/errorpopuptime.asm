@@ -16,5 +16,3 @@ patcherrorpopuptime:
 .settime:
 	mov [edi+0x55],ax
 	ret
-
-

@@ -12,6 +12,18 @@ extern aiboostfactor
 
 
 global patchaibooster
+
+begincodefragments
+
+codefragment oldAIareasize
+	// mov [esi+company.AIconstr.areasize], ??
+	db 0xC6,0x86,0xC6,0x02,0x00,0x00  
+
+codefragment newAIareasizedummy
+
+
+endcodefragments
+
 patchaibooster:
 	multipatchcode oldAIareasize,newAIareasizedummy,12, fixaibyte
 #if 0
@@ -34,16 +46,3 @@ patchaibooster:
 	xor ecx,ecx
 #endif
 	ret
-
-
-
-begincodefragments
-
-codefragment oldAIareasize
-	// mov [esi+company.AIconstr.areasize], ??
-	db 0xC6,0x86,0xC6,0x02,0x00,0x00  
-
-codefragment newAIareasizedummy
-
-
-endcodefragments

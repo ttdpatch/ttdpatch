@@ -6,18 +6,6 @@ extern NewClass5RouteMapHandler,dorvstationcolldet
 
 
 global patchbusstopmovement
-patchbusstopmovement:
-	mov eax,[ophandler+0x05*8]
-	mov edi, dword [eax+0x24]
-	add edi, 6
-	storefunctionjump NewClass5RouteMapHandler
-
-	patchcode oldrvmakestationbusywhenleaving, newrvmakestationbusywhenleaving,1,1
-
-	patchcode rvstationcolldet
-	ret
-
-
 
 begincodefragments
 
@@ -38,5 +26,17 @@ codefragment newrvstationcolldet
 	bt [dorvstationcolldet],ebx
 	setfragmentsize 11
 
+codefragment_call newclass5routemaphandler,NewClass5RouteMapHandler,5
 
 endcodefragments
+
+patchbusstopmovement:
+	mov eax,[ophandler+0x05*8]
+	mov edi, dword [eax+0x24]
+	add edi, 6
+	storefragment newclass5routemaphandler
+
+	patchcode oldrvmakestationbusywhenleaving, newrvmakestationbusywhenleaving,1,1
+
+	patchcode rvstationcolldet
+	ret

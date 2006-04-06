@@ -19,12 +19,16 @@
 	//
 	// arguments may be:
 	// - a patchflag bit from common.h
-	// - a flagdata bit from bitnames.ah using BIT(bitname) or NOTBIT(bitname)
+	// - a flagdata bit from bitnames.ah using [NOT]BIT(bitname)
 	//	this *doesn't* test whether the corresponding switch is on!
+	// - any other bit from any variable using [NOT]VARBIT(var,bitnum)
+	// - whether any byte/word/dword variable is non-zero using
+	//	[NOT]VAR{B,W,D}SET(var)
 	//
 %macro patchproc 2-*.nolist // params: bits...,procname
 	[section .pproc]
 	%rotate -1
+	global __%1__procdef
 	__%1__procdef:	// create label containing the procname for the .lst file
 	%rotate 1
 	db %0-1
@@ -52,6 +56,7 @@
 %macro patchprocandor 3-*.nolist // params: andbits...,,orbits...,procname
 	[section .pproc]
 	%rotate -1
+	global __%1__procdef
 	__%1__procdef:
 	%rotate 1
 	%push andor
@@ -91,4 +96,13 @@
 #define BIT(bit) { patchprocbitflag,bit ## _VAR,bit ## _NUM }
 #define NOTBIT(bit) { patchprocbitflag,bit ## _VAR,bit ## _NUM |0x80 }
 
+#define VARBIT(var,bit) { patchprocbitflag,var,bit }
+#define NOTVARBIT(var,bit) { patchprocbitflag,var,bit|0x80 }
+
+#define VARBSET(var) { patchprocbitflag,var,0x7d }
+#define NOTVARBSET(var) { patchprocbitflag,var,0x7d|0x80 }
+#define VARWSET(var) { patchprocbitflag,var,0x7e }
+#define NOTVARWSET(var) { patchprocbitflag,var,0x7e|0x80 }
+#define VARDSET(var) { patchprocbitflag,var,0x7f }
+#define NOTVARDSET(var) { patchprocbitflag,var,0x7f|0x80 }
 

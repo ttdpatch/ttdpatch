@@ -9,57 +9,6 @@ patchproc newstations, patchnewstations
 extern checktrainenterstationtile,checktrainenterstationtile.oldfn
 extern createrailwaystation,createrailwaystation.oldfn
 
-
-patchnewstations:
-	// Different Station Sets
-	patchcode oldaddtracktypetostation,newaddtracktypetostation,1,1
-	patchcode oldaddstationspritebase,newgetstationspritetrl,2-WINTTDX,3
-	add edi,byte lastediadj+90
-	storefragment newgetstationspritetrl
-	sub edi,dword 196-lastediadj
-	storefragment newgetstationspritelayout
-	mov byte [edi+lastediadj+24],0x7f
-	add edi,byte 33+lastediadj
-	storefragment newgetstationtracktrl
-	patchcode olddispstationsprite,newgetstationspritetrl
-
-	patchcode oldremoverailstation,newremoverailstation,1,1
-	patchcode oldsetupstationstruct,newsetupstationstruct,2,3
-	patchcode oldsetuprailwaystation,newsetuprailwaystation,1,1
-	patchcode oldbadstationintransportzone,newbadstationintransportzone,1,1
-#if WINTTDX
-	patchcode oldupdatestationwindow,newupdatestationwindow,1,3
-	patchcode oldupdatestationwindow,newcargoinstation,1,2
-	//one of the instances is invalidated, but not overwritten by the new load/unload code
-#else
-	patchcode oldupdatestationwindow,newcargoinstation,1,3
-	//one of the instances is invalidated, but not overwritten by the new load/unload code
-	patchcode oldupdatestationwindow,newupdatestationwindow,2,2
-#endif
-	patchcode oldstationquery,newstationquery
-	patchcode oldaibuildrailstation,newaibuildrailstation
-	patchcode oldaipickconstructionobject,newaipickconstructionobject,1,4
-
-	mov eax,[ophandler+0x05*8]
-	mov edi,[eax+0x18]	// cleartile
-	add edi,18
-	storefragment newallowbuildoverstation
-
-	mov edi,[eax+0x10]	// actionhandler
-	mov edi,[edi+9]
-	mov ebx,addr(createrailwaystation)
-	xchg ebx,[edi]
-	storerelative createrailwaystation.oldfn,ebx,esi
-
-	mov esi,addr(checktrainenterstationtile)
-	xchg esi,[eax+0x24]	// routemaphnd
-	storerelative checktrainenterstationtile.oldfn,esi
-
-	patchcode doestrainstopatstationtile
-	ret
-
-
-
 begincodefragments
 
 codefragment oldaddtracktypetostation
@@ -169,3 +118,52 @@ codefragment newdoestrainstopatstationtile
 
 
 endcodefragments
+
+
+patchnewstations:
+	// Different Station Sets
+	patchcode oldaddtracktypetostation,newaddtracktypetostation,1,1
+	patchcode oldaddstationspritebase,newgetstationspritetrl,2-WINTTDX,3
+	add edi,byte lastediadj+90
+	storefragment newgetstationspritetrl
+	sub edi,dword 196-lastediadj
+	storefragment newgetstationspritelayout
+	mov byte [edi+lastediadj+24],0x7f
+	add edi,byte 33+lastediadj
+	storefragment newgetstationtracktrl
+	patchcode olddispstationsprite,newgetstationspritetrl
+
+	patchcode oldremoverailstation,newremoverailstation,1,1
+	patchcode oldsetupstationstruct,newsetupstationstruct,2,3
+	patchcode oldsetuprailwaystation,newsetuprailwaystation,1,1
+	patchcode oldbadstationintransportzone,newbadstationintransportzone,1,1
+#if WINTTDX
+	patchcode oldupdatestationwindow,newupdatestationwindow,1,3
+	patchcode oldupdatestationwindow,newcargoinstation,1,2
+	//one of the instances is invalidated, but not overwritten by the new load/unload code
+#else
+	patchcode oldupdatestationwindow,newcargoinstation,1,3
+	//one of the instances is invalidated, but not overwritten by the new load/unload code
+	patchcode oldupdatestationwindow,newupdatestationwindow,2,2
+#endif
+	patchcode oldstationquery,newstationquery
+	patchcode oldaibuildrailstation,newaibuildrailstation
+	patchcode oldaipickconstructionobject,newaipickconstructionobject,1,4
+
+	mov eax,[ophandler+0x05*8]
+	mov edi,[eax+0x18]	// cleartile
+	add edi,18
+	storefragment newallowbuildoverstation
+
+	mov edi,[eax+0x10]	// actionhandler
+	mov edi,[edi+9]
+	mov ebx,addr(createrailwaystation)
+	xchg ebx,[edi]
+	storerelative createrailwaystation.oldfn,ebx,esi
+
+	mov esi,addr(checktrainenterstationtile)
+	xchg esi,[eax+0x24]	// routemaphnd
+	storerelative checktrainenterstationtile.oldfn,esi
+
+	patchcode doestrainstopatstationtile
+	ret

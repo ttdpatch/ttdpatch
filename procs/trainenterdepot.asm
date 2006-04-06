@@ -4,11 +4,6 @@
 ext_frag oldautoreplace12
 
 global patchtrainenterdepot
-patchtrainenterdepot:
-	patchcode oldautoreplace12,newtrainenterdepot,1+WINTTDX,2
-	ret
-
-
 
 begincodefragments
 
@@ -17,3 +12,7 @@ codefragment newtrainenterdepot
 
 
 endcodefragments
+
+patchtrainenterdepot:
+	patchcode oldautoreplace12,newtrainenterdepot,1+WINTTDX,2
+	ret

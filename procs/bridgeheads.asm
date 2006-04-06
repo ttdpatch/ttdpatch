@@ -8,29 +8,6 @@ extern temptracktypeptr
 
 
 global patchbridgeheads
-patchbridgeheads:
-	mov eax, [ophandler+0x09*8]
-	mov ecx, [eax+0x1C]
-	mov [oldclass9drawland2], ecx
-	mov dword [eax+0x1C],addr(newclass9drawland)
-	mov ecx, [eax+0x24]
-	mov [oldclass9routemaphandler], ecx
-	mov dword [eax+0x24],addr(class9routemaphandler)
-
-	storeaddress finddrawrailwaytile, 1,1, drawrailwaytile
-
-	stringaddress oldbuildbridgetrack,1,1
-	mov eax, [edi-67]
-	mov [temptracktypeptr], eax
-	storefragment newbuildbridgetrack
-	patchcode oldremovebridgetrack,newremovebridgetrack,1,1
-	patchcode oldbuildbridgeroad,newbuildbridgeroad,1,1
-	patchcode oldremovebridgeroad,newremovebridgeroad,1,1 // depends on ^^
-
-	multipatchcode oldbuildbridgehead,newbuildbridgehead,2	// patch both bridgeheads
-	ret
-
-
 
 begincodefragments
 
@@ -86,3 +63,25 @@ codefragment newbuildbridgehead
 
 
 endcodefragments
+
+patchbridgeheads:
+	mov eax, [ophandler+0x09*8]
+	mov ecx, [eax+0x1C]
+	mov [oldclass9drawland2], ecx
+	mov dword [eax+0x1C],addr(newclass9drawland)
+	mov ecx, [eax+0x24]
+	mov [oldclass9routemaphandler], ecx
+	mov dword [eax+0x24],addr(class9routemaphandler)
+
+	storeaddress finddrawrailwaytile, 1,1, drawrailwaytile
+
+	stringaddress oldbuildbridgetrack,1,1
+	mov eax, [edi-67]
+	mov [temptracktypeptr], eax
+	storefragment newbuildbridgetrack
+	patchcode oldremovebridgetrack,newremovebridgetrack,1,1
+	patchcode oldbuildbridgeroad,newbuildbridgeroad,1,1
+	patchcode oldremovebridgeroad,newremovebridgeroad,1,1 // depends on ^^
+
+	multipatchcode oldbuildbridgehead,newbuildbridgehead,2	// patch both bridgeheads
+	ret

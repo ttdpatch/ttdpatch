@@ -60,6 +60,7 @@ struc newvehdatastruc
 endstruc_32
 
 #define VEHMISCFLAG_TRAINTILT	1
+#define VEHMISCFLAG_RVISTRAM	1
 #define VEHMISCFLAG_TWOCOL	2
 
 // aliases for each of the entries

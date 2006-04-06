@@ -10,13 +10,22 @@
 #include <flags.inc>
 #include <win32.inc>
 #include <misc.inc>
+#include <var.inc>
 
-extern customtextptr,magicbytes,relocofsptr
-extern systemtextptr,auxdatapointers,__image_base__
-extern versiondataptr,loaderdata,kernel32hnd,heapstart
+extern magicbytes
+extern __image_base__
+extern loaderdata,kernel32hnd,heapstart
 extern oldveharraysize,veharrayendptr,varheap,heapptr,ttdmemsize
 
 def_indirect initialize
+
+vard auxdatapointers
+	var versiondataptr, dd 0	// where the loader stored the version data
+	var customtextptr, dd 0		// and the custom text data
+	var systemtextptr, dd 0		// and the system text data
+	var relocofsptr, dd 0		// and the relocation offsets
+
+section .text
 
 // The loaders are actually at variable addresses, hence their code must be
 // location-independent.

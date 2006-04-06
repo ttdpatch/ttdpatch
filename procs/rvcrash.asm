@@ -7,23 +7,6 @@ patchproc newrvcrash, patchrvcrash
 
 extern rvcrashtype
 
-
-patchrvcrash:
-	mov bl,[rvcrashtype]
-
-	stringaddress oldrvcrashcheck,1,1
-	cmp bl,1
-	jnz .nopatch1_1
-	mov byte [edi+lastediadj],0x8b
-	mov word [edi+lastediadj+6],0xff0b
-	mov byte [edi+lastediadj+8],0x90
-.nopatch1_1:
-	patchcode oldcrashrv,newcrashrv,1,1,,{cmp bl,1},e
-	patchcode oldcheckrvcrash,newcheckrvcrash,1,1,,{cmp bl,2},e
-	ret
-
-
-
 begincodefragments
 
 codefragment oldrvcrashcheck,-7
@@ -51,3 +34,18 @@ codefragment newcheckrvcrash
 	
 
 endcodefragments
+
+
+patchrvcrash:
+	mov bl,[rvcrashtype]
+
+	stringaddress oldrvcrashcheck,1,1
+	cmp bl,1
+	jnz .nopatch1_1
+	mov byte [edi+lastediadj],0x8b
+	mov word [edi+lastediadj+6],0xff0b
+	mov byte [edi+lastediadj+8],0x90
+.nopatch1_1:
+	patchcode oldcrashrv,newcrashrv,1,1,,{cmp bl,1},e
+	patchcode oldcheckrvcrash,newcheckrvcrash,1,1,,{cmp bl,2},e
+	ret

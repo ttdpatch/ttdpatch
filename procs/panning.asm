@@ -6,18 +6,6 @@
 extern reswidth
 
 global patchpanning
-patchpanning:
-	patchcode olddefaultpanning,newdefaultpanning,1,1
-	push edx
-	xor edx,edx
-	mov eax,640<<16
-	movzx ebx, word [reswidth]
-	div ebx
-	mov [panmultiplier],eax
-	pop edx
-	patchcode olddecidepanning,newdecidepanning,1,1
-	ret
-
 
 begincodefragments
 
@@ -56,4 +44,18 @@ panmultiplier equ $-4
 	db 0xeb		// jl -> jmp short
 
 endcodefragments
+
+patchpanning:
+	patchcode olddefaultpanning,newdefaultpanning,1,1
+	push edx
+	xor edx,edx
+	mov eax,640<<16
+	movzx ebx, word [reswidth]
+	div ebx
+	mov [panmultiplier],eax
+	pop edx
+	patchcode olddecidepanning,newdecidepanning,1,1
+	ret
+
+
 #endif

@@ -8,24 +8,6 @@ extern malloccrit,townarray2ofst
 ext_frag oldcompletehousecreated
 
 global patchmoretowndata
-patchmoretowndata:
-	push numtowns*town2_size
-	call malloccrit
-	pop eax
-	sub eax,townarray
-	mov [townarray2ofst],eax
-
-	patchcode oldcompletehousecreated,newcompletehousecreated,1,1
-	patchcode oldhouseconstrcomplete,newhouseconstrcomplete,1,1
-	patchcode oldremovehousepopulation,newremovehousepopulation,1,1
-	patchcode oldrecordtownstats,newrecordtownstats,1,1
-	patchcode oldtownacceptedcargo,newtownacceptedcargo,1,1
-	multipatchcode oldrecordtransppassmail,newrecordtransppassmail,2,{mov byte [esi+ediadj+1],2}
-	patchcode olddisplaypopulation,newdisplaypopulation,1,1
-	patchcode olddisplaypopulation2,newdisplaypopulation2,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -92,3 +74,20 @@ codefragment newdisplaypopulation2
 
 
 endcodefragments
+
+patchmoretowndata:
+	push numtowns*town2_size
+	call malloccrit
+	pop eax
+	sub eax,townarray
+	mov [townarray2ofst],eax
+
+	patchcode oldcompletehousecreated,newcompletehousecreated,1,1
+	patchcode oldhouseconstrcomplete,newhouseconstrcomplete,1,1
+	patchcode oldremovehousepopulation,newremovehousepopulation,1,1
+	patchcode oldrecordtownstats,newrecordtownstats,1,1
+	patchcode oldtownacceptedcargo,newtownacceptedcargo,1,1
+	multipatchcode oldrecordtransppassmail,newrecordtransppassmail,2,{mov byte [esi+ediadj+1],2}
+	patchcode olddisplaypopulation,newdisplaypopulation,1,1
+	patchcode olddisplaypopulation2,newdisplaypopulation2,1,1
+	ret

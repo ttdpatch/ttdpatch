@@ -6,20 +6,6 @@ extern cargoforgettime,inctimesincepickedup.forgettime
 
 
 global patchselectstationgoods
-patchselectstationgoods:
-	patchcode oldfindstations,newfindstations,1,1
-	patchcode oldinctimesincepickedup,newinctimesincepickedup,1,1,,{cmp word [cargoforgettime],2},nz
-	push edx
-	mov ax,[cargoforgettime]
-	mov bx,74
-	mul bx
-	mov bx,185
-	div bx
-	mov [inctimesincepickedup.forgettime],al
-	pop edx
-	ret
-
-
 
 begincodefragments
 
@@ -42,3 +28,16 @@ codefragment newinctimesincepickedup
 
 
 endcodefragments
+
+patchselectstationgoods:
+	patchcode oldfindstations,newfindstations,1,1
+	patchcode oldinctimesincepickedup,newinctimesincepickedup,1,1,,{cmp word [cargoforgettime],2},nz
+	push edx
+	mov ax,[cargoforgettime]
+	mov bx,74
+	mul bx
+	mov bx,185
+	div bx
+	mov [inctimesincepickedup.forgettime],al
+	pop edx
+	ret

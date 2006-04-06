@@ -6,20 +6,6 @@ patchproc newbridgespeeds, patchnewbridgespeeds
 
 extern bridgespeedlimit.limittable
 
-
-global patchnewbridgespeeds
-patchnewbridgespeeds:
-	patchcode olddisplrailbridgespeed,newdisplrailbridgespeed,1,1
-	stringaddress oldbridgespeedlimit,1,1
-	mov eax,[edi+4]
-	mov [bridgespeedlimit.limittable],eax
-	storefragment newbridgespeedlimit
-
-	// calculating speed limit and applying it now done in tools.asm/postinfoapply.donewbridgespeeds
-	ret
-
-
-
 begincodefragments
 
 codefragment olddisplrailbridgespeed,-77
@@ -39,3 +25,15 @@ codefragment newbridgespeedlimit
 
 
 endcodefragments
+
+
+global patchnewbridgespeeds
+patchnewbridgespeeds:
+	patchcode olddisplrailbridgespeed,newdisplrailbridgespeed,1,1
+	stringaddress oldbridgespeedlimit,1,1
+	mov eax,[edi+4]
+	mov [bridgespeedlimit.limittable],eax
+	storefragment newbridgespeedlimit
+
+	// calculating speed limit and applying it now done in tools.asm/postinfoapply.donewbridgespeeds
+	ret

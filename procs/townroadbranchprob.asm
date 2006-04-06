@@ -7,14 +7,6 @@ patchproc townroadbranchprob, patchtownroadbranchprob
 
 extern branchprobab
 
-
-patchtownroadbranchprob:
-	stringaddress oldtownbranchprobab,1,1
-	mov eax,[branchprobab]
-	mov [edi],ax
-	ret
-
-
 begincodefragments
 
 codefragment oldtownbranchprobab,2
@@ -24,3 +16,10 @@ codefragment oldtownbranchprobab,2
 
 
 endcodefragments
+
+
+patchtownroadbranchprob:
+	stringaddress oldtownbranchprobab,1,1
+	mov eax,[branchprobab]
+	mov [edi],ax
+	ret

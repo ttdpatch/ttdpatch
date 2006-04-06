@@ -2,11 +2,6 @@
 #include <frag_mac.inc>
 
 global patchstationspread
-patchstationspread:
-	patchcode oldcheckstationspread,newcheckstationspread,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -21,3 +16,7 @@ codefragment newcheckstationspread
 
 
 endcodefragments
+
+patchstationspread:
+	patchcode oldcheckstationspread,newcheckstationspread,1,1
+	ret

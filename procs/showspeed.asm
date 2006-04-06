@@ -7,6 +7,20 @@ extern trainspeed_edi
 
 
 global patchshowspeed
+
+begincodefragments
+
+codefragment oldtrainspeed
+	mov bx,0x8810
+	movzx ebp,ax
+
+codefragment newtrainspeed
+	call runindex(trainspeed)
+	setfragmentsize 10
+
+
+endcodefragments
+
 patchshowspeed:
 	xor eax,eax
 	mov al,4
@@ -33,18 +47,3 @@ patchshowspeed:
 	dec eax
 	jnz .nextsearch
 	ret
-
-
-
-begincodefragments
-
-codefragment oldtrainspeed
-	mov bx,0x8810
-	movzx ebp,ax
-
-codefragment newtrainspeed
-	call runindex(trainspeed)
-	setfragmentsize 10
-
-
-endcodefragments

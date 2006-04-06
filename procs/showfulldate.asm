@@ -6,22 +6,6 @@ extern patchflags
 
 
 global patchshowfulldate
-patchshowfulldate:
-	stringaddress oldshowdate
-	testmultiflags showfulldate
-	jz .notfulldate
-	push edi
-	add edi,7
-	storefragment newshowdate
-	pop edi
-.notfulldate:
-	testmultiflags gamespeed
-	jz .notgamespeed
-	storefragment newshowgamespeed
-.notgamespeed:
-	ret
-
-
 
 begincodefragments
 
@@ -38,3 +22,18 @@ codefragment newshowgamespeed
 
 
 endcodefragments
+
+patchshowfulldate:
+	stringaddress oldshowdate
+	testmultiflags showfulldate
+	jz .notfulldate
+	push edi
+	add edi,7
+	storefragment newshowdate
+	pop edi
+.notfulldate:
+	testmultiflags gamespeed
+	jz .notgamespeed
+	storefragment newshowgamespeed
+.notgamespeed:
+	ret

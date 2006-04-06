@@ -4,15 +4,6 @@
 
 
 global patchremovespecobjects
-patchremovespecobjects:
-	mov edi,[ophandler+0xa*8]
-	mov edi,[edi+0x18]
-	add edi,18
-	xor ecx,ecx
-	storefragment newremoveobject
-	ret
-
-
 
 begincodefragments
 
@@ -22,3 +13,11 @@ codefragment newremoveobject
 
 
 endcodefragments
+
+patchremovespecobjects:
+	mov edi,[ophandler+0xa*8]
+	mov edi,[edi+0x18]
+	add edi,18
+	xor ecx,ecx
+	storefragment newremoveobject
+	ret

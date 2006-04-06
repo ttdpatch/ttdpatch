@@ -9,6 +9,23 @@ extern patchflags
 ext_frag newshowvehinfo
 
 global patchrvinfowindow
+
+begincodefragments
+
+codefragment oldrvpurchaseinfo
+	push esi
+	mov bx,0x9008
+
+codefragment newrvpurchaseinfo
+	call runindex(showrvweightpurchase)
+
+codefragment oldinitrvpurchasewindow,-5
+	mov dx,0x88
+	db 0xbd,5	// mov ebp,5
+
+
+endcodefragments
+
 patchrvinfowindow:
 	xor ebx,ebx
 	stringaddress oldrvpurchaseinfo
@@ -38,21 +55,3 @@ patchrvinfowindow:
 	add [eax+0x42],ebx
 	add [eax+0x4e],ebx
 	ret
-
-
-
-begincodefragments
-
-codefragment oldrvpurchaseinfo
-	push esi
-	mov bx,0x9008
-
-codefragment newrvpurchaseinfo
-	call runindex(showrvweightpurchase)
-
-codefragment oldinitrvpurchasewindow,-5
-	mov dx,0x88
-	db 0xbd,5	// mov ebp,5
-
-
-endcodefragments

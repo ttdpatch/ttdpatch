@@ -5,24 +5,6 @@
 extern advanceroadvehicle
 
 global patchrvpower
-patchrvpower:
-	patchcode oldsetrvspeed,newsetrvspeed,2,4
-
-	patchcode oldadvanceroadvehicle,newadvanceroadvehicle,1,2
-	storerelative advanceroadvehicle,edi
-
-	patchcode oldrvaccelerate,newrvaccelerate,1,1
-	add edi,lastediadj+45
-	storefragment newadvancervposition
-
-	patchcode oldrvinfowindow,newrvinfowindow,1,1
-
-	patchcode oldrvnewvehinfo,newrvnewvehinfo,1,1
-	patchcode oldrefreshrv,newrefreshrv,1,2
-	patchcode oldsetupnewrv,newsetupnewrv,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -93,3 +75,20 @@ codefragment newsetupnewrv
 
 
 endcodefragments
+
+patchrvpower:
+	patchcode oldsetrvspeed,newsetrvspeed,2,4
+
+	patchcode oldadvanceroadvehicle,newadvanceroadvehicle,1,2
+	storerelative advanceroadvehicle,edi
+
+	patchcode oldrvaccelerate,newrvaccelerate,1,1
+	add edi,lastediadj+45
+	storefragment newadvancervposition
+
+	patchcode oldrvinfowindow,newrvinfowindow,1,1
+
+	patchcode oldrvnewvehinfo,newrvnewvehinfo,1,1
+	patchcode oldrefreshrv,newrefreshrv,1,2
+	patchcode oldsetupnewrv,newsetupnewrv,1,1
+	ret

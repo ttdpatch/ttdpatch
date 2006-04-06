@@ -19,7 +19,8 @@ extern exsdrawsprite,generatesoundeffect,getnewsprite,getrefitmask,grffeature
 extern initrailvehsorttable,miscgrfvar,newvehdata,patchflags,randomtrigger
 extern showvehinfo.callback,trainspritemove
 extern trainuserbits,vehids,vehsorttable,vehvarhandler
-extern wagonoverride
+extern wagonoverride,getvehiclecolors,getvehiclecolors_vehtype
+extern isengine,checkoverride
 
 // called when TTD decides which sprite should be used for any
 // particular type of orientation and spritenum of a ship
@@ -879,9 +880,8 @@ showplanestats:
 	mov bx,0xa007
 	jmp showvehinfo.callback
 
-uvarw tempvehcolor
-
-uvarb companysecondcol,8
+uvard tempvehcolor
+uvard tempvehcols
 
 global getvehiclecolor
 getvehiclecolor:
@@ -893,6 +893,34 @@ getvehiclecolor:
 	ret
 
 .getmap:
+	push esi
+
+	// for wagons with override use colours of engine
+	movzx eax,byte [esi+veh.vehtype]
+	bt [isengine],eax
+	jc .nooverride
+
+	cmp byte [wagonoverride+eax],1
+	jb .nooverride
+
+	push ebx
+	movzx ebx,word [esi+veh.engineidx]
+	cmp bx,[esi+veh.idx]
+	je .nooverridepop
+	shl ebx,7
+	add ebx,[veharrayptr]
+	movzx ebx,byte [ebx+veh.vehtype]
+	call checkoverride
+	jc .nooverridepop
+	movzx ebx,word [esi+veh.engineidx]
+	shl ebx,7
+	add ebx,[veharrayptr]
+	mov [esp+4],ebx
+.nooverridepop:
+	pop ebx
+.nooverride:
+	call getvehiclecolors
+
 	mov word [tempvehcolor],775
 	movzx eax,word [esi+veh.vehtype]
 	test byte [callbackflags+eax],0x40
@@ -911,16 +939,16 @@ getvehiclecolor:
 	test eax,eax
 	jnz .notdefault
 	mov eax,[deftwocolormaps]
+	test eax,eax
+	jle .normalcolor
 	mov [tempvehcolor],eax
 .notdefault:
-	movzx eax,byte [esi+veh.owner]
-	mov al,[companysecondcol+eax]
+	mov al,[tempvehcols+1]
 	shl al,4
-	add [tempvehcolor],ax
+	or [tempvehcols],al
 .normalcolor:
-	movzx eax,byte [esi+veh.owner]
-	mov al,[companycolors+eax]
-	add ax,[tempvehcolor]
+	movzx eax,byte [tempvehcols]
+	add eax,[tempvehcolor]
 .done:
 	mov edi,[esi+veh.veh2ptr]
 	mov [edi+veh2.colormap],eax
@@ -928,6 +956,9 @@ getvehiclecolor:
 
 global getvehiclecolor_nostruc
 getvehiclecolor_nostruc:
+	push ebp
+	call getvehiclecolors_vehtype
+
 	xor ebx,ebx
 	mov word [tempvehcolor],775
 	test byte [callbackflags+ebp],0x40
@@ -948,16 +979,16 @@ getvehiclecolor_nostruc:
 	test ebx,ebx
 	jnz .notdefault
 	mov ebx,[deftwocolormaps]
+	test ebx,ebx
+	jle .normalcolor
 	mov [tempvehcolor],ebx
 .notdefault:
-	movzx ebx,byte [human1]
-	mov bl,[companysecondcol+ebx]
+	mov bl,[tempvehcols+1]
 	shl bl,4
-	add [tempvehcolor],bx
+	or [tempvehcols],bl
 .normalcolor:
-	movzx ebx,byte [human1]
-	mov bl,[companycolors+ebx]
-	add bx,[tempvehcolor]
+	movzx ebx,byte [tempvehcols]
+	add ebx,[tempvehcolor]
 .done:
 	ret
 
@@ -1330,10 +1361,6 @@ getconsistcargo:
 	enter 256+NUMCARGOS,0
 
 	xor eax,eax
-	movzx ebx,byte [climate]
-	imul ebx,NUMCARGOS
-	add ebx,cargotypes
-
 	mov edi,esp
 	lea ecx,[eax+(256+NUMCARGOS)/4]
 	rep stosd
@@ -1371,7 +1398,7 @@ getconsistcargo:
 .checkmax:
 	cmp [esp+ecx],dl
 	jbe .notmax
-	mov ah,[ebx+ecx]
+	mov ah,[cargotypes+ecx]
 	mov dl,[esp+ecx]
 
 .notmax:

@@ -16,6 +16,54 @@ extern wtrackspriteofsptr
 
 
 global patchpathbasedsignalling
+
+begincodefragments
+
+codefragment findtraceroute,35
+	mov si,0x3000
+	db 0xba	// mov edx,ChkRailRouteTarget
+
+codefragment findgetnexttiledirandbits,15
+	pop ax
+	pop bx
+	jmp $+2+0x75
+
+codefragment oldcheckredsignal,7
+	pop esi
+	mov dx,ax
+	shr eax,16
+
+codefragment newcheckredsignal
+	icall checksignal
+	setfragmentsize 7
+
+codefragment oldsignalblocktrace,15
+	mov si,0xc000
+
+codefragment oldlastwagoncleartile,3
+	xchg ax,bp
+	call $+8
+
+codefragment oldchktrainleavedepot,-26
+	jz .notY
+	mov byte [esi+veh.movementstat],2
+.notY:
+
+codefragment newchktrainleavedepot
+	icall chktrainleavedepot
+	setfragmentsize 8
+
+codefragment olddisplayrailsprites
+	test dh,1
+	jz $+2+16
+
+codefragment newdisplayrailsprites
+	icall displayrailsprites
+	jmp newdisplayrailsprites_start+133
+
+
+endcodefragments
+
 patchpathbasedsignalling:
 	stringaddress findtraceroute,1,2
 	storefunctiontarget 0,traceroutefn
@@ -111,52 +159,3 @@ patchpathbasedsignalling:
 	chainfunction displayregrailsprite,.oldfn,lastediadj+0x81
 .noshow:
 	ret
-
-
-
-begincodefragments
-
-codefragment findtraceroute,35
-	mov si,0x3000
-	db 0xba	// mov edx,ChkRailRouteTarget
-
-codefragment findgetnexttiledirandbits,15
-	pop ax
-	pop bx
-	jmp $+2+0x75
-
-codefragment oldcheckredsignal,7
-	pop esi
-	mov dx,ax
-	shr eax,16
-
-codefragment newcheckredsignal
-	icall checksignal
-	setfragmentsize 7
-
-codefragment oldsignalblocktrace,15
-	mov si,0xc000
-
-codefragment oldlastwagoncleartile,3
-	xchg ax,bp
-	call $+8
-
-codefragment oldchktrainleavedepot,-26
-	jz .notY
-	mov byte [esi+veh.movementstat],2
-.notY:
-
-codefragment newchktrainleavedepot
-	icall chktrainleavedepot
-	setfragmentsize 8
-
-codefragment olddisplayrailsprites
-	test dh,1
-	jz $+2+16
-
-codefragment newdisplayrailsprites
-	icall displayrailsprites
-	jmp newdisplayrailsprites_start+133
-
-
-endcodefragments

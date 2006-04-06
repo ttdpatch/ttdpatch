@@ -10,16 +10,8 @@
 #include <flags.inc>
 #include <veh.inc>
 
-extern actiongrfstat,actionmakewater,actionnewstations,ai_buildrailvehicle
-extern ai_buildroadvehicle,builddiagtrackspan,buildsignal,checkrandomseed
-extern cleararea,fundprospecting,fundprospecting_newindu,resetorders
-extern saverestorevehdata,setplayer,useknownaddress
-extern shareorders
+extern useknownaddress
 
-
-section .text
-
-protectedfunc:
 
 global protectedstart
 protectedstart:
@@ -70,41 +62,8 @@ ubyte_flags_end equ flags_ubyte_end - startflagvars
 #undef defwords
 #undef deflongs
 
-	// compatibility labels
 
-global curvetype,mountaintype,signal1waitdays,signal2waitdays
-	curvetype	equ mctype
-	mountaintype	equ mctype+1
-	signal1waitdays	equ signalwaittimes
-	signal2waitdays	equ signalwaittimes+1
-
-	align 4
-var auxdatapointers
-	var versiondataptr, dd 0	// where the loader stored the version data
-	var customtextptr, dd 0		// and the custom text data
-	var systemtextptr, dd 0		// and the system text data
-	var relocofsptr, dd 0		// and the relocation offsets
-
-%macro defbitvar 2.nolist	// argument: patchflag,variablename
-	%push bitvar
-	%xdefine %$curbitvar %2
-%endmacro
-%macro defbit 2.nolist		// argument: bitname,bitnumber
-	global %1_VAR,%1_NUM,%1
-	%1_VAR equ %$curbitvar
-	%xdefine %1_NUM %2
-	%assign %1 1<<%2
-%endmacro
-%macro enddefbits 0.nolist
-	%pop
-%endmacro
-#include "bitnames.ah"
-%undef defbitvar
-%undef defbit
-%undef enddefbits
-
-// The remaining variables go in .data
-section .data
+// The remaining variables go in .data*
 
 // New actions (player operations that change the state of the simulation engine)
 // In the two-player mode, if a human player induces an action, the other machine
@@ -136,12 +95,13 @@ section .data
 %macro startpatchactions 0
 	%assign actionnum 0
 	align 4
-	var ttdpatchactions
+	vard ttdpatchactions
 %endmacro
 
 %macro patchaction 1.nolist
 	global %1_actionnum
-	dd addr(%1)
+	extern %1
+	dd %1
 	%1_actionnum equ actionnum<<16 | 0x58
 	%assign actionnum actionnum+1
 %endmacro
@@ -167,26 +127,10 @@ startpatchactions			// this is a macro, not a label...
 
 uvard newvehdata, newvehdatastruc_size/4
 
-var newrefitvars
-	dd newvehdata+newvehdatastruc.refit2,newvehdata+newvehdatastruc.refit1
-	dd newvehdata+newvehdatastruc.refit1,newvehdata+newvehdatastruc.refit2
-
-	// Multi-line variable definitions (those shouldn't go in global.ah)
-
-var newbridgelenmult
-	db 0,1,2,3,5,7,10,13,16,20,24,28,32,36,40,45,50,55,60,65	// 0..19
-	db 70,78,86,94,102,109,115,122,128,134,139,144,149,154,159	// 20..34
-	db 163,167,171,175,179,182,186,189,192,195,197,200,203,205	// 35..48
-	db 207,209,212,214,215,217,219,221,222,224,225,226,228,229	// 49..62
-	db 230,231,232,233,234,235,236,237,238,239,240,241,242,243	// 63..76
-	db 244,245,246,246,247,247,248,248,249,249,250,250,251,251	// 77..90
-	db 251,252,252,252,253,253,253,253,254,254,254,254,254,254	// 91..104
-	times 255-100 db 255
-
 // Mapping of common.h bits to patchflagsfixed
 // Don't change the position of any entry, only replace the 'noflag' ones
 // or add new ones at the end of the list
-var patchflagsfixedmap
+varb patchflagsfixedmap
 	times 12 db noflag
 	db keepsmallairports	// 12
 	db noflag
@@ -277,29 +221,8 @@ patchflagsunimaglevmode equ 50				// Important: (patchflagsunimaglevmode & 7) <>
 
 patchflagsunimaglevmode_d8 equ patchflagsunimaglevmode/8
 patchflagsunimaglevmode_a7 equ patchflagsunimaglevmode & 7
-var patchflagsunimaglevmode_a7_s3_n, db ~(3 << (patchflagsunimaglevmode & 7))
+varb patchflagsunimaglevmode_a7_s3_n, ~(3 << (patchflagsunimaglevmode & 7))
 
-
-// List of vehicles the should be made eternal
-// first+second list if persistenengines is on
-// second list otherwise (makes train wagons eternal)
-var eternalvehicleslist
-	// start with ranges (number, increment, start ID)
-	db  3,1,24	// SH.40, TIM and Asiastar
-	db  3,1,54	// X2001, Z1, Z99
-	db  3,1,86	// Pegasus, Chimera, Rocketeer
-	db 29,3,119	// 29 Road vehicles, one per cargo type
-	db  2,2,205	// Oil tanker and Ferry
-	db  4,2,208	// Hovercraft, Toyland Ferry, Cargo ships (reg.&toyland)
-	db  2,1,246	// Dinger 200,1000
-	db  2,1,250	// Toyland planes
-	db  2,1,254	// Regular and Toyland helicopters
-var eternalvehicleslistwagons
-	db 27,1,27	// Rail wagons
-	db 27,1,57	// Monorail wagons
-	db 27,1,89	// Maglev wagons
-	// end of list
-	db 0
 
 #define __no_flag_data__ 1
 #define __no_bit_vars__ 1
@@ -310,41 +233,3 @@ var eternalvehicleslistwagons
 
 ptrvarall ttdvar_base
 
-	// at the end of everything else we load the version info,
-	// the custom texts and relocation info
-
-	// then follows the vehicle array (unless lowmemory&&vehfactor==1)
-	// and the heap
-
-section .aux nobits align=4
-global currentversion
-currentversion:
-section .text
-
-#if 0
-
-%macro getsectsize 1.nolist
-	section %1
-	resb ($$-$) & 3		// align to DWORD
-	section%1.end:
-	section%1.size equ section%1.end-section%1.start
-%endmacro
-
-
-getsectsize .bss
-getsectsize .bss2
-getsectsize .bss1
-getsectsize .ptr
-getsectsize .sbss
-getsectsize .sbss2
-getsectsize .sbss1
-getsectsize .aux
-
-// calculate total memory size of initialized and uninitialized data
-// we can't take differences across sections (like setion.aux.start-section.code.start)
-// so we need to add the sizes of all bss sections manually
-bss_size equ section.bss.size+section.bss2.size+section.bss1.size+section.ptr.size
-sbss_size equ section.sbss.size+section.sbss2.size+section.sbss1.size
-
-protectedcodeend equ protectedcoderealend+bss_size+sbss_size+section.aux.size
-#endif

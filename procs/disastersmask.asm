@@ -4,14 +4,6 @@
 extern isdisasteravailable.endyears
 
 global patchdisastersmask
-patchdisastersmask:
-	stringaddress oldmakedisasterslist,1,1
-	mov eax,[edi+3]				// copy the address of a table before it's overwritten
-	mov dword [isdisasteravailable.endyears],eax
-	storefragment newmakedisasterslist
-	ret
-
-
 
 begincodefragments
 
@@ -28,3 +20,10 @@ codefragment newmakedisasterslist
 
 
 endcodefragments
+
+patchdisastersmask:
+	stringaddress oldmakedisasterslist,1,1
+	mov eax,[edi+3]				// copy the address of a table before it's overwritten
+	mov dword [isdisasteravailable.endyears],eax
+	storefragment newmakedisasterslist
+	ret

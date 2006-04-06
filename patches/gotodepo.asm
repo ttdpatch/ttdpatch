@@ -16,12 +16,12 @@
 #include <ptrvar.inc>
 #include <refit.inc>
 
-extern actionhandler,adjustcapacity,callbackflags,cargotypes,copyvehordersfn
+extern actionhandler,adjustcapacity,callbackflags,copyvehordersfn
 extern ctrlkeystate,curplayerctrlkey,currefitlist,delvehschedule
 extern depotbuildslopemap,findvehontile,getrefitmask
 extern invalidatehandle,ishumanplayer,isrealhumanplayer,isscheduleshared
 extern needsmaintcheck.always,numvehshared,orderhints,patchflags
-extern redrawscreen,resetorders_actionnum
+extern redrawscreen,resetorders_actionnum,cargotypes
 extern saverestorevehdata_actionnum,savevehordersfn,shareorders_actionnum
 extern specificpropertybase
 extern vehcallback
@@ -1606,9 +1606,7 @@ dorestorevehorders:
 
 	// refittable to this cargo?
 	movzx ecx,al
-	movzx edx,byte [climate]
-	shl edx, 5
-	mov cl,[cargotypes+edx+ecx]
+	mov cl,[cargotypes+ecx]
 
 	mov dl,[esi+veh.class]
 	shl edx,16

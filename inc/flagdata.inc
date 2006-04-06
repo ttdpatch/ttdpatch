@@ -29,3 +29,9 @@ extern endflagdata
 #undef defwords
 #undef deflongs
 
+	// compatibility labels
+
+	curvetype	equ mctype
+	mountaintype	equ mctype+1
+	signal1waitdays	equ signalwaittimes
+	signal2waitdays	equ signalwaittimes+1

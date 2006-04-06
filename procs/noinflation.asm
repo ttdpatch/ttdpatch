@@ -2,12 +2,6 @@
 #include <frag_mac.inc>
 
 global patchnoinflation
-patchnoinflation:
-	patchcode oldinflation,newinflation,1,2
-	patchcode oldinflation,newinflation,1,1
-	ret
-
-
 
 begincodefragments
 
@@ -21,3 +15,8 @@ codefragment newinflation
 
 
 endcodefragments
+
+patchnoinflation:
+	patchcode oldinflation,newinflation,1,2
+	patchcode oldinflation,newinflation,1,1
+	ret

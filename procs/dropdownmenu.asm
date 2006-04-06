@@ -8,33 +8,6 @@ extern toolbarelemlisty2,win_etoolbox_create,do_win_grfstat_create
 #include <textdef.inc>
 
 global patchdropdownmenu
-patchdropdownmenu:
-	patchcode olddropdownmenustrings,newdropdownmenustrings,1,1
-	stringaddress oldtoolbardropdown,1,1
-	mov eax,[edi+3]
-	mov [toolbarelemlisty2],eax
-	storefragment newtoolbardropdown
-	add edi,lastediadj+50
-	storefragment newsettoolbarnum
-	patchcode oldselecttool,newselecttool,1,1
-
-	xor eax,eax
-	testflags enhancegui
-	jnc .noenhancegui
-	mov word [newoptionentrytxts+eax*2],ourtext(txtetoolboxmenu)
-	mov dword [newoptionentryfns+eax*4],addr(win_etoolbox_create)
-	inc eax
-.noenhancegui:
-	testflags canmodifygraphics
-	jnc .nonewgraphics
-	mov word [newoptionentrytxts+eax*2],ourtext(grfstatusmenu)
-	mov dword [newoptionentryfns+eax*4],addr(do_win_grfstat_create)
-	inc eax
-.nonewgraphics:
-	mov [numnewoptionentries],eax
-	ret
-
-
 
 begincodefragments
 
@@ -71,3 +44,29 @@ codefragment newselecttool
 
 
 endcodefragments
+
+patchdropdownmenu:
+	patchcode olddropdownmenustrings,newdropdownmenustrings,1,1
+	stringaddress oldtoolbardropdown,1,1
+	mov eax,[edi+3]
+	mov [toolbarelemlisty2],eax
+	storefragment newtoolbardropdown
+	add edi,lastediadj+50
+	storefragment newsettoolbarnum
+	patchcode oldselecttool,newselecttool,1,1
+
+	xor eax,eax
+	testflags enhancegui
+	jnc .noenhancegui
+	mov word [newoptionentrytxts+eax*2],ourtext(txtetoolboxmenu)
+	mov dword [newoptionentryfns+eax*4],addr(win_etoolbox_create)
+	inc eax
+.noenhancegui:
+	testflags canmodifygraphics
+	jnc .nonewgraphics
+	mov word [newoptionentrytxts+eax*2],ourtext(grfstatusmenu)
+	mov dword [newoptionentryfns+eax*4],addr(do_win_grfstat_create)
+	inc eax
+.nonewgraphics:
+	mov [numnewoptionentries],eax
+	ret
