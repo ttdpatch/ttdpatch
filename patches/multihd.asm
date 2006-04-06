@@ -374,16 +374,20 @@ calcvehweight:
 	jnz .ispowered
 
 	xor ebx,ebx
+	jmp short .no_te
 
 .ispowered:
-	mov [esp-4],ebx
-	mov bl,[esi+veh.vehtype]
+	push ebx
+;	mov [esp-4],ebx
+	movzx ebx,byte [esi+veh.vehtype]
 	call TrainTEGenetic.lebx
 ;	mov bl,[traintecoeff+ebx]
 	imul ebx,10	// gravity
-	imul ebx,[esp-4]
+	imul ebx,[esp]
 	shr ebx,8
+	add esp,4
 
+.no_te:
 	push bx
 	mov ebx,[esi+veh.veh2ptr]
 	pop word [ebx+veh2.te]

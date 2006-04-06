@@ -30,16 +30,16 @@ include version.def
 # defines for compiling all C and assembly sources
 # this is a space-separated list without the command line switches 
 # like -d; those will be added later because they differ
-DEFS = DEBUG=$(DEBUG) 
+EXTRADEFS = DEBUG=$(DEBUG) 
 
 WDEF_d = WINTTDX=0
 WDEF_w = WINTTDX=1
 WDEF_l = WINTTDX=0
 
 # same, but each specialized for the DOS, Windows or Linux versions
-DOSDEFS = $(DEFS) ${WDEF_d} LINTTDX=0
-WINDEFS = $(DEFS) ${WDEF_w} LINTTDX=0
-LINDEFS = $(DEFS) ${WDEF_l} LINTTDX=1
+DOSDEFS = $(EXTRADEFS) $(DEFS) ${WDEF_d} LINTTDX=0
+WINDEFS = $(EXTRADEFS) $(DEFS) ${WDEF_w} LINTTDX=0
+LINDEFS = $(EXTRADEFS) $(DEFS) ${WDEF_l} LINTTDX=1
 
 # temporary response files
 DRSP = $(TEMP)/BCC.RSP
@@ -83,9 +83,9 @@ Makefile.dep%:
 	@make -o Makefile.depd -o Makefile.depw -s INCLUDES
 	${_C}$(CPP) -x assembler-with-cpp -Iinc -D${WDEF_$*} -MM $(asmmainsrc) patches/*.asm procs/*.asm ${asmcsources} -I. | perl -pe 's/\.o/.$*po/; s#\w+/\.\./##g; print "${OTMP}" if /^\S/; print "$$1/" if /: (patches|procs)\//' > $@
 
-${MAKEFILELOCAL}: ${MAKEFILELOCAL}.sample
+${MAKEFILELOCAL}:
 	@echo ${MAKEFILELOCAL} did not exist, using defaults. Please edit it if compilation fails.
-	cp $< $@
+	cp ${MAKEFILELOCAL}.sample $@
 
 include Makefile.dep
 -include Makefile.depd
@@ -289,8 +289,10 @@ ${OTMP}%.wpo : %.c
 ttdprotd.pe ttdprotd.map: $(asmdobjs) reloc.a
 ttdprotw.pe ttdprotw.map: $(asmwobjs) reloc.a
 
-ttdprotd.pe ttdprotd.map: IMAGEBASE=0x200000
-ttdprotw.pe ttdprotw.map: IMAGEBASE=0x600000
+.INTERMEDIATE: ttdprotd.pe ttdprotw.pe
+
+IMAGEBASE_d=0x200000
+IMAGEBASE_w=0x600000
 
 # call the linker explicitly (not via gcc), and pass the patches/ object
 # files via the shell expansion instead of one giant make command line
@@ -302,7 +304,7 @@ LD_NO_INFO_0 = | grep -v "Info: "; [ $${PIPESTATUS[0]} -eq 0 ];
 LD_NO_INFO_1 =	
 ttdprot%.pe ttdprot%.map:
 	${_E} [LDEXP] $@
-	${_C}$(LDEXP) $(LDEXPFLAGS) -Map ttdprot$*.map -o ttdprot$*.pe $(filter-out ${OTMP}procs/%.$*po,$(filter-out ${OTMP}patches/%.$*po,$^)) ${OTMP}patches/*.$*po ${OTMP}procs/*.$*po reloc.a ${LD_NO_INFO_${V}}
+	${_C}$(LDEXP) $(LDEXPFLAGS) -Map ttdprot$*.map -o ttdprot$*.pe $^ ${LD_NO_INFO_${V}}
 
 ttdprot%.bin: ttdprot%.pe
 	${_E} [OBJCOPY] $@

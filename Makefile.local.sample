@@ -20,19 +20,27 @@ DOSCC = OWC
 # CYGWIN = gcc-mingw on Cygwin
 # CROSS = gcc-mingw cross compiler
 #	  in that case also set HOST to INTEL (x86) or PPC (PowerPC)
+#	  and if needed the CROSS-PREFIX
 WINCC = CYGWIN
 #HOST = INTEL
+
+# if your cross compiler isn't called i686-pc-mingw-gcc, set the following
+# (the example below works for the Ubuntu mingw32 package)
+#CROSS-PREFIX = i586-mingw32msvc
 
 # Uncomment if your debugger/OS crashes when the program encounters
 # int3 instruction breakpoints
 # Possible values:
-# -dNOINT: Do not add debug breakpoints
+# -dNOINT3: Do not add debug breakpoints
 # -dNOINT3=1: use an endless loop instead
 # if left commented out: use int3 instruction
 # NASMDEF += -dNOINT3
 
 # Uncomment if you don't have UPX or don't want to use it
 # NOUPX=1
+
+# Choose the default target, if you prefer a different target
+# DEFAULTTARGET = allw
 
 # -------------------------------------------
 #        Compilers and options
@@ -70,5 +78,9 @@ WINCC = CYGWIN
 #	CC,LD,CFLAGS,LDFLAGS,EXE as above
 #	NASMOPT		Nasm options to produce native .o files
 
-# Uncomment this if your cygwin gcc isn't 3.4.0 or higher
-#CFLAGS-CYGWIN := $(subst -mtune=pentium,-mcpu=pentium,$(CFLAGS-CYGWIN))
+# Uncomment this if your cygwin/mingw gcc isn't 3.4.0 or higher
+#CFLAGS-${WINCC} := $(subst -mtune=,-mcpu=,$(CFLAGS-${WINCC}))
+
+# and/or this if you're cross compiling and the host gcc isn't 3.4.0 or higher
+#CFLAGS-${HOST} := $(subst -mtune=,-mcpu=,$(CFLAGS-${HOST}))
+

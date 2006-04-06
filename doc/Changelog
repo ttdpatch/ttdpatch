@@ -3426,3 +3426,64 @@ before 1.6
 - fixed(?) early retirement property breaking persistentengines
 - made ai boost and moreindustriesperclimate obsolete
 - fixed font size and newhistory problem in utf8 mode
+
+2.5 beta 2
+- prevent crash if grf file forgets to set running cost base
+- by stevenh:
+  * fixed hang when removing certain road tiles
+  * truck button on tram bar disabled
+  * standard bus stops disabled in build tram stop
+  * texts fixed on tram toolbar and windows
+  * building tram tracks over a depot no longer gives you ~$4,000,000,000
+  * trees in desert repaired
+  * custombridgeheads now works with tram tracks
+  * misc tunnel/bridge infinite loops repaired
+  * added more tram texts
+  * tram depots only show trams and RV depots only show RVs
+  * fixed problem when removing rail track from level crossings
+- with newindustries, the last industry of any type (except temperate
+  oil wells) will never close down to preserve the full variety of industries
+- vehicle var FF bit 0 is toggled whenever train reverses
+- by Csaba:
+  * bugfix: GRF version 7 support didn't work for callback 2F
+    (mostrecentgrfversion wasn't loaded correctly)
+  * bugfix: callback 2e didn't support GRF version 7
+  * (devel) removed leftover code of moreindustriesperclimate
+  * From now on, the middle height of the tile is considered when
+    deciding snowyness, not the lowest. (Can be turned off by
+    miscmods.dontchangesow)
+  * Animation callbacks can now request random bits for randomizing animations
+  * Bounding boxes are now limited to FFh instead of overflowing if a
+    high building is built on high land.
+  * changes to station property 12: now it either means cargo bits, or
+    respects the cargo translation table
+  * bounding box offsets are now considered signed, and values other
+    than 0..Fh are now accepted
+  * (devel) Centralized terrain type calculation. Now everything uses
+    gettileterrain in newhouses.asm instead of three independent
+    implementations.
+  * New industry tile animation trigger 4 for starting animation when
+    cargo is distributed from the industry
+  * new returnable values for callback 29/35 to multiply/divide by
+    4/8/16/32
+  * the screen is now updated every time the snow line height changes
+  * new station variable 65 to get cargo acceptance
+  * station variables 60..65 now respect cargo translation tables in GRF
+    version 7
+  * (devel) the load/unload patch is now applied always, a lot of stuff
+    needs it anyway
+  * Increased the amount of checked tiles while redrawing an area,
+    hopefully fixes graphic glitches with high building built on high altitudes
+- by Oskar: store active GRFIDs in screenshot
+- fixed vehicle property for "not allowed" cargo classes
+- fixed possible crash when building locks on unsuitable slope
+- made it possible to translate bit switch descriptions
+- fixed incorrect max. tractive effort calculation
+- fixed window title in UTF-8 mode having invalid characters
+- allow certain 40+x/60+x vars to be used in purchase list
+- (devel) eliminate tons of conditional jumps in var.action 2 code by
+  unrolling it, should be quite a bit faster now
+- fixed slowdown when train window open
+- (devel) fixed bug in newgrf performance profiler, added profiling of
+  random/var.action 2 overhead
+- fixed unicode input in non-latin1 system codepages

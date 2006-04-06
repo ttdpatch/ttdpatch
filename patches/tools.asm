@@ -1465,6 +1465,16 @@ resetcolmapcache:
 	jb .next	
 	ret
 
+exported lookuptranslatedcargo_usebit
+	push eax
+	push ebx
+
+	mov eax,[esp+16]
+	movzx ebx, byte [esp+12]
+	cmp byte [eax+spriteblock.version],7
+	jb lookuptranslatedcargo.usebit
+
+	jmp short lookuptranslatedcargo.translate
 
 global lookuptranslatedcargo
 lookuptranslatedcargo:
@@ -1476,6 +1486,8 @@ lookuptranslatedcargo:
 	jb .notranslate
 
 	movzx ebx, byte [esp+12]
+
+.translate:
 	mov eax,[eax+spriteblock.cargotransptr]
 	test eax,eax
 	jz .usebit

@@ -625,7 +625,6 @@ SetupGradualLoad:
 	je	.getnextveh
 
 	movzx 	ebx,byte [edi+veh.cargotype]
-	mov	bl,[cargotypes+ebx]
 	bts	[cargotypesloading],ebx
 
 	sub	al,1	// can't use dec, because it doesn't set carry

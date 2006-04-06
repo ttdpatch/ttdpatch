@@ -398,6 +398,8 @@ void langinfo_readfixedarray(langinfo *linfo, const char **array, int cursize, s
 // process the language data read by loadcurlangdata()
 void langinfo_processlangdata(langinfo *linfo)
 {
+  int i, j;
+
   linfo->langname = langinfo_name(linfo);
   linfo->langcode = langinfo_code(linfo);
   langinfo_readfixedarray(linfo, langtext, LANG_LASTSTRING+1, LANGCODE_TEXT(0), LANGCODE_TEXT(1));
@@ -405,6 +407,9 @@ void langinfo_processlangdata(langinfo *linfo)
   langinfo_readfixedarray(linfo, switchnames, SWITCHNUMA*2, LANGCODE_SWITCHES(0,0), LANGCODE_SWITCHES(0,1));
   langinfo_readfixedarray(linfo, switchnames+SWITCHSTARTB*2, SWITCHNUMB*2, LANGCODE_SWITCHES(SWITCHSTARTB,0), LANGCODE_SWITCHES(SWITCHSTARTB,1));
   langinfo_readarray(linfo, &halflines, &numhalflines, LANGCODE_HALFLINES(0), LANGCODE_HALFLINES(1));
+  for (i=0; i<BITSWITCHNUM; i++)
+	langinfo_readfixedarray(linfo, bitswitchdesc[i], sizeof(bitswitchdesc[0])/sizeof(bitswitchdesc[0][0]),
+		LANGCODE_BITSWITCH(i,0), LANGCODE_BITSWITCH(i,1));
   langinfo_emptystring(linfo, LANGCODE_END(0));
 
   langtext_isvalid = 1;

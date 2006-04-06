@@ -14,7 +14,6 @@ collectaccepts:
 	mov dl,al
 	shr ax,8
 	push eax
-	push edx
 //	add [edx*2+ebp],ax is what will be done on return
 //	except sometimes it's edx*4, so we can't do it ourselves
 
@@ -24,6 +23,7 @@ collectaccepts:
 	cmp al,3		// nor toyland
 	je short .notoffice
 
+	mov al,[esp]
 	cmp dl,0		// accepts passengers?
 	jne short .notoffice
 	cmp bl,2		// accepts mail?
@@ -44,7 +44,6 @@ collectaccepts:
 	shr ax,3		// almost always zero...
 	add [5*2+ebp],ax	// add goods
 .notoffice:
-	pop edx
 	pop eax
 	stc
 .nothingaccepted:

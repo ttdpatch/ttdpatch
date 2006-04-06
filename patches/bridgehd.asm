@@ -3,11 +3,15 @@
 #include <flags.inc>
 #include <human.inc>
 #include <ptrvar.inc>
+#include <newvehdata.inc>
+#include <veh.inc>
 
 extern alwaysraiseland,buildtrackonbridgeortunnel.notdefault
 extern displbasewithfoundation,gettileinfo,invalidatetile,ishumanplayer
 extern isrealhumanplayer
 extern patchflags
+
+extern editTramMode, tramVehPtr, newvehdata
 
 
 
@@ -50,6 +54,28 @@ class9routemaphandler:
 	jne .origfunc
 	movzx eax, word [landscape3 +2*edi]
 	shr ax, 4
+				//Hacked in by steven
+	testmultiflags trams
+	jz	.dontshift4again
+	cmp	dword [tramVehPtr], 0FFFFFFFFh
+	je	.dontshift4again
+	push	esi
+	push	edx
+	mov	esi, [tramVehPtr]
+	movzx	edx, byte [esi+veh.vehtype]
+	test	byte [vehmiscflags+edx], VEHMISCFLAG_RVISTRAM
+	pop	edx
+	pop	esi
+	jz	.dontshift4again
+	shr eax, 4
+	and eax, 0Fh
+	cmp eax, 0		//sometimes it thinks it's a custom bridge head but it's not, so just move road back in.
+	jne .dontshift4again
+	movzx eax, word [landscape3 +2*edi]
+	shr ax, 4
+.dontshift4again:
+				//-----------------
+
 	and ax, 0Fh
 	mov al, [roadroutemap+eax]
 	mov ah, al
@@ -64,11 +90,16 @@ newclass9drawland:
 	jmp [oldclass9drawland2]
 
 .bridgehead:
-	test word [landscape3 +2*ebx], 3Fh << 4
+	test word [landscape3 +2*ebx], 0FFh << 4  //had to change mask to encompass TRAM bits
 	jz near .empty
 
+	testmultiflags trams
+	jz	.dontjumptotrams
 	test byte [landscape5(bx,1)], 6
-	jnz .roadbridge
+	jnz near .newtramtest
+.dontjumptotrams:
+	test byte [landscape5(bx,1)], 6
+	jnz near .roadbridge
 
 	movzx esi,word [landscape3+ebx*2]
 	shr esi,4
@@ -105,6 +136,23 @@ newclass9drawland:
 	pop word [landscape2 +ebx]
 	ret
 
+.newtramtest:
+	movzx esi,word [landscape3+ebx*2]
+	shr esi,8		//check for trams
+	and esi,0x0f
+	cmp esi,0
+	je .roadbridge
+	movzx esi,word [landscape3+ebx*2]
+	shr esi,4
+	and esi,0x0f
+	cmp esi, 0
+	jne .drawitnow
+	movzx esi,word [landscape3+ebx*2]
+	shr esi,8		//check for trams
+	and esi,0x0f
+	cmp esi,0
+	jmp .drawitnow
+
 .roadbridge:
 	movzx esi,word [landscape3+ebx*2]
 	shr esi,4
@@ -116,6 +164,7 @@ newclass9drawland:
 	cmp ebp,esi
 	je .old
 
+.drawitnow:
 	push word [landscape2 +ebx]
 	mov byte [landscape2 +ebx], 1
 	push eax
@@ -209,15 +258,25 @@ removebridgeroad:
 	mov bl, bh
 	and bx, 0Fh
 	shl bx, 4
+
+	testmultiflags trams
+	jz .checkforroad
+	cmp byte [editTramMode], 1
+	jne .checkforroad
+	shl bx, 4
+.checkforroad:
 	test [landscape3 +2*esi], bx
 	jz .error
 
+.continueaftertestingtramtrack:
 	test dl, 1
 	jz .onlytesting
 
 	not bx
+
 	and word [landscape3 +2*esi], bx
 
+.continueaftertramhack:
 	call [invalidatetile]
 
 .onlytesting:
@@ -251,6 +310,12 @@ buildbridgeroad:
 	and bx, 0Fh
 	shl bx, 4
 	
+	testmultiflags trams
+	jz .checkforroad
+	cmp byte [editTramMode], 1
+	jne .checkforroad
+	shl bx, 4
+.checkforroad:
 	test [landscape3 +2*esi], bx
 	jnz .error
 	
@@ -258,6 +323,12 @@ buildbridgeroad:
 	push ebx
 	push edx
 	push ecx
+	testmultiflags trams
+	jz .shift4
+	cmp byte [editTramMode], 1
+	jne .shift4
+	shr bx, 4 //shift 8 (4+4)
+.shift4:
 	shr bx, 4
 	mov dl, bl
 	pop ecx
@@ -284,7 +355,9 @@ buildbridgeroad:
 	test dl, 1
 	jz .onlytesting
 	
+
 	or word [landscape3 +2*esi], bx
+
 	call [invalidatetile]
 	
 .onlytesting:

@@ -356,6 +356,8 @@ def landareainfoheight, db 0x98,"Altitude: ",0x95,0x7B,0
 
 def txteroadmenu, db "Tramway construction",0
 def txtetramwindowheader, db 0x94,"Tramway Construction",0
+def txtetramstationheader, db 0x94,"Tram Stop Orientation",0
+def txtetramdepotheader, db 0x94,"Tram Depot Orientation",0
   
 def shortdateformat, db 4, " ", 1, 0
 def longdateformat, db 2, " ", 3, " ", 1, 0
@@ -729,6 +731,8 @@ def landareainfoheight, db 0x98,"Altitude: ",0x95,0x7B,0
 
 def txteroadmenu, db "Tramway construction",0
 def txtetramwindowheader, db 0x94,"Tramway Construction",0
+def txtetramstationheader, db 0x94,"Tram Stop Orientation",0
+def txtetramdepotheader, db 0x94,"Tram Depot Orientation",0
   
 def shortdateformat, db 4, " ", 1, 0
 def longdateformat, db 2, " ", 3, " ", 1, 0
@@ -1102,6 +1106,8 @@ def landareainfoheight, db 0x98,"Altitude: ",0x95,0x7B,0
 
 def txteroadmenu, db "Tramway construction",0
 def txtetramwindowheader, db 0x94,"Tramway Construction",0
+def txtetramstationheader, db 0x94,"Tram Stop Orientation",0
+def txtetramdepotheader, db 0x94,"Tram Depot Orientation",0
   
 def shortdateformat, db 4, " ", 1, 0
 def longdateformat, db 2, " ", 3, " ", 1, 0
@@ -1474,6 +1480,8 @@ def landareainfoheight, db 0x98,"Altitude: ",0x95,0x7B,0
 
 def txteroadmenu, db "Tramway construction",0
 def txtetramwindowheader, db 0x94,"Tramway Construction",0
+def txtetramstationheader, db 0x94,"Tram Stop Orientation",0
+def txtetramdepotheader, db 0x94,"Tram Depot Orientation",0
   
 def shortdateformat, db 4, " ", 1, 0
 def longdateformat, db 2, " ", 3, " ", 1, 0
@@ -1846,6 +1854,8 @@ def landareainfoheight, db 0x98,"Altitude: ",0x95,0x7B,0
 
 def txteroadmenu, db "Tramway construction",0
 def txtetramwindowheader, db 0x94,"Tramway Construction",0
+def txtetramstationheader, db 0x94,"Tram Stop Orientation",0
+def txtetramdepotheader, db 0x94,"Tram Depot Orientation",0
   
 def shortdateformat, db 4, " ", 1, 0
 def longdateformat, db 2, " ", 3, " ", 1, 0

@@ -14,7 +14,7 @@
 #include <grf.inc>
 #include <ptrvar.inc>
 
-extern cargoamountnnamesptr,cargoclass
+extern cargoamountnnamesptr,cargoclass,curgrfid
 extern cargotypes,deftwocolormaps,exscurfeature
 extern exsdrawsprite,generatesoundeffect,getnewsprite,getrefitmask,grffeature
 extern initrailvehsorttable,miscgrfvar,newvehdata,patchflags,randomtrigger
@@ -1453,6 +1453,7 @@ getconsistcargo:
 	// 43: get current player info
 	// out:	0cttmmnn
 	//	nn=curplayer, mm=multiplayer, tt=type, c=player colour
+	// can be called in purchase list; esi may be 0
 global getplayerinfo
 getplayerinfo:
 	movzx eax,byte [curplayer]
@@ -1613,9 +1614,10 @@ getvehiclecargo:
 	// out: xxxxxxff
 	//	xxxxxx = undefined
 	//	ff = flags such as 'is aviable to all companies'
+	// can be called in purchase list; esi may be 0
 global getvehtypeflags
 getvehtypeflags:
-	movzx eax, byte [esi+veh.vehtype] ; Get the vehicle type id
+	mov eax, [curgrfid] ; Get the vehicle type id
 	imul eax, vehtype_size ; Multiple by the size of each entry
 	add eax, vehtypearray ; Move to veh type array
 	movzx eax, byte [eax+vehtype.flags] ; Get the flags

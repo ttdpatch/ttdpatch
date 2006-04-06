@@ -104,6 +104,7 @@ struc veh
 #define MOD_POWERED 5		//	bit 5=vehicle is powered
 #define MOD_NOTELECTRICHERE 6	// 	bit 6=mixed power train is on non-electric tile
 #define MOD_ISFULL 7		//	bit 7=train is done loading even with full load set
+#define MOD_REVERSE 8		//	but 8=toggled whenever train reverses
 
 	.modflags: 	resw 1	// 7eh:above flags, bitcoded.
 endstruc_32

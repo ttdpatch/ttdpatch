@@ -9,6 +9,7 @@
 #include <town.inc>
 #include <grf.inc>
 #include <ptrvar.inc>
+#include <bitvars.inc>
 
 extern DistributeProducedCargo,actionhandler,addgroundsprite,addrelsprite
 extern addsprite,callback_extrainfo,cleartilefn,ctrlkeystate,curcallback
@@ -20,7 +21,7 @@ extern newcustomhousenames,patchflags,randomfn
 extern randomhouseparttrigger,randomhousetrigger,recordtransppassmail
 extern redrawtile
 extern townarray2ofst
-extern lookuptranslatedcargo
+extern lookuptranslatedcargo,gettileinfoshort,miscmodsflags
 
 
 // New houses use the same dataid-gameid system as newstations (see there)
@@ -244,7 +245,7 @@ copyhousedata:
 	and byte [newhouseflags+edx],~0x20	// Flag 0x20 (animated) isn't automatically copied
 	and dword [houseclasses+5*edx],0	// clear class info
 	mov byte [houseclasses+5*edx+4],0
-	or dword [houseaccepttypes+edx*4],-1
+	or dword [houseaccepttypes+edx*4],byte -1
 	and dword [extrahousegraphdataarr+edx*4],0
 //	and dword [extrahousegraphdataarr+edx*8+housegraphdata.act3],0
 //	and dword [extrahousegraphdataarr+edx*8+housegraphdata.spriteblock],0
@@ -475,7 +476,7 @@ gethouseaccept:
 	// default types
 	push dword [newhousespriteblock+(edx-128)*4]
 	mov edx,[houseaccepttypes+(edx-128)*4]
-	cmp edx,-1
+	cmp edx,byte -1
 	je .normaltypes_pop
 	// unpack the three bytes in edx into al, bl and cl
 	mov al,dl
@@ -783,8 +784,10 @@ proc processtileaction2
 
 	push eax
 	push ecx
-	or al,[esi]
-	or cl,[esi+1]
+	movsx edi,byte [esi]
+	add eax,edi
+	movsx edi,byte [esi+1]
+	add ecx,edi
 	movzx edi,byte [esi+2]
 	mov dh,[esi+4]
 	movzx esi,byte [esi+3]
@@ -820,8 +823,10 @@ proc processtileaction2
 	je .sharebox
 
 // sprite with own bounding box - add the sprite with the specified bounding box
-	or al,[esi]
-	or cl,[esi+1]
+	movsx edi,byte [esi]
+	add eax,edi
+	movsx edi,byte [esi+1]
+	add ecx,edi
 	add dl,[esi+2]
 	movzx edi,byte [esi+3]
 	mov dh,[esi+5]
@@ -1325,10 +1330,15 @@ gethousezone:
 	popa
 	ret
 
-// Called to access variable 43 (terrain type) for town buildings
+// auxiliary: get the terrain type of a tile
+// in:	esi: XY of the tile
+// out:	eax:	0 for grass
+//		1 for desert
+//		2 for rainforest
+//		4 for snow
+// preserves: everything except eax
 global gettileterrain
 gettileterrain:
-	push ebx
 	xor eax,eax
 	testflags tempsnowline
 	jnc .nottempsnow
@@ -1340,22 +1350,37 @@ gettileterrain:
 	jne .nosnowtest
 
 .snowtest:
-	mov bl,[landscape4(si)]
-	and bl,0xf
-	shl bl,3
-	cmp bl,[snowline]
-	jb .gotit
+	push ebx
+	push edx
+	push edi
+	call [gettileinfoshort]
 
-	mov al,4
+	test di,di
+	jz .noadjust
+	test dword [miscmodsflags],MISCMODS_DONTCHANGESNOW
+	jnz .noadjust
+
+	add dl,8
+
+.noadjust:
+
+	cmp dl,[snowline]
+	seta al
+	shl al,2
+	// now al=4 if snowy, al=0 if not
+	pop edi
+	pop edx
+	pop ebx
+	ret
 
 .nosnowtest:
 	cmp byte [climate],2
 	jne .gotit
-	mov ebx,esi
+	xchg ebx,esi
 	call [getdesertmap]
+	xchg ebx,esi
 
 .gotit:
-	pop ebx
 	ret
 
 // Called to access variable 44 (house count)
@@ -1600,7 +1625,7 @@ sethouseanimstage:
 	ror cx,4
 	and bx,0x0ff0
 	and cx,0x0ff0
-	or esi,-1
+	or esi,byte -1
 	call [generatesoundeffect]
 	popa
 
@@ -1683,6 +1708,10 @@ class3periodicproc:
 // (if this tile isn't a northern part, its part flags should be zero, so all calls will
 //  be simply skipped)
 .notsimpleanim:
+
+	call [randomfn]
+	mov [miscgrfvar],eax
+
 	push ebx
 	test byte [newhousepartflags+ebp+128],8
 	jz .notmain
@@ -1704,6 +1733,8 @@ class3periodicproc:
 	call .checktileanim_building
 .notxy:
 	pop ebx
+
+	and dword [miscgrfvar],0
 
 // call callback 21 if it's enabled
 	test byte [housecallbackflags+ebp],0x80
@@ -1751,14 +1782,29 @@ class3periodicproc:
 	gethouseid eax,ebx
 	sub eax,128
 	jb .animdone				// an old house doesn't have animation callbacks
+	test byte [housecallbackflags+eax],4
+	jz .animdone
 	test byte [houseextraflags+eax],4
 	jz .animdone				// this tile doesn't use the simultaneous model
 
-// fallthrough
+	push eax
+	call [randomfn]
+	mov [miscgrfvar],ax
+	pop eax
+
+	jmp short .dotileanim
+
 .checktileanim:
 // if callback 1B is enabled, call it and set the animation accordingly
 	test byte [housecallbackflags+eax],4
 	jz .animdone
+
+	push eax
+	call [randomfn]
+	mov [miscgrfvar],eax
+	pop eax
+
+.dotileanim:
 	pusha
 	mov esi,ebx
 	mov byte [grffeature],7
@@ -1941,6 +1987,15 @@ class3animation:
 // if callback 1A is enabled, call it to get the next frame - otherwise, do the default thing
 	test byte [housecallbackflags+eax],2
 	jz .normal
+	test byte [houseextraflags+eax],8
+	jz .norandom
+
+	push eax
+	call [randomfn]
+	mov [miscgrfvar],eax
+	pop eax
+
+.norandom:
 	push eax
 	push esi
 	mov esi,ebx
@@ -1948,6 +2003,7 @@ class3animation:
 	mov byte [curcallback],0x1a
 	call getnewsprite
 	mov byte [curcallback],0
+	mov dword [miscgrfvar],0	// don't hurt flags
 	mov ecx,eax
 	pop esi
 	pop eax
@@ -1965,7 +2021,7 @@ class3animation:
 	ror cx,4
 	and bx,0x0ff0
 	and cx,0x0ff0
-	or esi,-1
+	or esi,byte -1
 	call [generatesoundeffect]
 	popa
 
@@ -2014,7 +2070,7 @@ class3animation:
 global class3drawfoundation
 class3drawfoundation:
 	and ebx,0xf
-	cmp word [extfoundationspritebase],-1
+	cmp word [extfoundationspritebase],byte -1
 	je .normalfound
 
 	movzx esi,word [esp+8]
@@ -2294,7 +2350,7 @@ generatehousecargo:
 	mov esi,ebx		// XY for getnewsprite
 	mov eax,edx
 	call getnewsprite
-	jc .finished
+	jc near .finished
 	cmp ax,0x20ff
 	je .finished
 
@@ -2305,7 +2361,16 @@ generatehousecargo:
 	mov byte [curcallback],0
 
 	xchg al,ah
+
+	push dword [mostrecentspriteblock]
 	push eax
+	call lookuptranslatedcargo
+	pop eax
+	add esp,4
+	cmp al,0xff
+	je .dontrecord
+	push eax
+
 	mov ecx,0x101		// dimensions for the distribute function
 	call [DistributeProducedCargo]
 	pop ecx

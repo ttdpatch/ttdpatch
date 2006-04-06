@@ -72,19 +72,12 @@ addtreesindesert:
 //-----------------------------------------------------------------------------------
 global plantmoretreesindesert
 plantmoretreesindesert:
-	and	ax, 0F807h
-
-	test 	byte [grfmodflags],1	//don't compare anything, just continue
-	//jnz	.runalwaystruecompare
-	
-	//COMMENTED OUT ^^^ BUSTED!
-
-.runnorm:				//planting... we don't need to know what landscape.alcompare:
-	cmp	al, 3
-	retn
-	
-.runalwaystruecompare:
-	cmp	al, al
+	call	[getdesertmap]
+	test 	byte [grfmodflags], 1
+	jz	.runnormal
+	mov	al, 0
+.runnormal:
+	cmp	al, 2
 	retn
 //-----------------------------------------------------------------------------------	
 

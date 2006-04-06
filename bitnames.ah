@@ -17,6 +17,8 @@
 //	 will be defined as 1<<number, *not* the number
 //	 i.e. defbit foo,5 will make foo equal to 1<<5 = 0x20
 //
+// NOTE 2: After adding a new bit switch, increase BITSWITCHNUM in language.h
+//
 // When making option names for the .cfg file, everything before the first
 // underscore (if any) is ignored, and the rest is put in lower case.
 //
@@ -69,6 +71,8 @@ defbit MISCMODS_NOOLDVEHICLENEWS,	24 // don't generate news messages when vehicl
 defbit MISCMODS_DONTFIXPAYMENTGRAPH,	25 // don't fix the X axis of the cargo payment rate window
 defbit MISCMODS_LOADUNTILGREEN,		26 // keep loading at station until exit signal is green
 defbit MISCMODS_DONTSHOWALTITUDE,	27 // Don't show altitude in tile info window
+defbit MISCMODS_NOGRFIDSINSCREENSHOTS,	28 // Don't show active grfids in screenshots
+defbit MISCMODS_DONTCHANGESNOW,		29 // Don't change how height is calculated for snowiness
 enddefbits
 
 

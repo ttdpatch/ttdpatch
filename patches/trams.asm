@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------------------------
-get//---------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 //  Ladies and Gentlemen... Let me introduce to you TRAMS!
 //  The basic idea:
 //	--Allocate a Variable in the vehmiscflags to specify a road vehicle as a tram
@@ -17,14 +17,18 @@ get//---------------------------------------------------------------------------
 #include <newvehdata.inc>
 #include <textdef.inc>
 #include <misc.inc>
+#include <vehtype.inc>
 
 extern	RefreshWindows,  gettileinfo, gettileinfoshort, addsprite, addgroundsprite
-extern	catenaryspritebase,elrailsprites.wires, elrailsprites.pylons, elrailsprites.anchor,housespritetable
-extern	newvehdata, invalidatetile, addrelsprite, demolishroadflag, checkroadremovalconditions
-extern  rvcheckovertake, CreateWindow, txteroadmenu, getroutemap, displbridgeendsprite
-extern patchflags, gettunnelotherend
+extern	newvehdata, invalidatetile, demolishroadflag, checkroadremovalconditions
+extern	rvcheckovertake, CreateWindow, txteroadmenu, getroutemap, displbridgeendsprite, CreateWindowRelative
+extern	patchflags, gettunnelotherend, DestroyWindow
 
-extern CloseWindow, RefreshWindowArea, findroadvehicledepot
+extern	CloseWindow, RefreshWindowArea, findroadvehicledepot
+
+extern paStationbusstop1, paStationbusstop2
+
+extern bridgedrawrailunder, displayfoundation
 
 extern addrailfence1,addrailfence2,addrailfence3,addrailfence4,addrailfence5,addrailfence6,addrailfence7,addrailfence8
 
@@ -54,6 +58,18 @@ var	trambackpolesprites,	db 0h, 38h, 39h, 40h, 38h, 38h, 43h, 3Eh, 39h, 41h, 39h
 var	tramtracksprites,	db 0h, 16h, 15h, 0Bh, 14h, 04h, 0Eh, 09h, 13h, 0Ch, 05h, 08h, 0Dh, 07h, 0Ah, 06h, 00h, 01h, 02h, 03h, 30h
 var	tramMovement,		db 0h, 02h, 01h, 10h, 02h, 02h, 08h, 1Ah, 01h, 04h, 01h, 15h, 20h, 26h, 29h, 3Fh
 uvarw	removeamount,1,s
+uvard	busstationwindow,1,s
+uvarw	oldbusstoptext,1,s
+uvard	busdepotwindow,1,s
+uvarw	oldbusdepottext,1,s
+uvard	buildtruckstopfunction,1,s
+uvard	buildtruckstopprocarea,1,s
+uvard	checkdepot3jump,1,s
+uvard	checkdepot4jump,1,s
+uvard	checkdepot5jump,1,s
+uvard	checkdepot3return,1,s
+uvard	checkdepot4return,1,s
+uvard	checkdepot5return,1,s
 
 vard paStationtramstop, paStationtramstop1, paStationtramstop2
 var paStationtramstop1
@@ -65,21 +81,12 @@ var paStationtramstop2
 
 uvard roadmenuelemlisty2
 
-global storeVehIDAndContinue
-storeVehIDAndContinue:
+global setTramPtrWhilstRVProcessing
+setTramPtrWhilstRVProcessing:
 	mov	dword [tramVehPtr], esi
-	inc	byte [esi+veh.cycle]
-	cmp	byte [esi+6Ah], 0    //actually known as .field_6A in IDA
-	jz      short .dontDEc
-	dec     byte [esi+6Ah]
-.dontDEc:
-	retn
-
-global destroyVehIDAndContinue
-destroyVehIDAndContinue:
+	call	near $
+ovar .origfn, -4, $, setTramPtrWhilstRVProcessing
 	mov	dword [tramVehPtr], -1
-	mov	bx, [esi+veh.XY]
-	call	[RefreshWindows]
 	retn
 
 global setTownIsExpandingFlag
@@ -110,7 +117,7 @@ Class2RouteMapHandlerChunk1:
 .checkNormalRoads:
 	mov	al, [landscape5(di)]
 
-.continueRouteMapping:	
+.continueRouteMapping:
 	mov	ah, al
 	and	ah, 0F0h
 	retn
@@ -152,17 +159,20 @@ insertTramTrackL3Value:
 	jne	.dontLoadTramArray
 	cmp	byte [editTramMode], 0
 	jz	.dontLoadTramArray
-	push dx
-	and dh, 10h
-	cmp dh, 10h
-	pop dx
-	je .dontLoadTramArray
-	
+	push	dx
+	and	dh, 10h
+	cmp	dh, 10h
+	pop	dx
+	je	.dontLoadTramArray
+
+	test	byte [landscape5(si)], 20h
+	jne	.dontLoadTramArray
+
 	cmp	bl, 0x48		//check if it's a bridge and DON'T insert tram tracks
 	je	.dontLoadTramArray
-	
-	mov	byte dh, [landscape3+esi*2]	
-	
+
+	mov	byte dh, [landscape3+esi*2]
+
 .dontLoadTramArray:
 	cmp	bl, 10h
 	retn
@@ -290,27 +300,41 @@ newStartToClass2DrawLand:
 .continueOn:
 	jmp	[oldClass2DrawLand]
 
-
-
+uvarb	temproadmap, 1,s
 global DrawTramTracks
 DrawTramTracks:
 	call	near $
 ovar .origfn, -4, $, DrawTramTracks
 
 	push	ax
+	xor	ax, ax
+	mov	al, byte [landscape5(si)]
+	mov	byte [temproadmap], al
 	mov 	al, byte [landscape4(si)]
 	and	al, 0xF0
 	cmp	al, 0x20
 	pop	ax
-	jne	near .noTramTrackImagery
-
+	je	.continueAfterCBH
+.workWithCustomBridgeHeads:
+	push	edx
+	movzx	edx, word [landscape3+esi*2]
+	shr	edx, 0x08
+	and 	edx, 0x0f
+	mov	byte [curTileMap], dl
+	xor	edx, edx
+	movzx	edx, word [landscape3+esi*2]
+	shr	edx, 0x04
+	and 	edx, 0x0f
+	mov	byte [temproadmap], dl
+	pop	edx
+.continueAfterCBH:
 	cmp	word [tramtracks], 0
 	jle	near .noTramTrackImagery
 
 	pushad
 	mov	word [tmpDI], di
 .skipDrawingRoads:
-	cmp	byte [landscape3+esi*2], 0   //check for tram tracks...
+	cmp	byte [curTileMap], 0   //check for tram tracks...
 	jz	near .finishDrawTramTracks
 
 	xor	ebx,ebx
@@ -330,7 +354,7 @@ ovar .origfn, -4, $, DrawTramTracks
 	inc	bx
 
 .skipSlopes:
-	cmp	byte [landscape5(si)], 0
+	cmp	byte [temproadmap], 0
 	jnz	.dontAddOffRoadTracks
 	add	bx, 17h
 	push	eax
@@ -340,22 +364,22 @@ ovar .origfn, -4, $, DrawTramTracks
 ;    //add rail fences...
 	xor	ebx,ebx
 
-	mov	bl, byte [landscape3+esi*2]
+	mov	bl, byte [curTileMap]
 	and	bl, 1 //NW
 	jnz	.checkSW
 	call	[addrailfence1]
 .checkSW:
-	mov	bl, byte [landscape3+esi*2]
+	mov	bl, byte [curTileMap]
 	and	bl, 2 //SW
 	jnz	.checkSE
 	call	[addrailfence4]
 .checkSE:
-	mov	bl, byte [landscape3+esi*2]
+	mov	bl, byte [curTileMap]
 	and	bl, 4 //SE
 	jnz	.checkNE
 	call	[addrailfence2]
 .checkNE:
-	mov	bl, byte [landscape3+esi*2]
+	mov	bl, byte [curTileMap]
 	and	bl, 8 //NE
 	jnz	.getReadytoAddRails
 	call	[addrailfence3]
@@ -550,7 +574,7 @@ ovar .origfn, -4, $, insertTramsIntoGetGroundAltitude
 	mov	byte dh, [landscape3+esi*2]
 .skipInsertingTramTracks:
 	retn
-	
+
 global stopTramOvertaking
 stopTramOvertaking:
 	cmp	dword [tramVehPtr], 0FFFFFFFFh
@@ -567,15 +591,92 @@ stopTramOvertaking:
 .dontLetTramsOvertake:
 	retn
 
+uvarb	lastselection,1,s
 global createRoadConstructionWindow
 createRoadConstructionWindow:
+	cmp	al, 0FFh
+	jne	.dontShiftInLastValue
+	mov	al, byte [lastselection]
+.dontShiftInLastValue:
 	cmp	al, 1
-	jne	.moveInZero
+	jne	near .moveInZero
 	mov	byte [editTramMode], 1
+	push	edi
+	push	ecx
+	mov	edi, dword [busstationwindow]
+	mov	word [edi], ourtext(txtetramstationheader)
+	//hack in the tram stop gfx into the GUI
+	push	ecx
+	xor	ecx,ecx
+	mov	cx, 18h
+	add	cx, word [tramtracks]
+	mov	dword [paStationbusstop1+30], ecx
+	mov	word [paStationbusstop1+24], 0303h
+	mov	cx, 1Ah
+	add	cx, word [tramtracks]
+	mov	dword [paStationbusstop1+40], ecx
+	mov	word [paStationbusstop1+34], 0303h
+	mov	cx, 37h
+	add	cx, word [tramtracks]
+	mov	dword [paStationbusstop1+50], ecx
+	mov	word [paStationbusstop1+44], 0000h
+	mov	cx, 39h
+	add	cx, word [tramtracks]
+	mov	dword [paStationbusstop1+60], ecx
+	mov	word [paStationbusstop1+54], 0000h
+	mov	dword [paStationbusstop1+70], 4079
+	mov	byte [paStationbusstop1+74], 0x80
+	mov	cx, 17h
+	add	cx, word [tramtracks]
+	mov	dword [paStationbusstop2+30], ecx
+	mov	word [paStationbusstop2+24], 0303h
+	mov	cx, 19h
+	add	cx, word [tramtracks]
+	mov	dword [paStationbusstop2+40], ecx
+	mov	word [paStationbusstop2+34], 0303h
+	mov	cx, 37h
+	add	cx, word [tramtracks]
+	mov	dword [paStationbusstop2+50], ecx
+	mov	word [paStationbusstop2+44], 0000h
+	mov	cx, 38h
+	add	cx, word [tramtracks]
+	mov	dword [paStationbusstop2+60], ecx
+	mov	word [paStationbusstop2+54], 0000h
+	mov	dword [paStationbusstop2+70], 4079
+	mov	byte [paStationbusstop2+74], 0x80
+	pop	ecx
+	mov	edi, dword [busdepotwindow]
+	mov	word [edi], ourtext(txtetramdepotheader)
+	mov	edi, dword [buildtruckstopprocarea]
+	mov	dword [edi], null_proc
+	pop	ecx
+	pop	edi
 	jmp	.movedInData
 .moveInZero:
 	mov	byte [editTramMode], 0
+	push	eax
+	push	edi
+	mov	edi, dword [busstationwindow]
+	mov	ax, [oldbusstoptext]
+	mov	word [edi], ax
+	mov	edi, dword [busdepotwindow]
+	mov	ax, [oldbusdepottext]
+	mov	word [edi], ax
+	mov	edi, dword [buildtruckstopprocarea]
+	mov	eax, dword [buildtruckstopfunction]
+	mov	dword [edi], eax
+	pop	edi
+	pop	eax
+	mov	dword [paStationbusstop1+30], 4079
+	mov	byte [paStationbusstop1+34], 0x80
+	mov	byte [paStationbusstop1+24], 09
+	mov	byte [paStationbusstop1+25], 14
+	mov	dword [paStationbusstop2+30], 4079
+	mov	byte [paStationbusstop2+34], 0x80
+	mov	byte [paStationbusstop2+24], 14
+	mov	byte [paStationbusstop2+25], 09
 .movedInData:
+	mov	byte [lastselection], al
 	mov	eax, 356 + (22 << 16)
 	mov	ebx, 284 + (36 << 16)
 	mov	cx, 3h
@@ -654,7 +755,7 @@ saTramConstrWindowElemList:
 	db cWinElemSpriteBox,cColorSchemeDarkGreen ;busstop
 	dw 132,153,14,35,749       ;108                   ; sprite
 	db cWinElemSpriteBox,cColorSchemeDarkGreen ;truckstop
-	dw 154,175,14,35,750  
+	dw 154,175,14,35,750
 	db cWinElemSpriteBox,cColorSchemeDarkGreen ;bridge
 	dw 176,217,14,35,2594                         ; sprite
 	db cWinElemSpriteBox,cColorSchemeDarkGreen ;tunnel
@@ -792,9 +893,9 @@ drawTramTracksInTunnel:
 	and	cl, 1100b
 	cmp	cl, 0100b
 	jne	near .notRoad
-	
+
 	mov	word [tmpXY], di
-	
+
 	//draw TRAMMIETRAKKIES!
 	xor	ebx, ebx
 	//we need to work out the direction of the tunnel:
@@ -802,7 +903,7 @@ drawTramTracksInTunnel:
 	and	cl, 0Fh
 
 	cmp	cl, 4h //check for NE
-	jne	.checkDirSE
+	jne	near .checkDirSE
 	mov	bx, 05h
 	mov	byte [tmpSpriteOffset], 50h
 	//check if we have tram tracks at DI
@@ -824,6 +925,8 @@ drawTramTracksInTunnel:
 	cmp	cl, 0x08
 	jne	near .notRoad
 	mov 	cl, byte [landscape5(di)]
+	test	cl, 16
+	jnz	near .notRoad
 	and	cl, 0x08
 	cmp	cl, 0x08
 	je	near .dirChanged
@@ -835,8 +938,8 @@ drawTramTracksInTunnel:
 	call	gettunnelotherendmystyle		//get the other end preserving everything else BUT EDI
 	jmp	.iterateNE
 .checkDirSE:
-	cmp	cl, 5h 
-	jne	.checkDirSW
+	cmp	cl, 5h
+	jne	near .checkDirSW
 	mov	bx, 4Ch
 	mov	byte [tmpSpriteOffset], 51h
 .iterateSE:
@@ -856,6 +959,8 @@ drawTramTracksInTunnel:
 	cmp	cl, 0x04
 	jne	near .notRoad
 	mov 	cl, byte [landscape5(di)]
+	test	cl, 16
+	jnz	near .notRoad
 	and	cl, 0x04
 	cmp	cl, 0x04
 	je	near .dirChanged
@@ -888,6 +993,8 @@ drawTramTracksInTunnel:
 	cmp	cl, 0x02
 	jne	near .notRoad
 	mov 	cl, byte [landscape5(di)]
+	test	cl, 16
+	jnz	near .notRoad
 	and	cl, 0x02
 	cmp	cl, 0x02
 	je	near .dirChanged
@@ -919,6 +1026,8 @@ drawTramTracksInTunnel:
 	cmp	cl, 0x01
 	jne	.notRoad
 	mov 	cl, byte [landscape5(di)]
+	test	cl, 16
+	jnz	near .notRoad
 	and	cl, 0x01
 	cmp	cl, 0x01
 	je	.dirChanged
@@ -930,7 +1039,7 @@ drawTramTracksInTunnel:
 	jnz	.iterateNW
 	call	gettunnelotherendmystyle		//get the other end preserving everything else BUT EDI
 	jmp	.iterateNW
-	
+
 .dirChanged:
 	pop	edi
 	pop	ecx
@@ -973,8 +1082,14 @@ storeClass9LandPointerAgain:
 
 global drawTramTracksUnderBridge
 drawTramTracksUnderBridge:
+	testmultiflags higherbridges
+	jz	.dontworryabouthigherbridges
+	call	bridgedrawrailunder
+	jmp	.justDoTheSHR
+.dontworryabouthigherbridges:
 	//original code
 	call	[addgroundsprite]
+.justDoTheSHR:
 	shr	esi, 1
 	//---------------
 
@@ -1112,6 +1227,10 @@ drawTramTracksUnderBridge:
 	pop	edi
 	pop	ecx
 	pushad
+	test	di, di
+	jz	.flat
+	add	dl, 08
+.flat:
 	mov	di, 6h
 	mov	si, 6h
 	mov	dh, 1h
@@ -1253,13 +1372,12 @@ drawNormalSlopeAndAddTrams:
 	jmp	.continuedrawing
 .slopes:
 	popad
-	mov	word [removeamount], 02h
+	mov	word [removeamount], 02h  //straight pieces only 2 dirs, so poles/wires are only 2 tiles away
 	add	dl, 8
 	movzx	bx, [flatentry+ebx]
 	jmp	.continuedrawing
 .changestyle:
 	pushad
-	//add	di, word [moveback+ebx*2]
 	xchg	esi, edi
 	call	[gettileinfoshort]
 	cmp	di, 07h
@@ -1293,9 +1411,8 @@ drawNormalSlopeAndAddTrams:
 	pop	esi
 	pop	edi
 	pop	ebx
-	
+
 	pushad
-	//add	di, word [moveback+ebx*2]
 	xchg	esi, edi
 	call	[gettileinfoshort]
 	cmp	di, 07h
@@ -1366,6 +1483,31 @@ drawTramBridgeMiddlePart:
 	mov	esi, 01h
 	mov	eax, 0001h
 .setoffset:
+	//RIGHT HERE...!! TEST FOR CUSTOM BRIDGEHEAD
+	//IF bridge head
+	test word [landscape3+2*edi], 3 << 13
+	jz .notacustombridgehead
+	xor	ecx, ecx
+	movzx	ecx,word [landscape3+edi*2]
+	shr	ecx,8		//check for trams
+	and	ecx,0x0f
+	test	cl, byte [midshouldbe+esi]
+	jz	near .notacustombridgehead
+	xor	ecx, ecx
+	movzx	ecx,word [landscape3+edi*2]
+	shr	ecx,4		//check for trams
+	and	ecx,0x0f
+	test	cl, byte [midshouldbe+esi]
+	jz	.changestyledir
+	mov	bl, [bridgemidtrack+esi]
+	jmp	.continueonafterpopping
+.changestyledir:
+	mov	bl, [bridgetrackonly+esi]
+.continueonafterpopping:
+	pop	eax
+	pop	ecx
+	jmp	.draw
+.notacustombridgehead:
 	add	edi, eax
 	push	cx
 	xor	ecx,ecx
@@ -1409,7 +1551,6 @@ drawTramBridgeMiddlePart:
 
 .changestyle:
 	mov	bl, [bridgemidtrack+esi]
-	
 
 .continuedrawing:
 	xor	ecx,ecx
@@ -1504,7 +1645,7 @@ invalidateBridgeIfExists:
 .wegotone:
 	cmp	bh, 5h
 	jnz	.checkotherslope
-	mov	word [removeamount], 200
+	mov	word [removeamount], 200h
 	xor	ebx,ebx
 	jmp	.continuetestingforbridge
 .checkotherslope:
@@ -1517,6 +1658,8 @@ invalidateBridgeIfExists:
 .maybetunnel:
 	test	byte [landscape5(si)], 80h
 	jnz	.gotcha
+	test	byte [landscape5(si)], 4h
+	jz	.gotcha
 	push	edi
 	xor	edi, edi
 	mov	edi, esi
@@ -1573,7 +1716,7 @@ checkIfTramsAndKeepTracksUnder:
 	and     byte [landscape4(di)], 0Fh
 	or      byte [landscape4(di)], dh
 	mov     byte [landscape5(di)], dl
-	
+
 	//now we need to shift the bytes into L3 (for trams) as well if there are tram tracks around.
 	push	ebx
 	push	edi
@@ -1634,7 +1777,7 @@ checkIfTramsAndKeepTracksUnder:
 	pop	edi
 .skipedipop:
 	pop	ebx
-	
+
 //now check if we should leave the road there
 	push	ebx
 	push	edi
@@ -1683,7 +1826,7 @@ checkIfTramsAndKeepTracksUnder:
 	test	byte [landscape5(di)], 8h
 	jz	.trashALtostoproad
 	jmp	.wehaveroad
-	
+
 .trashALtostoproad:
 	pop	edi
 	pop	ebx
@@ -1725,4 +1868,191 @@ gettunnelotherendmystyle:
 	pop	ebx
 	pop	ecx
 	pop	esi
+	retn
+
+global updateDisableBusStops
+updateDisableBusStops:
+	mov	ebp, 8
+	call	[CreateWindowRelative]
+	cmp	byte [editTramMode], 1
+	jnz	.dontDisableButtons
+	mov	dword [esi+window.disabledbuttons], 78h
+	retn
+.dontDisableButtons:
+	mov	dword [esi+window.disabledbuttons], 0h
+	retn
+
+global null_proc
+null_proc:
+	retn
+
+global deSelectNormalBusStops
+deSelectNormalBusStops:
+	add	bp, 7
+	bts	eax, ebp
+	cmp	byte [editTramMode], 1
+	jnz	.finish
+	cmp	byte [buslorrystationorientation], 6
+	jge	.finish
+	mov	byte [buslorrystationorientation], 6
+.finish:
+	retn
+
+global checkIfTramDepot1
+checkIfTramDepot1:
+	push	esi
+	movzx	esi, word [esi+window.id]
+	cmp	byte [landscape3+esi*2], 1
+	pop	esi
+	jne	.notATramDepot
+.tramdepot:
+	movzx	cx, [human1]
+	bt	[eax+vehtype.playeravail], cx
+	jnb	.notAllowedRightNow
+	test	byte [vehmiscflags+ebp], VEHMISCFLAG_RVISTRAM
+	jne	.setFlag
+.dontSetFlag:
+	clc	//wow ... neat trick... we want to reverse the 'is tram' findings!
+	retn
+.setFlag:
+	stc
+.notAllowedRightNow:
+	retn
+
+.notATramDepot:
+	movzx	cx, [human1]
+	bt	[eax+vehtype.playeravail], cx
+	jnb	.notAllowedRightNow
+	test	byte [vehmiscflags+ebp], VEHMISCFLAG_RVISTRAM
+	je	.setFlag
+	jmp	.dontSetFlag
+
+global checkIfTramDepot2
+checkIfTramDepot2:
+	push	esi
+	movzx	esi, word [esi+window.id]
+	cmp	byte [landscape3+esi*2], 1
+	pop	esi
+	jne	.notATramDepot
+.tramdepot:
+	bt	[ebx+vehtype.playeravail], cx
+	jnb	.justReturn
+	push	eax
+	xor	eax, eax
+	mov	al, ROADVEHBASE + NROADVEHTYPES
+	sub	al, dh
+	test	byte [vehmiscflags+eax], VEHMISCFLAG_RVISTRAM
+	pop	eax
+	jnz	.skipNonTram
+	clc
+	adc	dl, 0
+	retn
+.skipNonTram:
+	stc
+	adc	dl, 0
+	retn
+
+.notATramDepot:
+	bt	[ebx+vehtype.playeravail], cx
+	jnb	.justReturn
+	push	eax
+	xor	eax, eax
+	mov	al, ROADVEHBASE + NROADVEHTYPES
+	sub	al, dh
+	test	byte [vehmiscflags+eax], VEHMISCFLAG_RVISTRAM
+	pop	eax
+	jnz	.itIsTram
+	stc
+.justReturn:
+	adc	dl, 0
+	retn
+.itIsTram:
+	clc
+	adc	dl, 0
+	retn
+
+uvard	discard
+global checkIfTramDepot3
+checkIfTramDepot3:
+	pop	dword [discard]
+	bt	[eax+vehtype.playeravail], bp
+	jnb	.jumpToStoredPointer
+	push	esi
+	movzx	esi, word [esi+window.id]
+	cmp	byte [landscape3+esi*2], 1
+	pop	esi
+	jne	.jumpToReturn
+.tramdepot:
+	test	byte [vehmiscflags+eax], VEHMISCFLAG_RVISTRAM
+	jz	.jumpToStoredPointer
+	jmp	[checkdepot3return]
+.jumpToStoredPointer:
+	jmp	[checkdepot3jump]
+.jumpToReturn:
+	test	byte [vehmiscflags+eax], VEHMISCFLAG_RVISTRAM
+	jnz	.jumpToStoredPointer
+	jmp	[checkdepot3return]
+
+global checkIfTramDepot4
+checkIfTramDepot4:
+	pop	dword [discard]
+	bt	[eax+vehtype.playeravail], bp
+	jnb	.jumpToStoredPointer
+	push	esi
+	movzx	esi, word [esi+window.id]
+	cmp	byte [landscape3+esi*2], 1
+	pop	esi
+	jne	.notTramDepot
+.tramdepot:
+	push	ebx
+	and	ebx, 0FFh
+	test	byte [vehmiscflags+ebx], VEHMISCFLAG_RVISTRAM
+	pop	ebx
+	jz	.jumpToStoredPointer
+	jmp	[checkdepot4return]
+.jumpToStoredPointer:
+	jmp	[checkdepot4jump]
+.notTramDepot:
+	push	ebx
+	and	ebx, 0FFh
+	test	byte [vehmiscflags+ebx], VEHMISCFLAG_RVISTRAM
+	pop	ebx
+	jnz	.jumpToStoredPointer
+	jmp	[checkdepot4return]
+
+
+global checkIfTramDepot5
+checkIfTramDepot5:
+	pop	dword [discard]
+	bt	[eax+vehtype.playeravail], bp
+	jnb	.jumpToStoredPointer
+	push	esi
+	movzx	esi, word [esi+window.id]
+	cmp	byte [landscape3+esi*2], 1
+	pop	esi
+	jne	.notTramDepot
+.tramdepot:
+	test	byte [vehmiscflags+ebx], VEHMISCFLAG_RVISTRAM
+	jz	.jumpToStoredPointer
+	jmp	[checkdepot5return]
+.jumpToStoredPointer:
+	jmp	[checkdepot5jump]
+.notTramDepot:
+	test	byte [vehmiscflags+ebx], VEHMISCFLAG_RVISTRAM
+	jnz	.jumpToStoredPointer
+	jmp	[checkdepot5return]
+
+
+;[07:14] <patchman> ok, you need to get the ID
+;[07:15] <patchman> at 167879, 116+(88-dh) is the ID, i.e. mov al,116+88; sub al,dh gives the ID in al
+;[07:16] <patchman> at 1678D2, the ID is in EBP
+;[07:16] <patchman> and at 1679A9 it's in BL
+;[07:17] <patchman> in all cases you need to check [vehmiscflags+ID]
+;[07:18] <patchman> just like before
+;[07:19] <patchman> (btw, that 116 is ROADVEHBASE and 88 is NROADVEHTYPES; might be better to use those as constants)
+
+global resetL3DataToo
+resetL3DataToo:
+	mov	byte [landscape2 + esi], 0
+	mov	byte [landscape3 + esi * 2], 0
 	retn

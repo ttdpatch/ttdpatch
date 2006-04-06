@@ -21,13 +21,12 @@ codefragment oldplantdeserttree,-10
 codefragment newplantdeserttree
 	ijmp	addtreesindesert
 	
-codefragment oldplantdeserttree2
-	and	ax, 0F807h
-	cmp	al, 3
+codefragment oldplantdeserttree2, -18
+	and     eax, 3Ch
 
 codefragment newplantdeserttree2
 	icall	plantmoretreesindesert
-	setfragmentsize 6
+	setfragmentsize 7
 	
 codefragment oldchecktileforfarm
 	and	dh, 1Ch
@@ -37,21 +36,21 @@ codefragment newchecktileforfarm
 	setfragmentsize 8	
 
 codefragment oldchecktileforfarm2
-	cmp dh,14h
+	cmp	dh, 14h
 
 codefragment newchecktileforfarm2
 	icall	keepfieldsinthedesert2
 	jmp	[class0procmidsection]
 
 codefragment oldchecktileforfarm3
-	cmp dh,14h
+	cmp	dh, 14h
 
 codefragment newchecktileforfarm3
 	icall	keepfieldsinthedesert3
 	jmp newchecktileforfarm3_start+40+2*WINTTDX
 
 codefragment olddrawgroundfield,-21
-	add	bx,0FB7h
+	add	bx, 0FB7h
 
 codefragment newdrawgroundfield
 	icall	addgroundspritewithbounds

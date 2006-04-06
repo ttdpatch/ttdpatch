@@ -69,24 +69,37 @@ my @features = qw(
 	Bridges Houses Generic IndusTile Industry
 	Cargos Sounds
 );
+my %varnames = (
+	Generic_40 => "VarAct2ovhd",
+	Generic_41 => "RndAct2ovhd",
+);
 
+my $totalcalls = 0;
+my $totalticks = 0;
 print map { sprintf "%-12s", $_ } qw (Feature Ticks Calls Ticks/call);
 $calls[$_] and
+	($totalcalls += $calls[$_], $totalticks += $ticks[$_], 1) and
 	print map { sprintf "%-12s", $_ } 
 		$features[$_], $ticks[$_], $calls[$_], $ticks[$_]/$calls[$_]
 	for 0..$features-1;
 
+print map { sprintf "%-12s", $_ } "Total", $totalticks, $totalcalls;
+
 print "";
+$totalcalls = $totalticks = 0;
 print map { sprintf "%-12s", $_ } qw (Callback Ticks Calls Ticks/call);
 $cbcalls[$_] and
+	($totalcalls += $cbcalls[$_], $totalticks += $cbticks[$_], 1) and
 	print map { sprintf "%-12s", $_ } 
 		sprintf("%02X",$_), $cbticks[$_], $cbcalls[$_], $cbticks[$_]/$cbcalls[$_]
 	for 0..$callbacks-1;
+print map { sprintf "%-12s", $_ } "Total", $totalticks, $totalcalls;
 
 my $oh = Math::BigFloat->new(100);
 for my $feat (0..$features-1) {
-	next unless  $calls[$feat];
-	my (@pct_ticks,@pct_calls);
+	next unless  $calls[$feat] or $feat eq 8;
+	my @pct_ticks = map 100, @{$varticks[$feat]};
+	my @pct_calls = map 100, @{$varticks[$feat]};
 	@pct_ticks = map $oh*$_/$ticks[$feat], @{$varticks[$feat]} if $ticks[$feat];
 	@pct_calls = map $oh*$_/$calls[$feat], @{$varcalls[$feat]} if $calls[$feat];
 
@@ -95,9 +108,10 @@ for my $feat (0..$features-1) {
 	print map { sprintf "%-12s", $_ } qw (Variable Ticks Calls Ticks/call %Ticks %Calls);
 	$varcalls[$feat][$_] and
 		print map { sprintf "%-12s", $_ } 
-			sprintf("%02x",$_+0x40),
-				$varticks[$feat][$_], $varcalls[$feat][$_],
-				$varticks[$feat][$_]/$varcalls[$feat][$_],
+			$varnames{"$features[$feat]_".sprintf("%02x",$_+0x40)} ||
+				sprintf("%02x",$_+0x40),
+			$varticks[$feat][$_], $varcalls[$feat][$_],
+			$varticks[$feat][$_]/$varcalls[$feat][$_],
 			map { sprintf "%.1f", $_ }
 				$pct_ticks[$_], $pct_calls[$_]
 	for 0..0x39;

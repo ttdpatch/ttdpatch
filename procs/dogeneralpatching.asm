@@ -1196,6 +1196,15 @@ codefragment newtextcopy4
 	inc edi
 	setfragmentsize 10
 
+codefragment oldtextcopy5
+	mov dl,[eax]
+	mov [ss:edi],dl
+
+codefragment newtextcopy5
+	mov esi,eax
+	icall newtextcopy
+	ret
+
 codefragment oldSpaTownNameCopy
 	mov al,[esi]
 	mov [edi],al
@@ -1504,6 +1513,7 @@ dogeneralpatching:
 	multipatchcode oldtextcopy2,newtextcopy123,4
 	patchcode oldtextcopy3,newtextcopy123,1,1
 	patchcode oldtextcopy4,newtextcopy4,1,1
+	patchcode textcopy5
 
 	stringaddress oldSpaTownNameCopy,1,1
 	mov esi,[edi-4]

@@ -31,6 +31,12 @@
 #include "versionw.h"
 #include "loadlng.h"
 
+#define WANTBITSWITCHNAMES
+#define NOSWITCHLIST
+#include "bitnames.h"
+
+extern const char **bitnames[];
+
 // add new languages here; english must always be first in languagedata[]
 typedef void langproc(void);
 extern langproc
@@ -169,13 +175,22 @@ void ensurebuflen(u32 newlen, char **buf, u32 *buflen, u32 bufend)
 
 const char *strname(s16 code)
 {
-  static char strnamebuf[32];
+  static char strnamebuf[128];
 
   if (code <= LANGCODE_NAME(0))
 	return "the language name";
 
   if (code <= LANGCODE_SWITCHES(0,0))
 	return switchname[(LANGCODE_SWITCHES(0,0) - code)/2];
+
+  if (code >= LANGCODE_BITSWITCH(0,0)) {
+	int bitswitch, perswitch;
+	code -= LANGCODE_BITSWITCH(0,0);
+	perswitch = LANGCODE_BITSWITCH(1,0)-LANGCODE_BITSWITCH(0,0);
+	bitswitch = code / perswitch;
+	snprintf(strnamebuf, sizeof(strnamebuf), "%s bit %d", bitswitchnames[bitswitch], code - bitswitch * perswitch);
+	return strnamebuf;
+  }
 
   if (code >= LANGCODE_END(0))
 	return "(unknown)";
@@ -203,6 +218,9 @@ char *untranslated(s16 code)
   } else if (code <= LANGCODE_SWITCHES(0,0)) {
 	name = 'S';
 	id = (LANGCODE_SWITCHES(0,0) - code)/2;
+  } else if (code >= LANGCODE_BITSWITCH(0,0)) {
+	name = 'B';
+	id = code - LANGCODE_BITSWITCH(0,0);
   } else if (code >= LANGCODE_END(0)) {
 	name = 'E';
 	id = code - LANGCODE_END(0);
@@ -409,6 +427,8 @@ void unicodecheckarray(const char ** const array, u16 arraysize, s16 code, s16 n
 
 void unicodecheck(int warn)
 {
+  int bitswitch, i;
+
   unicodecheckstring(LANGCODE_NAME(0), &langname, warn);
   unicodecheckstring(LANGCODE_NAME(1), &langcode, warn);
   unicodecheckstring(LANGCODE_NAME(2), &dosencoding, warn);
@@ -417,6 +437,9 @@ void unicodecheck(int warn)
   unicodecheckarray(langtext, LANG_LASTSTRING, LANGCODE_TEXT(0), LANGCODE_TEXT(1), warn);
   unicodecheckarray(switchnames, SWITCHNUMT*2, LANGCODE_SWITCHES(0,0), LANGCODE_SWITCHES(0,1), warn);
   unicodecheckarray(halflines, 0, LANGCODE_HALFLINES(0), LANGCODE_HALFLINES(1), warn);
+
+  for (i=0; i<BITSWITCHNUM; i++)
+	unicodecheckarray(bitswitchdesc[i], 0, LANGCODE_BITSWITCH(i,0), LANGCODE_BITSWITCH(i,1), warn);
 }
 
 extern const switchinfo switches[];
@@ -628,6 +651,7 @@ void errorcheck(void)
 u32 assemblebuffer(char **buf, u32 *buflen)
 {
   u32 bufofs=0;
+  int i;
 
   oldcode = LANGCODE_NAME(-1);
   addstring(LANGCODE_NAME(0), langname, buf, buflen, &bufofs);
@@ -645,6 +669,10 @@ u32 assemblebuffer(char **buf, u32 *buflen)
 
   printf("Assembling: halflines\n");
   addarray(halflines, 0, LANGCODE_HALFLINES(0), LANGCODE_HALFLINES(1), buf, buflen, &bufofs);
+
+  printf("Assembling: bit switches\n");
+  for (i=0; i<BITSWITCHNUM; i++)
+	addarray(bitswitchdesc[i], numbits[i], LANGCODE_BITSWITCH(i,0), LANGCODE_BITSWITCH(i,1), buf, buflen, &bufofs);
 
   addstring(LANGCODE_END(0), "", buf, buflen, &bufofs);	// end of file
 
@@ -695,6 +723,13 @@ u32 writelanguages(FILE *dat)
 		switchnames[i*2] = UNTRANSLATED;
 		switchnames[i*2+1] = "";
 	}
+	for (i=0; i<BITSWITCHNUM; i++)
+		for (j=0; j<numbits[i]; j++) {
+			if (strcmp(bitnames[i][j], "(reserved)"))
+				bitswitchdesc[i][j] = UNTRANSLATED;
+			else
+				bitswitchdesc[i][j] = bitnames[i][j];
+		}
 
 	languagedata[lang]();
 	unicodecheck(1);

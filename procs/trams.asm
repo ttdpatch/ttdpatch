@@ -11,10 +11,12 @@
 #include <ptrvar.inc>
 #include <textdef.inc>
 #include <misc.inc>
+#include <vehtype.inc>
 
 patchproc trams, patchtrams
 
-extern storeVehIDAndContinue, destroyVehIDAndContinue, shiftTramBytesIntoL5, insertTramTrackL3Value
+extern setTramPtrWhilstRVProcessing, setTramPtrWhilstRVProcessing.origfn
+extern shiftTramBytesIntoL5, insertTramTrackL3Value
 extern DrawTramTracks, DrawTramTracks.origfn, newgraphicssetsenabled, grabLandData, RefreshWindows, gettileinfo
 extern Class2RouteMapHandlerChunk1, Class2RouteMapHandlerChunk2, roadtoolbarelemlisty2
 extern invalidatetile,oldClass2DrawLand, newStartToClass2DrawLand, attemptRemoveTramTracks
@@ -27,8 +29,12 @@ extern tramtracks,saTramConstrWindowElemList,tramtracksprites
 extern setTramXPieceTool,setTramYPieceTool, drawTramTracksInTunnel, addgroundsprite
 extern bTempNewBridgeDirection, checkIfThisShouldBeATramStop, addsprite,paRoadConstrWinClickProcs
 extern drawTramTracksUnderBridge, checkIfTramsAndKeepTracksUnder, newSendVehicleToDepotAuto
+extern busstationwindow, oldbusstoptext, busdepotwindow, oldbusdepottext, DestroyWindow
+extern buildtruckstopprocarea, buildtruckstopfunction, buildbuslorryorientation
 
 extern roadmenudropdown,roadmenuelemlisty2,roadDropdownCode,createRoadConstructionWindow
+
+extern checkdepot3jump, checkdepot4jump, checkdepot3return, checkdepot4return, checkdepot5jump, checkdepot5return
 
 begincodefragments
 	codefragment olddrawgroundspriteroad, 9
@@ -48,23 +54,10 @@ begincodefragments
 		and	al, 0F0h
 		and	cl, 0F0h
 
-	//hack the start of RVProcessing to get the Cur Vehicle IDX
-	codefragment oldStartRVProcessing, 7
-		add	dl, 2
-		and	dl, 7
-
-	codefragment newStartRVProcessing
-		icall	storeVehIDAndContinue
-		setfragmentsize 12
-
-	//hack the end of RVProcessing to cancel the stored IDX
-	codefragment oldEndRVProcessing, 2
-		mov	al, 12h
-		mov	bx, [esi+veh.XY]
-
-	codefragment newEndRVProcessing
-		icall	destroyVehIDAndContinue
-		setfragmentsize 9
+	codefragment oldCallRVProcessing, 9
+		retn
+		push	edi
+		mov	esi, edi
 
 	codefragment stopTownFromSeeingTramsOld, 2
 		push    esi
@@ -367,18 +360,122 @@ begincodefragments
 	codefragment vehicleToDepotNew2
 		icall	newSendVehicleToDepotAuto
 		setfragmentsize	7
-    
+
+	codefragment oldfindcreatebusstopwindow, 4
+		mov     dx, 28h
+		mov     ebp, 8
+
+	codefragment newfindcreatebusstopwindow
+		icall	updateDisableBusStops
+		setfragmentsize	10
+
+	codefragment findwindowbusstationelements, 10
+		db 0x0A,0x07,0x0B,0x00,0xCF,0x00,0x00,0x00,0x0D,0x00,0x42,0x30
+	codefragment findwindowbusdepotelements, 10
+		db 0x0A,0x07,0x0B,0x00,0x8B,0x00,0x00,0x00,0x0D,0x00,0x06,0x18
+	codefragment findroadconsproctable, 42
+		dw 0x1810,0x1811,0x329
+
+	codefragment oldSetSelectedBusStop
+		add	bp, 7
+		bts	eax, ebp
+
+	codefragment newSetSelectedBusStop
+		icall	deSelectNormalBusStops
+		nop
+
+	codefragment oldDepotListRvs1
+		movzx   cx, [human1]
+		bt      [eax+vehtype.playeravail], cx
+
+	codefragment newDepotListRvs1
+		icall	checkIfTramDepot1
+		setfragmentsize 12
+
+	codefragment oldDepotListRvs2
+		bt      [ebx+vehtype.playeravail], cx
+		adc     dl, 0
+
+	codefragment newDepotListRvs2
+		icall	checkIfTramDepot2
+		setfragmentsize 7
+
+	codefragment oldDepotListRvs3, 5
+		mov     ebx, 116
+		bt      [eax+vehtype.playeravail], bp
+
+	codefragment newDepotListRvs3
+		icall	checkIfTramDepot3
+
+	codefragment oldDepotListRvs4, 2
+		mov     bl, 116
+		bt      [eax+vehtype.playeravail], bp
+
+	codefragment newDepotListRvs4
+		icall	checkIfTramDepot4
+
+	codefragment oldDepotListRvs5, 5
+		mov     ebx, 116
+		bt      [eax+vehtype.playeravail], bp
+
+	codefragment newDepotListRvs5
+		icall	checkIfTramDepot5
+
+	codefragment oldRemoveTrainTrack, 6
+		mov	byte [landscape1 + esi], dl
+		mov	byte [landscape2 + esi], 0
+
+	codefragment newRemoveTrainTrack
+		icall	resetL3DataToo
+		setfragmentsize 7
+
 endcodefragments
 
 patchtrams:
+	patchcode oldDepotListRvs1, newDepotListRvs1, 1+WINTTDX, 3 //danger, should be 4! something is patching the same chunk!
+	patchcode oldDepotListRvs2, newDepotListRvs2, 1+WINTTDX, 3 //there is 4 of these, so thats a good thing
+	storeaddress oldDepotListRvs3, 1, 2, checkdepot3return, 6
+	storeaddress oldDepotListRvs3, 1, 2, checkdepot3jump, 10
+	patchcode oldDepotListRvs3, newDepotListRvs3, 1, 2 //one gets used...
+	storeaddress oldDepotListRvs4, 1, 1, checkdepot4return, 6
+	storeaddress oldDepotListRvs4, 1, 1, checkdepot4jump, 10
+	patchcode oldDepotListRvs4, newDepotListRvs4, 1, 1
+	storeaddress oldDepotListRvs5, 1, 1, checkdepot5return, 6
+	storeaddress oldDepotListRvs5, 1, 1, checkdepot5jump, 10
+	patchcode oldDepotListRvs5, newDepotListRvs5, 1, 1
+
 	stringaddress olddrawgroundspriteroad
 	chainfunction DrawTramTracks, .origfn, 1
 
 	patchcode oldClass9DrawStart, newClass9DrawStart, 2, 4
 	patchcode oldDrawTunnel, newDrawTunnel, 1, 1
 
+	patchcode oldRemoveTrainTrack, newRemoveTrainTrack, 1, 1
+
+	stringaddress findwindowbusstationelements, 1, 1
+	mov	dword [busstationwindow], edi
+	push	ax
+	mov	ax, [edi]
+	mov	word [oldbusstoptext], ax
+	pop	ax
+	stringaddress findwindowbusdepotelements, 1, 1
+	mov	dword [busdepotwindow], edi
+	push	ax
+	mov	ax, [edi]
+	mov	word [oldbusdepottext], ax
+	pop	ax
+	stringaddress findroadconsproctable, 1, 1
+	mov	dword [buildtruckstopprocarea], edi
+	push	eax
+	mov	eax, dword [edi]
+	mov	dword [buildtruckstopfunction], eax
+	pop	eax
+
+	patchcode oldfindcreatebusstopwindow, newfindcreatebusstopwindow, 1, 2
+	patchcode oldSetSelectedBusStop, newSetSelectedBusStop, 1, 1
+
 	#if WINTTDX
-	stringaddress oldDrawRoadStationCode, 1, 3
+		stringaddress oldDrawRoadStationCode, 1, 3
 	#else
 		stringaddress oldDrawRoadStationCode, 2, 3
 	#endif
@@ -392,8 +489,13 @@ patchtrams:
 	mov [oldClass2DrawLand], ecx
 	mov dword [eax+0x1C],addr(newStartToClass2DrawLand)
 
-	patchcode oldStartRVProcessing, newStartRVProcessing, 1, 1
-	patchcode oldEndRVProcessing, newEndRVProcessing, 3, 4
+	//---------we only need to chain... no need to hack both start and end.
+#if WINTTDX
+	stringaddress oldCallRVProcessing, 1, 5
+#else
+	stringaddress oldCallRVProcessing, 3, 5
+#endif
+	chainfunction setTramPtrWhilstRVProcessing, .origfn, 1
 
 	patchcode oldClass2Chunk1, newClass2Chunk1, 1, 1
 
@@ -416,7 +518,6 @@ patchtrams:
 	patchcode oldDrawBridgeSlope, newDrawBridgeSlope, 1, 1
 	patchcode oldDrawBridgeMiddlePart, newDrawBridgeMiddlePart, 1, 1
 	patchcode bridgeRemovalKeepTramsUnderOld, bridgeRemovalKeepTramsUnderNew, 1, 1
-	//not stable just yet ^^
 	
 	#if WINTTDX
 		patchcode oldCreateRoadDepot, newCreateRoadDepot, 1, 2
@@ -455,7 +556,7 @@ patchtrams:
 
 	patchcode oldSetRoadXPieceTool,newSetRoadXPieceTool,1,1
 	patchcode oldSetRoadYPieceTool,newSetRoadYPieceTool,1,1
-	
+
 	or byte [newgraphicssetsenabled+1],1 << (11 - 8)
 	retn
 

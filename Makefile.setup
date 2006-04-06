@@ -74,7 +74,7 @@ LD-CYGWIN = ${CC-CYGWIN}
 LDEXP-CYGWIN = ld
 WINDRES-CYGWIN = windres
 STRIP-CYGWIN = strip
-CAT-CYGWIN = cat --binary
+CAT-CYGWIN = cat
 DOSCMD-CYGWIN = 
 DLLTOOL-CYGWIN = dlltool
 OBJCOPY-CYGWIN = objcopy
@@ -82,27 +82,28 @@ OBJDUMP-CYGWIN = objdump
 
 CFLAGS-CYGWIN = -g -mno-cygwin -march=i386 -mtune=pentium -Wall -Wno-unused -Wwrite-strings
 LDFLAGS-CYGWIN = -mno-cygwin -Wl,--subsystem,console $(LDLIBS)
-LDEXPFLAGS-CYGWIN = -T patch.ld --image-base=$(IMAGEBASE) --enable-runtime-pseudo-reloc --no-demangle
+LDEXPFLAGS-CYGWIN = -T patch.ld --image-base=$(IMAGEBASE_$*) --enable-runtime-pseudo-reloc --no-demangle
 EXE-CYGWIN = .exe
 HOSTPATH-CYGWIN =
 # no other HOST variables, they won't be used
 
 # Mingw gcc cross compiler
-CC-CROSS = i686-pc-mingw32-gcc
+CROSS-PREFIX = i686-pc-mingw32
+CC-CROSS = ${CROSS-PREFIX}-gcc
 CPP-CROSS = ${CC-CROSS} -E
 LD-CROSS = ${CC-CROSS}
-LDEXP-CROSS = i686-pc-mingw32-ld
-WINDRES-CROSS = i686-pc-mingw32-windres
-STRIP-CROSS = i686-pc-mingw32-strip
+LDEXP-CROSS = ${CROSS-PREFIX}-ld
+WINDRES-CROSS = ${CROSS-PREFIX}-windres
+STRIP-CROSS = ${CROSS-PREFIX}-strip
 CAT-CROSS = cat
 DOSCMD-CROSS = dos
-DLLTOOL-CROSS = i686-pc-mingw32-dlltool
-OBJCOPY-CROSS = i686-pc-mingw32-objcopy
-OBJDUMP-CROSS = i686-pc-mingw32-objdump
+DLLTOOL-CROSS = ${CROSS-PREFIX}-dlltool
+OBJCOPY-CROSS = ${CROSS-PREFIX}-objcopy
+OBJDUMP-CROSS = ${CROSS-PREFIX}-objdump
 
 CFLAGS-CROSS = -g -march=i386 -mtune=pentium -Wall -Wno-unused -Wwrite-strings
 LDFLAGS-CROSS = -Wl,--subsystem,console $(LDLIBS)
-LDEXPFLAGS-CROSS = -T patch.ld --image-base=$(IMAGEBASE) --enable-runtime-pseudo-reloc --no-demangle
+LDEXPFLAGS-CROSS = -T patch.ld --image-base=$(IMAGEBASE_$*) --enable-runtime-pseudo-reloc --no-demangle
 EXE-CROSS = .exe
 HOSTPATH-CROSS = host/
 

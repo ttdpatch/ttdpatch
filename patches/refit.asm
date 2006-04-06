@@ -171,8 +171,10 @@ getrefitmask:
 	bsf esi,eax	// this finds the bits in al first, then those in ah
 	jz .gotclasses
 	btr eax,esi
+	mov ebx,esi
+	and esi,15
 	or ecx,[cargoclasscargos+esi*4]	// set the bits, in case we're adding
-	cmp esi,16
+	cmp ebx,16
 	jb .nextclass
 	xor ecx,[cargoclasscargos+esi*4]// else remove them again
 	jmp .nextclass
@@ -622,11 +624,6 @@ setuptrainwindow:
 	mov [esi+window.id],ax
 
 .checkrefit:
-	call initrefit
-	mov eax,currefitlist
-	cmp byte [eax+refitinfo.type],-1
-	je .notindepot	// not refittable at all
-
 	movzx eax,word [esi+window.id]
 	shl eax,7
 	add eax,[veharrayptr]
@@ -635,6 +632,11 @@ setuptrainwindow:
 
 	test byte [eax+veh.vehstatus],2
 	jz .notindepot
+
+	call initrefit
+	mov eax,currefitlist
+	cmp byte [eax+refitinfo.type],-1
+	je .notindepot	// not refittable at all
 
 		// train with cargo engines is in a depot, use refit button
 	mov eax,trainwindowrefit

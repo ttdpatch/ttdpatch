@@ -58,7 +58,7 @@ extern languagesettings
 extern cargotowngrowthtype,cargotowngrowthmulti,cargocallbackflags,setindustileaccepts
 extern setinduproducedcargos,setindustryacceptedcargos,industrydestroymultis
 extern fonttables,allocfonttable,hasaction12,setsnowlinetable,snowytemptreespritebase
-extern numsnowytemptrees
+extern numsnowytemptrees,setstatcargotriggers,industilespecflags
 
 uvarb action1lastfeature
 
@@ -3065,7 +3065,7 @@ loadcharset:
 	and eax,0x7f
 	dec ecx
 	jl .badblock	// defining 0 characters?
-	add eax,ecx
+	add al,cl
 	jc .badblock	// crossed 256-byte boundary (very bad)
 	js .badblock	// crossed 128-byte boundary (against specs)
 	inc ecx
@@ -3189,7 +3189,7 @@ defvehdata specplanedata, B,B,B,B,B,B,B,W,B,B		// 08..12
 defvehdata spclplanedata, d,B,B,B,B,w,w			// 13..19
 
 defvehdata specstationdata				// no properties
-defvehdata spclstationdata, F,H,F,B,B,B,F,F,w,B,d,B,B,B	// 08..15
+defvehdata spclstationdata, F,H,F,B,B,B,F,F,w,B,F,B,B,B	// 08..15
 
 defvehdata specbridgedata, B,B,B,B			// 08..0B
 defvehdata spclbridgedata, w,F,B			// 0C..0E
@@ -3202,7 +3202,7 @@ defvehdata spclglobaldata, B,F,t,d,w,d,d,w,F		// 08..10
 		
 
 defvehdata specindustiledata
-defvehdata spclindustiledata, F,F,F,F,F,B,B,w,B,B	// 08..11
+defvehdata spclindustiledata, F,F,F,F,F,B,B,w,B,B,B	// 08..12
 
 defvehdata specindustrydata
 defvehdata spclindustrydata, F,H,F, B,t,t,t,B,F,F,B,B,B	,F,F,B,B,F,d,t, d,d,d,t,d,B,B,D		// 08..23
@@ -3494,7 +3494,7 @@ var newstationdata
 	dd addr(copystationspritelayout),stationcallbackflags	// 0A,0B
 	dd disallowedplatforms,disallowedlengths		// 0C,0D
 	dd addr(setstationlayout),addr(copystationlayout)	// 0E,0F
-	dd stationcargolots,stationpylons,statcargotriggers	// 10,11,12
+	dd stationcargolots,stationpylons,setstatcargotriggers	// 10,11,12
 	dd stationflags,stationnowires,cantrainenterstattile	// 13,14,15
 
 var bridgedata	// (prop 0C is set in patches.ah)
@@ -3532,10 +3532,10 @@ var globaldata
 
 var industiledata
 	dd addr(setsubstindustile),addr(setindustileoverride)	// 08..09
-	times 3 dd setindustileaccepts				//0a..0c
+	times 3 dd setindustileaccepts				// 0a..0c
 	dd industilelandshapeflags,industilecallbackflags	// 0d..0e
 	dd industileanimframes,industileanimspeeds		// 0f..10
-	dd industileanimtriggers				// 11
+	dd industileanimtriggers,industilespecflags		// 11..12
 
 var industrydata
 	dd addr(setsubstindustry),addr(setindustryoverride)	// 08..09

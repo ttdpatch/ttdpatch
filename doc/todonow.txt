@@ -373,9 +373,6 @@
 - add classes to switches, and way to enable/disable classes
   e.g. R=greater realism, C=convenience, G=graphics
 
-- change dual CC ctrl-click to happen when activating window (set a flag)
-  then show all colours if flag set
-
 - add utf8 support to grfcodec
 
 - implement callback for calculating the cargo delivery revenue
@@ -469,8 +466,46 @@
 - add glyphs for 7B..7F (maybe others?) from glyphs.grf on server
 
 - font crash http://www.tt-forums.net/viewtopic.php?p=409894#409894
+  * check getutf8charwidth assuming ebx(8:31)=0 is valid
+  * when drawing input box, call TextProcessing to ensure utf8 is valid
+  * when adding input chars, convert ACP->Unicode; if result > U+00FF
+    convert string to utf8
+
+- check out http://www.tt-forums.net/viewtopic.php?p=411794#411794
+
+- newsounds crash with empty sample.cat
+
+- text UD problem, http://www.tt-forums.net/viewtopic.php?p=411952
+  only with american.exe?
+
+- incorrect TE? http://www.tt-forums.net/viewtopic.php?p=412073#412073
+
+- PBS pathfinding against one-way signal
+  http://www.tt-forums.net/viewtopic.php?p=412075#412075
+
+- 16-tick check broken for anything that moves more than once per tick
+
+- in coop mode, AI still buys out other companies and takes up loan
+
+- higherbridges over track on foundation displays no foundation, and
+  track at wrong altitude and/or slope -> fixed by steven_h ?
+
+- enhtunnels ignore coop? also crash if loading game while train in tunnel
+  of other company
+
+- store station prop 15 in newvehdatastruc
+
+- enhancetunnels on/manualconvert off crashes; checkvehintheway not defined
+
+- buying planes uses refit info from refitted RV?
+  http://www.tt-forums.net/viewtopic.php?p=423128#423128
+
+- crash: http://www.tt-forums.net/viewtopic.php?p=423846#423846
 
 ==== Rather urgent =====
+
+- change sprite drawing to use z-buffer instead of sprite sorter
+  see #tycoon log 2006-03-09 starting 11:49:55
 
 - implement change to the seed of town growth, not just town.xy but also
   from tiles near stations in the vicinity (airports and rail stations
@@ -727,4 +762,4 @@ CHANGELOG
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
-2.5 beta 2
+2.5 beta 3

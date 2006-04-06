@@ -4,10 +4,11 @@
 #include <std.inc>
 #include <station.inc>
 #include <veh.inc>
+#include <flags.inc>
 
 extern DrawStationImageInSelWindow,generatesoundeffect,isrvbus,redrawscreen
-
-
+extern editTramMode
+extern patchflags
 
 
 
@@ -23,6 +24,14 @@ var paStationbusstop1
 	db 9,14,7,2,2,3
 	dd 4079
 	db 8,1,7,2,2,3
+	dd 4079 //will be replaced, as much data already filled in
+	db 0x80,0,0,1,2,16 //BLANK SPaCE FOR TRAM STOP Stuff
+	dd 4079	//unknown		  //inserted on the fly!
+	db 8,14,0,1,2,16
+	dd 4079 //unknown
+	db 8,14,0,1,2,16
+	dd 4079 //unknown
+	db 8,14,0,1,2,16
 	dd 4079
 	db 0x80
 
@@ -35,6 +44,14 @@ var paStationbusstop2
 	db 1,8,7,2,2,3
 	dd 4079
 	db 14,9,7,2,2,3
+	dd 4079 //will be replaced, as much data already filled in
+	db 0x80,0,0,1,2,16 //BLANK SPaCE FOR TRAM STOP Stuff
+	dd 4079	//unknown		  //inserted on the fly!
+	db 8,14,0,1,2,16
+	dd 4079 //unknown
+	db 8,14,0,1,2,16
+	dd 4079 //unknown
+	db 8,14,0,1,2,16
 	dd 4079
 	db 0x80
 
@@ -284,6 +301,14 @@ BusLorryStationWindowClickHandler:
 	popa
 	sub cl, 3
 .done:
+	testmultiflags trams
+	jz .dontDefaultToDriveThrough
+	cmp byte [editTramMode], 1
+	jnz .dontDefaultToDriveThrough
+	cmp cl, 3
+	jg .dontDefaultToDriveThrough
+	mov cl, 6
+.dontDefaultToDriveThrough:
 	mov byte [buslorrystationorientation], cl
 	jmp redrawscreen
 

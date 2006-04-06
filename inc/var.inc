@@ -7,6 +7,19 @@
 
 %define endvar __SECT__
 
+// macro to eat and discard all parameters
+%macro gobbleargs 1+
+%endmacro
+
+// prefix macro to not use the "global" declaration
+%macro noglobal 1+
+	%define GLOBALVAR gobbleargs
+	%1
+	%define GLOBALVAR global
+%endmacro
+
+%define GLOBALVAR global
+
 // preferred form of variable declaration:
 // var{b,w,d} <var> [, <value>, ...]
 // b/w/d specifies the alignment
@@ -14,9 +27,12 @@
 // for some CPUs
 // if the value is not given, the section will remain .data{b,w,d} and
 // has to be manually reset to .text
+//
+// by default all variables are declared global; preceed the declaration
+// with "noglobal" if they shouldn't be (i.e. for local variables)
 %macro varb 1-2+.nolist	// params: variablename, value
 	[section .datab]
-	global %1
+	GLOBALVAR %1
 	%if %0>1
 		%1: db %2
 		endvar
@@ -26,7 +42,7 @@
 %endmacro
 %macro varw 1-2+.nolist	// params: variablename, value
 	[section .dataw]
-	global %1
+	GLOBALVAR %1
 	align 2
 	%if %0>1
 		%1: dw %2
@@ -37,7 +53,7 @@
 %endmacro
 %macro vard 1-2+.nolist	// params: variablename, value
 	[section .datad]
-	global %1
+	GLOBALVAR %1
 	align 4
 	%if %0>1
 		%1: dd %2
@@ -49,14 +65,14 @@
 
 // define global variable
 %macro var 1-2+.nolist	// params: variablename [, initialization]
-	global %1
+	GLOBALVAR %1
 	%1: %2;
 %endmacro
 
 // ovar defines a global variable with an offset to the current position (or
 // another variable)
-%macro ovar 2-4.nolist $, // params: variablename, offset [, basis [, fullname]]
-	global %4%1
+%macro ovar 1-4.nolist -4,$, // params: variablename, offset [, basis [, fullname]]
+	GLOBALVAR %4%1
 	%1 equ addr(%3)+(%2)
 %endmacro
 
@@ -73,7 +89,7 @@
 %macro sdef 3.nolist		; params bss-type, varname, varnum
 	%define %%sectname sectname_%1
 	[section %%sectname]
-	global %2
+	GLOBALVAR %2
 	%2: %3
 	__SECT__
 %endmacro

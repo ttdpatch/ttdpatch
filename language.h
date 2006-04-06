@@ -40,7 +40,6 @@
 #define LANGMAXSIZEOFS (LANGINGAMEOFS+2*4)	// offset to max.buffer sizes
 #define LANGINFOOFFSET (LANGMAXSIZEOFS+2*4)	// offset of language info
 
-#define LANG_MAX 11	// total number of languages
 #define LANG_MAX_COUNTRY 32	// maximum number of countries per language
 
 // Structure of language.dat
@@ -533,13 +532,16 @@ enum langtextids {
 
 #define TRAINTYPENUM 4		// number of train types for -mc display
 
+#define BITSWITCHNUM 12		// number of bit switches
+
 // Index numbers of the strings in language.dat file. Must be increasing.
 #define LANGCODE_NAME(i) (-0x4000-(i))
 #define LANGCODE_TEXT(i) (0x400+(i))
 #define LANGCODE_SWITCHES(i,j) (-0x2000-((i)*2+(j)))
 #define LANGCODE_HALFLINES(i) (0x1200+(i))
 #define LANGCODE_TRAINTYPES(i) (0x1400+(i))
-#define LANGCODE_END(i) (0x4000+(i))
+#define LANGCODE_BITSWITCH(i,j) (0x1600+((i)*32)+(j))
+#define LANGCODE_END(i) (0x7F00+(i))
 #define LANGCODE_RESERVED -0x7fff	// may never be used otherwise
 
 #ifdef IS_MAKELANG_CPP
@@ -574,6 +576,9 @@ ISEXTERN int numhalflines;
 // These lines (both parts) are limited to 36 chars, also consider how large
 // the expansion of the %d can be for that switch.
 ISEXTERN const char *switchnames[SWITCHNUMT*2];
+
+// Bit switch descriptions
+ISEXTERN const char *bitswitchdesc[BITSWITCHNUM][32];
 
 // Array of country IDs for which this language is the right one
 ISEXTERN u16 *countries;

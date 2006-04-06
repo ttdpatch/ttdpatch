@@ -496,8 +496,8 @@ nummonorailtextreplace equ (addr($)-monorailtextreplace)/4
 
 	// make second menu option be for electrified rails
 var electrtextreplace
-	dw ourtext(elecrailconstitle),0x100b
-	dw ourtext(elecrailconsmenu),0x1016
+	dw statictext(elecrailconstitle),0x100b
+	dw statictext(elecrailconsmenu),0x1016
 	dw 0x8102,0x8106
 	dw 0x881c,0x881d
 	dw ourtext(railwaywagon),ourtext(monorailwagon)

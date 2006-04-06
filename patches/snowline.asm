@@ -3,7 +3,7 @@
 #include <std.inc>
 #include <flags.inc>
 
-extern patchflags
+extern patchflags,redrawscreen
 
 uvard temp_snowline	// the real snowline var is a byte, but action D supports dwords only
 			// that's why we need a temporary var to store it, which will be
@@ -32,8 +32,13 @@ ovar .oldfn,-4,$,updatesnowline
 	shl edx,5
 	add edx,ebx
 	mov cl,[ebp+edx]
-	mov [snowline],cl
 	shr edx,5
+	cmp cl,[snowline]
+	je .noupdate
+
+	mov [snowline],cl
+	call redrawscreen
+
 .noupdate:
 	ret
 

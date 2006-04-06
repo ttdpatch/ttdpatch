@@ -27,6 +27,10 @@
 #define IS_LANGUAGE_CPP
 #include "language.h"
 
+#define NOSWITCHLIST
+#define WANTBITNUMS
+#include "bitnames.h"
+
 #include "mansect.h"
 
 // Macros to make defining the arrays easier
@@ -64,12 +68,19 @@
 #define SWITCHTEXT(name, text1, text2) \
 	switchnames[(name)*2] = text1; \
 	switchnames[(name)*2+1] = text2;
+#define BITSWITCH(name) \
+	curbitswitch = BITSWITCH_ ## name;
+#define BIT(num, text) \
+	if (num ## _SWITCH != curbitswitch) \
+		error("%s: Bit %s defined for wrong switch\n", langname, #num); \
+	bitswitchdesc[curbitswitch][num ## _NUM] = text;
 
 #define LANGFILE(name) MAKESTRING(lang/name.h)
 
 void LANGUAGE(void)
 {
   u32 wincodepage, editorcodepage;
+  int curbitswitch;
 
   #include LANGFILE(LANGUAGE)
 

@@ -619,6 +619,30 @@ codefragment newcomparefilenames
 	call runindex(comparefilenames)
 #endif
 
+codefragment oldgetsnowyheight
+	cmp dl,[snowline]
+	db 0x76		// jbe ...
+
+codefragment_call newgetsnowyheight,getsnowyheight
+
+codefragment oldgetsnowyheight_fine
+	mov bh,[snowline]
+	sub bh,8
+
+codefragment_call newgetsnowyheight_fine,getsnowyheight_fine
+
+codefragment oldcalcboxz
+	add si,cx
+	add dh,dl
+
+codefragment_call newcalcboxz,calcboxz,5
+
+codefragment oldfindtilestorefresh,3
+	add dx,0xf1
+
+codefragment newfindtilestorefresh
+	dw (8<<5) + 0x1f
+
 endcodefragments
 
 patchgeneralfixes:
@@ -1009,6 +1033,13 @@ patchgeneralfixes:
 
 	// better error message when placing industry fails because of too many
 	patchcode getindustryslot
+
+	multipatchcode oldgetsnowyheight,newgetsnowyheight,3,,{test dword [miscmodsflags],MISCMODS_DONTCHANGESNOW},z
+	multipatchcode oldgetsnowyheight_fine,newgetsnowyheight_fine,2,,{test dword [miscmodsflags],MISCMODS_DONTCHANGESNOW},z
+
+	patchcode calcboxz
+	patchcode findtilestorefresh
+
 	ret
 
 // shares some code fragments

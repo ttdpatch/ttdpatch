@@ -477,6 +477,124 @@ SWITCHTEXT(followvehicle, "Follow vehicle motion in main map", "")
 SWITCHTEXT(trams, "Enable trams on Roads", "")
 SWITCHTEXT(enhancetunnels, "Allows building track on top of tunnel entrances", "")
 
+//---------------------------------------
+//  BIT SWITCH DESCRIPTIONS
+//---------------------------------------
+
+// Description for noplanecrashes bits
+BITSWITCH(noplanecrashes)
+BIT(normdis,      "normal plane crashes off if disasters off")
+BIT(jetsdis,      "crashes of jets on small airports off if disasters off")
+BIT(normbrdown,   "normal plane crashes only for broken down planes, rate * 4")
+BIT(jetssamerate, "same rate for jets on small airports and normal crashes")
+BIT(normoff,      "normal plane crashes off")
+BIT(jetsoff,      "jets on small airport crashes off")
+
+// Description for miscmods bits
+BITSWITCH(miscmods)
+BIT(nobuildonbanks,        "towns don't build on waterbanks")
+BIT(servintonlyhuman,      "servint setting doesn't apply to AI players")
+BIT(noroadtakeover,        "towns don't claim all roads in the scenario editor")
+BIT(gradualloadbywagon,    "gradual loading loads wagon by wagon first")
+BIT(dontfixlitres,         "don't change litres so that 1000 l is a ton instead of 100 l")
+BIT(dontfixtropicbanks,    "don't fix bank types in the sub-tropical climate")
+BIT(dontfixhousesprites,   "don't fix offices being displayed as churches")
+BIT(oldtownterrmodlimit,   "don't change the upper cost of terrain modification for towns")
+BIT(nozeppelinonlargeap,   "prevent Zeppelins from crashing at large airports")
+BIT(nodefaultoldtracktype, "don't use previous track type as new default")
+BIT(usevehnnumbernotname,  "don't change news messages to use vehicle names")
+BIT(norescalecompanygraph, "don't rescale company graph when companies are deselected")
+BIT(noyearlyfinances,      "don't display yearly finances on Jan 1st")
+BIT(notimegiveaway,        "don't try to give time slices away to conserve power")
+BIT(nodesynchwarning,      "don't warn about multiplayer games being desynched")
+BIT(noworldedgeflooding,   "don't let the edge of the map flood")
+BIT(doshowintro,           "show the game intro (don't skip it)")
+BIT(nonewspritesorter,     "don't use new sprite sorting algorithm")
+BIT(noenhancedcomp,        "don't enhance savegame compression algorithm")
+BIT(breakdownatsignal,     "don't fix trains breaking down while waiting on red signals")
+BIT(smallspritelimit,      "don't increase the sprite limit")
+BIT(displaytownsize,       "display town size in the name")
+BIT(noextendstationrange,  "don't increase the maximum allowed distance between station sign and industry for cargo to be delivered")
+BIT(nooldvehiclenews,      "don't generate news messages when vehicles get old")
+BIT(dontfixpaymentgraph,   "don't fix the X axis of the cargo payment rate window")
+BIT(loaduntilgreen,        "keep loading at station until exit signal is green")
+BIT(dontshowaltitude,      "Don't show altitude in tile info window")
+BIT(nogrfidsinscreenshots, "Don't show active grfids in screenshots")
+BIT(dontchangesnow,        "Don't change how height is calculated for snowiness")
+
+// Description for morebuildoptions bits
+BITSWITCH(morebuildoptions)
+BIT(ctunnel,         "allow crossing tunnels")
+BIT(oilrefinery,     "allow oil refinery everywhere")
+BIT(moreindustries,  "allow more than one industry of the same type")
+BIT(removeobjects,   "allow removing statues, lighthouses and transmitters")
+BIT(removeindustry,  "allow removing industries")
+BIT(closeindustries, "allow same industries to be very close to each other")
+BIT(enhancedbuoys,   "allow buoys that work like normal stations")
+BIT(bulldozesignals, "automatically bulldoze signals on track")
+
+// Description for experimentalfeatures bits
+BITSWITCH(experimentalfeatures)
+BIT(slowcrossing, "trains slow down before crossings")
+BIT(cooperative,  "cooperative play, very limited")
+BIT(mandatorygrm, "make GRF Resource Management mandatory for .grf files")
+
+// Description for maskdisasters bits
+BITSWITCH(maskdisasters)
+BIT(zeppelincrash,      "Allow zeppelin crash")
+BIT(smallufo,           "Allow small UFO")
+BIT(refineryexplosion,  "Allow refinery explosion")
+BIT(factoryexplosion,   "Allow factory explosion")
+BIT(largeufo,           "Allow large UFO")
+BIT(smallsubmarine,     "Allow small submarine")
+BIT(largesubmarine,     "Allow large submarine")
+BIT(coalminesubsidence, "Allow coal mine subsidence")
+
+// Description for mousewheel bits
+BITSWITCH(mousewheel)
+BIT(cursorzoom, "Zoom at cursor location instead of screen center")
+BIT(safezoom,   "Zoom only after rolling wheel two notches")
+BIT(legacy,     "Enable support for older (legacy) operating systems and drivers (not normally needed)")
+
+// Description for plantmanytrees bits
+BITSWITCH(plantmanytrees)
+BIT(morethanonepersquare,   "Allow planting more than one tree per square")
+BIT(rectangular,            "Enable planting over a rectangular area with 'Ctrl'")
+BIT(morethanonerectangular, "More than one tree on a square in the rectangular planting mode")
+
+// Description for moretoylandfeatures bits
+BITSWITCH(moretoylandfeatures)
+BIT(lighthouses, "Enable lighthouses on sea shores in Toyland")
+BIT(woodlands,   "Enable woodlands (clusters of trees) in Toyland")
+
+// Description for locomotiongui bits
+BITSWITCH(locomotiongui)
+BIT(usenewgui,      "Enable the new gui")
+BIT(defaultnewgui,  "Use the new gui by default (with this disabled the new gui can be reached with ctrl, when enabled with ctrl the old gui will be used)")
+BIT(defaultstation, "Make the station build button open the locomotion gui station tab.")
+
+// Description for pathbasedsignalling bits
+BITSWITCH(pathbasedsignalling)
+BIT(autoconvertpresig,    "Convert pre, exit and combo signals into PBS signals")
+BIT(manualpbssig,         "Allow manually setting PBS signals")
+BIT(preservemanualpresig, "Don't convert junctions with manually set signals into PBS")
+BIT(showreservedpath,     "Show reserved track pieces darker")
+BIT(shownonjunctionpath,  "Show reserved track pieces on non-junction tiles too")
+BIT(allowunsafejunction,  "Don't hold trains at unsafe PBS signal")
+BIT(allowunsafereverse,   "Don't stop trains that can't reverse safely")
+
+// Description for newsounds bits
+BITSWITCH(newsounds)
+BIT(highfrequency, "(DOS only) Mix sounds at 22KHz instead of the default 11KHz. Allows correct playpack of 22KHz samples.")
+
+// Description for morecurrencies bits
+BITSWITCH(morecurrencies)
+BIT(symbefore, "Currency symbol displayed always before number")
+BIT(symafter,  "Currency symbol displayed always after number")
+BIT(noeuro,    "Do not introduce the Euro")
+BIT(comma,     "Always use comma to separate thousands")
+BIT(period,    "Always use period to separate thousands")
+
 
 // A cfg file (%s) could not be found and is ignored.
 SETTEXT(LANG_CFGFILENOTFOUND, "Couldn't find cfg file %s.  Ignored.\n")

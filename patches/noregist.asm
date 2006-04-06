@@ -45,7 +45,6 @@ exported getpatchdll
 
 global initnoregist
 initnoregist:
-	CALLINT3
 	call getpatchdll
 	jz .bad
 	push afake_RegOpenKeyA

@@ -82,6 +82,7 @@ resb 256
 // bit 0: appears only while generating a town, but not later
 // bit 1: towns and AI players can't remove this
 // bit 2: callback 1B is called at the same time for every tile of the building, not independently
+// bit 3: callback 1A needs random bits
 ptrvarofs houseextraflags,newhousedatablock,$
 resb 256
 

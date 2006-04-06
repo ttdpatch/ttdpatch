@@ -246,8 +246,14 @@ ttdvar(scurrspriteheader,0x9f186)	// 8B: current sprite header used in when draw
 ttdvar(baTempBuffer1,0x9f1e8)		// 256B: tempbuffer1 for various TTD functions
 ttdvar(baTempBuffer2,0x9f2e8)		// 256B: tempbuffer2 for various TTD functions
 ttdvar(baTextInputBuffer,0x9f629)	// 64B
+ttdvar(bTextInputMaxLength,0x9ecdf)	// B: max. number of bytes in input string
+ttdvar(bTextInputMaxWidth,0x9ece0)	// B: max. width in pixels of input string
+ttdvar(bTextInputInputChar,0x9ece1)	// B: current text input character, 0 if none
 ttdvar(temprecolormapsprite,0x9f18E)	// 6B: pointer to recolor spritedata
 ttdvar(initialspriteline, 0x9F1AC)	// W: initialspriteline when drawing tile compressed sprite
+ttdvar(sFullScreenUpdateBlock, 0x9F1B0)	// structure of screendescriptor
+
+
 
 
 #if !WINTTDX

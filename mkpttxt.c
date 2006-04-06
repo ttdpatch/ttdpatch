@@ -98,7 +98,7 @@ void store(void)
   txtindex = -1;
 }
 
-void printdefault(FILE *txt, int txtindex)
+void printdefault(FILE *txt, int txtindex, int withname)
 {
   int i;
   unsigned char c;
@@ -119,7 +119,7 @@ void printdefault(FILE *txt, int txtindex)
 	return;
   }
 
-  fprintf(txt, "; %s=\"", ingametextnames[txtindex]);
+  fprintf(txt, withname ? "; %s=\"" : "\"", ingametextnames[txtindex]);
 
   prefix = "";
   linelen=strlen(ingametextnames[txtindex])+2;
@@ -144,7 +144,8 @@ void printdefault(FILE *txt, int txtindex)
 
 	linelen++;
 	if ( (linelen > 80) || ( (linelen > 70) && (c == ' ') ) ) {
-		prefix = "\"\n;\t\"";
+		if (withname)
+			prefix = "\"\n;\t\"";
 		linelen = 8;
 	}
   }
@@ -174,15 +175,35 @@ int findsize(const char *filename)
   return -1;
 }
 
+void showids()
+{
+  int i;
+  for (i=0; i<TXT_last; i++) {
+	printf("%04x %s ", i+0xf800, ingametextnames[i]);
+	printdefault(stdout, i, 0);
+  }
+}
+
 int main(int argc, char **argv)
 {
   FILE *txt, *dat;
   char *baseline, *line, *name, c, *strdata;
   u32 u; //, *offsets;
-  int i, lineno, datasize;
+  int i, lineno, datasize, doshowids = 0, deflang = -1;
 
-  printf("mkpttxt - takes ttdpttxt.txt and converts it into ttdpttxt.dat\n"
-	"Copyright (C) 2002 by Josef Drexler\n\n");
+  for (i=1; i<argc; i++) {
+	if (!strcmp(argv[i], "-l"))
+		doshowids = 1;
+	else {
+		deflang = atoi(argv[i]) - 1;
+		if ( (deflang < 0) || (deflang >= ingamelang_num) ) 
+			deflang = -1;
+	}
+  }
+
+  if (!doshowids)
+	printf("mkpttxt - takes ttdpttxt.txt and converts it into ttdpttxt.dat\n"
+		"Copyright (C) 2002 by Josef Drexler\n\n");
 
 	// FIXME: if size ever potentially goes above 32kb (allocsize)
 	// need to realloc these arrays as necessary
@@ -192,19 +213,14 @@ int main(int argc, char **argv)
   if (!baseline || !data)
 	error("Not enough memory.\n");
 
-  i = -1;
-  if (argc > 1) {
-	i = atoi(argv[1]) - 1;
-	if ( (i < 0) || (i >= ingamelang_num) ) 
-		i = -1;
-  }
-
+  i = deflang;
   if (i == -1) i = findsize("gamegfx.exe");
   if (i == -1) i = findsize("ttdx.exe");
   if (i == -1) i = findsize("tycoon.exe");
   if (i == -1) i = 0;
 
-  printf("Using language %d as default.\n", i+1);
+  if (!doshowids)
+	printf("Using language %d as default.\n", i+1);
 
   // set default (language from executable file size)
   defstr = (pingame) littleendian((int)ingamelang_ptr[i], 4);
@@ -239,6 +255,11 @@ int main(int argc, char **argv)
 	strdata += linelen;
   };
 
+  if (doshowids) {
+	showids();
+	exit(0);
+  }
+
   txt = fopen(txtname, "rt");
 
   // if file not found, create default file
@@ -248,10 +269,10 @@ int main(int argc, char **argv)
 	if (!txt)
 		error("Error creating %s: %s\n", txtname, strerror(errno));
 
-	printdefault(txt, -1);	// header
+	printdefault(txt, -1, 1);	// header
 
 	for (txtindex=0; txtindex<TXT_last; txtindex++)
-		printdefault(txt, txtindex);
+		printdefault(txt, txtindex, 1);
 
 	fclose(txt);
 
@@ -430,10 +451,10 @@ int main(int argc, char **argv)
   if (!txt)
 	error("Error creating %s: %s\n", newname, strerror(errno));
 
-  printdefault(txt, -1);	// header
+  printdefault(txt, -1, 1);	// header
 
   for (txtindex=0; txtindex<TXT_last; txtindex++)
-	printdefault(txt, txtindex);
+	printdefault(txt, txtindex, 1);
 
   fclose(txt);
 

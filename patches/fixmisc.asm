@@ -20,6 +20,7 @@
 #include <ptrvar.inc>
 #include <house.inc>
 #include <newvehdata.inc>
+#include <grf.inc>
 
 extern CalcTrainDepotWidth,GetMainViewWindow,RefreshLandscapeRect,Sleep
 extern TransmitAction,UpdateStationAcceptList,aircraftbboxtable
@@ -29,11 +30,12 @@ extern expswitches,getroadowner,getroutemap,gettextwidth,getvehiclescore
 extern houseavailyears,incomequarterstatslist,isengine,ishumanplayer
 extern isremoteplayer,lastextrahousedata,lastkeyremapped,maglevclassadjust
 extern maprefreshfrequency,miscmodsflags,newhouseyears,newvehicles
-extern orgsetsprite,patchflags,realcurrency,redrawscreen,resheight
+extern orgsetsprite,patchflags,realcurrency,redrawscreen,resheight,reswidth
 extern setroadowner,sigbitsonpiece,newvehdata,currwaittime
 extern stationarray2ofst,stationarray2ptr,tmpbuffer1,townarray2ofst
 extern trainrunningcost,ttdtexthandler,vehdirectionroutemasks
 extern yeartodate
+extern spriteblockptr
 
 
 
@@ -106,13 +108,78 @@ checkscreenshotkeys:
 %undef KEY_S_OFFSET
 
 .notctrls:	// set zero flag if ah!=0
+#if WINTTDX
+	call screenshotgrfid
+#endif
 	mov al,ah
 	and al,1
 	dec al
 	ret
-; endp checkscreenshotkeys 
+; endp checkscreenshotkeys
+	
 
+var screenshotgrfidbytes
+	db 32, 16, 17, 26, 53, 60, 72, 80, 88, 106, 107, 112, 122, 128, 136, 154
 
+screenshotgrfid:
+	test dword [miscmodsflags],MISCMODS_NOGRFIDSINSCREENSHOTS
+	jz .enabled
+	ret
+.enabled:
+	cmp al, 0
+	jz .addgrfidlist
+	ret
+.addgrfidlist:
+	cmp byte [gamemode], 1
+	jz .normalgame
+	ret
+.normalgame:
+	pusha
+	mov edi, [sFullScreenUpdateBlock+scrnblockdesc.buffer]
+	movzx ebx, word [reswidth]
+	imul ebx, 21
+	add edi, ebx
+	
+	mov ecx, 16
+	mov esi, screenshotgrfidbytes
+	rep movsb
+
+	mov ecx, 16
+	mov esi, [spriteblockptr]
+.next:
+	cmp ecx, 630
+	jge .nomore
+
+	mov esi,[esi+spriteblock.next]
+	test esi,esi
+	jle .nomore
+
+	test byte [esi+spriteblock.active],1
+	jz .next
+	
+	mov eax, [esi+spriteblock.grfid]
+	cmp eax, -1
+	jz .next
+
+	xor ebx, ebx
+
+	mov edx, 0
+.nextbits:
+	mov bl, al
+	and bl, 0xF
+	shr eax, 4
+	mov bl, byte [screenshotgrfidbytes+ebx]
+	mov byte [edi+edx], bl
+	add edx, 2
+	cmp edx, 16
+	jb .nextbits
+
+	add edi, 16
+	add ecx, 16
+	jmp .next
+.nomore:
+	popa
+	ret
 // If an aircraft is taking off and needs to go to hangar,
 // prevent it from landing back unnecessarily
 // in:	ESI->vehicle
@@ -2881,4 +2948,30 @@ checkstationindustrydist:
 	add dword [esp+4],0x14
 .nottoofar:
 	pop ecx
+	ret
+
+exported getsnowyheight
+	push edx
+	test di,di
+	jz .noadjust
+	add dl,8
+.noadjust:
+	cmp dl,[snowline]		// overwritten
+	pop edx
+	ret
+
+exported getsnowyheight_fine
+	test di,di
+	jz .noadjust
+	add dl,8
+.noadjust:
+	mov bh,[snowline]		// overwritten
+	ret
+
+exported calcboxz
+	add si,cx		// overwritten
+	add dh,dl		// ditto
+	jnc .done
+	mov dh,0xFF
+.done:
 	ret

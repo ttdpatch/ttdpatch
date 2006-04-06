@@ -115,7 +115,6 @@ startpatchactions			// this is a macro, not a label...
 	patchaction actionmakewater
 	patchaction actiongrfstat
 	patchaction actionnewstations
-	patchaction fundprospecting
 	patchaction ai_buildrailvehicle
 	patchaction ai_buildroadvehicle
 	patchaction saverestorevehdata

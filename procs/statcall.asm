@@ -3,7 +3,6 @@
 // This houses form fragments for allowing callbacks to change vehicle statistics
 // Currently only Trains and Ships supportted
 
-#if WINTTDX
 
 // Needed for the fragments and replacement code
 #include <defs.inc>
@@ -101,4 +100,4 @@ patchplanestat:
 	patchcode oldplanespeednewwehiclehandler, newplanespeednewwehiclehandler, 1, 0
 	patchcode oldplanespeednewwehiclehandler, newplanespeednewwehiclehandler, 1, 0
 	ret
-#endif
+

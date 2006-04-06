@@ -227,3 +227,17 @@ stxt whitedword, 0x94,0x7B,0
 stxt ellipsis, '...', 0
 
 stxt checkmark, 0xad, 0
+
+stxt elecrailconstitle, 0x81
+stxt_cont	dw ourtext(elecrailconstitle),
+stxt_cont	db 0
+stxt elecrailconsmenu, 0x81
+stxt_cont	dw ourtext(elecrailconsmenu)
+stxt_cont	db 0
+
+stxt special12, 0x81
+stxt_cont	dw statictext(special1)
+stxt_cont	db 0x81
+stxt_cont	dw statictext(special2)
+stxt_cont	db 0
+

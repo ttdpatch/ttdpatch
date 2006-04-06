@@ -27,6 +27,8 @@ extern setstationdisabledbuttons,stationarray2ofst,stationcallbackflags
 extern stationcargowaitingmask,stationclass,stationclassesused,stationflags
 extern stationspritelayout,stsetids
 extern unimaglevmode, Class5LandPointer, paStationtramstop
+extern lookuptranslatedcargo,mostrecentspriteblock,statcargotriggers
+extern lookuptranslatedcargo_usebit,gettileterrain
 
 
 // bits in L7:
@@ -683,6 +685,44 @@ setstationlayout:
 	clc
 	ret
 
+exported setstatcargotriggers
+	lodsd
+
+	cmp eax,byte -1	// sets carry if eax wasn't FFFFFFFFh
+	cmc
+	sbb edx,edx
+			// edx is now zero if and only if eax wasn't FFFFFFFFh
+	jnz .hasedx
+
+	push dword [curspriteblock]
+
+	or ecx,byte -1
+
+.nextbit:
+	inc ecx
+	shr eax,1
+	ja .nextbit		// ja = both carry and zero are clear
+				// (no bit exited on the right, but there are bits left in eax)
+	jnc .done		// if we didn't jump already, either carry or zero is set
+				// if carry is clear, zero must be set, and we're done
+				// (no more bits in eax, no bit exited)
+
+	push ecx
+	call lookuptranslatedcargo_usebit
+	pop edi
+
+	cmp edi,0xff
+	je .nextbit
+
+	bts edx,edi
+	jmp short .nextbit
+
+.done:
+	add esp,4
+.hasedx:
+	mov [statcargotriggers+ebx*4],edx
+	clc
+	ret
 
 	// get text table associated with station names and classes
 	// in:	edi=text ID & 7ff
@@ -1650,39 +1690,11 @@ global getstationterrain
 getstationterrain:
 	mov ecx,[curstationtile]
 
-	xor eax,eax
-	mov ah,[climate]
+	// get terrain type into eax (this clears ah as well)
+	xchg ecx,esi
+	call gettileterrain
+	xchg ecx,esi
 
-	testflags tempsnowline
-	jnc .nottempsnow
-	cmp ah,0
-	je .snowlinecheck
-
-.nottempsnow:
-
-	cmp ah,1
-	jnz .nosnowlinecheck
-
-.snowlinecheck:
-	mov al,[landscape4(cx,1)]
-	and al,0xf
-	shl al,3
-	cmp al,[snowline]
-	mov al,0
-	jb .nosnowlinecheck
-
-	mov al,4		// we are on or above the snowline
-
-.nosnowlinecheck:
-	cmp ah,2
-	jnz .nodesert
-
-	push ebx
-	mov ebx,ecx
-	call [getdesertmap]	// will return 0 normal, 1 desert, 2 rainforest
-	pop ebx
-
-.nodesert:
 	movzx ecx,byte [landscape3+ecx*2]	// track type
 	and ecx,0x0f
 
@@ -1828,26 +1840,38 @@ getstationacceptedcargos:
 	mov eax,[eax+station2.acceptedcargos]
 	ret
 
-// helper function for vars 60..65
+// helper function for vars 60..64
 // in:	ah: cargo#
 //	esi->station
 // out: ecx: cargo offset
 getstationcargooffset:
+	push dword [mostrecentspriteblock]
+	movzx eax,ah
+	push eax
+	call lookuptranslatedcargo
+	pop eax
+	add esp,4
+	cmp al,0xff
+	je .notpresent
+
 	testflags newcargos
 	jc .newoffset
-	movzx ecx,ah
+	movzx ecx,al
 	shl ecx,3
 	cmp ecx,12*8	// now cf is set if ecx is OK
 	cmc
 	ret
 
 .newoffset:
-	mov al,ah
 	xchg ebx,esi
 	call ecxcargooffset
 	xchg ebx,esi
 	inc cl		//now cl=0 if and only if it was FF (cargo not present)
 	sub cl,1	//now cl is back to the old value, but cf is set if it's FF
+	ret
+
+.notpresent:
+	stc
 	ret
 
 // var 60: amount of cargo waiting
@@ -1911,6 +1935,35 @@ getcargolastvehdata:
 
 .returndefault:
 	mov eax,0xFF00
+	ret
+
+exported getcargoacceptdata
+	push dword [mostrecentspriteblock]
+	movzx eax,ah
+	push eax
+	call lookuptranslatedcargo
+	pop eax
+	add esp,4
+	cmp al,0xff
+	je getcargowaiting.returnzero
+
+	testflags newcargos
+	jc .newformat
+	shl eax,3
+	cmp eax,12*8
+	jae getcargowaiting.returnzero
+	movzx eax, byte [esi+station.cargos+eax+stationcargo.amount+1]
+	shr eax,4
+	ret
+
+.newformat:
+	cmp eax,32
+	jae getcargowaiting.returnzero
+	mov ecx,esi
+	add ecx,[stationarray2ofst]
+	bt dword [ecx+station2.acceptedcargos],eax
+	setc al
+	shl al,3
 	ret
 
 #if 0

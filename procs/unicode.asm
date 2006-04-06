@@ -8,7 +8,7 @@ patchproc VARBSET(hasaction12), patchunicode
 
 extern newgraphicssetsavail,newspritexsize,setcharwidthtablefn
 extern getcharsprite,drawstringfn,storetextcharacter,gettextwidth
-extern splittextlines,hasaction12
+extern splittextlines,hasaction12,setwindowtitle
 
 begincodefragments
 
@@ -16,6 +16,32 @@ codefragment_jmp newsetcharwidthtables,setcharwidthtables,5
 codefragment_jmp newdrawstring,drawstringunicode,5
 codefragment_jmp newgettextwidth,gettextwidthunicode,5
 codefragment_jmp newsplittextlines,splittextlinesunicode
+
+#if WINTTDX
+codefragment oldtextinputchar,-16
+	db 0
+	cmp al,0x1b
+	db 0x0f,0x84	// jz CloseWindow
+
+codefragment newtextinputchar
+	icall textinputchar
+	jc fragmentstart+19
+	jz fragmentstart+27
+	ret
+
+codefragment oldsetwindowtitle,9
+	mov ax,0x2BA
+
+codefragment_call newsetwindowtitle,setwindowtitle,5
+#endif
+
+codefragment oldbuildcompanyname
+	mov al,[ecx]
+	mov [ebx],al
+	inc ecx
+
+codefragment newbuildcompanyname
+	icall buildcompanyname
 
 endcodefragments
 
@@ -44,4 +70,11 @@ patchunicode:
 	mov edi,splittextlinesunicode
 	xchg edi,[splittextlines]
 	storefragment newsplittextlines
+
+	patchcode buildcompanyname
+
+#if WINTTDX
+	patchcode textinputchar
+	patchcode setwindowtitle
+#endif
 	ret

@@ -13,6 +13,7 @@ extern curspriteblock,customtextptr,gethousetexttable,getmiscgrftable
 extern getstationtexttable,gettextintableptr,ntxtptr
 extern systemtextptr,mainstringtable,getextratranstable,hasaction12
 extern setelrailstexts,patchflags,applycurrencychanges,ttdtexthandler
+extern storeutf8char
 
 uvard ourtext_ptr, ourtext(last)-ourtext(base)
 
@@ -231,7 +232,7 @@ textprocessing:
 	// make sure the block exists
 	movzx ebx,ah
 	cmp dword [fonttables+ebx*4],0	// check normal font; if it exists all of them do
-	je storetextcharacter.badchar
+	je .badchar
 
 section .dataw
 .chartrl:
@@ -253,6 +254,10 @@ section .dataw
 	dw 0xE0B8	// B8 Ship symbol
 section .text
 
+	jmp short .gotchar
+
+.badchar:
+	mov eax,' '
 	jmp short .gotchar
 
 .procnonutf8:
@@ -305,54 +310,7 @@ storetextcharacter:
 	jmp short .storenext	// if unicode fonts are loaded
 	nop			// nop to make it exactly 4 bytes
 
-.storeutf8:
-	cmp eax,0x7f		// ASCII?
-	jbe .gotutf8code
-
-	mov dl,al		// edx: all-but-last sequence bytes
-	and dl,~0x40		// LSB of eax will be last byte in sequence
-	or dl,0x80
-	movzx edx,dl		// (now edx=eax[0:5] with bit 7 set)
-
-	// check how long the sequence will be
-	// bh is the high-bit mask for the start-of-sequence byte
-	mov bh,011100000b	// for U+0080..U+07FF, use two-byte sequence
-	cmp eax,0x7ff
-	jbe .nextutf8byte
-
-	mov bh,011110000b	// for U+0800..U+FFFF, use three-byte sequence
-	cmp eax,0xffff
-	jbe .nextutf8byte
-
-.badchar:		// U+10000 and above not supported (beyond the BMP)
-	mov eax,' '	// substitute a space; FIXME: use a "invalid char" code here
-	jmp .storeutf8
-
-.nextutf8byte:
-	shl edx,8		// push back bytes so far
-	shr eax,6		// and get next 6 bits from eax
-	cmp eax,0x40		// do we have more bits after this?
-	jb .lastutf8byte
-	mov dl,al
-	and dl,0x3f
-	or dl,0x80		// make dl the next sequence byte
-	jmp .nextutf8byte
-.die:
-	ud2
-.lastutf8byte:
-	or eax,edx
-	test al,bh	// check that eax has no high bits set
-	jnz .die	// if this happens, something is wrong in the algorithm above
-	add bh,bh	// remove lowest high bit from bl
-	or al,bh	// and use bl to make al the sequence start byte
-
-.gotutf8code:	// now eax holds the 1-byte ASCII code or
-		// 2-3 bytes of the UTF-8 sequence in LSB->MSB order
-
-.storenextutf8:
-	stosb
-	shr eax,8
-	jnz .storenextutf8
+	call storeutf8char
 
 .storenext:
 	dec bl

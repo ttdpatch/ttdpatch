@@ -17,7 +17,7 @@
 
 	patchproc anyflagset, dogeneralpatching
 
-	patchproc losttrains,lostrvs,lostships,lostaircraft,improvedloadtimes,gradualloading,fifoloading,canmodifygraphics,newstations, patchloadunload
+	patchproc anyflagset, patchloadunload
 
 #if WINTTDX
 	patchproc resolutionwidth,resolutionheight, patchresolution

@@ -9,7 +9,7 @@ extern actionhandler,addgroundsprite,addsprite,canalfeatureids
 extern checkvehiclesinthewayfn,cleartilefn,curplayerctrlkey,getdesertmap
 extern getgroundalt,getnewsprite,gettileinfo,grffeature,landshapetospriteptr
 extern locationtoxy,patchflags,redrawscreen
-extern waterbanksprites
+extern waterbanksprites,gettileterrain
 
 
 
@@ -28,10 +28,10 @@ endstruc_32
 %define SHIPLIFTCLEARFACTOR 16
 
 // Cliff translation table
-var waCliffTranslation, dw -1, -1, -1, 2	
-                dw -1, -1, 0, -1
-                dw -1, 3, -1, -1
-                dw 1, -1, -1, -1
+var baCliffTranslation, db -1, -1, -1, 2	
+                db -1, -1, 0, -1
+                db -1, 3, -1, -1
+                db 1, -1, -1, -1
 
 var paLiftHouseSprites, dd LiftHouse0, LiftHouse1, LiftHouse2, LiftHouse3	// middle part
 dd LiftHouse0b, LiftHouse1b, LiftHouse2b, LiftHouse3b					// bottom
@@ -251,25 +251,8 @@ Class6DrawLand:
 	
 	mov al, 0
 
-	testflags tempsnowline
-	jnc .nottempsnow
-	cmp byte [climate],0
-	je .snowlinecheck
-.nottempsnow:
+	call gettileterrain
 
-	cmp byte [climate], 1
-	jnz .nosnowlinecheck
-
-.snowlinecheck:
-	cmp dl, byte [snowline]
-	jb .nosnowlinecheck
-	mov al, 4		// we are on or above the snowline
-.nosnowlinecheck:
-	cmp byte [climate], 2
-	jnz .nodesert
-	mov ebx,esi
-	call [getdesertmap]	// will return 0 normal, 1 desert, 2 rainforest
-.nodesert:
 	mov [canalaction2array+1], al // now 0 normal, 1 desert, 2 rainforest, 4 on or above snowline
 	popa
 
@@ -533,19 +516,8 @@ normalwaterabove:
 	mov [canalaction2array], dl
 	shl dl, 3
 	
-	mov al, 0
-	cmp byte [climate], 1
-	jnz .nosnowlinecheck
+	call gettileterrain
 	
-	cmp dl, byte [snowline]
-	jb .nosnowlinecheck
-	mov al, 4		// we are on or above the snowline
-.nosnowlinecheck:
-	cmp byte [climate], 2
-	jnz .nodesert
-	mov ebx,esi
-	call [getdesertmap]	// will return 0 normal, 1 desert, 2 rainforest
-.nodesert:
 	mov [canalaction2array+1], al // now 0 normal, 1 desert, 2 rainforest, 4 on or above snowline
 	popa
 
@@ -1261,11 +1233,9 @@ actionmakewater:
 	cmp di, 0
 	je .flattile 
 	and edi, byte 0x0F
-	movzx edi, word [nosplit waCliffTranslation+edi*2]
-	or edi, edi
-	jns .halftile
-	jmp .error
-
+	movsx edi, byte [baCliffTranslation+edi]
+	test edi, edi
+	js .error
 
 .halftile:
 	// we are creating a shiplift...

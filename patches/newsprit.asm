@@ -28,9 +28,9 @@ extern getstationsectionmiddle,getstationterrain,gettownnumber,gettrackcont
 extern getvehiclecargo,getvehidcount,getvehnuminconsist,getvehnuminrow
 extern industryaction3,numextvars,patchflags,septriggerbits
 extern stationcargolots,stationcargowaitingmask,stationflags,stsetids
-extern triggerbits,vehids, getvehtypeflags
+extern triggerbits,vehids,getvehtypeflags,getcargoacceptdata
 extern wagonoverride,getindutiletypeatoffset,getindutilerandombits
-extern getindustilelandslope_industry
+extern getindustilelandslope_industry,hexdigits,int21handler
 
 uvard grffeature
 uvard curgrffeature,1,s		// must be signed to indicate "no current feature"
@@ -495,7 +495,7 @@ getnewsprite:
 	mov [curaction3info],eax
 	mov edx,[eax+action3info.spriteblock]
 
-	mov bl,[eax+spriteblock.version]
+	mov bl,[edx+spriteblock.version]
 	mov [mostrecentgrfversion],bl
 
 		// record file and sprite number for the crash logger
@@ -720,7 +720,7 @@ checkoverride:
 	ret
 #endif
 
-uvarb isother			// 0 if the action refers to the vehicle/tile/whatever, 1 if to the "other thing"
+uvard isother			// 0 if the action refers to the vehicle/tile/whatever, 1 if to the "other thing"
 uvarb nostructvars		// 1 if in a callback that must not use 40+x or type 82/83
 
 badaction2var:
@@ -757,6 +757,12 @@ getrandomorvariational:
 	// jmp short getrandom	// 80 or 83
 
 getrandom:	// random cargo ID
+#if MEASUREVAR40X
+	movzx ecx,byte [grffeature]
+	or dword [tscvar],byte -1
+	call checktsc
+#endif
+
 	push edx
 	xor eax,eax
 	test esi,esi
@@ -796,6 +802,13 @@ getrandom:	// random cargo ID
 	movzx ebx,word [ebx+7+eax*2]
 	pop edx
 	pop esi
+
+#if MEASUREVAR40X
+	mov ecx,8*2
+	mov dword [tscvar],1
+	call checktsc
+	or dword [tscvar],byte -1
+#endif
 	ret
 
 
@@ -897,26 +910,31 @@ getvariationalvariable:
 	js .structvar		// 80+x
 	jz .externalvar		// x
 
-	test al,0x20		// check for 0x6x variables
-	jz .noparam
-	inc ebx
-	mov cl,byte [ebx]
-.noparam:
-
-	cmp al,0x7f
-	je .paramvar		// 7F (check grf parameter) is always available
+	bt eax,5		// check for 60+x variable
+	adc ebx,0		// advance ebx if it is one
+	mov cl,[ebx]		// cl will contain 60+x parameter (or var.num otherwise)
 
 	test esi,esi
-	jz .novar
+	jz .checkvaravail
 
 	cmp byte [nostructvars],0
 	jne badaction2var
 
+.usevar:
 	test al,0x20		// check for 0x6x variables
 	jnz .paramvar
 
 	call getspecialvar	// 40+x
 	jmp short .gotval
+
+.checkvaravail:			// variable available even without structure?
+	movzx esi,byte [grffeature]
+	add esi,esi
+	add esi,[isother]
+	bt [varavailability+esi*8],eax
+	mov esi,0		// restore esi without affecting flags
+	jc .usevar
+	jmp short .novar
 
 .paramvar:			// 60+x
 	call getspecparamvar
@@ -941,7 +959,6 @@ getvariationalvariable:
 	lea ebx,[ebx+ecx+1]		// skip shiftnum, bitmask
 	jz .exit
 	lea ebx,[ebx+2*ecx]		// skip add-val and div/mod-val
-	//jmp .gotrange
 .exit:
 	stc
 	ret
@@ -958,88 +975,131 @@ getvariationalvariable:
 	mov dh,cl
 	and cl,0x1f
 	shr eax,cl
-
-	add ebx,2
-	call getvariational.getvalue_zx	// bitmask, must be zero-extended
-	and eax,ecx
-
-	test dh,0xc0
-	jz .gotvaladjust
-
-	call getvariational.getvalue_sx	// add-value, signed
-	add eax,ecx
-
-// before dividing, we should simulate overflowing according to the current size,
-// or negative numbers don't work correctly (GRFs will expect 0xF0+0x20 to be 0x10,
-// not 0x110; a byte variable containing 0xe7 must expand to 0xFFFFFFe7)
-
-	call getvariational.make_eax_signed
-
-	push edx
-	call getvariational.getvalue_sx	// divide-val
-	cdq
-	test ecx,ecx
-	jz .nodiv
-	idiv ecx
-.nodiv:
-	mov ecx,edx
-	pop edx
-
-	test dh,0x40
-	jnz .gotvaladjust
-
-	mov eax,ecx	// get remainder
-
-.gotvaladjust:
 	clc
 	ret
 
-getvariational:
-	// find variational cargo ID from list
-	// in:	ebx=variation cargo ID definition
-	//	esi=struct or 0 if none
-	// out:	ebx=new cargo ID sprite number
-	// safe:eax ebx ecx
+%define SIZE_0 byte
+%define SIZE_1 word
+%define SIZE_2 dword
 
-	push edx
-	push ebp
+%macro auto_size 3
+	%rotate SIZEIND
+	%1
+%endmacro
 
-// first find out which size we are working with, and save it to dl
-	mov dl,1
-	test byte [ebx+3],0xc
-	jz .notwide
+%macro make_var_adjust 1
+	auto_size {and al,[ebx+2]}, {and ax,[ebx+2]}, {and eax,[ebx+2]}
+	auto_size {add ebx,3}, {add ebx,4}, {add ebx,6}
 
-	mov dl,2
+	test dh,0xc0
+	jz %%gotvaladjust
 
-	test byte [ebx+3],0x8
-	jz .notdword
-	mov dl,4
+	auto_size {add al,[ebx]}, {add ax,[ebx]}, {add eax,[ebx]}
 
-.notdword:
-.notwide:
+	auto_size {}, {push edx}, {push edx}
+	auto_size {cbw}, {cwd}, {cdq}
 
-// check variable
+	auto_size {mov cl,[ebx+1]}, {mov cx,[ebx+1]}, {mov ecx,[ebx+1]}
+	auto_size {test cl,cl}, {test cx,cx}, {test ecx,ecx}
+	jz %%nodiv
+	auto_size {idiv cl}, {idiv cx}, {idiv ecx}
+%%nodiv:
+	auto_size {}, {mov ecx,edx}, {mov ecx,edx}
+	auto_size {}, {pop edx}, {pop edx}
+	auto_size {add ebx,2}, {add ebx,4}, {add ebx,8}
+
+	test dh,0x40
+	jnz %%gotvaladjust
+
+	auto_size {mov al,ah}, {mov ax,cx}, {mov eax,ecx}	// get remainder
+
+%%gotvaladjust:
+%endmacro
+
+%macro makevaract2handler 1
+	%define SIZEIND %1
+	%define SIZE SIZE_%1
+
 	add ebx,4
 
 	call getvariationalvariable
-	jc .errorinvar
+	jc errorinvar
+
+	make_var_adjust %1
+
 	test dh,0x20
-	jz .gotval
+	jnz .nextvar
+	jmp short .gotval	// could do jz .nextvar, but this is better for the BPL
 
 .nextvar:
 	push eax
 	movzx ebp,byte [ebx]
 	inc ebx
 	call getvariationalvariable
+	jc .error_pop
+	make_var_adjust %1
 	mov ecx,eax
 	pop eax
-	jc .errorinvar
-	call [addr(.operators)+ebp*4]
+	call [addr(calcoperators)+ebp*4]
 	test dh,0x20
 	jnz .nextvar
 	jmp short .gotval
 
-.errorinvar:
+.error_pop:
+	pop eax
+	jmp errorinvar
+
+.gotval:
+// now, before comparing, we should simulate overflowing again, but with the high
+// bits being zeroed, so for ex. 0xFFFFFFF8 becomes 0xF8 and can be compared to
+// other bytes in an unsigned manner
+
+	auto_size {movzx eax,al}, {movzx eax,ax}, {}
+
+	mov [lastcalcresult],eax	// store for next var.action 2 in chain
+
+	mov dh,[ebx]		// number of ranges
+	inc ebx
+
+	test dh,dh
+	jz .callback		// no ranges -> return as callback result
+
+.nextrange:
+	auto_size {cmp al,[ebx+2]}, {cmp ax,[ebx+2]}, {cmp eax,[ebx+2]}
+	jb .toolow
+	auto_size {cmp al,[ebx+3]}, {cmp ax,[ebx+4]}, {cmp eax,[ebx+6]}
+	jna .gotrange
+
+.toolow:
+.toohigh:
+	auto_size {add ebx,4}, {add ebx,6}, {add ebx,10}
+	dec dh
+	jnz .nextrange
+
+.gotrange:
+	movzx ebx,word [ebx]
+.gotvalue:
+	pop ebp
+	pop edx
+	pop esi
+
+#if MEASUREVAR40X
+	mov ecx,8*2
+	mov dword [tscvar],0
+	call checktsc
+	or dword [tscvar],byte -1
+#endif
+
+	ret
+
+.callback:
+	movzx ebx,ax
+	or bh,0x80
+	jmp .gotvalue
+
+%endmacro
+
+errorinvar:
 	inc ebx
 	inc ebx
 	test dh,0x20
@@ -1055,97 +1115,59 @@ getvariational:
 	mov dh,[ebx+1]
 	lea ebx,[ebx+ecx+1]
 	test dh,0xc0
-	jz .errorinvar
+	jz errorinvar
 	lea ebx,[ebx+2*ecx]
-	jmp short .errorinvar
-
-.gotval:
-// now, before comparing, we should simulate overflowing again, but with the high
-// bits being zeroed, so for ex. 0xFFFFFFF8 becomes 0xF8 and can be compared to
-// other bytes in an unsigned manner
-
-	call .make_eax_unsigned
-
-	mov [lastcalcresult],eax	// store for next var.action 2 in chain
-
-	mov dh,[ebx]
-	inc ebx
-
-	test dh,dh
-	jnz .normal
-	movzx ebx,ax
-	or bh,0x80
-	jmp short .gotvalue
-.normal:
-
-.nextrange:
-	add ebx,2		// skip cargoid
-	call .getvalue_zx	// lower bound
-	mov ebp,ecx
-	call .getvalue_zx	// upper bound
-	cmp eax,ebp
-	jb .toolow
-	cmp eax,ecx
-	ja .toohigh
-
-// we've got the right one, but ebx points past it
-	movzx edx,dl
-	neg edx
-	lea ebx,[ebx-2+2*edx]
-	jmp short .gotrange
-
-.toolow:
-.toohigh:
-	dec dh
-	jnz .nextrange
-
+	jmp short errorinvar
 .gotrange:
 	movzx ebx,word [ebx]
-.gotvalue:
 	pop ebp
 	pop edx
 	pop esi
 	ret
 
-.getvalue_zx:
-	cmp dl,2
-	je .getword_zx
-	ja .getwidevalue
+getvariational:
+	// find variational cargo ID from list
+	// in:	ebx=variation cargo ID definition
+	//	esi=struct or 0 if none
+	// out:	ebx=new cargo ID sprite number
+	// safe:eax ebx ecx
 
-	movzx ecx,byte [ebx]
-	inc ebx
-	ret
+#if MEASUREVAR40X
+	movzx ecx,byte [grffeature]
+	or dword [tscvar],byte -1
+	call checktsc
+#endif
 
-.getword_zx:
-	movzx ecx,word [ebx]
-	inc ebx
-	inc ebx
-	ret
+	push edx
+	push ebp
 
-.getvalue_sx:
-	cmp dl,2
-	je .getword_sx
-	ja .getwidevalue
+	// first find out which size we are working with, and save it to dl
+	// type & 0C: 0 = byte, 4 = word, 8 = dword
+	movzx edx,byte [ebx+3]
+	and edx,0x0C
+	jmp [.sizehandlers+edx]
 
-	movsx ecx,byte [ebx]
-	inc ebx
-	ret
+noglobal vard .sizehandlers, bytesize,wordsize,dwordsize
 
-.getword_sx:
-	movsx ecx,word [ebx]
-	inc ebx
-	inc ebx
-	ret
+bytesize:
+	mov dl,1
+	makevaract2handler 0
 
-.getwidevalue:
-	mov ecx,[ebx]
-	add ebx,4
-	ret
+wordsize:
+	mov dl,2
+	makevaract2handler 1
 
-.operators:
+dwordsize:
+	mov dl,4
+	makevaract2handler 2
+
+vard calcoperators
 	dd addr(.add),addr(.sub),addr(.signed_min),addr(.signed_max),addr(.unsigned_min),addr(.unsigned_max)
 	dd addr(.signed_divmod),addr(.signed_divmod),addr(.unsigned_divmod),addr(.unsigned_divmod)
 	dd addr(.multiply),addr(.and),addr(.or),addr(.xor)
+numcalcoperators equ ($-calcoperators)/4
+
+endvar
 
 .add:
 	add eax,ecx
@@ -1353,6 +1375,15 @@ uvard numvar,NUMFEATURES*0x40
 
 uvard tscdataend,0
 
+// benchmarking tool, to enable recompile patches/newsprit and patches/loadsave
+// with make DEFS='MEASUREVAR40X=1'
+//
+// in:	1) ecx=-1 to start counter
+//	2) ecx=2*feature to record+isother
+//	   [tscvar] grf variable being measured (-1 if none), 
+//		ignores variables other than 40+x, 60+x
+//	   [callback] current callback (0 if none)
+// uses ecx
 checktsc:
 	push eax
 	push ebx
@@ -1386,7 +1417,7 @@ checktsc:
 	test ecx,ecx
 	js .done
 
-	movzx ebx,byte [curcallback]
+	mov ebx,[curcallback]
 
 	sub [cbticks+ebx*8],eax
 	sbb [cbticks+4+ebx*8],edx
@@ -1413,7 +1444,7 @@ checktsc:
 var tscname, db "tsc_####.dat",0
 uvard tscdumpnum
 
-savevar40x:
+exported savevar40x
 	pusha
 	cmp dword [tscvalid],0
 	je near .fail
@@ -1486,9 +1517,10 @@ getspecialvar:
 
 #if MEASUREVAR40X
 	push ecx
-	or ecx,byte -1
-	mov [tscvar],eax
+	mov ecx,8*2
+	mov dword [tscvar],0
 	call checktsc
+	mov [tscvar],eax
 	mov ecx,[esp]
 #else
 	cmp cl,4*2
@@ -1502,6 +1534,7 @@ getspecialvar:
 #if MEASUREVAR40X
 	pop ecx
 	call checktsc
+	or dword [tscvar],byte -1
 #endif
 
 .done:
@@ -1545,10 +1578,11 @@ getspecparamvar:
 
 #if MEASUREVAR40X
 	push ecx
+	mov ecx,8*2
+	mov dword [tscvar],0
+	call checktsc
 	lea ecx,[eax+020]
 	mov [tscvar],ecx
-	or ecx,byte -1
-	call checktsc
 	mov ecx,[esp]
 #endif
 	mov ecx,[specialparamvarhandlertable+ecx*4]
@@ -1558,6 +1592,7 @@ getspecparamvar:
 #if MEASUREVAR40X
 	pop ecx
 	call checktsc
+	or dword [tscvar],byte -1
 #endif
 
 .done:
@@ -1581,7 +1616,7 @@ getspecparamvar:
 
 	// offsets into the base struc ptr to the place where the
 	// variational variables start, for each feature
-var featurevarofs
+varb featurevarofs
 	db -0x80, -0x80		// four vehicle types; the "other thing" is a vehicle as well
 	db -0x80, -0x80
 	db -0x80, -0x80
@@ -1596,10 +1631,34 @@ var featurevarofs
 	db 0, 0			// cargos don't have structures
 	db 0, 0			// sounds neither
 
-	align 4
+checkfeaturesize featurevarofs, 2
+
+endvar
+
+	// bit mask of 40+x and 60+x variables available for each feature
+	// even without a structure; once for 81+x and once for 82+x
+	// (all 60+x must set bit 15, which is special!)
+vard varavailability
+	dd 100001000b,1<<15,	100001000b,1<<15	// veh.vars 43, 48
+	dd 100001000b,1<<15,	100001000b,1<<15	// veh.vars 43, 48
+	dd 100001000b,1<<15,	100001000b,1<<15	// veh.vars 43, 48
+	dd 100001000b,1<<15,	100001000b,1<<15	// veh.vars 43, 48
+	dd 1000b,1<<15,		0,1<<15			// station var 43, towns
+	dd 0,1<<15,		0,1<<15			// canals
+	dd 0,1<<15,		0,1<<15			// bridges
+	dd 0,1<<15,		0,1<<15			// houses, bridges
+	dd 0,1<<15,		0,1<<15			// generic variables
+	dd 0,1<<15,		0,1<<15			// industry tiles, industries
+	dd 0,1<<15,		0,1<<15			// industries, towns
+	dd 0,1<<15,		0,1<<15			// cargos
+	dd 0,1<<15,		0,1<<15			// sounds
+
+checkfeaturesize varavailability, (4*2*2)
+
+endvar
 
 	// list of handlers for each variable
-var vehvarhandler
+vard vehvarhandler
 	dd addr(getvehnuminconsist)
 	dd addr(getvehnuminrow)
 	dd addr(getconsistcargo)
@@ -1612,15 +1671,17 @@ var vehvarhandler
 %ifndef PREPROCESSONLY
 %assign n_vehvarhandler (addr($)-vehvarhandler)/4
 %endif
+endvar
 
-var vehparamvarhandler
+vard vehparamvarhandler
 	dd addr(getvehidcount)
 %ifndef PREPROCESSONLY
 %assign n_vehparamvarhandler (addr($)-vehparamvarhandler)/4
 %endif
+endvar
 
 
-var stationvarhandler
+vard stationvarhandler
 	dd addr(getplatforminfo)
 	dd addr(getstationsectioninfo)
 	dd addr(getstationterrain)
@@ -1634,28 +1695,33 @@ var stationvarhandler
 %ifndef PREPROCESSONLY
 %assign n_stationvarhandler (addr($)-stationvarhandler)/4
 %endif
+endvar
 
-var stationparamvarhandler
+vard stationparamvarhandler
 	dd addr(getcargowaiting)
 	dd addr(getcargotimesincevisit)
 	dd addr(getcargorating)
 	dd addr(getcargoenroutetime)
 	dd addr(getcargolastvehdata)
+	dd addr(getcargoacceptdata)
 %ifndef PREPROCESSONLY
 %assign n_stationparamvarhandler (addr($)-stationparamvarhandler)/4
 %endif
+endvar
 
-var canalsvarhandler
+vard canalsvarhandler
 %ifndef PREPROCESSONLY
 %assign n_canalsvarhandler (addr($)-canalsvarhandler)/4
 %endif
+endvar
 
-var canalsparamvarhandler
+vard canalsparamvarhandler
 %ifndef PREPROCESSONLY
 %assign n_canalsparamvarhandler (addr($)-canalsparamvarhandler)/4
 %endif
+endvar
 
-var housesvarhandler
+vard housesvarhandler
 	dd addr(gethousebuildstate)
 	dd addr(gethouseage)
 	dd addr(gethousezone)
@@ -1666,16 +1732,18 @@ var housesvarhandler
 %ifndef PREPROCESSONLY
 %assign n_housesvarhandler (addr($)-housesvarhandler)/4
 %endif
+endvar
 
-var housesparamvarhandler
+vard housesparamvarhandler
 	dd addr(getotherhousecount)
 	dd addr(getothernewhousecount)
 	dd addr(getindustilelandslope)
 %ifndef PREPROCESSONLY
 %assign n_housesparamvarhandler (addr($)-housesparamvarhandler)/4
 %endif
+endvar
 
-var industilesvarhandler
+vard industilesvarhandler
 	dd addr(getindustileconststate)
 	dd addr(gettileterrain)
 	dd addr(gethousezone)
@@ -1684,42 +1752,48 @@ var industilesvarhandler
 %ifndef PREPROCESSONLY
 %assign n_industilesvarhandler (addr($)-industilesvarhandler)/4
 %endif
+endvar
 
-var industilesparamvarhandler
+vard industilesparamvarhandler
 	dd addr(getindustilelandslope)
 %ifndef PREPROCESSONLY
 %assign n_industilesparamvarhandler (addr($)-industilesparamvarhandler)/4
 %endif
+endvar
 
-var townvarhandler
+vard townvarhandler
 	dd addr(getistownlarger)	// in newhouse.asm
 	dd addr(gettownnumber)		// in newhouse.asm
 %ifndef PREPROCESSONLY
 %assign n_townvarhandler (addr($)-townvarhandler)/4
 %endif
+endvar
 
-var townparamvarhandler
+vard townparamvarhandler
 %ifndef PREPROCESSONLY
 %assign n_townparamvarhandler (addr($)-townparamvarhandler)/4
 %endif
+endvar
 
-var industryvarhandler
+vard industryvarhandler
 	dd addr(getincargo)
 	dd addr(getincargo)
 	dd addr(getincargo)
 %ifndef PREPROCESSONLY
 %assign n_industryvarhandler (addr($)-industryvarhandler)/4
 %endif
+endvar
 
-var industryparamvarhandler
+vard industryparamvarhandler
 	dd getindutiletypeatoffset
 	dd getindutilerandombits
 	dd getindustilelandslope_industry
 %ifndef PREPROCESSONLY
 %assign n_industryparamvarhandler (addr($)-industryparamvarhandler)/4
 %endif
+endvar
 
-var specialvarhandlertable
+vard specialvarhandlertable
 	dd vehvarhandler,vehvarhandler
 	dd vehvarhandler,vehvarhandler
 	dd vehvarhandler,vehvarhandler
@@ -1736,8 +1810,10 @@ var specialvarhandlertable
 
 checkfeaturesize specialvarhandlertable, (4*2)
 
+endvar
+
 	// number of special variables defined in each feature class
-var specialvars
+vard specialvars
 %ifndef PREPROCESSONLY
 	db n_vehvarhandler,n_vehvarhandler
 	db n_vehvarhandler,n_vehvarhandler
@@ -1756,7 +1832,9 @@ var specialvars
 
 checkfeaturesize specialvars, (1*2)
 
-var specialparamvarhandlertable
+endvar
+
+vard specialparamvarhandlertable
 	dd vehparamvarhandler,vehparamvarhandler
 	dd vehparamvarhandler,vehparamvarhandler
 	dd vehparamvarhandler,vehparamvarhandler
@@ -1773,8 +1851,10 @@ var specialparamvarhandlertable
 
 checkfeaturesize specialparamvarhandlertable, (4*2)
 
+endvar
+
 	// number of special variables defined in each feature class
-var specialparamvars
+vard specialparamvars
 %ifndef PREPROCESSONLY
 	db n_vehparamvarhandler,n_vehparamvarhandler
 	db n_vehparamvarhandler,n_vehparamvarhandler
@@ -1792,3 +1872,5 @@ var specialparamvars
 %endif
 
 checkfeaturesize specialparamvars, (1*2)
+
+endvar

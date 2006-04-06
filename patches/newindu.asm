@@ -15,7 +15,7 @@ extern WindowTitleBarClicked,actionhandler,callback_extrainfo
 extern cargoamount1namesptr,cargoamountnnamesptr,cargotypenamesptr
 extern curcallback,curgrfindustilelist,curgrfindustrylist,curmiscgrf
 extern currscreenupdateblock,curspriteblock,drawtextfn,errorpopup
-extern fillrectangle,fundchances,fundprospecting_newindu_actionnum
+extern fillrectangle,fundprospecting_newindu_actionnum
 extern generatesoundeffect,gettileterrain,getnewsprite,gettileinfo
 extern getwincolorfromdoscolor,grffeature,grfstage,malloccrit
 extern industryspriteblock,invalidatehandle,lookuppersistenttextid
@@ -24,6 +24,7 @@ extern randomindustiletrigger,randomindustrytrigger,redrawtile,setmousetool
 extern specialerrtext1,substindustries
 extern texthandler,mostrecentgrfversion,drawsplittextfn
 extern lookuptranslatedcargo,miscgrfvar
+extern fundcostmultipliers,CreateNewRandomIndustry
 
 
 // --- Industry tile stuff ---
@@ -100,7 +101,12 @@ uvarb industileanimspeeds,256
 // Bit 1 - the tile is processed in the periodic processing loop 	
 // Bit 2 - the industry of the tile is processed in the periodic processing loop 	
 // Bit 3 - the industry of the tile receives input cargo from a station
+// Bit 4 - cargo is distributed from the industry
 uvarb industileanimtriggers,256
+
+// special flags
+// Bit 0 - callback 26 needs random bits
+uvarb industilespecflags,256
 
 // points to the acceptance table of the old tiles
 uvard oldindutileacceptsbase
@@ -252,6 +258,7 @@ copyindustiledata:
 	mov word [industileanimframes+2*edx],0xffff
 	mov byte [industileanimspeeds+edx],2
 	mov byte [industileanimtriggers+edx],0
+	mov byte [industilespecflags+edx],0
 	pop ecx
 	pop ebx
 	ret
@@ -506,18 +513,9 @@ industileconststatechange:
 
 // do callback 25 if it's enabled for construction state changes
 	pusha
-	push ebx
 	movzx eax,al
-	mov esi,ebx
-	mov byte [grffeature],9
-	mov byte [curcallback],0x25
 	and dword [callback_extrainfo],0
-	call getnewsprite
-	mov byte [curcallback],0
-	pop ebx
-	jc .leavealone
-	call setindutileanimstage
-.leavealone:
+	call doindustileanimtrigger
 	popa	
 .noconstcallback:
 	ret
@@ -539,17 +537,8 @@ class8periodicproc0:
 	movzx eax,al
 	test byte [industileanimtriggers+eax],2
 	jz .noperiodicanim
-	push ebx
-	mov esi,ebx
-	mov byte [grffeature],9
-	mov byte [curcallback],0x25
 	mov dword [callback_extrainfo],1
-	call getnewsprite
-	mov byte [curcallback],0
-	pop ebx
-	jc .leavealone
-	call setindutileanimstage
-.leavealone:
+	call doindustileanimtrigger
 
 .noperiodicanim:
 
@@ -605,10 +594,16 @@ uvard baIndustryTileTransformOnDistr
 // called instead of reading from baIndustryTileTransformOnDistr
 // be return -1 for new types since they don't have entries in that array
 // in:	esi: industry tile type
+//	ebx: XY of tile
 // out:	al: array element
 // safe: ???
 global distributeindustrycargo2
 distributeindustrycargo2:
+	mov edi,edx
+	mov edx,4
+	call industryanimtrigger
+	mov edx,edi
+
 	cmp esi,256
 	jae .newtype
 	push ebx
@@ -683,6 +678,13 @@ class8animationhandler:
 // if callback 26 (decide next anim. frame) is enabled, call it
 	test byte [industilecallbackflags+edx],1
 	jz .normal
+	test byte [industilespecflags+edx],1
+	jz .norandom
+
+	call [randomfn]
+	mov [miscgrfvar],eax
+.norandom:
+
 	push ebx
 	mov eax,edx
 	mov esi,ebx
@@ -690,6 +692,7 @@ class8animationhandler:
 	mov byte [curcallback],0x26
 	call getnewsprite
 	mov byte [curcallback],0
+	mov dword [miscgrfvar],0	// we shouldn't hurt flags
 	pop ebx
 	jc .normal
 
@@ -705,7 +708,7 @@ class8animationhandler:
 	ror cx,4
 	and bx,0x0ff0
 	and cx,0x0ff0
-	or esi,-1
+	or esi,byte -1
 	call [generatesoundeffect]
 	popa
 
@@ -979,7 +982,7 @@ setindutileanimstage:
 	ror cx,4
 	and bx,0x0ff0
 	and cx,0x0ff0
-	or esi,-1
+	or esi,byte -1
 	call [generatesoundeffect]
 	popa
 
@@ -1015,6 +1018,29 @@ setindutileanimstage:
 .animdone:
 	ret
 
+// call callback 0x25 and apply the new animation state
+// in:	eax: tile type
+//	ebx: XY of tile
+//	[callback_extrainfo] set correctly
+// preserves: all but eax
+doindustileanimtrigger:
+	push eax
+	call [randomfn]
+	mov [miscgrfvar],eax
+	pop eax
+
+	mov byte [grffeature],9
+	mov byte [curcallback],0x25
+	xchg ebx,esi
+	call getnewsprite
+	xchg ebx,esi
+	mov byte [curcallback],0
+	jc .leavealone
+	call setindutileanimstage
+.leavealone:
+	and dword [miscgrfvar],0
+	ret
+
 // Called when an animation trigger event happens to the industry.
 // Check all tiles and invoke callback 0x25 if they have it enabled for the current event.
 // in:	edx: bit number of the event
@@ -1028,6 +1054,8 @@ industryanimtrigger:
 	mov byte [curcallback],0x25
 	and dword [callback_extrainfo],0
 	mov [callback_extrainfo],dl
+	call [randomfn]
+	mov [miscgrfvar],eax
 
 	movzx esi,word [edi+industry.XY]
 	movzx ecx,word [edi+industry.dimensions]
@@ -1056,11 +1084,16 @@ industryanimtrigger:
 	mov ebx,esi
 	call getindustileid
 	jnc .dontneed					// old tiles can't have CB 25
-	movzx eax,al
+	movzx ebx,al
 
 // is the callback enabled for this event?
-	bt dword [industileanimtriggers+eax],edx
+	bt dword [industileanimtriggers+ebx],edx
 	jnc .dontneed
+
+	call [randomfn]
+	mov [miscgrfvar],ax
+
+	mov eax,ebx
 
 // do the callback, everything is set up for it now
 	call getnewsprite
@@ -1081,6 +1114,7 @@ industryanimtrigger:
 	jnz .yloop
 
 	mov byte [curcallback],0
+	and dword [miscgrfvar],0
 
 	popa
 	ret
@@ -2173,16 +2207,9 @@ putindutile:
 	test byte [industileanimtriggers+eax],1
 	jz .noconstcallback
 	pusha
-	mov esi,edi
-	mov byte [grffeature],9
-	mov byte [curcallback],0x25
-	and dword [callback_extrainfo],0
-	call getnewsprite
-	mov byte [curcallback],0
-	jc .leavealone
 	mov ebx,edi
-	call setindutileanimstage
-.leavealone:
+	and dword [callback_extrainfo],0
+	call doindustileanimtrigger
 	popa	
 .noconstcallback:
 .noanim:
@@ -3921,7 +3948,7 @@ doproductioncallback:
 .notmuloverflow2:
 	add [esi+industry.amountswaiting+(ecx-1)*2],bx
 	jnc .nottoomuch
-	or word [esi+industry.amountswaiting+(ecx-1)*2],-1
+	or word [esi+industry.amountswaiting+(ecx-1)*2],byte -1
 .nottoomuch:
 	loop .nextoutinstruction
 
@@ -4477,10 +4504,10 @@ fundindustry_chkplacement:
 	ret
 
 // pointers to parts of the random production change proc that...
-uvard industry_decprod,1,s		// ...decrease production
-uvard industry_incprod,1,s		// ...increase production
 uvard industry_closedown,1,s		// ...initate imminent closedown
 uvard industry_primaryprodchange,1,s	// ...decides production change for primary industries
+
+uvard industry_showchangemsg,1,s	// show industry message in ebx
 
 uvarb prodchange_suppressnewsmsg
 
@@ -4497,6 +4524,7 @@ industryrandomprodchange:
 	mov byte [prodchange_suppressnewsmsg],0
 	test byte [industrycallbackflags+ebx],0x10
 	jnz .docallback
+
 	ret
 
 .docallback:
@@ -4518,20 +4546,88 @@ industryrandomprodchange:
 	setc byte [prodchange_suppressnewsmsg]
 
 // 0 means "do nothing"
-	or al,al
+	test al,al
 	jz .nothing
 
-// values above 3 are an error
-	cmp al,3
+// values above 12 are an error
+	cmp al,12
 	ja .error
 
-// call the procedure part defined by the returned value
-	movzx eax,al
-	jmp [industry_decprod+(eax-1)*4]
+	cmp al,1
+	jne .nohalve
+
+	mov ecx,1
+	jmp short .decrease
+
+.nohalve:
+	cmp al,2
+	jne .nodouble
+
+	mov ecx,1
+	jmp short .increase
+
+.nodouble:
+	cmp al,3
+	jne .noclosedown
+.closedown:
+	jmp [industry_closedown]
+
+.noclosedown:
+	cmp al,4
+	jne .noprimaryprodchange
+	jmp [industry_primaryprodchange]
+
+.noprimaryprodchange:
+	movzx ecx,al
+	sub ecx,3
+	cmp ecx,5
+	jbe .decrease
+
+	sub ecx,4
+	jmp short .increase
 
 .nothing:
 .error:
 	ret
+
+.decrease:
+.decloop:
+	cmp byte [esi+industry.prodmultiplier],4
+	je .closedown
+	shr byte [esi+industry.prodmultiplier],1
+	inc byte [esi+industry.prodrates]
+	shr byte [esi+industry.prodrates],1
+	inc byte [esi+industry.prodrates+1]
+	shr byte [esi+industry.prodrates+1],1
+	loop .decrease
+
+	movzx ebx,byte [esi+industry.type]
+	mov dx,[industryproddecmsgs+ebx*2]
+	jmp [industry_showchangemsg]
+
+.increase:
+	cmp byte [esi+industry.prodmultiplier],0x80
+	je .nothing
+.incloop:
+	cmp byte [esi+industry.prodmultiplier],0x80
+	je .stop
+	shl byte [esi+industry.prodmultiplier],1
+
+	shl byte [esi+industry.prodrates],1
+	jnc .nooverflow1
+	mov byte [esi+industry.prodrates],0xff
+.nooverflow1:
+	
+	shl byte [esi+industry.prodrates+1],1
+	jnc .nooverflow2
+	mov byte [esi+industry.prodrates+1],0xff
+.nooverflow2:
+	loop .incloop
+
+.stop:
+	movzx ebx,byte [esi+industry.type]
+	mov dx,[industryprodincmsgs+ebx*2]
+	jmp [industry_showchangemsg]
 
 global monthlyupdateindustryproc
 monthlyupdateindustryproc:
@@ -4551,7 +4647,7 @@ ovar .oldfn,-4,$,monthlyupdateindustryproc
 .docallback:
 	mov byte [prodchange_suppressnewsmsg],0
 	mov byte [curcallback],0x35
-	jmp short industryrandomprodchange.callit
+	jmp industryrandomprodchange.callit
 
 global industryprodchange_shownewsmsg
 industryprodchange_shownewsmsg:
@@ -4677,7 +4773,7 @@ plantrandomfields:
 	ret
 
 .deny:
-	or eax,-1
+	or eax,byte -1
 	ret
 
 .original:
@@ -4711,3 +4807,250 @@ indutilesellouthandler:
 	mov [esi+industry.owner],dh
 .exit:
 	ret
+
+// check whether secondary industry should close down
+//
+// in:	esi->industry
+// out:	al=years since last production (will close if >4)
+// safe:ax ebx cx dx ebp
+exported checkinduclosedown
+	mov al,[currentyear]
+	cmp al,[esi+industry.lastyearprod]
+	cmp al,5
+	jb .ok
+	call preventindustryclosedown
+	jnz .ok
+	mov al,2
+.ok:
+	ret
+
+// check whether primary industry should reduce production
+//
+// in:	esi->industry
+// out:	CF=1 close down
+//	CF=0 ZF=1 do nothing
+//	CF=0 ZF=0 reduce production
+// safe:ax ebx cx dx ebp
+exported checkindudecprod
+	cmp byte [esi+industry.prodmultiplier],4
+	ja .reduce	// return with CF=0 ZF=0
+
+	call preventindustryclosedown
+	clc
+	jz .done	// don't reduce, don't close: CF=0 ZF=1
+
+	stc		// set CF=1 -> close down
+
+.done:
+	ret
+
+.reduce:	// overwritten code
+	shr byte [esi+industry.prodmultiplier],1
+	inc byte [esi+industry.prodrates]
+	test esp,esp	// clear ZF,CF
+	ret
+
+// check whether industry is the last of its type on the map, and prevent
+// closedown if it is (except for industries with oil wells flag set)
+//
+// in:	esi->industry
+// out:	ZF=1 is last industry
+//	ZF=0 is not last industry
+// uses:ebx cx
+preventindustryclosedown:
+	mov ebx,[industryarrayptr]
+	mov cl,[esi+industry.type]
+	mov ch,90
+
+.next:
+	cmp word [ebx+industry.XY],0
+	je .skip
+	cmp ebx,esi
+	je .skip
+	cmp cl,[ebx+industry.type]
+	jne .skip
+	// so there's another one, return with ZF=0
+	test esp,esp
+	ret
+.skip:
+	add ebx,industry_size
+	dec ch
+	jnz .next
+
+	// it's the last one, return with ZF=1 unless it's oil wells
+	push eax
+	mov bl,cl
+	call inducantincrease
+	pop eax		// now ZF=1 if oil wells, ZF=0 otherwise
+	setz bl
+	test bl,bl	// so invert ZF
+.done:
+	ret
+
+
+// The following code was written by Oskar for the moreindustriesperclimate switch. That switch has
+// now been made obsolete by newindustries, but some of the code is still used and was moved to this file.
+// There are small modifications by me (Csaba) to remove now-unused code paths.
+
+global fundprospecting_newindu
+fundprospecting_newindu:
+	xchg bl,dl
+	movzx ebx,bl
+	mov word [operrormsg1], ourtext(cannotfundprospecting)
+	mov byte [currentexpensetype],expenses_other
+
+	// calculate the cost for this industry
+	mov ebp,[fundingcost]
+	sar ebp, 8
+	mov eax, [fundcostmultipliers]
+	add eax, ebx
+	movzx eax, byte [eax]
+	imul ebp, eax
+	push ebx
+	mov ebx, ebp
+
+	test dl, 1
+	jz near .onlytesting
+
+	// calculate if research will fail
+	pop ebx
+	push ebx
+	push eax
+	push edx
+
+	movzx edi, word [numberofindustries]
+	movzx cx, byte [edi + minnumberofindustriesallowed]
+	
+	call getnumindustries
+
+	mov eax, [fundchances + 4*ebx]
+	
+	cmp dx, cx
+	jbe .simplechance
+
+	sub dx, cx
+	movzx ecx, dx
+
+	mov ebx, eax
+.chanceloop:
+	mul ebx
+	xchg eax,edx
+	loop .chanceloop
+
+.simplechance:
+
+	mov ecx, eax
+	call [randomfn]
+	cmp ecx, eax
+
+	jbe .fundfailed
+
+	pop eax
+	pop edx
+	pop ebx
+
+	// create the industry
+	// this modifies curplayer, so save that
+	mov al,[curplayer]
+	mov [realindustryowner],al
+	call [CreateNewRandomIndustry]
+	cmp al, -1
+	mov al,10h
+	xchg al,[realindustryowner]
+	mov [curplayer],al
+	mov byte [currentexpensetype],expenses_other
+	je .nosuitableplace
+
+	// skip original function
+	ret
+
+.fundfailed:
+	pop eax
+	pop edx
+	pop ebx
+
+.nosuitableplace:
+	push ebx
+	mov bx, ourtext(fundingfailed)
+	mov dx, -1
+	xor ax, ax
+	xor cx, cx
+	call [errorpopup]
+	pop ebx
+
+	ret
+
+.onlytesting:
+	pop ebp
+	ret
+;endp fundnewindustrywindowhandler
+
+// count the number of industries allready on the map
+// in:  bl = type of industry to build
+// out: ax = total number of industries
+//      dx = number of industries of this type
+getnumindustries:
+	xor ax, ax
+	xor dx, dx
+	push esi
+	push ecx
+	mov esi, [industryarrayptr]
+	mov ecx, 90
+.countloop:
+	cmp word [esi], 0
+	je .empty
+	cmp [esi + industry.type], bl
+	jne .wrongtype
+	inc dx
+.wrongtype:
+	inc ax
+.empty:
+	add esi, 0x36
+	dec ecx
+	jnz .countloop
+
+	pop ecx
+	pop esi
+
+	ret
+;endp getnumindustries
+
+var fundchances // chance * 0xffffffff
+	dd 0xB3333333 			// 70% coal
+	dd 0xFFFFFFFF, 0xFFFFFFFF
+	dd 0xBFFFFFFF			// 75% forest
+	dd 0xFFFFFFFF
+	dd 0x99999999			// 60% oil rig
+	dd 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF
+	dd 0xD9999999			// 85% farm temp/arctic
+	dd 0xB3333333			// 70% copper ore
+	dd 0x99999999			// 60% oil wells
+	dd 0xA6666666			// 65% bank temp
+	dd 0xFFFFFFFF, 0xFFFFFFFF
+	dd 0x99999999			// 60% gold
+	dd 0xA6666666			// 65% bank trop/arc
+	dd 0x99999999			// 60% diamond
+	dd 0xB3333333			// 70% iron ore
+	dd 0xBFFFFFFF			// 75% fruit
+	dd 0xBFFFFFFF			// 75% rubber
+	dd 0xB3333333			// 70% water
+	dd 0xFFFFFFFF, 0xFFFFFFFF 
+	dd 0xD9999999			// 85% farm trop
+	dd 0xFFFFFFFF
+	dd 0xBFFFFFFF			// 75% candyfloss forest
+	dd 0xFFFFFFFF
+	dd 0xB3333333			// 70% batery
+	dd 0x99999999			// 60% cola
+	dd 0xFFFFFFFF, 0xFFFFFFFF
+	dd 0xA6666666			// 65% plastic
+	dd 0xFFFFFFFF
+	dd 0xB3333333			// 70% bubbles
+	dd 0xCCCCCCCC			// 80% toffee
+	dd 0xBFFFFFFF			// 75% sugar
+
+// if the numer of industries is below this number, the chance will be used, 
+//     else chance^(n-m) where m is this number will be used
+var minnumberofindustriesallowed
+	db 1, 3, 5
+
+// end of Oskar's code

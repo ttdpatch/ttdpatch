@@ -31,7 +31,7 @@ typedef struct {
 	int order;		// order in which switches appeared in ttdpatch.cfg
 	void _fptr *var;	// variable to change if special
 				// (NULL if *really* special, -1 if obsolete)
-	const char **bitnames;	//for bit switches, list of bit names
+	int bitswitchid;	// bit switch ID
 } switchinfo;
 
 typedef struct {

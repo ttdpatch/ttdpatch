@@ -46,6 +46,7 @@ trainleavedepot:
 	mov cx,[dword esi+1]
 ovar nexttrainvehthreshold, -4
 
+	and byte [edi+veh.modflags+1],~1<<(MOD_REVERSE-8)
 	movzx eax,word [edi+veh.nextunitidx]
 	cmp ax,byte -1
 	je .nextnotactive
@@ -218,6 +219,8 @@ ovar exchtrainvehicles, -4
 
 	pop edx
 	param_call advancewagons, 1
+
+	xor byte [esi+veh.modflags+1],1<<(MOD_REVERSE-8)
 
 .markcur:
 	testflags pathbasedsignalling

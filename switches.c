@@ -133,21 +133,25 @@ void copyflagdata(void)
 
 #include "bitnames.h"
 
+#if BITSWITCHNUM != BITSWITCHNUM_DEF
+#error "BITSWITCHNUM is incorrect in language.h"
+#endif
+
 #define OBSOLETE ((void*)-1L)
 
 int radix[4] = { 0, 8, 10, 16 };
 
 #define YESNO(ch, txt, comment, sw) \
-	{ ch, txt, comment, sw,  0, 0, {-1, -1, -1}, 0, NULL, NULL }
+	{ ch, txt, comment, sw,  0, 0, {-1, -1, -1}, 0, NULL, -1 }
 
 #define SPCL(ch, txt, comment, var) \
-	{ ch, txt, comment, -1,  0, 2, {-1, -1, -1}, 0, var, NULL }
+	{ ch, txt, comment, -1,  0, 2, {-1, -1, -1}, 0, var, -1 }
 
 #define RANGE(ch, txt, comment, sw, radix, varsize, var, low, high, default) \
-	{ ch, txt, comment, sw, radix, varsize, {low, high, default}, 0, var, NULL }
+	{ ch, txt, comment, sw, radix, varsize, {low, high, default}, 0, var, -1 }
 
 #define BITS(ch, txt, comment, sw, varsize, var, default) \
-	{ ch, txt, comment, sw, 0, varsize, {0, 0x7fffffff, default}, 0, var, sw ## _bitnames }
+	{ ch, txt, comment, sw, 0, varsize, {0, 0x7fffffff, default}, 0, var, BITSWITCH_ ## sw }
 
 
 #define noswitch -2
@@ -248,11 +252,11 @@ void setswitchbit(int switchid, const char *bitname, int swon)
   const char **names;
   s32 var;
 
-  names = switches[switchid].bitnames;
+  names = bitnames[switches[switchid].bitswitchid];
 
-  for (i=0; names[i*2+1]; i++) {
-	if (!names[i*2]) continue;
-	if (!stricmp(bitname, names[i*2])) {
+  for (i=0; names[i]; i++) {
+	if (!names[i]) continue;
+	if (!stricmp(bitname, names[i])) {
 		var = getswitchvar(switchid);
 		var &= ~(((s32)1)<<i);
 		var |= (((s32)swon)<<i);
@@ -479,7 +483,7 @@ int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int swon, in
 				parvalue = switches[switchid].range[2];
 		}
 
-		if (switches[switchid].bitnames && cfgsub && swon >= 0) {
+		if (switches[switchid].bitswitchid >= 0 && cfgsub && swon >= 0) {
 			setswitchbit(switchid, cfgsub, swon);
 			swon |= getf(switches[switchid].bit);
 		} else
@@ -648,22 +652,23 @@ int writereallyspecial(int switchid, const char **const formatstring, s32 *parva
 
 void writebitswitch(int switchid, FILE *cfg)
 {
-  int i;
+	  int i, bitswid;
   const char *cfgcmd;
   const char **names;
   s32 val;
 
+  bitswid = switches[switchid].bitswitchid;
   cfgcmd = switches[switchid].cfgcmd;
-  names = switches[switchid].bitnames;
+  names = bitnames[bitswid];
   val = getswitchvar(switchid);
 
-  for (i=0; names[i*2+1]; i++) {
-	if (!names[i*2]) continue;
+  for (i=0; names[i]; i++) {
+	if (!strcmp(names[i], "(reserved)")) continue;
 	if (i) fputs("\n", cfg);
 	fprintf(cfg, "%s.%s %s   // %s",
-		cfgcmd, names[i*2],
+		cfgcmd, names[i],
 		val & (((s32)1) << i) ? switchonofftext[0] : switchofftext,
-		names[i*2+1]);
+		bitswitchdesc[bitswid][i]);
   }
 }
 
@@ -714,7 +719,7 @@ void writeswitch(FILE *cfgfile, int switchid)
   } else {	// not special
 	if ( (switches[switchid].range[0] != -1) ||
 	     (switches[switchid].range[1] != -1) ) {	// ranged (value)
-		if (switches[switchid].bitnames && getf(switches[switchid].bit)) {
+		if (switches[switchid].bitswitchid >= 0 && getf(switches[switchid].bit)) {
 			writebitswitch(switchid, cfgfile);
 			return;
 		} else
@@ -1115,7 +1120,7 @@ const char *getswitchline(int bit, int state, char *line, size_t maxlen, int *mo
   if ( (switches[switchid].range[0] != -1) || (switches[switchid].range[1] != -1) ) {
 	value = getswitchvar(switchid);
 	midtext = switchnames[bit*2+1];
-	if ( (value && switches[switchid].bitnames) ||
+	if ( (value && switches[switchid].bitswitchid >= 0) ||
 	     (bit == setsignal1waittime) || (bit == setsignal2waittime) )
 		*more = getf(bit);
   }
@@ -1165,16 +1170,16 @@ const char *getswitchextra(int bit, int state, char *line, size_t maxlen, int bi
   int i, thisline;
   int switchid = findswitch(bit);
 
-  names = switches[switchid].bitnames;
+  names = bitnames[switches[switchid].bitswitchid];
   value = getswitchvar(switchid);
 
   thisline = 1;
   strcpy(line, "   -> ");
-  for (i=0; (thisline < bitline) && names[i*2+1]; i++) {
-	if (value & (((s32)1) << i) && !addbitname(line, names[i*2], maxlen)) {
+  for (i=0; (thisline < bitline) && names[i]; i++) {
+	if (value & (((s32)1) << i) && !addbitname(line, names[i], maxlen)) {
 		thisline ++;
 		strcpy(line, "      ");
-		addbitname(line, names[i*2], maxlen);
+		addbitname(line, names[i], maxlen);
 	}
   }
 
@@ -1514,12 +1519,12 @@ void printbits(FILE *f, switchinfo* s)
   int i;
   const char **names;
 
-  names = s->bitnames;
+  names = bitnames[s->bitswitchid];
 
-  for (i=0; names[i*2+1]; i++) {
-	if (!names[i*2]) continue;
-	fprintf(f, "\t\t<bit num=\"%d\" name=\"%s\" desc=\"", i, names[i*2]);
-	putxmlstr(f, names[i*2+1]);
+  for (i=0; names[i]; i++) {
+	if (!names[i]) continue;
+	fprintf(f, "\t\t<bit num=\"%d\" name=\"%s\" desc=\"", i, names[i]);
+	putxmlstr(f, bitswitchdesc[s->bitswitchid][i]);
 	fputs("\"/>\n", f);
   }
 }
@@ -1563,7 +1568,7 @@ int dumpxmlswitches(void)
 		fprintf(f, "\t<special name=\"%s\"", switches[i].cfgcmd);
 	else if ( (switches[i].range[0] != -1) ||
 	     (switches[i].range[1] != -1) ) { 	// ranged (value)
-	   if (switches[i].bitnames) {
+	   if (switches[i].bitswitchid >= 0) {
 		isbitswitch = 1;
 		fprintf(f, "\t<bitswitch name=\"%s\" default=\"%ld\"",
 			switches[i].cfgcmd, switches[i].range[2]);

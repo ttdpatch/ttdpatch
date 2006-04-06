@@ -10,13 +10,12 @@ extern CreateNewRandomIndustry,baIndustryTileTransformBack
 extern baIndustryTileTransformOnDistr,canindubuiltonwater,caninduonlybigtown
 extern caninduonlyneartown,caninduonlytown,checkindustileslope
 extern createinitialindustry_nolookup,fundcostmultipliers,getindunamebp
-extern getindunamebx,industilespritetable,industry_closedown,industry_decprod
-extern industry_incprod,industry_primaryprodchange
+extern getindunamebx,industilespritetable,industry_closedown,industry_primaryprodchange
 extern malloccrit,newinduwindowitemlist
 extern oldinduwindowitemlist,displayfoundation,correctexactalt.chkslope
 extern monthlyupdateindustryproc,monthlyupdateindustryproc.oldfn
 extern callback_extrainfo,enddrawindustrywindow,enddrawindustrywindow.oldfn
-extern indutilesellouthandler
+extern indutilesellouthandler,industry_showchangemsg
 
 #include <industry.inc>
 #include <textdef.inc>
@@ -442,12 +441,6 @@ codefragment oldindustryrandomprodchange,-6
 codefragment newindustryrandomprodchange
 	icall industryrandomprodchange
 
-codefragment findindustrydecprod
-	cmp byte [esi+industry.prodmultiplier],0x4
-
-codefragment findindustryincprod
-	cmp byte [esi+industry.prodmultiplier],0x80
-
 codefragment oldindustryprodchange_shownewsmsg
 	mov [textrefstack+6],ax
 	mov ebp,[esi+industry.townptr]
@@ -507,6 +500,24 @@ codefragment oldFundNewIndustry_restoreplayer,2
 	mov [curplayer],bh
 
 codefragment_call newFundNewIndustry_restoreplayer, FundNewIndustry_restoreplayer
+
+codefragment oldcheckinduclosedown
+	mov al,[currentyear]
+	sub al,[esi+industry.lastyearprod]
+
+codefragment newcheckinduclosedown
+	icall checkinduclosedown
+	setfragmentsize 8
+
+codefragment oldindudecreaseprod
+	cmp byte [esi+industry.prodmultiplier],4
+	jz fragmentstart-0x2b	// jz .closedown
+
+codefragment newindudecreaseprod
+	icall checkindudecprod
+	jc fragmentstart-0x2b	// jc .closedown
+	jz fragmentstart+0x33	// jz .done
+	setfragmentsize 12
 
 endcodefragments
 
@@ -632,10 +643,11 @@ patchnewindustries:
 	patchcode fundindustry_overwriteerrmsg
 
 	patchcode industryrandomprodchange
-	storeaddress findindustrydecprod,1,1,industry_decprod
-	storeaddress findindustryincprod,1,1,industry_incprod
 	storeaddress oldindustryclosedown,1,1,industry_closedown
-	patchcode industryprodchange_shownewsmsg
+	stringaddress oldindustryprodchange_shownewsmsg,1,1
+	lea eax,[edi-9]
+	mov [industry_showchangemsg],eax
+	storefragment newindustryprodchange_shownewsmsg
 	stringaddress oldmonthlyupdateindustryproc,1,1
 	chainfunction monthlyupdateindustryproc,.oldfn
 
@@ -657,6 +669,9 @@ patchnewindustries:
 	multipatchcode oldFundNewIndustry_restoreplayer,newFundNewIndustry_restoreplayer,2
 	mov eax,[ophandler+8*8]
 	mov dword [eax+0x38],indutilesellouthandler
+
+	patchcode checkinduclosedown
+	patchcode indudecreaseprod
 	ret
 
 // shares a code fragment

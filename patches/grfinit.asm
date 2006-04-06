@@ -54,7 +54,7 @@ extern languagesettings,languageid,setdeflanguage,resetcargodata
 extern disabledoldhouses,enhancetunnelshelpersprite
 extern initglyphtables,setcharwidthtables,fonttables,hasaction12
 extern snowlinetableptr,getymd,restoresnowytrees,snowytemptreespritebase
-extern applysnowytemptrees
+extern applysnowytemptrees,alwaysminusone
 
 // New class 0xF (vehtype management) initialization handler
 // does additional things before calling the original function
@@ -990,6 +990,17 @@ postinfoapply:
 
 .notable:
 .havesnow:
+	// make sure all train vehicles have a valid running cost base
+	xor eax,eax
+.nextrcostbase:
+	cmp dword [trainrunningcostbase+eax*4],0
+	jne .rcostbaseok
+	mov dword [trainrunningcostbase+eax*4],alwaysminusone
+.rcostbaseok:
+	inc eax
+	cmp eax,NTRAINTYPES
+	jb .nextrcostbase
+
 	// make bitmask out of new signal sprite number
 
 	mov eax,[numsiggraphics]

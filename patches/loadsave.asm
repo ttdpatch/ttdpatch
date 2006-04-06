@@ -53,7 +53,7 @@ extern townarray2ofst,ttdpatchvercode,veh2ptr,vehicledatafactor
 extern vehtypedataconvbackupptr,vehtypedataptr
 extern windowsizesbufferptr
 extern player2array,player2clear,cargoids
-extern disabledoldhouses
+extern disabledoldhouses,savevar40x
 
 // Known (defined) extra chunks.
 // The first table defines chunk IDs.

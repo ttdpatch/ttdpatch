@@ -9,10 +9,13 @@
 #include <ttdvar.inc>
 #include <flags.inc>
 #include <bitvars.inc>
+#include <win32.inc>
+#include <textdef.inc>
 
 
 extern fonttables,drawspriteonscreen,malloc,patchflags
 extern tempSplittextlinesNumlinesptr,splittextlines_done
+extern invalidatehandle,newtexthandler,specialtext1,specialtext2
 
 // Initialize the font glyph tables with TTD's characters
 exported initglyphtables
@@ -410,6 +413,79 @@ exported getutf8char
 	pop ebx
 	ret
 
+// store UTF-8 encoded character
+//
+// in:	eax=character
+//	edi->string
+// out:	edi->string past encoded character
+// uses:eax ebx edx
+exported storeutf8char
+
+.storeutf8:
+	cmp eax,0x7f		// ASCII?
+	jbe .gotutf8code
+
+	mov dl,al		// edx: all-but-last sequence bytes
+	and dl,~0x40		// LSB of eax will be last byte in sequence
+	or dl,0x80
+	movzx edx,dl		// (now edx=eax[0:5] with bit 7 set)
+
+	// check how long the sequence will be
+	// bh is the high-bit mask for the start-of-sequence byte
+	mov bh,011100000b	// for U+0080..U+07FF, use two-byte sequence
+	cmp eax,0x7ff
+	jbe .nextutf8byte
+
+	mov bh,011110000b	// for U+0800..U+FFFF, use three-byte sequence
+	cmp eax,0xffff
+	jbe .nextutf8byte
+
+.badchar:		// U+10000 and above not supported (beyond the BMP)
+	mov eax,' '	// substitute a space; FIXME: use a "invalid char" code here
+	jmp .storeutf8
+
+.nextutf8byte:
+	shl edx,8		// push back bytes so far
+	shr eax,6		// and get next 6 bits from eax
+	cmp eax,0x40		// do we have more bits after this?
+	jb .lastutf8byte
+	mov dl,al
+	and dl,0x3f
+	or dl,0x80		// make dl the next sequence byte
+	jmp .nextutf8byte
+.die:
+	ud2
+.lastutf8byte:
+	or eax,edx
+	test al,bh	// check that eax has no high bits set
+	jnz .die	// if this happens, something is wrong in the algorithm above
+	add bh,bh	// remove lowest high bit from bl
+	or al,bh	// and use bl to make al the sequence start byte
+
+.gotutf8code:	// now eax holds the 1-byte ASCII code or
+		// 2-3 bytes of the UTF-8 sequence in LSB->MSB order
+
+.storenextutf8:
+	stosb
+	shr eax,8
+	jnz .storenextutf8
+	ret
+
+// find out number of bytes needed to UTF-8 encode character
+//
+// in:	eax=character
+// out:	edx=number of bytes
+// uses:---
+exported getutf8numbytes
+	mov edx,4
+	cmp eax,0x80
+	sbb edx,0
+	cmp eax,0x800
+	sbb edx,0
+	cmp eax,0x10000
+	sbb edx,0
+	ret
+
 // called to get width of string
 //
 // in:	esi->string
@@ -454,8 +530,8 @@ getutf8charwidth:
 	cmp eax,byte " "
 	jb .special
 
-	mov bl,ah
-	mov edx,[fonttables+ebx*4]
+	movzx edx,ah
+	mov edx,[fonttables+edx*4]
 	movzx eax,al
 	mov al,[edx+eax*fontinfo_size+fontinfo.width]
 .done:
@@ -551,4 +627,284 @@ exported splittextlinesunicode
 
 uvard lastspace
 uvarb hasaction12
+
+#if WINTTDX
+uvard codepagechar
+uvard unicodechar
+#endif
+
+// process input character
+//
+// in:	
+// out:	CF=1 ZF=1 if Escape key
+//	CF=0 ZF=1 if Enter/Return key
+//	otherwise ax=character
+// safe:all but ESI
+exported textinputchar
+	xor eax,eax
+	xchg al,[bTextInputInputChar]
+	test al,al
+	jnz .gotchar
+
+.ret:
+	test esp,esp	// clear ZF,CF
+	ret
+
+.gotchar:
+	push esi
+#if WINTTDX
+	mov [codepagechar],eax
+
+	// now we need to convert that to Unicode
+	push 1			// cchWideChar
+	push unicodechar	// lpWideCharStr
+	push 1			// cbMultiByte
+	push codepagechar	// lpMultiByteStr
+	push 1			// dwFlags = MB_PRECOMPOSED
+	push dword 0			// CodePage = CP_ACP
+	call [MultiByteToWideChar]
+	test eax,eax
+	jz near .donenz
+
+	mov eax,[unicodechar]
+#endif
+	cmp eax,0x1b
+	stc
+	je near .done
+	cmp eax,0x0d
+	je near .complete
+	cmp eax,8
+	je .isvalid
+
+	// check that the character exists
+	movzx edx,ah
+	mov edx,[fonttables+edx*4]
+	test edx,edx
+	jle near .donenz
+	movzx ebx,al
+	cmp byte [edx+ebx*fontinfo_size+fontinfo.width],0
+	je near .donenz
+
+.isvalid:
+	// process character
+	xor ebx,ebx
+	mov esi,baTextInputBuffer
+	mov ebp,eax
+
+.getnextlen:
+	mov ecx,esi
+	call getutf8char
+	test eax,eax
+	jz .gotlength
+
+	call getutf8charwidth
+	add ebx,eax
+	jmp .getnextlen
+
+.gotlength:
+	mov eax,ebp
+	cmp eax,8
+	je near .delete
+
+	cmp eax,' '
+	jb .ret
+
+	call getutf8numbytes
+	lea edx,[edx+esi+2]	// +2 for the UTF-8 code
+	sub edx,baTextInputBuffer
+
+	// now edx=new string length incl. final 0
+	test dh,dh
+	jnz .ret
+	cmp dl,[bTextInputMaxLength]
+	jnb .ret
+
+	mov ebp,eax
+	call getutf8charwidth
+	test eax,eax
+	jz .ret
+
+	add ebx,eax
+	mov eax,ebp
+
+	test bh,bh
+	jnz .ret
+
+	cmp bl,[bTextInputMaxWidth]
+	ja .ret
+
+	lea edi,[esi-1]
+	call storeutf8char
+	mov byte [edi],0
+
+.refresh:
+	mov ax,0x5a0	// cWinTypeTextEdit or cWinElemRel or cWinElem5
+	xor ebx,ebx
+	call [invalidatehandle]
+
+.donenz:
+	test esp,esp
+
+.done:
+	pop esi
+	ret
+
+.complete:
+	// check if we can convert the buffer back to Latin-1
+	mov esi,baTextInputBuffer
+	movzx ecx,byte [bTextInputMaxLength]
+	call checklatin1conv
+	test al,0
+	pop esi
+	ret
+
+.delete:
+	test ecx,ecx
+	jz .ret
+
+	dec esi
+.delnext:
+	dec esi
+	cmp byte [esi],0x80
+	jb .delthis
+	cmp byte [esi],0xC0
+	jb .delnext
+.delthis:
+	mov byte [esi],0
+	jmp .refresh
+
+// check if text buffer can be converted to Latin-1
+// if so do it, if not prepend UTF-8 code
+//
+// in:	ecx=max. length in bytes
+//	esi->buffer
+// uses:eax edi
+checklatin1conv:
+	mov edi,esi
+.checknext:
+	call getutf8char
+	cmp eax,0x100
+	ja .notlatin1
+	test eax,eax
+	jnz .checknext
+
+	// no char > 0xff, so convert to Latin-1
+	mov esi,edi
+.convnext:
+	call getutf8char
+	stosb
+	test eax,eax
+	jnz .convnext
+	ret
+
+.notlatin1:	// prepend the utf-8 code
+	sub ecx,2
+	lea esi,[edi+ecx-2]
+	add edi,ecx
+	std
+	rep movsb
+	cld
+	mov word [edi],0x9EC3
+	ret
+
+#if WINTTDX
+// called before constructing the company name for the window title
+//
+// in:	ax=text ID
+//	edi->buffer
+// safe:all
+exported setwindowtitle
+	push eax
+	push edi
+	or eax,byte -1
+	mov edi,baTempBuffer1
+	call texthandler_ACP
+	pop edi
+	pop eax
+
+	// fall through to texthandler_ACP
+  
+// convert text ID output string or buffer to Windows ANSI codepage
+//
+// in:	ax=text ID or eax=-1 to omit the texthandler call
+//	edi->buffer to hold text
+// uses:all
+proc texthandler_ACP
+	slocal unicode,word,256
+	local buffer
+
+	_enter
+
+	mov [%$buffer],edi
+	cmp eax,byte -1
+	je .gotbuffer
+
+	push ebp
+	call newtexthandler
+	pop ebp
+
+.gotbuffer:
+	// now we convert that to UTF-16
+	lea esi,[%$unicode]
+	push 256		// cchWideChar
+	push esi		// lpWideCharStr
+	push byte -1		// cbMultiByte
+	push dword [%$buffer]	// lpMultiByteStr
+	push 0			// dwFlags
+	push dword 65001	// CodePage = CP_UTF8
+	call [MultiByteToWideChar]
+	test eax,eax
+	jz .fail	// most likely CP_UTF8 not available (win95), so keep buffer as is
+
+	// and back to the ANSI codepage
+	lea esi,[%$unicode]
+	push 0			// lpUsedDefaultChar
+	push 0			// lpDefaultChar
+	push 256		// cbMultiByte
+	push dword [%$buffer]	// lpMultiByteStr
+	push byte -1		// cchWideChar
+	push esi		// lpWideCharStr
+	push 0			// dwFlags
+	push 0			// CodePage = CP_ACP
+	call [WideCharToMultiByte]
+.fail:
+	_ret
+endproc
+#endif
+
+// construct new company for unnamed company after manager name changed
+//
+// in:	ecx->suffix text (" Transport")
+//	ebx->end of manager name using textrefstack as buffer (!)
+//	esi->company
+// out:	ebx->end of new company name (must still be on textrefstack)
+// safe:all but edx
+proc buildcompanyname
+	slocal buffer,byte,96
+
+	_enter
+	push edx
+	mov dword [specialtext1],textrefstack
+	mov [specialtext2],ecx
+	mov ax,statictext(special12)
+	lea edi,[%$buffer]
+	call newtexthandler
+
+	lea esi,[%$buffer]
+	mov ecx,94
+	call checklatin1conv
+
+	lea esi,[%$buffer]
+	mov edi,textrefstack
+	mov ecx,31
+.copyback:
+	lodsb
+	stosb
+	test al,al
+	loopnz .copyback
+	mov ebx,edi
+	mov al,0
+	pop edx
+	_ret
+endproc
 

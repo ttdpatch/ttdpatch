@@ -236,6 +236,8 @@ defourtext totalcargo
 defourtext landareainfoheight
 defourtext txteroadmenu
 defourtext txtetramwindowheader
+defourtext txtetramstationheader
+defourtext txtetramdepotheader
 defourtext hotkeylistdos
 defourtext hotkeylistwin
 defourtext curr_pound

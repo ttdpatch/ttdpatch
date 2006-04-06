@@ -35,6 +35,8 @@ FreeLibrary		equ 0x423380
 RegCloseKey		equ 0x423304
 RegQueryValueExA	equ 0x423308
 RegOpenKeyA		equ 0x42330C
+MultiByteToWideChar	equ 0x423428
+WideCharToMultiByte	equ 0x423430
 
 // some constant addresses for enhancemultiplayer
 

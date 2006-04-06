@@ -1,3 +1,4 @@
+#if 0
 // More industries & cargo support for climates
 //
 
@@ -576,3 +577,4 @@ var fundchances // chance * 0xffffffff
 //     else chance^(n-m) where m is this number will be used
 var minnumberofindustriesallowed
 	db 1, 3, 5
+#endif
