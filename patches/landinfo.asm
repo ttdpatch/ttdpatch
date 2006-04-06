@@ -17,7 +17,7 @@ patchtotallandwindowsize:
 global patchlandwindowboxsizes	
 patchlandwindowboxsizes:
 	mov     ebp, [esi+window.elemlistptr]						//grab the window pointer
-	mov		dword [ebp+(windowbox_size*2)+windowbox.y2], 62h	//62 is the new height we need to add
+	mov	dword [ebp+(windowbox_size*2)+windowbox.y2], 61h	//61 is the new height we need to add
 	call	[DrawWindowElements]								//do the original code
 	mov     cx, [esi+window.x]									//shift the new co-ords
 	mov     dx, [esi+window.y]

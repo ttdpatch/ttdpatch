@@ -1,19 +1,16 @@
 // Todolist
 
-// ! make enhancetunnels depend on landscape 7
 // fix foundation system
 // add caternery -> connection between tiles are broken
 // !!! fix PBS (for Josef)
-// add type of route check for on the bridge -> done
-// see manual convert, add switch test -> done 
 // !! make switch depend on manual convert and on buildonslopes
-// alter overbuild code to allow track -> done
+// trackcht.asm - fix track cheat converting tunnelbridges aswell -> done
 
 #include <std.inc>
 #include <ptrvar.inc>
 #include <flags.inc>
 #include <bitvars.inc>
-#include <exported.inc>
+#include <veh.inc>
 
 extern istrackrighttype,istrackrighttype.tracktypeset
 extern addsprite, redrawtile, gettileinfo
@@ -21,10 +18,20 @@ extern isrealhumanplayer
 extern patchflags
 extern expswitches
 
+extern Class9LandPointer //added by steven hoefel for trams
+
 extern dontdisplaywireattunnel
 extern drawpylons, displaywires, geteffectivetracktype
 extern wantedtracktypeofs
 extern checkvehintheway
+
+extern addlinkedsprite
+extern addgroundsprite
+extern addrelsprite
+extern gettunnelspriteset
+
+extern locationtoxy
+extern cleartilefn
 
 exported enhancetunneltestrailwaytype
 	mov al, [landscape5(di)]	
@@ -48,10 +55,14 @@ exported enhancetunneltestrailwaytype
 	je .onbridge
 	jmp .withoutbridge
 .onbridge:
+	mov ax,[esi+veh.idx]
+	cmp ax,[esi+veh.engineidx]
+	jne .ok		// only check track type for engine
 	mov al, [landscape7+ebx]
 	and al, 0x0F
 	call istrackrighttype.tracktypeset
 	jmp short .testvehicle
+
 .tunnel:
 	testmultiflags experimentalfeatures
 	jz .ownertest
@@ -59,14 +70,22 @@ exported enhancetunneltestrailwaytype
 	jz .noownertest
 .ownertest:
 	cmp ah, [landscape1+ebx]
-.noownertest:
 	jnz .wrong
+.noownertest:
 	test byte [landscape7+ebx], 0x80
-	jnz near .withbridge
+	jnz .withbridge
 .withoutbridge:
+	push esi
+	movzx esi,word [esi+veh.engineidx]
+	shl esi,7
+	add esi,[veharrayptr]
+	mov ax,[esi+veh.idx]
+	cmp ax,[esi+veh.engineidx]
+	jne .ok		// only check track type for engine
 	call istrackrighttype	// reads landscape3
 .testvehicle:
-	cmp al, byte [esi+0x66]
+	cmp al, byte [esi+veh.tracktype]
+	pop esi
 	jz .ok
 .wrong:
 	add esp, 4
@@ -82,7 +101,124 @@ exported enhancetunneltestrailwaytype
 	ret
 
 
-uvard Class9DrawLandTunneledx, 1
+
+vard dTunnelSpriteBasesNew
+	dd 2365, 2389
+endvar 
+
+// in EBX = XY index of the tile
+//     SI = class of the tile * 8
+//     DH = L5
+//     DL = altitude of the lowest corne
+//     DI = map of corners
+
+exported Class9DrawLandTunnelExt
+	mov dword [Class9LandPointer], ebx //add by steven hoefel for tram tunnels
+	mov byte [dontdisplaywireattunnel], 0
+	test byte [landscape7+ebx], 0x80
+	jnz .withbridge
+	mov bx,[landscape3+ebx*2]
+	ret
+
+.withbridge:
+	pusha
+	mov byte [dontdisplaywireattunnel], 1
+	mov esi, ebx
+
+
+	mov bx,[landscape3+ebx*2]
+	
+	push esi
+	mov si, bx
+// WARNING! broken for non electrif  !!!!
+
+	call gettunnelspriteset	// will set
+
+	or si, si
+	jns .nosnow
+	add bx, 32
+.nosnow:
+	movzx esi, dh
+	and esi, 0x0C
+	add ebx, [dTunnelSpriteBasesNew+esi]
+   	movzx esi, dh
+	and si, 3
+	shl si, 1
+	add ebx, esi
+	push ebx
+   	call [addgroundsprite]
+	pop ebx
+	pop esi
+
+	inc ebx
+	
+// helper sprite
+	pusha
+	add dl, 7
+	mov di, 16
+	mov si, di
+	mov dh, 1
+	mov ebx, 0x1322 
+	call [addsprite]
+	test dh,dh
+	popa
+	jnz .norelsprite
+
+// top sprite
+	pusha
+	mov ax, 31
+	mov cx, 37
+	call [addrelsprite]
+	popa
+
+// route top sprite
+	pusha
+	mov al,[landscape7+esi]
+	and al, 0x0F
+	call geteffectivetracktype
+	xchg eax,ebx
+	
+	imul bx, 82
+	add ebx, 1005
+	test dh, 1
+	jnz .otherdir
+	inc ebx
+.otherdir:
+	mov ax, 31
+	mov cx, -1
+	call [addrelsprite]
+	popa
+
+// caternary top
+	test byte [landscape7+esi], 1
+	jz .notelectrified
+
+
+	testflags electrifiedrail
+	jnc near .notelectrified
+
+	test byte [landscape7+esi], 1
+	jz .notelectrified
+	pusha
+	add dl, 8
+	mov di, 0
+	test dh, 1
+	mov dh, 1
+	jnz .otherdirpylons
+	mov dh, 2
+.otherdirpylons:
+	call drawpylons
+	call displaywires
+	popa
+.notelectrified:
+
+
+.norelsprite:
+	popa
+	add esp, 4
+	ret
+
+#if 0
 exported Class9DrawLandTunnelExt
 	mov byte [dontdisplaywireattunnel], 0
 	test byte [landscape7+ebx], 0x80
@@ -140,7 +276,29 @@ exported Class9DrawLandTunnelExt
 //.nofuturepylon:
 	mov bx,[landscape3+ebx*2]
 	ret
+#endif
 
+
+// ax,cx = tunnelend
+// di = tunnelend
+exported enhancetunnelremovetunnel
+	jnz .vehicle
+	pusha
+	call locationtoxy
+	// esi
+	call checkvehintheway
+	popa
+	jnz .vehicle
+	pusha
+	mov esi, edi
+	call checkvehintheway
+	popa
+	jnz .vehicle
+	ret
+.vehicle:
+	mov ebx, 0x80000000
+	add esp, 4
+	ret
 
 // in esi = coordinate
 // 	dh = L5
@@ -166,6 +324,9 @@ exported enhancetunnelremovetrack
 	add esp, 4
 	ret
 .remove:
+	call checkvehintheway
+	jnz .wrong
+
 	test bl,1
 	jz .onlytesting
 	mov byte [landscape7+esi], 0
@@ -330,3 +491,6 @@ exported Class9GroundAltCorrectionTunnel
 	and dl, 0xF8
 	mov dh, 1
 	ret
+
+var enhancetunnelshelpersprite
+	incbin "embedded/t_helper.dat"

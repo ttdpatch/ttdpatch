@@ -20,8 +20,7 @@ struc ttdpatchdata
 			resw 1	// 0xff00*2+02h: coordinates of last removed depot
 	.lastrailclass:	resb 1	// 0xff00*2+04h: last rail class selected from rail construction menu (used as new default)
 	.realcurrency:	resb 1  // 0xff00*2+05h: index of really used currency plus one for morecurrs
-	.chtused:	resd 1	// 0xff00*2+06h: bits for Cht: Used
-			resd 1	// 0xff00*2+0ah: reserved in case we have more than 32 cheats in the future
+	.chtused:	resd 2	// 0xff00*2+06h: bits for Cht: Used
 	.daysadd:	resd 1  // 0xff00*2+0eh: added to all dates when eternalgame is active, records days above 2070
 	.yearsadd:	resw 1  // 0xff00*2+12h: year offset above 2070 (stops at 63465)
 	.orgpl1:	resb 1	// 0xff00*2+14h: original player 1 company while managing

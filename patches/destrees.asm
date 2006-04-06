@@ -75,7 +75,9 @@ plantmoretreesindesert:
 	and	ax, 0F807h
 
 	test 	byte [grfmodflags],1	//don't compare anything, just continue
-	jnz	.runalwaystruecompare
+	//jnz	.runalwaystruecompare
+	
+	//COMMENTED OUT ^^^ BUSTED!
 
 .runnorm:				//planting... we don't need to know what landscape.alcompare:
 	cmp	al, 3

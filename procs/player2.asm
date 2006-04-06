@@ -4,7 +4,7 @@
 #include <player.inc>
 
 // all switches using the player2 array must be listed here
-patchproc enhancegui, patchplayer2array
+patchproc anyflagset, patchplayer2array
 
 extern malloccrit,player2array
 

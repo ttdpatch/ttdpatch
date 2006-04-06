@@ -5,3 +5,4 @@ eurochar.dat	The three glyphs for the Euro
 oslash.dat	Two newspaper-sized glyphs for Norwegian O-slash
 tcc_d.dat	Colour translation for company colours (DOS)
 tcc_w.dat	Colour translation for company colours (Windows)
+t_helper.dat	Helper Sprite enhancetunnels

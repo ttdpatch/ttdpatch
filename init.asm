@@ -4,20 +4,6 @@
 // Contains all the stuff that isn't an actual patch, i.e. setup routines
 // and initializations etc.
 //
-//
-// protected contains all the functions that are to be called, and a list of
-// them at the start
-//
-// Warning: only code and data after the beginning of protected will be copied!
-//	Also, anything here is actually at org runindexbase.
-//	I'm not using ORG runindexbase, because otherwise the
-//	EXE file would be 2 MB large - DOS can't load that!
-//
-// addr(object) returns the real address of the object.
-//
-// USEORG is only defined when the list file is made, NOT when the object
-// file is made, to give the real addresses in the list file.  That is not
-// possible for the object file.
 
 // To prevent the div overflow handlers being made externs
 #define realoverflowreturn _realoverflowreturn_
@@ -61,6 +47,7 @@ extern startflagvars,unimaglevmode
 extern user32hnd,vehsorttable,heapstart,heapptr
 extern oldveharraysize,varheap,Sleep
 extern initourtextptr,initnoregist
+extern hexdwords
 
 ext_frag oldfixcommandaddr
 
@@ -327,30 +314,40 @@ initialize:
 	sub eax,byte -0x80
 
 .nextselector:
+#ifndef DEBUGSEL
+.skipselector:
+#endif
 	add eax,byte 8
 	cmp eax,0x1ff
-	ja short .giveup
+	ja short .giveup1
 
-	lar ebx,eax
-	jnz .nextselector
-	and ebx,0x401a00
-	cmp ebx,0x401200
-	jne .nextselector
+	xor edx,edx
+	xor ebx,ebx
+
+	lar edx,eax
+	jnz .skipselector
+	and edx,0x401a00
+	cmp edx,0x401200
+	jne .skipselector
 
 	lsl ebx,eax
 	cmp ebx,0x12fff
-	jne .nextselector
+	jne .skipselector
 
 	mov esi,originalgpfcode
 	mov es,eax
 	mov edi,0x1e31
 	mov ecx,11
 	repe cmpsb
-	jne .nextselector
+	jne .skipselector
+
+#ifdef DEBUGSEL
+	call .showselector
+#endif
 
 	mov eax,ds
 	cmp eax,byte 0x7f
-	ja short .giveup
+	ja short .giveup2
 
 	shl eax,8
 	or eax,0x9c1f006a
@@ -368,7 +365,51 @@ initialize:
 	mov eax,cs	// ... cs:
 	stosw
 
-.giveup:
+#ifdef DEBUGSEL
+	jmp near .yay
+.giveup1:
+	ud2
+.giveup2:
+	ud2
+.skipselector:
+	call .showselector
+	jmp .nextselector
+
+.showselector:
+	pusha
+	push es
+	push ds
+	pop es
+	xor ecx,ecx
+	cmp ebx,0x1e40
+	jb .nocode
+	mov ecx,[es:0x1e31]
+.nocode:
+	push ecx
+	push ebx
+	push edx
+	push eax
+	mov esi,esp
+	mov edi,.sellog
+	mov ebx,4
+	call hexdwords
+	mov eax,ds
+	mov es,eax
+	mov ah,9
+	mov edx,.sellog
+	int 0x21
+	add esp,16
+	pop es
+	popa
+	ret
+.sellog:
+	times 75 db ' '
+	db 13,10,'$'
+.yay:
+#else
+.giveup1:
+.giveup2:
+#endif
 	pop es
 #endif
 #if WINTTDX
@@ -574,7 +615,9 @@ initialize:
 #if WINTTDX
 	testmultiflags usenoregistry
 	jz .notnoregistry
+	pusha
 	call initnoregist
+	popa
 
 .notnoregistry:
 #endif
@@ -693,7 +736,6 @@ initialize:
 .noeventhandle:
 
 #endif
-
 	xor edx,edx
 	testmultiflags onlygetversiondata
 	jz .dontexit
@@ -778,6 +820,7 @@ dorecordversiondata:
 
 var datfilename, db TTDPATCH_DAT_FILE,0
 
+uvard lastpatchproc
 
 proc applypatches
 	local origedx,skipnum
@@ -800,6 +843,10 @@ proc applypatches
 	mov [%$skipnum],eax
 	mov [%$origedx],edx
 
+#if DEBUG
+	mov [lastpatchproc],esi
+#endif
+
 	lodsb
 	test al,al
 	jne .orbits
@@ -809,6 +856,9 @@ proc applypatches
 	jne .andbits
 
 	// done, that was the last entry
+#if DEBUG
+	and dword [lastpatchproc],0
+#endif
 	_ret
 
 .getflag:
@@ -933,6 +983,25 @@ proc applypatches
 
 .doneskipping:
 	lodsd			// load patch proc pointer
+
+#if !WINTTDX && defined(SHOWPPROC)
+	pusha
+	push esi
+	mov esi,esp
+	mov edi,.log
+	mov ebx,1
+	call hexdwords
+	mov eax,ds
+	mov es,eax
+	mov ah,9
+	mov edx,.log
+	int 0x21
+	pop eax
+	popa
+	jmp short .skiplog
+.log:	db "########",13,10,'$',0
+.skiplog:
+#endif
 
 	push ebp
 	push esi

@@ -53,6 +53,12 @@ codefragment oldchecktunnelrailtype
 codefragment newchecktunnelrailtype
 	icall enhancetunneltestrailwaytype
 
+codefragment oldremovetunnel
+	jnz near $+6+0xA8
+	test bl, 1
+
+codefragment_call newremovetunnel,enhancetunnelremovetunnel,6
+
 endcodefragments
 
 global patchenhancetunnel
@@ -63,4 +69,5 @@ patchenhancetunnel:
 	patchcode oldremovetunneltrack,newremovetunneltrack,1,1
 	patchcode olddrawtunnelentrance,newdrawtunnelentrance,1,1
 	patchcode oldchecktunnelrailtype,newchecktunnelrailtype,1,1
+	patchcode oldremovetunnel,newremovetunnel,1,1
 	ret

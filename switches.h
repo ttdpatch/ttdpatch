@@ -95,7 +95,7 @@ ISEXTERN struct {
 		dumpswitches,	// dump switch list to swtchlst.txt
 		protcodefile,	// load protected mode code from ttdprot?.bin instead of the exe
 		relocofsfile,	// load reloc ofs from reloc.bin file
-		patchsndfile,	// does nothing, but needed to make auxfiles.c happy
+		patchdllfile,	// does nothing, but needed to make auxfiles.c happy
 		noregistry;	// use noregistry hack
 } debug_flags;
 

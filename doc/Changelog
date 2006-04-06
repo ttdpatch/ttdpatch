@@ -3322,3 +3322,40 @@ before 1.6
 2.0.1 alpha 71
 - fixed grf files not activating correctly
 - fixed callback 36 not working in DOS
+
+2.0.1 alpha 72
+- by Csaba:
+  * added possiblity to disable old house types by setting property 8 to FFh
+  * added cargo properties 18 and 19 to allow changing how the cargo
+    affects town growth
+  * cargo callback 39 allows fine  *tuning how much income the player gets
+    from delivery
+  * changed industry var. 60 to include landscape class info
+  * added house variable 62, which works the same as industry variable 60
+  * added industry callbacks 38 (show extra info in fund window)
+    and 3A (show extra info in industry window)
+  * bugfix: disabling default industry types didn't work always
+  * widened the new industry fund window so text fits better
+  * bugfix: opening the industry fund window caused graphics glitches and crashes
+  * added var 8D (square of Euclidean distance from town) to callback 28
+  * modified the vehicle list sorting code, hopefully it will become faster
+- fixed crash in callback 2E
+- by stevenh:
+  * fixed RVs not overtaking
+  * fixed tram tunnels... (build tram tracks against a tunnel and they 
+    automatically choose to be tram only or road only or both)
+  * fixed tram tunnels with enhanced tunnels
+  * fixed towns building crap around tram tracks
+  * fixed masses of trees
+- Cht: Used now shows cheat bits>31 (and omits leading zeroes)
+- veh var 47 now holds info about cargo unit weight
+- moved noregistry and newsounds code into ttdpatch.dll
+  (this fixes the noregistry stuff for 2k/XP where it sometimes didn't work)
+- enhanced tunnel fixes by Oskar:
+  * prevent removing tunnels with train on bridge above tunnel entrance
+  * fixed some graphical glitches
+  * fixed cht: tracks
+- (devel) added last patch proc to crash log
+- fixed bug with mixed-power trains breaking when entering a non-electrified tunnel
+- fixed crash/glitches in vehicle colours (2cc code) if enhancegui was off
+- fixed 2cc vehicles being all black if no ccol2.grf loaded

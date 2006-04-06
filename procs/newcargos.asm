@@ -383,6 +383,12 @@ codefragment oldgetcargowaiting_esiebp,7
 codefragment oldclearcargowaiting,5
 	and word [edx+station.cargos+ebx+stationcargo.amount],0xf000
 
+codefragment oldcalcprofit,14
+	cmp ch,0xa
+	jne $+2+9
+
+codefragment_call newcalcprofit,calcprofit,5
+
 
 endcodefragments
 
@@ -542,6 +548,8 @@ patchnewcargos:
 
 	mov dword [stationcargowaitingmask],0x7fff
 	and dword [stationcargowaitingnotmask],0x8000
+
+	patchcode calcprofit
 	ret
 
 // Enable adding new house types

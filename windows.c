@@ -42,13 +42,8 @@ typedef LONG WINAPI t_RegSetValueEx(HKEY,LPCSTR,DWORD,DWORD,const BYTE*,DWORD);
 t_RegSetValueEx *_RegSetValueEx = RegSetValueEx;
 typedef LONG WINAPI t_RegCloseKey(HKEY);
 t_RegCloseKey *_RegCloseKey = RegCloseKey;
-
-// functions in noregist.c
-extern t_RegQueryValueEx fake_RegQueryValueExA;
-extern t_RegSetValueEx fake_RegSetValueExA;
-extern t_RegCloseKey fake_RegCloseKey;
-LONG WINAPI fake_RegOpenKeyA(HKEY key, LPCSTR subkey, PHKEY result);
-char *getreginifilename();
+typedef LONG WINAPI t_RegOpenKey(HKEY key, LPCSTR subkey, PHKEY result);
+t_RegOpenKey *_RegOpenKey = RegOpenKey;
 
 const char *def_noregistry =
 	"[HKLM_Software_FISH_Technology_Group_Transport_Tycoon_Deluxe]\n"
@@ -224,8 +219,29 @@ void checkpatch(void)
 
 int trynoregistry()
 {
-  char *inifile = getreginifilename();
+  // functions in noregist.c
+  t_RegQueryValueEx *fake_RegQueryValueEx;
+  t_RegSetValueEx *fake_RegSetValueEx;
+  t_RegCloseKey *fake_RegCloseKey;
+  t_RegOpenKey *fake_RegOpenKey;
+  typedef char *t_getreginifilename();
+  t_getreginifilename *getreginifilename;
 
+  HANDLE patchdll = LoadLibrary("ttdpatch.dll");
+  if (!patchdll)
+	return 0;
+
+  #define IMPORT(x,t,y) \
+  x = (t*) GetProcAddress(patchdll, y); \
+  if (!x) { FreeLibrary(patchdll); return 0; }
+
+  IMPORT(getreginifilename, t_getreginifilename, "getreginifilename");
+  IMPORT(fake_RegQueryValueEx, t_RegQueryValueEx, "fake_RegQueryValueExA@24");
+  IMPORT(fake_RegSetValueEx, t_RegSetValueEx, "fake_RegSetValueExA@24");
+  IMPORT(fake_RegCloseKey, t_RegCloseKey, "fake_RegCloseKey@4");
+  IMPORT(fake_RegOpenKey, t_RegOpenKey, "fake_RegOpenKeyA@12");
+
+  char *inifile = (*getreginifilename)();
   printf(langtext[LANG_TRYINGNOREGIST], inifile);
 
   if (access(inifile, R_OK)) {
@@ -236,11 +252,17 @@ int trynoregistry()
 	fclose(ini);
   }
 
-  _RegQueryValueEx = fake_RegQueryValueExA;
-  _RegSetValueEx = fake_RegSetValueExA;
+  _RegOpenKey = fake_RegOpenKey;
+  _RegQueryValueEx = fake_RegQueryValueEx;
+  _RegSetValueEx = fake_RegSetValueEx;
   _RegCloseKey = fake_RegCloseKey;
 
   setf1(usenoregistry);
+
+/*
+  strcpy(ttdoptions, "DLL:");
+  GetModuleFileName(patchdll, ttdoptions+4, 128+1024*WINTTDX-4);
+*/
 
   return 1;
 }
@@ -269,24 +291,25 @@ void fixregistry(void)
 	else if (debug_flags.noregistry < 0)	// noregistry not allowed, abort
 		error(langtext[LANG_REGISTRYERROR], 1);
 
-	trynoregistry();
-	result = fake_RegOpenKeyA(HKEY_LOCAL_MACHINE,
-		"Software\\Fish Technology Group\\Transport Tycoon Deluxe",
-		&hkey);
+	if (trynoregistry()) {
+		result = (*_RegOpenKey)(HKEY_LOCAL_MACHINE,
+			"Software\\Fish Technology Group\\Transport Tycoon Deluxe",
+			&hkey);
+	}
 
 	if (result)
 		error(langtext[LANG_NOREGISTFAILED]);
   }
 
   // get the length of the path
-  result = _RegQueryValueEx(hkey, "HDPath", NULL, &type, NULL, &len);
+  result = (*_RegQueryValueEx)(hkey, "HDPath", NULL, &type, NULL, &len);
   if (result)
 	error(langtext[LANG_REGISTRYERROR], 2);
 
   filename = malloc(len);
 
   // get the value of the installation path
-  result = _RegQueryValueEx(hkey, "HDPath", NULL, &type, (BYTE*) filename, &len);
+  result = (*_RegQueryValueEx)(hkey, "HDPath", NULL, &type, (BYTE*) filename, &len);
   if (result)
 	error(langtext[LANG_REGISTRYERROR], 3);
 
@@ -331,14 +354,14 @@ void fixregistry(void)
   }
 
   if (modified) {
-	result = _RegSetValueEx(hkey, "HDPath", 0, type,
+	result = (*_RegSetValueEx)(hkey, "HDPath", 0, type,
 			(BYTE*) shortname, strlen(shortname));
 	if (result)
 		error(langtext[LANG_REGISTRYERROR], modified | 8);
   }
 
   // close the key
-  _RegCloseKey(hkey);
+  (*_RegCloseKey)(hkey);
 
   free(shortname);
   free(filename);
@@ -368,10 +391,10 @@ u32 getdllstamp(FILE *f, u32 baseofs)
   return stamp;
 }
 
-// extract patchsnd.dll if it doesn't exist
-void check_patchsnd()
+// extract ttdpatch.dll if it doesn't exist
+void check_patchdll()
 {
-  const char *filename = "patchsnd.dll";
+  const char *filename = "ttdpatch.dll";
   u32 ofs, size, oldstamp = 0, newstamp = 1;
   FILE *f;
   char *buf;
@@ -381,7 +404,7 @@ void check_patchsnd()
 	oldstamp = getdllstamp(f, 0);	// get time stamp of existing .dll
 	fclose(f);
   }
-  int ret = findattachment(AUX_PATCHSND, &ofs, &f);
+  int ret = findattachment(AUX_PATCHDLL, &ofs, &f);
   if (!ret)
 	error(langtext[LANG_INTERNALERROR], 10);
   if (ret == 2)
@@ -516,11 +539,8 @@ int runttd(const char *program, char *options, langinfo **info)
   u32 ofs;
   FILE *f;
 
+  check_patchdll();
   fixregistry();
-  check_patchsnd();
-
-  strcpy(ttdoptions, "EXE:");
-  GetModuleFileName(NULL, ttdoptions+4, 128+1024*WINTTDX);
 
   cmdlength = strlen(options) + strlen(program) + 1;
   commandline = (char*) malloc(cmdlength);

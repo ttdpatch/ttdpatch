@@ -16,7 +16,7 @@
 #define AUX_LANG 0	// language data (.exe or language.dat)
 #define AUX_PROTCODE 1	// protected mode code (.exe or ttdprot?.bin)
 #define AUX_RELOCOFS 2	// relocation data (.exe or reloc.bin)
-#define AUX_PATCHSND 3	// patchsnd.dll (.exe or patchsnd.dll)
+#define AUX_PATCHDLL 3	// ttdpatch.dll (.exe or ttdpatch.dll)
 
 #define AUX_FIRST 0	// first and
 #define AUX_LAST 3	// last of the codes above
@@ -28,7 +28,7 @@
 #define PROTCODE "ProtCode"
 #define LANGCODE "LangData"
 #define RELOCOFS "RelocDat"
-#define PATCHSND "PatchSnd"
+#define PATCHDLL "PatchDll"
 #define CODELEN 8	// length of code word to find attachment
 
 int findattachment(int auxnum, u32 *ofs, FILE **f);

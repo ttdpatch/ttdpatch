@@ -1,6 +1,8 @@
 
 # default target
-all:    patchsnd.dll
+all:    ttdpatch.dll
+
+OBJECTFILES = patchsnd.o noregist.o
 
 # use WINCC setting from toplevel Makefile
 MAKEFILELOCAL=../Makefile.local
@@ -14,6 +16,7 @@ AS = $(TARGETPREF)as
 CFLAGS = -g -Os -mno-cygwin -Wall
 LDOPTS = -Wl,--subsystem,windows,-s -ldsound -mno-cygwin
 #LDOPTS = -Wl,--subsystem,console
+LDOPTS += -lshlwapi
 DLLOPTS = $(LDOPTS) -Wl,--enable-auto-image-base,-e,_DllMain@12
 DLLOPTS += -Wl,-Map,$(@:%.dll=%.map)		# uncomment to make map files
 ifdef LOGPLAY
@@ -21,16 +24,19 @@ ifdef LOGPLAY
 endif
 
 
+ttdpatch.dll: ${OBJECTFILES} ttdpatch.def
+ttdpatch.def: ${OBJECTFILES}
+
 %.o : %.c
 	$(CC) -c -o $@ $(CFLAGS) $<
 
 %.o : %.cpp
 	$(CXX) -c -o $@ $(CFLAGS) $<
 
-%.def: %.o
+%.def:
 	$(DLLTOOL) -z $@ $^
 
-%.dll: %.def %.o
+%.dll:
 	$(CC) -o $@ -shared $^ $(DLLOPTS) 
 ifndef NOUPX
 	upx -qq --best $@

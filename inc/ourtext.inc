@@ -229,7 +229,7 @@ defourtext localplayer
 defourtext remoteplayer
 defourtext multiplayer
 defourtext multiplayer_tooltip
-defourtext patchsnd_dll_notfound
+defourtext ttdpatch_dll_notfound
 defourtext statistics
 defourtext statistics_white
 defourtext totalcargo

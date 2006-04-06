@@ -13,6 +13,8 @@
 #include <systexts.inc>
 #include <ptrvar.inc>
 #include <player.inc>
+#include <grf.inc>
+#include <newvehdata.inc>
 
 extern MessageBoxW,addexpenses,clearindustrygameids,clearindustryincargos
 extern clearpersistenttexts,companystatsclear,companystatsptr
@@ -25,7 +27,8 @@ extern mainstringtable,newshistclear,newshistinit,newshistoryptr
 extern orighumanplayers,patchflags,randomfn,recalchousecounts
 extern searchcollidingvehs,specialtext1,station2clear,station2init
 extern stationarray2ptr,tmpbuffer1,ttdpatchactions,ttdtexthandler
-extern varheap,exitcleanup,player2clear,player2array
+extern varheap,exitcleanup,player2clear,player2array,newvehdata
+extern cargobits,cargoid
 
 
 #define __no_extern_vars__ 1
@@ -1448,3 +1451,48 @@ resetcolmapcache:
 	cmp esi,[veharrayendptr]
 	jb .next	
 	ret
+
+
+global lookuptranslatedcargo
+lookuptranslatedcargo:
+	push eax
+	push ebx
+
+	mov eax,[esp+16]
+	cmp byte [eax+spriteblock.version],7
+	jb .notranslate
+
+	movzx ebx, byte [esp+12]
+	mov eax,[eax+spriteblock.cargotransptr]
+	test eax,eax
+	jz .usebit
+	mov eax,[eax+cargotrans.tableptr]
+	test eax,eax
+	jz .usebit
+	mov eax,[eax+4*ebx]
+
+	xor ebx,ebx
+.search:
+	cmp eax,[globalcargolabels+ebx*4]
+	je .found
+	inc ebx
+	cmp ebx,NUMCARGOS
+	jb .search
+
+.notset:
+	mov bl,0xFF
+
+.found:
+	mov [esp+12],bl
+
+.notranslate:
+	pop ebx
+	pop eax
+	ret
+
+.usebit:
+	bt [cargobits],ebx
+	jnc .notset
+
+	mov bl,[cargoid+ebx]
+	jmp short .found

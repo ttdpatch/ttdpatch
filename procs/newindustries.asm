@@ -15,7 +15,7 @@ extern industry_incprod,industry_primaryprodchange
 extern malloccrit,newinduwindowitemlist
 extern oldinduwindowitemlist,displayfoundation,correctexactalt.chkslope
 extern monthlyupdateindustryproc,monthlyupdateindustryproc.oldfn
-extern callback_extrainfo
+extern callback_extrainfo,enddrawindustrywindow,enddrawindustrywindow.oldfn
 
 #include <industry.inc>
 #include <textdef.inc>
@@ -476,6 +476,13 @@ codefragment newdrawindustryfundation
 	icall displayfoundation
 	setfragmentsize 14
 
+codefragment oldenddrawindustrywindow,7
+	pop ebp
+	pop esi
+	pop dx
+	pop cx
+	db 0xe9
+
 endcodefragments
 
 ext_frag findCreateNewRandomIndustry,oldindustryclosedown
@@ -573,17 +580,27 @@ patchnewindustries:
 
 	mov eax,[newinduwindowitemlist]
 
-	add word [eax+56],30
-	add word [eax+66],30
-	add word [eax+68],30
-	add word [eax+78],30
-	add word [eax+80],30
+	add word [eax+56],40
+	add word [eax+66],40
+	add word [eax+68],40
+	add word [eax+78],40
+	add word [eax+80],40
+
+	mov eax,[oldinduwindowitemlist]
+
+	add word [eax+56],10
+	add word [eax+66],10
+	add word [eax+68],10
+	add word [eax+78],10
+	add word [eax+80],10
 
 	patchcode drawinduacceptlist
 	patchcode olddrawinduproducelist,newdrawinduproducelist1,1,2
 	add dword [edi+lastediadj+28],4
 	patchcode olddrawinduproducelist,newdrawinduproducelist2,1,0
 	add dword [edi+lastediadj+28],4
+	stringaddress oldenddrawindustrywindow,1,1
+	chainfunction enddrawindustrywindow,.oldfn
 
 	patchcode createindustry_chkplacement
 	patchcode fundindustry_chkplacement

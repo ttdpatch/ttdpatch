@@ -419,6 +419,7 @@
 - right click on Statistics = crash (no tooltips)
 
 - action 11 sound effects don't work without callback
+  -> lastgrffile not set? possibly it will stay that way
 
 - callback 23 doesn't set curmiscgrf correctly?
   http://www.tt-forums.net/viewtopic.php?p=387407#387407
@@ -444,7 +445,26 @@
 - when non-GRM grf tries to overwrite GRM-reserved ID, show error
   if user overrides (ctrl-click on flag?), still show warning
 
-- fix speed callback fragments in DOS
+- version info broken in DOS
+  http://www.tt-forums.net/viewtopic.php?p=397963#397963 and email
+  also http://www.tt-forums.net/viewtopic.php?p=400168#400168
+
+- when changing 2nd cc, sprites in veh window get offsets (?)
+
+- George reports lost stations, see emails
+
+- newsounds crashes if no sound HW present
+
+- cht:face doesn't work but cht: face does
+
+- cht: resetpbs sometimes misses some signals
+  http://www.tt-forums.net/viewtopic.php?p=400886#400886
+
+- bugs in plane refitting
+  http://www.tt-forums.net/viewtopic.php?p=402035
+
+- new station var 40+x to give slope info
+  http://www.tt-forums.net/viewtopic.php?t=23285
 
 ==== Rather urgent =====
 
@@ -703,4 +723,4 @@ CHANGELOG
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
-2.0.1 alpha 72
+2.0.1 alpha 73

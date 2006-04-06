@@ -1,10 +1,11 @@
 
 // CHT: Tracks
 
-#include <defs.inc>
+#include <std.inc>
+//#include <defs.inc>
 #include <proc.inc>
 #include <flags.inc>
-#include <ttdvar.inc>
+//#include <ttdvar.inc>
 #include <newvehdata.inc>
 #include <veh.inc>
 #include <misc.inc>
@@ -16,9 +17,9 @@ extern showcost
 extern calctrackcostdifference,getvehiclecost,newvehdata
 
 // checks old track type and changes if necessary
-%macro checksetoldtrack 3 // params: shift,offset,docounttracks
+%macro checksetoldtrack 3-4 edi+esi // params: shift,offset,docounttracks[,landscapearray]
 
-	mov cl,byte [edi+esi*2+%2]
+	mov cl,byte [%4+esi+%2]
 	%if %1
 		shr cl,%1
 	%else
@@ -51,8 +52,8 @@ extern calctrackcostdifference,getvehiclecost,newvehdata
 		mov reg,dl
 		shl reg,%1
 	%endif
-	and byte [edi+esi*2+%2],0xf0 >> %1
-	or byte [edi+esi*2+%2],reg
+	and byte [%4+esi+%2],0xf0 >> %1
+	or byte [%4+esi+%2],reg
 	%undef reg
 %%nomatch:
 %endmacro
@@ -220,7 +221,7 @@ proc dothetrackthing
 
 .isbridgeortunnel:
 	cmp ah,4
-	jb .istrainsquareowner		// it's a train tunnel
+	jb near .istraintunnel			// it's a train tunnel
 //	cmp ah,8
 //	jb @@nextsquare			// it's a road tunnel - next cmp catches this
 	cmp ah,0x80
@@ -297,6 +298,13 @@ proc dothetrackthing
 
 	jmp .nextsquare
 
+.istraintunnel:			// it's a train tunnel square, but have to test ownership
+	or ch,ch
+	jnz .nextsquare
+	testflags enhancetunnels
+	jnc .istrainsquare
+	checksetoldtrack 0,0,0,landscape7
+	jmp .istrainsquare
 
 .conversiondone:
 	// done with the track conversion; force redraw of screen

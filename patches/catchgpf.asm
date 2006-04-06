@@ -371,6 +371,9 @@ catchgpf:
 	push eax
 	call makegrfmsg
 	call maketextidmsg
+#if DEBUG
+	call makedebugmsg
+#endif
 	pop eax
 
 #if WINTTDX
@@ -606,6 +609,30 @@ maketextidmsg:
 	mov [cargoids],ecx
 	ret
 
+extern lastpatchproc
+
+makedebugmsg:
+	mov edi,[cargoids]
+	lea edi,[edi+cargoids+5]	// append to grf/textid msg, if any
+
+	cmp dword [lastpatchproc],0
+	je .done
+
+	mov esi,gpfdebugstart
+	mov ecx,gpfdebugend-gpfdebugstart
+	rep movsb
+
+	mov esi,lastpatchproc
+	sub edi,gpfdebugend-gpfdebugpproc
+	mov ebx,1
+	call hexdwords
+
+.done:
+	mov ecx,edi
+	sub ecx,cargoids+4
+	mov [cargoids],ecx
+	ret
+
 	// make sure we don't accidentally cause a GPF ourselves!
 	// Check the segment limit, and reduce the number of output
 	// values if necessary
@@ -727,7 +754,7 @@ hexwords:
 ; endp hexwords 
 
 	// print ebx dword values from ds:esi
-hexdwords:
+exported hexdwords
 	mov cl,2
 	call checkbounds
 .nextdword:
@@ -870,6 +897,11 @@ var gpftextidstart, db "Processing text ID(s) "
 var gpftextidfile, db " (misc GRF IDs from "
 var gpftextidtail, db ")",13,10
 var gpdtextidend
+
+var gpfdebugstart, db "During patchproc ",
+var gpfdebugpproc, db			"########",13,10
+var gpfdebugend
+
 
 	// Define TTDPatch version as a DWORD
 	// MMmrbbbb  MM=major  m=minor  r=revision  bbbb=build

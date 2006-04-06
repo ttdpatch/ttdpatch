@@ -166,7 +166,7 @@
 #define irrstations		213	// Enable support for irregular stations
 #define enhancemultiplayer	214	// allow more than two players in multiplayer
 #define autoslope		215	// allows to terraform without destroying tile structure
-#define enhancetunnels	216	// allow building bridges on tunnel entrances
+#define enhancetunnels		216	// allow building bridges on tunnel entrances
 
 // NOTE!! If you add a bit here, also add it to patchflagsfixedmap in vars.ah!!
 

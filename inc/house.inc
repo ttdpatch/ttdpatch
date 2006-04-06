@@ -159,5 +159,8 @@ resd 2*256
 ptrvarofs globalhousecounts,newhousedatablock,$
 resw 128+256
 
+ptrvarofs newhousespriteblock,newhousedatablock,$
+resb 256
+
 endstruc_32
 

@@ -9,6 +9,7 @@ extern SampleCatDataPtr,SampleCatLoadedOK,generatesound.zoomvolume,malloccrit
 extern playorigsound,PlayCustomSound
 extern PrepareCustomSound,texthandler
 extern spriteerror, spriteerrortype
+extern getpatchdll
 
 #include <textdef.inc>
 
@@ -84,9 +85,7 @@ patchnewsounds:
 	pusha
 
 	//CALLINT3
-	push NewSoundDllName
-	call [LoadLibrary]
-	test eax,eax
+	call getpatchdll
 	push eax
 	jz .error
 
@@ -139,7 +138,7 @@ patchnewsounds:
 
 .error:
 	pop eax
-	mov ax,ourtext(patchsnd_dll_notfound)
+	mov ax,ourtext(ttdpatch_dll_notfound)
 	call texthandler
 	mov [spriteerror],esi
 	mov byte [spriteerrortype],5
@@ -207,7 +206,6 @@ patchnewsounds:
 #endif
 
 #if WINTTDX
-NewSoundDllName: db "patchsnd.dll",0
 aPlayCustomSample: db "PlayCustomSample",0
 aPrepareCustomSample: db "PrepareCustomSample",0
 

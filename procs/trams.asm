@@ -26,13 +26,9 @@ extern stopTramOvertaking, rvcheckovertake, patchflags, editTramMode,stdRoadElem
 extern tramtracks,saTramConstrWindowElemList,tramtracksprites
 extern setTramXPieceTool,setTramYPieceTool, drawTramTracksInTunnel, addgroundsprite
 extern bTempNewBridgeDirection, checkIfThisShouldBeATramStop, addsprite,paRoadConstrWinClickProcs
-
-extern updateBridgeData1, updateBridgeData2, updateBridgeData1.origfn, updateBridgeData2.origfn
-
+extern drawTramTracksUnderBridge
 
 extern roadmenudropdown,roadmenuelemlisty2,roadDropdownCode,createRoadConstructionWindow
-
-extern dontForgetTramCrossingsRail, dontForgetTramCrossingsRoad, drawTramTracksLevelCrossing
 
 begincodefragments
 	codefragment olddrawgroundspriteroad, 9
@@ -69,6 +65,22 @@ begincodefragments
 	codefragment newEndRVProcessing
 		icall	destroyVehIDAndContinue
 		setfragmentsize 9
+
+	codefragment stopTownFromSeeingTramsOld, 2
+		push    esi
+		push    ebp
+		mov     ax, 2
+
+	codefragment stopTownFromSeeingTramsNew
+		icall	setTownIsExpandingFlag
+		setfragmentsize	9
+
+	codefragment stopTownFromSeeingTramsOld2, 6
+		mov     cx, ax
+		movzx   edi, di
+		mov     ax, 2
+
+
 
 	codefragment oldClass2Chunk1
 	#if WINTTDX
@@ -234,55 +246,10 @@ begincodefragments
 		mov     cx, di
 
 
-		
 	codefragment newBuildBusStop
 		icall checkIfThisShouldBeATramStop
 		setfragmentsize 10
 		
-	codefragment oldSetupLevelCrossingViaRail
-		and     byte [landscape4(bx)], 0Fh
-		or      byte [landscape4(bx)], 10h
-		or      byte [landscape5(bx)], dh
-
-	
-	codefragment newSetupLevelCrossingViaRail
-		icall	dontForgetTramCrossingsRail
-	#if WINTTDX
-		setfragmentsize 20
-	#else
-		setfragmentsize 14
-	#endif
-	
-	#if WINTTDX
-	codefragment oldSetupLevelCrossingViaRoad, 16
-		shl     edi, 1
-		pop     bx
-		test    bl, 1
-	#else
-	codefragment oldSetupLevelCrossingViaRoad
-		and	byte [landscape4(si)], 0Fh
-		or	byte [landscape4(si)], 20h
-		mov	byte [landscape5(si)], dl
-		movzx   esi, si
-	#endif
-
-
-	codefragment newSetupLevelCrossingViaRoad
-		icall	dontForgetTramCrossingsRoad
-	#if WINTTDX
-		setfragmentsize 20
-	#else
-		setfragmentsize 14
-	#endif
-
-	codefragment oldDrawLevelCrossing,-8
-		shr     si, 8
-		and     si, 0Fh
-
-	
-	codefragment newDrawLevelCrossing
-		icall	drawTramTracksLevelCrossing
-		setfragmentsize 8
 
 	codefragment findRVMovementArray
 		db 0x00, 0x00, 0x00, 0x10, 0x00, 0x02, 0x08, 0x1A, 0x00, 0x04
@@ -336,6 +303,39 @@ begincodefragments
 		icall	drawTramTracksInTunnel
 		setfragmentsize 7
     
+	codefragment drawTramTracksUnderBridgeOld, 36
+		and     ebx, 2
+		or      esi, ebx
+		shl     esi, 1
+
+	codefragment drawTramTracksUnderBridgeNew
+		icall	drawTramTracksUnderBridge
+		setfragmentsize 7
+
+	codefragment oldDrawBridgeSlope, 11
+		shl	ebx, 10h
+		mov	bx, si
+		or	bx, 8000h
+	codefragment_jmp newDrawBridgeSlope,drawNormalSlopeAndAddTrams,5
+
+	codefragment storeClass9LandPointerForBridgeOld, -6
+		mov	bh, bl
+		and	bx, 0F00Fh
+
+
+	codefragment storeClass9LandPointerForBridgeNew
+		icall	storeClass9LandPointerAgain
+		setfragmentsize 6
+
+	codefragment oldDrawBridgeMiddlePart
+		mov	si, 0Bh
+		test	byte [esp], 10h
+
+	codefragment newDrawBridgeMiddlePart
+		icall	drawTramBridgeMiddlePart
+		setfragmentsize 8
+
+    
 endcodefragments
 
 patchtrams:
@@ -363,6 +363,8 @@ patchtrams:
 	patchcode oldStartRVProcessing, newStartRVProcessing, 1, 1
 	patchcode oldEndRVProcessing, newEndRVProcessing, 3, 4
 	patchcode oldClass2Chunk1, newClass2Chunk1, 1, 1
+	patchcode stopTownFromSeeingTramsOld, stopTownFromSeeingTramsNew, 1, 1
+	patchcode stopTownFromSeeingTramsOld2, stopTownFromSeeingTramsNew, 1, 1
 	patchcode oldGetTileHeightMapChunk, newGetTileHeightMapChunk, 1, 1
 
 	storeaddress findClass0DrawLand, 1, 1, Class0DrawLand
@@ -375,6 +377,12 @@ patchtrams:
 
 	patchcode oldBuildBusStop, newBuildBusStop, 1, 2
 	
+	patchcode storeClass9LandPointerForBridgeOld,storeClass9LandPointerForBridgeNew, 1, 1
+	patchcode drawTramTracksUnderBridgeOld, drawTramTracksUnderBridgeNew, 1, 1
+	patchcode oldDrawBridgeSlope, newDrawBridgeSlope, 1, 1
+	patchcode oldDrawBridgeMiddlePart, newDrawBridgeMiddlePart, 1, 1
+	//not stable just yet ^^
+	
 	#if WINTTDX
 		patchcode oldCreateRoadDepot, newCreateRoadDepot, 1, 2
 		patchcode oldDrawRoadDepot, newDrawRoadDepot, 1, 4
@@ -386,28 +394,6 @@ patchtrams:
 	#endif
 	
 	
-	//----------------------------LEVEL CROSSINGS
-	
-	//patchcode oldSetupLevelCrossingViaRail,newSetupLevelCrossingViaRail,1,1
-	//patchcode oldSetupLevelCrossingViaRoad,newSetupLevelCrossingViaRoad,1,1
-	
-	//patchcode oldDrawLevelCrossing, newDrawLevelCrossing, 1, 1
-	
-	//-----------------------------------------------------
-	//My attempt at bridges... failed.
-
-	//stringaddress oldBridgeGetTileInfo,1,3
-	//mov eax,[edi+8h]
-	//mov [bTempNewBridgeDirection],eax
-
-	//stringaddress oldBridgeGetTileInfo, 1, 3
-	//chainfunction updateBridgeData1, .origfn, 1
-
-	//stringaddress oldBridgeGetTileInfo, 2, 3
-	//chainfunction updateBridgeData2, .origfn, 1
-	
-	//-----------------------------------------------------
-
 	stringaddress findRVMovementArray
 	mov dword [noOneWaySetTramTurnAround.rvmovement], edi
 	stringaddress oldClass2End,1,1

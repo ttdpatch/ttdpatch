@@ -1,4 +1,4 @@
-// Support for new cargos
+
 
 #include <std.inc>
 #include <flags.inc>
@@ -18,6 +18,7 @@ extern grffeature,invalidatehandle,isfreight,isfreightmult
 extern malloc,patchflags,pdaTempStationPtrsInCatchArea,randomstationtrigger
 extern cargobits,cargotypes,spriteblockptr,stationarray2ofst
 extern updatestationgraphics,newvehdata,specificpropertybase
+extern callback_extrainfo,curcallback
 
 
 // In most places, the cargo type is stored in at least a byte, so it isn't too hard to
@@ -1441,4 +1442,81 @@ paymentwindoweventhandler:
 
 .dontreset:
 	cmp dl,cWinEventRedraw	// overwritten
+	ret
+
+uvarb cargotowngrowthtype,32
+uvarw cargotowngrowthmulti,32
+
+// Callback flags
+// bit	meaning
+//   0	callback for transportation income
+uvarb cargocallbackflags,32
+
+global resetcargodata
+resetcargodata:
+	mov ecx,32
+	mov edi,cargotowngrowthtype
+	mov al,0xff
+	rep stosb
+
+	mov byte [cargotowngrowthtype+0],0
+	mov byte [cargotowngrowthtype+2],2
+	mov byte [cargotowngrowthtype+5],5
+	mov byte [cargotowngrowthtype+9],9
+	mov byte [cargotowngrowthtype+11],11
+
+	mov ecx,32
+	mov edi,cargotowngrowthmulti
+	mov ax,0x100
+	rep stosw
+
+	mov ecx,32
+	mov edi,cargocallbackflags
+	xor eax,eax
+	rep stosb
+	ret
+
+// called to calculate income for transporting a cargo
+// in:	ax: distance
+//	ch: cargo type
+//	cl: amount
+//	dl: transit time
+// out: (if returning normally) ax: adjusted distance
+//	(if returning further to the caller) eax: cost multiplier
+// safe: ebx
+global calcprofit
+calcprofit:
+// reproduce overwritten code
+	movzx ebx,ch
+	mov dh,0xff
+	test byte [cargocallbackflags+ebx],1
+	jnz .special
+	ret
+
+.special:
+	mov [callback_extrainfo],ax
+	mov [callback_extrainfo+2],cl
+	mov [callback_extrainfo+3],dl
+
+	push esi
+	xor esi, esi
+	mov byte [grffeature],11
+	mov byte [curcallback],0x39
+	xchg eax,ebx
+	call getnewsprite
+	xchg eax,ebx
+	mov byte [curcallback],0
+	pop esi
+	jc .error
+
+	shl bx,1
+	movsx ebx,bx
+	sar ebx,1
+
+	movzx eax,cl
+	imul eax,ebx
+	movzx ebx,ch
+	add dword [esp],48
+
+.error:
 	ret

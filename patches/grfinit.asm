@@ -49,7 +49,8 @@ extern textcolortablewithcompany,undogentextnames,unimaglevmode
 extern updatecurrlist,veh2ptr,vehbnum,vehsorttable,setwillbeactive
 extern vehtypedataptr,numpredefstationclasses,spritecache,editTramMode
 extern cargobits,resetourtextptr,restorecurrencydata,applycurrencychanges
-extern languagesettings,languageid,setdeflanguage
+extern languagesettings,languageid,setdeflanguage,resetcargodata
+extern disabledoldhouses,enhancetunnelshelpersprite
 
 // New class 0xF (vehtype management) initialization handler
 // does additional things before calling the original function
@@ -109,6 +110,11 @@ newvehtypeinit:
 	mov edi,houseoverrides
 	lea ecx,[eax+110]
 	rep stosb
+
+	and dword [disabledoldhouses+0],0
+	and dword [disabledoldhouses+4],0
+	and dword [disabledoldhouses+8],0
+	and dword [disabledoldhouses+12],0
 .nonewhouses:
 
 	call clearindustiledataids
@@ -909,6 +915,10 @@ preinfoapply:
 	call restorecurrencydata
 .nocurrs:
 
+	testflags newcargos
+	jnc .nonewcargos
+	call resetcargodata
+.nonewcargos:
 	ret
 
 var cargowagonspeedlimit, db 0,96,0,96,80,120,96,96,96,96,120,120
@@ -968,8 +978,16 @@ postinfoapply:
 	mov cl,0x2B
 	mov esi, textcolortablewithcompany
 	call overrideembeddedsprite
-
 .donewithnewcolortable:
+
+	testflags enhancetunnels
+	jnc .doneenhancetunnels
+
+	mov cx, 0
+	mov esi, enhancetunnelshelpersprite
+	call overrideembeddedsprite
+
+.doneenhancetunnels:
 	testmultiflags generalfixes
 	jz .nooslash
 

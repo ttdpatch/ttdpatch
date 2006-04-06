@@ -93,45 +93,46 @@ findlistvehs_next:
 // TTD finds vehicles in the old way (in the order they are stored), but we make it
 // to use the pointer instead the vehicle it found.
 // In:	bl: owner
-//	esi: vehicle to be inserted
+//	edi: vehicle to be inserted
 // Usage of registers inside the procedure:
 // eax: address of sorting method
-// edi: the newly found vehicle (should be inserted in the order)
-// ebp: edi's sortvar (what should be displayed instead of edi)
-// edx: goes through all vehicles before edi
-// esi: edx's sortvar (what should be displayed instead of edx)
+// ebx: slot where the new element should be inserted
 // ecx: can be freely used by sort functions
+// edx: previous slot that is visible in the list
+// esi: new element to be inserted
+// edi: loops through slots backwards
+// ebp: vehicle that should be compared against the new one
 sortloop:
 	pusha
-	mov eax,[edi+veh.veh2ptr]
-	mov [eax+veh2.sortvar],edi	// assume that edi will be the last entry (displayed in its own place)
 	movzx eax,byte [esi+0x31]	// get sorting method
 	mov eax,[sortfuncs+eax*4]	// get the address of the comparing method
-	mov ebp,edi
-	mov edx,[veharrayptr]
+	mov ebx,edi
+	mov edx,edi
+	mov esi,edi
+
 .loop:
-	movzx esi,byte [edi+veh.class]	// only the same class
-	push edi
-	mov edi,edx
-	call dword [wantvehicle+(esi-0x10)*4]
-	pop edi
-	jnz .next
-	cmp bl, [edx+veh.owner]		// and the correct owner
-	jne .next
-	mov esi,[edx+veh.veh2ptr]
-	push esi
-	mov esi,[esi+veh2.sortvar]
-	call eax			// compare the two vehicles pointed by sortvars
-	pop esi
-	jc .next
-	mov ecx,[edi+veh.veh2ptr]	// now [ecx]=sortvar for edi [esi]=sortvar for edx
-	mov ebp,[ecx+veh2.sortvar]	// the two entries should be swapped in the list
-	xchg ebp,[esi+veh2.sortvar]	// swap them and update ebp at the same time
-	mov [ecx+veh2.sortvar],ebp
-.next:
-	sub edx,byte -vehiclesize
-	cmp edx,edi
-	jb .loop
+	add edi,0-vehiclesize
+	cmp edi,[veharrayptr]
+	jb .done
+	movzx ecx,byte [esi+veh.class]
+	call dword [wantvehicle+(ecx-0x10)*4]
+	jnz .loop
+	mov cl,[esi+veh.owner]
+	cmp cl,[edi+veh.owner]
+	jne .loop
+	mov ebp,[edi+veh.veh2ptr]
+	mov ebp,[ebp+veh2.sortvar]
+	call eax
+	jnc .done
+	mov edx,[edx+veh.veh2ptr]
+	mov [edx+veh2.sortvar],ebp
+	mov edx,edi
+	mov ebx,edi
+	jmp short .loop
+
+.done:
+	mov ebx,[ebx+veh.veh2ptr]
+	mov [ebx+veh2.sortvar],esi
 	popa
 	ret
 
@@ -160,7 +161,7 @@ var sortfuncs
 
 
 sort_nosort:
-	stc
+	clc
 	ret
 
 sort_consistnum:

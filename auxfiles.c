@@ -42,7 +42,7 @@ static attachment_t attachments[AUX_NUM] = {
 	{ &debug_flags.langdatafile, "language.dat", LANGCODE },
 	{ &debug_flags.protcodefile, PROTCODEFILE, PROTCODE },
 	{ &debug_flags.relocofsfile, "reloc.bin", RELOCOFS },
-	{ &debug_flags.patchsndfile, "patchsnd.dll", PATCHSND, 1 },
+	{ &debug_flags.patchdllfile, "ttdpatch.dll", PATCHDLL, 1 },
 };
 
 static char *langcode = attachments[AUX_PROTCODE].code;

@@ -1047,6 +1047,10 @@ void commandline(int argc, const char *const *argv)
     if (getf(newcargos) || getf(newindustries)) {
 	clearf(moreindustriesperclimate);
     }
+
+    if (!getf(electrifiedrail)) {
+	clearf(enhancetunnels);
+    }
   }
 
   copyflagdata();
@@ -1659,7 +1663,7 @@ static const struct debug_switch_struct {
 	{ 'S', &debug_flags.dumpswitches },	// S+ dump all switches to swtchlst.txt and abort, S- same but to switches.xml
 	{ 'C', &debug_flags.protcodefile },	// C+ load protected mode code from ttdprot?.bin file
 	{ 'R', &debug_flags.relocofsfile },	// R+ load reloc ofs from reloc.bin file
-	{ 'P', &debug_flags.patchsndfile },	// P+ do not touch patchsnd.dll
+	{ 'P', &debug_flags.patchdllfile },	// P+ do not touch ttdpatch.dll
 	{ 'n', &debug_flags.noregistry },	// n+ always use registry.ini, n- never use registry.ini
 	{ 0, NULL }
 };

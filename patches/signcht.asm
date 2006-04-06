@@ -49,6 +49,9 @@ endstruc_32
 %ifndef PREPROCESSONLY
 	%define cht_%2 addr($)
 %endif
+	%if cheatcount>63
+		%error "Too many cheats, need more bits to record Cht: Used"
+	%endif
 	istruc cheat
 		at cheat.name, db %1
 		at cheat.costs, db %3
@@ -703,9 +706,11 @@ var hexdigits, db "0123456789ABCDEF"
 // show what cheats have been used
 usedcheat:
 	call skipspaces
+	mov edx,[landscape3+ttdpatchdata.chtused+4]
+	mov edi,[esp+4]
+	call .showhex
 	mov edx,[landscape3+ttdpatchdata.chtused]
 .showhex:
-	mov edi,[esp+4]
 	mov byte [edi+ebx]," "
 	inc ebx
 	mov word [edi+ebx],"  "
@@ -715,8 +720,13 @@ usedcheat:
 	rol edx,4
 	movzx eax,dl
 	and al,0xf
+	jnz .notzero
+	cmp byte [edi+ebx-1]," "
+	je .skipzero
+.notzero:
 	mov al,byte [hexdigits+eax]
 	mov [edi+ebx],al
+.skipzero:
 	inc ebx
 	loop .nextdigit
 	mov word [edi+ebx],"h"
@@ -2488,5 +2498,7 @@ facecheat:
 .show:
 	mov edx,[eax+player.face]
 	mov ebx,5
+	call skipspaces
+	mov edi,[esp+4]
 	jmp usedcheat.showhex
 

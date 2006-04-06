@@ -31,7 +31,7 @@ int makefilename(HANDLE module)
 	return 1;
 }
 
-char *getreginifilename()
+__declspec(dllexport) char *getreginifilename()
 {
 	if (!filename) makefilename(NULL);
 	return filename;
@@ -62,6 +62,7 @@ __declspec(dllexport) LONG WINAPI fake_RegOpenKeyA(HKEY key, LPCSTR subkey, PHKE
 
 	keys[numkeys] = keyname;
 	*result = (void*) numkeys++;
+
 	return ERROR_SUCCESS;
 }
 
@@ -133,4 +134,3 @@ __declspec(dllexport) LONG WINAPI fake_RegSetValueExA(HKEY key,LPCSTR value,
 
 	return ERROR_SUCCESS;
 }
-

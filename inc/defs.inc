@@ -123,3 +123,9 @@ extern overflowhandler,realoverflowreturn
 	idiv %1
 %%postdiv:
 %endmacro
+
+%macro exported 1.nolist
+	global %1
+	%1:
+%endmacro
+

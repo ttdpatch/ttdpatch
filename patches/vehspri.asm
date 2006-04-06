@@ -21,7 +21,7 @@ extern initrailvehsorttable,miscgrfvar,newvehdata,patchflags,randomtrigger
 extern showvehinfo.callback,trainspritemove
 extern trainuserbits,vehids,vehsorttable,vehvarhandler
 extern wagonoverride,getvehiclecolors,getvehiclecolors_vehtype
-extern isengine,checkoverride,newrefitvars
+extern isengine,checkoverride,newrefitvars,newcargounitweights
 
 // called when TTD decides which sprite should be used for any
 // particular type of orientation and spritenum of a ship
@@ -940,7 +940,7 @@ getvehiclecolor:
 	test eax,eax
 	jnz .notdefault
 	mov eax,[deftwocolormaps]
-	test eax,eax
+	test ax,ax
 	jle .normalcolor
 	mov [tempvehcolor],eax
 .notdefault:
@@ -980,7 +980,7 @@ getvehiclecolor_nostruc:
 	test ebx,ebx
 	jnz .notdefault
 	mov ebx,[deftwocolormaps]
-	test ebx,ebx
+	test bx,bx
 	jle .normalcolor
 	mov [tempvehcolor],ebx
 .notdefault:
@@ -1592,9 +1592,9 @@ getmotioninfo:
 	ret
 
 	// 47: vehicle cargo
-	// out: ccccxxtt
+	// out: ccccwwtt
 	//	tt=cargo type; translated if table exists
-	//	xx=undefined
+	//	ww=cargo unit weight
 	//	cccc=cargo class
 global getvehiclecargo
 getvehiclecargo:
@@ -1604,8 +1604,9 @@ getvehiclecargo:
 	mov ecx,[ecx+action3info.spriteblock]
 	mov ecx,[ecx+spriteblock.cargotransptr]
 	mov cl,[ecx+cargotrans.fromslot+eax]
+	mov ch,[newcargounitweights+eax]
 	mov eax,[cargoclass+eax*2-2]	// set eax(16:31)=cargo class
-	mov al,cl
+	mov ax,cx
 	ret
 
 	// 48: vehtype flags

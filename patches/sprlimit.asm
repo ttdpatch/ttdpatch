@@ -24,6 +24,8 @@ exsfeaturemaxspritesperblockextrachunks equ (0x3FFF - baseoursprites)
 
 var exsfeatureuseseparatesprites, dd 00010001111b
 
+align 4
+
 var exsfeaturemaxspritesperblock
 	dd exsfeaturemaxspritesperblockstandard+1*exsfeaturemaxspritesperblockextrachunks  	// 0 trains
 	dd exsfeaturemaxspritesperblockstandard+2*exsfeaturemaxspritesperblockextrachunks	// 1 road
@@ -40,6 +42,7 @@ var exsfeaturemaxspritesperblock
 	dd 0											// 12 sounds
 	checkfeaturesize exsfeaturemaxspritesperblock, 4
 
+align 4
 var exsfeaturetospritebaseoffsets
 	dd exsfeaturemaxspritesperblockstandard+0*exsfeaturemaxspritesperblockextrachunks 	// 0 trains
 	dd exsfeaturemaxspritesperblockstandard+1*exsfeaturemaxspritesperblockextrachunks 	// 1 road
@@ -56,6 +59,7 @@ var exsfeaturetospritebaseoffsets
 	dd 0											// 12 sounds
 	checkfeaturesize exsfeaturetospritebaseoffsets, 4
 
+align 4
 var exsnumactspritesptrlist
 	dd numactspritesvehtrains	// 0 trains
 	dd numactspritesvehrv		// 1 road

@@ -53,6 +53,7 @@ extern townarray2ofst,ttdpatchvercode,veh2ptr,vehicledatafactor
 extern vehtypedataconvbackupptr,vehtypedataptr
 extern windowsizesbufferptr
 extern player2array,player2clear,cargoids
+extern disabledoldhouses
 
 // Known (defined) extra chunks.
 // The first table defines chunk IDs.
@@ -818,6 +819,11 @@ newloadtitleproc:
 	mov edi,houseoverrides
 	lea ecx,[eax+110]
 	rep stosb
+
+	and dword [disabledoldhouses+0],0
+	and dword [disabledoldhouses+4],0
+	and dword [disabledoldhouses+8],0
+	and dword [disabledoldhouses+12],0
 
 	call recalchousecounts
 .nonewhouses:

@@ -20,7 +20,7 @@ extern newcustomhousenames,patchflags,randomfn
 extern randomhouseparttrigger,randomhousetrigger,recordtransppassmail
 extern redrawtile
 extern townarray2ofst
-
+extern lookuptranslatedcargo
 
 
 // New houses use the same dataid-gameid system as newstations (see there)
@@ -77,6 +77,9 @@ section .text
 // Set to 1 while generating the houses of a new town
 uvarb newtownconstr
 
+// Bit mask of disabled old buildings
+uvard disabledoldhouses,4
+
 global clearnewhousesafeguard
 clearnewhousesafeguard:
 	and dword [newhousedatablock+newhousedata.safeguard],0
@@ -103,6 +106,8 @@ global setsubstbuilding
 setsubstbuilding:
 .next:
 	xor edx,edx
+	cmp byte [esi],0xff
+	je .turnoff
 	mov dl,[curgrfhouselist+ebx]		// Do we have a gameid yet?
 	or dl,dl
 	jnz near .alreadyhasoffset
@@ -121,12 +126,21 @@ setsubstbuilding:
 	stc
 	ret
 
+.turnoff:
+	inc esi
+	cmp ebx,110		// is this a valid old house ID?
+	jae near .loopend
+	bts [disabledoldhouses],ebx
+	jmp .loopend
+
 .foundgameid:
 	cmp byte [grfstage],0
 	je .dontrecord
 	mov [lastextrahousedata],dl		// and the new last index
 .dontrecord:
 	mov [curgrfhouselist+ebx],dl		// Record the new gameid
+	mov eax,[curspriteblock]
+	mov [newhousespriteblock+edx*4],eax
 	lodsb
 	cmp al,110
 	jae .invalid
@@ -159,7 +173,7 @@ setsubstbuilding:
 	jnc .hasemptyslot
 
 	pop ecx
-	jmp short .toomany
+	jmp .toomany
 
 .hasemptyslot:
 	mov [lasthousedataid],cl
@@ -452,24 +466,26 @@ gethouseaccept:
 	shr edx,5
 	mov cl,dl
 	and cl,0x1f
-	pop edx
-	ret
+	push dword [mostrecentspriteblock]
+	jmp short .lookup
 
 .notypecallback:
 	// our new house type disabled callback 2A or failed to answer it correctly
 	// if the according action0 property is specified, it can still override the
 	// default types
+	push dword [newhousespriteblock+(edx-128)*4]
 	mov edx,[houseaccepttypes+(edx-128)*4]
 	cmp edx,-1
-	je .normaltypes
+	je .normaltypes_pop
 	// unpack the three bytes in edx into al, bl and cl
 	mov al,dl
 	mov bl,dh
 	shr edx,16
 	mov cl,dl
-	pop edx
-	ret
+	jmp short .lookup
 
+.normaltypes_pop:
+	pop edx
 .normaltypes:
 	// the old behavior: al=passengers, bl=mail, cl=goods if ch is positive, food if negative
 	pop edx
@@ -482,6 +498,35 @@ gethouseaccept:
 	neg ch
 	mov cl,11
 .notfood:
+	ret
+
+.lookup:
+// look up the cargo types we got to get the slot number
+// if the cargo isn't available, zero the acceptance so it won't appear at all
+// the pointer to the spriteblock must be on the stack
+	push eax
+	call lookuptranslatedcargo
+	pop eax
+	cmp al,0xff
+	jne .goodtype1
+	xor eax,eax
+.goodtype1:
+	push ebx
+	call lookuptranslatedcargo
+	pop ebx
+	cmp bl,0xff
+	jne .goodtype2
+	xor ebx,ebx
+.goodtype2:
+	push ecx
+	call lookuptranslatedcargo
+	pop ecx
+	cmp cl,0xff
+	jne .goodtype3
+	xor ecx,ecx
+.goodtype3:
+	pop edx
+	pop edx
 	ret
 
 #if 0
@@ -887,6 +932,8 @@ getrandomhousetype:
 	jnc .next1
 	bt si,bx
 	jnc .next1
+	bt [disabledoldhouses],edx
+	jc .next1
 	mov [esp+8+ecx*2],dx	// +8 because edi is on the stack too
 	inc ecx
 	add edi,16		// all old buildings have a probality of 16
@@ -2237,19 +2284,25 @@ generatehousecargo:
 .docallback:
 	add dword [esp],122	// modify return address so we skip the old code
 	push edi
-	mov byte [grffeature],7
 	mov [callback_extrainfo],eax
 	and dword [miscgrfvar],0
-	mov byte [curcallback],0x2e
 	lea edx,[ebp-128]	// save type to a safe place, the distribute func overwrites ebp
 	mov edi,ebx		// XY for the distribute function
 .nextcall:
+	mov byte [curcallback],0x2e
+	mov byte [grffeature],7
 	mov esi,ebx		// XY for getnewsprite
 	mov eax,edx
 	call getnewsprite
 	jc .finished
 	cmp ax,0x20ff
 	je .finished
+
+	// reset stuff for callbacks/triggers in DistributeProducedCargo
+	push dword [miscgrfvar]
+	push dword [callback_extrainfo]
+	and dword [miscgrfvar],0
+	mov byte [curcallback],0
 
 	xchg al,ah
 	push eax
@@ -2270,11 +2323,13 @@ generatehousecargo:
 .record:
 	movzx ecx,ch
 	movzx eax,al
-	xchg edi,[esp+4]
+	xchg edi,[esp+12]
 	call recordtransppassmail		// in towndata.asm
-	xchg edi,[esp+4]
+	xchg edi,[esp+12]
 	pop edx
 .dontrecord:
+	pop dword [callback_extrainfo]
+	pop dword [miscgrfvar]
 
 	inc byte [miscgrfvar]
 	jnz .nextcall

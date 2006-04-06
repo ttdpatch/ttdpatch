@@ -13,7 +13,7 @@ default:
 V=0
 
 # This is a variable so that we can refer to ../Makefile.local from
-# the patchsnd/ Makefile
+# the patchdll/ Makefile
 MAKEFILELOCAL=Makefile.local
 
 # Set up compilers, targets and host
@@ -82,7 +82,7 @@ asmsources:=	$(asmmainsrc) $(wildcard patches/*.asm) $(wildcard procs/*.asm)
 asmcsources:=	$(wildcard patches/*.c) $(wildcard procs/*.c)
 csources:=	ttdpatch.c error.c grep.c switches.c loadlng.c checkexe.c auxfiles.c
 doscsources:=	$(csources) dos.c
-wincsources:=	$(csources) windows.c codepage.c noregist.c
+wincsources:=	$(csources) windows.c codepage.c
 versiondatad:=	$(wildcard versions/1*.ver)
 versiondataw:=	$(wildcard versions/2*.ver)
 
@@ -272,9 +272,9 @@ host/%.o : %.asm
 # line numbers
 
 # set different preprocessor defines for each target
-%.dpo %.dlst:	XASMDEF =  $(foreach DEF,$(DOSDEFS),-D$(DEF))
-%.wpo %.wlst:	XASMDEF =  $(foreach DEF,$(WINDEFS),-D$(DEF))
-%.lpo %.llst:	XASMDEF =  $(foreach DEF,$(LINDEFS),-D$(DEF))
+%.dpo %.dlst:	XASMDEF =  $(foreach DEF,$(DOSDEFS) $(ASMOPT),-D$(DEF))
+%.wpo %.wlst:	XASMDEF =  $(foreach DEF,$(WINDEFS) $(ASMOPT),-D$(DEF))
+%.lpo %.llst:	XASMDEF =  $(foreach DEF,$(LINDEFS) $(ASMOPT),-D$(DEF))
 
 # commands for making object and list files from the asm sources
 # (using a define here because we need the same commands for the 
@@ -383,9 +383,12 @@ pproc%.h:	ttdprot%.map
 	${_E} [PERL] $@
 	${_C}perl perl/pproc.pl -os=$* < $< > $@
 
-patchsnd.bin:	patchsnd.asm patchsnd/patchsnd.dll
+patchdll.bin:	patchdll.asm patchdll/ttdpatch.dll
 	${_E} [NASM] $@
 	${_C}$(NASM) $(NASMOPT) -f bin $(NASMDEF) $< -o $@
+
+patchdll/ttdpatch.dll: $(wildcard patchdll/*.h) $(wildcard patchdll/*.c*)
+	make -C patchdll
 
 # ---------------------------------------------------------------------
 #               Language data
@@ -457,7 +460,6 @@ ttdprotd${EXED}:	$(dosobjs)
 	${_C}$(LDD) ${LDFLAGSD} name $@ file `echo $^|sed "s/ /,/g"` lib zlib_ow$(MODEL).lib,exec_ow$(MODEL).lib
 endif
 
-ttdprotw${EXEW}:	LDLIBS=-lshlwapi
 ttdprotw${EXEW}:	$(winobjs)
 	${_E} [LD] $@
 	${_C}$(LD) -o $@ $^ $(LDFLAGS)
@@ -467,7 +469,7 @@ ttdpatch.exe:	ttdprotd${EXED} language.dat
 ttdpatchw.exe:	ttdprotw${EXEW} language.dat
 
 ttdpatch.exe:	ttdprotd.bin loaderd.bin relocd.bin
-ttdpatchw.exe:	ttdprotw.bin loaderw.bin relocw.bin patchsnd.bin
+ttdpatchw.exe:	ttdprotw.bin loaderw.bin relocw.bin patchdll.bin
 
 # the $(if ...) makes it append .exe only if $< doesn't have it already
 ttdpatch.exe:
@@ -487,7 +489,7 @@ ifndef NOUPX
 	@# no UPX in Windows executable due to need for LoadLibrary support
 	@#${_C}upx --compress-exports=0 --strip-relocs=0 -qqq --best --compress-icons=0 $@
 endif
-	${_C}${CAT} language.dat loaderw.bin ttdprotw.bin relocw.bin patchsnd.bin >> $@
+	${_C}${CAT} language.dat loaderw.bin ttdprotw.bin relocw.bin patchdll.bin >> $@
 
 # ----------------------------------------------------------------------
 #                       additional stuff

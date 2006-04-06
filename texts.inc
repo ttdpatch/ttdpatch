@@ -346,7 +346,7 @@ def remoteplayer, db " (remote player)",0
 def multiplayer, db 0x98,"Multiplayer",0
 def multiplayer_tooltip, db 0x98,"Select multiplayer game",0
 
-def patchsnd_dll_notfound, db 94h,"Cannot load patchsnd.dll, new sounds disabled.", 0
+def ttdpatch_dll_notfound, db 94h,"Cannot load ttdpatch.dll, new sounds disabled.", 0
 
 def statistics, db 0x98, "Statistics",0
 def statistics_white, db 0x94, "Statistics",0
@@ -712,7 +712,7 @@ def remoteplayer, db " (remote player)",0
 def multiplayer, db 0x98,"Multiplayer",0
 def multiplayer_tooltip, db 0x98,"Select multiplayer game",0
 
-def patchsnd_dll_notfound, db 94h,"Cannot load patchsnd.dll, new sounds disabled.", 0
+def ttdpatch_dll_notfound, db 94h,"Cannot load ttdpatch.dll, new sounds disabled.", 0
 
 def statistics, db 0x98, "Statistics",0
 def statistics_white, db 0x94, "Statistics",0
@@ -1078,7 +1078,7 @@ def remoteplayer, db " (remote player)",0
 def multiplayer, db 0x98,"Multiplayer",0
 def multiplayer_tooltip, db 0x98,"Select multiplayer game",0
 
-def patchsnd_dll_notfound, db 94h,"Cannot load patchsnd.dll, new sounds disabled.", 0
+def ttdpatch_dll_notfound, db 94h,"Cannot load ttdpatch.dll, new sounds disabled.", 0
 
 def statistics, db 0x98, "Statistics",0
 def statistics_white, db 0x94, "Statistics",0
@@ -1443,7 +1443,7 @@ def remoteplayer, db " (remote player)",0
 def multiplayer, db 0x98,"Multiplayer",0
 def multiplayer_tooltip, db 0x98,"Select multiplayer game",0
 
-def patchsnd_dll_notfound, db 94h,"Cannot load patchsnd.dll, new sounds disabled.", 0
+def ttdpatch_dll_notfound, db 94h,"Cannot load ttdpatch.dll, new sounds disabled.", 0
 
 def statistics, db 0x98, "Statistics",0
 def statistics_white, db 0x94, "Statistics",0
@@ -1808,7 +1808,7 @@ def remoteplayer, db " (remote player)",0
 def multiplayer, db 0x98,"Multiplayer",0
 def multiplayer_tooltip, db 0x98,"Select multiplayer game",0
 
-def patchsnd_dll_notfound, db 94h,"Cannot load patchsnd.dll, new sounds disabled.", 0
+def ttdpatch_dll_notfound, db 94h,"Cannot load ttdpatch.dll, new sounds disabled.", 0
 
 def statistics, db 0x98, "Statistics",0
 def statistics_white, db 0x94, "Statistics",0

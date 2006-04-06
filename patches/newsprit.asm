@@ -1669,6 +1669,7 @@ var housesvarhandler
 var housesparamvarhandler
 	dd addr(getotherhousecount)
 	dd addr(getothernewhousecount)
+	dd addr(getindustilelandslope)
 %ifndef PREPROCESSONLY
 %assign n_housesparamvarhandler (addr($)-housesparamvarhandler)/4
 %endif

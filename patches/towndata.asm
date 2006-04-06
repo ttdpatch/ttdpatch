@@ -22,7 +22,7 @@ extern tgrtownsizebase,tgrtownsizefactor,tgrwaterinmin,tgrwaterinoptim
 extern tgrwaterinweight,townarray2ofst,townmaxgrowthrate,townmingrowthrate
 extern townminpopulationdesert
 extern townminpopulationsnow
-
+extern cargotowngrowthtype,cargotowngrowthmulti
 
 
 
@@ -678,7 +678,23 @@ recordtownextstats:
 // safe:EAX,EBX
 global townacceptedcargo
 townacceptedcargo:
-// last instruction before the runindex call:	cmp ch,11
+	push eax
+	push ecx
+	push edx
+
+	testflags newcargos
+	jnc .nonewcargos
+
+// pretend that this cargo is the one given in its "town growth substitute", and adjust the amount if needed
+	movzx eax,ax
+	movzx edx,ch
+	mov ch, [cargotowngrowthtype+edx]
+	movzx edx, word [cargotowngrowthmulti+edx*2]
+	imul eax,edx
+	shr eax,8
+
+.nonewcargos:
+	cmp ch,11
 	jne .fooddone
 	add [ebx+town.foodthismonth],ax
 	jnc .fooddone
@@ -714,6 +730,9 @@ townacceptedcargo:
 	or word [ebx+town2.goodsthismonth],byte -1
 .goodsdone:
 
+	pop edx
+	pop ecx
+	pop eax
 	ret
 
 

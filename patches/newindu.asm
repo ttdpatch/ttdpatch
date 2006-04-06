@@ -22,7 +22,8 @@ extern industryspriteblock,invalidatehandle,lookuppersistenttextid
 extern mostrecentspriteblock,processtileaction2,randomfn
 extern randomindustiletrigger,randomindustrytrigger,redrawtile,setmousetool
 extern specialerrtext1,substindustries
-extern texthandler,mostrecentgrfversion
+extern texthandler,mostrecentgrfversion,drawsplittextfn
+extern lookuptranslatedcargo
 
 
 // --- Industry tile stuff ---
@@ -73,6 +74,7 @@ uvarb industileoverrides,0xAF
 
 // Three accepted cargoes for the tile. The high byte contains
 // the amount, the low byte the type
+// these three must remain next to each other, in this order
 uvarw industileaccepts1,256
 uvarw industileaccepts2,256
 uvarw industileaccepts3,256
@@ -270,6 +272,21 @@ setindustileoverride:
 
 .error:
 	stc
+	ret
+
+global setindustileaccepts
+setindustileaccepts:
+	sub eax,0xa
+	shl eax,9
+	push dword [curspriteblock]
+	mov dx,word [esi]
+	add esi,2
+	push edx
+	call lookuptranslatedcargo
+	pop edx
+	add esp,4
+	mov [industileaccepts1+eax+ebx*2],dx
+	clc
 	ret
 
 // get the gameid of an industry tile
@@ -803,7 +820,32 @@ class8queryhandler:
 	shr edx,5
 	mov cl,dl
 	and cl,0x1f
+// now look up slots from the types returned
+	push dword [mostrecentspriteblock]
+	push eax
+	call lookuptranslatedcargo
+	pop eax
+	push ebx
+	call lookuptranslatedcargo
+	pop ebx
+	push ecx
+	call lookuptranslatedcargo
+	pop ecx
+	add esp,4
 .noaccepttypecallback:
+// check for invalid cargoes and clear acceptances of them
+	cmp al,0xFF
+	jne .al_ok
+	xor eax,eax
+.al_ok:
+	cmp bl,0xFF
+	jne .bl_ok
+	xor ebx,ebx
+.bl_ok:
+	cmp cl,0xFF
+	jne .cl_ok
+	xor ecx,ecx
+.cl_ok:
 	pop edx
 	pop ebp
 	ret
@@ -854,8 +896,9 @@ getindustileanimframe:
 
 // called to get parametrized variable 60 (slope info of nearby tiles)
 // the parameter is the signed X and Y offsets squeezed together into a byte
-// the result is rrzzbbss, where
-// - rr is reserved
+// the result is rczzbbss, where
+// - r is reserved
+// - c is the class of the tile
 // - zz is the height of the lowest corner of the tile
 // - bb is a bit field
 //	bit 0 is set if the tile is an industry tile and belongs to the same industry
@@ -909,6 +952,9 @@ getindustilelandslope:
 	call gethouseterrain
 	shl al,2
 	or [esp+29],al
+
+	shr bl,3
+	mov [esp+31],bl
 
 	popa
 	ret
@@ -1237,7 +1283,13 @@ uvard origfundchances, NINDUSTRIES
 // 4	29	Control random production changes
 // 5	35	Do production changes every month
 // 6	37	Do cargo subtext callback
+// 7	38	Show additional info in fund window
 uvarb industrycallbackflags,NINDUSTRIES
+
+// callback flags, second set
+// Bit	Var. 0C	Callback
+// 0	3A	Show additional info in industry window
+uvarb industrycallbackflags2,NINDUSTRIES
 
 // helper array to hold incoming cargo amounts
 
@@ -1411,6 +1463,10 @@ restoreindustrydata:
 	xor al,al
 	rep stosb
 
+	mov edi,industrycallbackflags2
+	mov cl,NINDUSTRIES
+	rep stosb
+
 // all multipliers are (1, 0)...
 	mov edi,industryinputmultipliers
 	mov eax,0x00000100
@@ -1576,6 +1632,7 @@ reloadoldindustry:
 
 // callback flags are zero by default
 	mov byte [industrycallbackflags+ebx],0
+	mov byte [industrycallbackflags2+ebx],0
 	ret
 
 // copy every property between two slots
@@ -1629,6 +1686,8 @@ copynewindustrydata:
 // ...and callback flags
 	mov dl,[industrycallbackflags+eax]
 	mov [industrycallbackflags+ebx],dl
+	mov dl,[industrycallbackflags2+eax]
+	mov [industrycallbackflags2+ebx],dl
 	ret
 
 // Called to set the substitute type for an industry. This function assigns
@@ -1768,9 +1827,19 @@ setindustryoverride:
 	mov ebx,eax
 	mov eax,edx
 	call copynewindustrydata
-// then restore the original state of the old slot
+// if the old slot was an active industry, restore the original state
+// otherwise, just zero its probabilities so it won't appear at all
+	bt [defaultindustries],eax
+	jnc .notactive
 	mov ebx,eax
 	call reloadoldindustry
+	jmp short .restoredone
+
+.notactive:
+	mov byte [initialindustryprobs+eax],0
+	mov byte [ingameindustryprobs+eax],0
+
+.restoredone:	
 	popa
 // move things in the gameid table and clear old place to allow reusing it
 	mov edi,[industrydataidtogameid+edx*8+industrygameid.grfid]
@@ -2102,6 +2171,44 @@ putindutile:
 .noanim:
 	ret
 
+global setinduproducedcargos
+setinduproducedcargos:
+	lodsw
+	push dword [curspriteblock]
+	push eax
+	call lookuptranslatedcargo
+	pop eax
+	xchg al,ah
+	push eax
+	call lookuptranslatedcargo
+	pop eax
+	xchg al,ah
+	add esp,4
+	mov [industryproducedcargos+(ebx-1)*2],ax
+	clc
+	ret
+
+global setindustryacceptedcargos
+setindustryacceptedcargos:
+	lodsd
+	push dword [curspriteblock]
+	push eax
+	call lookuptranslatedcargo
+	pop eax
+	ror eax,8
+	push eax
+	call lookuptranslatedcargo
+	pop eax
+	ror eax,8
+	push eax
+	call lookuptranslatedcargo
+	pop eax
+	ror eax,16
+	add esp,4
+	mov [industryacceptedcargos+(ebx-1)*4],eax
+	clc
+	ret
+
 // Set random sound effects for the industry. The format is the same as TTD uses, so
 // we just need to make the pointer point to the beginning of the data, then skip it.
 global setindustrysoundeffects
@@ -2243,6 +2350,10 @@ createinitialindustries:
 	test cl,cl
 	jle .exit
 
+// check if there's no available industries, and quit if so
+	cmp dword [industryprobabtotal],0
+	je .exit
+
 // create the random industries
 .randomloop:
 	call [randomfn]
@@ -2255,6 +2366,7 @@ createinitialindustries:
 	sub edx,ebx
 	js .gotit
 	inc eax
+	cmp eax,NINDUSTRIES
 	jmp short .nexttype
 
 .gotit:
@@ -2779,7 +2891,7 @@ industryproducecargo:
 // definition of the new "Fund industry"/"Industry generation" window that supports
 // a flexible number of industry types
 
-%assign indufundwin_width 200
+%assign indufundwin_width 300
 %assign indufundwin_nument 12
 %assign indufundwin_listheight 15*indufundwin_nument
 
@@ -2800,10 +2912,10 @@ db cWinElemSlider,cColorSchemeDarkGreen
 dw indufundwin_width-11, indufundwin_width-1, 14, 14+indufundwin_listheight,0
 
 db cWinElemSpriteBox,cColorSchemeDarkGreen
-dw 0, indufundwin_width-1, 15+indufundwin_listheight, 15+indufundwin_listheight+45,0
+dw 0, indufundwin_width-1, 15+indufundwin_listheight, 15+indufundwin_listheight+90,0
 
 db cWinElemTextBox,cColorSchemeDarkGreen
-dw 0, indufundwin_width-1, 16+indufundwin_listheight+45, 16+indufundwin_listheight+45+10,statictext(newindugenbutton)
+dw 0, indufundwin_width-1, 16+indufundwin_listheight+90, 16+indufundwin_listheight+90+10,statictext(newindugenbutton)
 
 db cWinElemLast
 
@@ -2822,7 +2934,7 @@ openfundindustrywindow:
 
 // create the window
 	mov cx,0x3b
-	mov ebx,indufundwin_width + ((16+indufundwin_listheight+45+10+1) << 16)
+	mov ebx,indufundwin_width + ((16+indufundwin_listheight+90+10+1) << 16)
 	or edx,byte -1
 	mov ebp,addr(fundindustrywindowhandler)
 	call [CreateWindowRelative]
@@ -3170,6 +3282,7 @@ induwindow_redraw:
 	call [drawtextfn]
 	popa
 .nosecondline:
+	mov byte [curcallback],0
 // the third line: the cost
 // we don't need to show it in the scenario editor
 	cmp byte [gamemode],2
@@ -3195,6 +3308,34 @@ induwindow_redraw:
 	call [drawtextfn]
 	popa
 .nothirdline:
+// in the remaining space, allow the GRF to show some extra info
+	movzx eax,byte [esi+window.data]
+	test byte [industrycallbackflags+eax],0x80
+	jz .noextrainfo
+
+	// [grffeature] is still set to 0xa
+	mov byte [curcallback],0x38
+	mov ecx,esi
+	xor esi,esi
+	call getnewsprite
+	mov esi,ecx
+	mov byte [curcallback],0
+	jc .noextrainfo
+
+	add ah,0xd4
+	mov ebx,eax
+	mov ecx,[mostrecentspriteblock]
+	mov [curmiscgrf],ecx
+	
+	mov cx,[esi+window.x]
+	mov dx,[esi+window.y]
+	add cx,4
+	add dx,15+indufundwin_listheight+3+45
+	mov ebp,indufundwin_width-10
+	pusha
+	call [drawsplittextfn]
+	popa
+.noextrainfo:
 	ret
 
 .getcargosubtext:
@@ -3586,6 +3727,7 @@ createindustrywindow:
 	movzx edx,byte [ebp+industry.type]
 // now edx=type
 	xor ebp,ebp					// overwritten
+	add ebx,10<<16					// add space for the extra info
 // check for the production callback
 	test byte [industrycallbackflags+edx],2+4
 	mov dx,0x40					// ditto
@@ -3783,6 +3925,33 @@ drawinduproducelist:
 	mov byte [curcallback],0
 	ret
 
+global enddrawindustrywindow
+enddrawindustrywindow:
+	movzx eax,byte [ebp+industry.type]
+	test byte [industrycallbackflags2+eax],1
+	jz .notext
+
+	mov byte [grffeature],0xa
+	mov byte [curcallback],0x3a
+	xchg ebp,esi
+	call getnewsprite
+	xchg ebp,esi
+	mov byte [curcallback],0
+	jc .notext
+
+	add ah,0xd4
+	mov ebx,eax
+	mov eax,[mostrecentspriteblock]
+	mov [curmiscgrf],eax
+	add dx,30
+	push esi
+	call [drawtextfn]
+	pop esi
+
+.notext:
+	jmp near $
+ovar .oldfn,-4,$,enddrawindustrywindow
+
 // fake industry data structure to be used during callback 28 (industry location permissibility)
 uvarb fakeinduentry,industry_size
 // structure:
@@ -3794,6 +3963,7 @@ uvarb fakeinduentry,industry_size
 // 09 B:	distance from town
 // 0a B:	heigth of tile
 // 0b W:	distance of nearest water/land tile
+// 0d W:	square of Euclidean distance from town, capped to FFFF
 
 // Called as the placement check procedure for new industry types
 // The layout isn't known yet, so we don't reject anything here; we just collect some information about the site
@@ -3916,15 +4086,31 @@ newindu_placechkproc:
 	mov [fakeinduentry+8],dl
 
 // save distance, capped to 255
-	mov eax,ebp
-	test ah,ah
-	jz .al_ok
-	mov al,0xff
-.al_ok:
-	mov [fakeinduentry+9],al
+	mov ebx,ebp
+	test bh,bh
+	jz .bl_ok
+	mov bl,0xff
+.bl_ok:
+	mov [fakeinduentry+9],bl
+
+// calculate the square of the Euclidean distance from town
+	movzx ebx,ah
+	movzx eax,al
+	movzx ecx,byte [edi+town.XY]		// X coord
+	sub eax,ecx
+	movzx ecx,byte [edi+town.XY+1]		// Y coord
+	sub ebx,ecx
+	imul eax,eax
+	imul ebx,ebx
+	add eax,ebx
+	cmp eax,0xFFFF
+	jbe .nottoomuch
+	mov eax,0xFFFF
+.nottoomuch:
+	mov [fakeinduentry+0xd],ax
 	popa
 
-	// the last TEST cleared cf, so we're done
+	clc
 	ret
 
 // check for full water tile at bx; zf is set if the tile is OK

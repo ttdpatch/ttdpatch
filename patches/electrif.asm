@@ -338,12 +338,12 @@ getunderbridgespriteset:
 
 
 // Check if the track a train is about to drive on has the right type
+// Note, do *not* check track type for anything but the engine of a consist
 // in:	EBX = DI = tile XY
-//	ESI -> vehicle
+//	ESI -> engine
 // out:	AL = effective track type (compared then with veh.tracktype)
 // safe:EAX,EBX
-global istrackrighttype.tracktypeset
-global istrackrighttype
+global istrackrighttype,istrackrighttype.tracktypeset
 istrackrighttype:
 //	mov ah,[esi+veh.tracktype]
 	mov al,[landscape3+ebx*2]	// overwritten
@@ -603,6 +603,44 @@ makerailexitcount:
 //	ZF=0, CF=0 if the tile has railroad tracks, but no pylon in this direction
 //	ZF=0, CF=1 if the tile has no railroad tracks at all
 // uses:EBX,EDX,ESI,EDI,EBP
+
+haspyloninthisdirection.tunnel:
+	// new tunnel code support enhancetunnels.
+	mov bl,[landscape3+esi*2]
+	and bl,0xF
+	cmp bl,1
+	mov ebx, 0
+	jne .tunneluppart
+
+	// was a depot or tunnel, orientation of exit now in dh
+	// dh:  0 => +X (SW), 1 => -Y (NW), 2 => -X (NE), 3 => +Y (SE)
+	// want ZF if org. bl (now ebp) is this direction
+	call makesingleexitmap
+.tunneluppart:
+	testflags enhancetunnels 
+	jnc .tunneldone
+
+	test byte [landscape7+esi], 0x80
+	jz .tunneldone
+
+	push ebx
+	mov bl,[landscape7+esi]
+	and bl,0xF
+	cmp bl,1
+	pop ebx
+	jne .tunneluppart
+
+	// (bits:0=NW,1=NE,2=SW,3=SE)
+	test dh, 1
+	jnz .tunnelotherdir
+	or bl, 0110b
+	jmp .tunneldone
+.tunnelotherdir:
+	or bl, 1001b
+.tunneldone:
+	cmp ebx,ebp
+	ret
+
 haspyloninthisdirection:
 	movsx ebp,bl
 	call [gettileinfo]
@@ -618,7 +656,7 @@ haspyloninthisdirection:
 .checkdepotdir:
 	xor dh,2	// sense of direction for depots is opposite to tunnels
 
-.tunnel:
+.tunnelold:
 	mov bl,[landscape3+esi*2]
 	and bl,0xF
 	cmp bl,1
@@ -631,7 +669,6 @@ haspyloninthisdirection:
 	call makesingleexitmap
 	cmp ebx,ebp
 	ret
-
 
 .getrailtype:
 	mov bl,[landscape3+esi*2]

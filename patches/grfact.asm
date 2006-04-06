@@ -33,7 +33,7 @@ extern copystationspritelayout,costrailmul,curcallback,curspriteblock
 extern errorpopup,exscurfeature,extraindustilegraphdataarr,findgrfid
 extern fundchances,getextendedbyte,gettextintableptr,gettexttableptr
 extern industileaccepts1,industileanimframes,industileanimtriggers
-extern industilelandshapeflags,industrycallbackflags,industrycreationmsgs
+extern industilelandshapeflags,industrycallbackflags,industrycallbackflags2,industrycreationmsgs
 extern industryinputmultipliers,industrynames,initialindustryprobs
 extern insertactivespriteblock,insertactivespriteblockaction1,lastcalcresult
 extern lookuppersistenttextid,malloc,malloccrit,newcargoamount1names
@@ -53,6 +53,8 @@ extern ttdpatchvercode,ttdplatform
 extern vehtypedataptr,textclass_maxid,restoretranstexts
 extern currtextlist,currmultis,curropts,currsymsbefore,currsymsafter,eurointr
 extern languagesettings
+extern cargotowngrowthtype,cargotowngrowthmulti,cargocallbackflags,setindustileaccepts
+extern setinduproducedcargos,setindustryacceptedcargos
 
 uvarb action1lastfeature
 
@@ -1710,6 +1712,10 @@ skipspriteif:
 	mov bl,0
 	jmp short .findcargo
 
+		// C = Cargo type is defined
+	mov bl,1
+	jmp short .findcargo
+
 .findgrfid:
 	mov bh,bl
 	not bh
@@ -1907,7 +1913,8 @@ replacettdsprite:
 	jnz .allownewsprites
 
 	cmp edx,totalsprites
-	jbe .spritenumok
+	jmp .spritenumok
+//	jbe .spritenumok	ONLY FOR TESTING
 .spritenumbad:
 	mov dh,INVSP_SPNUM
 .bad:
@@ -3129,13 +3136,13 @@ defvehdata spclglobaldata, B,F,t,d,w,d,d,w		// 08..0F
 		
 
 defvehdata specindustiledata
-defvehdata spclindustiledata, F,F,w,w,w,B,B,w,B,B	// 08..11
+defvehdata spclindustiledata, F,F,F,F,F,B,B,w,B,B	// 08..11
 
 defvehdata specindustrydata
-defvehdata spclindustrydata, F,H,F, B,t,t,t,B,w,d,B,B,B	,F,F,B,B,F,d,t, d,d,d,t,d,B		// 08..21
+defvehdata spclindustrydata, F,H,F, B,t,t,t,B,F,F,B,B,B	,F,F,B,B,F,d,t, d,d,d,t,d,B,B		// 08..22
 
 defvehdata speccargodata
-defvehdata spclcargodata, F,t,t,t,t,t,w,B,B,B,F,F,F,F,F,d	// 08..17
+defvehdata spclcargodata, F,t,t,t,t,t,w,B,B,B,F,F,F,F,F,d,B,w,B	// 08..1a
 
 defvehdata specsounddata
 defvehdata spclsounddata, F,F,F				// 08..0A
@@ -3453,7 +3460,7 @@ var globaldata
 
 var industiledata
 	dd addr(setsubstindustile),addr(setindustileoverride)	// 08..09
-	dd industileaccepts1,industileaccepts2,industileaccepts3	//0a..0c
+	times 3 dd setindustileaccepts				//0a..0c
 	dd industilelandshapeflags,industilecallbackflags	// 0d..0e
 	dd industileanimframes,industileanimspeeds		// 0f..10
 	dd industileanimtriggers				// 11
@@ -3466,8 +3473,8 @@ var industrydata
 	dd industryprodincmsgs-2				// 0d
 	dd industryproddecmsgs-2				// 0e
 	dd industryfundcostmultis-1				// 0f
-	dd industryproducedcargos-2				// 10
-	dd industryacceptedcargos-4				// 11
+	dd setinduproducedcargos				// 10
+	dd setindustryacceptedcargos				// 11
 	dd industryprod1rates-1					// 12
 	dd industryprod2rates-1					// 13
 	dd industrymindistramounts-1				// 14
@@ -3481,6 +3488,7 @@ var industrydata
 	dd industrynames-2					// 1f
 	dd fundchances-4					// 20
 	dd industrycallbackflags-1				// 21
+	dd industrycallbackflags2-1				// 22
 
 var cargodata
 	dd addr(setcargobit),newcargotypenames,newcargounitnames	//08..0a
@@ -3490,7 +3498,8 @@ var cargodata
 	dd newcargodelaypenaltythresholds2,addr(setcargopricefactors)	//11..12
 	dd addr(setcargocolors),addr(setcargographcolors)		//13..14
 	dd addr(setfreighttrainsbit),addr(setcargoclasses)		//15,16
-	dd globalcargolabels						//17
+	dd globalcargolabels,cargotowngrowthtype,cargotowngrowthmulti	//17..19
+	dd cargocallbackflags						//1a
 
 var sounddata
 	dd addr(setsoundvolume),addr(setsoundpriority)			//08..09

@@ -41,13 +41,13 @@ codefragment oldrecordtownstats
 codefragment newrecordtownstats
 	call runindex(recordtownextstats)
 
-codefragment oldtownacceptedcargo,6
+codefragment oldtownacceptedcargo,3
 	mov ebx,[edi+station.townptr]
 	cmp ch,11
 
 codefragment newtownacceptedcargo
 	call runindex(townacceptedcargo)
-	jmp $+9
+	setfragmentsize 18
 
 codefragment oldrecordtransppassmail,6
 	db 0x32,0xe4		// xor ah,<r/m> ah

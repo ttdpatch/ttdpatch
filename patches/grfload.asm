@@ -1166,7 +1166,7 @@ loadspriteheader:
 //	W spritenum
 //	W spritesize (as stored in TTD's cache)
 //	B[spritesize] spritedata
-// also:cl=minimum size, will be overwritten only if smaller
+// also:cx=minimum size, will be overwritten only if smaller. (or 0 for no check)
 
 global overrideembeddedsprite,overridesprite
 overrideembeddedsprite:
@@ -1186,6 +1186,8 @@ overridesprite:
 
 	jnc .overwrite
 
+	cmp cx, 0
+	je .overwrite
 	lea edx,[ebx+ebp*4]
 	cmp [edx+edi*2],cx	// sprite size
 	jb .overwrite		// too small = not present, overwrite it
