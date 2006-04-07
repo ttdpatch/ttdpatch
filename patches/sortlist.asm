@@ -505,6 +505,12 @@ vehiclevalid:
 	mov ax,[esi+window.id]
 	cmp al,[edi+veh.owner]
 	jnz .exit
+	//-------------hacked in by steven hoefel-------------
+	//check if trailer, skip if trailer. ax is safe to trash
+	mov	ax, [edi+veh.idx]
+	cmp	ax, [edi+veh.engineidx]
+	jnz .exit
+	//-------------------------------------------------
 	mov edi,[edi+veh.veh2ptr]
 	mov edi,[edi+veh2.sortvar]
 .exit:

@@ -86,7 +86,8 @@ struc veh
 			resw 1	// 68h:rv:??
 			resb 1	// 6ah:rv:?? (some kind of counter)
 				// So far it's the last entry identified as used by TTD.
-			resb 0x70-$
+			resb 0x6F-$
+	.parentmvstat	resb 1	// 6Fh:the next turn for Articulated RVs (so that they follow the leader)
 	.traveltime:	resw 1	// 70h:number of days travelling since last load/unload
 	.refitcycle:	resb 1	// 72h:how often refitted to same cargo
 	.shortened:	resb 1	// 73h:how much shorter is the wagon (+0x80)

@@ -292,6 +292,8 @@
 	YESNO(184,"trams", CFG_TRAMS, trams),
 	YESNO(185,"enhancetunnels", CFG_ENHANCETUNNELS, enhancetunnels),
 	SPCL (186,"saveextradata", 0, OBSOLETE),
+	YESNO(187,"shortrvs", CFG_SHORTRVS, shortrvs),
+	YESNO(188,"articulatedrvs", CFG_ARTICULATEDRVS, articulatedrvs),
 
 
 //
@@ -446,3 +448,5 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	followvehicle,
 	trams,
 	enhancetunnels,
+	shortrvs,
+	articulatedrvs,

@@ -476,6 +476,8 @@ SWITCHTEXT(autoslope, "Allows terraforming without removing structures", "")
 SWITCHTEXT(followvehicle, "Follow vehicle motion in main map", "")
 SWITCHTEXT(trams, "Enable trams on Roads", "")
 SWITCHTEXT(enhancetunnels, "Allows building track on top of tunnel entrances", "")
+SWITCHTEXT(shortrvs, "Enabled Shortened (or lengthened) RVs", "")
+SWITCHTEXT(articulatedrvs, "Enabled Articulated RVs", "")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -821,6 +823,8 @@ SETTEXT(CFG_AUTOSLOPE, "`%s' (%s) allows to terraform without removeing structur
 SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) allows the main view to follow a vehicle with a right mouse click on the Center View button in the vehicles window.")
 SETTEXT(CFG_TRAMS, "`%s' (%s) allows trams to be built.")
 SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) allows to build track on top of tunnel entrances")
+SETTEXT(CFG_SHORTRVS, "`%s' (%s) enable shortened (or lengthened) RVs")
+SETTEXT(CFG_ARTICULATEDRVS, "`%s' (%s) enable articulated RVs")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

@@ -490,6 +490,8 @@ enum langtextids {
 	CFG_FOLLOWVEHICLE,
 	CFG_TRAMS,
 	CFG_ENHANCETUNNELS,
+	CFG_SHORTRVS,
+	CFG_ARTICULATEDRVS,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS
