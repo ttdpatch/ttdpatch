@@ -1183,8 +1183,8 @@ const char *getswitchextra(int bit, int state, char *line, size_t maxlen, int bi
 	}
   }
 
-  for (; names[i*2+1]; i++) {
-	if (value & (((s32)1) << i) && !addbitname(line, names[i*2], maxlen)) {
+  for (; names[i]; i++) {
+	if (value & (((s32)1) << i) && !addbitname(line, names[i], maxlen)) {
 		*more = 1;
 		return line;
 	}
