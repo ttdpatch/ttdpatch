@@ -7,7 +7,6 @@ REM -- Set to 1 for debug, 0 for non-debug builds --
 SET DEBUG=1
 
 REM -- Set to your TTD test directory if you're going to use 'make test' --
-SET GAMEDIR=c:/jatek/ttd
-SET GAMEDIRW=c:/jatek/ttd.win
+SET GAMEDIR=E:\TTD\TEST
 
 bash --rcfile ./bashinit
