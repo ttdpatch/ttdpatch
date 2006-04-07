@@ -4,7 +4,6 @@
 // add caternery -> connection between tiles are broken
 // !!! fix PBS (for Josef)
 // !! make switch depend on manual convert and on buildonslopes
-// trackcht.asm - fix track cheat converting tunnelbridges aswell -> done
 
 #include <std.inc>
 #include <ptrvar.inc>
@@ -343,8 +342,7 @@ exported enhancetunneladdtrack
 	ret
 
 .noveh:
-	test bl,1
-	jz .onlytesting
+
 	push ebx
 	mov ebx,[wantedtracktypeofs]
 	mov ah, byte [ebx]	// bh contains what type the user wants
@@ -355,6 +353,19 @@ exported enhancetunneladdtrack
 	and al,0xF8
 	or al, ah
 	or al, 0x80
+	
+	cmp byte [landscape7+esi], al
+	jne .notthesame
+
+	mov word [operrormsg2],0x1007		// already build
+	mov ebx,0x80000000
+	pop ecx
+	pop eax
+	add esp,4
+	ret
+.notthesame:
+	test bl,1
+	jz .onlytesting
 	mov byte [landscape7+esi], al
 	call redrawtile
 .onlytesting:
