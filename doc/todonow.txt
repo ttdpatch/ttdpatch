@@ -507,6 +507,8 @@
 
 - incorrect PBS signal promotion http://www.tt-forums.net/viewtopic.php?p=426083#426083
 
+- action A block too large check broken?
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
