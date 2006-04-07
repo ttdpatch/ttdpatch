@@ -108,9 +108,9 @@ checkscreenshotkeys:
 %undef KEY_S_OFFSET
 
 .notctrls:	// set zero flag if ah!=0
-#if WINTTDX
+
 	call screenshotgrfid
-#endif
+
 	mov al,ah
 	and al,1
 	dec al
@@ -118,8 +118,14 @@ checkscreenshotkeys:
 ; endp checkscreenshotkeys
 	
 
+#if WINTTDX
 var screenshotgrfidbytes
 	db 32, 16, 17, 26, 53, 60, 72, 80, 88, 106, 107, 112, 122, 128, 136, 154
+#else
+var screenshotgrfidbytes
+	db  6, 16, 17, 26, 53, 60, 72, 80,  4,   5, 107, 112, 122, 128,   3, 154
+#endif
+
 
 screenshotgrfid:
 	test dword [miscmodsflags],MISCMODS_NOGRFIDSINSCREENSHOTS
