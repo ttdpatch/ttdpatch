@@ -772,3 +772,6 @@ CHANGELOG
 - fixed messed up F800+x text IDs, added check to prevent this in the future
 - fixed bug with secondary industries constantly closing down
 - default state of "experimentalfeatures on" no longer includes mandatory GRM
+- by steven_h:
+  * fixed "rename" button in RV purchase list renaming wrong vehicle
+  * fixed bus stops being drawn as tram stops when tram-stop-build window is opened
