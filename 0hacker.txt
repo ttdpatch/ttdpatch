@@ -1,0 +1,376 @@
+
+Hi Hackers!
+
+To make TTDPatch compatible with both the DOS and Windows versions of TTD
+at the same time, there are a couple of things that you absolutely have to
+pay attention to when writing code:
+
+1) Use "var{b,w,d}" to declare all variables initialized to something other
+   than 0 or -1, uvar{b,w,d} for variables initialized to 0 or -1, and 
+   "ttdvar" to declare all fixed-location variables in TTD's memory.  Use
+   ptrvar or ptrvarofs to declare variables holding pointers that are unknown
+   at compilation time.
+2) Do not specify any segment overrides other than CS or DS without 
+   some thought
+
+I'll explain this a bit below.  In addition
+
+3) Be speed efficient rather than memory efficient except in GUI code and
+   other code that isn't called very often.
+4) When adding stuff, keep to the present format
+5) How to add patches
+
+
+-----------
+
+ 1) Use "{u,s,}var{b,w,d}" macros to declare all variables
+===========================================================
+
+We have the following macros to define new variables, depending on their
+initialization value, whether it's zero, all-ones (-1), or something else,
+and depending on the size:
+
+----Initial----	--------Size---------
+     value	Byte	Word	Dword
+-------------------------------------
+Zero		uvarb	uvarw	uvard
+All ones	svarb	svarw	svard
+Other		varb	varw	vard
+
+The preferred way of defining variables works like this:
+
+vard myofs, 0x403124
+
+This declares a DWORD variable and puts it in the right section with proper
+alignment.  The word and byte variants work similarly.  There's also a
+"var" macro that puts variables in the current section.  It's not recommended
+to put data in the .text section though.
+
+You can also declare a variable like this:
+
+varb longtable
+	db 1,2,3,4
+	...
+	db 252,253,254,255
+endvar
+
+Note the "endvar" at the end, which is necessary because the "open-ended"
+form of var{b,w,d} does not reset the section to its former value.
+
+If you have a variable that needs to be initialized to either 0 or -1 (or if
+it doesn't matter to what it is initialized), use the uvar{b,w,d}
+(initialized to 0) or svar{b,w,d} (initialized to -1) macros instead.
+These ensure that your variable isn't stored in the patching code, thus
+reducing the executable file size.
+
+To make a variable initialized to zero, use
+
+	uvard mydword	// or uvarw, uvarb for bytes, words
+
+You can make it an array by specifying the number of members:
+
+	uvard myarray,256	// 256 DWORDs initialized to 0
+
+And to initialize it to -1, append an 's' (for "signed"):
+
+	svard mysigned		// one DWORD initialized to -1
+
+To declare a variable in TTD's memory, use the macro "ttdvar".  It takes
+a parameter that specifies an offset into TTD's data segment.  Note that the
+data segment starts at offset 0 for the DOS version, but at a version-specific
+offset for each of the Windows versions.  Make sure you get the offset right!
+
+	ttdvar players, 0x52a62
+
+Only a certain range of memory addresses is supported, from 0 to 0x9f1e7.
+These are the only variables that have consistent locations in all known
+versions of TTD.  For variables outside this range, you must determine the
+address by searching for it, instead of hard-coding it.
+
+If you're working on the Windows version and want to find the offset you need
+to specify here, take the offset of your variable and subtract the offset of
+the "date" variable.  For example, in the American version, subtract 0x458ef0.
+If that gives you a nonnegative value less than 0x7f9e8, you're all set and
+just use it as parameter to ttdvar.  However, if it's in the range from 
+0x9c4e8 to 0x9f277, you need to adjust it slightly, because the second range
+is a bit different in the Windows versions (due to extra sprite info stored in
+between).  To do that, simply subtract another 0x90, and you get the value to
+use as parameter for ttdvar.  If your value is larger than 0x9f277, you're out
+of luck and can't depend on it being constant in all versions.
+
+Finally, you can declare variables relative to the current position or
+a code label, using the ovar macro:
+
+	ovar fourbytesago, -4
+	ovar startplusten, 10, start
+		...
+	start:
+
+To make a variable relative to some other variable, just use equ:
+
+	var myvarone, dd 5
+	myvartwo equ myvarone+1
+
+After declaring your variable, simply access it as you would normally
+using NASM:
+
+	mov esi,mynewvariable	// assign the address
+	mov eax,[mynewvariable]	// assign the content
+
+Finally, to declare a pointer variable, use
+
+	ptrvar mytable
+
+When this variable is initialized, you must call the relocation function
+like so:
+
+	param_call reloc, address,mytable_ptr
+
+where address is the address you want it to point to.  This tool changes all
+accesses to mytable into relocated offsets, so that you can do something like
+
+	mov eax,[mytable+58+ebx*2]
+
+and it will access the address pointed to by mytable plus 58+ebx*2.  To
+access the actual pointer variable (instead of the memory it points to), use
+[mytable_ptr].
+
+
+ 2) No segment registers
+=========================
+
+The DOS and Windows versions have different assignments to the segment
+registers FS and GS:
+
+
+Reg	DOS		Windows
+FS	landscape4	reserved
+GS	landscape5	reserved
+
+If you find that in the DOS version, a variable is accessed through the
+FS or GS registers, DO NOT USE these explicitly in your code.  In the 
+Windows version they have a different meaning so it won't work.
+
+Instead, use the landscape4/5 macros:
+
+	mov al,[landscape4(di)]
+	mov byte [landscape5(di)],0
+
+The parameter must be a 16-bit register that is a valid index in 16-bit 
+addressing mode: bx, si, di or bp.  If you need a different register,
+or if you need to force the use of a whole 32-bit register for some
+reason, use the two-argument form:
+
+	mov al,[landscape4(cx,1)]
+
+This will actually be using the ecx register, because the second argument
+is 1.  Note that you need to ensure that ecx is not greater than 0xffff, 
+otherwise this instruction will cause a GPF in the DOS version.
+
+
+ 3) Be speed efficient rather than memory efficient.
+=====================================================
+
+Since nowadays the patch size is not strictly limited as it used to be,
+it is often better to choose faster code over smaller code.  This doesn't
+mean that you need to obsessively fine-tune and optimize your code, but
+it's a good idea to keep optimization guidelines in mind while writing
+code.
+
+Especially code called many times a second (such as vehicle engine ticks,
+drawing graphics, etc.) speed is important.  For GUI code and rarely used
+code it doesn't matter much.
+
+If you need data, try to allocate the least amount of memory possible.
+Use the uvar* macros to allocate uninitialized memory wherever possible.
+If some patch needs a larger chunk of data, use the malloc function,
+or the malloccrit function to terminate without returning if out of memory
+(in patches/tools.asm) and allocate memory only if the patch is actually
+enabled.  Note that it's only possible to malloc memory before TTD starts
+running.
+
+
+ 4) When adding stuff, keep to the present format
+==================================================
+
+The current format makes adding stuff relatively simple, so try to
+keep it in that format.  If that's not possible, try to think of a
+different way to accomplish what you need.  The code is messy enough
+already, you don't need to make it even more complicated.
+
+For example, use C++ style comments ( // blabla ), to make the .LST file
+smaller unless it's really useful to have them there.  In that case use
+assembler comments ( ; blabla ).
+
+Set your TAB size to 8.  Even though you may not like it that way,
+it's what I use and it should be consistent throughout the code.  So
+accept it or don't modify the code - it's up to you.
+
+
+ 5) How to add patches
+=======================
+
+OK, so you've found the location of some code in TTD, and have written
+a patch.  Now you want to integrate it into TTDPatch.
+
+There are a few steps that you need to take.
+
+(1) What to Patch
+*****************
+
+Find the smallest unique sequence of bytes of code that can be
+used to find the offset that needs to be patched.  Note that at least
+five (usually six) bytes will have to be changed if you need to call
+a function, so make sure that there is enough room in the location that
+you want to change.  This sequence does not have to begin or end on an
+instruction boundary, you can only include the first few bytes of an
+instruction if you like.
+
+Actually, the sequence does not have to be exactly unique, if it is found
+a small number of times in memory, that's fine too.  Just remember the total
+number of occurences and which one you want to change.
+
+Ideally, you'd then try all ten versions of TTD to see if this strings
+always has the same number of occurences and all versions have to change
+the same occurence.  There is often a difference between the DOS and Windows
+versions because they seem to have been compiled with include files in a
+different order.  For the most part it's the same in all versions though.
+
+Some hints on how you find a good code sequence:
+
+Things to look for (because they tend to be the same in all versions):
+- pure register sequences (mov eax,ebx etc.)
+- memory accesses with imm8 offsets (like mov eax,[esi+26h])
+- short jmps (conditional or unconditional)
+
+Things to avoid (because they tend to be different in each version):
+- far jmps (conditional or unconditional)
+- far procedure calls (more than about 200 bytes away, or across
+  all-zero fillers between blocks of code)
+- absolute variable access outside of ttdvar range (see above)
+
+(2) Tell TTDPatch how to find it
+********************************
+
+Create a new file in the procs/ directory.  Look at some of the smaller files
+in there for examples.  You need to add three things here:
+
+1) The patchproc definition
+2) The code fragments to search for and what to replace them with
+3) The actual patch proc that patches TTD
+
+The patchproc definition should go at the top, right after the necessary
+include statements, which at the very least must use defs.inc, frag_mac.inc
+and patchproc.inc.  (Note that if your patchproc needs to be called in a
+certain order, its patchproc definition must go in patches.asm instead.)
+
+This is followed by the code fragments; after "begincodefragments", you define
+
+a) the old code to search for
+   Define this using "codefragment old<yourpatchname>"
+   Then simply add the instructions or code bytes to search for it.
+   If necessary, you can search for a location that's close but not
+   exactly at the place you want to patch, and give an offset, e.g.
+   "codefragment oldsellengine,16".  This searches for the code given
+   in that fragment, adds 16 to the found offset and patches that.
+
+b) the replacement code
+   "codefragment new<yourpatchname>"
+   and again add the new code.  There will be two special cases:
+   - you need to call your own function
+     In almost all cases, you will not want to deal with having to do manual
+     relocation of your patch (since it must work at any address).  Therefore
+     normally you call your function from the fragment using either
+     "icall yourfunction" or "ijmp yourfunction", which use an indirect
+     call/jmp and automatically add a pointer to your function to an indirect
+     call table at the end of fragment.ah. (The old call runindex(foo) does the
+     same but is now obsolete.)  The instruction assembled is something like
+	call [foo_indirect]
+     and therefore uses exactly six bytes.
+   - you need to overwrite more code than you replace
+     For this, simply use the setfragmentsize macro to NOP out the remainder
+     for small differences in size, or JMP to the place if it's more than a
+     few bytes.
+
+And finally, after "endcodefragments" you add your actual patch proc that
+uses the patchcode/stringaddress/etc macros to search and replace the
+necessary TTD code.
+
+Don't try to implement your own search, it won't work. Use the macros
+defined in frag_def.inc, the most straightforward one being:
+      patchcode <yourpatch>
+
+This will search for the codefragment old<yourpatch>, find the
+first occurence and make sure that it's unique.  Then it will replace 
+the fragment by new<yourpatch>.
+
+For more elaborate patching, use
+      patchcode old<yourpatch>,new<yourpatch>,occurence,numoccurences
+which works as the above, but you can specify that the fragment may occur
+several times, and which of these should be patched.
+
+When you do this, you will need to generate the version info again,
+because TTD needs to find the new location and store it.  To do this,
+run TTDPatch once with "-!v+" (that's lowercase v, not uppercase V)
+as the first argument.  If successful, it will write a *.VER file
+that you then copy to the versions directory and recompile TTD.
+
+Note: DO NOT skip any patchcode or stringaddress lines conditionally.
+This would cause incorrect version data to be collected and/or used.
+Never skip a stringaddress line. Period. You may skip a corresponding
+storefragment though. It is also safe to skip the entire remainder of
+a patchproc, as long as you ensure that this doesn't happen when version
+data is being collected.
+
+To make patchcode conditional, you have to use the patchcondition 
+argument to it like this:
+      patchcode old,new,occ,num,,{comparison},condition code
+e.g.
+      patchcode old,new,occ,num,,{test [somevar],1},z
+This example would do the stringaddress part of patchcode, but only do
+the storefragment unless test [somevar],1 sets the zero flag so that a
+jz skips the storefragment.
+
+However, for testing bits of bitswitches, the BIT or NOTBIT macros to
+skip the entire patchproc as appropriate would be a better option.
+
+(3) Define a new switch
+***********************
+
+You need to add your patch to TTDPatch's switches.
+
+Edit common.h and add a #define for the next unused bit. Also make sure
+lastbitused and lastbit will reflect the change.  Patches that change
+TTD's fundamental engine should be off by default, patches that require
+user intervention to become used should be on by default.
+
+Then, to make your switch an option in the loading program.  Open
+sw_list.h, choose an unused letter (or an unused number above 128),
+and a name for the .cfg file option.  Then use the YESNO, RANGE or BITS
+macros to define an on/off or a valued switch.
+
+For a valued or bit switch you need to tell it where in the FLAGDATA
+structure you want it to store the code.
+
+You also need to add it to the verbose switch display, and the command
+line help text.  Again in sw_list.h, after the SWITCHORDER pseudo-label,
+insert your switch into the list somewhere.
+
+Finally, edit header.asm and put your switch in the patchflagsfixedmap list.
+
+(5) Add it to the language strings
+**********************************
+
+Finally, you also need to add this switch to the language files.  Open
+language.h, and add your CFG_ line to the end of the other CFG_ entries
+(make sure that it is before LANG_LASTSTRING).
+
+Then, open english.h, and add your CFG_ line.  Add the entry in the 
+halflines[] array if your switch is an on/off switch or to 
+LANG_FULLSWITCHES if it takes a parameter.  Finally add the two entries 
+of the SWITCHTEXT for your new switch.
+
+
+And *that* is all.
+
+Hey, I didn't say it was easy, did I?

@@ -1,0 +1,159 @@
+//
+// --------------------
+// bit flag definitions
+// --------------------
+//
+// put *all* bit valued switch flags here, this file will be processed by bitnames.pl
+//
+// Format must be
+//
+// defbitvar patchflag,variable
+// defbit identifier,number // description
+// defbit identifier,number // description
+// ...
+// enddefbits
+//
+// NOTE: For compatibility with earlier definition styles, the identifier
+//	 will be defined as 1<<number, *not* the number
+//	 i.e. defbit foo,5 will make foo equal to 1<<5 = 0x20
+//
+// NOTE 2: After adding a new bit switch, increase BITSWITCHNUM in language.h
+//
+// When making option names for the .cfg file, everything before the first
+// underscore (if any) is ignored, and the rest is put in lower case.
+//
+// The description will be used as description of the flag in the .xml switch
+// list and the comment in the .cfg file; perhaps later it will be translatable too.
+//
+// Do not define any unused bits (remove any that become unused if possible),
+// so the patch can generate warnings for undefined bits
+//
+
+%define pplanecrashnorm  0x02b		// probability of normal-case plane crash (in 1/65536)
+%define pplanecrashjetonsmall 0xccc	// probability of jet-plane-on-small-airport-case crash
+
+defbitvar noplanecrashes,planecrashctrl
+defbit pcrashctrl_normdis,	0 // normal plane crashes off if disasters off
+defbit pcrashctrl_jetsdis,	1 // crashes of jets on small airports off if disasters off
+defbit pcrashctrl_normbrdown,	2 // normal plane crashes only for broken down planes, rate * 4
+defbit pcrashctrl_jetssamerate,	3 // same rate for jets on small airports and normal crashes
+defbit pcrashctrl_normoff,	4 // normal plane crashes off
+defbit pcrashctrl_jetsoff,	5 // jets on small airport crashes off
+enddefbits
+
+
+defbitvar miscmods,miscmodsflags
+defbit MISCMODS_NOBUILDONBANKS,		 0 // towns don't build on waterbanks
+defbit MISCMODS_SERVINTONLYHUMAN,	 1 // servint setting doesn't apply to AI players
+defbit MISCMODS_NOROADTAKEOVER,		 2 // towns don't claim all roads in the scenario editor
+defbit MISCMODS_GRADUALLOADBYWAGON,	 3 // gradual loading loads wagon by wagon first
+defbit MISCMODS_DONTFIXLITRES,		 4 // don't change litres so that 1000 l is a ton instead of 100 l
+defbit MISCMODS_DONTFIXTROPICBANKS,	 5 // don't fix bank types in the sub-tropical climate
+defbit MISCMODS_DONTFIXHOUSESPRITES,	 6 // don't fix offices being displayed as churches
+defbit MISCMODS_OLDTOWNTERRMODLIMIT,	 7 // don't change the upper cost of terrain modification for towns
+defbit MISCMODS_NOZEPPELINONLARGEAP,	 8 // prevent Zeppelins from crashing at large airports
+defbit MISCMODS_NODEFAULTOLDTRACKTYPE,	 9 // don't use previous track type as new default
+defbit MISCMODS_USEVEHNNUMBERNOTNAME,	10 // don't change news messages to use vehicle names
+defbit MISCMODS_NORESCALECOMPANYGRAPH,	11 // don't rescale company graph when companies are deselected
+defbit MISCMODS_NOYEARLYFINANCES,	12 // don't display yearly finances on Jan 1st
+defbit MISCMODS_NOTIMEGIVEAWAY,		13 // don't try to give time slices away to conserve power
+defbit MISCMODS_NODESYNCHWARNING,	14 // don't warn about multiplayer games being desynched
+defbit MISCMODS_NOWORLDEDGEFLOODING,	15 // don't let the edge of the map flood
+defbit MISCMODS_DOSHOWINTRO,		16 // show the game intro (don't skip it)
+defbit MISCMODS_NONEWSPRITESORTER,	17 // don't use new sprite sorting algorithm
+//defbit MISCMODS_NOAUTOMATICPBSBLOCKS,	18 // don't automatically convert pre-signal blocks to path-based signalling
+defbit MISCMODS_NOENHANCEDCOMP,		19 // don't enhance savegame compression algorithm
+defbit MISCMODS_BREAKDOWNATSIGNAL,	20 // don't fix trains breaking down while waiting on red signals
+defbit MISCMODS_SMALLSPRITELIMIT,	21 // don't increase the sprite limit
+defbit MISCMODS_DISPLAYTOWNSIZE,	22 // display town size in the name
+defbit MISCMODS_NOEXTENDSTATIONRANGE,	23 // don't increase the maximum allowed distance between station sign and industry for cargo to be delivered
+defbit MISCMODS_NOOLDVEHICLENEWS,	24 // don't generate news messages when vehicles get old
+defbit MISCMODS_DONTFIXPAYMENTGRAPH,	25 // don't fix the X axis of the cargo payment rate window
+defbit MISCMODS_LOADUNTILGREEN,		26 // keep loading at station until exit signal is green
+defbit MISCMODS_DONTSHOWALTITUDE,	27 // Don't show altitude in tile info window
+defbit MISCMODS_NOGRFIDSINSCREENSHOTS,	28 // Don't show active grfids in screenshots
+defbit MISCMODS_DONTCHANGESNOW,		29 // Don't change how height is calculated for snowiness
+enddefbits
+
+
+defbitvar morebuildoptions,morebuildoptionsflags
+defbit MOREBUILDOPTIONS_CTUNNEL,	0 // allow crossing tunnels
+defbit MOREBUILDOPTIONS_OILREFINERY,	1 // allow oil refinery everywhere
+defbit MOREBUILDOPTIONS_MOREINDUSTRIES,	2 // allow more than one industry of the same type
+defbit MOREBUILDOPTIONS_REMOVEOBJECTS,	3 // allow removing statues, lighthouses and transmitters
+defbit MOREBUILDOPTIONS_REMOVEINDUSTRY,	4 // allow removing industries
+defbit MOREBUILDOPTIONS_CLOSEINDUSTRIES,5 // allow same industries to be very close to each other
+defbit MOREBUILDOPTIONS_ENHANCEDBUOYS,	6 // allow buoys that work like normal stations
+defbit MOREBUILDOPTIONS_BULLDOZESIGNALS,7 // automatically bulldoze signals on track
+enddefbits
+
+
+defbitvar experimentalfeatures,expswitches
+defbit EXP_SLOWCROSSING,	0 // trains slow down before crossings
+defbit EXP_COOPERATIVE,		1 // cooperative play, very limited
+defbit EXP_MANDATORYGRM,	2 // make GRF Resource Management mandatory for .grf files
+enddefbits
+//defbit EXP_PATHBASEDSIGNALLING,	1 // make it possible for trains with non-interfering paths to enter the same signal block
+
+
+defbitvar maskdisasters,disastermask
+defbit MASKDISASTER_Zeppelincrash,	0 // Allow zeppelin crash
+defbit MASKDISASTER_SmallUFO,		1 // Allow small UFO
+defbit MASKDISASTER_Refineryexplosion,	2 // Allow refinery explosion
+defbit MASKDISASTER_Factoryexplosion,	3 // Allow factory explosion
+defbit MASKDISASTER_LargeUFO,		4 // Allow large UFO
+defbit MASKDISASTER_Smallsubmarine,	5 // Allow small submarine
+defbit MASKDISASTER_Largesubmarine,	6 // Allow large submarine
+defbit MASKDISASTER_Coalminesubsidence,	7 // Allow coal mine subsidence
+enddefbits
+
+
+defbitvar mousewheel,mousewheelsettings
+defbit MOUSEWHEEL_CURSORZOOM,	0 // Zoom at cursor location instead of screen center
+defbit MOUSEWHEEL_SAFEZOOM,	1 // Zoom only after rolling wheel two notches
+defbit MOUSEWHEEL_LEGACY,	2 // Enable support for older (legacy) operating systems and drivers (not normally needed)
+enddefbits
+
+
+defbitvar plantmanytrees,treeplantmode
+defbit plantmanytrees_morethanonepersquare,	0 // Allow planting more than one tree per square
+defbit plantmanytrees_rectangular,		1 // Enable planting over a rectangular area with 'Ctrl'
+defbit plantmanytrees_morethanonerectangular,	2 // More than one tree on a square in the rectangular planting mode
+enddefbits
+
+
+defbitvar moretoylandfeatures,toylandfeatures
+defbit moretoylandfeatures_lighthouses,	0 // Enable lighthouses on sea shores in Toyland
+defbit moretoylandfeatures_woodlands,	1 // Enable woodlands (clusters of trees) in Toyland
+enddefbits
+
+
+defbitvar locomotiongui,locomotionguibits
+defbit locomotiongui_usenewgui,		0 // Enable the new gui
+defbit locomotiongui_defaultnewgui,	1 // Use the new gui by default (with this disabled the new gui can be reached with ctrl, when enabled with ctrl the old gui will be used)
+defbit locomotiongui_defaultstation,	2 // Make the station build button open the locomotion gui station tab.
+enddefbits
+
+
+defbitvar pathbasedsignalling,pbssettings
+defbit PBS_AUTOCONVERTPRESIG,		0 // Convert pre, exit and combo signals into PBS signals
+defbit PBS_MANUALPBSSIG,		1 // Allow manually setting PBS signals
+defbit PBS_PRESERVEMANUALPRESIG,	2 // Don't convert junctions with manually set signals into PBS
+defbit PBS_SHOWRESERVEDPATH,		3 // Show reserved track pieces darker
+defbit PBS_SHOWNONJUNCTIONPATH,		4 // Show reserved track pieces on non-junction tiles too
+defbit PBS_ALLOWUNSAFEJUNCTION,		5 // Don't hold trains at unsafe PBS signal
+defbit PBS_ALLOWUNSAFEREVERSE,		6 // Don't stop trains that can't reverse safely
+enddefbits
+
+defbitvar newsounds,newsoundsettings
+defbit NEWSOUNDS_HIGHFREQUENCY,		0 // (DOS only) Mix sounds at 22KHz instead of the default 11KHz. Allows correct playpack of 22KHz samples.
+enddefbits
+
+defbitvar morecurrencies,morecurropts
+defbit morecurrencies_symbefore,	0 // Currency symbol displayed always before number
+defbit morecurrencies_symafter,		1 // Currency symbol displayed always after number
+defbit morecurrencies_noeuro,		2 // Do not introduce the Euro
+defbit morecurrencies_comma,		3 // Always use comma to separate thousands
+defbit morecurrencies_period,		4 // Always use period to separate thousands
+enddefbits
+

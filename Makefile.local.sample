@@ -1,0 +1,86 @@
+# =========================================================
+#		Local Makefile settings
+# =========================================================
+
+# Copy this file to Makefile.local (if make didn't do it for you)
+# and edit to modify the compiler and option settings
+#
+# To show the resulting configuration, run "make disp-comp"
+
+# --------------------------------
+# Choose the compilation platforms
+# --------------------------------
+
+# for the DOS version, the options are
+# BCC = Borland C < 5.0
+# OWC = OpenWatcom C 1.3 (on Windows or Linux) 
+DOSCC = OWC
+
+# for the Windows version, the options are
+# CYGWIN = gcc-mingw on Cygwin
+# CROSS = gcc-mingw cross compiler
+#	  in that case also set HOST to INTEL (x86) or PPC (PowerPC)
+#	  and if needed the CROSS-PREFIX
+WINCC = CYGWIN
+#HOST = INTEL
+
+# if your cross compiler isn't called i686-pc-mingw-gcc, set the following
+# (the example below works for the Ubuntu mingw32 package)
+#CROSS-PREFIX = i586-mingw32msvc
+
+# Uncomment if your debugger/OS crashes when the program encounters
+# int3 instruction breakpoints
+# Possible values:
+# -dNOINT3: Do not add debug breakpoints
+# -dNOINT3=1: use an endless loop instead
+# if left commented out: use int3 instruction
+# NASMDEF += -dNOINT3
+
+# Uncomment if you don't have UPX or don't want to use it
+# NOUPX=1
+
+# Choose the default target, if you prefer a different target
+# DEFAULTTARGET = allw
+
+# -------------------------------------------
+#        Compilers and options
+# -------------------------------------------
+
+# Add your changes here if the defaults don't work for you
+#
+# The format is <VAR>-<PLATFORM> = <value>
+# e.g. "CC-CROSS = i686-pc-mingw32-gcc"
+# See the Makefile for more examples.
+#
+# The following variables can be set:
+#
+# DOS Version; platform is BCC or OWC
+#	CC		C compiler command
+#	LD		Linker command
+#	CFLAGS		C compiler options
+#	LDFLAGS		Linker options
+#	STRIP		Strip command (to remove debug info)
+#	EXE		Suffix of executable files
+#
+# Windows version; platform is CYGWIN or CROSS
+#	CC,LD,CFLAGS,LDFLAGS,STRIP,EXE as above
+#	CPP		C pre-compiler command
+#	LDEXP		Explicit linker command (not called via gcc)
+#	LDEXPFLAGS	Flags for the explicit linker
+#	DOSCMD		Command to run the DOS version (for memsize.h)
+#	WINDRES		Windows resource compiler
+#	CAT		Cat command and options
+#	HOSTPATH	Directory prefix where native files will be stored
+#			(nothing for CYGWIN, host/ for CROSS)
+
+# For cross compiler, the settings to create native binaries in HOSTPATH
+# Platform is INTEL or PPC
+#	CC,LD,CFLAGS,LDFLAGS,EXE as above
+#	NASMOPT		Nasm options to produce native .o files
+
+# Uncomment this if your cygwin/mingw gcc isn't 3.4.0 or higher
+#CFLAGS-${WINCC} := $(subst -mtune=,-mcpu=,$(CFLAGS-${WINCC}))
+
+# and/or this if you're cross compiling and the host gcc isn't 3.4.0 or higher
+#CFLAGS-${HOST} := $(subst -mtune=,-mcpu=,$(CFLAGS-${HOST}))
+

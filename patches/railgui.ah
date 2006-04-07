@@ -1,0 +1,153 @@
+%define width 100
+%define height 190
+var RailConstrWinElems
+	db cWinElemTextBox, cColorSchemeGrey
+	dw 0, 10, 0, 13, 0x00C5
+	db cWinElemTitleBar, cColorSchemeGrey
+	dw 11, width-1, 0, 13, ourtext(rcw_railway)
+	db cWinElemSpriteBox, cColorSchemeGrey
+	dw 0, width-1, 14, height-1, 0
+	db cWinElemTab, cColorSchemeDarkGreen
+	dw 0, width-1, 41, height-1, 0
+	db cWinElemTab, cColorSchemeDarkGreen
+	dw 0, width-1, 41, height+39, 1
+	db cWinElemTab, cColorSchemeDarkGreen
+	dw 0, width-1, 41, height-1, 2
+	db cWinElemTabButton, cColorSchemeDarkGreen
+	dw 7, 32, 16, 41, 727
+	db cWinElemTabButton, cColorSchemeDarkGreen
+	dw 35, 60, 16, 41, 1299
+	db cWinElemTabButton, cColorSchemeDarkGreen
+	dw 63, 88, 16, 41, 1291
+	db cWinElemExtraData, cWinDataTabs
+	dd RailConstrWinTabs, 0
+	dw 0
+	db cWinElemLast
+var RailConstrWinTabs
+	dd RailConstrWin_railtab_Elems
+	dd RailConstrWin_stationtab_Elems
+	dd RailConstrWin_signaltab_Elems
+var RailConstrWin_railtab_Elems
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 17, 38, 50, 71, 1254
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 39, 60, 50, 71, 1251
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 61, 82, 50, 71, 1252
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 2, 97, 95, 145, 0
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 17, 38, 159, 180, 714
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 39, 60, 159, 180, 694
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 61, 82, 159, 180, 715
+	db cWinElemLast
+var RailConstrWin_stationtab_Elems
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 5, 94, 54, 65, 0
+	db cWinElemTextBox, cColorSchemeDarkGreen
+	dw 82, 93, 55, 64, 0x0225
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 5, 94, 78, 89, 0
+	db cWinElemTextBox, cColorSchemeDarkGreen
+	dw 82, 93, 79, 88, 0x0225
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 73, 94, 163, 184, 715
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 73, 94, 141, 162, 4082
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 73, 94, 119, 140, 1299
+	db cWinElemTextBox, cColorSchemeYellow
+	dw 5, 14, 93, 102, 0x6819
+	db cWinElemTextBox, cColorSchemeYellow
+	dw 15, 24, 93, 102, 0x681A
+	db cWinElemTextBox, cColorSchemeYellow
+	dw 5, 14, 107, 116, 0x6819
+	db cWinElemTextBox, cColorSchemeYellow
+	dw 15, 24, 107, 116, 0x681A
+	db cWinElemLast
+var RailConstrWin_signaltab_Elems
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 5, 94, 50, 61, 0
+	db cWinElemTextBox, cColorSchemeDarkGreen
+	dw 82, 93, 51, 60, 0x0225
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 5, 94, 65, 76, 0
+	db cWinElemTextBox, cColorSchemeDarkGreen
+	dw 82, 93, 66, 75, 0x0225
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 5, 94, 80, 91, 0
+	db cWinElemTextBox, cColorSchemeDarkGreen
+	dw 82, 93, 81, 90, 0x0225
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 15, 46, 100, 131, 0
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 54, 85, 100, 131, 0
+	db cWinElemSpriteBox, cColorSchemeDarkGreen
+	dw 40, 61, 135, 156, 714
+	db cWinElemLast
+RailConstrWin_width equ 100
+RailConstrWin_height equ 190
+RailConstrWin_closebox equ 0x00
+RailConstrWin_titlebar equ 0x01
+RailConstrWin_mainpanel equ 0x02
+RailConstrWin_railtab equ 0x03
+RailConstrWin_stationtab equ 0x04
+RailConstrWin_signaltab equ 0x05
+RailConstrWin_rail equ 0x06
+RailConstrWin_station equ 0x07
+RailConstrWin_signal equ 0x08
+RailConstrWin_arrowleft equ 0x100
+RailConstrWin_arrowstraight equ 0x101
+RailConstrWin_arrowright equ 0x102
+RailConstrWin_curpiece equ 0x103
+RailConstrWin_remove equ 0x104
+RailConstrWin_pickup equ 0x105
+RailConstrWin_rotate equ 0x106
+RailConstrWin_class equ 0x200
+RailConstrWin_class_x1 equ 5
+RailConstrWin_class_x2 equ 94
+RailConstrWin_class_y1 equ 54
+RailConstrWin_class_y2 equ 65
+RailConstrWin_classdd equ 0x201
+RailConstrWin_type equ 0x202
+RailConstrWin_type_x1 equ 5
+RailConstrWin_type_x2 equ 94
+RailConstrWin_type_y1 equ 78
+RailConstrWin_type_y2 equ 89
+RailConstrWin_typedd equ 0x203
+RailConstrWin_rotatestation equ 0x204
+RailConstrWin_catcharea equ 0x205
+RailConstrWin_buildstation equ 0x206
+RailConstrWin_tracksdec equ 0x207
+RailConstrWin_tracksinc equ 0x208
+RailConstrWin_tracksinc_x1 equ 15
+RailConstrWin_tracksinc_x2 equ 24
+RailConstrWin_tracksinc_y1 equ 93
+RailConstrWin_tracksinc_y2 equ 102
+RailConstrWin_lengthdec equ 0x209
+RailConstrWin_lengthinc equ 0x20a
+RailConstrWin_lengthinc_x1 equ 15
+RailConstrWin_lengthinc_x2 equ 24
+RailConstrWin_lengthinc_y1 equ 107
+RailConstrWin_lengthinc_y2 equ 116
+RailConstrWin_signaltype equ 0x300
+RailConstrWin_signaltypedd equ 0x301
+RailConstrWin_presignaltype equ 0x302
+RailConstrWin_presignaltypedd equ 0x303
+RailConstrWin_pbssignaltype equ 0x304
+RailConstrWin_pbssignaltypedd equ 0x305
+RailConstrWin_doublesignal equ 0x306
+RailConstrWin_doublesignal_x1 equ 15
+RailConstrWin_doublesignal_x2 equ 46
+RailConstrWin_doublesignal_y1 equ 100
+RailConstrWin_doublesignal_y2 equ 131
+RailConstrWin_singlesignal equ 0x307
+RailConstrWin_singlesignal_x1 equ 54
+RailConstrWin_singlesignal_x2 equ 85
+RailConstrWin_singlesignal_y1 equ 100
+RailConstrWin_singlesignal_y2 equ 131
+RailConstrWin_removesignal equ 0x308
+%undef width
+%undef height

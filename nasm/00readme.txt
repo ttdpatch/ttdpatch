@@ -1,0 +1,20 @@
+This directory contains some patches to NASM, to make it work correctly
+for TTDPatch.  It also contains an updated nasm.exe compiled for use in the
+Cygwin environment and one for Linux.
+
+nasm-0.98.39-misc.gz - contains the following changes:
+   * fix bug that causes output of incorrect offsets in the .lst file
+   * fix forward references forcing rel32 offsets
+   * fix instruction order to be tasm compatible
+   * list expanded macro parameters
+   * warn if byte-sized or word-sized address operands are out of bounds
+   * coff output: make all sections with bss in their name use BSS_FLAGS
+nasm-0.98.39-listsect.gz - list section names for relocatable symbols
+nasm-0.98.39-opsizeimm.gz - warn about operations whose size is 
+   determined from an immediate operand
+
+These patches work for nasm versions from 0.98.39 on, most of them will fail
+on earlier versions (due to fundamental changes in the source indentation)
+
+nasm - nasm compiled for Linux (needs GLIBC >= 2.3)
+nasm.exe - nasm compiled for Cygwin

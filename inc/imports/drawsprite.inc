@@ -1,0 +1,5 @@
+extern drawspritefn
+extern exsdrawsprite
+extern exscurfeature
+extern exsfeaturespritetoreal
+extern exsrealtofeaturesprite

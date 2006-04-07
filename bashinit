@@ -1,0 +1,11 @@
+# Shell initialization file for TTDPatch compilation in Cygwin
+
+test -f ~/.bashrc && . ~/.bashrc
+
+PATH=".:$PWD/bin:$PWD/nasm:$PATH"
+
+export MAKE_MODE=unix
+shopt -s nocaseglob
+shopt -s checkwinsize
+
+# more to come...

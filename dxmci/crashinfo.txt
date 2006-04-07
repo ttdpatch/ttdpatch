@@ -1,0 +1,9 @@
+
+Name		OS	CPU	Kernel32	DxmciCr	USB-M?	AV?	Play1	Crash1	 Play2	Crash2
+Andrew Hamilton	98	P3 450	4.10.2222	Yes	Yes	Norton	Yes	---	 Yes	---
+XMEN		XPPro	Dur700	5.1.2600.0	---	No	nod32	Yes	---	 Yes	---
+Peter Burstow1	2K SP3	P3 733	5.0.2195.5400	?	Yes	Nor2003	Yes	7749273d Yes	7749273d
+Peter Burstow1	95	P2 266+	4.03.1212	?	Yes	---	Yes	---	 Yes	---
+
+
+CPU + = overclocked

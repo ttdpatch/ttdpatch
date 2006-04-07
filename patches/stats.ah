@@ -1,0 +1,44 @@
+%define width 200
+%define height 150
+var CompanyStatsElems
+	db cWinElemTextBox, cColorSchemeGrey
+	dw 0, 10, 0, 13, 0x00C5
+	db cWinElemTitleBar, cColorSchemeGrey
+	dw 11, width-1, 0, 13, ourtext(statistics_white)
+	db cWinElemTextBox, cColorSchemeGrey
+	dw 0, width-1, 14, 27, ourtext(totalcargo)
+	db cWinElemSpriteBox, cColorSchemeGrey
+	dw 0, width-12, 28, height-1, 0
+	db cWinElemSlider, cColorSchemeGrey
+	dw width-11, width-1, 28, height-13, 0
+	db cWinElemSizer, cColorSchemeGrey
+	dw width-11, width-1, height-12, height-1, 0
+	db cWinElemExtraData, cWinDataSizer
+	dd CompanyStatsConstraints, CompanyStatsSizes
+	dw 0
+	db cWinElemLast
+CompanyStats_width equ 200
+CompanyStats_height equ 150
+CompanyStats_closebox equ 0x00
+CompanyStats_titlebar equ 0x01
+CompanyStats_caption equ 0x02
+CompanyStats_mainpanel equ 0x03
+CompanyStats_scroll equ 0x04
+CompanyStats_sizer equ 0x05
+var CompanyStatsSizes
+	dw 200, 200
+	db 1, -1
+	dw 0
+	dw 31+3*10, 31+32*10
+	db 10, -1
+	dw 1
+var CompanyStatsConstraints
+	db 0000b
+	db 0010b
+	db 0010b
+	db 1010b
+	db 1011b
+	db 1111b
+	db 0000b
+%undef width
+%undef height

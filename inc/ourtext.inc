@@ -1,0 +1,286 @@
+
+; definitions of ourtext text IDs
+
+%macro defourtext 1.nolist
+	%assign ourtext_%1 ourtext_base+ourtext_num
+	%assign ourtext_num ourtext_num+1
+%endmacro
+
+; NOTICE: DO NOT REORDER OR REMOVE ENTRIES. ALWAYS ADD NEW ONES AT THE END.
+; If an defourtext becomes unused, just leave it there. The order of existing entries
+; important here, and their IDs must remain fixed for all times. If the format
+; of an defourtext changes (e.g. different place holders), change the old one to
+; foo_unused and readd foo at the end.
+;
+; After defining a new ID, document it on the wiki please.
+
+%assign ourtext_num	0
+%assign ourtext_base	0xF800
+
+defourtext bribetext
+defourtext bribedesc
+defourtext bribefailed
+defourtext headingfor
+defourtext headingfordepot1
+defourtext headingfordepot2
+defourtext headingfordepot3
+defourtext headingfordepot4
+defourtext withsignals
+defourtext wplainsignals
+defourtext wpresignals
+defourtext wpresigexits
+defourtext wprecombined
+defourtext presigautomatic
+defourtext presigmanual
+defourtext pathbasedauto
+defourtext pathbasedmanual
+defourtext vehmulttoolow
+defourtext rchunknotloaded
+defourtext loadgame
+defourtext gotodepot
+defourtext gotodepotonly
+defourtext gototraindepot
+defourtext gotoroaddepot
+defourtext gotoshipdepot
+defourtext gotoairdepot
+defourtext routethrough
+defourtext routenonstopthrough
+defourtext vehobsolete
+defourtext cannotcheat
+defourtext cheatinvalidparm
+defourtext cheatunknown
+defourtext cheatobsolete1
+defourtext cheatobsolete2
+defourtext nostationhere
+defourtext managedby1
+defourtext managedby2
+defourtext manage
+defourtext engineinfo1
+defourtext wagonpower
+defourtext engineinfo2
+defourtext wagoninfo
+defourtext newwagoninfo
+defourtext wagonspeedlimit
+defourtext refittableto
+defourtext refittabletoallbut
+defourtext refittabletoall
+defourtext railwaywagon
+defourtext monorailwagon
+defourtext maglevwagon
+defourtext ufodestroyed
+defourtext rvweightinfo
+defourtext rvweightpurchasewindow
+defourtext grfloaderror
+defourtext toomanysprites
+defourtext outofmemory
+defourtext wronggrfversion
+defourtext toomanyspritestotal
+defourtext filenotfound
+defourtext invalidsprite
+defourtext notttdpatchgrf
+defourtext grferror
+defourtext grfwarning
+defourtext grfneedspatchversion
+defourtext grfneedsdoswin
+defourtext grfwantsswitch
+defourtext grfinvalidparam
+defourtext grfconflict
+defourtext grfstatcaption
+defourtext grfstatapply
+defourtext grfstatreset
+defourtext grfinfotext
+defourtext grflisthint
+defourtext grfapplyhint
+defourtext grfresethint
+defourtext grfstatusmenu
+defourtext initialgrfsettings
+defourtext initialgrfsettingshint
+defourtext grfstatgeninfo1
+defourtext grfstatgeninfo2
+defourtext grfstatgeninfo3
+defourtext grfstatgeninfo4
+defourtext grfstatmax
+defourtext elecrailconstitle
+defourtext elecrailconsmenu
+defourtext lmilloutoftrees
+defourtext eurointroduced
+defourtext curr_HUF
+defourtext curr_PLN
+defourtext curr_ATS
+defourtext curr_BEF
+defourtext curr_DKK
+defourtext curr_FIM
+defourtext curr_GRD
+defourtext curr_CHF
+defourtext curr_NLG
+defourtext curr_ITL
+defourtext curr_SEK
+defourtext curr_RUB
+defourtext curr_EUR
+defourtext townlastmonthaccepted
+defourtext aircraftcleared
+defourtext zeppelincleared
+defourtext traincleared
+defourtext endofsharedorders
+defourtext resetorders
+defourtext toggleservice
+defourtext resethint
+defourtext servicehint
+defourtext nosort
+defourtext sortconsistnum
+defourtext sortprofit
+defourtext sortlastprofit
+defourtext sortage
+defourtext sortmaxspeed
+defourtext sortreliability
+defourtext sortcargo
+defourtext sortdestination
+defourtext sorthint
+defourtext performance
+defourtext vehiclelost
+defourtext wrongrailtype
+defourtext neterror1
+defourtext neterror2
+defourtext desynch1
+defourtext desynch2
+defourtext refitvehicle
+defourtext refitcargohint
+defourtext refitbuttonhint
+defourtext cantbuildcanalhere
+defourtext fundprospecting
+defourtext buildindustry
+defourtext fundingfailed
+defourtext cannotfundprospecting
+defourtext newtrainindepot
+defourtext newrvindepot
+defourtext newshipindepot
+defourtext newaircraftinhangar
+defourtext newvehold
+defourtext newvehveryold
+defourtext newvehveryveryold
+defourtext newvehiclelost
+defourtext newcantreverse
+defourtext txtetoolboxmenu
+defourtext txtetoolbox
+defourtext txtetoolbox_tsigns
+defourtext txtetoolbox_tsignstrans
+defourtext txtetoolbox_tsignsold
+defourtext txtetoolbox_dsize
+defourtext txtetoolbox_d8
+defourtext txtetoolbox_d10
+defourtext txtetoolbox_d12
+defourtext txtetoolbox_d14
+defourtext txtetoolbox_d16
+defourtext txtetoolbox_d18
+defourtext txtetoolbox_d20
+defourtext txtetoolbox_depotalltrash
+defourtext txtetoolbox_on
+defourtext txtetoolbox_off
+defourtext txtetoolbox_saveinsavegame
+defourtext txtetoolbox_usedefaultinsave
+defourtext txtetoolbox_saveasdefault
+defourtext txtetoolbox_resetdefaultsizes
+defourtext none
+defourtext low
+defourtext normal
+defourtext high
+defourtext defaultstation
+defourtext stationnumdefault
+defourtext stationclassdefault
+defourtext unnamedtownnamestyle
+defourtext newshistory
+defourtext messagesettings
+defourtext messages
+defourtext cantreverse
+defourtext grflanguage
+defourtext sizertooltip
+defourtext stickytooltip
+defourtext rcw_railway
+defourtext rcw_signaltype
+defourtext rcw_semaphores
+defourtext rcw_lights
+defourtext rcw_automatic
+defourtext rcw_normal
+defourtext rcw_entry
+defourtext rcw_exit
+defourtext rcw_combo
+defourtext rcw_nopbs
+defourtext rcw_pbs
+defourtext rcw_tracks
+defourtext rcw_length
+defourtext rcw_drag
+defourtext rcw_class
+defourtext rcw_type
+defourtext rcw_accepts
+defourtext outofdynmem
+defourtext cantresize
+defourtext grftextnotfound
+defourtext newindubuildindustry
+defourtext newindufundprospecting
+defourtext newinduproduces
+defourtext toomanyindustries
+defourtext newindulist_tooltip
+defourtext newinduinfo_tooltip
+defourtext newindubuild_tooltip
+defourtext newinduprospect_tooltip
+defourtext newindu_cargowaiting
+defourtext warning_notowns
+defourtext localplayer
+defourtext remoteplayer
+defourtext multiplayer
+defourtext multiplayer_tooltip
+defourtext ttdpatch_dll_notfound
+defourtext statistics
+defourtext statistics_white
+defourtext totalcargo
+defourtext landareainfoheight
+defourtext txteroadmenu
+defourtext txtetramwindowheader
+defourtext hotkeylistdos
+defourtext hotkeylistwin
+defourtext curr_pound
+defourtext curr_dollar
+defourtext curr_franc
+defourtext curr_deutschmark
+defourtext curr_yen
+defourtext curr_peseta
+defourtext shortdateformat
+defourtext longdateformat
+
+defourtext txtltwocc ; Main Name
+defourtext txtltwoccglb ; Global colours
+defourtext txtltwoccstm ; Special classes
+defourtext txtltwoccdsl
+defourtext txtltwoccelc
+defourtext txtltwoccmor
+defourtext txtltwoccmgv
+defourtext txtltwoccdmu
+defourtext txtltwoccemu
+defourtext txtltwoccpaw
+defourtext txtltwoccfrw
+defourtext txtltwoccbus
+defourtext txtltwocctrm
+defourtext txtltwocctrk
+defourtext txtltwoccpsh
+defourtext txtltwoccfsh
+defourtext txtltwoccsap
+defourtext txtltwocclap
+defourtext txtltwoccfrp
+defourtext txtltwocchel
+defourtext txtltwocclr1 ; Colours
+defourtext txtltwocclr2
+defourtext steepslopes
+defourtext landhigherbridgehead
+defourtext grfhelpercaption
+defourtext grfhelper_displxrelyrel
+defourtext textsprite
+
+; CRC 41a0d227 (check to make sure that the order above is unchanged)
+
+defourtext txtetramstationheader
+defourtext txtetramdepotheader
+
+; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
+
+defourtext last
+

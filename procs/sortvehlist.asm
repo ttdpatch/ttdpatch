@@ -1,0 +1,361 @@
+#include <defs.inc>
+#include <frag_mac.inc>
+#include <window.inc>
+#include <textdef.inc>
+#include <patchproc.inc>
+
+patchproc sortvehlist, patchsortvehlist
+
+extern vehlistwindowsizes,patchflags,vehlistwindowconstraints
+
+begincodefragments
+
+codefragment oldfindlisttrains
+	cmp al, [edi+veh.owner]
+	jne .notours
+	inc ah
+.notours:
+
+codefragment newfindlisttrains
+	call runindex(findlisttrains)
+	setfragmentsize 7
+	add edi,vehiclesize
+	call runindex(findlistvehs_next)
+
+codefragment oldfindlistvehs
+	cmp bl, [edi+veh.owner]
+	jne .notours
+	inc ax
+.notours:
+
+codefragment newfindlistvehs
+	call runindex(findlistvehs)
+	setfragmentsize 7
+	add edi,vehiclesize
+	call runindex(findlistvehs_next)
+
+codefragment newfindnexttrain
+	push edi
+	call runindex(realtrain)
+	jnz short .exit
+	cmp bh,[edi+veh.owner]
+	jnz short .exit
+	mov edi,[edi+veh.veh2ptr]
+	mov edi,[edi+veh2.sortvar]
+	cmp edi,edi
+	setfragmentsize 22
+.exit:
+
+codefragment oldnextveh
+	add edi,vehiclesize
+	cmp edi, [veharrayendptr]
+
+codefragment newnextveh
+	pop edi
+	sub edi,byte -vehiclesize
+	cmp edi,[veharrayendptr]
+	setfragmentsize 12
+
+codefragment oldfindnextrv,-9
+	mov ax,[esi+window.id]
+	cmp al,[edi+veh.owner]
+
+codefragment newfindnextrv
+	push edi
+	mov al,0x11
+	call runindex(vehiclevalid)
+	setfragmentsize 16
+
+reusecodefragment oldfindnextship,oldfindnextrv
+
+codefragment newfindnextship
+	push edi
+	mov al,0x12
+	call runindex(vehiclevalid)
+	setfragmentsize 16
+
+reusecodefragment oldfindnextaircraft,oldfindnextrv,-19
+
+codefragment newfindnextaircraft
+	push edi
+	mov al,0x13
+	call runindex(vehiclevalid)
+	setfragmentsize 26
+
+codefragment oldclicktrainlist,3
+	mov ah,[esi+window.id]
+	cmp byte [edi+veh.class],0x10
+
+codefragment newclicktrainlist
+	mov edx,0x10
+	call runindex(clicklist_next)
+	setfragmentsize 18
+	db 0x72
+
+codefragment oldclickrvlist,3
+	mov ah,[esi+window.id]
+	cmp byte [edi+veh.class],0x11
+
+codefragment newclickrvlist
+	mov edx,0x11
+	call runindex(clicklist_next)
+	setfragmentsize 12
+	db 0x72
+
+codefragment oldclickshiplist,3
+	mov ah,[esi+window.id]
+	cmp byte [edi+veh.class],0x12
+
+codefragment newclickshiplist
+	mov edx,0x12
+	call runindex(clicklist_next)
+	setfragmentsize 12
+	db 0x72
+
+codefragment oldclickaircraftlist,3
+	mov ah,[esi+window.id]
+	cmp byte [edi+veh.class],0x13
+
+codefragment newclickaircraftlist
+	mov edx,0x13
+	call runindex(clicklist_next)
+	setfragmentsize 18
+	db 0x72
+
+codefragment oldemptybuttontrain,2
+	dw 0x8815	// new vehicles
+	db cWinElemSpriteBox
+	db cColorSchemeGrey
+
+codefragment oldemptybuttonroad,2
+	dw 0x9004	// new vehicles
+	db cWinElemSpriteBox
+	db cColorSchemeGrey
+
+codefragment oldemptybuttonship,2
+	dw 0x9804	// new ships
+	db cWinElemSpriteBox
+	db cColorSchemeGrey
+
+codefragment oldemptybuttonair,2
+	dw 0xa003	// new aircraft
+	db cWinElemSpriteBox
+	db cColorSchemeGrey
+
+codefragment oldclicktrainlistwindow
+	js near $+6+0x33a+0x10*WINTTDX
+
+codefragment newclicklistwindow
+	call runindex(clicklistwindow)
+
+codefragment oldlistwindowhint,-6
+	movzx ebx,cx
+	db 0x66, 0x8b, 0x04, 0x5d	// mov ax,[???+2*ebx]
+
+codefragment newlistwindowhint
+	call runindex(listwindowhint)
+
+codefragment oldclickrvlistwindow
+	js near $+6+0x310+0x9*WINTTDX
+
+codefragment oldclickshiplistwindow
+	js near $+6+0x3e1+0xc*WINTTDX
+
+codefragment oldclickaircraftlistwindow
+	js near $+6+0x3e5+0xb*WINTTDX
+
+codefragment oldemptyhinttrain,2
+	dw 0x883e
+	dw 0
+	db 3,14
+
+codefragment newemptyhint
+	dw ourtext(sorthint)
+
+codefragment oldemptyhintroad,2
+	dw 0x901b
+	dw 0
+	db 3,14
+
+codefragment oldemptyhintship,2
+	dw 0x9824
+	dw 0
+	db 3,14
+
+codefragment oldemptyhintair,2
+	dw 0xa020
+	dw 0
+	db 3,7
+
+codefragment oldlistguitimer,5
+	pop dx
+	cmp dl,5
+	jne $+2+0x17
+	btr dword [esi+window.activebuttons],4
+
+codefragment newlistguitimer
+	call runindex(listguitimer)
+	setfragmentsize 9
+
+codefragment oldsetvehlisttext,3
+	mov ax,[ebx]
+	mov [textrefstack],ax
+	mov eax,[ebx+2]
+	mov [textrefstack+2],eax
+	db 0xe8	// call DrawWindowElements
+
+codefragment newsetvehlisttext
+	call runindex(setvehlisttext)
+
+codefragment oldislistwindowhuman,2
+	push dx
+	cmp dl,[human1]
+
+codefragment newislistwindowhuman
+	setfragmentsize 8
+
+codefragment oldcreatelistwindow1,2
+	pop dx
+	mov [esi+window.id],dx
+	mov [esi+window.company],dl
+	mov byte [esi+window.itemsvisible],7
+
+codefragment newcreatelistwindow
+	call runindex(createlistwindow)
+	setfragmentsize 7
+
+codefragment oldcreatelistwindow2,2
+	pop dx
+	mov [esi+window.id],dx
+	mov [esi+window.company],dl
+	mov byte [esi+window.itemsvisible],4
+
+codefragment olddelveharrayentry,11
+	push ebp
+	mov ax,[esi+veh.name]
+
+codefragment newdelveharrayentry
+	call runindex(delveharrayentry_sort)
+	setfragmentsize 8
+
+codefragment oldnewveharrayentry
+	mov word [esi+0x2a],0x8000
+
+codefragment newnewveharrayentry
+	call runindex(newveharrayentry_sort)
+
+// --- End of vehicle list sorting fragments ---
+
+
+endcodefragments
+
+ext_frag oldfindnexttrain
+
+patchsortvehlist:
+// do the ordering if necessary
+	patchcode oldfindlisttrains,newfindlisttrains,1,1
+	multipatchcode oldfindlistvehs,newfindlistvehs,3
+
+// find the next vehicle to show in vehicle lists
+	patchcode oldfindnexttrain,newfindnexttrain,1,1
+	patchcode oldnextveh,newnextveh,1,0
+	patchcode oldfindnextrv,newfindnextrv,1+WINTTDX,3
+	patchcode oldnextveh,newnextveh,1,0
+	patchcode oldfindnextship,newfindnextship,1+WINTTDX,2
+	patchcode oldnextveh,newnextveh,1,0
+	patchcode oldfindnextaircraft,newfindnextaircraft,1,1
+	patchcode oldnextveh,newnextveh,1,0
+
+// find the correct vehicle when clicking on an entry
+	patchcode oldclicktrainlist, newclicktrainlist,1,1
+	patchcode oldclickrvlist, newclickrvlist,1,1
+	patchcode oldclickshiplist, newclickshiplist,1,1
+	patchcode oldclickaircraftlist, newclickaircraftlist,1,1
+
+// Modify the empty button in the veh. list windows to show our text
+	mov ebx, vehlistwindowsizes
+	stringaddress oldemptybuttontrain
+	call .patchemptybutton
+	stringaddress oldemptybuttonroad
+	call .patchemptybutton
+	stringaddress oldemptybuttonship
+	call .patchemptybutton
+	stringaddress oldemptybuttonair
+	call .patchemptybutton
+
+// Change the event handler so we can respond to clicking the new button
+// The hint handler should also be modified
+	patchcode oldclicktrainlistwindow,newclicklistwindow,1,1
+	patchcode oldlistwindowhint,newlistwindowhint,1,0
+	patchcode oldclickrvlistwindow,newclicklistwindow,1,1
+	patchcode oldlistwindowhint,newlistwindowhint,1,0
+	patchcode oldclickshiplistwindow,newclicklistwindow,1,1
+	patchcode oldlistwindowhint,newlistwindowhint,1,0
+	patchcode oldclickaircraftlistwindow,newclicklistwindow,1,1
+	patchcode oldlistwindowhint,newlistwindowhint,1,0
+
+// Change hints for the formerly empty button
+	patchcode oldemptyhinttrain,newemptyhint,1,1
+	patchcode oldemptyhintroad,newemptyhint,1,1
+	patchcode oldemptyhintship,newemptyhint,1,1
+	patchcode oldemptyhintair,newemptyhint,1,1
+
+// install our timing routine
+	multipatchcode oldlistguitimer,newlistguitimer,4
+// fill textrefstack correctly to supply the caption of the new button
+	multipatchcode oldsetvehlisttext,newsetvehlisttext,4
+// show the two buttons on the bottom even for AI player windows...
+	multipatchcode oldislistwindowhuman,newislistwindowhuman,4
+// ...but disable the "New Vehicles" button. Then apply the last selected
+// sorting method and start the timer.
+	multipatchcode oldcreatelistwindow1,newcreatelistwindow,4
+	multipatchcode oldcreatelistwindow2,newcreatelistwindow,4
+
+// make sure lists are reordered when deleting/creating vehicles
+	patchcode olddelveharrayentry,newdelveharrayentry,1,1
+	patchcode oldnewveharrayentry,newnewveharrayentry,1,1
+	ret
+
+// Create two buttons instead of the old empty button
+// Since the second window (without buttons) is no longer used, we can use
+// its space for the extra button.
+.patchemptybutton:
+	mov byte [edi+windowbox.type],cWinElemTextBox	// Change the empty button to a text button
+	mov word [edi+windowbox.text],statictext(vehlist_sortbutton)	// set its caption
+	mov ecx,0xd	// make a second copy of this button (copy the end marker, too)
+.copyloop:
+	mov al,[edi+ecx-1]
+	mov [edi+ecx+0xc-1],al
+	loop .copyloop
+
+	mov ax,[edi+windowbox.x2]		// x2 of the old button
+	sub ax,16
+	mov [edi+windowbox.x2],ax		// make it 16 pixels shorter
+	inc ax
+	mov [edi+0xc+windowbox.x1],ax	// the new button goes to the remaining part
+	mov word [edi+0xc+windowbox.text],statictext(vehlist_menubutton)	// Caption (downward pointing triangle)
+
+	testmultiflags enhancegui
+	jz .noresize
+	mov byte [edi+2*12+windowbox.type], cWinElemSizer
+	mov byte [edi+2*12+windowbox.bgcolor], cColorSchemeGrey
+	add ax, 5
+	mov word [edi+2*12+windowbox.x1], ax
+	add ax, 10
+	mov word [edi+2*12+windowbox.x2], ax
+	mov ax, [edi+windowbox.y1]
+	mov word [edi+2*12+windowbox.y1], ax
+	mov ax, [edi+windowbox.y2]
+	mov word [edi+2*12+windowbox.y2], ax
+	sub word [edi+windowbox.x2], 11
+	sub word [edi+12+windowbox.x1], 11
+	sub word [edi+12+windowbox.x2], 11
+	mov byte [edi+3*12+0], cWinElemExtraData
+	mov byte [edi+3*12+1], cWinDataSizer
+	mov dword [edi+3*12+2], vehlistwindowconstraints
+	mov eax, [ebx]
+	mov dword [edi+3*12+6], eax
+	add ebx, 4
+	mov byte [edi+4*12+windowbox.type], cWinElemLast
+.noresize:
+	ret

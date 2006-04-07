@@ -1,0 +1,19 @@
+extern BringWindowToForeground,FindWindow
+extern CreateWindow,CreateWindowRelative,CreateTooltip
+extern DestroyWindow
+extern DrawWindowElements
+
+extern drawtextfn,drawrighttextfn,drawsplittextfn
+extern drawcenteredtextfn,drawsplitcenteredtextfn
+extern SplittextlinesMaxlines
+
+extern fillrectangle
+
+extern invalidatehandle,invalidaterect
+extern CreateTextInputWindow
+
+extern WindowClicked,WindowTitleBarClicked
+extern redrawscreen
+extern specialtext1
+extern specialtext2 
+extern currscreenupdateblock
