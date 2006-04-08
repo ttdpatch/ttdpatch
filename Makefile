@@ -107,9 +107,9 @@ default: ${DEFAULTTARGET}
 # the DOS executable file
 alld:	dos mkpttxt${EXEW}
 allw:	win mkpttxt${EXEW}
-dos:	ttdprotd.lst ttdpatch.exe
-win:	ttdprotw.lst ttdpatchw.exe
-lin:	ttdprotl.lst ttdprotl.bin
+dos:	ttdprotd.lst${GZIPPED} ttdpatch.exe
+win:	ttdprotw.lst${GZIPPED} ttdpatchw.exe
+lin:	ttdprotl.lst${GZIPPED} ttdprotl.bin
 all:	alld allw
 
 .PHONY: test testd testw
@@ -136,7 +136,7 @@ cleantemp:
 	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po
 	rm -f lang/*.{o,map,exe} lang/language.*
 	rm -f host/*.o host/lang/* host/mkpttxt host/makelang
-	rm -f *.*lst *.LST patches/*.*lst
+	rm -f *.*.lst.gz *.*lst *.LST patches/*.*lst
 	rm -f ttdload.ovl
 	rm -f reloc*.inc
 	rm -f *.pe
@@ -156,7 +156,7 @@ clean:	cleantemp
 	rm -f ttdprotw.exe
 	rm -f lang/*.{new,o}
 	rm -f *.{bin,bil}
-	rm -f *.{map,MAP}
+	rm -f *.{map,MAP,map.gz}
 	rm -f reloc.a
 	rm -f *.{res,RES}
 	rm -f langerr.h
@@ -177,6 +177,11 @@ INCLUDES:	versiond.h versionw.h
 
 # if a command fails, delete its output
 .DELETE_ON_ERROR:
+
+ifeq ($(DEFAULTGZIP),1)
+.INTERMEDIATE: ttdprotw.map ttdprotw.exe.map ttdprotw.lst
+.INTERMEDIATE: ttdprotd.map ttdprotd.exe.map ttdprotd.lst
+endif
 
 # ========================================================================
 #            Actual compilation rules for the C sources
@@ -351,13 +356,21 @@ reloc%.inc:	ttdprot%.map
 	${_E} [PERL] $@
 	${_C}perl -s perl/reloc.pl -os=$* < $(filter %.map,$<) > $@
 
-reloc%.bin:	reloc.asm reloc%.inc
-	${_E} [NASM] $@
-	${_C}$(NASM) $(NASMOPT) -f bin $(NASMDEF) -dINCFILE=$(filter %.inc,$^) $< -o $@
+reloc%.inc:	ttdprot%.map.gz
+	${_E} [PERL] $@
+	${_C}zcat $(filter %.map.gz,$<) | perl -s perl/reloc.pl -os=$* > $@
 
 pproc%.h:	ttdprot%.map
 	${_E} [PERL] $@
 	${_C}perl perl/pproc.pl -os=$* < $< > $@
+
+pproc%.h:	ttdprot%.map.gz
+	${_E} [PERL] $@
+	${_C}zcat $< | perl perl/pproc.pl -os=$* > $@
+
+reloc%.bin:	reloc.asm reloc%.inc
+	${_E} [NASM] $@
+	${_C}$(NASM) $(NASMOPT) -f bin $(NASMDEF) -dINCFILE=$(filter %.inc,$^) $< -o $@
 
 patchdll.bin:	patchdll.asm patchdll/ttdpatch.dll
 	${_E} [NASM] $@
@@ -480,9 +493,14 @@ libz.a:
 	@echo NOTE: You can remove the $(LIBZTEMPDIR) directory, it is no longer needed.
 
 # create empty version data files if they're missing
-versions/%.ver:	versions/empty.dat
+versions/%.ver:
 	${_E} [CP] $@
-	${_C}cp $< $@
+	${_C}cp	versions/empty.dat $@
+
+# automatically gzip files
+%.gz : %
+	${_E} [GZIP] $@
+	${_C} gzip -f $<
 
 # recreate version%.h if deleted
 
@@ -533,9 +551,8 @@ ${GAMEDIRW}/%: %
 
 .PHONY:	copyd copyw copy
 
-copyd:	${GAMEDIR}/ttdpatch.exe ${GAMEDIR}/mkpttxt.exe ttdprotd.lst
+copyd:	${GAMEDIR}/ttdpatch.exe ${GAMEDIR}/mkpttxt.exe ttdprotd.lst${GZIPPED}
 
-copyw:	${GAMEDIRW}/ttdpatchw.exe ${GAMEDIRW}/mkpttxt.exe ttdprotw.lst
+copyw:	${GAMEDIRW}/ttdpatchw.exe ${GAMEDIRW}/mkpttxt.exe ttdprotw.lst${GZIPPED}
 
 copy:	copyd copyw
-

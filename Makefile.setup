@@ -167,6 +167,11 @@ CFLAGS += -Os
 LDFLAGS += -Wl,-s
 endif
 
+GZIPPED=
+ifeq ($(DEFAULTGZIP),1)
+	GZIPPED=.gz
+endif
+
 # =======================================================================
 #           setup verbose/non-verbose make process
 # =======================================================================

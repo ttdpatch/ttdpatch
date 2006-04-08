@@ -42,6 +42,9 @@ WINCC = CYGWIN
 # Choose the default target, if you prefer a different target
 # DEFAULTTARGET = allw
 
+# Automatically gzip map and lst files after creating them
+# DEFAULTGZIP = 1
+
 # -------------------------------------------
 #        Compilers and options
 # -------------------------------------------
