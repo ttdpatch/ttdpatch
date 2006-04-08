@@ -777,5 +777,11 @@ CHANGELOG
   * fixed bus stops being drawn as tram stops when tram-stop-build window is opened
 - fixed crash in verbose switch display
 - fixed crash when right clicking statistics button in player window
+- by Oskar:
+  * prevent duplicate manual track type conversion of enhanced tunnels
+  * enabled screenshot grfid function for DOS
+- by Csaba:
+  * allow merging foundations for houses
+  * added callback 3C to disable autosloping for certain industry tiles
 - when station is permanently removed, clear cargo from all vehicle transporting
-  its cargo to prevent crash
+  its cargo as well as cargo waiting at other industries to prevent crash
