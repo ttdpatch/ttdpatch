@@ -241,3 +241,13 @@ stxt_cont	db 0x81
 stxt_cont	dw statictext(special2)
 stxt_cont	db 0
 
+// Graphic Status Window Debug output
+stxt grfstatusdebugtext1, 13,10,'# ',0x81
+stxt_cont	dw statictext(special1)
+stxt_cont	db 13,10,0x81
+stxt_cont	dw statictext(special2)
+stxt_cont	db 13,10,'# ',0x81
+stxt_cont	dw statictext(special3)
+stxt_cont	db 13,10,'# ',0x81
+stxt_cont	dw statictext(special4)
+stxt_cont	db 13,10,0
