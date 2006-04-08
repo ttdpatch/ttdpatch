@@ -85,6 +85,14 @@ uvarw industileaccepts3,256
 uvarb industilelandshapeflags,256
 
 // callback flags
+// Bit	Var. 0C	Meaning
+// 0	26 	decide the next animation frame 	
+// 1	27	decide animation speed 	
+// 2	2B	decide amount of acceptance (only from 2.0.1 a55 vcs 3) 	
+// 3	2C	decide accepted types (only from 2.0.1 a55 vcs 3) 	
+// 4	2F	check if a slope is suitable 	
+// 5	30 	decide if default foundations need to be drawn
+// 6	3C	decide if autosloping is allowed or not
 uvarb industilecallbackflags,256
 
 // Number of animation frames minus one in the low byte,

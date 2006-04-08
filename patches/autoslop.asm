@@ -8,8 +8,8 @@
 #include <human.inc>
 
 extern autoslopevalue,curplayerctrlkey,gettileinfoshort,ishumanplayer
-
-
+extern getindustileid,industilecallbackflags
+extern grffeature,curcallback,getnewsprite
 
 
 
@@ -238,12 +238,25 @@ autoslopechecklandscape:
 	jmp .oktochange
 
 .industrytile:
-	// ebx  = tile xy
-	// For Csaba:
-	// call a function to check if it's allowed to change this tile
-	// yes: .noroutetiles
-	// no:  jmp to near .exit with a pusha before 
-	
+
+	xor eax,eax
+	call getindustileid
+	jnc .noroutetiles
+
+	test byte [industilecallbackflags+eax],0x40
+	jz .noroutetiles
+
+	xchg esi,ebx
+	mov byte [grffeature],9
+	mov byte [curcallback],0x3C
+	call getnewsprite
+	mov byte [curcallback],0
+	xchg esi,ebx
+	jc .noroutetiles
+
+	test eax,eax
+	jnz .exit_nopop
+
 // normal tiles
 .noroutetiles:	
 	pusha
@@ -290,6 +303,7 @@ autoslopechecklandscape:
 	jnc .oktochange
 .exit:
 	popa
+.exit_nopop:
 	// or eax, eax
 	// do old code
 	cmp	byte [autoslopechecklandscapezf], 0
