@@ -6,7 +6,7 @@
 patchprocandor morestats,enhancegui,, patchmorestats
 
 extern acceptcargofn,comp_aimanage,comp_aiview,comp_humanbuild,comp_humanview
-extern companystatsptr,malloccrit
+extern companystatsptr,malloccrit,companywintooltips
 extern player1CompanyWHQWindowElemList,player1CompanyWindowElemList
 extern otherCompanyWindowElemList,otherCompanyManageWindowElemList
 
@@ -107,5 +107,6 @@ patchmorestats:
 	
 	patchcode opencompanywindow
 	patchcode companywindowclicked
+	mov dword [edi+lastediadj+32],companywintooltips
 	patchcode companywindowtimer
 	ret

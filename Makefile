@@ -81,7 +81,7 @@ Makefile.dep%:
 	${_E} [DEP] $@
 	@touch $@
 	@make -o Makefile.depd -o Makefile.depw -s INCLUDES
-	${_C}$(CPP) -x assembler-with-cpp -Iinc -D${WDEF_$*} -MM $(asmmainsrc) patches/*.asm procs/*.asm ${asmcsources} -I. | perl -pe 's/\.o/.$*po/; s#\w+/\.\./##g; print "${OTMP}" if /^\S/; print "$$1/" if /: (patches|procs)\//' > $@
+	${_C}$(CPP) -x assembler-with-cpp -Iinc -DMAKEDEP -D${WDEF_$*} -MM $(asmmainsrc) patches/*.asm procs/*.asm ${asmcsources} -I. | perl -pe 's/\.o/.$*po/; s#\w+/\.\./##g; print "${OTMP}" if /^\S/; print "$$1/" if /: (patches|procs)\//' > $@
 
 ${MAKEFILELOCAL}:
 	@echo ${MAKEFILELOCAL} did not exist, using defaults. Please edit it if compilation fails.

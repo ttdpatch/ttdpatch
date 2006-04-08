@@ -147,6 +147,20 @@ var otherCompanyManageWindowElemList
 	dw 266, 355, 32, 43, ourtext(statistics)
 	db cWinElemLast
 
+varw companywintooltips
+	dw 0x018B
+	dw 0x018C
+	dw 0x7030
+	dw 0x7031
+	dw 0x7032
+	dw 0x7033
+	dw 0x7070
+	dw 0x7079
+	dw 0x707A
+	dw 0
+	dw ourtext(statistics_tooltip)
+endvar	
+
 global companywindowclicked
 companywindowclicked:
 	jne .noskip

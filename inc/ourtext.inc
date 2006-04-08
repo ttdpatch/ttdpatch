@@ -280,6 +280,8 @@ defourtext textsprite
 defourtext txtetramstationheader
 defourtext txtetramdepotheader
 
+defourtext statistics_tooltip
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

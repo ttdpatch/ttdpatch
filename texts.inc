@@ -351,6 +351,7 @@ def ttdpatch_dll_notfound, db 94h,"Cannot load ttdpatch.dll, new sounds disabled
 def statistics, db 0x98, "Statistics",0
 def statistics_white, db 0x94, "Statistics",0
 def totalcargo, db 0x8E, "Total amount of cargo transported",0
+def statistics_tooltip, db 0x98, "Open company statistics",0
 
 def landareainfoheight, db 0x98,"Altitude: ",0x95,0x7B,0
 

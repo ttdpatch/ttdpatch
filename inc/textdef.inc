@@ -8,6 +8,11 @@
 #define ourtext(n) (ourtext_ ## n)
 %include "inc/ourtext.inc"
 
+// mild hack to get the dependencies right
+#ifdef MAKEDEP
+#include <inc/ourtext.inc>
+#endif
+
 //
 // statictext(): custom texts that are language-independent
 //

@@ -507,8 +507,6 @@
 
 - incorrect PBS signal promotion http://www.tt-forums.net/viewtopic.php?p=426083#426083
 
-- action A block too large check broken?
-
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -777,3 +775,5 @@ CHANGELOG
 - by steven_h:
   * fixed "rename" button in RV purchase list renaming wrong vehicle
   * fixed bus stops being drawn as tram stops when tram-stop-build window is opened
+- fixed crash in verbose switch display
+- fixed crash when right clicking statistics button in player window
