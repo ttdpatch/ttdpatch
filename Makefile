@@ -57,8 +57,8 @@ asmcsources:=	$(wildcard patches/*.c) $(wildcard procs/*.c)
 csources:=	ttdpatch.c error.c grep.c switches.c loadlng.c checkexe.c auxfiles.c
 doscsources:=	$(csources) dos.c
 wincsources:=	$(csources) windows.c codepage.c
-versiondatad:=	$(wildcard versions/1*.ver)
-versiondataw:=	$(wildcard versions/2*.ver)
+versiondatad:=	versions/111933d7.ver  versions/111939c7.ver  versions/111946c6.ver versions/111933f4.ver  versions/111945d7.ver
+versiondataw:=	versions/20110016.ver  versions/20110024.ver  versions/20110044.ver versions/20110018.ver  versions/20110042.ver
 
 langhsources:=	$(wildcard lang/*.h)
 langobjs:=	$(langhsources:%.h=%.o)
@@ -478,6 +478,11 @@ libz.a:
 	cd $(LIBZTEMPDIR); unzip -n ../zlib_src; ./configure; make libz.a; 
 	cp $(LIBZTEMPDIR)/libz.a $@
 	@echo NOTE: You can remove the $(LIBZTEMPDIR) directory, it is no longer needed.
+
+# create empty version data files if they're missing
+versions/%.ver:	versions/empty.dat
+	${_E} [CP] $@
+	${_C}cp $< $@
 
 # recreate version%.h if deleted
 
