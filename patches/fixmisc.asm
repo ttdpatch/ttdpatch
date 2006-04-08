@@ -728,6 +728,7 @@ getsubsidyowner:
 %define maxsubsidies 8
 
 // When a station is deleted from the station array, remove references to it in the subsidy array
+// as well as the vehicle cargo sources
 // in:	ESI->station being deleted
 //	AL=station idx
 // out: EDI->start of vehicle array
@@ -754,6 +755,22 @@ deletestationrefs:
 	add edi,byte subsidy_size
 	dec dl
 	jnz .loop
+
+	mov edi,[veharrayptr]
+.checknext:
+	cmp byte [edi+veh.class],0
+	je .nextveh
+	cmp word [edi+veh.currentload],0
+	je .nextveh
+	cmp byte [edi+veh.cargosource],al
+	jne .nextveh
+
+	mov word [edi+veh.currentload],0
+
+.nextveh:
+	sub edi,byte -veh_size
+	cmp edi,[veharrayendptr]
+	jb .checknext
 
 	mov edi,[veharrayptr]		// overwritten by runindex call
 	ret

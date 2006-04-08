@@ -777,3 +777,5 @@ CHANGELOG
   * fixed bus stops being drawn as tram stops when tram-stop-build window is opened
 - fixed crash in verbose switch display
 - fixed crash when right clicking statistics button in player window
+- when station is permanently removed, clear cargo from all vehicle transporting
+  its cargo to prevent crash
