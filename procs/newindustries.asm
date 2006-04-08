@@ -466,9 +466,9 @@ codefragment newindustryrandomsound
 	icall industryrandomsound
 	setfragmentsize 9
 
-codefragment olddrawindustryfundation
-	mov di,0x10
-	mov si,di
+codefragment olddrawindustryfundation,9
+	and bx,0x0f
+	add bx,989
 
 codefragment newdrawindustryfundation
 	mov ebp,edi

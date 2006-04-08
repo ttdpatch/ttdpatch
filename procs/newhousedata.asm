@@ -2,6 +2,7 @@
 #include <frag_mac.inc>
 #include <house.inc>
 #include <town.inc>
+#include <ptrvar.inc>
 
 extern clearnewhousesafeguard,expandnewtown,expandnewtown.oldfn
 extern findvariableaccess_add,findvariableaccess_len,findvariableaccess_start
@@ -10,7 +11,7 @@ extern newhouseoffsets,newhouseyears,orghouseoffsets,reloc
 extern variabletofind
 extern variabletowrite
 extern newhousepartflags, newhouseflags, newhousemailprods, newhouseremoveratings
-extern newhouseremovemultipliers, newhousenames,
+extern newhouseremovemultipliers, newhousenames, correctexactalt.chkslope
 
 ptrvarall newhousedatablock
 
@@ -175,13 +176,15 @@ codefragment newclass3animation
 	call runindex(class3animation)
 	setfragmentsize 12
 
-codefragment oldclass3drawfoundation
+codefragment oldclass3drawfoundation,9
 	and bx,0x0f
 	add bx,989
 
 codefragment newclass3drawfoundation
-	call runindex(class3drawfoundation)
-	setfragmentsize 9
+	mov ebp,edi
+	add dl,8
+	icall displayfoundation
+	setfragmentsize 14
 
 codefragment oldcheckhouseslopes_short,-12
 	xor bl,bl
@@ -347,4 +350,8 @@ patchnewhousedata:
 	patchcode placerocks
 
 	patchcode removehousetilefromlandscape
+
+	// fix the ground alt. correction code for houses
+	mov ebp,[ophandler+3*8]
+	mov dword [ebp+0x14],correctexactalt.chkslope
 	ret

@@ -2062,42 +2062,6 @@ class3animation:
 	mov ebp,[ophandler+0x14*8]
 	jmp [ebp+4]
 
-// Select foundation sprite for a house tile
-// in: bx=di=height map
-//	[esp+8] W: XY of tile
-// out: (e)bx=sprite number
-// safe: esi,???
-global class3drawfoundation
-class3drawfoundation:
-	and ebx,0xf
-	cmp word [extfoundationspritebase],byte -1
-	je .normalfound
-
-	movzx esi,word [esp+8]
-	gethouseid esi,esi
-
-// is it the SE part of a 2x1 building?
-	test byte [newhousepartflags+esi-1],4
-	jz .not2x1
-	add ebx,byte foundationtypes-(14+1)	// yes - disable NW edge
-	jmp short .gotextrafound
-
-.not2x1:
-// maybe the SW part of an 1x2 building?
-	test byte [newhousepartflags+esi-1],2
-	jz .normalfound
-	add ebx,byte 2*foundationtypes-(14+1)	// yes - disable NE egde
-.gotextrafound:
-	add bx,[extfoundationspritebase]
-	ret
-
-.normalfound:
-// either there are no extra foundation graphics (so we don't have a choice),
-// this is a 1x1 building (all edges should be shown), or a 2x2 building
-// (always built on flat land), so use default graphics
-	add ebx,989
-	ret
-
 // By default, the "flat land only" flag works for 1x1 buildings only.
 // We fix it so it is checked for 2x1 and 1x2 as well by modifying a test.
 // in:	ax, cx: fine X and Y coordinates of tile
