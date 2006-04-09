@@ -971,6 +971,35 @@ getindustilelandslope:
 	popa
 	ret
 
+// get animation stage for nearby tiles
+exported getotherindustileanimstage
+	push ebx
+	mov ebx,esi
+.gotebx:
+	mov ecx,ebx
+	sar ax,4
+	sar al,4
+	add bh,ah
+	add bl,al
+
+	mov al,[landscape4(bx)]
+	and al,0xf0
+	cmp al,0x80
+	jne .notpart
+
+	mov al,[landscape2+ecx]
+	cmp al,[landscape2+ebx]
+	jne .notpart
+
+	movzx eax,byte [landscape3+ebx*2]
+	pop ebx
+	ret
+
+.notpart:
+	pop ebx
+	or eax,byte -1
+	ret
+
 // Start/stop animation and set the animation stage of a new industry tile
 // (Almost the same as sethouseanimstage, but stores the current frame differently)
 // in:	al:	number of new stage where to start
@@ -3875,6 +3904,11 @@ getindustilelandslope_industry:
 	pusha
 	movzx esi,word [esi+industry.XY]
 	jmp getindustilelandslope.gotesi
+
+exported getotherindustileanimstage_industry
+	push ebx
+	movzx ebx,word [esi+industry.XY]
+	jmp getotherindustileanimstage.gotebx
 
 // a production instruction returned by the production callback
 // it contains three values to subtract from the three waiting cargo types,

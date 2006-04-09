@@ -31,6 +31,7 @@ extern stationcargolots,stationcargowaitingmask,stationflags,stsetids
 extern triggerbits,vehids,getvehtypeflags,getcargoacceptdata
 extern wagonoverride,getindutiletypeatoffset,getindutilerandombits
 extern getindustilelandslope_industry,hexdigits,int21handler
+extern getotherindustileanimstage,getotherindustileanimstage_industry
 
 uvard grffeature
 uvard curgrffeature,1,s		// must be signed to indicate "no current feature"
@@ -1755,7 +1756,8 @@ vard industilesvarhandler
 endvar
 
 vard industilesparamvarhandler
-	dd addr(getindustilelandslope)
+	dd getindustilelandslope
+	dd getotherindustileanimstage
 %ifndef PREPROCESSONLY
 %assign n_industilesparamvarhandler (addr($)-industilesparamvarhandler)/4
 %endif
@@ -1788,6 +1790,7 @@ vard industryparamvarhandler
 	dd getindutiletypeatoffset
 	dd getindutilerandombits
 	dd getindustilelandslope_industry
+	dd getotherindustileanimstage_industry
 %ifndef PREPROCESSONLY
 %assign n_industryparamvarhandler (addr($)-industryparamvarhandler)/4
 %endif
