@@ -523,14 +523,17 @@ svarw maxtextwidth
 //
 // in:	eax=character
 //	esi->string past character
+//	bh=font type (normal/micro/big)
 // out:	eax=width
 //	esi->string past character's arguments (if any)
+//	bh=updated font type
 // uses:edx
 getutf8charwidth:
 	cmp eax,byte " "
 	jb .special
 
 	movzx edx,ah
+	add dh,bh
 	mov edx,[fonttables+edx*4]
 	movzx eax,al
 	mov al,[edx+eax*fontinfo_size+fontinfo.width]
