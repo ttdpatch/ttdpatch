@@ -783,5 +783,11 @@ CHANGELOG
 - by Csaba:
   * allow merging foundations for houses
   * added callback 3C to disable autosloping for certain industry tiles
+  * added industry tile var 61 and industry var 63 to get animation stages
+    for nearby tiles
+  * fixed wrong offsets of text in news messages
+  * fixed crash when typing too much into an edit box in Unicode mode
 - when station is permanently removed, clear cargo from all vehicle transporting
   its cargo as well as cargo waiting at other industries to prevent crash
+- increased max.number of refit options to 256
+- fixed crash when using obsolete sign cheats

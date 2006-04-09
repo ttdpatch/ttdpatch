@@ -46,12 +46,10 @@ endstruc_32
 %assign cheatcount 0
 %assign cheataliascount 0
 %macro cheatentry 3.nolist // params: text,function,costs
-%ifndef PREPROCESSONLY
-	%define cht_%2 addr($)
-%endif
 	%if cheatcount>63
 		%error "Too many cheats, need more bits to record Cht: Used"
 	%endif
+cht_%2:
 	istruc cheat
 		at cheat.name, db %1
 		at cheat.costs, db %3
@@ -75,8 +73,7 @@ endstruc_32
 	// Renaming is ok, and lowercase chars will never be matched
 	// Each cheat should return with a "ret", and set the carry flag
 	// if there was an error.
-	align 4
-var cheatlist
+varb cheatlist
 cheatentry "MONEY",moneycheat,0
 cheatentry "YEAR",yearcheat,0
 cheatentry "TRACKS",trackcheat,1
@@ -133,6 +130,7 @@ cheatentry "SNOWLINE",snowlinecheat,0
 cheatentry "GOTOXY",gotocheat,0
 cheatentry "TEXTID",textidcheat,0
 #endif
+endvar
 
 uvard activesign	// pointer to current sprite structure, or -1 if about to set
 uvarw cheaterror

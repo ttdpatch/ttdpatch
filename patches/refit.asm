@@ -138,7 +138,7 @@ shipsrefittable:
 	ret
 
 
-%define numrefitoptions 64
+%define numrefitoptions 256
 uvard currefitlist,((numrefitoptions+2)*refitinfo_size+3)/4	// refit options plus terminator plus temp entry
 uvard currefitinfonum
 uvard currefitinfoptr
