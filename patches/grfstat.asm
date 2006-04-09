@@ -24,7 +24,7 @@ extern specialtext3,specialtext4
 extern spriteblockptr,spritetestactaction,tempSplittextlinesNumlinesptr
 extern totalmem
 extern totalnewsprites
-extern newtexthandler,int21handler
+extern newtexthandler,int21handler,hasaction12,getutf8char,tmpbuffer1
 
 extern currentselectedgrf
 extern win_grfhelper_create
@@ -965,10 +965,47 @@ gameoptionstimer:
 	ret
 
 	
-var grfstatusdebugfile, db "grfdebug.txt", 0
-var grfstatusdebugfilehandle, dw 0
-
+varb grfstatusdebugfile
+	db "grfdebug.txt", 0
+varb grfstatusdebugtextcom
+	db 13,10,"# ", 0
+varb grfstatusdebugtextnl
+	db 13,10,0
+varb grfdebug_txtfaulty
+	db "Faulty",0
+varb grfdebug_txtconflict
+	db "Conflict",0
+varb grfdebug_txtspecial
+	db "Special",0
+varb grfdebug_txtactive
+	db "Active",0
+varb grfdebug_txtdeactive
+	db "Deactive",0 
+vard grfstatusdebugfilehandle
+	dd 0
+	 
+	 
 uvarb grfstatusbuffer, 4048	// for grf creators who get overexcited
+
+// in esi = buffer to output
+grfstatuscreatedebugstrout:
+	pusha
+	mov edx, esi
+	xor ecx,ecx
+.nextlen:
+	cmp byte [esi],0
+	je .gotlength
+	inc esi
+	inc ecx
+	jmp short .nextlen
+.gotlength:
+	mov bx, [grfstatusdebugfilehandle]
+	mov al, 0
+	mov ah, 0x40
+	CALLINT21
+	popa
+	ret
+	
 grfstatuscreatedebug:
 	CALLINT3
 	pusha
@@ -990,40 +1027,92 @@ grfstatuscreatedebug:
 	call win_grfstat_getspriteblockinfo
 	xchg ebp, eax
 	
-	mov edi, [specialtext1]
-	mov edi, [specialtext2]
-	mov edi, [specialtext3]
-	mov edi, [specialtext4]
-		
-	test byte [esi+spriteblock.active],1
+	mov esi, grfstatusdebugtextcom
+	call grfstatuscreatedebugstrout
+	mov esi, [specialtext1]
+	call grfstatuscreatedebugstrout
 	
-	mov ax, statictext(grfstatusdebugtext1)
+	
+	mov esi, grfstatusdebugtextnl
+	call grfstatuscreatedebugstrout
+	mov esi, [specialtext2]
+	call grfstatuscreatedebugstrout
+	
+	mov esi, grfstatusdebugtextcom
+	call grfstatuscreatedebugstrout
+	mov esi, [specialtext3]
+	cmp byte [esi], 0
+	je .nogrfid
+	add esi, 10
+.nogrfid:
+	call grfstatuscreatedebugstrout
+	
+	mov esi, grfstatusdebugtextcom
+	call grfstatuscreatedebugstrout
+	mov esi, [specialtext4]
+	mov edi, grfstatusbuffer
+	call removepecialcodesfromstring
+	mov esi, grfstatusbuffer
+	call grfstatuscreatedebugstrout
+	
+// status		
+	mov esi, grfstatusdebugtextcom
+	call grfstatuscreatedebugstrout 
+
+	xor ebx, ebx
+	mov bl, [ebp+spriteblock.active]
+	mov esi, grfdebug_txtfaulty
+	test bl,bl
+	js .donestatus
+	mov esi, grfdebug_txtspecial
+	cmp dword [ebp+spriteblock.grfid], byte -1
+	je .donestatus
+	mov esi, grfdebug_txtactive
+	and bl, 1
+	cmp bl, 1
+	je .donestatus
+	mov esi, grfdebug_txtconflict
+	test byte [ebp+spriteblock.flags],2	// off because of resource conflict
+	jnz .donestatus
+	mov esi, grfdebug_txtdeactive
+.donestatus:
+	call grfstatuscreatedebugstrout
+	
+// error message
+	pusha
+	mov esi, grfstatusdebugtextcom
+	call grfstatuscreatedebugstrout
+	
+	mov eax, ebp	
+	test byte [eax+spriteblock.flags],2	// off because of resource conflict?
+	jnz .conflict
+
+	cmp word [eax+spriteblock.errsprite],0
+	je .noerror
+
+	// Get an error text for a grf
+	//  in: eax pointer to spriteblock
+	//  out: bx with textid, textrefstack and specialtext1 changed
+	//  uses: ecx, edx
+	call win_grfstat_geterrorinfo
+	jmp short .goterrmsg
+.conflict:
+	// in: eax pointer to spriteblock
+	// out: bx with textid, textrefstack and specialtext1 changed
+	// uses: ecx
+	call win_grfstat_geterrconflictinfo
+.goterrmsg:
 	mov edi, grfstatusbuffer
 	pusha
 	call newtexthandler
 	popa
-
+	mov esi, grfstatusbuffer
+	call grfstatuscreatedebugstrout
+.noerror:
+	popa
+	mov esi, grfstatusdebugtextnl
+	call grfstatuscreatedebugstrout
 	
-	
-	mov edi, grfstatusbuffer
-	xor ecx,ecx
-	mov esi,edi
-.nextlen:
-	cmp byte [esi],0
-	je .gotlength
-	inc esi
-	inc ecx
-	jmp short .nextlen
-.gotlength:
-	// ECX=number of bytes to write
-
-	mov edx, edi
-	mov bx, [grfstatusdebugfilehandle]
-	mov al, 0
-	mov ah, 0x40
-	CALLINT21
-	jc .error_exit
-
 	mov ebp, [ebp+spriteblock.next]
 	test ebp,ebp
 	jnz near .nextgrf
@@ -1038,3 +1127,49 @@ grfstatuscreatedebug:
 	popa
 	ret
 
+	
+// Strip special chars in a TTD Text string
+// esi = source string
+// edi = dest string
+exported removepecialcodesfromstring
+	pusha
+.copyloop:
+	cmp byte [hasaction12],0
+	je .notutf8
+	push esi
+	call getutf8char
+	pop ecx
+	sub esi,ecx
+	xchg esi,ecx	// now ecx=number of bytes in UTF-8 sequence, esi->sequence
+	jmp short .check
+.notutf8:
+	movzx eax,byte [esi]
+	mov ecx,1
+.check:
+	test eax,eax
+	jz .zero
+	cmp eax, 0Dh
+	jz .lbl0Dh
+	cmp eax, 20h
+	jb .skip
+	cmp eax, 88h
+	jb .lbl88h
+	cmp eax, 99h
+	jb .skip
+	
+.lbl88h:
+	rep movsb
+	jmp .copyloop
+
+.lbl0Dh:
+	mov dword [edi], 20202020h
+	add edi, 4
+
+.skip:
+	add esi,ecx
+	jmp .copyloop
+
+.zero:
+	mov [edi], al
+	popa
+	ret
