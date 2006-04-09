@@ -270,7 +270,7 @@ section .text
 	jz .done
 
 	cmp eax,10
-	jbe .two
+	jb .two	// changed from jbe to jb so 0x10 can be passed through the texthandler (eis_os)
 
 	cmp eax,15
 	jbe .store

@@ -1437,6 +1437,7 @@ dogeneralpatching:
 	storeaddress oldtexthandler,1,1,ttdtexthandler
 	storefragment newtexthandler
 	add edi,lastediadj+43
+	mov byte [edi+7], 0x72 // changes from jbe to jb so 0x10 can be passed through the texthandler (eis_os) 
 	storefragment newtextprocessing
 	lea eax,[edi+lastediadj+62]
 	mov [textspechandler],eax
