@@ -707,7 +707,7 @@ exported textinputchar
 	je near .delete
 
 	cmp eax,' '
-	jb .ret
+	jb .done
 
 	call getutf8numbytes
 	lea edx,[edx+esi+2]	// +2 for the UTF-8 code
@@ -715,23 +715,23 @@ exported textinputchar
 
 	// now edx=new string length incl. final 0
 	test dh,dh
-	jnz .ret
+	jnz .done
 	cmp dl,[bTextInputMaxLength]
-	jnb .ret
+	jnb .donenz
 
 	mov ebp,eax
 	call getutf8charwidth
 	test eax,eax
-	jz .ret
+	jz .donenz
 
 	add ebx,eax
 	mov eax,ebp
 
 	test bh,bh
-	jnz .ret
+	jnz .done
 
 	cmp bl,[bTextInputMaxWidth]
-	ja .ret
+	ja .done
 
 	lea edi,[esi-1]
 	call storeutf8char
@@ -751,7 +751,7 @@ exported textinputchar
 
 .delete:
 	test ecx,ecx
-	jz .ret
+	jz .donenz
 
 	dec esi
 .delnext:
