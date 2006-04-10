@@ -15,10 +15,6 @@ Each file is a C include file of an array containing:
  - the list of offsets in the order in which they appear in init.ah,
    filled with zeroes to some array size
 
-The empty.ver file is an empty version file to be used whenever the
-version info changes.  Empty.bat replaces all version info with this
-file to force re-searching of the offsets (note that you can also
-use the -V switch to force this).  EmptyD.bat does so only for the DOS
-versions, and EmtpyW.bat only for the Windows versions.
+To create empty files (from empty.dat) simply delete the .ver files
+and run make, it'll recreate them.
 
-New.bat goes through all version files and converts them to lower case.

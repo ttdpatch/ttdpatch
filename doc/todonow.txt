@@ -502,9 +502,6 @@
 
 - crash: http://www.tt-forums.net/viewtopic.php?p=423846#423846
 
-- in unicode mode, newspaper headings not centered, and signs in zoomed-out
-  view have wrong width
-
 - incorrect PBS signal promotion http://www.tt-forums.net/viewtopic.php?p=426083#426083
 
 ==== Rather urgent =====
@@ -767,29 +764,4 @@ CHANGELOG
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
-2.5 beta 3
-- fixed "OK" button in text input window in unicode mode corrupting characters
-- fixed messed up F800+x text IDs, added check to prevent this in the future
-- fixed bug with secondary industries constantly closing down
-- default state of "experimentalfeatures on" no longer includes mandatory GRM
-- by steven_h:
-  * fixed "rename" button in RV purchase list renaming wrong vehicle
-  * fixed bus stops being drawn as tram stops when tram-stop-build window is opened
-- fixed crash in verbose switch display
-- fixed crash when right clicking statistics button in player window
-- by Oskar:
-  * prevent duplicate manual track type conversion of enhanced tunnels
-  * enabled screenshot grfid function for DOS
-- by Csaba:
-  * allow merging foundations for houses
-  * added callback 3C to disable autosloping for certain industry tiles
-  * added industry tile var 61 and industry var 63 to get animation stages
-    for nearby tiles
-  * fixed wrong offsets of text in news messages
-  * fixed crash when typing too much into an edit box in Unicode mode
-- when station is permanently removed, clear cargo from all vehicle transporting
-  its cargo as well as cargo waiting at other industries to prevent crash
-- increased max.number of refit options to 256
-- fixed crash when using obsolete sign cheats
-- changed "too many sprites" error message to more elaborate grf conflict message
-  also showing which resource and sprite are giving trouble
+2.5 beta 4
