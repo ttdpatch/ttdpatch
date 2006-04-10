@@ -141,8 +141,14 @@ screenshotgrfid:
 	ret
 .normalgame:
 	pusha
+#if WINTTDX
 	mov edi, [sFullScreenUpdateBlock+scrnblockdesc.buffer]
 	movzx ebx, word [reswidth]
+#else
+	push es
+	les edi, [sFullScreenUpdateBlock+scrnblockdesc.buffer]
+	mov ebx,640
+#endif
 	imul ebx, 21
 	add edi, ebx
 	
@@ -175,7 +181,7 @@ screenshotgrfid:
 	and bl, 0xF
 	shr eax, 4
 	mov bl, byte [screenshotgrfidbytes+ebx]
-	mov byte [edi+edx], bl
+	mov byte [es:edi+edx], bl
 	add edx, 2
 	cmp edx, 16
 	jb .nextbits
@@ -184,6 +190,9 @@ screenshotgrfid:
 	add ecx, 16
 	jmp .next
 .nomore:
+#if !WINTTDX
+	pop es
+#endif
 	popa
 	ret
 // If an aircraft is taking off and needs to go to hangar,
