@@ -24,7 +24,7 @@ extern specialtext3,specialtext4
 extern spriteblockptr,spritetestactaction,tempSplittextlinesNumlinesptr
 extern totalmem
 extern totalnewsprites
-extern newtexthandler,int21handler,hasaction12,getutf8char,tmpbuffer1
+extern newtexthandler,int21handler,hasaction12,getutf8char,tmpbuffer1, hexnibbles
 
 extern currentselectedgrf
 extern win_grfhelper_create
@@ -982,6 +982,8 @@ varb grfdebug_txtdeactive
 	db "Deactive",0 
 vard grfstatusdebugfilehandle
 	dd 0
+varb grfstatusdebugparam
+	db "Parameter 0x##: 0x######## ",0 
 	 
 	 
 uvarb grfstatusbuffer, 4048	// for grf creators who get overexcited
@@ -1006,7 +1008,7 @@ grfstatuscreatedebugstrout:
 	ret
 	
 grfstatuscreatedebug:
-	CALLINT3
+
 	pusha
 	mov edx, grfstatusdebugfile
 	xor ecx,ecx
@@ -1043,6 +1045,11 @@ grfstatuscreatedebug:
 	cmp byte [esi], 0
 	je .nogrfid
 	add esi, 10
+	mov edi, grfstatusbuffer
+	movsd
+	movsd
+	mov byte [edi], 0
+	mov esi, grfstatusbuffer
 .nogrfid:
 	call grfstatuscreatedebugstrout
 	
@@ -1077,6 +1084,23 @@ grfstatuscreatedebug:
 .donestatus:
 	call grfstatuscreatedebugstrout
 	
+	pusha
+	mov edi, grfstatusbuffer
+	mov dword [edi], " A: "
+	mov dword [edi+4], "  F:"
+	mov dword [edi+8], 0
+	add edi, 3
+	movzx eax, byte [ebp+spriteblock.active]
+	mov cl, 2
+	call hexnibbles
+	add edi, 3
+	movzx eax, byte [ebp+spriteblock.flags]
+	mov cl, 2
+	call hexnibbles
+	popa
+	mov esi, grfstatusbuffer
+	call grfstatuscreatedebugstrout
+		
 // error message
 	pusha
 	mov esi, grfstatusdebugtextcom
@@ -1109,9 +1133,48 @@ grfstatuscreatedebug:
 	call grfstatuscreatedebugstrout
 .noerror:
 	popa
+		
+	pusha
+	movzx ecx, byte [ebp+spriteblock.orgnumparam]
+	test ecx,ecx
+	jz .noparams
+
+	mov esi, grfstatusdebugtextcom
+	call grfstatuscreatedebugstrout
+.nextparm:
+	dec ecx
+	
+	mov eax, ecx
+	mov edi, grfstatusdebugparam
+	push ecx
+	add edi, 12
+	mov cl, 2
+	call hexnibbles
+	pop ecx
+	
+	add edi, 4
+	
+	push ecx
+	mov eax, [ebp+spriteblock.orgparamptr]
+	mov eax, [eax+ecx*4]
+	mov cl, 8
+	call hexnibbles
+	pop ecx
+	mov esi, grfstatusdebugparam
+	call grfstatuscreatedebugstrout
+
+	mov esi, grfstatusdebugtextcom
+	call grfstatuscreatedebugstrout
+
+	cmp ecx, 0
+	jnz .nextparm
+.noparams:
+	popa
+	
+	
 	mov esi, grfstatusdebugtextnl
 	call grfstatuscreatedebugstrout
-	
+
 	mov ebp, [ebp+spriteblock.next]
 	test ebp,ebp
 	jnz near .nextgrf
@@ -1126,7 +1189,6 @@ grfstatuscreatedebug:
 	popa
 	ret
 
-	
 // Strip special chars in a TTD Text string
 // esi = source string
 // edi = dest string

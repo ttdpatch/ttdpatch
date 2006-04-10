@@ -35,6 +35,8 @@ struc spriteblock
 				// bit 1: off because of resource conflict
 				// bit 2: did reserve extra action A sprites
 				// bit 3: needs to import sounds from other GRF
+	.orgparamptr	resd 1	// Pointer to sprite parameters (as read from config)
+	.orgnumparam	resb 1	// number of parameters given for this block (as read from config)
 endstruc_32
 
 %macro checkfeaturesize 2.nolist

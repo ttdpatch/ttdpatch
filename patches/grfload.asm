@@ -198,17 +198,27 @@ proc processnewgrf
 	jz .noparams
 
 	mov ecx,edi
-	shl edi,2
+	shl edi,3		//copy the data two times to preserve the original parameters, was: 2 
 	push edi
 	add [totalmem],edi
 	call malloc
 	pop edi
 	jc .fail		// leave clears up the stack too
-
+	
+	push edi //copy the data two times to preserve the original parameters
+	
+	push ecx
 	mov esi,vehids
-	push edi
+	rep movsd
+	pop ecx
+	mov esi,vehids
 	rep movsd
 	pop edi
+	
+//	mov esi,vehids
+//	push edi
+//	rep movsd
+//	pop edi
 
 .noparams:
 	mov eax,[curspriteblock]
@@ -473,7 +483,13 @@ proc readgrffile
 	mov eax,[%$paramofs]
 	mov [esi+spriteblock.paramptr],eax
 	mov eax,[%$numparam]
+	shl eax, 2
+	add eax,[%$paramofs]
+	mov [esi+spriteblock.orgparamptr],eax
+	mov eax,[%$numparam]
 	mov [esi+spriteblock.numparam],al
+	mov [esi+spriteblock.orgnumparam],al
+
 	mov [esi+spriteblock.flags],ah
 
 	cmp dword [%$len],4
