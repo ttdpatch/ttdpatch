@@ -14,7 +14,7 @@ struc spriteblock
 	.next:		resd 1	// Pointer to next spriteblock
 	.action8:	resd 1	// Pointer to action 8 data
 	.miscstr:	resd 1	// Pointer to list of miscellaneous texts
-	.errparam:	resd 1	// Parameters for sprite error message, if any
+	.errparam:	resd 2	// Parameters for sprite error message, if any
 	.soundinfo:	resd 1	// If defined, pointer to array of soundinfo structures
 	.cargotransptr:	resd 1	// Pointer to cargo translation struct, if defined
 	.numsprites:	resw 1	// number of sprites in this block

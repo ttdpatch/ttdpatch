@@ -8,8 +8,6 @@
 #include <bitvars.inc>
 
 extern currscreenupdateblock,drawsplittextfn,drawspritefn,miscmodsflags
-extern numactsprites
-
 
 vard exsfeatureuseseparatesprites, 00010001111b
 
@@ -77,32 +75,25 @@ vard exsfeaturetospritebaseoffsets
 	checkfeaturesize exsfeaturetospritebaseoffsets, 4
 endvar
 
-vard exsnumactspritesptrlist
-	dd numactspritesvehtrains	// 0 trains
-	dd numactspritesvehrv		// 1 road
-	dd numactspritesvehships	// 2 ships
-	dd numactspritesvehplanes	// 3 planes
-	dd numactsprites		// 4 stations
-	dd numactsprites		// 5 canals
-	dd numactsprites		// 6 bridges (unused)
-	dd numactspritesnewhouses	// 7 newhouses
-	dd 0				// 8 specialvars
-	dd numactsprites		// 9 industries
-	dd numactsprites		// 10 industries
-	dd numactsprites		// 11 cargoes
-	dd 0				// 12 sounds
-	checkfeaturesize exsnumactspritesptrlist, 4
+// to add new block, also adjust 
+varb exsnumactspritesindex
+	db 1	// 0 trains
+	db 2	// 1 road
+	db 3	// 2 ships
+	db 4	// 3 planes
+	db 0	// 4 stations
+	db 0	// 5 canals
+	db 0	// 6 bridges (unused)
+	db 5	// 7 newhouses
+	db -1	// 8 specialvars
+	db 0	// 9 industries
+	db 0	// 10 industries
+	db 0	// 11 cargoes
+	db -1	// 12 sounds
+	checkfeaturesize exsnumactspritesindex,1
 endvar
 
-uvard numactspritesvehtrains,1,z
-uvard numactspritesvehrv,1,z
-uvard numactspritesvehships,1,z
-uvard numactspritesvehplanes,1,z
-
-
-uvard numactspritesnewhouses,1,z
-
-
+uvard numactsprites,NUMSPRITEBLOCKS	// Number of active sprites in TTD's sprite number space
 
 uvarb exscurfeature
 uvarb exsspritelistext	// toggles extendend sprite mode for add*sprite, if > 0 it will be decreased every call
@@ -127,8 +118,8 @@ exsresetspritecounts:
 	mov esi, 0
 .next:
 	mov eax, [exsfeaturetospritebaseoffsets+esi*4]
-	mov edi,[exsnumactspritesptrlist+esi*4]
-	mov [edi], eax
+	movzx edi,byte [exsnumactspritesindex+esi]
+	mov [numactsprites+edi*4], eax
 	inc esi
 	cmp dword [exsfeaturetospritebaseoffsets+esi*4], 0
 	jnz .next
@@ -138,23 +129,18 @@ exsresetspritecounts:
 // So much code for the status
 global exsshowstats
 exsshowstats:
-	setbase esi,exsnumactspritesptrlist
+	setbase esi,exsfeaturetospritebaseoffsets
 
 	// count total active sprites
-	mov eax,[BASE exsnumactspritesptrlist+0*4]
-	mov ebx,[eax]
+	mov ebx,[numactsprites+1*4]
 	sub ebx,[BASE exsfeaturetospritebaseoffsets+0*4]
-	mov eax,[BASE exsnumactspritesptrlist+1*4]
-	add ebx,[eax]
+	add ebx,[numactsprites+2*4]
 	sub ebx,[BASE exsfeaturetospritebaseoffsets+1*4]
-	mov eax,[BASE exsnumactspritesptrlist+2*4]
-	add ebx,[eax]
+	add ebx,[numactsprites+3*4]
 	sub ebx,[BASE exsfeaturetospritebaseoffsets+2*4]
-	mov eax,[BASE exsnumactspritesptrlist+3*4]
-	add ebx,[eax]
+	add ebx,[numactsprites+4*4]
 	sub ebx,[BASE exsfeaturetospritebaseoffsets+3*4]
-	mov eax,[BASE exsnumactspritesptrlist+7*4]
-	add ebx,[eax]
+	add ebx,[numactsprites+5*4]
 	sub ebx,[BASE exsfeaturetospritebaseoffsets+7*4]
 	add [edi-10],ebx
 
@@ -169,8 +155,8 @@ exsshowstats:
 
 	// rail
 	mov edi, textrefstack
-	mov eax, [exsnumactspritesptrlist]
-	mov eax, [eax]
+	movzx eax,byte [exsnumactspritesindex]
+	mov eax, [numactsprites+eax*4]
 	sub eax, [exsfeaturetospritebaseoffsets]
 	stosd
 	mov ax,ourtext(grfstatmax)
@@ -180,8 +166,8 @@ exsshowstats:
 	stosd
 
 	// road
-	mov eax, [exsnumactspritesptrlist+4]
-	mov eax, [eax]
+	movzx eax,byte [exsnumactspritesindex+1]
+	mov eax, [numactsprites+eax*4]
 	sub eax, [exsfeaturetospritebaseoffsets+4]
 	stosd
 	mov ax,ourtext(grfstatmax)
@@ -196,8 +182,8 @@ exsshowstats:
 
 	// ship
 	mov edi, textrefstack
-	mov eax, [exsnumactspritesptrlist+8]
-	mov eax, [eax]
+	movzx eax,byte [exsnumactspritesindex+2]
+	mov eax, [numactsprites+eax*4]
 	sub eax, [exsfeaturetospritebaseoffsets+8]
 	stosd
 	mov ax,ourtext(grfstatmax)
@@ -207,8 +193,8 @@ exsshowstats:
 	stosd
 
 	//plane
-	mov eax, [exsnumactspritesptrlist+12]
-	mov eax, [eax]
+	movzx eax,byte [exsnumactspritesindex+3]
+	mov eax, [numactsprites+eax*4]
 	sub eax, [exsfeaturetospritebaseoffsets+12]
 	stosd
 	mov ax,ourtext(grfstatmax)
@@ -223,8 +209,8 @@ exsshowstats:
 
 	// new houses
 	mov edi, textrefstack
-	mov eax, [exsnumactspritesptrlist+7*4]
-	mov eax, [eax]
+	movzx eax,byte [exsnumactspritesindex+7]
+	mov eax, [numactsprites+eax*4]
 	sub eax, [exsfeaturetospritebaseoffsets+7*4]
 	stosd
 	mov ax,ourtext(grfstatmax)

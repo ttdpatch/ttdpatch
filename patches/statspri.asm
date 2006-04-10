@@ -29,6 +29,7 @@ extern stationspritelayout,stsetids
 extern unimaglevmode, Class5LandPointer, paStationtramstop
 extern lookuptranslatedcargo,mostrecentspriteblock,statcargotriggers
 extern lookuptranslatedcargo_usebit,gettileterrain
+extern failpropwithgrfconflict,lastextragrm,curextragrm,setspriteerror
 
 
 // bits in L7:
@@ -524,12 +525,12 @@ setstationclass:
 	cmp dword [numstationclasses],byte maxstationclasses
 	jb .newclass
 
-.badpop:
-	mov ax,ourtext(toomanyspritestotal)
-.error:
+.toomanypop:
 	pop ecx
-	stc
-	ret
+
+.toomany:
+	mov al,GRM_EXTRA_STATIONS
+	jmp failpropwithgrfconflict
 
 .newclass:
 	stosd
@@ -540,8 +541,7 @@ setstationclass:
 	inc al
 	jnz .ok		// too many stations in set?
 
-	mov ax,ourtext(toomanyspritestotal)
-	jmp .error
+	jmp .toomany
 
 .ok:
 	cmp byte [grfstage],0
@@ -618,7 +618,13 @@ setgeneralspritelayout:
 	cmp ecx,edx
 	je .nexttile
 	pop ebx
-	jmp setstationclass.badpop
+
+.invalid:
+	pop ecx
+	mov eax,(INVSP_INVPROPVAL << 16)+ourtext(invalidsprite)
+	call setspriteerror
+	or edi,byte -1
+	ret
 
 .nexttile:
 	mov eax,esi

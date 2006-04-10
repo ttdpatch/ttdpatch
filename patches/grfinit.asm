@@ -20,7 +20,7 @@
 #include <house.inc>
 #include <font.inc>
 
-extern SwapDockWinPurchaseLandIco,SwapLomoGuiIcons,activatedefault
+extern SwapDockWinPurchaseLandIco,SwapLomoGuiIcons,activatedefault,activatetype
 extern addnewtemperatecargo,basecostmult,bridgespritetables,callbackflags
 extern cargoid,cargotypes,catenaryspritebase,clearhousedataids
 extern clearindustiledataids,clearstationgameids,copyorghousedata,costrailmul
@@ -80,6 +80,7 @@ newvehtypeinit:
 	push es
 	push ds
 	pop es
+	mov [activatetype],ah
 	call initveh2
 	call inforeset		// reset all vehtype data
 	mov [activatedefault],al	// new game -> activate all graphics
@@ -171,6 +172,7 @@ ovar .oldfn,-4,$,newvehtypeinit
 	call grferror
 
 .done:
+	mov byte [activatetype],1
 	pop eax
 	test al,al
 	jz .notnewgame

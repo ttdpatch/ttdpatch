@@ -25,6 +25,7 @@ extern specialerrtext1,substindustries
 extern texthandler,mostrecentgrfversion,drawsplittextfn
 extern lookuptranslatedcargo,miscgrfvar
 extern fundcostmultipliers,CreateNewRandomIndustry
+extern failpropwithgrfconflict,lastextragrm,curextragrm
 
 
 // --- Industry tile stuff ---
@@ -138,9 +139,8 @@ setsubstindustile:
 	jnc .foundgameid
 
 .toomany:
-	mov ax,ourtext(toomanyspritestotal)
-	stc
-	ret
+	mov al,GRM_EXTRA_INDUSTILES
+	jmp failpropwithgrfconflict
 
 .invalid:
 	mov ax,ourtext(invalidsprite)
@@ -209,6 +209,8 @@ setsubstindustile:
 	inc ebx
 	dec ecx
 	jne near .next
+	mov eax,[curspriteblock]
+	mov [curextragrm+GRM_EXTRA_INDUSTILES*4],eax
 	clc
 	ret
 
@@ -1822,9 +1824,8 @@ setsubstindustry:
 	jb .findemptyid
 
 	pop ecx
-	mov ax,ourtext(toomanyspritestotal)
-	stc
-	ret
+	mov al,GRM_EXTRA_INDUSTRIES
+	jmp failpropwithgrfconflict
 
 .invalid_pop:
 	pop ecx
@@ -1888,6 +1889,8 @@ setsubstindustry:
 	inc ebx
 	dec ecx
 	jnz near .next
+	mov eax,[curspriteblock]
+	mov [curextragrm+GRM_EXTRA_INDUSTILES*4],eax
 	clc
 	ret
 

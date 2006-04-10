@@ -791,3 +791,5 @@ CHANGELOG
   its cargo as well as cargo waiting at other industries to prevent crash
 - increased max.number of refit options to 256
 - fixed crash when using obsolete sign cheats
+- changed "too many sprites" error message to more elaborate grf conflict message
+  also showing which resource and sprite are giving trouble

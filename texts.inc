@@ -139,11 +139,13 @@ def invalidsprite, db 94h, "File ", 22h,80h,22h," has invalid sprite #",7ch," (c
 def notttdpatchgrf, db 94h, "File ",22h,80h,22h," is not a TTDPatch graphics file.",0
 def grferror, db 94h, "Error: ", 80h,0
 def grfwarning, db 94h, "Warning: ", 80h,0
-def grfneedspatchversion, db 80h, " requires at least TTDPatch version ", 80h, 0
-def grfneedsdoswin, db 80h, " is for the ", 80h, " version of TTD.", 0
-def grfwantsswitch, db 80h, " is designed to be used with ", 80h, 0
-def grfinvalidparam, db "Invalid parameter for ", 80h, ": parameter ", 80h, " (", 7Bh, ")", 0
-def grfconflict, db 94h,"GRF conflict with ", 80h, 0
+def grfneedspatchversion, db 94h, 80h, " requires at least TTDPatch version ", 80h, 0
+def grfneedsdoswin, db 94h, 80h, " is for the ", 80h, " version of TTD.", 0
+def grfwantsswitch, db 94h, 80h, " is designed to be used with ", 80h, 0
+def grfinvalidparam, db 94h, "Invalid parameter for ", 80h, ": parameter ", 80h, " (", 7Bh, ")", 0
+def grfconflict, db 94h,"GRF conflict with ", 80h,0x94, " (resource ", 0x7c, " at sprite ", 0x7c, ")", 0
+def conflict_itself, db "itself", 0
+def conflict_preexist, db "existing definitions", 0
 
 def grfstatcaption, db 0x94,"GRF Status", 0
 def grfstatapply, db 0x98,"Apply", 0
@@ -520,7 +522,9 @@ def grfneedspatchversion, db 94h, 80h, " requires at least TTDPatch version ", 8
 def grfneedsdoswin, db 94h, 80h, " is for the ", 80h, " version of TTD.", 0
 def grfwantsswitch, db 94h, 80h, " is designed to be used with ", 80h, 0
 def grfinvalidparam, db 94h, "Invalid parameter for ", 80h, ": parameter ", 80h, " (", 7Bh, ")", 0
-def grfconflict, db 94h,"GRF conflict with ", 80h, 0
+def grfconflict, db 94h,"GRF conflict with ", 80h,0x94, " (resource ", 0x7c, " at sprite ", 0x7c, ")", 0
+def conflict_itself, db "itself", 0
+def conflict_preexist, db "existing definitions", 0
 
 def grfstatcaption, db 0x94,"GRF Status", 0
 def grfstatapply, db 0x98,"Apply", 0
@@ -894,7 +898,9 @@ def grfneedspatchversion, db 94h, 80h, " requires at least TTDPatch version ", 8
 def grfneedsdoswin, db 94h, 80h, " is for the ", 80h, " version of TTD.", 0
 def grfwantsswitch, db 94h, 80h, " is designed to be used with ", 80h, 0
 def grfinvalidparam, db 94h, "Invalid parameter for ", 80h, ": parameter ", 80h, " (", 7Bh, ")", 0
-def grfconflict, db 94h,"GRF conflict with ", 80h, 0
+def grfconflict, db 94h,"GRF conflict with ", 80h,0x94, " (resource ", 0x7c, " at sprite ", 0x7c, ")", 0
+def conflict_itself, db "itself", 0
+def conflict_preexist, db "existing definitions", 0
 
 def grfstatcaption, db 0x94,"GRF Status", 0
 def grfstatapply, db 0x98,"Apply", 0
@@ -1268,7 +1274,9 @@ def grfneedspatchversion, db 94h, 80h, " requires at least TTDPatch version ", 8
 def grfneedsdoswin, db 94h, 80h, " is for the ", 80h, " version of TTD.", 0
 def grfwantsswitch, db 94h, 80h, " is designed to be used with ", 80h, 0
 def grfinvalidparam, db 94h, "Invalid parameter for ", 80h, ": parameter ", 80h, " (", 7Bh, ")", 0
-def grfconflict, db 94h,"GRF conflict with ", 80h, 0
+def grfconflict, db 94h,"GRF conflict with ", 80h,0x94, " (resource ", 0x7c, " at sprite ", 0x7c, ")", 0
+def conflict_itself, db "itself", 0
+def conflict_preexist, db "existing definitions", 0
 
 def grfstatcaption, db 0x94,"GRF Status", 0
 def grfstatapply, db 0x98,"Apply", 0
@@ -1642,7 +1650,9 @@ def grfneedspatchversion, db 94h, 80h, " requires at least TTDPatch version ", 8
 def grfneedsdoswin, db 94h, 80h, " is for the ", 80h, " version of TTD.", 0
 def grfwantsswitch, db 94h, 80h, " is designed to be used with ", 80h, 0
 def grfinvalidparam, db 94h, "Invalid parameter for ", 80h, ": parameter ", 80h, " (", 7Bh, ")", 0
-def grfconflict, db 94h,"GRF conflict with ", 80h, 0
+def grfconflict, db 94h,"GRF conflict with ", 80h,0x94, " (resource ", 0x7c, " at sprite ", 0x7c, ")", 0
+def conflict_itself, db "itself", 0
+def conflict_preexist, db "existing definitions", 0
 
 def grfstatcaption, db 0x94,"GRF Status", 0
 def grfstatapply, db 0x98,"Apply", 0

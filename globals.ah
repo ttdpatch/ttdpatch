@@ -61,7 +61,6 @@ vard newspriteysize, spritedata+totalsprites*8
 vard newspritexofs, spritedata+totalsprites*10
 vard newspriteyofs, spritedata+totalsprites*12
 
-uvard numactsprites,1,z		// Number of active sprites in TTD's sprite number space
 uvard specialtext,1,z		// Special text used with ourtext(special)
 uvard datasize,1,z		// New size of vehicle struct
 uvard newnormalvehsize,1,z	// New size of player-usable vehicle array

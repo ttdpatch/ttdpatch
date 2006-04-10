@@ -16,6 +16,8 @@ totalsprites equ 0x131a+6*WINTTDX	// Windows TTD has six more (for Fish UK logo 
 
 %assign NBRIDGES	11
 
+%assign NUMSPRITEBLOCKS	6	// how many different sprite block spaces for larger sprite limit
+
 %define NUMCARGOS 32		// if newcargos is on
 
 // GRM IDs
@@ -28,6 +30,17 @@ totalsprites equ 0x131a+6*WINTTDX	// Windows TTD has six more (for Fish UK logo 
 %define GRM_CARGOBITS GRM_CARGOS+NUMCARGOS	// cargo bits
 
 %define GRM_NUM GRM_CARGOBITS+NUMCARGOS		// this will be the next used ID
+
+// aggregate resources that aren't allocated by ID
+// (one for each extended sprite block, for stations, houses, tiles and industries)
+%define GRM_EXTRA_SPRITES 0				// extended sprite blocks
+%define GRM_EXTRA_STATIONS NUMSPRITEBLOCKS		// station IDs
+%define GRM_EXTRA_HOUSES GRM_EXTRA_STATIONS+1		// house IDs
+%define GRM_EXTRA_INDUSTILES GRM_EXTRA_HOUSES+1		// industry tiles
+%define GRM_EXTRA_INDUSTRIES GRM_EXTRA_INDUSTILES+1	// industries
+%define GRM_EXTRA_PERSTEXTS GRM_EXTRA_INDUSTRIES+1	// persistent GRF texts
+
+%define GRM_EXTRA_NUM GRM_EXTRA_PERSTEXTS+1
 
 
 maxstationclasses equ 32
@@ -67,6 +80,7 @@ foundationtypes equ 14+8
 #define INVSP_UNRESID 24	// attempt to modify unreserved ID
 #define INVSP_BADFONT 25	// invalid font in action 12
 #define INVSP_NOTINBLOCK 26	// range crosses block boundary
+#define INVSP_INVPROPVAL 27	// invalid property value
 
 #endif	// ndef __GRF_INC__
 

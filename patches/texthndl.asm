@@ -14,6 +14,7 @@ extern getstationtexttable,gettextintableptr,ntxtptr
 extern systemtextptr,mainstringtable,getextratranstable,hasaction12
 extern setelrailstexts,patchflags,applycurrencychanges,ttdtexthandler
 extern storeutf8char
+extern failpropwithgrfconflict,lastextragrm,curextragrm
 
 uvard ourtext_ptr, ourtext(last)-ourtext(base)
 
@@ -418,6 +419,10 @@ getcustomtexttable:
 %assign %$stxtnum 0
 #include "stat_txt.ah"
 
+%if %$stxtnum > 510
+%error "Too many static texts: %$stxtnum"
+%endif
+
 // define four special texts that can be modified by writing
 // the text address to specialtext1..specialtext4
 // and using statictext(special1/2)
@@ -512,6 +517,11 @@ getpersistentgrftable:
 	inc ecx
 	cmp ecx,$400
 	jb .nextslot
+
+	pusha
+	mov al,GRM_EXTRA_PERSTEXTS
+	call failpropwithgrfconflict
+	popa
 
 	mov eax,persistentoverflow
 	xor edi,edi

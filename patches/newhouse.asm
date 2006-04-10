@@ -22,6 +22,7 @@ extern randomhouseparttrigger,randomhousetrigger,recordtransppassmail
 extern redrawtile
 extern townarray2ofst
 extern lookuptranslatedcargo,gettileinfoshort,miscmodsflags
+extern failpropwithgrfconflict,lastextragrm,curextragrm
 
 
 // New houses use the same dataid-gameid system as newstations (see there)
@@ -118,9 +119,8 @@ setsubstbuilding:
 	jnc .foundgameid
 
 .toomany:
-	mov ax,ourtext(toomanyspritestotal)
-	stc
-	ret
+	mov al,GRM_EXTRA_HOUSES
+	jmp failpropwithgrfconflict
 
 .invalid:
 	mov ax,ourtext(invalidsprite)
@@ -197,6 +197,10 @@ setsubstbuilding:
 	inc ebx
 	dec ecx
 	jne near .next
+
+	mov eax,[curspriteblock]
+	mov [curextragrm+GRM_EXTRA_HOUSES*4],eax
+
 	clc
 	ret
 

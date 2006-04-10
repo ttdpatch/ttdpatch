@@ -139,7 +139,7 @@ proc processnewinfo
 	jecxz .noids
 .checknextres:
 	cmp [grfresources+ebx*4],edx
-	jne .unresid
+	jne near .unresid
 	inc ebx
 	loop .checknextres
 .noids:
@@ -166,7 +166,10 @@ proc processnewinfo
 
 .seterror:
 	pop edi
+	test ax,ax
+	jz .nomsg
 	call setspriteerror
+.nomsg:
 	or edi,byte -1
 	_ret
 
@@ -2656,18 +2659,16 @@ grfcalltable grfresource
 	mov [numactsprites],esi
 	mov esi,[curspriteblock]
 	or byte [esi+spriteblock.flags],4
-	mov [lastgenericspritealloc],esi
+	mov [curextragrm+GRM_EXTRA_SPRITES*4],esi
 
 .done:
 	clc
 	ret
 
 .failsprites:
-	mov esi,[lastgenericspritealloc]	// return whatever grf last allocated sprites as source of conflict
+	mov esi,[lastextragrm+GRM_EXTRA_SPRITES*4]	// return whatever grf last allocated sprites as source of conflict
 	stc
 	ret
-
-uvard lastgenericspritealloc
 
 
 	// *** action E handler ***
@@ -3634,6 +3635,10 @@ uvard newcustomhousenames,256
 uvard cargoclasscargos,16	// bit mask of cargo bits that belong to each class
 uvard cargoclass,32/2		// bit mask of cargo classes each cargo belongs to
 uvard deftwocolormaps		// sprite numbers for 2nd CC translation tables
+
+	// aggregate resources, which grf last reserved them or is currently using them
+uvard lastextragrm,GRM_EXTRA_NUM
+uvard curextragrm,GRM_EXTRA_NUM
 
 uvard grfvarreinitgrmstart,0
 

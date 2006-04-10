@@ -275,12 +275,16 @@ defourtext grfhelpercaption
 defourtext grfhelper_displxrelyrel
 defourtext textsprite
 
-; CRC 41a0d227 (check to make sure that the order above is unchanged)
-
 defourtext txtetramstationheader
 defourtext txtetramdepotheader
 
 defourtext statistics_tooltip
+
+defourtext conflict_itself
+defourtext conflict_preexist
+
+; CRC 28b34087 (check to make sure that the order above is unchanged)
+
 
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 

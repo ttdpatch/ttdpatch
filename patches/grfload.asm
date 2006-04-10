@@ -13,7 +13,7 @@
 
 extern calloc,copyspriteinfofn,curfileofsptr,curspriteblock,decodespritefn
 extern dummygrfid,exscurfeature,exsfeaturemaxspritesperblock
-extern exsfeatureuseseparatesprites,exsnumactspritesptrlist
+extern exsfeatureuseseparatesprites,exsnumactspritesindex
 extern exsrealtofeaturespriteeax,firsttownnamestyle,getnotable,getsystextaddr
 extern grfvarreinitalwaysstart,grfvarclearstart
 extern grfswitchparam,int21handler,spritegrfidcheckofs,spritecache
@@ -23,7 +23,7 @@ extern numgrfvarreinitalways,numgrfvarreinitzero,numgrfvarreinitsigned
 extern openfilefn,patchflags,readspriteinfofn,readwordfn
 extern removespritefromcache,spriteblockptr,spriteinitializeaction
 extern spritesloadedaction,tempvard,grfvarreinitgrmstart,numgrfvarreinitgrm
-extern vehids
+extern vehids,curextragrm,lastextragrm,ourtext_ptr
 
 
 uvard spriteerror	// holds pointer to spriteblock with error
@@ -819,6 +819,11 @@ procallsprites:
 	mov ecx,numgrfvarreinitsigned
 	rep stosd
 
+	mov esi,curextragrm
+	mov edi,lastextragrm
+	mov ecx,GRM_EXTRA_NUM
+	rep movsd
+
 	call procgrffile
 
 	cmp dword [edx+spriteblock.grfid],0
@@ -1044,20 +1049,18 @@ insertactivespriteblockaction1:
 	jz .exsenabled
 	jmp insertactivespriteblock
 .exsenabled:
-	xor eax, eax
-	//mov al, [esi-3]	// Get the feature ID, that should be make more robust!
-	//mov byte [exscurfeature], al	// for the exsrealtofeaturespriteeax jmp
-	mov al, byte [exscurfeature]	// Get the feature ID, stored before
+	movzx eax, byte [exscurfeature]	// get the feature ID, stored before
 
 	push edi
 	mov edi, eax
 
-	mov esi, [exsnumactspritesptrlist+edi*4]
-	mov eax, [esi]
+	movzx esi,byte [exsnumactspritesindex+edi]
+	mov eax, [numactsprites+esi*4]
 	add eax, ecx
 	cmp eax, [exsfeaturemaxspritesperblock+edi*4]
 	jnb short .toomany
 
+#if 0
 	bt [exsfeatureuseseparatesprites],edi
 	jc .notbase
 
@@ -1065,8 +1068,9 @@ insertactivespriteblockaction1:
 	mov [lastgenericspritealloc],edx
 
 .notbase:
-	mov edi, [exsnumactspritesptrlist+edi*4]
-	xchg eax, [edi]
+#endif
+	movzx edi,byte [exsnumactspritesindex+edi]
+	xchg eax, [numactsprites+edi*4]
 	pop edi
 
 	push eax
@@ -1084,15 +1088,71 @@ insertactivespriteblockaction1:
 	inc eax
 	loop .replnextaction1
 
+	movzx eax, byte [exscurfeature]
+	mov [curextragrm+GRM_EXTRA_SPRITES*4+eax*4],edx
+
 	pop eax
-	mov [lastgenericspritealloc],edx
 	jmp exsrealtofeaturespriteeax
 
 .toomany:
+	mov eax,edi
+	add eax,GRM_EXTRA_SPRITES
 	pop edi
-	mov ax,ourtext(toomanyspritestotal)	// maybe a different error message?
+
+	// fall through
+
+// mark grf as having conflict with other file
+//
+// in:	al=GRM_EXTRA_* code
+// out:	returns appropriately for grf handler
+exported failwithgrfconflict
+	call setgrfconflict
+	jnz .haveit
+
+	mov ax,ourtext(toomanyspritestotal)
 	call settempspriteerror
+.haveit:
 	or edi,byte -1
+	ret
+
+// same as above, but to be called from an action 0 prop handler
+exported failpropwithgrfconflict
+	call setgrfconflict
+	mov ax,ourtext(toomanysprites)
+	jz .haveit
+	mov ax,0
+.haveit:
+	stc
+	ret
+
+setgrfconflict:
+	movzx eax,al
+	mov esi,[lastextragrm+eax*4]
+	mov edx,[curspriteblock]
+	test esi,esi
+	jnz .haveit
+
+	// first grf using this resource
+	// if this happens when starting a new game, conflict must be with itself
+	// (make a fake sprite block whose .nameptr points to the given ourtext entries)
+	mov esi,ourtext_ptr+(ourtext(conflict_itself)-ourtext(base))*4-spriteblock.nameptr
+
+	cmp byte [activatetype],0
+	je .haveit
+
+	// otherwise it's most likely a conflict with pre-existing game data
+	// (e.g. station IDs etc. that use the needed slots)
+	mov esi,ourtext_ptr+(ourtext(conflict_preexist)-ourtext(base))*4-spriteblock.nameptr
+
+.haveit:
+	// show conflict with previous succesful action 1 grf
+	or byte [edx+spriteblock.flags],2
+	mov [edx+spriteblock.errparam],esi
+	not eax
+	mov [edx+spriteblock.errparam+4],ax
+	mov ax,[curgrfsprite]
+	mov [edx+spriteblock.errparam+6],ax
+	test esp,esp
 	ret
 
 global insertactivespriteblock
@@ -1102,12 +1162,11 @@ insertactivespriteblock:
 	cmp ah,0x40
 	jb .nottoomany
 
-	mov ax,ourtext(toomanyspritestotal)
-	call settempspriteerror
-	or edi,byte -1
-	ret
+	mov al,GRM_EXTRA_SPRITES
+	jmp failwithgrfconflict
 
 .nottoomany:
+	mov [curextragrm+GRM_EXTRA_SPRITES*4],edx
 	xchg eax,[numactsprites]
 
 	push eax
@@ -1124,7 +1183,7 @@ insertactivespriteblock:
 	inc eax
 	loop .replnext
 
-	mov [lastgenericspritealloc],edx
+	mov [curextragrm+GRM_EXTRA_SPRITES*4],edx
 	pop eax
 	ret
 
@@ -1389,6 +1448,7 @@ uvard grfidlistsize	// size in bytes of memory allocated to the list
 uvard grfidlist		// pointer to the list
 uvard grfidlistnum	// number of entries in the list (5 bytes each)
 uvarb activatedefault	// whether to activate by default or not
+varb activatetype, 1	// 1=existing game, 0=new game
 
 
 	// make sure the grfidlist has a minimum size (given by ecx)

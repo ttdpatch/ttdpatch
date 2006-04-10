@@ -722,21 +722,18 @@ win_grfstat_drawspriteinfo:
 	mov bl, [eax+spriteblock.newactive]
 	test bl,bl
 	js .gray
+	test byte [eax+spriteblock.flags],2	// off because of resource conflict
+	jnz .orange
 	cmp dword [eax+spriteblock.grfid], byte -1
 	je .blue
 	and bl, 1
 	cmp bl, 1
 	je .green
-	cmp bl, 0
-	je .red
-
+.red:
+	mov bl, cColorSchemeRed
+	jmp short .drawremappedstatus
 .gray:
 	mov bl, cColorSchemeGrey
-	jmp short .drawremappedstatus
-.red:
-	test byte [eax+spriteblock.flags],2	// off because of resource conflict
-	jnz .orange
-	mov bl, cColorSchemeRed
 	jmp short .drawremappedstatus
 .orange:
 	mov bl, cColorSchemeOrange
@@ -870,6 +867,8 @@ win_grfstat_geterrconflictinfo:
 .haveconflictarg:
 	mov [textrefstack],bx
 	mov [specialtext1],ecx
+	mov ecx,[eax+spriteblock.errparam+4]
+	mov [textrefstack+2],ecx
 	mov bx,ourtext(grfconflict)
 	ret
 	
