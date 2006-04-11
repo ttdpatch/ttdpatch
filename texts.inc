@@ -150,6 +150,7 @@ def conflict_preexist, db "existing definitions", 0
 def grfstatcaption, db 0x94,"GRF Status", 0
 def grfstatapply, db 0x98,"Apply", 0
 def grfstatreset, db 0x98,"Default", 0
+def grfstatdebug, db 0x98,"Debug", 0
 def grfinfotext, db 0x95,0x80,13,0x94,"File: ",0x95,0x80,13,0x80,0x94,0x80,0
 
 def grflisthint, db 0x98,"Click on text to display additional info about "
@@ -157,6 +158,8 @@ def grflisthint, db 0x98,"Click on text to display additional info about "
 def grfapplyhint, db 0x98,"Apply changes in active/inactive graphics to "
 	db "current game.",0
 def grfresethint, db 0x98,"Reset all graphics settings to the default and apply",0
+def grfdebughint, db 0x98,"Creates a debug output of the current active grf status",0
+
 
 def grfstatusmenu, db "New graphics status", 0
 def initialgrfsettings, db 0x98, "Initial graphics settings", 0
@@ -529,6 +532,7 @@ def conflict_preexist, db "existing definitions", 0
 def grfstatcaption, db 0x94,"GRF Status", 0
 def grfstatapply, db 0x98,"Apply", 0
 def grfstatreset, db 0x98,"Default", 0
+def grfstatdebug, db 0x98,"Debug", 0
 def grfinfotext, db 0x95,0x80,13,0x94,"File: ",0x95,0x80,13,0x80,0x94,0x80,0
 
 def grflisthint, db 0x98,"Click on text to display additional info about "
@@ -536,6 +540,7 @@ def grflisthint, db 0x98,"Click on text to display additional info about "
 def grfapplyhint, db 0x98,"Apply changes in active/inactive graphics to "
 	db "current game.",0
 def grfresethint, db 0x98,"Reset all graphics settings to the default and apply",0
+def grfdebughint, db 0x98,"Creates a debug output of the current active grf status",0
 
 def grfstatusmenu, db "New graphics status", 0
 def initialgrfsettings, db 0x98, "Initial graphics settings", 0
@@ -906,6 +911,7 @@ def conflict_preexist, db "existing definitions", 0
 def grfstatcaption, db 0x94,"GRF Status", 0
 def grfstatapply, db 0x98,"Apply", 0
 def grfstatreset, db 0x98,"Default", 0
+def grfstatdebug, db 0x98,"Debug", 0
 def grfinfotext, db 0x95,0x80,13,0x94,"File: ",0x95,0x80,13,0x80,0x94,0x80,0
 
 def grflisthint, db 0x98,"Click on text to display additional info about "
@@ -913,6 +919,7 @@ def grflisthint, db 0x98,"Click on text to display additional info about "
 def grfapplyhint, db 0x98,"Apply changes in active/inactive graphics to "
 	db "current game.",0
 def grfresethint, db 0x98,"Reset all graphics settings to the default and apply",0
+def grfdebughint, db 0x98,"Creates a debug output of the current active grf status",0
 
 def grfstatusmenu, db "New graphics status", 0
 def initialgrfsettings, db 0x98, "Initial graphics settings", 0
@@ -1283,6 +1290,7 @@ def conflict_preexist, db "existing definitions", 0
 def grfstatcaption, db 0x94,"GRF Status", 0
 def grfstatapply, db 0x98,"Apply", 0
 def grfstatreset, db 0x98,"Default", 0
+def grfstatdebug, db 0x98,"Debug", 0
 def grfinfotext, db 0x95,0x80,13,0x94,"File: ",0x95,0x80,13,0x80,0x94,0x80,0
 
 def grflisthint, db 0x98,"Click on text to display additional info about "
@@ -1290,6 +1298,7 @@ def grflisthint, db 0x98,"Click on text to display additional info about "
 def grfapplyhint, db 0x98,"Apply changes in active/inactive graphics to "
 	db "current game.",0
 def grfresethint, db 0x98,"Reset all graphics settings to the default and apply",0
+def grfdebughint, db 0x98,"Creates a debug output of the current active grf status",0
 
 def grfstatusmenu, db "New graphics status", 0
 def initialgrfsettings, db 0x98, "Initial graphics settings", 0
@@ -1660,6 +1669,7 @@ def conflict_preexist, db "existing definitions", 0
 def grfstatcaption, db 0x94,"GRF Status", 0
 def grfstatapply, db 0x98,"Apply", 0
 def grfstatreset, db 0x98,"Default", 0
+def grfstatdebug, db 0x98,"Debug", 0
 def grfinfotext, db 0x95,0x80,13,0x94,"File: ",0x95,0x80,13,0x80,0x94,0x80,0
 
 def grflisthint, db 0x98,"Click on text to display additional info about "
@@ -1667,6 +1677,7 @@ def grflisthint, db 0x98,"Click on text to display additional info about "
 def grfapplyhint, db 0x98,"Apply changes in active/inactive graphics to "
 	db "current game.",0
 def grfresethint, db 0x98,"Reset all graphics settings to the default and apply",0
+def grfdebughint, db 0x98,"Creates a debug output of the current active grf status",0
 
 def grfstatusmenu, db "New graphics status", 0
 def initialgrfsettings, db 0x98, "Initial graphics settings", 0

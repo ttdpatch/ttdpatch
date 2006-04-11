@@ -285,7 +285,8 @@ defourtext conflict_preexist
 
 ; CRC 28b34087 (check to make sure that the order above is unchanged)
 
-
+defourtext grfstatdebug
+defourtext grfdebughint
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

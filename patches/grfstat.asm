@@ -24,7 +24,7 @@ extern specialtext3,specialtext4
 extern spriteblockptr,spritetestactaction,tempSplittextlinesNumlinesptr
 extern totalmem
 extern totalnewsprites
-extern newtexthandler,int21handler,hasaction12,getutf8char,tmpbuffer1, hexnibbles
+extern newtexthandler,int21handler,hasaction12,getutf8char,tmpbuffer1,hexnibbles,errorpopup,specialerrtext1
 
 extern currentselectedgrf
 extern win_grfhelper_create
@@ -33,7 +33,8 @@ extern win_grfhelper_create
 %assign win_grfstat_nument 10		// entries in the list (max. possible is 16)
 %assign win_grfstat_numlines 10		// lines in the info box
 %assign win_grfstat_width 300		// width in pixels
-%assign win_grfstat_applywidth 150	// width of the apply button
+%assign win_grfstat_applywidth 120	// width of the apply button
+%assign win_grfstat_resetwidth 120	// width of the apply button
 
 	// calculate the resulting height
 %assign win_grfstat_listheight 15*win_grfstat_nument
@@ -55,9 +56,11 @@ dw win_grfstat_width-11, win_grfstat_width-1, 14, win_grfstat_listheight+14, 0
 db cWinElemTextBox, cColorSchemeGrey
 dw 0, win_grfstat_applywidth, win_grfstat_apply_y, win_grfstat_height-1, ourtext(grfstatapply)
 db cWinElemTextBox, cColorSchemeGrey
-dw win_grfstat_applywidth+1, win_grfstat_width-1, win_grfstat_apply_y, win_grfstat_height-1, ourtext(grfstatreset)
+dw win_grfstat_applywidth+1, win_grfstat_applywidth+win_grfstat_resetwidth-1, win_grfstat_apply_y, win_grfstat_height-1, ourtext(grfstatreset)
 db cWinElemSpriteBox,cColorSchemeGrey
 dw 0, win_grfstat_width-1, win_grfstat_listheight+15, win_grfstat_apply_y-1, 0
+db cWinElemTextBox, cColorSchemeGrey
+dw win_grfstat_applywidth+win_grfstat_resetwidth, win_grfstat_width -1, win_grfstat_apply_y, win_grfstat_height-1, ourtext(grfstatdebug)
 db cWinElemLast
 
 global gameoptionsgrfstat
@@ -355,7 +358,7 @@ grfstat_flashhandle:
 	align 2
 var win_grfstat_hints
 	dw 0x18b,0x18c,ourtext(grflisthint)
-	dw 0x190,ourtext(grfapplyhint),ourtext(grfresethint),0
+	dw 0x190,ourtext(grfapplyhint),ourtext(grfresethint),0,ourtext(grfdebughint),0
 
 
 win_grfstat_clickhandler:
@@ -417,15 +420,25 @@ win_grfstat_clickhandler:
 
 	push CTRL_ANY
 	call ctrlkeystate
-	jne .grflistdebug
+	jne .nogrfhelper
 	call win_grfhelper_create
-	jmp .nogrfhelper
-.grflistdebug:
-#if DEBUG
-	call grfstatuscreatedebug
-#endif
+	jmp short .pressit
 .nogrfhelper:
+	cmp cl, 7
+	je .grflistdebug
 .done:
+	ret
+.grflistdebug:
+	call grfstatuscreatedebug
+.pressit:
+	movzx ecx, cl
+	bts dword [esi+window.activebuttons], ecx
+	or byte [esi+0x04], 7
+	mov al,[esi]
+	mov bx,[esi+window.id]
+	or al, 80h
+	mov ah, cl
+	call dword [invalidatehandle]
 	ret
 
 .grflist:
@@ -491,6 +504,12 @@ win_grfstat_timer:
 	jb .switch
 	mov ah, 5
 	btr dword [esi+window.activebuttons], 5
+	jb .switch
+	mov ah, 6
+	btr dword [esi+window.activebuttons], 6
+	jb .switch
+	mov ah, 7
+	btr dword [esi+window.activebuttons], 7
 	jb .switch
 	ret
 
@@ -984,7 +1003,8 @@ vard grfstatusdebugfilehandle
 	dd 0
 varb grfstatusdebugparam
 	db "Parameter 0x##: 0x######## ",0 
-	 
+varb grfstatusdebugfinish
+	db 0x94, "grfdebug.txt ####",0
 	 
 uvarb grfstatusbuffer, 4048	// for grf creators who get overexcited
 
@@ -1010,6 +1030,7 @@ grfstatuscreatedebugstrout:
 grfstatuscreatedebug:
 
 	pusha
+	mov dword [grfstatusdebugfinish+14], 'FAIL'
 	mov edx, grfstatusdebugfile
 	xor ecx,ecx
 	mov ah,0x3c		//create file
@@ -1179,13 +1200,19 @@ grfstatuscreatedebug:
 	test ebp,ebp
 	jnz near .nextgrf
 	
-.error_exit:
 	mov bx, [grfstatusdebugfilehandle]
 	mov al, 0
 	mov ah, 0x3e
 	CALLINT21
 	mov word [grfstatusdebugfilehandle], 0
+	mov dword [grfstatusdebugfinish+14], 'OK  '
 .done:
+	mov dword [specialerrtext1], grfstatusdebugfinish
+	mov bx,statictext(specialerr1)
+	mov dx,-1
+	xor ax,ax
+	xor cx,cx
+	call dword [errorpopup]
 	popa
 	ret
 
