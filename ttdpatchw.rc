@@ -13,14 +13,15 @@ FILETYPE VFT_APP
  {
   BLOCK "040904E4"
   {
-   VALUE "CompanyName", "Josef Drexler\000"
+   VALUE "CompanyName", "Josef Drexler / TTDPatch developers\000"
    VALUE "FileDescription", "TTDPatch\000"
    VALUE "FileVersion", TTDPATCHVERSION
    VALUE "InternalName", "ttdpatchw\000"
-   VALUE "LegalCopyright", "Copyright \251 Josef Drexler 1999-2004\000"
+   VALUE "LegalCopyright", "Copyright \251 Josef Drexler 1999-2006\000"
    VALUE "OriginalFilename", "ttdpatchw.exe\000"
    VALUE "ProductName", "TTDPatch\000"
    VALUE "ProductVersion", TTDPATCHVERSION
+   VALUE "Comments", "See manual for a full list of developers\000"
   }
 
  }
