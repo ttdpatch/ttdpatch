@@ -165,6 +165,15 @@ codefragment oldcanvehiclebreakdown
 codefragment newcanvehiclebreakdown
 	icall canvehiclebreakdown
 
+codefragment oldtrainignoredepotsignal,-10
+	cmp byte [esi+veh.ignoresignals],0
+	jne $+2+0x2e
+
+codefragment newtrainignoredepotsignal
+	icall trainignoredepotsignal
+	jc fragmentstart+153
+	setfragmentsize 14
+
 codefragment oldinitpaymentrategraph
 	mov word [ebp+graphdata.firstarg],10
 
@@ -783,6 +792,8 @@ patchgeneralfixes:
 .norle2:
 	// fix trains breaking down while waiting on a red signal
 	patchcode oldcanvehiclebreakdown,newcanvehiclebreakdown,1,1,,{test ebx,MISCMODS_BREAKDOWNATSIGNAL},z
+
+	patchcode trainignoredepotsignal
 
 	patchcode oldinitpaymentrategraph,newinitpaymentrategraph,1,1,,{test ebx,MISCMODS_DONTFIXPAYMENTGRAPH},z
 

@@ -2674,6 +2674,43 @@ canvehiclebreakdown:
 	test byte [esi+veh.vehstatus],2	// a shorter form of the overwritten instruction
 	ret
 
+// Called to check whether train should ignore the depot signal
+//
+// in:	esi->vehicle
+// out:	CF=1 don't check signal
+//	CF=0 ZF=0 ignore signal
+//	CF=0 ZF=1 check signal state
+// safe:al cx di ebp
+exported trainignoredepotsignal
+	cmp byte [esi+veh.movementstat],80h	// stopped?
+	jne .donecf
+	cmp byte [esi+veh.ignoresignals],0
+	je .done
+
+	// check that train is entirely inside depot
+	movzx ebp,word [esi+veh.nextunitidx]
+	mov cx,[esi+veh.XY]
+.checknext:
+	cmp bp,byte -1
+	je .donenz
+
+	shl ebp,7
+	add ebp,[veharrayptr]
+	cmp byte [ebp+veh.movementstat],80h
+	jne .donecf
+
+	cmp cx,[ebp+veh.XY]
+	movzx ebp,word [ebp+veh.nextunitidx]
+	je .checknext
+
+.donecf:
+	stc
+.done:
+	ret
+.donenz:
+	test esp,esp
+	ret
+
 // Calculate the position of the slider
 // (the original code only worked for slider < 256 pixels)
 //

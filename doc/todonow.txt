@@ -504,6 +504,12 @@
 
 - incorrect PBS signal promotion http://www.tt-forums.net/viewtopic.php?p=426083#426083
 
+- hang with mountains 3323 and cztexty.grf
+  http://www.tt-forums.net/viewtopic.php?p=428259#428259
+
+- hang when loading game
+  http://www.tt-forums.net/viewtopic.php?p=428296#428296
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter

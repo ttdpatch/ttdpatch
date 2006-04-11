@@ -73,7 +73,8 @@ struc veh
 				//     aircraft: >=13 when in flight
 				//     train, ship: 80h=in depot
 				//     rv: 0feh=in depot
-	.targetairport: resb 1	// 63h:target airport
+	.ignoresignals:		// 63h:train: ticks remaining for "ignore signal" order
+	.targetairport: resb 1	//     aircraft: arget airport
 			resw 1	// 64h:?? travelpos on runway??
 				//     rv:if blocked by another one: counts for how long, overrides when >5c8h (?)
 	.tracktype:		// 66h:train:0=normal, 1=monorail, 2=maglev
