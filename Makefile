@@ -493,7 +493,7 @@ libz.a:
 	@echo NOTE: You can remove the $(LIBZTEMPDIR) directory, it is no longer needed.
 
 # create empty version data files if they're missing
-versions/%.ver:
+versions/%.ver: $(wildcard procs/*.asm)
 	${_E} [CP] $@
 	${_C}cp	versions/empty.dat $@
 

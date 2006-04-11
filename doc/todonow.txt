@@ -771,3 +771,5 @@ CHANGELOG
 
 
 2.5 beta 4
+- prevent "ignore signals" button from working in depot unless entire 
+  train is in depot

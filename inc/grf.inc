@@ -10,6 +10,7 @@ struc spriteblock
 	.grfid:		resd 1	// GRF ID of this block
 	.filenameptr:	resd 1	// Pointer to filename
 	.paramptr:	resd 1	// Pointer to sprite parameters
+	.orgparamptr	resd 1	// Pointer to original sprite parameters (as read from config)
 	.nameptr:	resd 1	// Pointer to name from action 8 (or filename if no name given)
 	.next:		resd 1	// Pointer to next spriteblock
 	.action8:	resd 1	// Pointer to action 8 data
@@ -24,6 +25,7 @@ struc spriteblock
 	.numsounds:	resw 1	// number of entries in soundinfo array
 	.version:	resb 1	// GRF version from action 8
 	.numparam:	resb 1	// number of parameters given for this block
+	.orgnumparam	resb 1	// original number of parameters given for this block (as read from config)
 	.active:	resb 1	// 0=not active, 1=active in current game,
 				// 2=will be not active, 3=will be active,
 				// +4=forced active
@@ -35,8 +37,6 @@ struc spriteblock
 				// bit 1: off because of resource conflict
 				// bit 2: did reserve extra action A sprites
 				// bit 3: needs to import sounds from other GRF
-	.orgparamptr	resd 1	// Pointer to sprite parameters (as read from config)
-	.orgnumparam	resb 1	// number of parameters given for this block (as read from config)
 endstruc_32
 
 %macro checkfeaturesize 2.nolist
