@@ -210,7 +210,7 @@ ovar .origfn, -4, $, sellRVTrailers
 
 .trailersExist:
 	push	esi					//push prev veh onto stack
-	mov	esi, [esi+veh.nextunitidx]		//iterate to last trailer...
+	movzx	esi, word [esi+veh.nextunitidx]		//iterate to last trailer...
 	shl	esi, 7
 	add	esi, [veharrayptr]
 	cmp	word [esi+veh.nextunitidx], 0xFFFF	//MORE? push them on the stack
