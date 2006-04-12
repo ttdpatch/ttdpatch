@@ -11,7 +11,7 @@
 #include <vehtype.inc>
 #include <window.inc>
 
-extern newbuyrailvehicle, discard, vehcallback, articulatedvehicle
+extern newbuyrailvehicle, discard, vehcallback, articulatedvehicle, delveharrayentry
 
 uvard	oldbuyroadvehicle
 uvarb	buildingroadvehicle
@@ -193,8 +193,35 @@ global dontAddScheduleForTrailers
 dontAddScheduleForTrailers:
 	cmp	dword [articulatedvehicle], 0	//trailer?
 	jne	.trailer
-	add	[scheduleheapfree], 2		//no, do the usual
+	add	dword [scheduleheapfree], 2		//no, do the usual
 	retn
 .trailer:
 	mov	ebx, -1				//yes, don't shift freeheap, make pointer -1
 	retn
+
+global sellRVTrailers
+sellRVTrailers:
+	cmp	word [esi+veh.nextunitidx], 0xFFFF	//do we have trailers?
+	jne	.trailersExist
+
+	call	near $
+ovar .origfn, -4, $, sellRVTrailers
+	retn
+
+.trailersExist:
+	push	esi					//push prev veh onto stack
+	mov	esi, [esi+veh.nextunitidx]		//iterate to last trailer...
+	shl	esi, 7
+	add	esi, [veharrayptr]
+	cmp	word [esi+veh.nextunitidx], 0xFFFF	//MORE? push them on the stack
+	jne	.trailersExist
+.recurseOut:
+	call	[delveharrayentry]			//del trailer.
+	pop	esi					//return to prev veh
+	mov	word [esi+veh.nextunitidx], 0xFFFF	//is this needed?
+	push	eax
+	mov	ax, [esi+veh.idx]
+	cmp	ax, [esi+veh.engineidx]
+	pop	eax
+	je	sellRVTrailers				//head? back to top.
+	jmp	.recurseOut				//more trailers.
