@@ -1,6 +1,7 @@
 #include <defs.inc>
 #include <frag_mac.inc>
 #include <patchproc.inc>
+#include <ptrvar.inc>
 
 patchproc onewayroads, patchonewayroads
 
@@ -8,6 +9,7 @@ patchproc onewayroads, patchonewayroads
 extern Class2DrawLandOneWay,Class2DrawLandOneWay.origfn,FailIsRoadPieceBuild
 extern GetClass2RouteMap,RVGetRouteOvertakeing,newgraphicssetsenabled
 extern roadroutetable
+extern oldclass2roadconstrhandler, Class2RoadConstrHandler
 
 begincodefragments
 
@@ -52,6 +54,13 @@ patchonewayroads:
 
 	stringaddress findrvgetrouteovertakeing,1,0
 	storefunctioncall RVGetRouteOvertakeing
+
+	mov eax, [ophandler+0x2*8]
+	mov eax, [eax+1*4]
+	mov edi, [eax+3]
+	mov eax, [edi+1*4]
+	mov dword [oldclass2roadconstrhandler], eax
+	mov dword [edi+1*4], addr(Class2RoadConstrHandler)
 
 	or byte [newgraphicssetsenabled+1],1 << (9-8)
 	ret

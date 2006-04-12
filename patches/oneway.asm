@@ -7,8 +7,9 @@
 #include <std.inc>
 #include <veh.inc>
 #include <newvehdata.inc>
+#include <window.inc>
 
-extern addsprite,curplayerctrlkey,getroutemap,invalidatetile
+extern addsprite,curplayerctrlkey,getroutemap,invalidatetile,redrawscreen
 
 //needed by StevenHs Tram Check!---------
 extern tramVehPtr,tramMovement,newvehdata
@@ -80,9 +81,31 @@ global RVGetRouteOvertakeing
 RVGetRouteOvertakeing:
 	mov byte [ignoreonewayroads], 1
 	jmp [getroutemap]
-	
-	
 
+
+uvard oldclass2roadconstrhandler,1,z
+uvarb openedroadconstruction,1,z
+exported Class2RoadConstrHandler
+	cmp dl, cWinEventClose
+	jz .close
+	cmp dl, cWinEventRedraw
+	jz .winredraw
+	jmp [oldclass2roadconstrhandler]
+.winredraw:
+	cmp byte [openedroadconstruction], 1
+	jnz .needredraw
+	jmp [oldclass2roadconstrhandler]
+
+.needredraw:
+	mov byte [openedroadconstruction], 1
+	jmp short .done
+.close:
+	mov byte [openedroadconstruction], 0
+.done:
+	pusha
+	call redrawscreen
+	popa
+	jmp [oldclass2roadconstrhandler]
 
 global Class2DrawLandOneWay
 Class2DrawLandOneWay:
@@ -99,6 +122,10 @@ ovar .origfn, -4, $, Class2DrawLandOneWay
 	ret
 .buildmode:
 #endif
+	cmp byte [openedroadconstruction], 1
+	je .buildmode
+	ret
+.buildmode:
 
 	pusha
 
