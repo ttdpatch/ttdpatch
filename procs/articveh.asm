@@ -39,6 +39,7 @@ extern rvCollisionFoundVehicle, rvCollisionCurrVehicle
 extern dontOpenRVWindowForTrailer, dontOpenRVWindowForTrailer.origfn
 extern OpenRVWindow
 extern skipTrailersInDepotWindow, skipTrailersInRVList
+extern dontAddScheduleForTrailers
 
 patchproc articulatedrvs, patcharticulatedvehicles
 
@@ -116,6 +117,14 @@ begincodefragments
 		icall	skipTrailersInDepotWindow
 		setfragmentsize 8
 
+	codefragment oldAddRVScheduleWhenBuilding, 6
+		mov	ebx, dword [scheduleheapfree]
+		add	dword [scheduleheapfree], 2
+
+	codefragment newAddRVScheduleWhenBuilding
+		icall	dontAddScheduleForTrailers
+		nop
+
 endcodefragments
 
 patcharticulatedvehicles:
@@ -159,4 +168,5 @@ patcharticulatedvehicles:
 
 	patchcode oldListRVsInDepotWindow, newListRVsInDepotWindow, 2, 2
 
+	patchcode oldAddRVScheduleWhenBuilding, newAddRVScheduleWhenBuilding, 2, 4
 	retn

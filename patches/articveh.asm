@@ -11,7 +11,7 @@
 #include <vehtype.inc>
 #include <window.inc>
 
-extern newbuyrailvehicle, discard, vehcallback
+extern newbuyrailvehicle, discard, vehcallback, articulatedvehicle
 
 uvard	oldbuyroadvehicle
 uvarb	buildingroadvehicle
@@ -183,8 +183,18 @@ skipTrailersInDepotWindow:
 	pop	eax
 	jne	.useThisAsTheReturnCMP
 	mov	ax, [esi+window.id]
-	cmp     ax, [edi+veh.XY]
+	cmp	ax, [edi+veh.XY]
 	retn
 .useThisAsTheReturnCMP:
 	cmp	ax, 0xFFFF	//we just want this to always fail
+	retn
+
+global dontAddScheduleForTrailers
+dontAddScheduleForTrailers:
+	cmp	dword [articulatedvehicle], 0	//trailer?
+	jne	.trailer
+	add	[scheduleheapfree], 2		//no, do the usual
+	retn
+.trailer:
+	mov	ebx, -1				//yes, don't shift freeheap, make pointer -1
 	retn
