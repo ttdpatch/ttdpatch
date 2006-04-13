@@ -64,7 +64,7 @@ extern drawcenteredtextfn,drawsplitcenteredtextfn, RefreshWindows
 extern CreateTextInputWindow, findroadvehicledepot
 extern addrailfence1,addrailfence2,addrailfence3,addrailfence4
 extern addrailfence5,addrailfence6,addrailfence7,addrailfence8
-extern rvcheckovertake,findFrSpaTownNameFlags
+extern rvcheckovertake,findFrSpaTownNameFlags, sellroadvehicle
 
 
 begincodefragments
@@ -1378,6 +1378,11 @@ codefragment vehicleToDepotOld, -4
 	pop     ebx
 	pop     ax
 
+codefragment findSellRoadVehicle, 4
+	shr     ebx, 5
+	retn
+
+
 endcodefragments
 
 ptrvarall industrydatablock
@@ -1579,6 +1584,7 @@ dogeneralpatching:
 	storeaddress findaddcargotostation,1,1,addcargotostation
 
 	storefunctionaddress vehicleToDepotOld, 1, 2, findroadvehicledepot
+	storeaddress findSellRoadVehicle, 2, 4, sellroadvehicle
 
 	storeaddresspointer findstatusbarnewsitem,1,1,statusbarnewsitem
 	storeaddresspointer brakeindex,1,1,brakespeedtable

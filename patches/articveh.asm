@@ -11,7 +11,7 @@
 #include <vehtype.inc>
 #include <window.inc>
 
-extern newbuyrailvehicle, discard, vehcallback, articulatedvehicle, delveharrayentry
+extern newbuyrailvehicle, discard, vehcallback, articulatedvehicle, delveharrayentry, sellroadvehicle
 
 uvard	oldbuyroadvehicle
 uvarb	buildingroadvehicle
@@ -206,14 +206,14 @@ dontAddScheduleForTrailers:
 	cmp	dword [articulatedvehicle], 0		//trailer?
 	jne	.trailer
 	add	dword [scheduleheapfree], 2		//no, do the usual
-	retn
+	mov	dword [esi+veh.scheduleptr], ebx
+	mov	[ebx], word 0x0
 .trailer:
-	mov	ebx, 0xFFFF				//yes, don't shift freeheap, make pointer -1
 	retn
 
 global sellRVTrailers
 sellRVTrailers:
-	cmp	word [esi+veh.nextunitidx], 0xFFFF	//do we have trailers?
+	cmp	word [edx+veh.nextunitidx], 0xFFFF	//do we have trailers?
 	jne	.trailersExist
 
 	call	near $
@@ -221,19 +221,23 @@ ovar .origfn, -4, $, sellRVTrailers
 	retn
 
 .trailersExist:
-	push	esi					//push prev veh onto stack
-	movzx	esi, word [esi+veh.nextunitidx]		//iterate to last trailer...
-	shl	esi, 7
-	add	esi, [veharrayptr]
-	cmp	word [esi+veh.nextunitidx], 0xFFFF	//MORE? push them on the stack
+	pushad						//push prev veh onto stack
+	movzx	edx, word [edx+veh.nextunitidx]		//iterate to last trailer...
+	shl	dx, 7
+	add	edx, [veharrayptr]
+	cmp	word [edx+veh.nextunitidx], 0xFFFF	//MORE? push them on the stack
 	jne	.trailersExist
 .recurseOut:
-	call	[delveharrayentry]			//del trailer.
-	pop	esi					//return to prev veh
-	mov	word [esi+veh.nextunitidx], 0xFFFF	//is this needed?
+	mov	word [edx+veh.nextunitidx], 0xFFFF	//is this needed?
+	movzx	edx, word [edx+veh.idx]
+	mov	bl, 1					//no idea what's meant to be in here
+							//but sellRoadVehicle wants 1
+	call	[sellroadvehicle]			//del trailer.
+	popad
 	push	eax
-	mov	ax, [esi+veh.idx]
-	cmp	ax, [esi+veh.engineidx]
+	mov	ax, [edx+veh.idx]
+	cmp	ax, [edx+veh.engineidx]
 	pop	eax
-	je	sellRVTrailers				//head? back to top.
-	jmp	.recurseOut				//more trailers.
+	jne	.recurseOut				//more trailers.
+	mov	word [edx+veh.nextunitidx], 0xFFFF	//is this needed?
+	jmp	sellRVTrailers				//head? back to top.

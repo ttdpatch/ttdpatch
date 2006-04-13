@@ -214,6 +214,7 @@ uvard addrailfence8,1,s //adds the EAST fence on flat tile SE->NW
 
 uvard getroutemap,1,s		// map of possible routes on tile: in EDI=XY, AX=0/2/4 for rail/road/water; out EAX=bitcoded
 uvard rvcheckovertake,1,s    //check if an RV can overtake, no idea how it works... ask Josef :)
+uvard sellroadvehicle,1,s	//Sell road vehicle
 uvard generatesoundeffect,1,s	// generate sound effect; eax=sound number, ESI=>vehicle or ESI=-1, BX,CX=landscape X,Y or ESI=-2, EBP=(pixel Y << 16)+pixel X
 uvard tunnelotherendfn,1,s	// find the other end of a tunnel
 uvard setmainviewxy,1,s		// in AX,CX = landscape X,Y; out cf clear if changed, set if not changed

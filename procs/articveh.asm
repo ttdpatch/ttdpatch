@@ -124,7 +124,7 @@ begincodefragments
 
 	codefragment newAddRVScheduleWhenBuilding
 		icall	dontAddScheduleForTrailers
-		nop
+		setfragmentsize 15
 
 	codefragment oldSellRoadVehicle, -5
 		mov	al, 12h
@@ -170,8 +170,8 @@ patcharticulatedvehicles:
 	patchcode oldIncrementRVSpeed, newIncrementRVSpeed, 1, 1
 	patchcode oldOpenRVWindow, newOpenRVWindow, 2, 4
 	patchcode oldListRVsInDepotWindow, newListRVsInDepotWindow, 2, 2
-	patchcode oldAddRVScheduleWhenBuilding, newAddRVScheduleWhenBuilding, 2, 4
 
+;	patchcode oldAddRVScheduleWhenBuilding, newAddRVScheduleWhenBuilding, 2, 4
 	stringaddress oldSellRoadVehicle, 2+WINTTDX, 5
 	chainfunction sellRVTrailers, .origfn, 1
 	retn
