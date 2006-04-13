@@ -24,15 +24,16 @@ uvard	JumpOutOfRVRVCollision
 global newbuyroadvehicle
 newbuyroadvehicle:
 	mov	byte [buildingroadvehicle], 1
-	call	newbuyrailvehicle	//this proc knows what to do if buildingroadvehicle is set.
-					//see newtrains.asm
+	call	newbuyrailvehicle			//this proc knows what to do
+							//if [buildingroadvehicle] is set... and it is!
+							//see newtrains.asm
 	mov	byte [buildingroadvehicle], 0
 	retn
 
 global grabMovementFromParentIfTrailer1
 grabMovementFromParentIfTrailer1:
-	mov     byte [esi+veh.movementstat], bl
-	mov     byte [esi+veh.targetairport], 0
+	mov	byte [esi+veh.movementstat], bl
+	mov	byte [esi+veh.targetairport], 0
 	call	shiftInParentMovement
 	retn
 
@@ -92,29 +93,36 @@ shiftInParentMovement:
 global checkIfTrailerAndCancelCollision
 checkIfTrailerAndCancelCollision:
 	push	eax
-	mov	ax, word [edi+veh.engineidx]
+	mov	ax, word [edi+veh.engineidx]		//am I an Engine/Single car?
 	cmp	ax, word [edi+veh.idx]
 	je	.checkIfHead
-	mov	ax, word [esi+veh.nextunitidx]
-	cmp	ax, word [edi+veh.idx]
-	je	.moveInCollision
-	mov	ax, word [esi+veh.idx]
-	cmp	ax, word [edi+veh.engineidx]
-	je	.moveInCollision
+	mov	ax, word [esi+veh.nextunitidx]		//is the target my 'parent'
+	cmp	ax, word [edi+veh.idx]			//note: this is _not_ always the engine!
+	je	.checkIfInStation			//(we want to collide with the parent)
+	mov	ax, word [esi+veh.idx]			//is the target my engine?
+	cmp	ax, word [edi+veh.engineidx]		//note that I need to collide with my 'parent'
+	je	.checkIfInStation			//AND my engine... the other cars are ok.
 .zeroCollisionOnOtherVehicle:
 	mov	eax, dword [rvCollisionFoundVehicle]
-	mov	dword [eax], 0
+	mov	dword [eax], 0x0			//cancel any collision!
 	pop	eax
 	retn
+.checkIfInStation:
+	movzx	eax, word [esi+veh.XY]
+	mov	al, byte [landscape4(ax)]
+	and	al, 0xF0
+	cmp	al, 0x50
+	je	.zeroCollisionOnOtherVehicle
+	jmp	.moveInCollision
 .checkIfHead:
-	cmp	word [edi+veh.nextunitidx], 0xFFFF
-	je	.moveInCollision
-	push	eax
-	mov	ax, [esi+veh.engineidx]
+	cmp	word [edi+veh.nextunitidx], 0xFFFF	//do i have trailers?
+	je	.moveInCollision			//(no? then collide!)
+	push	eax					//is the target a trailer of mine?
+	mov	ax, [esi+veh.engineidx]			//(we dont want to collide with them)
 	cmp	word [edi+veh.idx], ax
 	pop	eax
 	je	.zeroCollisionOnOtherVehicle
-.moveInCollision:
+.moveInCollision:					//just collide!
 	pop	eax
 	mov	eax, dword [rvCollisionFoundVehicle]
 	mov	dword [eax], esi
@@ -148,9 +156,13 @@ setTrailerToMax:
 	pop	eax
 	je	.notATrailer
 	mov	ax, word [esi+veh.maxspeed]
-	inc	ax
-	inc	ax	//used to give me bytes to play with in olly
-	inc	ax
+	inc	ax	// -
+	inc	ax	// |
+	inc	ax	// |-----> used to give me bytes to play with in olly
+	inc	ax	// |
+	inc	ax	// |
+	inc	ax	// |
+	inc	ax	// -
 	retn
 .notATrailer:
 	mov	bx, word [esi+veh.maxspeed]
@@ -186,17 +198,17 @@ skipTrailersInDepotWindow:
 	cmp	ax, [edi+veh.XY]
 	retn
 .useThisAsTheReturnCMP:
-	cmp	ax, 0xFFFF	//we just want this to always fail
+	cmp	ax, 0xFFFF				//we just want this to always fail
 	retn
 
 global dontAddScheduleForTrailers
 dontAddScheduleForTrailers:
-	cmp	dword [articulatedvehicle], 0	//trailer?
+	cmp	dword [articulatedvehicle], 0		//trailer?
 	jne	.trailer
 	add	dword [scheduleheapfree], 2		//no, do the usual
 	retn
 .trailer:
-	mov	ebx, -1				//yes, don't shift freeheap, make pointer -1
+	mov	ebx, 0xFFFF				//yes, don't shift freeheap, make pointer -1
 	retn
 
 global sellRVTrailers
