@@ -3,7 +3,7 @@
 
 
 extern comp_aiview,comp_humanbuild,comp_humanview,manageaiwindow
-extern playerwndbase
+extern playerwndbase,patchflags,otherCompanyManageWindowElemList.hqmanagebutton
 
 #include <textdef.inc>
 
@@ -41,7 +41,11 @@ patchcompanywindow:
 	rep movsb
 
 	// and change "view HQ" buttons to "Manage"
+	testmultiflags subsidiaries
+	jz .nomanage
 	mov word [edi-0x1b],ourtext(manage)
+	mov word [otherCompanyManageWindowElemList.hqmanagebutton],ourtext(manage)
+.nomanage:
 	pop edi
 
 	storefragment newredrawplayerwindow

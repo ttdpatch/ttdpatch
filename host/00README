@@ -1,0 +1,3 @@
+This directory is used when compiling TTDPatch with a cross compiler.
+The native object files and binaries of makelang and mkpttxt will be 
+placed here.

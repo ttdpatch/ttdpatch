@@ -121,6 +121,7 @@ var otherCompanyWindowElemList
 	dw 266, 355, 32, 43, ourtext(statistics)
 	db cWinElemLast
 
+global otherCompanyManageWindowElemList.hqmanagebutton
 var otherCompanyManageWindowElemList
 	db cWinElemTextBox, cColorSchemeGrey
 	dw 0, 10, 0, 13, 0x00C5
@@ -137,7 +138,8 @@ var otherCompanyManageWindowElemList
 	db cWinElemDummyBox, cColorSchemeGrey
 	dw 0, 0, 0, 0, 0
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 266, 355, 18, 29, ourtext(manage)
+	dw 266, 355, 18, 29
+.hqmanagebutton: dw 0x7073
 	db cWinElemTextBox, cColorSchemeGrey
 	dw 0, 179, 158, 169, 0x7077
 	db cWinElemTextBox, cColorSchemeGrey

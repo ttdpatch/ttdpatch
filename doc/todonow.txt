@@ -510,6 +510,13 @@
 - hang when loading game
   http://www.tt-forums.net/viewtopic.php?p=428296#428296
 
+- multiple clicks on "Default" in title grf status increase sprite counts?
+
+- another signal/pathfinder problem
+  http://www.tt-forums.net/viewtopic.php?p=429375#429375
+
+- morestatistics shows Manage button even with subsidiaries off
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
