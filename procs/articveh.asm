@@ -130,6 +130,12 @@ begincodefragments
 		mov	al, 12h
 		mov	bx, word [edx+veh.XY]
 
+	codefragment oldRVCollisionTimeout
+		cmp	word [esi+64h], 1480
+
+	codefragment newRVCollisionTimeout
+		setfragmentsize 8
+
 endcodefragments
 
 patcharticulatedvehicles:
@@ -174,4 +180,6 @@ patcharticulatedvehicles:
 ;	patchcode oldAddRVScheduleWhenBuilding, newAddRVScheduleWhenBuilding, 2, 4
 	stringaddress oldSellRoadVehicle, 2+WINTTDX, 5
 	chainfunction sellRVTrailers, .origfn, 1
+
+	patchcode oldRVCollisionTimeout, newRVCollisionTimeout, 1, 1
 	retn
