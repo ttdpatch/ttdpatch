@@ -350,7 +350,7 @@ ovar .origfn, -4, $, DrawTramTracks
 	pushad
 	mov	word [tmpDI], di
 .skipDrawingRoads:
-	cmp	byte [curTileMap], 0   //check for tram tracks...
+	test	byte [curTileMap], 1111b   //check for tram tracks...
 	jz	near .finishDrawTramTracks
 
 	xor	ebx,ebx
