@@ -525,10 +525,8 @@ setstationclass:
 	cmp dword [numstationclasses],byte maxstationclasses
 	jb .newclass
 
-.toomanypop:
-	pop ecx
-
 .toomany:
+	pop ecx
 	mov al,GRM_EXTRA_STATIONS
 	jmp failpropwithgrfconflict
 
@@ -561,6 +559,9 @@ setstationclass:
 
 	inc ebx
 	loop .next
+
+	mov eax,[curspriteblock]
+	mov [curextragrm+GRM_EXTRA_STATIONS*4],eax
 
 	clc
 	ret

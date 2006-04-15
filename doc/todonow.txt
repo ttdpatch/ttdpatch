@@ -780,3 +780,6 @@ CHANGELOG
 2.5 beta 4
 - prevent "ignore signals" button from working in depot unless entire 
   train is in depot
+- fixed ghost depots appearing after removing track from railroad crossing
+  over town roads
+- fixed crash when too many station sets were activated
