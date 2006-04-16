@@ -22,7 +22,12 @@ include Makefile.setup
 
 # Version info is now in version.def to prevent remaking everything
 # when the Makefile is changed
+include .rev.inc
 include version.def
+
+.rev.inc: .rev
+	${_E} [PERL] $@
+	${_C} perl -nle '/(\d+)/; print "SVNREV=$1"' < $< > $@
 
 # to test makelang
 # ${HOSTPATH}makelang.o: CFLAGS += -DTESTMAKELANG
