@@ -1562,9 +1562,10 @@ canhaveanimtiles:
 	ret
 
 loadanimtiles:
-	lea ebx,[eax*2]
+	mov ebx,eax
+	shr ebx,1
 	cmp ebx,dword [animarraysize]
-	jae .truncate
+	ja .truncate
 
 	mov esi, [newanimarray]
 	mov ecx,eax
