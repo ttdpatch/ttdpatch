@@ -29,4 +29,3 @@ patchgameinit:
 	storefragment newrandomgame2
 	ret
 
-uvard newanimarray

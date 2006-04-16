@@ -507,15 +507,11 @@
 - hang with mountains 3323 and cztexty.grf
   http://www.tt-forums.net/viewtopic.php?p=428259#428259
 
-- hang when loading game
-  http://www.tt-forums.net/viewtopic.php?p=428296#428296
-
 - multiple clicks on "Default" in title grf status increase sprite counts?
+  --> can't reproduce, ask eis_os
 
 - another signal/pathfinder problem
   http://www.tt-forums.net/viewtopic.php?p=429375#429375
-
-- morestatistics shows Manage button even with subsidiaries off
 
 ==== Rather urgent =====
 
@@ -783,3 +779,8 @@ CHANGELOG
 - fixed ghost depots appearing after removing track from railroad crossing
   over town roads
 - fixed crash when too many station sets were activated
+- fixed morestatistics showing Manage button even with subsidiaries off
+- by eis_os:
+  * changed onewayroads to only show markers when road building is active
+  * added "debug" button to grf status window, writes info to grfdebug.txt
+- fixed hang when loading game if save had too many animation tiles

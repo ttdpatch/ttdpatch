@@ -6,13 +6,13 @@
 # VERSIONMINOR is the minor version number for the Windows resource file
 # VERSIONREVISION is the revision version number for the Windows resource file
 # VERSIONBUILD is the build number for the Windows resource file
-VERSION = 25b3
-VERSIONSTR = 2.5 beta 3
-VERSIONNUM = 25b3
+VERSION = 25b4r$Rev$
+VERSIONSTR = 2.5 beta 4 (r$Rev$)
+VERSIONNUM = 25b4d$Rev$
 
 # Important: increase the build number by 10 every time VERSIONNUM changes
 # Limits: VERSIONMAJOR up to 255, MINOR and REVISION up to 15, BUILD up to 65535
 VERSIONMAJOR = 2
 VERSIONMINOR = 5
 VERSIONREVISION = 0
-VERSIONBUILD = 30
+VERSIONBUILD = 31

@@ -1,12 +1,13 @@
 #include <defs.inc>
 #include <frag_mac.inc>
 #include <patchproc.inc>
+#include <flagdata.inc>
 
 patchproc moreanimation, patchmoreanimation
 
 
-extern animarraysize,malloccrit
-extern newanimarray
+extern malloccrit
+uvard newanimarray
 
 begincodefragments
 
