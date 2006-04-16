@@ -417,7 +417,7 @@ getcustomtexttable:
 
 %push stxtdef
 %assign %$stxtnum 0
-#include "stat_txt.ah"
+#include <stat_txt.inc>
 
 %if %$stxtnum > 510
 %error "Too many static texts: %$stxtnum"

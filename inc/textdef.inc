@@ -30,7 +30,7 @@
 %push stxtdef
 %assign %$stxtnum 0
 STXT_first equ %$stxtnum
-#include "../patches/stat_txt.ah"
+#include <stat_txt.inc>
 #undef stxt
 #undef stxt_cont
 

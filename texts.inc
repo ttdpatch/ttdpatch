@@ -160,7 +160,6 @@ def grfapplyhint, db 0x98,"Apply changes in active/inactive graphics to "
 def grfresethint, db 0x98,"Reset all graphics settings to the default and apply",0
 def grfdebughint, db 0x98,"Creates a debug output of the current active grf status",0
 
-
 def grfstatusmenu, db "New graphics status", 0
 def initialgrfsettings, db 0x98, "Initial graphics settings", 0
 def initialgrfsettingshint, db 0x98, "Open the GRF Status window to select initially ",
