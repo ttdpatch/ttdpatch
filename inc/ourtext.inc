@@ -287,6 +287,8 @@ defourtext conflict_preexist
 
 defourtext grfstatdebug
 defourtext grfdebughint
+defourtext grfdebugmsg
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

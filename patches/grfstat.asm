@@ -24,7 +24,8 @@ extern specialtext3,specialtext4
 extern spriteblockptr,spritetestactaction,tempSplittextlinesNumlinesptr
 extern totalmem
 extern totalnewsprites
-extern newtexthandler,int21handler,hasaction12,getutf8char,tmpbuffer1,hexnibbles,errorpopup,specialerrtext1
+extern newtexthandler,int21handler,hasaction12,getutf8char,tmpbuffer1,hexnibbles,errorpopup
+extern specialerrtext1,specialerrtext2
 
 extern currentselectedgrf
 extern win_grfhelper_create
@@ -43,7 +44,7 @@ extern win_grfhelper_create
 %assign win_grfstat_apply_y win_grfstat_info_y+win_grfstat_infoheight+1
 %assign win_grfstat_height win_grfstat_apply_y+13
 
-win_grfstat_elements:
+varb win_grfstat_elements
 db cWinElemTextBox,cColorSchemeGrey
 dw 0, 10, 0, 13, 0x00C5
 db cWinElemTitleBar,cColorSchemeGrey
@@ -62,6 +63,7 @@ dw 0, win_grfstat_width-1, win_grfstat_listheight+15, win_grfstat_apply_y-1, 0
 db cWinElemTextBox, cColorSchemeGrey
 dw win_grfstat_applywidth+win_grfstat_resetwidth, win_grfstat_width -1, win_grfstat_apply_y, win_grfstat_height-1, ourtext(grfstatdebug)
 db cWinElemLast
+endvar
 
 global gameoptionsgrfstat
 gameoptionsgrfstat:
@@ -998,14 +1000,15 @@ varb grfdebug_txtspecial
 varb grfdebug_txtactive
 	db "Active",0
 varb grfdebug_txtdeactive
-	db "Deactive",0 
+	db "Inactive",0 
 vard grfstatusdebugfilehandle
 	dd 0
 varb grfstatusdebugparam
 	db "Parameter 0x##: 0x######## ",0 
-varb grfstatusdebugfinish
-	db 0x94, "grfdebug.txt ####",0
-	 
+endvar
+
+uvarb grfstatusdebugfinish,5
+
 uvarb grfstatusbuffer, 4048	// for grf creators who get overexcited
 
 // in esi = buffer to output
@@ -1030,7 +1033,7 @@ grfstatuscreatedebugstrout:
 grfstatuscreatedebug:
 
 	pusha
-	mov dword [grfstatusdebugfinish+14], 'FAIL'
+	mov dword [grfstatusdebugfinish], 'FAIL'
 	mov edx, grfstatusdebugfile
 	xor ecx,ecx
 	mov ah,0x3c		//create file
@@ -1205,10 +1208,12 @@ grfstatuscreatedebug:
 	mov ah, 0x3e
 	CALLINT21
 	mov word [grfstatusdebugfilehandle], 0
-	mov dword [grfstatusdebugfinish+14], 'OK  '
+	mov dword [grfstatusdebugfinish], 'OK'
 .done:
 	mov dword [specialerrtext1], grfstatusdebugfinish
-	mov bx,statictext(specialerr1)
+	mov dword [specialerrtext2], grfstatusdebugfile
+	mov dword [textrefstack],(statictext(specialerr1)<<16)+statictext(specialerr2)
+	mov bx,ourtext(grfdebugmsg)
 	mov dx,-1
 	xor ax,ax
 	xor cx,cx

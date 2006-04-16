@@ -159,6 +159,7 @@ def grfapplyhint, db 0x98,"Apply changes in active/inactive graphics to "
 	db "current game.",0
 def grfresethint, db 0x98,"Reset all graphics settings to the default and apply",0
 def grfdebughint, db 0x98,"Creates a debug output of the current active grf status",0
+def grfdebugmsg, db 0x94, "Graphics status information written to ",80h,": ",80h,0
 
 def grfstatusmenu, db "New graphics status", 0
 def initialgrfsettings, db 0x98, "Initial graphics settings", 0
@@ -540,6 +541,7 @@ def grfapplyhint, db 0x98,"Apply changes in active/inactive graphics to "
 	db "current game.",0
 def grfresethint, db 0x98,"Reset all graphics settings to the default and apply",0
 def grfdebughint, db 0x98,"Creates a debug output of the current active grf status",0
+def grfdebugmsg, db 0x94, "Graphics status information written to ",80h,": ",80h,0
 
 def grfstatusmenu, db "New graphics status", 0
 def initialgrfsettings, db 0x98, "Initial graphics settings", 0
@@ -919,6 +921,7 @@ def grfapplyhint, db 0x98,"Apply changes in active/inactive graphics to "
 	db "current game.",0
 def grfresethint, db 0x98,"Reset all graphics settings to the default and apply",0
 def grfdebughint, db 0x98,"Creates a debug output of the current active grf status",0
+def grfdebugmsg, db 0x94, "Graphics status information written to ",80h,": ",80h,0
 
 def grfstatusmenu, db "New graphics status", 0
 def initialgrfsettings, db 0x98, "Initial graphics settings", 0
@@ -1298,6 +1301,7 @@ def grfapplyhint, db 0x98,"Apply changes in active/inactive graphics to "
 	db "current game.",0
 def grfresethint, db 0x98,"Reset all graphics settings to the default and apply",0
 def grfdebughint, db 0x98,"Creates a debug output of the current active grf status",0
+def grfdebugmsg, db 0x94, "Graphics status information written to ",80h,": ",80h,0
 
 def grfstatusmenu, db "New graphics status", 0
 def initialgrfsettings, db 0x98, "Initial graphics settings", 0
@@ -1677,6 +1681,7 @@ def grfapplyhint, db 0x98,"Apply changes in active/inactive graphics to "
 	db "current game.",0
 def grfresethint, db 0x98,"Reset all graphics settings to the default and apply",0
 def grfdebughint, db 0x98,"Creates a debug output of the current active grf status",0
+def grfdebugmsg, db 0x94, "Graphics status information written to ",80h,": ",80h,0
 
 def grfstatusmenu, db "New graphics status", 0
 def initialgrfsettings, db 0x98, "Initial graphics settings", 0
