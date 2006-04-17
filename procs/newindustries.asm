@@ -342,9 +342,7 @@ codefragment oldcheckinduinput,-6
 	cmp ch,[esi+industry.producedcargos]
 	je $+2+0x1c
 
-codefragment newcheckinduinput
-	icall adjustindustrypos
-	setfragmentsize 11
+codefragment_call newcheckinduinput, adjustindustrypos, 9
 
 codefragment oldindustryproducecargo
 	add [edi+industry.amountswaiting],bx

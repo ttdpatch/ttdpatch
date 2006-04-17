@@ -1364,6 +1364,7 @@ uvarb industrycallbackflags,NINDUSTRIES
 // Bit	Var. 0C	Callback
 // 0	3A	Show additional info in industry window
 // 1	3B	control special effects
+// 2	3D	disable cargo acceptance
 uvarb industrycallbackflags2,NINDUSTRIES
 
 // helper array to hold incoming cargo amounts
@@ -4706,18 +4707,53 @@ industryprodchange_shownewsmsg:
 // Called while looking for the closest industry accepting a cargo type, when a vehicle unloads cargo
 // Adjust bx so it points to the middle tile of the industry, not the north corner
 // This will result in more realistic "closest" match
+// Also allow excluding this industry from the distribution via a callback
 // in:	bx: XY of industry
 //	esi-> industry
-// out:	bx adjusted
+// out:	zf clear: industry can be added and
+//		bx adjusted
+//	zf set: industry must be skipped
 // safe: ???
 global adjustindustrypos
 adjustindustrypos:
-	push edx
-	mov edx,[esi+industry.dimensions]
-	shr dh,1
-	shr dl,1
-	add bx,dx
-	pop edx
+	push eax
+	movzx eax,byte [esi+industry.type]
+	test byte [industrycallbackflags2+eax],4
+	jz .nocallback
+
+	push ebx
+	mov ebx, [industryspriteblock+eax*4]
+	mov ebx, [ebx+spriteblock.cargotransptr]
+
+	push ecx
+	movzx ecx,ch
+	movzx ebx, byte [ebx+cargotrans.fromslot+ecx]
+	pop ecx
+
+	mov dword [miscgrfvar],ebx
+	pop ebx
+
+	mov byte [grffeature],0xa
+	mov byte [curcallback],0x3d
+	call getnewsprite
+	mov byte [curcallback],0
+
+	jc .nocallback
+	test eax,eax
+	jnz .allow
+
+	//zf is set here
+	pop eax
+	ret
+
+.allow:
+.nocallback:
+	mov eax,[esi+industry.dimensions]
+	shr ah,1
+	shr al,1
+	add bx,ax
+	test esp,esp
+	pop eax
 	ret
 
 // Called while checking if a tile is "empty", that is, suitable for a layout element type -1
