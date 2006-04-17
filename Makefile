@@ -28,8 +28,8 @@ include version.def
 # Create .rev from the svnversion output if it has changed
 FORCE:
 .rev: FORCE
-	@[ -e $@ ] || echo SVNREV=0 > $@
-	@REV=`svnversion . 2>/dev/null` perl perl/rev.pl $@ < $@
+	${_C} [ -e $@ ] || echo SVNREV=0 > $@
+	${_C} REV=`svnversion . 2>/dev/null` perl perl/rev.pl $@ < $@
 
 # to test makelang
 # ${HOSTPATH}makelang.o: CFLAGS += -DTESTMAKELANG
