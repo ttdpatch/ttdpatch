@@ -29,7 +29,7 @@ include version.def
 FORCE:
 .rev: FORCE
 	${_C} [ -e $@ ] || echo SVNREV=0 > $@
-	${_C} REV=`svnversion . 2>/dev/null` perl perl/rev.pl $@ < $@
+	${_C} REV=`${SVNVERSION}` perl perl/rev.pl $@ < $@
 
 # to test makelang
 # ${HOSTPATH}makelang.o: CFLAGS += -DTESTMAKELANG

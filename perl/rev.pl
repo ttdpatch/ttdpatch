@@ -3,7 +3,7 @@
 $_ = <STDIN>;
 my ($old) = (/(\d+)/, 0);
 $_ = $ENV{REV};
-my ($new) = (/:(\d+)/, /(\d+)/, 0);
+my ($new) = (/:(\d+)\D*$/, /(\d+)\D*$/, 0);
 
 #print "Old: $old New: $new (from $ENV{REV})";
 exit 0 if $new == $old;
