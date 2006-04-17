@@ -513,6 +513,12 @@
 - another signal/pathfinder problem
   http://www.tt-forums.net/viewtopic.php?p=429375#429375
 
+- incorrect(?) invalid sprite error
+  http://www.tt-forums.net/viewtopic.php?p=430873#430873
+
+- crash displaying ship name
+  http://www.tt-forums.net/viewtopic.php?p=430874#430874
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
