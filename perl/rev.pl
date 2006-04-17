@@ -1,12 +1,10 @@
 #!/usr/bin/perl -l
 
 $_ = <STDIN>;
-/(\d+)/;
-my $old = $1 || 0;
+my ($old) = (/(\d+)/, 0);
+my ($new) = ($ENV{REV} =~ /^[^:]*:?(\d+)/, 0);
 
-$ENV{REV} =~ /(\d+)/;
-my $new = $1 || 0;
-
+#print "Old: $old New: $new (from $ENV{REV})";
 exit 0 if $new == $old;
 
 my $file = shift;
