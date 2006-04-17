@@ -22,7 +22,14 @@ include Makefile.setup
 
 # Version info is now in version.def to prevent remaking everything
 # when the Makefile is changed
+-include .rev
 include version.def
+
+# Create .rev from the svnversion output if it has changed
+FORCE:
+.rev: FORCE
+	${_C} [ -e $@ ] || echo SVNREV=0 > $@
+	${_C} REV=`svnversion . 2>/dev/null` perl perl/rev.pl $@ < $@
 
 # to test makelang
 # ${HOSTPATH}makelang.o: CFLAGS += -DTESTMAKELANG
