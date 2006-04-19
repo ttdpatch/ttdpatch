@@ -41,10 +41,17 @@ the following software:
   and perhaps some other Cygwin packages.
   Of course you also need the prerequisites for each of the above packages.
   Let me know if you find you need another package that I haven't listed.
+- A Subversion client. The cygwin svnclient package works fine, but some
+  people prefer TortoiseSVN for Windows. In the latter case you need to
+  uncomment the corresponding SVNVERSION line in Makefile.local or the
+  revision will not be reported correctly.
 - Borland C++ for DOS 3.1 or higher to compile the DOS version
   OR OpenWatcom for DOS (set compiler with USEBCC in Makefile.local)
 - The most recent UPX EXE packer to compress ttdpatch.exe, or
   set NOUPX=1 in Makefile.local
+- To compile ttdpatch.dll (only needed if you want to modify it), the
+  DirectX include files are needed as well, for which you will probably
+  need to download the DirectX SDK from Microsoft.
 
 You can install Perl 5.6.1 if you don't need to update the language files.
 The language files need Perl 5.8.0 or higher because of its superior Unicode

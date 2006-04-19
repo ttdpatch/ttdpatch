@@ -519,6 +519,9 @@
 - crash displaying ship name
   http://www.tt-forums.net/viewtopic.php?p=430874#430874
 
+- provide a default cargotrans struct for all grfs that wouldn't otherwise
+  have one
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter

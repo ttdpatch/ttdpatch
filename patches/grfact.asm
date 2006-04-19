@@ -1205,12 +1205,15 @@ struc orggentext
 	.entries:		// variable number of DWORDs containing original string
 endstruc_32
 
-	// *** action 4 handler ***
-action4:
-	// Four extra bytes in front of this sprite data are used this way:
-	// - vehtype names: unused
-	// - general texts: pointer to orggentext struc
-
+// check whether language byte matches current language
+//
+// in:	esi->language byte
+// out:	esi->past language byte
+//	al(7)=language byte(7)
+//	CF=1 matches
+//	CF=0 doesn't match
+//	SF=bit 7 of language byte
+// uses:al ecx
 checklanguage:
 	lodsb
 	mov ecx,[languageid]
@@ -1221,16 +1224,24 @@ checklanguage:
 	ret
 
 .oneid:
-	and al,0x7f
-	cmp al,0x7f
-	je .right
+	mov ch,al
+	and ch,0x80
+	and al,0x3f
+	cmp al,0x3f
+	je .gotit
 	xor cl,al
-	and cl,0x3f
-	jnz .notright
-.right:
-	stc
-.notright:
+.gotit:
+	sete al
+	or al,ch	// set bit 7 correctly
+	sar al,1	// this sets SF and CF correctly
 	ret
+
+
+	// *** action 4 handler ***
+action4:
+	// Four extra bytes in front of this sprite data are used this way:
+	// - vehtype names: unused
+	// - general texts: pointer to orggentext struc
 
 initnewvehnames:
 	xor ebp,ebp

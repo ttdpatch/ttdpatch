@@ -443,7 +443,7 @@ language.dat: ${HOSTPATH}makelang${HOSTEXE}
 
 # link the modules to the exe file
 ifeq ($(DOSCC),BCC)
-ttdprotd${EXED}:	$(dosobjs)
+ttdprotd${EXED} ttdprotd${EXED}.map:	$(dosobjs)
 	${_E} [LDD] $@
 	@echo ${LDFLAGSD} 		> $(DRSP)
 	@echo $^ 			>> $(DRSP)
@@ -452,12 +452,12 @@ ttdprotd${EXED}:	$(dosobjs)
 	${_C}$(LDD) -m$(MODEL) -e$@	@$(URSP)
 else
 # for OpenWatcom wlink, files need to be comma-separated, so we'll use sed to s/ /,/
-ttdprotd${EXED}:	$(dosobjs)
+ttdprotd${EXED} ttdprotd${EXED}.map:	$(dosobjs)
 	${_E} [LDD] $@
 	${_C}$(LDD) ${LDFLAGSD} name $@ file `echo $^|sed "s/ /,/g"` lib zlib_ow$(MODEL).lib,exec_ow$(MODEL).lib
 endif
 
-ttdprotw${EXEW}:	$(winobjs)
+ttdprotw${EXEW} ttdprotw${EXEW}.map:	$(winobjs)
 	${_E} [LD] $@
 	${_C}$(LD) -o $@ $^ $(LDFLAGS)
 
