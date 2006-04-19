@@ -3,7 +3,7 @@
 #include <var.inc>
 #include <patchproc.inc>
 
-patchproc newtownnames,newhouses, patchgameinit
+patchproc newtownnames,newhouses,newindustries, patchgameinit
 
 begincodefragments
 
