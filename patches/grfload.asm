@@ -64,20 +64,23 @@ proc initializegraphics
 	// some other things are initialized properly only if we do this)
 
 	// allocate memory to hold the block and 1 sprite (action 8)
-	push byte spriteblock_size + 4
+	call makespriteblock
+	jc .none	// no memory
+
+	mov eax,esi
+
+	push 4
 	call malloc
-	pop eax
+	pop edi
+	jc .none
+
 	mov [spriteblockptr],eax
 	mov [curspriteblock],eax
 	mov [dummyspriteblock],eax
-	jc .none	// no memory
 
 	and dword [eax+spriteblock.next],0
 
 	// insert dummy action 8 so that we have at least one in the list
-
-	lea edi,[eax+spriteblock_size]
-
 	mov [eax+spriteblock.spritelist],edi
 	mov byte [eax+spriteblock.numsprites],1
 	mov dword [eax+spriteblock.paramptr],grfswitchparam
@@ -489,7 +492,6 @@ proc readgrffile
 	mov eax,[%$numparam]
 	mov [esi+spriteblock.numparam],al
 	mov [esi+spriteblock.orgnumparam],al
-	mov dword [esi+spriteblock.cargotransptr],defcargotrans
 
 	mov [esi+spriteblock.flags],ah
 
@@ -664,13 +666,18 @@ makespriteblock:
 	push eax
 	mov eax,esi
 	xchg eax,[curspriteblock]
+	test eax,eax
+	jle .noprev
+
 	mov [eax+spriteblock.next],esi
 
+.noprev:
 	or eax,byte -1
 	mov [esi+spriteblock.grfid],eax
 	mov [esi+spriteblock.cursprite],ax
 	mov [esi+spriteblock.spritelist],eax
 	mov [esi+spriteblock.paramptr],eax
+	mov dword [esi+spriteblock.cargotransptr],defcargotrans
 	pop eax
 
 .outofmem:

@@ -502,8 +502,6 @@
 
 - crash: http://www.tt-forums.net/viewtopic.php?p=423846#423846
 
-- incorrect PBS signal promotion http://www.tt-forums.net/viewtopic.php?p=426083#426083
-
 - hang with mountains 3323 and cztexty.grf
   http://www.tt-forums.net/viewtopic.php?p=428259#428259
 
@@ -516,8 +514,7 @@
 - incorrect(?) invalid sprite error
   http://www.tt-forums.net/viewtopic.php?p=430873#430873
 
-- crash displaying ship name
-  http://www.tt-forums.net/viewtopic.php?p=430874#430874
+- with elrails off, both mono and maglev open same toolbar
 
 ==== Rather urgent =====
 

@@ -1166,13 +1166,6 @@ resolvecargotranslations:
 
 	mov esi,[ebx+cargotrans.tableptr]
 	xor ecx,ecx
-	test esi,esi
-	jnz .donext
-
-	// no table, use default
-	mov esi,defcargotranstable
-	mov [ebx+cargotrans.tableptr],esi
-	mov byte [ebx+cargotrans.numtrans],NUMCARGOS
 
 .donext:
 	mov eax,[esi+ecx*4]
