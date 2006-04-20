@@ -23,7 +23,7 @@ extern numgrfvarreinitalways,numgrfvarreinitzero,numgrfvarreinitsigned
 extern openfilefn,patchflags,readspriteinfofn,readwordfn
 extern removespritefromcache,spriteblockptr,spriteinitializeaction
 extern spritesloadedaction,tempvard,grfvarreinitgrmstart,numgrfvarreinitgrm
-extern vehids,curextragrm,lastextragrm,ourtext_ptr
+extern vehids,curextragrm,lastextragrm,ourtext_ptr,defcargotrans
 
 
 uvard spriteerror	// holds pointer to spriteblock with error
@@ -489,6 +489,7 @@ proc readgrffile
 	mov eax,[%$numparam]
 	mov [esi+spriteblock.numparam],al
 	mov [esi+spriteblock.orgnumparam],al
+	mov dword [esi+spriteblock.cargotransptr],defcargotrans
 
 	mov [esi+spriteblock.flags],ah
 

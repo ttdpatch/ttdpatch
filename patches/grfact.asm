@@ -991,9 +991,6 @@ setvehcargomap:
 	cmp ebx,byte -2
 	jae .havetrans
 
-	cmp dword [edx+cargotrans.tableptr],0
-	je .notranstbl
-
 	push eax
 	movzx ebx,bl
 	mov eax,[edx+cargotrans.tableptr]
@@ -1013,6 +1010,7 @@ setvehcargomap:
 .found:
 	pop eax
 	jnz .notset
+#if 0
 	jmp short .havetrans
 
 .notranstbl:
@@ -1020,6 +1018,7 @@ setvehcargomap:
 	jnc .notset
 
 	mov bl,[cargoid+ebx]
+#endif
 
 .havetrans:
 	mov [ebp+action3info.cargo+ebx*2],ax

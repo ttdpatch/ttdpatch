@@ -187,8 +187,6 @@ getrefitmask:
 	mov eax,[eax+action3info.spriteblock]
 	mov esi,[eax+spriteblock.cargotransptr]
 	mov eax,[esi+cargotrans.tableptr]
-	test eax,eax
-	jz .donetrans
 
 	push edi
 	push esi
@@ -216,7 +214,6 @@ getrefitmask:
 
 .donetranspop:
 	pop esi
-//	and ecx,[esi+cargotrans.supported]
 	pop eax
 
 .donetrans:

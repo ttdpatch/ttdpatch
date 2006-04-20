@@ -519,9 +519,6 @@
 - crash displaying ship name
   http://www.tt-forums.net/viewtopic.php?p=430874#430874
 
-- provide a default cargotrans struct for all grfs that wouldn't otherwise
-  have one
-
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -793,3 +790,7 @@ CHANGELOG
   * changed onewayroads to only show markers when road building is active
   * added "debug" button to grf status window, writes info to grfdebug.txt
 - fixed hang when loading game if save had too many animation tiles
+- fixed handling of language ID bytes with bits 6 and 7 set
+- by Csaba:
+  * fixed wrong industries appearing with newindustries on but newhouses off
+- (devel) ensure all sprite blocks always have a valid cargo translation table

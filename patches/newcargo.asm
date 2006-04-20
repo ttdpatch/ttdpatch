@@ -1096,8 +1096,8 @@ global setcargotranstbl
 setcargotranstbl:
 	mov edx,[curspriteblock]
 	mov eax,[edx+spriteblock.cargotransptr]
-	test eax,eax
-	jnz .hastable
+	cmp eax,defcargotrans
+	jne .hastable
 
 	push 0+cargotrans_size
 	call malloc
@@ -1112,20 +1112,47 @@ setcargotranstbl:
 
 	// End of action 0 property handlers
 
+
+uvard defcargotranstable,NUMCARGOS
+
+varb defcargotrans
+	istruc cargotrans
+		at cargotrans.tableptr, dd defcargotranstable
+		at cargotrans.numtrans, db NUMCARGOS
+	iend
+endvar
+
 // Resolve cargo translation table
 global resolvecargotranslations
 resolvecargotranslations:
+	// construct default translation table
+	mov edi,defcargotranstable
+	mov ecx,NUMCARGOS
+	or eax,byte -1
+	push edi
+	rep stosd
+	pop edi
+
+	mov cl,NUMCARGOS
+.addnext:
+	movzx eax,byte [cargotypes+ecx-1]
+	cmp al,0xff
+	je .empty
+
+	mov edx,[globalcargolabels+(ecx-1)*4]
+	mov [edi+eax*4],edx
+
+.empty:
+	loop .addnext
+
 	mov edx,[spriteblockptr]
+	mov ebx,defcargotrans
+	jmp short .havelist	// skip check for defcargotrans (to translate it exactly once)
 
 .resolve:
 	mov ebx,[edx+spriteblock.cargotransptr]
-	test ebx,ebx
-	jnz .havelist
-
-	push 0+cargotrans_size
-	call malloc
-	pop ebx
-	mov [edx+spriteblock.cargotransptr],ebx
+	cmp ebx,defcargotrans
+	je .next
 
 .havelist:
 	push edx
@@ -1140,7 +1167,12 @@ resolvecargotranslations:
 	mov esi,[ebx+cargotrans.tableptr]
 	xor ecx,ecx
 	test esi,esi
-	jz .nextpop
+	jnz .donext
+
+	// no table, use default
+	mov esi,defcargotranstable
+	mov [ebx+cargotrans.tableptr],esi
+	mov byte [ebx+cargotrans.numtrans],NUMCARGOS
 
 .donext:
 	mov eax,[esi+ecx*4]
@@ -1166,7 +1198,6 @@ resolvecargotranslations:
 	cmp cl,[ebx+cargotrans.numtrans]
 	jb .donext
 
-.nextpop:
 	pop edx
 
 .next:

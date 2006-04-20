@@ -1489,11 +1489,7 @@ lookuptranslatedcargo:
 
 .translate:
 	mov eax,[eax+spriteblock.cargotransptr]
-	test eax,eax
-	jz .usebit
 	mov eax,[eax+cargotrans.tableptr]
-	test eax,eax
-	jz .usebit
 	mov eax,[eax+4*ebx]
 
 	xor ebx,ebx
