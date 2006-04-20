@@ -22,7 +22,7 @@ extern newtransmitaction.oldfn,patchflags
 extern reloadenginesfn
 extern reversetrain.cantreversemessage
 extern vehnametextids
-extern wait27ms_nogiveaway
+extern wait27ms_nogiveaway,backupvehnametexts
 
 ext_frag oldrecordlastactionxy
 
@@ -1019,6 +1019,8 @@ patchgeneralfixes:
 	jmp .fixnextmsg
 
 .donefixing:
+
+	call backupvehnametexts
 
 .notwithname:
 

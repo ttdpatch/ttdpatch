@@ -1204,6 +1204,357 @@ struc orggentext
 	.entries:		// variable number of DWORDs containing original string
 endstruc_32
 
+noglobal vard spectexthandlers
+	dd 0x015b, addttdpatchver
+	dd 0x0198, patchprofitcolor
+	dd 0x0307, addttdpatchver
+	dd 0x6809, fixloansizedisp
+	dd 0x885e, fixpowerdisp
+	dd 0xa007, fixaircraftcapandlife
+	dd 0xa02e, fixaircraftcapacitynews
+	dd -1, 0
+
+extern ttdpatchversion
+
+exported runspectexthandlers
+
+	pusha
+
+	mov ebx, spectexthandlers
+
+.next:
+	mov eax, [ebx]
+	cmp eax, byte -1
+	je .done
+
+	mov ebp,eax
+	call gettextintableptr
+	setc dl
+
+	push eax
+	mov esi,[eax+edi*4]
+	jnc .noadd
+	add esi,eax
+.noadd:
+	mov eax,esi
+	call [ebx+4]
+
+	mov esi,eax
+	pop eax
+	test dl,dl
+	jz .nosub
+	sub esi,eax
+.nosub:
+	mov [eax+edi*4],esi
+
+	add ebx,8
+	jmp short .next
+
+.done:
+	popa
+	ret
+
+addttdpatchver:
+	push ecx
+	push edi
+
+	mov ecx,64
+	push ecx
+	call malloccrit
+	pop edi
+
+	push edi
+
+.nextbyte:
+	lodsb
+	test al,al
+	jnz .notdone
+	mov al,','
+.notdone:
+	stosb
+	loopnz .nextbyte
+
+	dec esi
+	push esi
+
+	mov esi,ttdpatchversion
+
+.nextbyte2:
+	lodsb
+	cmp al,'('
+	jne .notdone2
+	mov al,0
+.notdone2:
+	stosb
+	loopne .nextbyte2
+
+	pop esi
+	pop eax
+	pop edi
+	pop ecx
+
+	ret
+
+fixloansizedisp:
+	testflags generalfixes
+	jc .doit
+	testflags morecurrencies
+	jc .doit
+	ret
+
+.doit:
+	push eax
+	push edi
+
+	cmp word [eax],0x9ec3
+	je .find7f_unicode
+
+.find7f:
+	lodsb
+	cmp al,0x7f
+	je .foundit
+	test al,al
+	jz .endtoosoon
+	jmp short .find7f
+
+.find7f_unicode:
+	lodsb
+	test al,al
+	jz .endtoosoon
+	cmp al,0xee
+	jne .find7f_unicode
+	cmp word [esi],0xbf81
+	jne .find7f_unicode
+
+	add esi,2
+
+.foundit:
+	mov eax,[esi]
+	shr eax,8
+	cmp eax,'000'
+	jne .endtoosoon
+
+	mov edi,esi
+	add esi,4
+.del:
+	lodsb
+	stosb
+	test al,al
+	jnz .del
+
+.endtoosoon:
+	dec esi
+
+.done:
+	pop edi
+	pop eax
+	ret
+
+fixaircraftcapacitynews:
+	testflags newplanes
+	jnc .done
+
+	push eax
+	push edi
+	push ecx
+
+	call fixaircraftcapacity
+
+	dec esi
+	pop ecx
+	pop edi
+	pop eax
+.done:
+	ret
+
+fixaircraftcapandlife:
+	testflags newplanes
+	jnc .done
+
+	push eax
+	push edi
+	push ecx
+
+	call fixaircraftcapacity
+
+	std
+
+	test ah,ah
+	jnz .unicode
+
+	mov al,0x7c
+	repne scasb
+	mov byte [edi+1],0x7d
+	mov esi,edi
+	jmp short .foundit
+
+.unicode:
+	mov esi,edi
+	dec esi
+.find7c_unicode:
+	lodsb
+	cmp al,0xee
+	jne .find7c_unicode
+	cmp word [esi+2],0xbc81
+	jne .find7c_unicode
+
+	mov byte [esi+3],0xbd
+	inc esi
+
+.foundit:
+	cld
+
+	mov edi,esi
+	xor eax,eax
+	repne scasb
+	mov esi,edi
+
+	pop ecx
+	pop edi
+	pop eax
+.done:
+	ret
+
+
+fixaircraftcapacity:
+	or ecx, byte -1
+
+	cmp word [esi],0x9ec3
+	sete ah
+	je .find7c_unicode
+
+	mov edi,esi
+	mov al,0x7c
+	repne scasb
+	mov byte [edi-1],0x80
+	mov esi,edi
+	jmp short .found7c
+
+.find7c_unicode:
+	lodsb
+	cmp al,0xee
+	jne .find7c_unicode
+	cmp word [esi],0xbc81
+	jne .find7c_unicode
+
+	mov word [esi], 0x8082
+
+	add esi,2
+	mov edi,esi
+
+.found7c:
+	mov al,13
+	repne scasb
+	dec edi
+	xchg esi,edi
+
+.copynext:
+	lodsb
+	stosb
+	test al,al
+	loopnz .copynext
+	ret
+
+fixpowerdisp:
+	testflags newtrains
+	jc .doit
+	testflags multihead
+	jc .doit
+	ret
+
+.doit:
+	push eax
+	push ecx
+
+	cmp word [esi],0x9ec3
+	je .unicode
+
+	xchg esi,edi
+
+	or ecx, byte -1
+	mov al,0x7c
+	repne scasb
+	repne scasb
+	dec edi
+
+	mov byte [edi],0x7b
+	xchg esi,edi
+	jmp short .done
+
+.unicode:
+	mov ecx,2
+
+.find7c_unicode:
+	lodsb
+	cmp al,0xee
+	jne .find7c_unicode
+	cmp word [esi],0xbc81
+	jne .find7c_unicode
+	loop .find7c_unicode
+
+	mov byte [esi+1],0xbb
+
+.done:
+	pop ecx
+	pop eax
+	ret
+
+patchprofitcolor:
+	push ecx
+	push esi
+	push edi
+
+	mov edi,esi
+	or ecx,byte -1
+	xor eax,eax
+
+	repnz scasb		// ecx is -length-1 now
+	neg ecx
+	push ecx		// allocate space for the new text
+	call malloc
+	pop edi
+	push edi
+	mov ecx,2		// which 0x7f to change
+
+	cmp word [esi],0x9ec3
+	je .find7f_unicode
+
+.find7f_normal:
+	lodsb
+	stosb
+	cmp al,0x7f
+	jne .find7f_normal
+	loop .find7f_normal
+
+	mov byte [edi-1],0x80
+	jmp short .done
+
+.find7f_unicode:
+	lodsb
+	cmp al,0xee
+	jne .find7f_unicode
+	cmp word [esi],0xbf81
+	jne .find7f_unicode
+	loop .find7f_unicode
+
+	mov word [edi],0x8082
+
+.done:
+
+.copyrest:
+	lodsb
+	stosb
+	test al,al
+	jnz .copyrest
+
+	mov word [edi-1],0x0080
+
+	pop eax
+	pop edi
+	pop esi
+	pop ecx
+	ret
+
 // check whether language byte matches current language
 //
 // in:	esi->language byte
@@ -1248,8 +1599,8 @@ initnewvehnames:
 	lea ebp,[ebp+esi-2]
 
 	call checklanguage
-	jnc .done
-	jns .done
+	jnc near .done
+	jns near .done
 
 	cmp word [esi+1],0xc000			// we don't need savig/restoring for patch texts
 	jae .nosave
@@ -1271,7 +1622,7 @@ initnewvehnames:
 	lodsb
 	mov ecx,eax
 
-	lea edx,[orggentext.entries+ecx*4]
+	lea edx,[orggentext.entries+ecx*8]
 	push edx
 	call malloccrit
 	pop edx
@@ -1302,12 +1653,21 @@ initnewvehnames:
 .ok:
 	lea esi,[eax+edi*4]
 	lea edi,[edx+orggentext.entries]
-	rep movsd
+
+.nextorigtext:
+	lodsd
+	stosd
+	add edi,4
+	loop .nextorigtext
+
 	pop edi
+
+	lea ebx,[edx+orggentext.entries]
 
 .geniddone:
 	pop esi
 	lodsb
+	movzx ecx,word [esi]
 	inc esi
 	inc esi
 	jmp short .checklen
@@ -1327,28 +1687,58 @@ initnewvehnames:
 	jle .badid
 	inc eax
 	loop .nextpatchid
+	xor ebx,ebx
 	jmp .geniddone
 
 .done:
 	// check that action data is complete
 	lodsb
 	inc esi		// skip offset
+	xor ebx,ebx
 
 .checklen:
+	push edi
 	mov dl,al
-	mov ecx,ebp
+	xchg ecx,ebp
 	sub ecx,esi
+
+	mov edi,spectexthandlers
+
+// now ebx->orggentext or null, ecx=#of remaining bytes, edi->spec. text handler table, ebp=current textID
+.compare:
+	test ebx,ebx
+	jz .nextnull
+	mov eax,esi
+
+	cmp ebp,[edi]
+	jb .notspecial
+	je .special
+
+	add edi,8
+	jmp short .compare
+
+.special:
+	call [edi+4]
+
+.notspecial:
+	mov [ebx+4],eax
+	add ebx,8
 
 .nextnull:
 	lodsb
 	test al,al
 	loopnz .nextnull
 	mov dh,INVSP_OUTOFDATA
-	jnz .invalid
+	jnz .invalid_pop
+	inc ebp
 	dec dl
-	jnz .nextnull
+	jnz .compare
+	pop edi
 	ret
 
+.invalid_pop:
+	pop edi
+	jmp newcargoid.invalid
 
 global undogentextnames
 undogentextnames:	// not an actual action handler, but best fits in here
@@ -1373,7 +1763,12 @@ undogentextnames:	// not an actual action handler, but best fits in here
 	call gettextintableptr
 	lea esi,[edx+orggentext.entries]
 	lea edi,[eax+edi*4]
-	rep movsd
+
+.nextentry:
+	lodsd
+	stosd
+	add esi,4
+	loop .nextentry
 
 	mov esi,[edx+orggentext.next]
 	jmp .nextaction4
@@ -1426,12 +1821,27 @@ applynewvehnames:
 	mov eax,ebp
 	inc ebp
 
-.notpatchtext:
 	push edi
 	call gettextintableptr
 	lea ebx,[eax+edi*4]
 	pop edi
 	jmp short .gotit
+
+.notpatchtext:
+
+	mov esi,[esi-10]
+	add esi,orggentext.entries+4
+	push edi
+	call gettextintableptr
+	lea edi,[eax+edi*4]
+
+.nextsavedtxt:
+	lodsd
+	stosd
+	add esi,4
+	loop .nextsavedtxt
+	pop edi
+	ret
 
 .nextveh:
 	test ebp,ebp

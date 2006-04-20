@@ -12,9 +12,10 @@
 extern curspriteblock,customtextptr,gethousetexttable,getmiscgrftable
 extern getstationtexttable,gettextintableptr,ntxtptr
 extern systemtextptr,mainstringtable,getextratranstable,hasaction12
-extern setelrailstexts,patchflags,applycurrencychanges,ttdtexthandler
+extern restoreelrailstexts,patchflags,applycurrencychanges,ttdtexthandler
 extern storeutf8char
 extern failpropwithgrfconflict,lastextragrm,curextragrm
+extern restorevehnametexts
 
 uvard ourtext_ptr, ourtext(last)-ourtext(base)
 
@@ -132,7 +133,7 @@ textprocessing:
 	jle .undef
 
 .resumeundef:
-	cmp word [esi],0x9EC3		// first char = Thorn Þ (C3 9E) -> UTF-8
+	cmp word [esi],0x9EC3		// first char = Thorn (C3 9E) -> UTF-8
 	jne .continue
 
 .utf8:
@@ -237,8 +238,8 @@ textprocessing:
 
 section .dataw
 .chartrl:
-	dw 0x20AC	// 9E Euro character "€"
-	dw 0x0178	// 9F Capital Y umlaut "Ÿ"
+	dw 0x20AC	// 9E Euro character
+	dw 0x0178	// 9F Capital Y umlaut
 	dw 0xE0A0	// A0 Scroll button up
 	dw 0xA1,0xA2,0xA3,0xA4,0xA5,0xA6,0xA7,0xA8,0xA9
 	dw 0xE0AA	// AA Scroll button down
@@ -653,9 +654,18 @@ resetourtextptr:
 	call initourtextptr
 	testmultiflags electrifiedrail
 	jz .noelrails
-	call setelrailstexts
+	call restoreelrailstexts
 .noelrails:
 	call applycurrencychanges
+
+	testflags generalfixes
+	jnc .norestorevehtexts
+	test dword [miscmodsflags],MISCMODS_USEVEHNNUMBERNOTNAME
+	jnz .norestorevehtexts
+
+	call restorevehnametexts
+
+.norestorevehtexts:
 	popa
 	ret
 

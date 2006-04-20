@@ -25,6 +25,7 @@ endcodefragments
 
 
 patchdiffsettings:
+#if 0
 	mov ax,0x6809	// "Initial loan size:..."
 	call gettextandtableptrs
 
@@ -42,7 +43,7 @@ patchdiffsettings:
 	stosb
 	or al,al
 	jnz .delloop
-
+#endif
 	xor ecx,ecx
 	stringaddress oldshowdifficultynums,1,1
 	copyrelative fndrawstring,lastediadj+6

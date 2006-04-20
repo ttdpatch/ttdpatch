@@ -25,6 +25,7 @@ endcodefragments
 
 
 patchshowprofitinlist:
+#if 0
 	mov ax,0x198		// get the textarray entry
 	call gettextintableptr
 	lea ebx,[eax+edi*4]	// and the text itself
@@ -72,6 +73,7 @@ patchshowprofitinlist:
 	jnz .copyloop
 	dec edi
 	mov word [edi],0x0080
+#endif
 
 	multipatchcode oldshowprofitdata,newshowprofitdata,4
 	ret

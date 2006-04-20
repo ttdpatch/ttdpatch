@@ -35,7 +35,7 @@ extern setroadowner,sigbitsonpiece,newvehdata,currwaittime
 extern stationarray2ofst,stationarray2ptr,tmpbuffer1,townarray2ofst
 extern trainrunningcost,ttdtexthandler,vehdirectionroutemasks
 extern yeartodate
-extern spriteblockptr
+extern spriteblockptr,gettextintableptr,gettextandtableptrs
 
 
 
@@ -2318,7 +2318,88 @@ var vehnametextids, dw 0x8864,0x8814,0x902b,0x9016,0x9830,0x981c,0xa02f,0xa014
 	dw -1,0x01a0,-1,0x01a1,-1,0x01a2
 	dw -1,ourtext(vehiclelost),-1,ourtext(cantreverse)	// not newstext, we want the actual string data
 	dw 0
+
+%assign numvehnametexts ($-vehnametextids-2)/4
+
+noglobal uvard oldvehtexts, numvehnametexts
 var genericvehmsg, db 0x80,0x20,0x7c,0
+
+
+exported backupvehnametexts
+	pusha
+
+	xor ecx,ecx
+.nexttext:
+	mov ax,[vehnametextids+ecx*4+2]
+	call gettextandtableptrs
+	mov [oldvehtexts+ecx*4],edi
+
+	inc ecx
+	cmp ecx,numvehnametexts
+	jb .nexttext
+
+	popa
+	ret
+
+exported restorevehnametexts
+	pusha
+
+	xor ecx,ecx
+.nexttext:
+	mov ax,[vehnametextids+ecx*4+2]
+	mov ebx,[oldvehtexts+ecx*4]
+	call gettextintableptr
+	jnc .nosubtract
+	sub ebx,eax
+.nosubtract:
+	mov [eax+edi*4],ebx
+
+	inc ecx
+	cmp ecx,numvehnametexts
+	jb .nexttext
+
+	popa
+	ret
+
+noglobal varb vehtextfallback, 0x80,"??",0
+
+exported fixupvehnametexts
+	pusha
+
+	xor ecx,ecx
+	mov edx,ourtext(newtrainindepot)
+.nexttext:
+	mov ax,[vehnametextids+ecx*4+2]
+	mov ebx,[oldvehtexts+ecx*4]
+	call gettextandtableptrs
+	cmp ebx,edi
+	je .donetext
+
+	mov eax,edx
+	call gettextandtableptrs
+	cmp byte [edi],0
+	jne .havereplacement
+
+	mov edi,vehtextfallback
+
+.havereplacement:
+	mov ax,[vehnametextids+ecx*4+2]
+	mov ebx,edi
+	call gettextintableptr
+	jnc .nosubtract
+	sub ebx,eax
+.nosubtract:
+	mov [eax+edi*4],ebx
+
+.donetext:
+	inc ecx
+	inc edx
+
+	cmp ecx,numvehnametexts
+	jb .nexttext
+
+	popa
+	ret
 
 // Periodic class 6 (water) proc
 // Floods water into adjacent flat non-water tiles

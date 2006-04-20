@@ -81,6 +81,7 @@ patchnewplanes:
 	add [edi+66],ebx
 	add [edi+78],ebx
 
+#if 0
 	// replace "n passengers, n bags of mail" by 0x80
 	mov ax,0xa02e
 	call .adjust
@@ -93,6 +94,7 @@ patchnewplanes:
 	repne scasb
 	mov byte [edi+1],0x7d	// change year from word to byte
 	cld
+#endif
 
 	mov esi,vehtickproc_aircraft
 	mov eax,[ophandler+0x13*8]	// aircraft vehicle class
@@ -108,6 +110,7 @@ patchnewplanes:
 	patchcode helitakeoffsound
 	ret
 
+#if 0
 .adjust:
 	call gettextandtableptrs
 	mov al,0x7c
@@ -127,3 +130,4 @@ patchnewplanes:
 	test al,al
 	loopnz .copynext
 	ret
+#endif

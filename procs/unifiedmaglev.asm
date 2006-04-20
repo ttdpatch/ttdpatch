@@ -59,7 +59,7 @@ patchunifiedmaglev:
 	mov esi,[eax+edi*4+4]
 	mov [eax+edi*4],esi
 
-	setbase ebx,realtracktypes
+//	setbase ebx,realtracktypes
 	mov byte [realtracktypes+2],1
 	mov byte [realtracktypes+3],1
 

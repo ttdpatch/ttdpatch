@@ -19,6 +19,7 @@
 #include <patchdata.inc>
 #include <house.inc>
 #include <font.inc>
+#include <textdef.inc>
 
 extern SwapDockWinPurchaseLandIco,SwapLomoGuiIcons,activatedefault,activatetype
 extern addnewtemperatecargo,basecostmult,bridgespritetables,callbackflags
@@ -55,7 +56,8 @@ extern disabledoldhouses,enhancetunnelshelpersprite
 extern initglyphtables,setcharwidthtables,fonttables,hasaction12
 extern snowlinetableptr,getymd,restoresnowytrees,snowytemptreespritebase
 extern applysnowytemptrees,alwaysminusone
-extern updateTramStopSpriteLayout
+extern updateTramStopSpriteLayout,setelrailstexts,gettextintableptr
+extern gettextandtableptrs,defaultstylename,fixupvehnametexts
 
 // New class 0xF (vehtype management) initialization handler
 // does additional things before calling the original function
@@ -1111,6 +1113,8 @@ postinfoapply:
 	testmultiflags electrifiedrail
 	jz near .typeconversion
 
+	call setelrailstexts
+
 	movzx ebx,byte [unimaglevmode]
 
 	// change build menu sprites and cursors
@@ -1517,6 +1521,34 @@ postinfoapply:
 	jnc .notrams
 	call updateTramStopSpriteLayout
 .notrams:
+
+	testflags electrifiedrail
+	jc .noshufflemenu
+	testflags unifiedmaglev
+	jnc .noshufflemenu
+	cmp byte [unimaglevmode],2
+	jne .noshufflemenu
+
+	// make second menu entry be Maglev
+	mov ax,0x1016
+	call gettextintableptr
+
+	mov esi,[eax+edi*4+4]
+	mov [eax+edi*4],esi
+
+.noshufflemenu:
+	mov ax,ourtext(unnamedtownnamestyle)
+	call gettextandtableptrs
+	mov [defaultstylename],edi
+
+	testflags generalfixes
+	jnc .nofixupvehtexts
+	test dword [miscmodsflags],MISCMODS_USEVEHNNUMBERNOTNAME
+	jnz .nofixupvehtexts
+
+	call fixupvehnametexts
+
+.nofixupvehtexts:
 	ret
 
 // List of vehicles the should be made eternal

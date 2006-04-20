@@ -2054,9 +2054,7 @@ drawcrossing:
 	ret
 ; endp drawcrossing
 
-// Set menu texts etc
-global setelrailstexts
-setelrailstexts:
+exported restoreelrailstexts
 	// restore default strings
 	xor ecx,ecx
 	mov esi,railtypetextids
@@ -2071,6 +2069,11 @@ setelrailstexts:
 	jmp .next
 
 .done:
+	ret
+
+// Set menu texts etc
+global setelrailstexts
+setelrailstexts:
 	cmp byte [unimaglevmode],1
 	jne .notmonorail
 

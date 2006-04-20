@@ -64,7 +64,7 @@ extern drawcenteredtextfn,drawsplitcenteredtextfn, RefreshWindows
 extern CreateTextInputWindow, findroadvehicledepot
 extern addrailfence1,addrailfence2,addrailfence3,addrailfence4
 extern addrailfence5,addrailfence6,addrailfence7,addrailfence8
-extern rvcheckovertake,findFrSpaTownNameFlags
+extern rvcheckovertake,findFrSpaTownNameFlags,runspectexthandlers
 
 
 begincodefragments
@@ -1481,6 +1481,7 @@ dogeneralpatching:
 	mov eax,[edi+lastediadj-4]
 	mov [mainstringtable],eax
 
+#if 0
 	mov esi,newversionstring
 	mov edi,esi
 	mov [eax+0x15b*4],esi
@@ -1507,6 +1508,9 @@ dogeneralpatching:
 .notdone2:
 	stosb
 	loopne .nextbyte2
+#endif
+
+	call runspectexthandlers
 
 	// check some code that bypasses the text handler and doesn't get Unicode processing
 

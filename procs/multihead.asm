@@ -136,6 +136,7 @@ shipcosttable equ	(vehiclecosttables+2*4)	// Table of cost multipliers of ships
 aircraftcosttable equ	(vehiclecosttables+3*4)	// Table of cost multipliers of aircraft
 
 patchpower:
+#if 0
 	mov ax,0x885e
 	call gettextandtableptrs
 
@@ -148,6 +149,7 @@ patchpower:
 	dec edi
 
 	mov byte [edi],0x7b		// edi points to next byte
+#endif
 
 	stringaddress oldshowpower,1,1
 	add dword [edi+14],byte 2
