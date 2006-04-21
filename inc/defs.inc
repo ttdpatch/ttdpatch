@@ -32,6 +32,10 @@
 
 #define ASSEMBLER
 
+%ifndef __Line__
+	%error "Your nasm binary is outdated, please use the one from the nasm/ directory."
+%endif
+
 cpu 386
 bits 32
 

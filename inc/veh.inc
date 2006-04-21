@@ -8,7 +8,7 @@ struc veh
 			resw 1	// 02h:index of next vehicle in some list (used to detect collisions?)
 	.idx:	 	resw 1	// 04h:vehicle number
 	.scheduleptr: 	resd 1	// 06h:pointer to command list
-	.currorder: 	resw 1	// 0ah:next station or depot & special commands (1)
+	.currorder: 	resw 1	// 0ah:next station or depot & special commands (see below)
 	.totalorders: 	resb 1	// 0ch:total number of commands
 	.currorderidx:		// 0dh:	current command index (for engine of consist)
 	.artictype:	resb 1	//	articulated piece type (for following vehicles)
@@ -127,7 +127,7 @@ endstruc_32
 	%endif
 %endif
 
-// nextstation:
+// .currorder:
 // high byte = station/depot number
 //
 // special commands ORed in low byte:

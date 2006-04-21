@@ -5,7 +5,14 @@
 // THIS IS OBSOLETE NOW, DON'T USE IT IN NEW CODE
 %define addr(x) (x) //-protectedstart+runindexbase)
 
-%define endvar __SECT__
+%macro endvar 0
+	%ifnctx VAR
+		%error "endvar not following a var definition"
+	%else
+		__SECT__
+		%pop
+	%endif
+%endmacro
 
 // macro to eat and discard all parameters
 %macro gobbleargs 1+
@@ -31,6 +38,10 @@
 // by default all variables are declared global; preceed the declaration
 // with "noglobal" if they shouldn't be (i.e. for local variables)
 %macro varb 1-2+.nolist	// params: variablename, value
+	%ifnctx VAR
+		%push VAR
+		%xdefine %$VAR_START __File__:__Line__
+	%endif
 	[section .datab]
 	GLOBALVAR %1
 	%if %0>1
@@ -41,6 +52,10 @@
 	%endif
 %endmacro
 %macro varw 1-2+.nolist	// params: variablename, value
+	%ifnctx VAR
+		%push VAR
+		%xdefine %$VAR_START __File__:__Line__
+	%endif
 	[section .dataw]
 	GLOBALVAR %1
 	align 2
@@ -52,6 +67,10 @@
 	%endif
 %endmacro
 %macro vard 1-2+.nolist	// params: variablename, value
+	%ifnctx VAR
+		%push VAR
+		%xdefine %$VAR_START __File__:__Line__
+	%endif
 	[section .datad]
 	GLOBALVAR %1
 	align 4
@@ -74,6 +93,15 @@
 %macro ovar 1-4.nolist -4,$, // params: variablename, offset [, basis [, fullname]]
 	GLOBALVAR %4%1
 	%1 equ addr(%3)+(%2)
+%endmacro
+
+// Check that code isn't in var context (wrong section!)
+%macro mov 2.nolist
+	%ifctx VAR
+		%error "Missing endvar for var definition at %$VAR_START"
+		%pop	// to prevent repeats of this message
+	%endif
+	mov %1,%2
 %endmacro
 
 // Define an uninitialized variable

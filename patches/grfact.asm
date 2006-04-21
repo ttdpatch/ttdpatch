@@ -1213,6 +1213,7 @@ noglobal vard spectexthandlers
 	dd 0xa007, fixaircraftcapandlife
 	dd 0xa02e, fixaircraftcapacitynews
 	dd -1, 0
+endvar
 
 extern ttdpatchversion
 

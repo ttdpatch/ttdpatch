@@ -1329,8 +1329,7 @@ vard defaultindustryspecialflags
 	dd 0x2000,0,0,0,0x800,0x604,0x1000,0,	0,0x41,0,0x180,0x8,0,0,0
 					dd 0x10,0,0,0,0,0,0x10,0,		0x40,0x2,0,0,0,0,0x20,0
 					dd 0,0,0,0,0
-
-section .text
+endvar
 
 // The old code has hard-coded creation messages. We introduce an array to store message IDs, so they can be
 // customized

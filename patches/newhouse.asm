@@ -74,7 +74,7 @@ dd newhouseremovemultipliers
 dd newhousenames
 dd newhouseavailmasks
 
-section .text
+endvar
 
 // Set to 1 while generating the houses of a new town
 uvarb newtownconstr

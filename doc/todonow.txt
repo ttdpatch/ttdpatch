@@ -790,4 +790,7 @@ CHANGELOG
 - fixed handling of language ID bytes with bits 6 and 7 set
 - by Csaba:
   * fixed wrong industries appearing with newindustries on but newhouses off
+  * text modifications are now applied to GRF texts as well 
+  * text modifications now handle UTF-8 correctly 
+  * fixed incorrect rail menu with unifiedmaglev=2 and electrifiedrails off
 - (devel) ensure all sprite blocks always have a valid cargo translation table

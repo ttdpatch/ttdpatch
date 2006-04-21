@@ -117,7 +117,7 @@
 
 	%assign %$args 0
 	%assign %$locals 0
-	%xdefine %$procstart __FILE__:__LINE__
+	%xdefine %$procstart __File__:__Line__
 %endmacro
 
 ; store the name of a symbol that was %define'd in this proc's args or locals

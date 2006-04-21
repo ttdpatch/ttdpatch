@@ -215,7 +215,7 @@ vard cargotypeptr
 	dd rvcargotype-ROADVEHBASE
 	dd shipcargotype-SHIPBASE
 	dd 0 // planecargotype-AIRCRAFTBASE (doesn't exist)
-
+endvar
 
 	// called when last vehicle of train has entered the depot
 	//
