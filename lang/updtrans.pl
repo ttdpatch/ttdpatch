@@ -383,67 +383,56 @@ my %fullafter = (
 
 # make substitutions in text of entry
 my %subs = (
-	LANG_WRONGVERSION => [ qr/(\.\s*)[^.]+TTDPATCH.TXT[^.]*\./,
-		qq($1Please read\n").
-		q(        "         the \"Version Trouble\" section in the TTDPatch manual for more\n").
-		q(        "         information.\n") ],
-	LANG_SWITCHOBSOLETE => [ qr/-\%s/, '%s' ],
-	LANG_SHOWSWITCHINTRO => [ qr/"\\n"\n/, "" ],
 	LANG_NOTENOUGHMEMTTD => [ qr/\%s/, 'to start TTD' ],
 	selectstationgoods => [ qr/""/, '" for %d days"' ],
+	CFG_SELECTGOODS => [ qr/(?<!\%ld)\.?"\)/, 
+		', and disappear after the given number of days if the service stops.  '.
+		'Specifying 2 means goods never disappear.  '.
+		'Range: %ld..%ld.  Default: %ld' ],
+	CFG_MORECURRENCIES => [ qr/\.[^.]*0.*"/, '".  Bitcoded value.  Default 0."' ],
+	CFG_ENHANCEGUI => [ qr/,.*\%ld/, "Change the settings from the entry in TTD's toolbox menu." ],
+	CFG_PLANESPEED => [ qr/(?<!\%ld)\."/, '.  Range %ld..%ld.  Default %ld."' ],
+	LANG_SWSHOWLOAD => [ qr/".*"/, '"Enter/Space = run \"TTDLOAD %s\""' ],
+	);
+
+# same as above, but don't flag the changes (no translatable text involved)
+my %subsnomod = (
+	LANG_SWITCHOBSOLETE => [ qr/-\%s/, '%s' ],
+	LANG_SHOWSWITCHINTRO => [ qr/"\\n"\n/, "" ],
 	miscmods => [ qr/\%d/, '%ld' ],
 	enhancegui => [ qr/"[^"]*\%d[^"]*"/, '""' ],
 	experimentalfeatures => [ qr/\%d/, '%u' ],
 	planespeed => [ qr/""/, '": %d/4"' ],
 	CFG_LARGESTATIONS => [ qr/7(.)7/, "15${1}15" ],
-	CFG_SELECTGOODS => [ qr/(?<!\%ld)\.?"\)/, 
-		', and disappear after the given number of days if the service stops.  '.
-		'Specifying 2 means goods never disappear.  '.
-		'Range: %ld..%ld.  Default: %ld' ],
 	CFG_CDPATH => [ qr/\([^)]+\)/, '%s' ],
 	CFG_MOREBUILDOPTIONS => [ qr/,.*\%ld/, "" ],
-	CFG_MORECURRENCIES => [ qr/\.[^.]*0.*"/, '".  Bitcoded value.  Default 0."' ],
-	CFG_ENHANCEGUI => [ qr/,.*\%ld/, "Change the settings from the entry in TTD's toolbox menu." ],
-	CFG_TOWNGROWTHRATEMIN => [ qr/([^)]+)/, '%s' ],
-	CFG_TOWNGROWTHRATEMAX => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRACTSTATIONEXIST => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRACTSTATIONS => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRACTSTATIONSWEIGHT => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRPASSOUTWEIGHT => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRMAILOUTWEIGHT => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRPASSINMAX => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRPASSINWEIGHT => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRMAILINOPTIM => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRMAILINWEIGHT => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRGOODSINOPTIM => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRGOODSINWEIGHT => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRFOODINMIN => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRFOODINOPTIM => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRFOODINWEIGHT => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRWATERINMIN => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRWATERINOPTIM => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRWATERINWEIGHT => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRSWEETSINOPTIM => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRSWEETSINWEIGHT => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRFIZZYDRINKSINOPTIM => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRFIZZYDRINKSINWEIGHT => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRTOWNSIZEBASE => [ qr/([^)]+)/, '%s' ],
-	CFG_TGRTOWNSIZEFACTOR => [ qr/([^)]+)/, '%s' ],
-	CFG_TOWNMINPOPULATIONSNOW => [ qr/([^)]+)/, '%s' ],
-	CFG_TOWNMINPOPULATIONDESERT => [ qr/([^)]+)/, '%s' ],
-	CFG_PLANESPEED => [ qr/(?<!\%ld)\."/, '.  Range %ld..%ld.  Default %ld."' ],
-	LANG_SWSHOWLOAD => [ qr/".*"/, '"Enter/Space = run \"TTDLOAD %s\""' ],
-	);
-my %subsnomod = (
-	LANG_UNKNOWNSWITCH => [ qr/"\)/, '\n")' ],
-#	CFG_INTRO => [ qr/(-W.*$)/, '$1'."\n".'	CFG_COMMENT "(TTDPatch %s)\n"' ],
-	CFG_MULTIHEAD => [ qr/%\./, '%%.' ],
-	CFG_SUBSIDIARIES => [ qr/%\./, '%%.' ],
-	LANG_COPYERROR_NOEXIST => [ qr/TTDLOAD.EXE/, "TTDLOAD.OVL" ],
-	LANG_SHOWCOPYING => [ qr/load.exe/, 'load.ovl' ],
-	LANG_RUNTTDLOAD => [ qr/load.exe/, 'load.ovl' ],
-	LANG_RUNERROR => [ qr/load.exe/, 'load.ovl', 
-			   qr/\.\\n/, '\n' ],
+	CFG_TOWNGROWTHRATEMIN => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TOWNGROWTHRATEMAX => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRACTSTATIONEXIST => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRACTSTATIONS => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRACTSTATIONSWEIGHT => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRPASSOUTWEIGHT => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRMAILOUTWEIGHT => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRPASSINMAX => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRPASSINWEIGHT => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRMAILINOPTIM => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRMAILINWEIGHT => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRGOODSINOPTIM => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRGOODSINWEIGHT => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRFOODINMIN => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRFOODINOPTIM => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRFOODINWEIGHT => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRWATERINMIN => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRWATERINOPTIM => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRWATERINWEIGHT => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRSWEETSINOPTIM => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRSWEETSINWEIGHT => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRFIZZYDRINKSINOPTIM => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRFIZZYDRINKSINWEIGHT => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRTOWNSIZEBASE => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TGRTOWNSIZEFACTOR => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TOWNMINPOPULATIONSNOW => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_TOWNMINPOPULATIONDESERT => [ qr/\([^()]+\)/, '(%s)' ],
 	);
 my @allsubs = map { [ $_, 1 ] } keys %subs;
 push @allsubs, map { [ $_, 0 ] } keys %subsnomod;
@@ -559,11 +548,11 @@ LOOP: for my $i (0..$#paragraphs) {
 		for (@this) {
 			my $l = $_->[0];
 			$l =~ s/\n/\n\t/g;
-			print "***" if $_->[1];
+			print "/***/" if $_->[1];
 			print "$l\n";
 		}
 	}
-	push @out, map { $_->[1] ? "***" : "", "$_->[0]\n" } @this;
+	push @out, map { $_->[1] ? "/***/" : "", "$_->[0]\n" } @this;
 }
 
 open $file, ">", "$f.new" or die "Can't write $f.new: $!";
