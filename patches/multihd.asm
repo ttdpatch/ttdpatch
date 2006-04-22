@@ -11,7 +11,7 @@
 
 extern articulatedvehicle,callbackflags,cargounitweightsptr,checkoverride
 extern ctrlkeystate,curplayerctrlkey,freightweightfactor,generatesoundeffect
-extern isengine,isfreight,ishumanplayer,isrealhumanplayer,lastdetachedveh
+extern isengine,isfreightmult,ishumanplayer,isrealhumanplayer,lastdetachedveh
 extern miscgrfvar,moresteamsetting,mountaintypes,multihdspeedup,numheads
 extern patchflags,randomfn,reversearticulatedloco
 extern trainweight,veh2ptr,vehcallback,wagonoverride
@@ -323,7 +323,7 @@ calcvehweight:
 .notartic:
 	movzx eax,word [esi+veh.currentload]
 	movzx ebx,byte [esi+veh.cargotype]
-	bt [isfreight],ebx
+	bt [isfreightmult],ebx
 	jnc .notfreight
 
 	push dword [esi+veh.owner-1]

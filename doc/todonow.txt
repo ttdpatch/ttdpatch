@@ -794,3 +794,4 @@ CHANGELOG
   * text modifications now handle UTF-8 correctly 
   * fixed incorrect rail menu with unifiedmaglev=2 and electrifiedrails off
 - (devel) ensure all sprite blocks always have a valid cargo translation table
+- fixed bug with "freighttrains off" still applying default multiplier of 5
