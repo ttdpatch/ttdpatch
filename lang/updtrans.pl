@@ -8,9 +8,7 @@ my $debug = 0;
 
 # remove these entries
 my @remove = qw(
-	LANG_SWWAITFORKEY LANG_SHOWSWITCHINTRO LANG_SWTABLEVERCHAR LANG_TOSTARTTTD
-	LANG_SWONEWAY LANG_SWTWOWAY LANG_TIMEDAYS LANG_INFINITETIME
-	LANG_SCROLLKEYS LANG_SCROLLABORTKEY LANG_SWSHOWLOAD LANG_SWABORTLOAD
+	LANG_TOSTARTTTD
 	CFG_AIBOOST CFG_MOREINDUSTRIESPERCLIMATE
 	aibooster
 	);
@@ -25,10 +23,16 @@ my %changecomm = (
 	LANG_NOFILESFOUND =>
 		q~neither do the original files (two %s are two filenames)~,
 	CFG_CDPATH => "",
+	LANG_NOTENOUGHMEMTTD => 'DOS reports not enough memory available to start TTD',
 	);
 
 # add entries after other entries
 my %append = (
+	LANG_NOFILESFOUND => [
+		q~~,
+		q~// default Windows language executable (american/english/french/german/spanish).exe~,
+		q~SETTEXT(LANG_WINDEFLANGEXE, "AMERICAN.EXE");~,
+		],
 	LANG_UNKNOWNSWITCH => [
 		q~~,
 		q~// switch bit name is unknown.  First %s is bit name, 2nd is switch name~,
@@ -367,8 +371,8 @@ my @fullremove = qw( A );
 # add full-length switches
 my %fullafter = (
 	M => [ U => 'Enable the new locomotion-like gui. 1 for new gui without ctrl.' ],
-	Xt => [ Xv => 'Sort vehicle lists and set the time between two updates.',
-		Xz => 'Snap windows together.' ],
+	Xt => [ Xv => 'Sort vehicle lists and set the time between two updates',
+		Xz => 'Snap windows together' ],
 	XD => [ XN => 'TTD newspaper in color after the given year' ],
 	XY => [ XW => 'Stretch TTD\'s window to this size in pixels (Windows version only)' ],
 	X1 => [ Yf => 'Make freight trains more massive by the given factor',
@@ -378,7 +382,7 @@ my %fullafter = (
 	YG => [ YO => 'Enable the snow line in the temperate climate and set its height',
 		YR => 'Override map refresh frequency to # ticks' ],
 	YT => [ YW => 'Set maximum allowed window count' ],
-	W => [ Xn => 'cfg-file: Uses this file as configuration file for new graphics sets' ],
+	W => [ Xn => 'Uses this file as configuration file for new graphics sets' ],
 	);
 
 # make substitutions in text of entry
@@ -388,24 +392,24 @@ my %subs = (
 	CFG_SELECTGOODS => [ qr/(?<!\%ld)\.?"\)/, 
 		', and disappear after the given number of days if the service stops.  '.
 		'Specifying 2 means goods never disappear.  '.
-		'Range: %ld..%ld.  Default: %ld' ],
-	CFG_MORECURRENCIES => [ qr/\.[^.]*0.*"/, '".  Bitcoded value.  Default 0."' ],
-	CFG_ENHANCEGUI => [ qr/,.*\%ld/, "Change the settings from the entry in TTD's toolbox menu." ],
+		'Range: %ld..%ld.  Default: %ld.")' ],
+	CFG_MORECURRENCIES => [ qr/\.[^.]*0.*"/, '.  Bitcoded value.  Default 0."' ],
+	CFG_ENHANCEGUI => [ qr/\..*\%ld/, ".  Change the settings from the entry in TTD's toolbox menu" ],
 	CFG_PLANESPEED => [ qr/(?<!\%ld)\."/, '.  Range %ld..%ld.  Default %ld."' ],
 	LANG_SWSHOWLOAD => [ qr/".*"/, '"Enter/Space = run \"TTDLOAD %s\""' ],
 	);
 
 # same as above, but don't flag the changes (no translatable text involved)
 my %subsnomod = (
+	LANG_NOFILESFOUND => [ qr/TYCOON.EXE/i, '%s' ],
 	LANG_SWITCHOBSOLETE => [ qr/-\%s/, '%s' ],
-	LANG_SHOWSWITCHINTRO => [ qr/"\\n"\n/, "" ],
 	miscmods => [ qr/\%d/, '%ld' ],
 	enhancegui => [ qr/"[^"]*\%d[^"]*"/, '""' ],
 	experimentalfeatures => [ qr/\%d/, '%u' ],
 	planespeed => [ qr/""/, '": %d/4"' ],
-	CFG_LARGESTATIONS => [ qr/7(.)7/, "15${1}15" ],
-	CFG_CDPATH => [ qr/\([^)]+\)/, '%s' ],
-	CFG_MOREBUILDOPTIONS => [ qr/,.*\%ld/, "" ],
+	CFG_LARGESTATIONS => [ qr/7.7/, '15x15' ],
+	CFG_CDPATH => [ qr/\([^()]+\)/, '(%s)' ],
+	CFG_MOREBUILDOPTIONS => [ qr/,[^,"]*\%ld/, "" ],
 	CFG_TOWNGROWTHRATEMIN => [ qr/\([^()]+\)/, '(%s)' ],
 	CFG_TOWNGROWTHRATEMAX => [ qr/\([^()]+\)/, '(%s)' ],
 	CFG_TGRACTSTATIONEXIST => [ qr/\([^()]+\)/, '(%s)' ],
@@ -467,7 +471,7 @@ close $file;
 
 my @paragraphs = map {
 	  /TEXTARRAY\(halflines/ .. /}/ ?
-		split(/\n(?=\s+)/, $_)
+		split(/\n(?=\s+"-)/, $_)
 	: /SETTEXT\(LANG_FULLSWITCHES/ .. /\)/ ?
 		split(/\n(?=[^\n]*")/, $_)
 	: /SWITCHTEXT/ ? 
@@ -514,11 +518,11 @@ LOOP: for my $i (0..$#paragraphs) {
 		addafter @this, 5, 'qq(-$c:)', 'qq(	  "$form$arg",)', $cmdafter{$c};
 	}
 	for $c (@fullremove) {
-		$w = qq("-$c #:); 
+		$w = qq("-$c ); 
 		next LOOP if hasit;
 	}
 	for $c (keys %fullafter) {
-		$w = qq("-$c #); next unless hasit;
+		$w = qq("-$c ); next unless hasit;
 		addafter @this, 9, 'qq(-$c #:)', 'qq(	  "$form$arg).q(\n")', $fullafter{$c};
 	}
 	for $c (@allsubs) {
