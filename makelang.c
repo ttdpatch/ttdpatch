@@ -531,10 +531,10 @@ void errorcheck(void)
   int inorder[lastbitdefaultoff+1];
 
   // these switches are not in the -h display, remove them from the list
-  const char *notlisted = "hCVWX2";
+  const char *notlisted = "hVX2";
 
   printf("Error checking");
-  memset(cmdchars, 0, sizeof(cmdchars));
+  memset(cmdchars, -1, sizeof(cmdchars));
   for (i=0; switches[i].cmdline; i++) {
 		ind = switchid(switches[i].cmdline);
 		if (ind >= 0 && !(switches[i].bit == -1 &&
@@ -553,7 +553,9 @@ void errorcheck(void)
 
   // go through all halflines and check the leading letters
   for (i=0; halflines[i]; i++) {
-	line = halflines[i];
+	const char *orgline;
+
+	orgline = line = halflines[i];
 	if (strlen(line) > 38)
 		fprintf(stderr, "%s: halfline too long by %d chars: %s\n",
 			langname, (int) strlen(line) - 38, line);
@@ -566,8 +568,15 @@ void errorcheck(void)
 
 	line++;
 	ind = getswitchid(&line);
-	if (ind >= 0)
+	if (ind >= 0) {
+		if (!cmdchars[ind])
+			fprintf(stderr, "%s: duplicate halfline entry: %s\n",
+				langname, orgline);
+		if (cmdchars[ind] < 0)
+			fprintf(stderr, "%s: halfline entry for nonexistent switch: %s\n",
+				langname, orgline);
 		cmdchars[ind] = 0;
+	}
   }
   printf(".");
 
@@ -576,9 +585,16 @@ void errorcheck(void)
 
   while (line) {
 	if (line[0] == '-') {
+		const char *orgline = line;
 		line++;
 
 		while ( (line[0] != ' ') && ((ind = getswitchid(&line)) >= 0) ) {
+			if (!cmdchars[ind])
+				fprintf(stderr, "%s: duplicate switch entry: %s\n",
+					langname, orgline);
+			if (cmdchars[ind] < 0)
+				fprintf(stderr, "%s: switch entry for nonexistent switch: %s\n",
+					langname, orgline);
 			cmdchars[ind] = 0;
 		}
 	}
@@ -619,11 +635,11 @@ void errorcheck(void)
 
   // now see which ones are missing
   for (i=0; i<SWITCHBLOCK; i++)
-	if (cmdchars[i])
+	if (cmdchars[i] > 0)
 		fprintf(stderr, "%s: halflines missing description of option -%c\n",
 			langname, cmdchars[i]);
   for (; i<NOCMDSWITCHES; i++)
-	if (cmdchars[i])
+	if (cmdchars[i] > 0)
 		fprintf(stderr, "%s: halflines missing description of option -%s\n",
 			langname, dchartostr(cmdchars[i]));
 

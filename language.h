@@ -325,7 +325,6 @@ enum langtextids {
 	CFG_LARGESTATIONS,
 	CFG_MOUNTAINS,	
 	CFG_NONSTOP,	
-//	CFG_REDUCEDSAVE,	
 	CFG_PLANES,	
 	CFG_LOADTIME,
 	CFG_ROADVEHS,	
@@ -342,7 +341,6 @@ enum langtextids {
 	CFG_ENGINESPERSIST,	
 	CFG_CDPATH,			// Note- CFG_CDPATH has no command line switch, so don't give the second %s!
 	CFG_KEEPSMALLAP,	
-	CFG_AIBOOST,	
 	CFG_LONGBRIDGES,	
 	CFG_DYNAMITE,	
 	CFG_MULTIHEAD,
@@ -438,7 +436,6 @@ enum langtextids {
 	CFG_SHOWPROFITINLIST,
 	CFG_MORESTEAM,
 	CFG_ABANDONEDROADS,
-	CFG_MOREINDUSTRIESPERCLIMATE,
 	CFG_NEWSTATIONS,
 	CFG_BUILDWHILEPAUSED,
 	CFG_TRAINLOSTTIME,
@@ -516,6 +513,8 @@ enum langtextids {
 	LANG_ERRORCREATING,
 	LANG_TOSTARTTTD,
 	LANG_NOFILEFOUND,		// (Windows) neither does GameGFX.exe
+	CFG_AIBOOST,	
+	CFG_MOREINDUSTRIESPERCLIMATE,
 
 	LANG_REALLYLASTSTRING		// Must be the last, used below to determine how many entries we need
 

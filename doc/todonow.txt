@@ -511,11 +511,6 @@
 - another signal/pathfinder problem
   http://www.tt-forums.net/viewtopic.php?p=429375#429375
 
-- incorrect(?) invalid sprite error
-  http://www.tt-forums.net/viewtopic.php?p=430873#430873
-
-- with elrails off, both mono and maglev open same toolbar
-
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter

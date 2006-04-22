@@ -31,8 +31,6 @@
 #define WANTBITNUMS
 #include "bitnames.h"
 
-#include "mansect.h"
-
 // Macros to make defining the arrays easier
 #define ARRAYNAME(name) MACROPASTE(name ## _, LANGUAGE)
 #define PROCESSTHIS MACROPASTE(process_, LANGUAGE)
