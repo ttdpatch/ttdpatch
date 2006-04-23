@@ -790,3 +790,6 @@ CHANGELOG
   * fixed incorrect rail menu with unifiedmaglev=2 and electrifiedrails off
 - (devel) ensure all sprite blocks always have a valid cargo translation table
 - fixed bug with "freighttrains off" still applying default multiplier of 5
+- fixed crash in industry production callback
+- grf language ID handling changed; grf version up to 6 use bit mask, from 7
+  on use language numbers

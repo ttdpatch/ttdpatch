@@ -1651,10 +1651,11 @@ patchprofitcolor:
 //	SF=bit 7 of language byte
 // uses:al ecx
 checklanguage:
+	mov ecx,[curspriteblock]
+	cmp byte [ecx+spriteblock.version],7
 	lodsb
 	mov ecx,[languageid]
-	test al,0x40
-	jnz .oneid
+	jae .oneid
 	inc ecx
 	sar al,cl
 	ret
@@ -1662,8 +1663,8 @@ checklanguage:
 .oneid:
 	mov ch,al
 	and ch,0x80
-	and al,0x3f
-	cmp al,0x3f
+	and al,0x7f
+	cmp al,0x7f
 	je .gotit
 	xor cl,al
 .gotit:
