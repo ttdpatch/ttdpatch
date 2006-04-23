@@ -1571,6 +1571,11 @@ fixpowerdisp:
 // we also add a 80 to the end so we can show the performance score
 
 patchprofitcolor:
+	testflags showprofitinlist
+	jc .doit
+	ret
+
+.doit:
 	push ecx
 	push esi
 	push edi
