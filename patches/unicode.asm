@@ -19,6 +19,19 @@ extern invalidatehandle,newtexthandler,specialtext1,specialtext2
 
 // Initialize the font glyph tables with TTD's characters
 exported initglyphtables
+	mov esi,fonttables	// first make sure all allocated font tables are cleared
+.clearnext:
+	lodsd
+	test eax,eax
+	jle .notable
+	mov edi,eax
+	xor eax,eax
+	mov ecx,fontinfo_size*256/4
+	rep stosd
+.notable:
+	cmp esi,fonttables+4*3*256
+	jb .clearnext
+
 	xor eax,eax
 	call allocfonttable	// make sure at least first block is allocated
 	mov edi,eax

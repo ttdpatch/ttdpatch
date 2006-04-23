@@ -791,6 +791,7 @@ CHANGELOG
   * text modifications are now applied to GRF texts as well 
   * text modifications now handle UTF-8 correctly 
   * fixed incorrect rail menu with unifiedmaglev=2 and electrifiedrails off
+  * fixed crash if langID is changed via a GRF
 - (devel) ensure all sprite blocks always have a valid cargo translation table
 - fixed bug with "freighttrains off" still applying default multiplier of 5
 - fixed crash in industry production callback
@@ -799,3 +800,4 @@ CHANGELOG
 - change value 00 in action F language ID to be american language if it is 
   the first entry
 - fixed ship/plane vars 40+x getting wrong values after loading a game
+- fixed broken glyphs when disabling a font grf

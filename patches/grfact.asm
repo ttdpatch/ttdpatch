@@ -57,7 +57,7 @@ extern currtextlist,currmultis,curropts,currsymsbefore,currsymsafter,eurointr
 extern languagesettings
 extern cargotowngrowthtype,cargotowngrowthmulti,cargocallbackflags,setindustileaccepts
 extern setinduproducedcargos,setindustryacceptedcargos,industrydestroymultis
-extern fonttables,allocfonttable,hasaction12,setsnowlinetable,snowytemptreespritebase
+extern allocfonttable,hasaction12,setsnowlinetable,snowytemptreespritebase
 extern numsnowytemptrees,setstatcargotriggers,industilespecflags
 extern ttdpatchversion
 
