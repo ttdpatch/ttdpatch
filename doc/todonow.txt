@@ -511,6 +511,9 @@
 - another signal/pathfinder problem
   http://www.tt-forums.net/viewtopic.php?p=429375#429375
 
+- in unicode mode, status bar news messages are missing first char and
+  have wrong colour
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -793,3 +796,6 @@ CHANGELOG
 - fixed crash in industry production callback
 - grf language ID handling changed; grf version up to 6 use bit mask, from 7
   on use language numbers
+- change value 00 in action F language ID to be american language if it is 
+  the first entry
+- fixed ship/plane vars 40+x getting wrong values after loading a game

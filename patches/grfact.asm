@@ -1656,6 +1656,10 @@ checklanguage:
 	lodsb
 	mov ecx,[languageid]
 	jae .oneid
+	cmp cl,5
+	jb .goodlang
+	mov cl,0	// unknown language, pretend it's American
+.goodlang:
 	inc ecx
 	sar al,cl
 	ret
