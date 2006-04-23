@@ -82,9 +82,6 @@ SETTEXT(LANG_NOFILESFOUND, "Nem tal†ltam sem a %s-t, sem a %s-t.\n")
 // default Windows language executable (american/english/french/german/spanish).exe
 SETTEXT(LANG_WINDEFLANGEXE, "AMERICAN.EXE");
 
-// (Windows) neither does GameGFX.exe.  %s is GameGFX.EXE
-SETTEXT(LANG_NOFILEFOUND, "%s f†jl nem tal†lhat¢.\n")
-
 // Shown when copying tycoon.exe or ttdx.exe (first %s) to ttdload.ovl (2nd %s)
 SETTEXT(LANG_SHOWCOPYING, "%s m†sol†sa %s-be")
 
@@ -772,7 +769,6 @@ SETTEXT(CFG_SHAREDORDERS, "`%s' (%s) lehetãvÇ teszi a menetrendek megoszt†s†t Çs
 SETTEXT(CFG_SHOWPROFITINLIST, "`%s' (%s) sz°nk¢dokkal jelzi a profitokat a j†rm˚list†ban.")
 SETTEXT(CFG_MORESTEAM, "`%s' (%s) tîbb (vagy kevesebb) gãzpamacsot mutat. A paramÇter kÇt sz†mjegy˚, az elsã a gãzcs¢va hossz†t, a m†sodik a pamacsok gyakoris†g†t †ll°tja, ahol 2 a TTD alapÇrtelmezÇse. Egyet hozz†adva/kivonva a hossz vagy gyakoris†g dupl†z¢dik/felezãdik. Intervallum %02lx..%02lx. Alap %02lx.")
 SETTEXT(CFG_ABANDONEDROADS, "`%s' (%s) hat†s†ra az utak tulajdonjoga elveszik, ha egy ideig nem haszn†lja ãket a tulajdonos, °gy el lehet t†vol°tani a haszn†latlan utakat, ha £tban vannak. Ezen felÅl a tulajdonos nÇlkÅli utak tulajdonjoga a tiÇd lesz, ha a j†rm˚veid haszn†lj†k azt. A 0-s m¢dban minden haszn†latlan £t tulajdonjoga elveszik; az 1-es m¢dban a v†rosokhoz kîzeli utakat a v†ros kisaj†t°tja, ha azok nincsenek haszn†latban; a 2-es m¢dban a v†rosok azonnal kisaj†t°tj†k az utakat.")
-SETTEXT(CFG_MOREINDUSTRIESPERCLIMATE, "`%s' (%s) tîbb ipari ÇpÅlet haszn†lat†t teszi lehetãvÇ az egyes Çghajlatokon, jelenleg csak a pap°rral kapcsolatos ipari ÇpÅletekÇt a mÇrsÇkelt Çghajlaton.")
 SETTEXT(CFG_NEWSTATIONS, "`%s' (%s) engedÇlyezi £j †llom†sgrafik†k haszn†lat†t.")
 SETTEXT(CFG_BUILDWHILEPAUSED, "`%s' (%s) lehetãvÇ teszi az îsszes Çp°tkezÇsi lehetãsÇg haszn†lat†t mÇg akkor is, amikor a j†tÇk szÅnetel.")
 SETTEXT(CFG_TRAINLOSTTIME, "`%s' (%s) figyelmeztetÇst jelen°t meg az eltÇvedt vonatokr¢l a megadott sz†m£ nap m£lva.  Intervallum %ld..%ld.  Alap %ld.")
@@ -883,9 +879,6 @@ SETTEXT(LANG_NOTENOUGHMEMTTD, "Nincs elÇg mem¢ria a TTD ind°t†s†hoz, %d KB-al tî
 // %s is a function or variable name to identify where the memory allocation failed
 SETTEXT(LANG_NOTENOUGHMEM, "%s: Nincs elÇg mem¢ria, mÇg %d KB kellene.\n")
 
-// Protected mode code exceeds 32kb
-SETTEXT(LANG_PROTECTEDTOOLARGE, "A vÇdett m¢d£ k¢d t£l nagy!\n")
-
 // Swapping TTDPatch out
 SETTEXT(LANG_SWAPPING, "KisîprÇs (swap).\n")
 
@@ -910,10 +903,6 @@ SETTEXT(LANG_STRINGCONVFAIL, "Hiba tîrtÇnt a TTDPatch adatok elãkÇsz°tÇse kîzben
 SETTEXT(LANG_RUNRESULT, "EredmÇny: [%s]\n")
 SETTEXT(LANG_RUNRESULTOK, "OK")
 SETTEXT(LANG_RUNRESULTERROR, "Hiba!")
-
-// Messages about the graphics file ttdpatch.grf
-SETTEXT(LANG_NOTTDPATCHGRF, "%s grafika nem tal†lhat¢, Åres f†jl lÇtrehoz†sa.\n")
-SETTEXT(LANG_ERRORCREATING, "Hiba %s lÇtrehoz†sakor: %s\n")
 
 
 //---------------------------------------

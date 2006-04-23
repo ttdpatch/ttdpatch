@@ -239,6 +239,14 @@ char *untranslated(s16 code)
   return untransbuf;
 }
 
+int checkdups = 0;
+void checkmult(const char *prev, const char *name1, const char *name2)
+{
+  if (checkdups && prev && prev != UNTRANSLATED)
+	warning("%s: Warning: Duplicate entry for %s %s",
+		langname, name1, name2 ? name2 : "");
+}
+
 #define WRITEVAR(bufvar, bufofsvar, valtype, val) { \
 	*((valtype*) (*bufvar+*bufofsvar)) = littleendian(val,sizeof(valtype)); \
 	*bufofsvar += sizeof(valtype); }
@@ -747,6 +755,7 @@ u32 writelanguages(FILE *dat)
 				bitswitchdesc[i][j] = "";
 		}
 
+	checkdups = 1;
 	languagedata[lang]();
 	unicodecheck(1);
 	errorcheck();		// for error checking, keep untranslated strings empty
@@ -757,6 +766,7 @@ u32 writelanguages(FILE *dat)
 	// but for the real run, we use
 	// english strings as default
 
+	checkdups = 0;
 	languagedata[0]();		// english
 	languagedata[lang]();	// override all defined strings with this language
 	unicodecheck(0);

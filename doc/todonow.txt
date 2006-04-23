@@ -801,3 +801,4 @@ CHANGELOG
   the first entry
 - fixed ship/plane vars 40+x getting wrong values after loading a game
 - fixed broken glyphs when disabling a font grf
+- (devel) makelang now checks for duplicate entries
