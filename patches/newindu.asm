@@ -3978,7 +3978,7 @@ doproductioncallback:
 // subtract amount, but don't go negative
 	sub [edi+industryincargodata.in_amount1+(ecx-1)*2],bx
 	jnc .nottoofew
-	and word [ecx+industryincargodata.in_amount1+(ecx-1)*2],0
+	and word [edi+industryincargodata.in_amount1+(ecx-1)*2],0
 .nottoofew:
 	loop .nextininstruction
 
