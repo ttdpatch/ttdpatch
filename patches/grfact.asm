@@ -1689,8 +1689,11 @@ initnewvehnames:
 	xchg ebp,[esi-6]
 	lea ebp,[ebp+esi-2]
 
-	call checklanguage
-	jnc near .done
+//	call checklanguage
+//	jnc near .done
+
+	lodsb
+	test al,al
 	jns near .done
 
 	cmp word [esi+1],0xc000			// we don't need savig/restoring for patch texts
