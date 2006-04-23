@@ -3254,12 +3254,14 @@ newtownnameparts:
 	and dword [currtownstylename],0
 	test al,0x80
 	jz .noname
+	jmp short .skipcheck
 
 .stylenameloop:
 	lodsb
 	or al,al
 	jz .endofnames
 	dec esi		// checklanguage wants to lodsb too
+.skipcheck:
 	call checklanguage
 	jnc .notthis
 	mov [currtownstylename],esi	// yes, store offset in temp. var
