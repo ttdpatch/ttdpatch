@@ -70,6 +70,7 @@ langinfo *linfo;int acp;	// to make switches.c happy
 #define BUFBLOCKS 128	// size increments in which buffer size is increased
 
 #define UNTRANSLATED ((char*)(-1L))
+#define OBSOLETE ((char*)(-2L))
 
 // For the in-game texts
 
@@ -243,8 +244,9 @@ int checkdups = 0;
 void checkmult(const char *prev, const char *name1, const char *name2)
 {
   if (checkdups && prev && prev != UNTRANSLATED)
-	warning("%s: Warning: Duplicate entry for %s %s",
-		langname, name1, name2 ? name2 : "");
+	warning("%s: Warning: %s entry for %s %s",
+		langname, prev == OBSOLETE ? "obsolete" : "duplicate",
+		name1, name2 ? name2 : "");
 }
 
 #define WRITEVAR(bufvar, bufofsvar, valtype, val) { \
@@ -601,7 +603,7 @@ void errorcheck(void)
 				fprintf(stderr, "%s: duplicate switch entry: %s\n",
 					langname, orgline);
 			if (cmdchars[ind] < 0)
-				fprintf(stderr, "%s: switch entry for nonexistent switch: %s\n",
+				fprintf(stderr, "%s: switch entry for nonexistent switch: %6.6s\n",
 					langname, orgline);
 			cmdchars[ind] = 0;
 		}
@@ -743,6 +745,8 @@ u32 writelanguages(FILE *dat)
 
 	for (i=0; i<LANG_LASTSTRING; i++)
 		langtext[i] = UNTRANSLATED;
+	for (i=LANG_LASTSTRING; i<LANG_REALLYLASTSTRING; i++)
+		langtext[i] = OBSOLETE;
 	for (i=0; i<SWITCHNUMT; i++) {
 		switchnames[i*2] = UNTRANSLATED;
 		switchnames[i*2+1] = "";

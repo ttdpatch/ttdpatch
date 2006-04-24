@@ -82,9 +82,6 @@ SETTEXT(LANG_NOFILESFOUND, "Could find neither %s nor %s.\n")
 // default Windows language executable (american/english/french/german/spanish).exe
 SETTEXT(LANG_WINDEFLANGEXE, "AMERICAN.EXE");
 
-// (Windows) neither does GameGFX.exe.  %s is GameGFX.EXE
-SETTEXT(LANG_NOFILEFOUND, "Could not find %s.\n")
-
 // Shown when copying tycoon.exe or ttdx.exe (first %s) to ttdload.ovl (2nd %s)
 SETTEXT(LANG_SHOWCOPYING, "Copying %s to %s")
 
@@ -672,7 +669,6 @@ SETTEXT(CFG_OFFICEFOOD, "`%s' (%s) makes office towers accept food (tropic/arcti
 SETTEXT(CFG_ENGINESPERSIST, "`%s' (%s) keeps engines around for as long as they are in use.")
 SETTEXT(CFG_CDPATH, "`%s' (%s) sets the CD path.")
 SETTEXT(CFG_KEEPSMALLAP, "`%s' (%s) keeps small airports around forever.")
-SETTEXT(CFG_AIBOOST, "`%s' (%s) increases the AI recursion by this amount.")
 SETTEXT(CFG_LONGBRIDGES, "`%s' (%s) allows bridges of up to 127 squares length.")
 SETTEXT(CFG_DYNAMITE, "`%s' (%s) allows more things to be removed with dynamite.")
 SETTEXT(CFG_MULTIHEAD, "`%s' (%s) allows an arbitrary number of engines on a train.  Buy extra engines with 'Ctrl'.  Parameter is max. speed-up by additional engines, in percent from %ld to %ld, default %ld%%.")
@@ -768,7 +764,6 @@ SETTEXT(CFG_SHAREDORDERS, "`%s' (%s) allows shared or copied orders.")
 SETTEXT(CFG_SHOWPROFITINLIST, "`%s' (%s) shows colour-coded profit in the list of vehicles.")
 SETTEXT(CFG_MORESTEAM, "`%s' (%s) shows more (or fewer) steam plumes. Parameter has two digits, first for length of steam plume, second for frequency, with 2 being TTD's default.  Adding/subtracting one doubles/halves the length or frequency.  Range %02lx..%02lx.  Default %02lx.")
 SETTEXT(CFG_ABANDONEDROADS, "`%s' (%s) makes roads lose their owner if they aren't used for a period of time, so you can remove unused roads if they're in the way. You also get the ownership of unowned roads if your vehicles use them. In mode 0, all roads lose their owners, in mode 1, roads near towns are taken over by the towns if their aren't used for a while, in mode 2 they're taken over instantly.")
-SETTEXT(CFG_MOREINDUSTRIESPERCLIMATE, "`%s' (%s) enables more industries in climates, currently only paperindustries for temperate.")
 SETTEXT(CFG_NEWSTATIONS, "`%s' (%s) enables new station graphics.")
 SETTEXT(CFG_BUILDWHILEPAUSED, "`%s' (%s) enables all construction options even when the game is paused.")
 SETTEXT(CFG_TRAINLOSTTIME, "`%s' (%s) gives a warning about lost trains after the given number of days.  Range %ld..%ld.  Default %ld.")
@@ -878,9 +873,6 @@ SETTEXT(LANG_NOTENOUGHMEMTTD, "Not enough memory available to start TTD, need %d
 // %s is a function or variable name to identify where the memory allocation failed
 SETTEXT(LANG_NOTENOUGHMEM, "%s: Not enough memory available, need %d KB more.\n")
 
-// Protected mode code exceeds 32kb
-SETTEXT(LANG_PROTECTEDTOOLARGE, "Protected mode code too large!\n")
-
 // Swapping TTDPatch out
 SETTEXT(LANG_SWAPPING, "Swapping out.\n")
 
@@ -905,10 +897,6 @@ SETTEXT(LANG_STRINGCONVFAIL, "Error while preparing TTDPatch data!\n")
 SETTEXT(LANG_RUNRESULT, "Result: [%s]\n")
 SETTEXT(LANG_RUNRESULTOK, "OK")
 SETTEXT(LANG_RUNRESULTERROR, "Error!")
-
-// Messages about the graphics file ttdpatch.grf
-SETTEXT(LANG_NOTTDPATCHGRF, "Could not find patch graphics %s, generating empty file.\n")
-SETTEXT(LANG_ERRORCREATING, "Error creating %s: %s\n")
 
 
 //---------------------------------------
