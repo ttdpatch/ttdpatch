@@ -4729,7 +4729,7 @@ adjustindustrypos:
 	movzx ebx, byte [ebx+cargotrans.fromslot+ecx]
 	pop ecx
 
-	mov dword [miscgrfvar],ebx
+	mov dword [callback_extrainfo],ebx
 	pop ebx
 
 	mov byte [grffeature],0xa
