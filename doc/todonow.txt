@@ -184,9 +184,6 @@
 
 - in grf status window in scen ed, add state "do not save", make this default
 
-- looping paths in PBS cause problems; either catch in route finder (with hash)
-  or in checkmark
-
 - crash with newstations 0.4, see http://www.tt-forums.net/viewtopic.php?p=278809#278809
 
 - Oracle reports duplicate town names when using custom town name set
@@ -284,8 +281,6 @@
   when it shouldn't; see pbscrash.zip
 
 - switch to set amount of panning/speaker separation
-
-- TSC stuff doesn't work for feature>=4?  also messes up sprites after loading?
 
 - pathfinding still wrong; need curtarget to be valid or "go closest" won't work
 
@@ -456,6 +451,7 @@
 
 - multiple clicks on "Default" in title grf status increase sprite counts?
   --> can't reproduce, ask eis_os
+  --> see newgrf_start_memory_problem.7z
 
 - another signal/pathfinder problem
   http://www.tt-forums.net/viewtopic.php?p=429375#429375
@@ -751,3 +747,5 @@ CHANGELOG
 - fixed ship/plane vars 40+x getting wrong values after loading a game
 - fixed broken glyphs when disabling a font grf
 - (devel) makelang now checks for duplicate entries
+- fix PBS train crashes if train tries to reserve looping route
+- fix PBS train crashes if train cannot reverse

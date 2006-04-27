@@ -150,6 +150,7 @@ trainentersdepot:
 // out:	-
 // safe:eax ecx edx ebp edi
 global reversetrain,reversetrain.cantreversemessage
+extern lasttileclearedptr,lasttileclearedbit
 reversetrain:
 	testflags pathbasedsignalling
 	jnc near .doreverse
@@ -235,6 +236,30 @@ ovar exchtrainvehicles, -4
 .cantreverse:
 	pusha
 
+	// restore the up to two tiles unreserved behind the train
+	mov eax,[lasttileclearedptr]
+	mov bl,[lasttileclearedbit]
+	cmp eax,byte -1
+	je .firstdone
+	test eax,eax
+	js .l5first
+	or [eax],bl
+	jmp short .firstdone
+.l5first:
+	or [landscape5(ax,1)-0xff000000],bl
+.firstdone:
+	mov eax,[lasttileclearedptr+4]
+	mov bl,[lasttileclearedbit+1]
+	cmp eax,byte -1
+	je .seconddone
+	test eax,eax
+	js .l5second
+	or [eax],bl
+	jmp short .seconddone
+.l5second:
+	or [landscape5(ax,1)-0xff000000],bl
+.seconddone:
+
 	// open the vehicle window (or flash if it's already open)
 	push esi
 	mov edi,esi
@@ -253,7 +278,6 @@ ovar exchtrainvehicles, -4
 	mov [textrefstack],ax
 	movzx ax,byte [esi+veh.consistnum]
 
-	global reversetrain.cantreverseme
 .cantreversemessage:
 	mov [textrefstack+2],ax
 	mov ebx,0x50a00
