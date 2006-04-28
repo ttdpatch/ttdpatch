@@ -23,4 +23,4 @@ struc newsitem
 				// other: view area's X location or vehicle idx
 	.par4		resw 1	// type3: handler function number
 				// other: view area's Y location
-endstruc_32
+endstruc

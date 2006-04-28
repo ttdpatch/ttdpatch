@@ -31,7 +31,7 @@ struc elrailsprites
 	.tunnelicon:	resb 1
 	.tunnelcursor:	resb 1
 	.anchor:	resb 2	// Anchors for drawing pylons in screen Z order
-endstruc_32
+endstruc
 
 // arrangement of wires:
 // - three sets of eight regular length wires
@@ -450,7 +450,7 @@ struc pylon
 	.anchory:	resb 1	// of the anchor (used to simplify sorting)
 	.anchorz:	resb 1
 	.anchortype:	resb 1	// 0: no anchor, 1, 2: anchors with different relx, rely in sprite data
-endstruc_32
+endstruc
 
 var pylonoffsets
 	//  X  Y Z DX DY AX AY AZ AT	// num pos orient
@@ -512,7 +512,7 @@ struc railexit		// must be 1, 2, 3, 4, 5, 8 or 9 bytes in size
 	.deltay:	resb 2
 	.otherdir:	resb 1
 	.unused:	resb 1
-endstruc_32
+endstruc
 
 var railexitinfo	// should really use istruc, but this is easier
 	dw -0x100,0,-16,8	// NW

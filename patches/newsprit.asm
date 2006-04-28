@@ -1857,7 +1857,7 @@ checkfeaturesize specialparamvarhandlertable, (4*2)
 endvar
 
 	// number of special variables defined in each feature class
-vard specialparamvars
+varb specialparamvars
 %ifndef PREPROCESSONLY
 	db n_vehparamvarhandler,n_vehparamvarhandler
 	db n_vehparamvarhandler,n_vehparamvarhandler

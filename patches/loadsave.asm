@@ -230,7 +230,7 @@ uvard station2switches
 struc extrachunkhdr
 	.id:	resw 1
 	.length:resd 1
-endstruc_32
+endstruc
 
 var extrachunkheader
 	istruc extrachunkhdr

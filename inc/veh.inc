@@ -108,7 +108,7 @@ struc veh
 #define MOD_REVERSE 8		//	bit 8=toggled whenever train reverses
 
 	.modflags: 	resw 1	// 7eh:above flags, bitcoded.
-endstruc_32
+endstruc
 
 // Hint:  When adding or subtracting vehiclesize to a variable,
 //	  do the opposite operation with -vehiclesize, e.g. instead of
@@ -162,7 +162,7 @@ struc veh2
 	.var40x:	resd numvehvar40x	// cache of vehicle variables 40+x for action 2
 	.motion:	resd 1	// motion counter (256 increase = 1 unit of motion)
 	.colormap:	resd 1	// color translation sprite
-endstruc_32
+endstruc
 
 #define VEH2_MIXEDPOWERTRAIN 0	// set if train has mix of electric/nonelectric engines
 #define VEH2_MUSTCHECKTILE 1	// if set, mixed power train just moved onto a new tile

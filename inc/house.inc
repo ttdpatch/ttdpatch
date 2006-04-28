@@ -163,5 +163,5 @@ resw 128+256
 ptrvarofs newhousespriteblock,newhousedatablock,$
 resd 256
 
-endstruc_32
+endstruc
 

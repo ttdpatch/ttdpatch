@@ -22,7 +22,7 @@
 struc depot
 	.XY: 		resw 1	// 00h:location (landscape index)
 	.townptr: 	resd 1	// 02h:city pointer
-endstruc_32
+endstruc
 
 	// gamespeed settings
 #if WINTTDX
@@ -40,7 +40,7 @@ struc subsidy
 	.age: 		resb 1	// 01h: age of the subsidy offer in months (0..11: offered, 12..23: awarded)
 	.from: 		resb 1	// 02h: industry # (if offered)/station # (if awarded) of source
 	.to: 		resb 1	// 03h: ...and the target
-endstruc_32
+endstruc
 
 // signs
 struc sign
@@ -53,7 +53,7 @@ struc sign
 	.widthsmall:	resb 1	// 09h:width zoomed out
 	.posX:		resw 1	// 0Ah:X
 	.posY:		resw 1	// 0Bh:Y pixel coords
-endstruc_32
+endstruc
 
 // vehicles used by AI to transport each cargo type, start at 0x77068
 struc aicargovehtable
@@ -64,7 +64,7 @@ struc aicargovehtable
 	.roadnum:	resb 12	// number of types from roadbase up
 	.shipbase:	resw 12	// ship base type
 	.shipnum:	resb 12	// number of types from shipbase up
-endstruc_32
+endstruc
 
 // rising text effect
 struc texteffect
@@ -72,7 +72,7 @@ struc texteffect
 	.pos:		resw 4	// X1 X2 Y1 Y2
 	.timer:		resw 1	// countdown timer, expires on wraparound
 	.params:	resb 8	// parameters for text ID
-endstruc_32
+endstruc
 
 // ai cargo vehicle table
 struc aicargovehicle
@@ -83,7 +83,7 @@ struc aicargovehicle
 	.roadnum:	resb 12 // number of road vehicles	-"-
 	.ship:		resw 12	// first ship ID for each cargo
 	.shipnum:	resb 12	// number of ships	-"-
-endstruc_32
+endstruc
 
 struc graphdata
 	.values			resd 384	// 000h: values to be graphed
@@ -108,7 +108,7 @@ struc graphdata
 	.vdiv			resd 1		// 630h
 	.prevpointX		resw 1		// 634h
 	.prevpointY		resw 1		// 636h
-endstruc_32
+endstruc
 
 // the maximum road vehicle speed is increased by 1 << maxrvspeedshift
 // "large" numbers will slow down the game and make RV movement jerky
@@ -123,7 +123,7 @@ struc heap
 	.left:	resd 1	// 00h: how many bytes left in this chunk
 	.ptr:	resd 1	// 04h: current end of used piece of this chunk
 	.next:	resd 1	// 08h:	pointer to next, zero if last one
-endstruc_32
+endstruc
 
 
 
@@ -141,7 +141,7 @@ struc spritedesc
 	.Y2:		resw 1	// 14h
 	.flags:		resw 1	// 16h
 	.linked:	resd 1	// 18h
-endstruc_32
+endstruc
 
 struc scrnblockdesc
 	.buffer:	resd 1	// 00h
@@ -152,7 +152,7 @@ struc scrnblockdesc
 	.height:	resw 1	// 0ch
 	.nextlineofs:	resw 1	// 0eh
 	.zoom:		resw 1	// 10h
-endstruc_32
+endstruc
 
 %macro dopatchaction 1-2 call
 	mov esi,%1_actionnum

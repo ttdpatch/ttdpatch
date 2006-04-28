@@ -241,7 +241,7 @@ struc irrgetstationinfo
 	.minx: resb 1
 	.miny: resb 1
 	.dir: resb 2
-endstruc_32
+endstruc
 
 uvarb irrgetstationinfoblock, irrgetstationinfo_size
 

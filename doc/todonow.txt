@@ -737,6 +737,8 @@ CHANGELOG
   * text modifications now handle UTF-8 correctly 
   * fixed incorrect rail menu with unifiedmaglev=2 and electrifiedrails off
   * fixed crash if langID is changed via a GRF
+  * fixed: callback 3D put the cargo type into the wrong variable
+  * fixed toy factory breaking with newindustries (animation is reduced now)
 - (devel) ensure all sprite blocks always have a valid cargo translation table
 - fixed bug with "freighttrains off" still applying default multiplier of 5
 - fixed crash in industry production callback
@@ -749,3 +751,7 @@ CHANGELOG
 - (devel) makelang now checks for duplicate entries
 - fix PBS train crashes if train tries to reserve looping route
 - fix PBS train crashes if train cannot reverse
+- by steven_h:
+  * fixed LocoGui build station from resetting 'station highlight area' 
+    to 1x1 when double-clicking on build station button.
+  * tram/road depots now respect transparent buildings

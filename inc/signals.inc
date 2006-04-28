@@ -32,6 +32,6 @@ struc presignalstack
 				// also while in recursion it indicates which
 				// signal triggered the recursion
 	.previousstack: resd 1	// previous stack frame
-endstruc_32
+endstruc
 
 

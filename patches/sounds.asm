@@ -221,7 +221,7 @@ struc soundcfg
 	.numsoundchans	resw 1		// number of sound channels
 	.reversestereo	resw 1		// if nonzero, left and right must be swapped
 	.signedsample	resw 1		// if nonzero, the device needs signed bytes in the buffer
-endstruc_32
+endstruc
 
 varb SoundCfgName, "SOUND.CFG",0
 
@@ -251,7 +251,7 @@ struc digpaksndstruc
 	.sndlen		resw 1		// length of buffer in bytes
 	.isplayingptr	resd 1		// 16-bit pointer to play status (segment:offset)
 	.frequency	resw 1		// frequency of sound
-endstruc_32
+endstruc
 
 // The following four are linear addresses into the DOS memory area, and therefore
 // must be used with the selector 0x37!
@@ -276,7 +276,7 @@ struc pharlapintparamblock
 	.realGS		resw 1
 	.EAXval		resd 1
 	.EDXval		resd 1
-endstruc_32
+endstruc
 
 uvarb RealIntParams,pharlapintparamblock_size
 

@@ -41,7 +41,7 @@ struc cheat
 	.costs: resb 1
 	.bit: 	resb 1
 	.func: 	resd 1
-endstruc_32
+endstruc
 
 %assign cheatcount 0
 %assign cheataliascount 0

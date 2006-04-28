@@ -1203,7 +1203,7 @@ grfcalltable action3storeid, dd addr(action3storeid_table.generic)
 struc orggentext
 	.next:		resd 1	// next action 4 for general texts in linked list
 	.entries:		// variable number of pairs of DWORDs containing original string and new string
-endstruc_32
+endstruc
 
 // list of textIDs needing fixup, and the fixup procedures
 // the textIDs need to be in increasing order, and the -1 guard entry shouldn't be removed

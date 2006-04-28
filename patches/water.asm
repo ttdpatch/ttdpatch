@@ -20,7 +20,7 @@ struc newwatersprites
 	.lifthouseseelevel: resb 24
 	.waterwharf:	resb 12
 	.ico:			resb 1
-endstruc_32
+endstruc
 
 // Cost can be calculated via clearwatercost * FACTOR / 8
 %define WATERPLACEFACTOR 3

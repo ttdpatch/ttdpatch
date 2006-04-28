@@ -112,7 +112,7 @@ struc window
 	.company:		resb 1	// 28h:	company the window belongs to
 				resb 1	// 29h:	??
 	.data:			resb 10	// 2ah:	contains class-specific extra window data
-endstruc_32
+endstruc
 
 // Data for a window element (usage of last word depends on type)
 struc windowbox
@@ -127,7 +127,7 @@ struc windowbox
 	.sprite:		//	sprite number for classes 1, 2
 	.xtiles:	resb 1	// ah	number of tiles for class 7
 	.ytiles:	resb 1	// bh
-endstruc_32
+endstruc
 
 // For checkboxes, extra is layed out like this:
 //	bits 0..3:   colour of check mark (0..15)

@@ -49,7 +49,7 @@ struc housegameid
 	.grfid:		resd 1
 	.setid:		resb 1
 	.gameid:	resb 1
-endstruc_32
+endstruc
 
 uvard lasthousedataid		// it's a byte really, but saved as dword in the houseid chunk
 

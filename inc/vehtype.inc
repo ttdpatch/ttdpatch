@@ -34,7 +34,7 @@ struc vehtype
 	.excldaysleft:	resb 1	// 19h:number of days left to accept exclusive offer
 	.enginetraintype:resb 1	// 1ah:Train type of the engine
 			resb 1	// 1bh:??
-endstruc_32
+endstruc
 
 // Phase 1:  Reliability increases from initial to maximum
 // Phase 2:  Reliability stays at maximum
@@ -67,7 +67,7 @@ struc vehtypeinfo
 	.basedurphase2: resb 1	// 04h:Base[*] duration of phase 2
 	.traintype:	resb 1	// 05h:(goes into engine[1ah])
 	.climates:	resb 1	// 06h:bit-mask of climates where available
-endstruc_32
+endstruc
 // [*] In the actual games, a random number from 0 to 511 is added to this
 
 #endif // __VEHTYPE_INC__

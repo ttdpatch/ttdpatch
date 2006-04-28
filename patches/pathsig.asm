@@ -70,7 +70,7 @@ struc finalrt
 	.type:		resb 1	// 1: didn't find target, closest approach; 2: shortest route to target
 	.norecord:	resb 1	// 1: don't record route
 	.pieces:		// track piece bit masks of this route
-endstruc_32
+endstruc
 
 #define MAXDEPTH 64	// maximum depth of recursion in TTD's trace route algo
 

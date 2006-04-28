@@ -36,7 +36,7 @@ struc industry
 				// 2 - created during random map creation
 				// 3 - created in the scenario editor
 	.unused3:	resw 1	// 34h:unused by TTD, initialized to 0
-endstruc_32
+endstruc
 
 ptrvardec industrydatablock
 
@@ -92,4 +92,4 @@ resd NINDUSTRIES
 ptrvarofs industryrandomsoundptrs,industrydatablock,$
 resd NINDUSTRIES
 
-endstruc_32
+endstruc
