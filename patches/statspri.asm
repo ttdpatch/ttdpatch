@@ -30,7 +30,8 @@ extern unimaglevmode, Class5LandPointer, paStationtramstop
 extern lookuptranslatedcargo,mostrecentspriteblock,statcargotriggers
 extern lookuptranslatedcargo_usebit,gettileterrain
 extern failpropwithgrfconflict,lastextragrm,curextragrm,setspriteerror
-extern generatesoundeffect,redrawtile
+extern generatesoundeffect,redrawtile,stationanimtriggers,callback_extrainfo
+extern miscgrfvar,irrgetrailxysouth
 
 // bits in L7:
 %define L7STAT_PBS 1		// is station tile in a PBS block?
@@ -1145,6 +1146,8 @@ alteraddlandscape3tracktype:
 	cmp dword [curstationsectionsize],0
 	jne .notfirsttile
 	mov [curstationsectionsize],dx
+	mov [curstationsectionpos],edi
+	mov [curstationsectiondir],si
 .notfirsttile:
 	cmp [curstationsectionsize],dl
 	jne .notfirstpos
@@ -1162,23 +1165,17 @@ alteraddlandscape3tracktype:
 	jne .notlastplat
 	or al,0x80
 .notlastplat:
-	cmp dx,0x0101
-	jne .notlastpiece
-	and dword [curstationsectionsize],0
-.notlastpiece:
-//	mov ebx,[landscape6ptr]
 	mov [landscape6+edi],al
 	pop eax
 
 	mov byte [landscape7+edi],0
 
-// HACK HACK HACK
-	push eax
-	xchg ebx,edi
-	xor eax,eax
-	call setindutileanimstage
-	xchg edi,ebx
-	pop eax
+	// stop animation just in case the old tile was animated
+	pusha
+	mov ebx,3				// Class 14 function 3 - remove animated tile
+	mov ebp,[ophandler+0x14*8]
+	call [ebp+4]
+	popa
 
 	movzx ebx,byte [curplayer]
 	mov ah,[curselstationid+ebx]
@@ -1188,7 +1185,8 @@ alteraddlandscape3tracktype:
 	ret
 
 uvard curstationsectionsize
-
+uvard curstationsectionpos
+uvard curstationsectiondir
 
 // called when removing a railway station tile
 //
@@ -1210,6 +1208,12 @@ removerailstation:
 .notnewstation:
 //	mov eax,[landscape6ptr]
 	mov byte [landscape6+esi],0
+	mov byte [landscape7+esi],0
+
+	mov edi,esi
+	mov ebx,3				// Class 14 function 3 - remove animated tile
+	mov ebp,[ophandler+0x14*8]
+	call [ebp+4]
 	popa
 
 .notremoving:
@@ -2197,7 +2201,13 @@ global cargoinstation
 cargoinstation:
 	mov ebx,[esp+4]
 	pusha
+	
 	shr ebx,3
+
+	mov [statanim_cargotype],bl
+	mov edx,1
+	call stationanimtrigger
+
 	xor edx,edx
 	bts edx,ebx
 	mov al,1
@@ -2331,7 +2341,7 @@ ovar .oldfn,-4,$,createrailwaystation
 //		or: fd to do nothing (for convenience)
 //	ah: number of sound effect to generate
 //	ebx:	XY of station tile
-setindutileanimstage:
+setstattileanimstage:
 	or ah,ah
 	jz .nosound
 
@@ -2502,13 +2512,138 @@ exported stationanimhandler
 	stc
 	ret
 
-// ebx -> station
-// eax: trigger mask, bit 31 set if it happens for the current platform only
-// esi: XY of tile if bit 31 of eax is set
-// preserves everything
-stationanimationtrigger:
-	test byte [ebx+station.facilities],1
-	jnz .hasrailway
+varb statanim_cargotype, 0xFF
+
+// in:	esi-> station
+//	edx: trigger bit + extra info for callback
+exported stationanimtrigger
+	pusha
+
+	movzx ebx,word [esi+station.railXY]
+
+	testflags irrstations
+	jc .irregular
+
+	mov ch,[esi+station.platforms]
+	mov cl,ch
+	and ch, 0x87
+	and cl, 0x78
+	shr cl, 3
+	test ch,0x80
+	jz .notlarge
+	add ch,8-0x80
+.notlarge:
+
+	test byte [landscape5(bx)],1
+	jz .gotposandsize
+	xchg cl,ch
+	jmp short .gotposandsize
+
+.irregular:
+	mov ebp,edx
+	xor edx,edx
+	call irrgetrailxysouth
+	sub edx,ebx
+	lea ecx,[edx+0x0101]
+	mov edx,ebp
+
+.gotposandsize:
+	mov byte [grffeature],4
+	mov dword [curcallback],0x140
+	mov [callback_extrainfo],edx
+	movzx edx,dl
+	call [randomfn]
+	mov [miscgrfvar],eax
+
+	movzx edi, byte [statanim_cargotype]
+
+	push ebx
+	push ecx
+
+.checktile:
+	mov al,[landscape4(bx)]
+	and al,0xf0
+	cmp al,0x50
+	jne .nexttile
+
+	cmp byte [landscape5(bx)],8
+	jae .nexttile
+
+	movzx eax, byte [landscape2+ebx]
+	imul eax,station_size
+	add eax,[stationarrayptr]
+	cmp eax,esi
+	jne .nexttile
+
+	movzx eax, byte [landscape3+ebx*2+1]
+	movzx eax, byte [stationidgrfmap+eax*8+stationid.gameid]
+	test eax,eax
+	jz .nexttile
+
+	bt [stationanimtriggers+eax*2],edx
+	jnc .nexttile
+
+	mov [curstationtile],ebx
+
+	mov ebp,eax
+
+	cmp edi,0xFF
+	je .nocargo
+
+	mov eax,[stsetids+eax*stsetid_size+stsetid.act3info]
+	mov eax,[eax+action3info.spriteblock]
+	mov eax,[eax+spriteblock.cargotransptr]
+	mov al,[eax+cargotrans.fromslot+edi]
+	mov [callback_extrainfo+1],al
+
+.nocargo:
+	call [randomfn]
+	mov [miscgrfvar],ax
+
+	mov eax,ebp
+
+	call getnewsprite
+	jc .nexttile
+
+	call setstattileanimstage
+
+.nexttile:
+	inc ebx
+	dec cl
+	jnz .checktile
+
+	pop ecx
+	pop ebx
+
+	inc bh
+	dec ch
+	jz .done
+
+	push ebx
+	push ecx
+	jmp .checktile
+
+.done:
+	and dword [curcallback],0
+	and dword [miscgrfvar],0
+	mov byte [statanim_cargotype],0xFF
+
+	popa
 	ret
 
-.hasrailway:
+exported newtrainstatcreated
+	call .doanimtrigger
+	btr word [esi+station.flags],0	// overwritten
+	ret
+
+.doanimtrigger:
+	pusha
+	xor edx,edx
+	xor ecx,ecx
+	xchg ecx,[curstationsectionsize]
+	mov ebx,[curstationsectionpos]
+	cmp word [curstationsectiondir],0x100
+	jne .noswap
+	xchg ch,cl
+.noswap:
+	jmp stationanimtrigger.gotposandsize

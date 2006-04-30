@@ -17,6 +17,7 @@
 %assign L7_NEWHOUSES			0x2	// build years for houses
 %assign L7_NEWINDUSTRIES		0x4	// random bits for industries
 %assign L7_ONEWAYROADS			0x8	// oneway road flags
+%assign L7_NEWSTATIONS			0x10	// animation state for station tiles
 
 // Flags to indicate what switches were active when saving the station2 array
 %assign S2_FIFOLOADING			0x1	// fifo loading

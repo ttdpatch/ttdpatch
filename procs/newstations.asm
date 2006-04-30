@@ -122,6 +122,11 @@ codefragment oldstationanimhandler,-4,-11
 
 codefragment_call newstationanimhandler,stationanimhandler,6+7*WINTTDX
 
+codefragment oldnewtrainstatcreated,14
+	xor si,0x101
+	dec dh
+
+codefragment_call newnewtrainstatcreated, newtrainstatcreated
 endcodefragments
 
 
@@ -173,4 +178,5 @@ patchnewstations:
 	patchcode doestrainstopatstationtile
 
 	patchcode stationanimhandler
+	patchcode newtrainstatcreated
 	ret

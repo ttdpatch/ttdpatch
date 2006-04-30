@@ -12,6 +12,7 @@ extern callbackflags,cargotypes,miscmodsflags,patchflags
 extern randomconsisttrigger,randomstationtrigger,randomtrigger
 extern stationarray2ofst,stationcargowaitingmask
 extern stationplatformtrigger,newvehdata
+extern statanim_cargotype,stationanimtrigger
 
 // called when a vehicle's loading/unloading time is modified
 //
@@ -145,6 +146,13 @@ checkrandomcargotrigger:
 global checkstationcargoemptytrigger
 checkstationcargoemptytrigger:
 	pusha
+	mov dl,[esi+veh.cargotype]
+	mov [statanim_cargotype],dl
+	mov edx,2
+	xchg esi,ebx
+	call stationanimtrigger
+	xchg esi,ebx
+
 	or edx,byte -1		// cargo types that are empty
 	xor ecx,ecx
 .nextcargotype:

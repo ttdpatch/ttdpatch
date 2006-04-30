@@ -1509,6 +1509,10 @@ savelandscape7array:
 	jnc .noonewayroads
 	or ecx,L7_ONEWAYROADS
 .noonewayroads:
+	testflags newstations
+	jnc .nonewstations
+	or ecx,L7_NEWSTATIONS
+.nonewstations:
 
 	mov [l7switches],ecx
 

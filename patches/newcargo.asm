@@ -21,6 +21,7 @@ extern malloc,patchflags,pdaTempStationPtrsInCatchArea,randomstationtrigger
 extern cargobits,cargotypes,spriteblockptr,stationarray2ofst
 extern updatestationgraphics,newvehdata,specificpropertybase
 extern callback_extrainfo,curcallback,grfstage,grfresources
+extern statanim_cargotype,stationanimtrigger
 
 
 // In most places, the cargo type is stored in at least a byte, so it isn't too hard to
@@ -167,6 +168,12 @@ addcargotostation_2:
 	mov ebx,esi
 	add esi, [stationarray2ofst]
 	movzx eax,byte [esi+station2.cargos+eax+stationcargo2.type]
+
+	mov esi,ebx
+	mov [statanim_cargotype],al
+	mov edx,1
+	call stationanimtrigger
+
 	xor edx,edx
 	bts edx,eax
 	mov al,1
