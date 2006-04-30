@@ -755,3 +755,4 @@ CHANGELOG
   * fixed LocoGui build station from resetting 'station highlight area' 
     to 1x1 when double-clicking on build station button.
   * tram/road depots now respect transparent buildings
+- fixed crash with enhancetunnels on but manuconv off

@@ -65,6 +65,7 @@ extern CreateTextInputWindow, findroadvehicledepot
 extern addrailfence1,addrailfence2,addrailfence3,addrailfence4
 extern addrailfence5,addrailfence6,addrailfence7,addrailfence8
 extern rvcheckovertake,findFrSpaTownNameFlags,runspectexthandlers
+extern fncheckvehintheway
 
 
 begincodefragments
@@ -1382,6 +1383,8 @@ endcodefragments
 
 ptrvarall industrydatablock
 
+ext_frag oldtrackbuildcheckvehs
+
 ext_frag oldloadfilemask,oldgetdisasteryear
 
 // pointers to the ptrvar ptrs for the specific properties of each vehicle class
@@ -1988,6 +1991,9 @@ dogeneralpatching:
 	mov byte [edi+0xde],0x3b
 	add edi,byte -0x60
 	mov [setcharwidthtablefn],edi
+
+	stringaddress oldtrackbuildcheckvehs
+	copyrelative fncheckvehintheway,-4
 
 	storeaddress finddeductvehruncost,1,1,deductvehruncost
 	mov eax,[edi+lastediadj+0x39]
