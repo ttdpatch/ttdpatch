@@ -116,6 +116,11 @@ codefragment newdoestrainstopatstationtile
 	icall doestrainstopatstationtile
 	setfragmentsize 8
 
+codefragment oldstationanimhandler,-4,-11
+	cmp al,0x27
+	jb $+2+4
+
+codefragment_call newstationanimhandler,stationanimhandler,6+7*WINTTDX
 
 endcodefragments
 
@@ -166,4 +171,6 @@ patchnewstations:
 	storerelative checktrainenterstationtile.oldfn,esi
 
 	patchcode doestrainstopatstationtile
+
+	patchcode stationanimhandler
 	ret

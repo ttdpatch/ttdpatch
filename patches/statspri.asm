@@ -30,7 +30,7 @@ extern unimaglevmode, Class5LandPointer, paStationtramstop
 extern lookuptranslatedcargo,mostrecentspriteblock,statcargotriggers
 extern lookuptranslatedcargo_usebit,gettileterrain
 extern failpropwithgrfconflict,lastextragrm,curextragrm,setspriteerror
-
+extern generatesoundeffect,redrawtile
 
 // bits in L7:
 %define L7STAT_PBS 1		// is station tile in a PBS block?
@@ -480,6 +480,8 @@ actionnewstations:
 	mov [curselclassid+eax],dh
 	ret
 
+uvarw stationanimdata,256
+uvarb stationanimspeeds,256
 
 	//
 	// special functions to handle special station properties
@@ -555,6 +557,10 @@ setstationclass:
 	mov [stationclass+eax],cl
 	bts [stationclassesused],ecx
 	inc byte [numstationsinclass+ecx]
+
+	or word [stationanimdata+eax*2],byte -1
+	mov byte [stationanimspeeds+eax],2
+
 	pop ecx
 
 	inc ebx
@@ -1162,6 +1168,16 @@ alteraddlandscape3tracktype:
 .notlastpiece:
 //	mov ebx,[landscape6ptr]
 	mov [landscape6+edi],al
+	pop eax
+
+	mov byte [landscape7+edi],0
+
+// HACK HACK HACK
+	push eax
+	xchg ebx,edi
+	xor eax,eax
+	call setindutileanimstage
+	xchg edi,ebx
 	pop eax
 
 	movzx ebx,byte [curplayer]
@@ -1847,6 +1863,12 @@ getstationacceptedcargos:
 	mov eax,[eax+station2.acceptedcargos]
 	ret
 
+// var. 4A: get current animation frame
+exported getstationanimframe
+	mov eax,[curstationtile]
+	movzx eax, byte [landscape7+eax]
+	ret
+
 // helper function for vars 60..64
 // in:	ah: cargo#
 //	esi->station
@@ -2298,3 +2320,195 @@ createrailwaystation:
 ovar .oldfn,-4,$,createrailwaystation
 	mov byte [buildoverstationflag],0
 	ret
+
+// ---- Animation support added by Csaba ----
+
+// Start/stop animation and set the animation stage of a station tile
+// (Almost the same as sethouseanimstage, but stores the current frame differently)
+// in:	al:	number of new stage where to start
+//		or: ff to stop animation
+//		or: fe to start wherewer it is currently
+//		or: fd to do nothing (for convenience)
+//	ah: number of sound effect to generate
+//	ebx:	XY of station tile
+setindutileanimstage:
+	or ah,ah
+	jz .nosound
+
+	pusha
+	movzx eax,ah
+	and al,0x7f
+	mov ecx,ebx
+	rol bx,4
+	ror cx,4
+	and bx,0x0ff0
+	and cx,0x0ff0
+	or esi,byte -1
+	call [generatesoundeffect]
+	popa
+
+.nosound:
+	cmp al,0xfd
+	je .animdone
+
+	cmp al,0xff
+	jne .dontstop
+
+	pusha
+	mov edi,ebx
+	mov ebx,3				// Class 14 function 3 - remove animated tile
+	mov ebp,[ophandler+0x14*8]
+	call [ebp+4]
+	popa
+	jmp short .animdone
+
+.dontstop:
+	cmp al,0xfe
+	je .dontset
+
+	mov byte [landscape7+ebx],al
+
+.dontset:
+	pusha
+	mov edi,ebx
+	mov ebx,2				// Class 14 function 2 - add animated tile
+	mov ebp,[ophandler+0x14*8]
+	call [ebp+4]
+	popa
+
+.animdone:
+	ret
+
+exported stationanimhandler
+#if WINTTDX
+	movzx ebx,bx
+#endif
+	mov al,[landscape5(bx)]
+
+	cmp al,8
+	jb .railstation
+
+	cmp al,0x27		// overwritten
+	ret
+
+.railstation:
+	movzx eax, byte [landscape3+ebx*2+1]
+	test eax,eax
+	jz near .stop
+
+	mov [curstationtile],ebx
+
+	movzx eax, byte [stationidgrfmap+eax*8+stationid.gameid]
+
+	cmp word [stationanimdata+2*eax],0xFFFF
+	je .animdone1
+
+	cmp byte [gamemode],2
+	je .animdone1
+
+	movzx esi,byte [landscape2+ebx]
+	imul esi,station_size
+	add esi,[stationarrayptr]
+
+	mov edx,eax
+	movzx edi, word [animcounter]
+	mov ebp,1
+
+	test byte [stationcallbackflags+eax],0x10
+	jz .normalspeed
+
+	mov byte [grffeature],4
+	mov dword [curcallback],0x142
+	call getnewsprite
+	mov dword [curcallback],0
+	mov cl,al
+	jnc .hasspeed
+
+.normalspeed:
+	mov cl,[stationanimspeeds+edx]
+
+.hasspeed:
+	shl ebp,cl
+	dec ebp
+	test edi,ebp
+	jz .nextframe
+
+.animdone1:
+	xor al,al
+	stc
+	ret
+
+.nextframe:
+	test byte [stationcallbackflags+edx],8
+	jz .normal
+	test byte [stationflags+edx],8
+	jz .norandom
+
+	call [randomfn]
+	mov [miscgrfvar],eax
+.norandom:
+
+	mov byte [grffeature],4
+	mov dword [curcallback],0x141
+	call getnewsprite
+	mov dword [curcallback],0
+	mov dword [miscgrfvar],0
+	jc .normal
+
+	test ah,ah
+	jz .nosound
+
+	pusha
+	mov ecx,ebx
+	rol bx,4
+	ror cx,4
+	and bx,0x0ff0
+	and cx,0x0ff0
+	or esi,byte -1
+	call [generatesoundeffect]
+	popa
+
+.nosound:
+	cmp al,0xff
+	je .stop
+	cmp al,0xfe
+	jne .hasframe
+
+.normal:
+	mov al,[landscape7+ebx]
+	inc al
+	cmp [stationanimdata+2*edx],al
+	jb .finished
+.hasframe:
+	mov [landscape7+ebx],al
+	mov esi,ebx
+	call redrawtile
+	xor al,al
+	stc
+	ret
+
+.finished:
+	cmp byte [stationanimdata+2*edx+1],1
+	jne .stop
+	xor al,al
+	jmp short .hasframe
+
+.stop:
+	mov edi,ebx
+	mov ebx,3
+	mov ebp,[ophandler+0x14*8]
+	call [ebp+4]
+	xor al,al
+	stc
+	ret
+
+// ebx -> station
+// eax: trigger mask, bit 31 set if it happens for the current platform only
+// esi: XY of tile if bit 31 of eax is set
+// preserves everything
+stationanimationtrigger:
+	test byte [ebx+station.facilities],1
+	jnz .hasrailway
+	ret
+
+.hasrailway:
