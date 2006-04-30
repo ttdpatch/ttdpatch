@@ -8,13 +8,16 @@
 #include <player.inc>
 #include <misc.inc>
 
-extern calcprofitfn,stationplatformtrigger
+extern calcprofitfn,stationplatformtrigger,stationplatformanimtrigger
 
 checkunload:
 
 global entertrainstation
 entertrainstation:		// trains
 	push edx
+	mov edx,3
+	call stationplatformanimtrigger
+
 	or edx,byte -1
 	push 4
 	call stationplatformtrigger

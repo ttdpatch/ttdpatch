@@ -31,7 +31,7 @@ extern lookuptranslatedcargo,mostrecentspriteblock,statcargotriggers
 extern lookuptranslatedcargo_usebit,gettileterrain
 extern failpropwithgrfconflict,lastextragrm,curextragrm,setspriteerror
 extern generatesoundeffect,redrawtile,stationanimtriggers,callback_extrainfo
-extern miscgrfvar,irrgetrailxysouth
+extern miscgrfvar,irrgetrailxysouth,getirrplatformlength
 
 // bits in L7:
 %define L7STAT_PBS 1		// is station tile in a PBS block?
@@ -2513,6 +2513,52 @@ exported stationanimhandler
 	ret
 
 varb statanim_cargotype, 0xFF
+
+exported stationplatformanimtrigger
+	pusha
+
+	movzx ebx, word [esi+veh.XY]
+	movzx esi, byte [esi+veh.laststation]
+	imul esi,station_size
+	add esi,[stationarrayptr]
+
+	test byte [esi+station.facilities],1
+	jz .norail
+
+	mov ch,1
+
+	testflags irrstations
+	jc .irregular
+
+	mov cl,[esi+station.platforms]
+	and cl,0x78
+	shr cl,3
+
+	test byte [landscape5(bx)],1
+	jnz .ydir
+
+	mov bl,[esi+station.XY]
+	jmp stationanimtrigger.gotposandsize
+
+.ydir:
+	mov bh,[esi+station.XY+1]
+	xchg cl,ch
+	jmp stationanimtrigger.gotposandsize
+
+.norail:
+	popa
+	ret
+
+.irregular:
+	xchg ebx,esi
+	call getirrplatformlength
+	xchg ebx,esi
+	mov cl,al
+	test byte [landscape5(bx)],1
+	jz .noflip
+	xchg cl,ch
+.noflip:
+	jmp stationanimtrigger.gotposandsize
 
 // in:	esi-> station
 //	edx: trigger bit + extra info for callback

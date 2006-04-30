@@ -12,7 +12,7 @@ extern callbackflags,cargotypes,miscmodsflags,patchflags
 extern randomconsisttrigger,randomstationtrigger,randomtrigger
 extern stationarray2ofst,stationcargowaitingmask
 extern stationplatformtrigger,newvehdata
-extern statanim_cargotype,stationanimtrigger
+extern statanim_cargotype,stationanimtrigger,stationplatformanimtrigger
 
 // called when a vehicle's loading/unloading time is modified
 //
@@ -38,6 +38,9 @@ loadtimedone:
 
 	pushf
 	push edx
+	mov edx,4
+	call stationplatformanimtrigger
+
 	or edx,byte -1
 	push 8
 	call stationplatformtrigger

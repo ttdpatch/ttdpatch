@@ -23,7 +23,7 @@ extern numvehstillunloading,patchflags,randomconsisttrigger,stationarray2ofst
 extern stationcargowaitingmask,stationcargowaitingnotmask
 extern stationplatformtrigger,totalloadamount,transferprofit
 extern updatestationgraphics
-extern vehcallback
+extern vehcallback,stationplatformanimtrigger
 
 
 
@@ -721,6 +721,9 @@ SetupGradualLoad:
 	call	randomconsisttrigger
 
 .notempty:
+	mov	edx,5
+	call	stationplatformanimtrigger
+
 	push	0x10
 	mov	edx,[cargotypesloading]
 	call	stationplatformtrigger
