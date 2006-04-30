@@ -2517,6 +2517,11 @@ varb statanim_cargotype, 0xFF
 // in:	esi-> station
 //	edx: trigger bit + extra info for callback
 exported stationanimtrigger
+	test byte [esi+station.facilities],1
+	jnz .hasrailway
+	ret
+
+.hasrailway:
 	pusha
 
 	movzx ebx,word [esi+station.railXY]
