@@ -456,9 +456,6 @@
 - another signal/pathfinder problem
   http://www.tt-forums.net/viewtopic.php?p=429375#429375
 
-- in unicode mode, status bar news messages are missing first char and
-  have wrong colour
-
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -756,3 +753,5 @@ CHANGELOG
     to 1x1 when double-clicking on build station button.
   * tram/road depots now respect transparent buildings
 - fixed crash with enhancetunnels on but manuconv off
+- fixed status bar news messages are missing first char and having wrong colour
+  in unicode mode

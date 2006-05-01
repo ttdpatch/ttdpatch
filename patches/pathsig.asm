@@ -733,7 +733,7 @@ chkmarksignalroute:
 
 	test ah,ah
 	jz near .dontmark
-	jns .clearcrossing
+	js .clearcrossing
 
 	test byte [landscape5(di,1)],4
 	jnz near .fail
