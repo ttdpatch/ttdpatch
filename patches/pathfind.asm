@@ -11,17 +11,17 @@
 #include <signals.inc>
 #include <ptrvar.inc>
 
-extern getroutemap
+extern getroutemap, gettunnelotherend
 
 struc pf_anode
 	.parent:	resd 1
-	.cost:	resd 1
+	.cost:		resd 1
 	.estimate 	resd 1
 	.key		resd 1
 	.opennext	resd 1
 	.closednext resd 1
 	.xy:		resw 1
-	.z		resb 1
+	.z			resb 1
 endstruc_32
 
 %define cRoute_Rail 	0
@@ -49,6 +49,15 @@ uvard pfBestNode,1,z
 
 uvard pfttdstepfn,1,z
 
+
+// in tilexy, byte register
+%macro getTileTypeShift4 2
+	mov byte %2, [landscape4(%1,1)] 
+	and %2, 0xF0
+%endmacro
+
+// in tilexy, zf set = tunnel
+%define isTunnelorBridge(regxy) test byte [landscape5(regxy,1)], 0xF0
 
 // out: 	ebp=best node or 0
 getBestNodeOpen:
@@ -196,31 +205,9 @@ pfAddNewNode:
 	call addNodeOpen
 	ret
 
-
-
-
-// in:		ebp = node
-pfCalc:
-	pusha
-	// should calc moveing cost and estimate
-	mov esi, [ebp+pf_anode.parent]
-
-	// cost to move
-	mov eax, 10
-	add eax, dword [esi+pf_anode.cost]
-	mov dword [edi+pf_anode.cost], eax
-	
-
-	// estimate cost to target (manhatten)
-
-	mov eax, 1
-	cmp byte [pfXYNoDest], 0
-	je .nodest
-
-	mov dx, word [pfXYDest]
-	xor eax, eax
-	mov ax, [ebp+pf_anode.xy]
-
+// in:		eax = start
+//			edx = destination
+pfCalcDistance:
 	sub al,dl
 	jnc .x
 	neg al
@@ -233,6 +220,32 @@ pfCalc:
 	mov ah,0
 	adc ah,ah
 	and eax, 0xFFFF
+	ret
+	
+	
+// in:		ebp = node
+pfCalc:
+	pusha
+	// should calc moveing cost and estimate
+	mov esi, [ebp+pf_anode.parent]
+
+	// cost to move
+	mov eax, 10
+	add eax, dword [esi+pf_anode.cost]
+	mov dword [edi+pf_anode.cost], eax
+	
+
+	// estimate cost to target
+	mov eax, 1
+	cmp byte [pfXYNoDest], 0
+	jne .nodest
+
+	mov dx, word [pfXYDest]
+	xor eax, eax
+	mov ax, [ebp+pf_anode.xy]
+
+	// eax = start, edx = destination out: eax = length
+	call pfCalcDistance
 
 .nodest:
 	add eax, dword [edi+pf_anode.cost]
@@ -240,9 +253,34 @@ pfCalc:
 	popa
 	ret
 	
-	
+
+// in:		si = transport type
+//			edi = tile
+//			bx = direction 
 pfFollowTrack:
-	// handle tunnels?
+	// handle tunnels:
+	getTileTypeShift4 di, al
+	cmp al, 0x90
+	mov al, byte [landscape5(di,1)]
+	test al, 0xF0
+	jnz .nottunnel
+	and al, 3
+	shl al, 1
+	inc al
+	cmp al, bl	// right direction?
+	jnz .nottunnel
+	// now check tranport type
+	mov al, byte [landscape5(di,1)]
+	and ax, 0x0C
+	shr ax, 1
+	cmp ax, si		// right transport type?
+	jnz .nottunnel
+	
+	// handle tunnels now
+	// call [gettunnelotherend]
+	
+.nottunnel:
+	// si = transport type
 	push esi
 	mov ax, si
 	call [getroutemap]	// in EDI=XY, AX=0/2/4 for rail/road/water; out EAX=bitcoded
@@ -314,6 +352,7 @@ pfCreateNewNode:
 	mov ax, di
 	shl eax, 8
 	mov al, cl
+	// we could add here the height aswell...
 	mov dword [ebp+pf_anode.key], eax
 	pop eax
 	pop esi
