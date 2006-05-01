@@ -230,7 +230,7 @@ uvard station2switches
 struc extrachunkhdr
 	.id:	resw 1
 	.length:resd 1
-endstruc_32
+endstruc
 
 var extrachunkheader
 	istruc extrachunkhdr
@@ -951,7 +951,7 @@ newloadtitleproc:
 	// like the climate
 
 	call infoapply
-	call getcurtrainweights		// for realistic acceleration
+	call updatevehvars
 
 	// finally make sure all vehicles have correct new sprites
 	// in case newgrf.txt has changed
@@ -2078,20 +2078,36 @@ initveh2:
 	popa
 	ret
 
+// updates various cached vehicle vars after loading a game
+//
 // we need the correct weight and MOD_POWERED flag for all train
 // vehicles with realistic acceleration
 // recalculate it here, in case real.accel. was just turned on
-global getcurtrainweights
-getcurtrainweights:
+// also recalculates the cached 40+x variables and consist callbacks for
+// all vehicle types
+global updatevehvars
+updatevehvars:
 	pusha
 	mov esi,[veharrayptr]
 
 .next:
 	mov al,[esi+veh.class]
 	cmp al,0x10
+	jb .nextveh
 	je .trains
 	cmp al,0x11
-	jne .nextveh
+	je .rvs
+	cmp al,0x13
+	ja .nextveh
+
+.planeships:
+	cmp dword [esi+veh.scheduleptr],byte -1
+	je .nextveh
+
+	push esi
+	call consistcallbacks
+	pop esi
+	jmp short .nextveh
 
 .rvs:
 	call setrvweightandpower

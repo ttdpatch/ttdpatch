@@ -24,8 +24,7 @@ vard auxdatapointers
 	var customtextptr, dd 0		// and the custom text data
 	var systemtextptr, dd 0		// and the system text data
 	var relocofsptr, dd 0		// and the relocation offsets
-
-section .text
+endvar
 
 // The loaders are actually at variable addresses, hence their code must be
 // location-independent.

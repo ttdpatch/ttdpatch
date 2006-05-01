@@ -3518,3 +3518,42 @@ before 1.6
 - changed "too many sprites" error message to more elaborate grf conflict message
   also showing which resource and sprite are giving trouble
 
+2.5 beta 4
+- prevent "ignore signals" button from working in depot unless entire 
+  train is in depot
+- fixed ghost depots appearing after removing track from railroad crossing
+  over town roads
+- fixed crash when too many station sets were activated
+- fixed morestatistics showing Manage button even with subsidiaries off
+- by eis_os:
+  * changed onewayroads to only show markers when road building is active
+  * added "debug" button to grf status window, writes info to grfdebug.txt
+- fixed hang when loading game if save had too many animation tiles
+- fixed handling of language ID bytes with bits 6 and 7 set
+- by Csaba:
+  * fixed wrong industries appearing with newindustries on but newhouses off
+  * text modifications are now applied to GRF texts as well 
+  * text modifications now handle UTF-8 correctly 
+  * fixed incorrect rail menu with unifiedmaglev=2 and electrifiedrails off
+  * fixed crash if langID is changed via a GRF
+  * fixed: callback 3D put the cargo type into the wrong variable
+  * fixed toy factory breaking with newindustries (animation is reduced now)
+- (devel) ensure all sprite blocks always have a valid cargo translation table
+- fixed bug with "freighttrains off" still applying default multiplier of 5
+- fixed crash in industry production callback
+- grf language ID handling changed; grf version up to 6 use bit mask, from 7
+  on use language numbers
+- change value 00 in action F language ID to be american language if it is 
+  the first entry
+- fixed ship/plane vars 40+x getting wrong values after loading a game
+- fixed broken glyphs when disabling a font grf
+- (devel) makelang now checks for duplicate entries
+- fix PBS train crashes if train tries to reserve looping route
+- fix PBS train crashes if train cannot reverse
+- by steven_h:
+  * fixed LocoGui build station from resetting 'station highlight area' 
+    to 1x1 when double-clicking on build station button.
+  * tram/road depots now respect transparent buildings
+- fixed crash with enhancetunnels on but manuconv off
+- fixed status bar news messages are missing first char and having wrong colour
+  in unicode mode

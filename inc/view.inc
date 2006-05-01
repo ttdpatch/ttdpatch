@@ -9,5 +9,5 @@ struc view
 	.width		resw 1
 	.height		resw 1
 	.zoomlevel	resw 1
-endstruc_32
+endstruc
 

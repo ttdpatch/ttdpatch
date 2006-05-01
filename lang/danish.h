@@ -49,8 +49,10 @@ SETTEXT(LANG_WRONGVERSION, "\n"
 	"\n"
 	"          Dit system kan resikere at g† ned med evt. datatab til f›lge, alt efter \n"
 	"          hvor godt dit operativsystem h†ndterer en beskyttelsesfejl (GPF).\n"
-	"          Se ogs† afsnit " VERSIONSECTION " i TTDPATCH.TXT for yderligere information.\n"
-	"\n"
+/***/	"          Please read\n"
+/***/	"          the \"Version Trouble\" section in the TTDPatch manual for more\n"
+/***/	"          information.\n"
+	"n"
         "Svar kun 'j' (ja), hvis du er helt sikker p† hvad du g›r. NU ER DU ADVARET!\n"
 	"Vil du alligevel starte TTD? ")
 

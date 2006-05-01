@@ -31,8 +31,6 @@
 #define WANTBITNUMS
 #include "bitnames.h"
 
-#include "mansect.h"
-
 // Macros to make defining the arrays easier
 #define ARRAYNAME(name) MACROPASTE(name ## _, LANGUAGE)
 #define PROCESSTHIS MACROPASTE(process_, LANGUAGE)
@@ -62,25 +60,33 @@
 #define WINENCODING(enc) \
 	winencoding = #enc;
 #define SETTEXT(name,text) \
+	checkmult(langtext[name], #name, NULL); \
 	langtext[name] = text;
 #define SETLONGTEXT(name) \
+	checkmult(langtext[name], #name, NULL); \
 	langtext[name] =
 #define SWITCHTEXT(name, text1, text2) \
+	checkmult(switchnames[(name)*2], #name, NULL); \
 	switchnames[(name)*2] = text1; \
 	switchnames[(name)*2+1] = text2;
 #define BITSWITCH(name) \
+	curbitswname = #name; \
 	curbitswitch = BITSWITCH_ ## name;
 #define BIT(num, text) \
 	if (num ## _SWITCH != curbitswitch) \
 		error("%s: Bit %s defined for wrong switch\n", langname, #num); \
+	checkmult(bitswitchdesc[curbitswitch][num ## _NUM], curbitswname, #num); \
 	bitswitchdesc[curbitswitch][num ## _NUM] = text;
 
 #define LANGFILE(name) MAKESTRING(lang/name.h)
+
+void checkmult(const char *prev, const char *name1, const char *name2);
 
 void LANGUAGE(void)
 {
   u32 wincodepage, editorcodepage;
   int curbitswitch;
+  const char *curbitswname;
 
   #include LANGFILE(LANGUAGE)
 

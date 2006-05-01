@@ -2,7 +2,6 @@
 #include <frag_mac.inc>
 
 
-extern fncheckvehintheway
 extern wantedtracktypeofs
 
 ext_frag oldchecktracktype
@@ -11,6 +10,7 @@ global patchmanuconv
 
 begincodefragments
 
+glob_frag oldtrackbuildcheckvehs
 codefragment oldtrackbuildcheckvehs,-6
 	mov word [operrormsg2],0x1007
 	push bx
@@ -60,7 +60,6 @@ endcodefragments
 
 patchmanuconv:
 	stringaddress oldtrackbuildcheckvehs,1,1
-	copyrelative fncheckvehintheway,-4
 	storefragment newtrackbuildcheckvehs
 	patchcode oldbuildtrackoncrossing,newbuildtrackoncrossing,1,1
 	patchcode oldbuildtrackunderbridge,newbuildtrackunderbridge,1,1

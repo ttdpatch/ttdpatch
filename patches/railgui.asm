@@ -187,14 +187,14 @@ OpenRailConstrWindow:
 
 	cmp byte [unimaglevmode], 2
 	jne .normal
-	
+
 	mov dl, 2
 	jmp .normal
-	
+
 .electrifiedrailway:
 	test byte [unimaglevmode], 1
 	jz .havemaglev
-	
+
 	dec dl
 	jmp .normal
 .havemaglev:
@@ -254,9 +254,9 @@ OpenRailConstrWindow:
 	mov dword [CurRailBuildCost], 0x80000000
 	mov word [CurRailX], -1
 	call CheckStationSizes
-	
+
 	call SelectRailTab
-	
+
 .fail:
 	popa
 	mov esi, 0xFFFFFF
@@ -288,7 +288,7 @@ CheckStationSizes:
 	jne .caninctracks
 	bts eax, (RailConstrWin_tracksinc & 0xFF)
 .caninctracks:
-	
+
 	mov [edi+12], eax
 	call [RefreshWindowArea]
 	call UpdateStationSelectionSize
@@ -314,7 +314,7 @@ SelectRailTab:
 	push esi
 	mov ax, 1 + (3h << 8)
 	mov dx, 100h
-	
+
 	movzx ebx, byte [CurRailPiece]
 	shl bx, 2
 	add bl, [CurRailConstrDir]
@@ -330,7 +330,7 @@ SelectRailTab:
 	movzx ecx, byte [CurRailPiece]
 	add cx, (RailConstrWin_arrowleft & 0xFF)
 	bts dword [edi+0], ecx
-	
+
 	and dword [edi+4], ~( (1 << (RailConstrWin_rotate & 0xFF)) | (7 << (RailConstrWin_arrowleft & 0xFF)) )
 	or dword [edi+4], (1 << (RailConstrWin_remove & 0xFF)) | (1 << (RailConstrWin_pickup & 0xFF))
 	pop ecx
@@ -448,7 +448,7 @@ RailConstrWinClick:
 //	mov eax, [OldGenerateDropDownMenu]
 //	mov [GenerateDropDownMenu], eax
 	jmp [RefreshWindowArea]
-	
+
 .showtypedropdown:
 //	mov eax, [GenerateDropDownMenu]
 //	mov [OldGenerateDropDownMenu], eax
@@ -483,7 +483,7 @@ RailConstrWinClick:
 .disabledincdec:
 	pop ecx
 	ret
-	
+
 .tracksdec:
 	movzx eax, byte [CurStationTracks]
 	dec al
@@ -504,7 +504,7 @@ RailConstrWinClick:
 	inc al
 	bt [CurDisabledStationSizes+2], ax
 	jc .tincloop
-	
+
 	inc al
 	mov [CurStationTracks], al
 	jmp CheckStationSizes
@@ -544,14 +544,14 @@ RailConstrWinClick:
 	xor byte [CurStationRotation], 1
 	call UpdateStationSelectionSize
 	jmp [RefreshWindowArea]
-	
+
 .tabclicked:
 	call [RefreshWindowArea]
 	mov word [esi+window.height], RailConstrWin_height
 
 	cmp cx, RailConstrWin_signal
 	jne .nosignalclicked
-	
+
 	push cx
 	push esi
 	mov ax, 1 + (3h << 8)
@@ -590,7 +590,7 @@ RailConstrWinClick:
 	mov edi, [esi+window.data]
 	bts dword [edi+8], (RailConstrWin_buildstation & 0xFF)
 
-	call UpdateStationSelectionSize	
+	call UpdateStationSelectionSize
 	jmp .havemousetool
 .nostationclicked:
 	cmp byte [CurRailMouseTool], cRailMouseToolNone
@@ -614,7 +614,7 @@ RailConstrWinClick:
 	call RailConstrUITick
 	popa
 	jmp [RefreshWindowArea]
-	
+
 .arrowclicked2:
 	movzx ecx, cl
 	mov edi, [esi+window.data]
@@ -625,7 +625,7 @@ RailConstrWinClick:
 	sub cl, RailConstrWin_arrowleft & 0xFF
 
 	mov byte [CurRailButton], cl
-	
+
 	movzx ebx, byte [LastRailPiece]
 	lea ebx, [ebx*3]
 	mov bl, [RailNextPieces + ebx + ecx]
@@ -647,7 +647,7 @@ RailConstrWinClick:
 	movzx ebx, word [RailDirMouseSprites+2*ebx]
 	call [setmousecursor]
 	pop esi
-	
+
 	jmp [RefreshWindowArea]
 
 .buildrailpiece:
@@ -663,7 +663,7 @@ RailConstrWinClick:
 	pop esi
 
 	call RailConstrUITick
-	
+
 	jmp [RefreshWindowArea]
 
 .removelastrailpiece:
@@ -674,7 +674,7 @@ RailConstrWinClick:
 
 	mov ax, [CurRailX]
 	mov cx, [CurRailY]
-	
+
 	movzx ebx, byte [CurRailConstrDir]
 	sub ax, [DirToXYOffsets + 4*ebx]
 	sub cx, [DirToXYOffsets + 4*ebx + 2]
@@ -722,7 +722,7 @@ RailConstrWinClick:
 	mov si, dx
 	shl esi, 16
 	mov si, 8
-	
+
 	mov bl, 1
 	mov word [operrormsg1], 0x1012
 	call [actionhandler]
@@ -760,7 +760,7 @@ RailConstrWinClick:
 
 	mov word [CurRailX], -1
 	mov word [CurRailY], -1
-	
+
 	call SelectRailTab
 	call RailConstrUITick
 	jmp [RefreshWindowArea]
@@ -800,6 +800,8 @@ RailConstrWinClick:
 	pop cx
 	pop esi
 
+	call UpdateStationSelectionSize
+
 	jmp [RefreshWindowArea]
 .stopbuild:
 	mov byte [CurRailMouseTool], cRailMouseToolNone
@@ -807,7 +809,7 @@ RailConstrWinClick:
 	mov al, 0
 	call [setmousetool]
 	jmp [RefreshWindowArea]
-	
+
 .signalclicked:
 	push ecx
 	movzx ecx, cl
@@ -815,7 +817,7 @@ RailConstrWinClick:
 	bt dword [edi+16], ecx
 	pop ecx
 	jc .resetsignalbuttons
-	
+
 	push cx
 	push esi
 	mov ax, 1 + (3h << 8)
@@ -913,7 +915,7 @@ RailConstrWinClick:
 //.failed:
 //	pop dword [esi+window.disabledbuttons]
 //	pop dword [esi+window.activebuttons]
-//	pop dword [esi+window.elemlistptr]	
+//	pop dword [esi+window.elemlistptr]
 	jmp [RefreshWindowArea]
 
 UpdateStationSelectionSize:
@@ -980,7 +982,7 @@ GenerateDropDownMenuTab1:
 .failed2:
 	pop dword [esi+window.disabledbuttons]
 	pop dword [esi+window.activebuttons]
-	pop dword [esi+window.elemlistptr]	
+	pop dword [esi+window.elemlistptr]
 	ret
 
 uvard OldGenerateDropDownMenu
@@ -1000,7 +1002,7 @@ RailConstrWinRedraw:
 	cmp ebx, 0x80000000
 	je .nocost2
 	mov [textrefstack], ebx
-	
+
 	mov cx, [esi+window.x]
 	add cx, 7
 	mov dx, [esi+window.y]
@@ -1011,7 +1013,7 @@ RailConstrWinRedraw:
 .nocost2:
 	popa
 
-	
+
 	push ax
 	mov bl, 82
 	mov al, [CurRailType]
@@ -1124,7 +1126,7 @@ RailConstrWinRedraw:
 	mov bx, ourtext(rcw_length)
 	call [drawtextfn]
 	popa
-	
+
 	pusha
 	mov cx, [esi+window.x]
 	add cx, 37
@@ -1182,7 +1184,7 @@ RailConstrWinRedraw:
 
 .drawsignals:
 	mov edi, [currscreenupdateblock]
-	
+
 	pusha
 	mov cx, [esi+window.x]
 	add cx, 7
@@ -1193,7 +1195,7 @@ RailConstrWinRedraw:
 	add bx, ourtext(rcw_semaphores)
 	call [drawtextfn]
 	popa
-	
+
 	pusha
 	mov cx, [esi+window.x]
 	add cx, 7
@@ -1225,7 +1227,7 @@ RailConstrWinRedraw:
 	cmp ebx, 0x80000000
 	je .nocost
 	mov [textrefstack], ebx
-	
+
 	mov cx, [esi+window.x]
 	add cx, 7
 	mov dx, [esi+window.y]
@@ -1252,7 +1254,7 @@ RailConstrWinRedraw:
 	shl dl, 4
 	or dh, dl
 	mov ebx, 1288
-	
+
 	movzx edx, dh
 	and edx, [numsiggraphics]
 	jz .nopresignal
@@ -1303,7 +1305,7 @@ RailConstrWinHandler:
 	cmp dl, cWinEventMouseDragRelease
 	je near RailConstrWinMouseDragRelease
 	ret
-	
+
 RailConstrWinMouseDragUITick:
 	cmp byte [CurRailMouseTool], cRailMouseToolBuildStation
 	je .station
@@ -1395,7 +1397,7 @@ RailConstrWinMouseDragUITick:
 	add dx, [dragtoolstartx]
 	mov ax, dx
 .havesizex:
-	
+
 	pop dx
 	pop ecx
 .nodragx:
@@ -1464,7 +1466,7 @@ RailConstrWinMouseDragUITick:
 	add bx, [dragtoolstarty]
 	mov cx, bx
 .havesizey:
-	
+
 	pop bx
 	pop eax
 .nodragy:
@@ -1498,7 +1500,7 @@ RailConstrWinMouseDragUITick:
 .nothing:
 	mov word [dragtoolendx], -1
 	ret
-	
+
 RailConstrWinClose:
 	mov byte [CurRailMouseTool], cRailMouseToolNone
 	push esi
@@ -1507,7 +1509,7 @@ RailConstrWinClose:
 	mov edi, [esi+window.data]
 	call dfree
 	ret
-	
+
 RailConstrWinMouseDragRelease:
 	mov bx, [dragtoolendx]
 	sub bx, [dragtoolstartx]
@@ -1556,13 +1558,13 @@ RailConstrWinMouseDragRelease:
 	mov ebx, 1300
 	call [setmousetool]
 	mov byte [CurRailMouseTool], cRailMouseToolBuildStation
-	call UpdateStationSelectionSize	
+	call UpdateStationSelectionSize
 	pop esi
 	mov edi, [esi+window.data]
 	bts dword [edi+8],  RailConstrWin_buildstation & 0xFF
 
 	ret
-	
+
 RailConstrMouseToolClick:
 	cmp byte [CurRailMouseTool], cRailMouseToolSignals
 	jz near .buildsignals
@@ -1585,7 +1587,7 @@ RailConstrMouseToolClick:
 	jz .havedrag
 	or dl, dl
 	jz .havedrag
-	
+
 	pusha
 	mov bx, 1
 	mov al, [CurStationSelClass]
@@ -1607,7 +1609,7 @@ RailConstrMouseToolClick:
 	mov bl, 11
 	mov word [operrormsg1], 0x100F
 	call [actionhandler]
-	
+
 	ret
 .havedrag:
 	and al, 0xF0
@@ -1681,7 +1683,7 @@ RailConstrMouseToolClick:
 	pop ax
 	ret
 .success:
-	
+
 	mov edi, [esi+window.data]
 	and dword [edi+4], ~( (1 << (RailConstrWin_remove & 0xFF) ) | (1 << (RailConstrWin_pickup & 0xFF) ) )
 	or dword [edi+4], (1 << (RailConstrWin_rotate & 0xFF) )
@@ -1694,7 +1696,7 @@ RailConstrMouseToolClick:
 	pop esi
 .nomousetool:
 	mov byte [CurRailMouseTool], cRailMouseToolBuildRailCon
-			
+
 	push eax
 	push esi
 	mov esi, -1
@@ -1711,7 +1713,7 @@ RailConstrMouseToolClick:
 	movzx ebx, byte [CurRailPiece]
 	mov [LastRailPiece], bl
 	mov byte [CurRailButton], 1
-	
+
 	movzx ecx, byte [LastRailConstrDir]
 	movzx ecx, byte [RailNextDirs + 4*ebx + ecx]
 	mov [CurRailConstrDir], cl
@@ -1725,7 +1727,7 @@ RailConstrMouseToolClick:
 
 	mov edi, [esi+window.data]
 	and dword [edi+4], ~(7 << (RailConstrWin_arrowleft & 0xFF))
-	
+
 	cmp byte [RailNextPieces+ebx+0], -1
 	jne .haveleft
 	bts dword [edi+4], (RailConstrWin_arrowleft & 0xFF)
@@ -1734,7 +1736,7 @@ RailConstrMouseToolClick:
 	jne .haveright
 	bts dword [edi+4], (RailConstrWin_arrowright & 0xFF)
 .haveright:
-	
+
 	mov ecx, RailConstrWin_arrowstraight
 	jmp RailConstrWinClick.arrowclicked2
 
@@ -1753,7 +1755,7 @@ RailConstrMouseToolClick:
 	mov dl, [CurSignalBits]
 	mov dh, [CurPbsSignalType]
 	mov bl, 1
-	
+
 	mov word [operrormsg1], 0x1010
 	dopatchaction buildsignal
 	cmp ebx, 80000000h
@@ -1770,7 +1772,7 @@ RailConstrMouseToolClick:
 	pop eax
 .nosound:
 	ret
-	
+
 RailConstrMouseToolClose:
 	mov edi, [esi+window.data]
 	btr dword [edi+16], RailConstrWin_singlesignal & 0xFF
@@ -1780,7 +1782,7 @@ RailConstrMouseToolClose:
 	mov byte [CurRailMouseTool], cRailMouseToolNone
 	jmp [RefreshWindowArea]
 	ret
-	
+
 RailConstrWinTimer:
 	mov edi, [esi+window.data]
 	btr dword [edi+0], (RailConstrWin_rotate & 0xFF)
@@ -1805,7 +1807,7 @@ RailConstrWinTimer:
 	ret
 .switch:
 	jmp [RefreshWindowArea]
-	
+
 RailConstrWinDropDownSelect:
 	cmp cx, RailConstrWin_signaltypedd
 	jne .noSignalType
@@ -1836,16 +1838,16 @@ RailConstrWinDropDownSelect:
 	mov byte [CurStationSelType], ah
 	movzx eax, ah
 	jmp .updatestationtype
-	
+
 .nostationclass:
 	cmp cx, RailConstrWin_typedd
 	jne .nostationtype
-	
+
 	movzx eax, al
 	mov al, [stationdropdownnums+eax]
 	mov [CurStationSelType], al
 	jmp .updatestationtype
-	
+
 .nostationtype:
 	ret
 
@@ -1903,7 +1905,7 @@ RailConstrWinDropDownSelect:
 .havetracks:
 	pop ecx
 	mov [CurDisabledStationSizes], ecx
-	
+
 	movzx ecx, byte [CurStationLength]
 	cmp cl, [CurMinStationLength]
 	jae .longenough
@@ -1972,7 +1974,7 @@ RailConstrUITick:
 	je near .buildrailcon
 	cmp byte [CurRailMouseTool], cRailMouseToolBuildStation
 	je .buildstation
-	
+
 	jmp .nosignals
 
 .buildstation:
@@ -1992,7 +1994,7 @@ RailConstrUITick:
 	mov byte [CurSelFlags], 1
 .nosprites3:
 	jmp .havesprite
-	
+
 .buildrail:
 	mov ax, [mousecursorscrx]
 	mov cx, [mousecursorscry]
@@ -2022,7 +2024,7 @@ RailConstrUITick:
 	add bx, [guispritebase]
 	add bx, 15
 	mov word [CurSelectionSprites+2], bx
-	
+
 	movzx ebx, byte [CurRailPiece]
 	shl ebx, 2
 	add bl, [CurRailConstrDir]
@@ -2040,7 +2042,7 @@ RailConstrUITick:
 	mov ax, [CurRailX]
 	mov cx, [CurRailY]
 	call [gettileinfo]
-	
+
 	mov byte [CurRailXSizes+0], 10h
 	mov byte [CurRailYSizes+0], 10h
 	mov byte [CurRailZSizes+0], 1h
@@ -2061,7 +2063,7 @@ RailConstrUITick:
 	add bx, [guispritebase]
 	add bx, 15
 	mov dword [CurRailSprites+4], ebx
-	
+
 	movzx ebx, byte [CurRailPiece]
 	shl ebx, 2
 	add bl, [CurRailConstrDir]
@@ -2090,16 +2092,16 @@ RailConstrUITick:
 	mov al, 3
 	mov bx, 100h
 	call [invalidatehandle]
-	popa											
+	popa
 
 	jmp .havespriteandpos
-	
+
 .removesignals:
 	mov ax, [landscapemarkerorigx]
 	mov cx, [landscapemarkerorigy]
 	and ax, 0xFF0
 	and cx, 0xFF0
-	
+
 	mov bl, 0
 	mov esi, 0xE0008 // RemoveSignals
 	call [actionhandler]
@@ -2110,13 +2112,13 @@ RailConstrUITick:
 	call [invalidatehandle]
 
 	jmp .nosignals
-	
+
 .signals:
 	mov ax, [landscapemarkerorigx]
 	mov cx, [landscapemarkerorigy]
 	and ax, 0xFF0
 	and cx, 0xFF0
-	
+
 	mov byte [CurSelectionXSizes+0], 1
 	mov byte [CurSelectionYSizes+0], 1
 	mov byte [CurSelectionZSizes+0], 0Ah
@@ -2124,7 +2126,7 @@ RailConstrUITick:
 	mov byte [CurSelectionYSizes+1], 1
 	mov byte [CurSelectionZSizes+1], 0Ah
 	mov byte [CurSignalBits], 0
-	
+
 	pusha
 
 	call locationtoxy
@@ -2185,7 +2187,7 @@ RailConstrUITick:
 	shl dl, 4
 	or dh, dl
 	mov ecx, 1276
-	
+
 	movzx edx, dh
 	and edx, [numsiggraphics]
 	jz .nopresignal
@@ -2195,15 +2197,15 @@ RailConstrUITick:
 .nopresignal:
 	pop edx
 
-	
+
 	cmp byte [CurSignalIsSingle], 0
 	je .doublesignal
-	
+
 	push ax
 	mov al, [SingleSignalBits+8*ebx+eax]
 	mov [CurSignalBits], al
 	pop ax
-	
+
 	movsx ebx, byte [SingleRailSignals+8*ebx+eax]
 	cmp ebx, -1
 	je near .nosignal
@@ -2240,16 +2242,16 @@ RailConstrUITick:
 
 	push ebx
 	push eax
-	
+
 	push ax
 	mov al, [DoubleSignalBits+8*ebx+eax]
 	mov [CurSignalBits], al
 	pop ax
-	
+
 	movsx ebx, byte [DoubleRailSignals+8*ebx+eax]
 	cmp ebx, -1
 	je .nofirstsignal
-	
+
 	mov al, [signaloffsets+ebx+edi]
 	mov [CurSelectionXs+0], al
 	mov al, [signaloffsets+ebx+12+edi]
@@ -2277,7 +2279,7 @@ RailConstrUITick:
 .nosecondsignal:
 	pop edi
 	jmp .nosignal
-	
+
 .nosignal2:
 	pop eax
 .nosignal:
@@ -2327,7 +2329,7 @@ collectlandscapemarkers:
 	add bx, [highlightareainnerxsize]
 	cmp ax, bx
 	jae near .nosignal
-	
+
 	mov bx, [landscapemarkerorigy]
 	cmp cx, bx
 	jb near .nosignal
@@ -2342,7 +2344,7 @@ collectlandscapemarkers:
 	push dx
 	push ax
 	push cx
-	
+
 	push ebx
 	test byte [CurSelectionFlags+ebx], 4
 	or al, byte [CurSelectionXs+ebx]
@@ -2369,7 +2371,7 @@ collectlandscapemarkers:
 	call [addsprite]
 .nosprite:
 	pop ebx
-	
+
 	pop cx
 	pop ax
 	pop dx
@@ -2386,7 +2388,7 @@ collectlandscapemarkers:
 	jne near .nosignal2
 	cmp cx, [CurRailY]
 	jne near .nosignal2
-	
+
 	mov ebx, 3
 .loop2:
 	push di
@@ -2394,7 +2396,7 @@ collectlandscapemarkers:
 	push dx
 	push ax
 	push cx
-	
+
 	push ebx
 	test byte [CurRailFlags+ebx], 4
 	or al, byte [CurRailXs+ebx]
@@ -2421,7 +2423,7 @@ collectlandscapemarkers:
 	call [addsprite]
 .nosprite2:
 	pop ebx
-	
+
 	pop cx
 	pop ax
 	pop dx
@@ -2439,7 +2441,7 @@ collectlandscapemarkers:
 	add bx, [highlightareainnerxsize]
 	cmp ax, bx
 	jae near .noskipcaller
-	
+
 	mov bx, [landscapemarkerorigy]
 	cmp cx, bx
 	jb near .noskipcaller
@@ -2469,13 +2471,13 @@ var SingleRailSignals // 4 * 8 offsets (index into signalsprites/signaloffsets)
 	db	-1,	9,	-1,	7,	-1,	3,	7,	3	//SE
 	db	-1,	8,	4,	-1,	0,	-1,	4,	0	//NW
 	db	10,	-1,	-1,	6,	1,	-1,	6,	1	//SW
-	
+
 var DoubleRailSignals // the same for double signals, but this time two tables, one for each signal
 	db	11,	9,	5,	-1,	-1,	2,	5,	2
 	db	11,	9,	-1,	7,	-1,	3,	7,	3
 	db	10,	8,	4,	-1,	0,	-1,	4,	0
 	db	10,	8,	-1,	6,	1,	-1,	6,	1
-	
+
 	db	10,	8,	4,	-1,	-1,	3,	4,	3
 	db	10,	8,	-1,	6,	-1,	2,	6,	2
 	db	11,	9,	5,	-1,	1,	-1,	5,	1

@@ -65,7 +65,7 @@ struc industilegameid
 	.grfid:		resd 1
 	.setid:		resb 1
 	.gameid:	resb 1
-endstruc_32
+endstruc
 
 // index of the last valid entry of the above array
 uvarb lastindustiledataid
@@ -1251,7 +1251,7 @@ uvard industrydataidtogameid,2*NINDUSTRIES
 struc industrygameid
 	.grfid:		resd 1
 	.setid:		resb 1
-endstruc_32
+endstruc
 
 // helper bitmasks, containing the old industry types enabled on the current climate
 // this is necessary so we can reuse unused slots for new industries
@@ -1373,7 +1373,7 @@ struc industryincargodata
 	.in_amount2:	resw 1
 	.in_amount3:	resw 1
 			resw 1		// some padding so we can use the *8 multiplier
-endstruc_32
+endstruc
 
 // amount of cargo accepted, but not processed by industries
 uvard industryincargos,2*90
@@ -3924,7 +3924,7 @@ struc productioninstruction
 	.add_out_1:		resw 1
 	.add_out_2:		resw 1
 	.call_again:		resb 1
-endstruc_32
+endstruc
 
 // Auxiliary function to do the production callback
 // in:	esi-> industry
@@ -3978,7 +3978,7 @@ doproductioncallback:
 // subtract amount, but don't go negative
 	sub [edi+industryincargodata.in_amount1+(ecx-1)*2],bx
 	jnc .nottoofew
-	and word [ecx+industryincargodata.in_amount1+(ecx-1)*2],0
+	and word [edi+industryincargodata.in_amount1+(ecx-1)*2],0
 .nottoofew:
 	loop .nextininstruction
 
@@ -4729,7 +4729,7 @@ adjustindustrypos:
 	movzx ebx, byte [ebx+cargotrans.fromslot+ecx]
 	pop ecx
 
-	mov dword [miscgrfvar],ebx
+	mov dword [callback_extrainfo],ebx
 	pop ebx
 
 	mov byte [grffeature],0xa

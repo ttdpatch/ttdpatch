@@ -38,5 +38,5 @@ ttdpatchw.res:	ttdpatchw.rc versionw.h
 
 # Language compiler files
 lang/%.o host/lang/%.o: lang/%.h
-$(langobjs): proclang.c types.h error.h common.h language.h mansect.h
-$(hostlangobjs): proclang.c types.h error.h common.h language.h mansect.h
+$(langobjs): proclang.c types.h error.h common.h language.h
+$(hostlangobjs): proclang.c types.h error.h common.h language.h

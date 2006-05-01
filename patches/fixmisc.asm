@@ -2324,7 +2324,11 @@ var vehnametextids, dw 0x8864,0x8814,0x902b,0x9016,0x9830,0x981c,0xa02f,0xa014
 noglobal uvard oldvehtexts, numvehnametexts
 var genericvehmsg, db 0x80,0x20,0x7c,0
 
+// the following procedures work on the texts affected by the "use veh. name not number" patch
+// these need some special attention to be translatable via GRFs
 
+// back up all affected text pointers, so they can be restored if GRFs are disabled
+// the texts are already fixed up by the patchproc at this point
 exported backupvehnametexts
 	pusha
 
@@ -2341,6 +2345,7 @@ exported backupvehnametexts
 	popa
 	ret
 
+// restore all the saved text pointers before GRFs are applied
 exported restorevehnametexts
 	pusha
 
@@ -2361,8 +2366,13 @@ exported restorevehnametexts
 	popa
 	ret
 
+// fallback text, will expand to something like "Train 7??"
 noglobal varb vehtextfallback, 0x80,"??",0
 
+// after GRFs are applied, check if any of the special IDs are modified
+// if this is the case, the text supplied by the GRF won't work, and we have little hope to
+// fix it up as we do for original texts in the EXE
+// instead, the GRF should supply the fixed-up replacements, or have its texts replaced by the fallback
 exported fixupvehnametexts
 	pusha
 
@@ -2372,18 +2382,20 @@ exported fixupvehnametexts
 	mov ax,[vehnametextids+ecx*4+2]
 	mov ebx,[oldvehtexts+ecx*4]
 	call gettextandtableptrs
-	cmp ebx,edi
-	je .donetext
 
-	mov eax,edx
+	cmp ebx,edi
+	je .donetext			// if the pointer hasn't changed, we have nothing to do
+
+	mov eax,edx			// edx holds the ID of the replacement text
 	call gettextandtableptrs
 	cmp byte [edi],0
-	jne .havereplacement
+	jne .havereplacement		// if the replacement text isn't empty, we can use it
 
-	mov edi,vehtextfallback
+	mov edi,vehtextfallback		// if it is, we have no choice but use the fallback
 
 .havereplacement:
-	mov ax,[vehnametextids+ecx*4+2]
+
+	mov ax,[vehnametextids+ecx*4+2]	// store the new pointer
 	mov ebx,edi
 	call gettextintableptr
 	jnc .nosubtract

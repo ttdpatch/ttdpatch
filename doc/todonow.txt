@@ -1,8 +1,6 @@
 
 =-=-= Very urgent =-=-=
 
-- docs: update bit switches in manual
-
 - when changing console size, remember current settings
 
 - fix large ships tip not being drawn properly; check ship motion and
@@ -18,13 +16,6 @@
 - catch alignment problems in flagdata.h automatically (nasm macros?)
 
 - too much diesel smoke when train is slowed down by bridge speed limit
-
-- mechanism to have .grf specify what "resources" it changes, e.g. all train
-  engines, all temperate train engines, all wagons... and in what climates
-  to have automatic exclusion of incompatible .grfs
-  new action; maintain bit mask of vehicles that are redefined, if clash then
-  the second one is skipped (action should be for each block of vehicles)
-  define action 7 test for this too maybe?
 
 - make elrails cost change in time, something like
   mx - (mx-mn)/(fix(steps*log(1+(2000-1920)/scale))/steps) * fix(steps*log(1+(year-1920)/scale))/steps])
@@ -42,10 +33,6 @@
   of all facilities instead. maybe also fix that only one industry receives
   all goods
 
-- make trigger 4 work without gradualloading
-
-- make makelang check for duplicate entries
-
 - make grftrans able to use both .grf and _trans.grf to have only the new
   entries untranslated
 
@@ -58,9 +45,6 @@
   correct size of chunk; e.g. change ebp to a helper function that does the
   accounting
 
-- also add checks to sw_list script to make sure all flags are there; add
-  FLAGSNOTSHOWN: and make sure each flag is in either this or the other list
-
 - callback for wagon capacity and weight
 
 - callback for cost factor/running cost factor
@@ -70,8 +54,6 @@
 - change msg if messageboxw not avail to show error loc or something
 
 - make overload stop work without fullloadany; also adjust it in some way?
-
-- fix bogus makelang.err messages
 
 - flag for "station is really depot"
 
@@ -164,8 +146,6 @@
 
 - show loading speed in wagon info (and other vehicle types too?)
 
-- flag to disable company colours for vehicle graphics
-
 - no loading states for planes?
 
 - faster loading/unloading at bus stops
@@ -177,8 +157,6 @@
 - incorrect refit cargo size for planes with non-pass default
   see http://www.tt-forums.net/viewtopic.php?t=14344
   also incorrect type; same thread
-
-- veh still getting obsolete with early ret option but perseng on?
 
 - refitting crash, http://www.tt-forums.net/viewtopic.php?p=262819#262819
 
@@ -205,9 +183,6 @@
 - add action 1/2/3 support for bus stops (new pre-def class? flag? selection?)
 
 - in grf status window in scen ed, add state "do not save", make this default
-
-- looping paths in PBS cause problems; either catch in route finder (with hash)
-  or in checkmark
 
 - crash with newstations 0.4, see http://www.tt-forums.net/viewtopic.php?p=278809#278809
 
@@ -275,9 +250,6 @@
 
 - show yellow income/cost messages for feeder service drop-off/pick-up
 
-- callback for deciding station/industry names
-  http://www.tt-forums.net/viewtopic.php?t=20790
-
 - cache station var 40+x, when updating cache also check PBS state for each
   platform for better var 44
   -> one D l-array that allocates cache-structs on demand? will not work in DOS
@@ -299,8 +271,6 @@
 
 - lomo station gui highlight bug: http://www.tt-forums.net/viewtopic.php?p=355109#355109
 
-- add "last text ID" to crash log
-
 - livery changes in 2070: http://www.tt-forums.net/viewtopic.php?p=355121#355121
 
 - irr station acceptance broken? http://www.tt-forums.net/viewtopic.php?p=355370#355370
@@ -311,8 +281,6 @@
   when it shouldn't; see pbscrash.zip
 
 - switch to set amount of panning/speaker separation
-
-- TSC stuff doesn't work for feature>=4?  also messes up sprites after loading?
 
 - pathfinding still wrong; need curtarget to be valid or "go closest" won't work
 
@@ -327,17 +295,9 @@
 
 - callback for station names, http://www.tt-forums.net/viewtopic.php?p=355861#355861
 
-- for autoreplacing non-trains, check that refittability is right
-  --> test this!
-
-- check Class2DrawLandOneWay - show arrows only when tool open
-  -> works but needs refresh
-
 - access to current game speed
 
 - crash in ECS, http://new.tt-forums.net/viewtopic.php?p=369786#369786
-
-- euro broken? period flag controls euro?
 
 - action 1/2/3 feature type check doesn't work for var/random action 2?
 
@@ -350,8 +310,6 @@
   http://www.tt-forums.net/viewtopic.php?p=373857#373857
   also http://www.tt-forums.net/viewtopic.php?p=378054#378054
   maybe just prevent releasing path if can't reverse?
-
-- altitude uses wrong var type (should store dword?)
 
 - PBS pathfinding problems,
   http://www.tt-forums.net/viewtopic.php?p=374039#374039
@@ -375,14 +333,8 @@
 
 - add utf8 support to grfcodec
 
-- implement callback for calculating the cargo delivery revenue
-
 - XXX fixed crash when newcargodistribution was on but newcargos was off
   http://www.tt-forums.net/viewtopic.php?p=378684#378684
-
-- higherbridge over diagonal beach piece crashes if canals off
-
-- change [us]var[bwd] to not declare global for variables starting with .
 
 - station var 41 not counting right:
   http://www.tt-forums.net/viewtopic.php?p=381568#381568
@@ -398,15 +350,9 @@
   ID 05 is the "EE Type 1", ID 0D is the "Sulzer Type 2"
   some consist vars not getting set? http://www.tt-forums.net/viewtopic.php?p=387369#387369
 
-- better message when running out of industry tiles (etc.)
-
 - make tram depots respect transparent buildings settings
 
 - custom 2cc gui tab sprites with sprite limit extender
-
-- fix PBS with enhancetunnels: doesn't consider bridge piece as track?
-
-- right click on Statistics = crash (no tooltips)
 
 - action 11 sound effects don't work without callback
   -> lastgrffile not set? possibly it will stay that way
@@ -415,8 +361,6 @@
   http://www.tt-forums.net/viewtopic.php?p=387407#387407
 
 - crash in depot-all-trash with enhancegui off
-
-- change incorrect out of sprites message to grf conflict
 
 - newsounds off = TTD sounds off too?
   http://www.tt-forums.net/viewtopic.php?p=394539#394539
@@ -507,14 +451,10 @@
 
 - multiple clicks on "Default" in title grf status increase sprite counts?
   --> can't reproduce, ask eis_os
+  --> see newgrf_start_memory_problem.7z
 
 - another signal/pathfinder problem
   http://www.tt-forums.net/viewtopic.php?p=429375#429375
-
-- incorrect(?) invalid sprite error
-  http://www.tt-forums.net/viewtopic.php?p=430873#430873
-
-- with elrails off, both mono and maglev open same toolbar
 
 ==== Rather urgent =====
 
@@ -776,21 +716,4 @@ CHANGELOG
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 
-2.5 beta 4
-- prevent "ignore signals" button from working in depot unless entire 
-  train is in depot
-- fixed ghost depots appearing after removing track from railroad crossing
-  over town roads
-- fixed crash when too many station sets were activated
-- fixed morestatistics showing Manage button even with subsidiaries off
-- by eis_os:
-  * changed onewayroads to only show markers when road building is active
-  * added "debug" button to grf status window, writes info to grfdebug.txt
-- fixed hang when loading game if save had too many animation tiles
-- fixed handling of language ID bytes with bits 6 and 7 set
-- by Csaba:
-  * fixed wrong industries appearing with newindustries on but newhouses off
-  * text modifications are now applied to GRF texts as well 
-  * text modifications now handle UTF-8 correctly 
-  * fixed incorrect rail menu with unifiedmaglev=2 and electrifiedrails off
-- (devel) ensure all sprite blocks always have a valid cargo translation table
+2.5 beta 5

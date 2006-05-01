@@ -34,7 +34,7 @@ struc aiselectioninfo
 	.number:	resb 1	// 07h: current number of vehicle/station/etc
 	.size:		resb 1	// 08h: station size (num*16 + length)
 	.reserved:	resb 7	// guaranteed to be zero
-endstruc_32
+endstruc
 
 // types
 // Trains (0x)

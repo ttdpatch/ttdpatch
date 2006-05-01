@@ -1158,7 +1158,7 @@ struc callbackinfo	// for lists of cached callbacks
 	.num:	resb 1	// number in action 2
 	.ofs:	resb 1	// offset into veh2 struct for cache
 	.defvar:resd 1	// pointer to variable with vehtype defaults (0x80000000 if none)
-endstruc_32
+endstruc
 
 	// reset callbacks for one vehicle
 	// in:	esi=vehicle

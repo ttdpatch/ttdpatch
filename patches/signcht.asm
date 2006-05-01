@@ -19,7 +19,7 @@
 extern actionhandler,actionmakewater_actionnum,addexpenses
 extern clearfifodata,clearindustryincargos,deleteconsist
 extern do_win_grfstat_create,errorpopup,findengines,findusedengines
-extern generatesoundeffect,getcurtrainweights,gethouseidebpebx,getymd
+extern generatesoundeffect,updatevehvars,gethouseidebpebx,getymd
 extern hexnibbles,houseflags,int21handler
 extern invalidatehandle,isengine,loadremovedvehs,makegrfidlist,makerisingcost
 extern newspritedata,newspritenum,newvehtypeinit,ophandler,patchflags
@@ -41,7 +41,7 @@ struc cheat
 	.costs: resb 1
 	.bit: 	resb 1
 	.func: 	resd 1
-endstruc_32
+endstruc
 
 %assign cheatcount 0
 %assign cheataliascount 0
@@ -1755,7 +1755,7 @@ doresetgraphics:
 .dateok:
 	call newvehtypeinit
 // now done in newvehtypeinit	 call monthlyengineloop	// enable persistent engines right away
-	call getcurtrainweights		// for realistic acceleration
+	call updatevehvars
 	call resetnewsprites
 	call redrawscreen
 	pop dword [currentdate]

@@ -9,5 +9,5 @@ struc refitinfo
 	.suffix:	resw 1	// cargo name suffix
 	.cycle:		resb 1	// refit cycle to use
 	.block:		resd 1	// sprite block for cargo name suffix
-endstruc_32
+endstruc
 

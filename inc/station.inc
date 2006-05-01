@@ -9,7 +9,7 @@ struc stationcargo
 	.enroutetime: 	resb 1	// +05h/+21h:how many days already in transit
 	.lastspeed: 	resb 1	// +06h/+22h:speed of last train picking this up (for rating)
 	.lastage: 	resb 1	// +07h/+23h:age of last waggon picking this up  (for rating)
-endstruc_32
+endstruc
 
 // stations start at 48cba
 struc station
@@ -65,7 +65,7 @@ struc station
 	.datebuilt:	resw 1	// 8ah:TTDPatch:date station was built
 	.random:	resb 1	// 8ch:TTDPatch:random bits
 	.newrandom:	resb 1	// 8dh:TTDPatch:what random triggers occured so far
-endstruc_32
+endstruc
 
 // additional cargo information, stored in secondary station array, same size as original one, for easier pointer arithmetic
 struc stationcargo2
@@ -73,7 +73,7 @@ struc stationcargo2
 	.curveh:	resw 1	// +04h/+20h:vehicle currently loading this cargo type
 	.type:		resb 1
 			resb 8 - $
-endstruc_32
+endstruc
 
 // additional station data, same size as normal struct for easier pointer arithmetics
 struc station2
@@ -83,7 +83,7 @@ struc station2
 	.acceptedcargos:	resd 1				// 64h: bitmask of accepted cargos
 	.railxysouth:	resw 1				// 68h: for a rail station the south corner if 
 				resb station_size - $
-endstruc_32
+endstruc
 
 %assign stationlengthshift 3		// stationsize shr this gives length
 %assign stationtracksand 7		// stationsize and this gives tracks

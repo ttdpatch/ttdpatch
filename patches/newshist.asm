@@ -522,10 +522,50 @@ NewsHistRedraw:
 	mov edi, tmpbuffer2
 
 	cmp byte [hasaction12],0
-	je .copyloop
+	je .formatit
 
 	mov ax,0x9EC3
 	stosw
+
+.formatit:
+	call formatnewsmessage
+
+	//draw it?
+	mov dword [specialtext1], tmpbuffer2
+
+	pop dx
+	pop cx
+	mov bx, statictext(special1)
+	add dx, 9
+	mov edi, [currscreenupdateblock]
+	mov word [currentfont], 448
+	pop esi
+	movzx ebp, word [esi+window.width]
+	sub ebp, 16
+//	mov ebp, 335
+	call [drawsplittextfn]
+	popa
+.notused:
+	pop eax
+	add dx, 42
+	cmp edi,[firstusednewshist]
+	je .finished
+	sub edi,newsitem_size
+	cmp edi, [newshistoryptr]
+	jnb .notwrong2
+	add edi, newsitem_size*NEWS_HISTORY_SIZE
+.notwrong2:
+	dec eax
+	jnz .drawnext
+.finished:
+	ret
+
+uvarb tmpbuffer1,512
+uvarb tmpbuffer2,512
+
+// called when formatting a news message for the status bar:
+// remove non-printable characters and colour codes, replace 0D by '    '
+exported formatnewsmessage
 
 .copyloop:
 	cmp byte [hasaction12],0
@@ -565,35 +605,5 @@ NewsHistRedraw:
 
 .zero:
 	mov [edi], al
-	//draw it?
-	mov dword [specialtext1], tmpbuffer2
-
-	pop dx
-	pop cx
-	mov bx, statictext(special1)
-	add dx, 9
-	mov edi, [currscreenupdateblock]
-	mov word [currentfont], 448
-	pop esi
-	movzx ebp, word [esi+window.width]
-	sub ebp, 16
-//	mov ebp, 335
-	call [drawsplittextfn]
-	popa
-.notused:
-	pop eax
-	add dx, 42
-	cmp edi,[firstusednewshist]
-	je .finished
-	sub edi,newsitem_size
-	cmp edi, [newshistoryptr]
-	jnb .notwrong2
-	add edi, newsitem_size*NEWS_HISTORY_SIZE
-.notwrong2:
-	dec eax
-	jnz .drawnext
-.finished:
 	ret
 
-uvarb tmpbuffer1,512
-uvarb tmpbuffer2,512

@@ -40,7 +40,7 @@ struc ttdpatchdata
 	// Variables set by TTDPatch on save
 	.magic:		resd 1	// 0xff00*2+1fah: magic value L3MAGIC (see above), indicates new format
 	.extrachunks:	resw 1	// 0xff00*2+1feh: number of extra chunks at the end of a savegame
-endstruc_32
+endstruc
 
 // old format of special TTDPatch data, saved at beginning of landscape3 array
 // for load compatibility only!
@@ -66,5 +66,5 @@ struc ttdpatchdataold
 	.lastrailclass:	resb 1	// 0xff00*2+4: last rail class selected from rail construction menu
 				//	       (used as new default)
 			resb 0x10000*2-$ // unused
-endstruc_32
+endstruc
 

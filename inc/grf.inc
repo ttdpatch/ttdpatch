@@ -37,7 +37,7 @@ struc spriteblock
 				// bit 1: off because of resource conflict
 				// bit 2: did reserve extra action A sprites
 				// bit 3: needs to import sounds from other GRF
-endstruc_32
+endstruc
 
 %macro checkfeaturesize 2.nolist
 %ifndef PREPROCESSONLY
@@ -81,7 +81,7 @@ struc action3info
 	%ifndef PREPROCESSONLY
 		%assign NUMACTION3CARGOS ($-.cargolist)/2
 	%endif
-endstruc_32
+endstruc
 
 	// cargo translation table
 struc cargotrans
@@ -90,7 +90,7 @@ struc cargotrans
 	.supported:	resd 1		// bit mask of supported cargo bits (MUST follow last bit)
 	.tableptr:	resd 1		// pointer to translation table
 	.numtrans:	resb 1		// number of entries in translation table
-endstruc_32
+endstruc
 
 struc namepartlist			// stores the choices for a name part
 	.partcount:	resb 1		// how many name parts are in the list
@@ -105,14 +105,14 @@ struc namepartlist			// stores the choices for a name part
 	.nextstyle:	resd 1		// pointer to root of the next town name style
 	.name:		resd 1		// pointer to name of the style
 	.nameparts:			// the parts themselves start from this
-endstruc_32
+endstruc
 
 struc namepart
 	.ptr:		resd 1		// pointer to either a name part (if bit 7 of probablity is clear),
 					// or to another namepartlist struc (if bit 7 of probablity is set)
 	.probablity:	resb 1		// relative probablity of the part to appear in the bottom 7 bits
 	.reserved:	resb 3		// to set the size to 8
-endstruc_32
+endstruc
 
 %define NUMOLDSOUNDS 73
 
@@ -123,7 +123,7 @@ struc soundinfo
 	.filename:	resd 1	// pointer to filename for logging
 	.priority:	resb 1	// sample priority
 	.ampl:		resb 1	// amplification factor
-endstruc_32
+endstruc
 
 // -------------------
 // new station structs
@@ -138,12 +138,12 @@ struc stationid
 	.numtiles:	resw 1	// how many tiles use this ID (permanent)
 	.setid:		resb 1	// setid (permanent)
 	.gameid:	resb 1	// gameid (temporary; gets new value after loading a game)
-endstruc_32
+endstruc
 
 // provides a mapping from gameid to graphics and setid
 struc stsetid
 	.act3info:	resd 1	// action 3 info for this gameid
 //	.spriteblock:	resd 1	// spriteblock for same -- no longer needed, now in action3info
 	.setid:		resb 1	// corresponding setid
-endstruc_32
+endstruc
 

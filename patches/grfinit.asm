@@ -239,7 +239,7 @@ struc ttdvehinfo
 	.shipdata:	resb NSHIPTYPES*0x09 // specshipdata_totalsize		// ship data
 	.aircraftdata:	resb NAIRCRAFTTYPES*0x0b // specplanedata_totalsize	// aircraft data
 	.vehtypenames:	resb 256*4					// default vehtype name ptrs
-endstruc_32
+endstruc
 
 uvarb ttdvehinfobackup, ttdvehinfo_size
 

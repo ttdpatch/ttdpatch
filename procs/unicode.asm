@@ -45,6 +45,15 @@ codefragment oldbuildcompanyname
 codefragment newbuildcompanyname
 	icall buildcompanyname
 
+codefragment oldformatnewsmsg,-15
+	cmp al,0x88
+	jb $+2+4
+	cmp al,0x99
+
+codefragment newformatnewsmsg
+	icall formatnewsmessage
+	jmp fragmentstart+39
+
 endcodefragments
 
 patchunicode:
@@ -81,4 +90,6 @@ patchunicode:
 	storefragment newtextinputokbutton
 	patchcode setwindowtitle
 #endif
+
+	patchcode formatnewsmsg
 	ret

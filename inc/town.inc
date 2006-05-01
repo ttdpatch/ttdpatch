@@ -38,7 +38,7 @@ struc town
 	.roadworks:	resb 1	// 54h:for how many months the road works are yet to be active
 	.buildingfund:	resb 1	// 55h:for how many months building funding is yet to be active
 			resb 0x5e-$
-endstruc_32
+endstruc
 
 // TTDPatch extension
 // has the same size to make pointer arithmetic easier
@@ -58,5 +58,5 @@ struc town2
 	.boundrectmaxx:	resb 1
 	.boundrectmaxy:	resb 1
 			resb 0x5e-$
-endstruc_32
+endstruc
 

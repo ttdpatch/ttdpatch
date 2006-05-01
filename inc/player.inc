@@ -29,7 +29,7 @@ struc player
 	.hqlocation: 	resw 1	// 3a4h:location of headquarters
 	.shareowners:	resb 4	// 3a6h:owners of the four shares
 			resb 0x3b2-$
-endstruc_32
+endstruc
 
 // bit numbers for the bits in player2.colschemes
 #define COLSCHEME_HAS2CC 0	// is 2nd company colour defined?
@@ -68,6 +68,6 @@ struc player2
 	.col2:		resb 1	// 2nd company colour
 	.specialcol:	resb 2*COLSCHEME_NUM	// special colours, 1st and 2nd
 	ALIGNB 4		// make struct size a multiple of 4
-endstruc_32
+endstruc
 
 

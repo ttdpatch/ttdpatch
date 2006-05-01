@@ -52,12 +52,6 @@ bits 32
 %error Do not compile the results of preprocessing!	// no "", so it's a warning
 %endif
 
-// Define a new endstruc macro that sets the "bits" setting properly
-%imacro endstruc_32 0.nolist
-	endstruc
-	bits 32
-%endmacro
-
 // define section attributes
 section .bss nobits align=4	// zero-initialized space, D/W/B sized
 section .bss2 nobits align=2

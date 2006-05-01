@@ -65,6 +65,7 @@ extern CreateTextInputWindow, findroadvehicledepot
 extern addrailfence1,addrailfence2,addrailfence3,addrailfence4
 extern addrailfence5,addrailfence6,addrailfence7,addrailfence8
 extern rvcheckovertake,findFrSpaTownNameFlags,runspectexthandlers
+extern fncheckvehintheway
 
 
 begincodefragments
@@ -1382,10 +1383,9 @@ endcodefragments
 
 ptrvarall industrydatablock
 
-ext_frag oldloadfilemask,oldgetdisasteryear
+ext_frag oldtrackbuildcheckvehs
 
-%assign maxverstringlen 64
-uvarb newversionstring, maxverstringlen
+ext_frag oldloadfilemask,oldgetdisasteryear
 
 // pointers to the ptrvar ptrs for the specific properties of each vehicle class
 vard vehclassspecptr, trainpower_ptr, rvspeed_ptr, shipsprite_ptr, planesprite_ptr
@@ -1480,35 +1480,6 @@ dogeneralpatching:
 	// and get the general text table
 	mov eax,[edi+lastediadj-4]
 	mov [mainstringtable],eax
-
-#if 0
-	mov esi,newversionstring
-	mov edi,esi
-	mov [eax+0x15b*4],esi
-	xchg esi,[eax+0x307*4]
-
-	// build new version string; append TTDPatch version
-	mov ecx,maxverstringlen-1
-.nextbyte:
-	lodsb
-	test al,al
-	jnz .notdone
-	mov al,','
-.notdone:
-	stosb
-	loopnz .nextbyte
-
-	mov esi,ttdpatchversion
-
-.nextbyte2:
-	lodsb
-	cmp al,'('
-	jne .notdone2
-	mov al,0
-.notdone2:
-	stosb
-	loopne .nextbyte2
-#endif
 
 	call runspectexthandlers
 
@@ -2020,6 +1991,9 @@ dogeneralpatching:
 	mov byte [edi+0xde],0x3b
 	add edi,byte -0x60
 	mov [setcharwidthtablefn],edi
+
+	stringaddress oldtrackbuildcheckvehs
+	copyrelative fncheckvehintheway,-4
 
 	storeaddress finddeductvehruncost,1,1,deductvehruncost
 	mov eax,[edi+lastediadj+0x39]

@@ -70,7 +70,7 @@ struc finalrt
 	.type:		resb 1	// 1: didn't find target, closest approach; 2: shortest route to target
 	.norecord:	resb 1	// 1: don't record route
 	.pieces:		// track piece bit masks of this route
-endstruc_32
+endstruc
 
 #define MAXDEPTH 64	// maximum depth of recursion in TTD's trace route algo
 
@@ -538,12 +538,21 @@ markrailroute:
 	cmp byte [onlycheckpath],0
 	jne .done
 
+	pusha
 	mov ah,1
 	call chkmarksignalroute
+	popa
+	jc .undo
 
 .done:
 	clc
 	ret
+
+.undo:	// if we get here, something bad happened, e.g. a looping path
+	// we need undo the partially-reserved route
+
+	mov ah,0x80
+	call chkmarksignalroute
 
 .bad:
 	stc
@@ -652,8 +661,13 @@ chkmarksignalroute:
 
 	test ah,ah
 	jz .nexttile
+	js .clearsignal
 
-	or [esi+edi],al
+	test [esi+edi],al
+	jnz near .fail
+
+.clearsignal:
+	xor [esi+edi],al
 
 	call redrawtileedi
 
@@ -684,7 +698,7 @@ chkmarksignalroute:
 	je .roadcrossing
 
 	cmp al,0x50
-	je .station
+	je near .station
 
 	cmp al,0x90
 	jne .nexttile
@@ -718,23 +732,41 @@ chkmarksignalroute:
 	jne .nexttile
 
 	test ah,ah
-	jz .dontmark
+	jz near .dontmark
+	js .clearcrossing
 
+	test byte [landscape5(di,1)],4
+	jnz near .fail
 	or byte [landscape5(di,1)],4
-	jmp short .redraw
+	jmp .redraw
+
+.clearcrossing:
+	test byte [landscape5(di,1)],4
+	jz near .fail
+	and byte [landscape5(di,1)],~4
+	jmp .redraw
 
 .station:
 	test ah,ah
-	jz .dontmark
+	jz near .dontmark
+	js .clearstation
 
+	test byte [landscape3+edi*2],0x80
+	jnz near .fail
 	or byte [landscape3+edi*2],0x80
 
 	// activate "train reserves platform" trigger
 	// (reset bit to trigger only once)
 	btr dword [wantstationpbstrigger],0
-	jnc .redraw
+	jnc near .redraw
 
 	call activatestationpbstrigger
+	jmp short .redraw
+
+.clearstation:
+	test byte [landscape3+edi*2],0x80
+	jz near .fail
+	and byte [landscape3+edi*2],~0x80
 	jmp short .redraw
 
 .rail:
@@ -747,7 +779,7 @@ chkmarksignalroute:
 	bsf edx,edx
 	mov al,[sigbitsonpiece+edx]
 	test [landscape3+edi*2],al
-	jnz .done	// had a signal
+	jnz near .done	// had a signal
 //	jnz .signal	// had a signal
 
 	shr edx,1
@@ -785,6 +817,10 @@ chkmarksignalroute:
 .mark:
 	test ah,ah
 	jz .dontmark
+	js .cleartile
+
+	test [esi+edi],dh
+	jnz near .fail
 
 	or [esi+edi],dh
 
@@ -797,6 +833,13 @@ chkmarksignalroute:
 	test ecx,ecx
 	js .done
 	jmp .nexttile
+
+.cleartile:
+	test [esi+edi],dh
+	jz .fail
+	not dh
+	and [esi+edi],dh
+	jmp .dontmark
 
 .endofroute:
 	// found end of traced route
@@ -879,6 +922,10 @@ chkmarksignalroute:
 	sub ebx,4
 	jnc .nextalt
 	jmp chkmarksignalroute
+
+.fail:	// we get here when trying to reserve track already reserved
+	// this implies there's a loop in the route which would cause
+	// bad things to happen
 
 .bad:
 	stc
@@ -1293,6 +1340,9 @@ getnexttileconnection:
 uvard lastmovementstat
 uvard gettunnelotherend
 
+uvard lasttileclearedptr,2
+uvarb lasttileclearedbit,2
+
 	// called when last wagon leaves a tile
 	//
 	// in:	ax=new tile XY
@@ -1304,6 +1354,9 @@ uvard gettunnelotherend
 global lastwagoncleartile
 lastwagoncleartile:
 	pusha
+
+	or dword [lasttileclearedptr],byte -1
+	or dword [lasttileclearedptr+4],byte -1
 
 	// calculate direction from delta XY
 
@@ -1372,6 +1425,11 @@ lastwagoncleartile:
 	mov ebp,edi
 	call clearpathtile
 
+	mov ebp,[curcleartileptr]
+	mov [lasttileclearedptr],ebp
+	mov al,[curcleartilebit]
+	mov [lasttileclearedbit],al
+
 .nothing:
 	pop ebp
 
@@ -1386,6 +1444,11 @@ lastwagoncleartile:
 
 	mov al,bl
 	call clearpathtile
+
+	mov eax,[curcleartileptr]
+	mov [lasttileclearedptr+4],eax
+	mov al,[curcleartilebit]
+	mov [lasttileclearedbit+1],al
 .done:
 	test dh,dh
 	popa
@@ -1393,6 +1456,9 @@ lastwagoncleartile:
 ovar .oldfn,-4,$,lastwagoncleartile
 	ret
 
+
+uvard curcleartileptr
+uvarb curcleartilebit
 
 // clear reserved tile piece
 //
@@ -1446,6 +1512,10 @@ clearpathtile:
 	test bh,4
 	jz .donenz
 
+	mov dword [curcleartileptr],0xff000000	// code for L5
+	add [curcleartileptr],ebp
+	mov byte [curcleartilebit],4
+
 	and byte [landscape5(bp,1)],~4
 
 	mov bl,1<<(14-8)		// dummy value that won't change anything
@@ -1453,7 +1523,7 @@ clearpathtile:
 	lea ebp,[landscape3+ebp*2+1]
 	or [ebp],bl		// set (unused) L3 bit 14
 	sub ebp,edi
-	jmp .clearbit		// then clear it again (otherwise tile won't be redrawn)
+	jmp .clearbitnorec	// then clear it again (otherwise tile won't be redrawn)
 
 .station:
 #if 0
@@ -1481,7 +1551,7 @@ clearpathtile:
 .bridgetunnel:
 	mov bh,[landscape5(bp,1)]
 	cmp bh,4
-	jb .clearbit
+	jb near .clearbit
 
 	checkbridgepbs bh,bl,.donenz,short .clearbit
 #if 0
@@ -1535,7 +1605,12 @@ clearpathtile:
 .clearbit:
 	test [edi+ebp],bl
 	jz .donenz
-.redraw:
+
+	mov [curcleartileptr],edi
+	add [curcleartileptr],ebp
+	mov [curcleartilebit],bl
+
+.clearbitnorec:
 	pusha
 	movzx eax,byte [esp+0x20]
 	movzx ecx,byte [esp+0x21]
@@ -1544,7 +1619,6 @@ clearpathtile:
 	call [invalidatetile]
 	popa
 
-.notset:
 	not bl
 	and [edi+ebp],bl
 	jmp .donenz

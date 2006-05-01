@@ -3,7 +3,7 @@
 #include <ptrvar.inc>
 
 extern dailyvehproc,dailyvehproc.oldaircraft,drawsplittextfn
-extern gettextandtableptrs,vehtickproc.oldaircraft
+extern vehtickproc.oldaircraft
 extern vehtickproc_aircraft
 
 
@@ -81,21 +81,6 @@ patchnewplanes:
 	add [edi+66],ebx
 	add [edi+78],ebx
 
-#if 0
-	// replace "n passengers, n bags of mail" by 0x80
-	mov ax,0xa02e
-	call .adjust
-
-	mov ax,0xa007
-	call .adjust
-
-	std
-	mov al,0x7c
-	repne scasb
-	mov byte [edi+1],0x7d	// change year from word to byte
-	cld
-#endif
-
 	mov esi,vehtickproc_aircraft
 	mov eax,[ophandler+0x13*8]	// aircraft vehicle class
 	xchg esi,[eax+0x14]		// vehtickproc
@@ -109,25 +94,3 @@ patchnewplanes:
 	patchcode touchdownsound
 	patchcode helitakeoffsound
 	ret
-
-#if 0
-.adjust:
-	call gettextandtableptrs
-	mov al,0x7c
-	or ecx,byte -1
-	repne scasb
-	mov byte [edi-1],0x80
-
-	mov esi,edi
-	mov al,13
-	repne scasb
-	dec edi
-	xchg esi,edi
-
-.copynext:
-	lodsb
-	stosb
-	test al,al
-	loopnz .copynext
-	ret
-#endif

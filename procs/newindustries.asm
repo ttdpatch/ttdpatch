@@ -517,6 +517,14 @@ codefragment newindudecreaseprod
 	jz fragmentstart+0x33	// jz .done
 	setfragmentsize 12
 
+codefragment oldtoyfactoryanimation,8
+	mov [nosplit landscape3+ebx*2],ax
+	cmp ah,8
+
+codefragment newtoyfactoryanimation
+	clc
+	setfragmentsize 3
+
 endcodefragments
 
 ext_frag oldindustryclosedown
@@ -670,6 +678,9 @@ patchnewindustries:
 
 	patchcode checkinduclosedown
 	patchcode indudecreaseprod
+
+// fix toy factory animations messing up the high byte of L3
+	patchcode toyfactoryanimation
 	ret
 
 // shares a code fragment

@@ -767,6 +767,11 @@ drawTramOrRoadDepot:
 .dontDrawTramDepot:
 	mov     dh, 14h
 .finishDrawing:
+	test	byte [displayoptions], 10h
+	jne	.notTransparent
+	and	ebx, 3FFFh
+	or	ebx, 3224000h
+.notTransparent:
 	call    [addsprite]
 	retn
 

@@ -57,8 +57,9 @@ extern currtextlist,currmultis,curropts,currsymsbefore,currsymsafter,eurointr
 extern languagesettings
 extern cargotowngrowthtype,cargotowngrowthmulti,cargocallbackflags,setindustileaccepts
 extern setinduproducedcargos,setindustryacceptedcargos,industrydestroymultis
-extern fonttables,allocfonttable,hasaction12,setsnowlinetable,snowytemptreespritebase
+extern allocfonttable,hasaction12,setsnowlinetable,snowytemptreespritebase
 extern numsnowytemptrees,setstatcargotriggers,industilespecflags
+extern ttdpatchversion
 
 uvarb action1lastfeature
 
@@ -1201,8 +1202,11 @@ grfcalltable action3storeid, dd addr(action3storeid_table.generic)
 	// records original values for general text strings changed by an action 4
 struc orggentext
 	.next:		resd 1	// next action 4 for general texts in linked list
-	.entries:		// variable number of DWORDs containing original string
-endstruc_32
+	.entries:		// variable number of pairs of DWORDs containing original string and new string
+endstruc
+
+// list of textIDs needing fixup, and the fixup procedures
+// the textIDs need to be in increasing order, and the -1 guard entry shouldn't be removed
 
 noglobal vard spectexthandlers
 	dd 0x015b, addttdpatchver
@@ -1215,7 +1219,7 @@ noglobal vard spectexthandlers
 	dd -1, 0
 endvar
 
-extern ttdpatchversion
+// run all the fixup handlers on the original texts
 
 exported runspectexthandlers
 
@@ -1255,17 +1259,33 @@ exported runspectexthandlers
 	popa
 	ret
 
+// The following procedures handle fixing up some TTD texts
+// These run during initialization, so they can allocate new buffers
+// All share the same calling convention:
+// in:	eax-> text
+//	esi-> text
+//	ebp: textID
+// out:	eax-> new text
+//	esi points to some "safe position" (there's exactly one NULL between esi and the next text)
+// safe: eax
+
+%assign maxverstringlen 64
+
+// Append the TTDPatch version number to the main menu title and the about box title
+// The version string is always all-ASCII, so we don't need to worry about UTF-8 here
 addttdpatchver:
 	push ecx
 	push edi
 
-	mov ecx,64
+// allocate the new storage
+	mov ecx,maxverstringlen
 	push ecx
 	call malloccrit
 	pop edi
 
 	push edi
 
+// copy the original text and add a comma
 .nextbyte:
 	lodsb
 	test al,al
@@ -1275,9 +1295,11 @@ addttdpatchver:
 	stosb
 	loopnz .nextbyte
 
+// decrease esi so it points to the trailing NULL (a safe position), then save it
 	dec esi
 	push esi
 
+// now append the version string
 	mov esi,ttdpatchversion
 
 .nextbyte2:
@@ -1289,12 +1311,17 @@ addttdpatchver:
 	stosb
 	loopne .nextbyte2
 
+// restore the saved safe position into esi
 	pop esi
+// pop the address of the buffer into eax
 	pop eax
+
 	pop edi
 	pop ecx
 
 	ret
+
+// Fix the loan size display in the difficulty window so it doesn't have a hardcoded ",000" in it
 
 fixloansizedisp:
 	testflags generalfixes
@@ -1307,9 +1334,11 @@ fixloansizedisp:
 	push eax
 	push edi
 
+// check if the string is encoded with UTF-8
 	cmp word [eax],0x9ec3
 	je .find7f_unicode
 
+// just look for a plain 7F byte
 .find7f:
 	lodsb
 	cmp al,0x7f
@@ -1318,6 +1347,8 @@ fixloansizedisp:
 	jz .endtoosoon
 	jmp short .find7f
 
+// in UTF-8 strings, the byte 7F means a literal character; the only way to encode
+// the special character is EE 81 BF, so we only need to look for that
 .find7f_unicode:
 	lodsb
 	test al,al
@@ -1330,11 +1361,13 @@ fixloansizedisp:
 	add esi,2
 
 .foundit:
+// now esi points to the suspected start of ",000"; to make sure, we check if it really ends in "000"
 	mov eax,[esi]
 	shr eax,8
 	cmp eax,'000'
 	jne .endtoosoon
 
+// remove those 4 chars, and copy the rest
 	mov edi,esi
 	add esi,4
 .del:
@@ -1344,12 +1377,15 @@ fixloansizedisp:
 	jnz .del
 
 .endtoosoon:
+// rewind esi one byte so it surely points to a safe place
 	dec esi
 
 .done:
 	pop edi
 	pop eax
 	ret
+
+// fix the aircraft capacity display in the "new aircraft available" news message
 
 fixaircraftcapacitynews:
 	testflags newplanes
@@ -1368,6 +1404,8 @@ fixaircraftcapacitynews:
 .done:
 	ret
 
+// fix aircraft capacity and life display in the aircraft buy window
+
 fixaircraftcapandlife:
 	testflags newplanes
 	jnc .done
@@ -1378,20 +1416,26 @@ fixaircraftcapandlife:
 
 	call fixaircraftcapacity
 
+// now edi points one byte beyond the end of the text that has the capacity fixed up already
+// ah is 1 if the text is UTF-8 encoded
 	std
 
 	test ah,ah
 	jnz .unicode
 
+// with normal encoding, we simply replace the last 7C with 7D
 	mov al,0x7c
 	repne scasb
 	mov byte [edi+1],0x7d
+// for the later code, esi needs to point inside the new string
 	mov esi,edi
 	jmp short .foundit
 
 .unicode:
 	mov esi,edi
 	dec esi
+// in UTF-8 mode, 7C is a verbatim character, the special char must be encoded as EE 81 BC
+
 .find7c_unicode:
 	lodsb
 	cmp al,0xee
@@ -1399,12 +1443,17 @@ fixaircraftcapandlife:
 	cmp word [esi+2],0xbc81
 	jne .find7c_unicode
 
+// change it to EE 81 BD, the encoding for 7D
+
 	mov byte [esi+3],0xbd
+// in case we somehow went beyond the start of the string, pull esi back to the start of the sequence
 	inc esi
 
 .foundit:
 	cld
 
+// since we did the modification in-place, we must move esi to the start of the trailing junk to
+// have it point to a safe place
 	mov edi,esi
 	xor eax,eax
 	repne scasb
@@ -1417,13 +1466,20 @@ fixaircraftcapandlife:
 	ret
 
 
+// auxiliary: fix the capacity display of an aircraft text so it uses {80} instead of "{7F} passengers, {7F} bags of mail"
+// in:	esi->text
+// out:	esi-> one byte beyond the end of the old text
+//	edi-> one byte beyond the end of the new text
+//	ah: 1 if the string uses UTF-8, 0 otherwise
 fixaircraftcapacity:
 	or ecx, byte -1
 
+// check for UTF-8
 	cmp word [esi],0x9ec3
 	sete ah
 	je .find7c_unicode
 
+// in ASCII mode, it's simple to find the first 7C and replace it with 80
 	mov edi,esi
 	mov al,0x7c
 	repne scasb
@@ -1431,6 +1487,7 @@ fixaircraftcapacity:
 	mov esi,edi
 	jmp short .found7c
 
+// like above, we need to find EE 81 BC
 .find7c_unicode:
 	lodsb
 	cmp al,0xee
@@ -1438,12 +1495,15 @@ fixaircraftcapacity:
 	cmp word [esi],0xbc81
 	jne .find7c_unicode
 
-	mov word [esi], 0x8082
+// we can replace the whole sequence with a single 0x80, since the remaining two bytes
+// will be removed anyway
+	mov byte [esi-1], 0x80
 
-	add esi,2
 	mov edi,esi
 
 .found7c:
+// now we need to remove all text from edi up to the next newline
+// luckily, the newline looks the same way in both representations
 	mov al,13
 	repne scasb
 	dec edi
@@ -1454,7 +1514,10 @@ fixaircraftcapacity:
 	stosb
 	test al,al
 	loopnz .copynext
+
 	ret
+
+// fix the power display in the train details window so it can display powers above 32,000hp
 
 fixpowerdisp:
 	testflags newtrains
@@ -1467,9 +1530,11 @@ fixpowerdisp:
 	push eax
 	push ecx
 
+// check for Unicode
 	cmp word [esi],0x9ec3
 	je .unicode
 
+// just find the second 7C byte and replace it with 7B in ASCII mode
 	xchg esi,edi
 
 	or ecx, byte -1
@@ -1483,6 +1548,7 @@ fixpowerdisp:
 	jmp short .done
 
 .unicode:
+// in UTF-8 mode, we need to find the second occurence of EE 81 BC, and replace it with EE 81 BB
 	mov ecx,2
 
 .find7c_unicode:
@@ -1500,7 +1566,16 @@ fixpowerdisp:
 	pop eax
 	ret
 
+// fixup the vehicle detail text in the vehicle list window so that it has the last year profit colored
+// (actually, we just replace the second 7F with 80, the rest is done elsewhere)
+// we also add a 80 to the end so we can show the performance score
+
 patchprofitcolor:
+	testflags showprofitinlist
+	jc .doit
+	ret
+
+.doit:
 	push ecx
 	push esi
 	push edi
@@ -1508,6 +1583,8 @@ patchprofitcolor:
 	mov edi,esi
 	or ecx,byte -1
 	xor eax,eax
+
+// the new text will be exactly one byte longer, so allocate a new buffer for it
 
 	repnz scasb		// ecx is -length-1 now
 	neg ecx
@@ -1517,9 +1594,11 @@ patchprofitcolor:
 	push edi
 	mov ecx,2		// which 0x7f to change
 
+// check for UTF-8
 	cmp word [esi],0x9ec3
 	je .find7f_unicode
 
+// in ASCII mode, just change the second 7F byte to 80
 .find7f_normal:
 	lodsb
 	stosb
@@ -1531,23 +1610,29 @@ patchprofitcolor:
 	jmp short .done
 
 .find7f_unicode:
+// in UTF-8 mode, look for the second EE 81 BF
 	lodsb
+	stosb
 	cmp al,0xee
 	jne .find7f_unicode
 	cmp word [esi],0xbf81
 	jne .find7f_unicode
 	loop .find7f_unicode
 
-	mov word [edi],0x8082
+// modify it to 80, and delete the remaining 2 bytes
+	mov byte [edi-1],0x80
+	add esi,2
 
 .done:
 
+// copy the rest of the text
 .copyrest:
 	lodsb
 	stosb
 	test al,al
 	jnz .copyrest
 
+// and add a 80 to the end
 	mov word [edi-1],0x0080
 
 	pop eax
@@ -1566,10 +1651,15 @@ patchprofitcolor:
 //	SF=bit 7 of language byte
 // uses:al ecx
 checklanguage:
+	mov ecx,[curspriteblock]
+	cmp byte [ecx+spriteblock.version],7
 	lodsb
 	mov ecx,[languageid]
-	test al,0x40
-	jnz .oneid
+	jae .oneid
+	cmp cl,5
+	jb .goodlang
+	mov cl,0	// unknown language, pretend it's American
+.goodlang:
 	inc ecx
 	sar al,cl
 	ret
@@ -1577,8 +1667,8 @@ checklanguage:
 .oneid:
 	mov ch,al
 	and ch,0x80
-	and al,0x3f
-	cmp al,0x3f
+	and al,0x7f
+	cmp al,0x7f
 	je .gotit
 	xor cl,al
 .gotit:
@@ -1599,8 +1689,11 @@ initnewvehnames:
 	xchg ebp,[esi-6]
 	lea ebp,[ebp+esi-2]
 
-	call checklanguage
-	jnc near .done
+//	call checklanguage
+//	jnc near .done
+
+	lodsb
+	test al,al
 	jns near .done
 
 	cmp word [esi+1],0xc000			// we don't need savig/restoring for patch texts
@@ -1707,21 +1800,30 @@ initnewvehnames:
 
 // now ebx->orggentext or null, ecx=#of remaining bytes, edi->spec. text handler table, ebp=current textID
 .compare:
+// if we don't have an orggentext, we don't need to care about fixups (vehicle names or patch texts)
 	test ebx,ebx
 	jz .nextnull
+
 	mov eax,esi
+
+// edi always points to the next entry of the handler table so that the next ID is always greater or
+// equal to the currently processed one
 
 	cmp ebp,[edi]
 	jb .notspecial
 	je .special
 
+// the text handler entry lags behind the current one - increase until it gets greater or equal
+
 	add edi,8
 	jmp short .compare
 
 .special:
+// call the handler for special texts
 	call [edi+4]
 
 .notspecial:
+// now eax either still has esi for non-special texts, or the new pointer for special ones
 	mov [ebx+4],eax
 	add ebx,8
 
@@ -1829,6 +1931,9 @@ applynewvehnames:
 	jmp short .gotit
 
 .notpatchtext:
+
+// this is not a patch text, so we have the new pointers stored in the orggentext structure, we just
+// need to copy them from there
 
 	mov esi,[esi-10]
 	add esi,orggentext.entries+4
@@ -3156,12 +3261,14 @@ newtownnameparts:
 	and dword [currtownstylename],0
 	test al,0x80
 	jz .noname
+	jmp short .skipcheck
 
 .stylenameloop:
 	lodsb
 	or al,al
 	jz .endofnames
 	dec esi		// checklanguage wants to lodsb too
+.skipcheck:
 	call checklanguage
 	jnc .notthis
 	mov [currtownstylename],esi	// yes, store offset in temp. var

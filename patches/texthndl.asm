@@ -463,7 +463,7 @@ struc persistentgrftext
 	.grfid:		resd 1
 	.textid:	resw 1
 	.stackuse:	resb 1
-endstruc_32
+endstruc
 
 uvard persistentgrftextlist,0x400*2
 

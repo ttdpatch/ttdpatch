@@ -70,6 +70,7 @@ langinfo *linfo;int acp;	// to make switches.c happy
 #define BUFBLOCKS 128	// size increments in which buffer size is increased
 
 #define UNTRANSLATED ((char*)(-1L))
+#define OBSOLETE ((char*)(-2L))
 
 // For the in-game texts
 
@@ -237,6 +238,15 @@ char *untranslated(s16 code)
 
   sprintf(untransbuf, "(untranslated:%c%d)", name, id);
   return untransbuf;
+}
+
+int checkdups = 0;
+void checkmult(const char *prev, const char *name1, const char *name2)
+{
+  if (checkdups && prev && prev != UNTRANSLATED)
+	warning("%s: Warning: %s entry for %s %s",
+		langname, prev == OBSOLETE ? "obsolete" : "duplicate",
+		name1, name2 ? name2 : "");
 }
 
 #define WRITEVAR(bufvar, bufofsvar, valtype, val) { \
@@ -531,10 +541,10 @@ void errorcheck(void)
   int inorder[lastbitdefaultoff+1];
 
   // these switches are not in the -h display, remove them from the list
-  const char *notlisted = "hCVWX2";
+  const char *notlisted = "hVX2";
 
   printf("Error checking");
-  memset(cmdchars, 0, sizeof(cmdchars));
+  memset(cmdchars, -1, sizeof(cmdchars));
   for (i=0; switches[i].cmdline; i++) {
 		ind = switchid(switches[i].cmdline);
 		if (ind >= 0 && !(switches[i].bit == -1 &&
@@ -553,7 +563,9 @@ void errorcheck(void)
 
   // go through all halflines and check the leading letters
   for (i=0; halflines[i]; i++) {
-	line = halflines[i];
+	const char *orgline;
+
+	orgline = line = halflines[i];
 	if (strlen(line) > 38)
 		fprintf(stderr, "%s: halfline too long by %d chars: %s\n",
 			langname, (int) strlen(line) - 38, line);
@@ -566,8 +578,15 @@ void errorcheck(void)
 
 	line++;
 	ind = getswitchid(&line);
-	if (ind >= 0)
+	if (ind >= 0) {
+		if (!cmdchars[ind])
+			fprintf(stderr, "%s: duplicate halfline entry: %s\n",
+				langname, orgline);
+		if (cmdchars[ind] < 0)
+			fprintf(stderr, "%s: halfline entry for nonexistent switch: %s\n",
+				langname, orgline);
 		cmdchars[ind] = 0;
+	}
   }
   printf(".");
 
@@ -576,9 +595,16 @@ void errorcheck(void)
 
   while (line) {
 	if (line[0] == '-') {
+		const char *orgline = line;
 		line++;
 
 		while ( (line[0] != ' ') && ((ind = getswitchid(&line)) >= 0) ) {
+			if (!cmdchars[ind])
+				fprintf(stderr, "%s: duplicate switch entry: %s\n",
+					langname, orgline);
+			if (cmdchars[ind] < 0)
+				fprintf(stderr, "%s: switch entry for nonexistent switch: %6.6s\n",
+					langname, orgline);
 			cmdchars[ind] = 0;
 		}
 	}
@@ -619,11 +645,11 @@ void errorcheck(void)
 
   // now see which ones are missing
   for (i=0; i<SWITCHBLOCK; i++)
-	if (cmdchars[i])
+	if (cmdchars[i] > 0)
 		fprintf(stderr, "%s: halflines missing description of option -%c\n",
 			langname, cmdchars[i]);
   for (; i<NOCMDSWITCHES; i++)
-	if (cmdchars[i])
+	if (cmdchars[i] > 0)
 		fprintf(stderr, "%s: halflines missing description of option -%s\n",
 			langname, dchartostr(cmdchars[i]));
 
@@ -719,6 +745,8 @@ u32 writelanguages(FILE *dat)
 
 	for (i=0; i<LANG_LASTSTRING; i++)
 		langtext[i] = UNTRANSLATED;
+	for (i=LANG_LASTSTRING; i<LANG_REALLYLASTSTRING; i++)
+		langtext[i] = OBSOLETE;
 	for (i=0; i<SWITCHNUMT; i++) {
 		switchnames[i*2] = UNTRANSLATED;
 		switchnames[i*2+1] = "";
@@ -731,6 +759,7 @@ u32 writelanguages(FILE *dat)
 				bitswitchdesc[i][j] = "";
 		}
 
+	checkdups = 1;
 	languagedata[lang]();
 	unicodecheck(1);
 	errorcheck();		// for error checking, keep untranslated strings empty
@@ -741,6 +770,7 @@ u32 writelanguages(FILE *dat)
 	// but for the real run, we use
 	// english strings as default
 
+	checkdups = 0;
 	languagedata[0]();		// english
 	languagedata[lang]();	// override all defined strings with this language
 	unicodecheck(0);
