@@ -32,7 +32,7 @@ extern triggerbits,vehids,getvehtypeflags,getcargoacceptdata
 extern wagonoverride,getindutiletypeatoffset,getindutilerandombits
 extern getindustilelandslope_industry,hexdigits,int21handler
 extern getotherindustileanimstage,getotherindustileanimstage_industry
-extern getstationanimframe
+extern getstationanimframe,getnearbystationanimframe
 
 uvard grffeature
 uvard curgrffeature,1,s		// must be signed to indicate "no current feature"
@@ -1707,6 +1707,7 @@ vard stationparamvarhandler
 	dd addr(getcargoenroutetime)
 	dd addr(getcargolastvehdata)
 	dd addr(getcargoacceptdata)
+	dd addr(getnearbystationanimframe)
 %ifndef PREPROCESSONLY
 %assign n_stationparamvarhandler (addr($)-stationparamvarhandler)/4
 %endif

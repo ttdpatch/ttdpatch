@@ -127,6 +127,12 @@ codefragment oldnewtrainstatcreated,14
 	dec dh
 
 codefragment_call newnewtrainstatcreated, newtrainstatcreated
+
+codefragment oldperiodicstationupdate
+	bt word [esi+station.flags],0
+	jc $+2+1
+
+codefragment_call newperiodicstationupdate, periodicstationupdate
 endcodefragments
 
 
@@ -179,4 +185,5 @@ patchnewstations:
 
 	patchcode stationanimhandler
 	patchcode newtrainstatcreated
+	patchcode periodicstationupdate
 	ret

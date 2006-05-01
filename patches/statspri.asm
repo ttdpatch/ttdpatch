@@ -1873,6 +1873,41 @@ exported getstationanimframe
 	movzx eax, byte [landscape7+eax]
 	ret
 
+// parametrized var. 66: get animation frame of nearby tile
+exported getnearbystationanimframe
+	push ebx
+	sar ax,4
+	sar al,4
+	mov ebx,[curstationtile]
+	test byte [landscape5(bx)],1
+	jz .noswap
+	xchg al,ah
+.noswap:
+	add al,bl
+	add ah,bh
+
+	mov cl,[landscape4(ax,1)]
+	and cl,0xf0
+	cmp cl,0x50
+	jne .nottile
+
+	mov cl,[landscape2+eax]
+	cmp [landscape2+ebx],cl
+	jne .nottile
+
+	mov cl,[landscape5(ax,1)]
+	cmp cl,8
+	jae .nottile
+
+	pop ebx
+	movzx eax,byte [landscape7+eax]
+	ret
+
+.nottile:
+	pop ebx
+	or eax,byte -1
+	ret
+
 // helper function for vars 60..64
 // in:	ah: cargo#
 //	esi->station
@@ -2698,3 +2733,14 @@ exported newtrainstatcreated
 	xchg ch,cl
 .noswap:
 	jmp stationanimtrigger.gotposandsize
+
+exported periodicstationupdate
+	bt word [esi+station.flags],0	// overwritten
+	jnc .trigger
+	ret
+
+.trigger:
+	mov edx,6
+	call stationanimtrigger
+	clc
+	ret
