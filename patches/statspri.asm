@@ -2260,6 +2260,9 @@ cargoinstation:
 global stationplatformtrigger
 stationplatformtrigger:
 	pusha
+	cmp byte [esi+veh.class],0x10
+	jne .norail
+
 	mov al,[esi+veh.laststation]
 	movzx ebx,word [esi+veh.XY]
 .withtile:
@@ -2459,7 +2462,7 @@ exported stationanimhandler
 	movzx edi, word [animcounter]
 	mov ebp,1
 
-	test byte [stationcallbackflags+eax],0x10
+	test byte [stationcallbackflags+eax],8
 	jz .normalspeed
 
 	mov byte [grffeature],4
@@ -2484,9 +2487,9 @@ exported stationanimhandler
 	ret
 
 .nextframe:
-	test byte [stationcallbackflags+edx],8
+	test byte [stationcallbackflags+edx],4
 	jz .normal
-	test byte [stationflags+edx],8
+	test byte [stationflags+edx],4
 	jz .norandom
 
 	call [randomfn]
@@ -2551,6 +2554,8 @@ varb statanim_cargotype, 0xFF
 
 exported stationplatformanimtrigger
 	pusha
+	cmp byte [esi+veh.class],0x10
+	jne .norail
 
 	movzx ebx, word [esi+veh.XY]
 	movzx esi, byte [esi+veh.laststation]
