@@ -109,5 +109,29 @@ landscape7init:
 
 
 .hasonewayroads:
+
+	testflags newstations
+	jnc .nonewstations
+	test dword [l7switches],L7_NEWSTATIONS
+	jnz .hasnewstations
+
+	xor ecx,ecx
+
+.loopstation:
+	mov bl,[landscape4(cx,1)]
+	shr bl,4
+
+	cmp bl,5
+	jne .nextstation
+
+	mov byte [landscape7+ecx],0
+
+.nextstation:
+	inc ecx
+	cmp ecx,0x10000
+	jb .loopstation
+
+.nonewstations:
+.hasnewstations:
 	popa
 	ret

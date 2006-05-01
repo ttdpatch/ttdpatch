@@ -116,7 +116,23 @@ codefragment newdoestrainstopatstationtile
 	icall doestrainstopatstationtile
 	setfragmentsize 8
 
+codefragment oldstationanimhandler,-4,-11
+	cmp al,0x27
+	jb $+2+4
 
+codefragment_call newstationanimhandler,stationanimhandler,6+7*WINTTDX
+
+codefragment oldnewtrainstatcreated,14
+	xor si,0x101
+	dec dh
+
+codefragment_call newnewtrainstatcreated, newtrainstatcreated
+
+codefragment oldperiodicstationupdate
+	bt word [esi+station.flags],0
+	jc $+2+1
+
+codefragment_call newperiodicstationupdate, periodicstationupdate
 endcodefragments
 
 
@@ -166,4 +182,8 @@ patchnewstations:
 	storerelative checktrainenterstationtile.oldfn,esi
 
 	patchcode doestrainstopatstationtile
+
+	patchcode stationanimhandler
+	patchcode newtrainstatcreated
+	patchcode periodicstationupdate
 	ret

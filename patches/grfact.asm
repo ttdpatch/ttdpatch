@@ -60,6 +60,7 @@ extern setinduproducedcargos,setindustryacceptedcargos,industrydestroymultis
 extern allocfonttable,hasaction12,setsnowlinetable,snowytemptreespritebase
 extern numsnowytemptrees,setstatcargotriggers,industilespecflags
 extern ttdpatchversion
+extern stationanimdata,stationanimspeeds
 extern newcoastspritebase, newcoastspritenum
 
 uvarb action1lastfeature
@@ -3720,7 +3721,7 @@ defvehdata specplanedata, B,B,B,B,B,B,B,W,B,B		// 08..12
 defvehdata spclplanedata, d,B,B,B,B,w,w			// 13..19
 
 defvehdata specstationdata				// no properties
-defvehdata spclstationdata, F,H,F,B,B,B,F,F,w,B,F,B,B,B	// 08..15
+defvehdata spclstationdata, F,H,F,B,B,B,F,F,w,B,F,B,B,B,w,B,w	// 08..18
 
 defvehdata specbridgedata, B,B,B,B			// 08..0B
 defvehdata spclbridgedata, w,F,B			// 0C..0E
@@ -4027,6 +4028,8 @@ var newstationdata
 	dd addr(setstationlayout),addr(copystationlayout)	// 0E,0F
 	dd stationcargolots,stationpylons,setstatcargotriggers	// 10,11,12
 	dd stationflags,stationnowires,cantrainenterstattile	// 13,14,15
+	dd stationanimdata,stationanimspeeds			// 16,17
+	dd stationanimtriggers					// 18
 
 var bridgedata	// (prop 0C is set in patches.ah)
 	dd 0, addr(alterbridgespritetable), bridgeflags		// 0C..0E
@@ -4145,6 +4148,7 @@ uvard stationnowires,256/4
 uvard stationflags,256/4
 uvard statcargotriggers,256
 uvard cantrainenterstattile,256
+uvard stationanimtriggers,256/2
 uvard bridgeflags,(NBRIDGES+3)/4
 uvard trainuserbits,NTRAINTYPES/4
 uvard canalfeatureids,6
