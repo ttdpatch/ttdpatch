@@ -61,7 +61,7 @@ defbit MISCMODS_NODESYNCHWARNING,	14 // don't warn about multiplayer games being
 defbit MISCMODS_NOWORLDEDGEFLOODING,	15 // don't let the edge of the map flood
 defbit MISCMODS_DOSHOWINTRO,		16 // show the game intro (don't skip it)
 defbit MISCMODS_NONEWSPRITESORTER,	17 // don't use new sprite sorting algorithm
-//defbit MISCMODS_NOAUTOMATICPBSBLOCKS,	18 // don't automatically convert pre-signal blocks to path-based signalling
+defbit MISCMODS_NODIAGONALFLOODING,	18 // don't flood diagonals when running the floodtile subroutine
 defbit MISCMODS_NOENHANCEDCOMP,		19 // don't enhance savegame compression algorithm
 defbit MISCMODS_BREAKDOWNATSIGNAL,	20 // don't fix trains breaking down while waiting on red signals
 defbit MISCMODS_SMALLSPRITELIMIT,	21 // don't increase the sprite limit

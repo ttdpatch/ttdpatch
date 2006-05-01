@@ -2425,6 +2425,7 @@ class6periodicproc:
 	jz .notne
 
 	// flood to NE (-x)
+	mov byte [esp-12], 0x0
 	xor esi,esi		//  0  0
 	mov ebp,0x100		// +1  0
 	or eax,byte -1		// -1 -1
@@ -2433,10 +2434,12 @@ class6periodicproc:
 	call [floodtile]
 
 .notne:
+
 	test bh,bh
 	jz .notnw
 
 	// flood to NW (-y)
+	mov byte [esp-12], 0x0
 	xor esi,esi		//  0  0
 	mov ebp,1		//  0  1
 	mov eax,-0x100		// -1  0
@@ -2449,6 +2452,7 @@ class6periodicproc:
 	ja .notsw
 
 	// flood to SW (+x)
+	mov byte [esp-12], 0x0
 	mov edi,1		//  0  1
 	mov esi,edi		//  0  1
 	mov ebp,0x101		//  1  1
@@ -2461,6 +2465,7 @@ class6periodicproc:
 	ja .notse
 
 	// flood to SW (+y)
+	mov byte [esp-12], 0x0
 	mov edi,0x100		//  1  0
 	mov esi,edi		//  1  0
 	lea ebp,[edi+1]		//  1  1
@@ -2469,9 +2474,249 @@ class6periodicproc:
 	call [floodtile]
 
 .notse:
+	// Only flood diagons if this bit has not been set
+	test byte [miscmodsflags+2], MISCMODS_NODIAGONALFLOODING>>(8*2)
+	jnz near .nodiagonalflooding
+
+	cmp bx, 0x0
+	je .notn
+	// Tile to change
+	mov edi, -0x0101 // -1 -1
+	// Internal use only...
+	mov byte [esp-12], 0x1 // Corner tile
+	// Set the adjecent tile corner (north point)
+	mov esi, 0x0000 // 0 0 (South corner)
+	// Set the two close corners
+	mov ecx, -0x0001 // +0 -1 (East corner)
+	mov eax, -0x0100 // -1 +0 (West corner)
+	// Set the furthest tile corner
+	mov ebp, -0x0101 // -1 -1 (North corner)
+	call [floodtile]
+
+.notn:
+
+	cmp bx, 0xFE00
+	je .note
+	cmp bx, 0xFF00
+	je .note
+	mov edi, 0xFFFFFF01 // -1 +1
+	// Internal use only...
+	mov byte [esp-12], 0x1 // Corner tile
+	// Set the adjecent tile corner (north point)
+	mov esi, 0x0001 // +0 +1 (South corner)
+	// Set the two close corners
+	mov ecx, 0x0002 // +0 +2 (East corner)
+	mov eax, 0xFFFFFF01 // -1 +1 (West corner)
+	// Set the furthest tile corner
+	mov ebp, 0xFFFFFF02 // -1 +2 (North corner)
+	call [floodtile]
+
+.note:
+	cmp bx, 0xFEFE
+	je .nots
+	cmp bx, 0xFFFF
+	je .nots
+	mov edi, 0x0101 // +1 +1
+	// Internal use only...
+	mov byte [esp-12], 0x1 // Corner tile
+	// Set the adjecent tile corner (north point)
+	mov esi, 0x0101 // +1 +1 (South corner)
+	// Set the two close corners
+	mov ecx, 0x0201 // +2 +1 (East corner)
+	mov eax, 0x0102 // +1 +2  (West corner)
+	// Set the furthest tile corner
+	mov ebp, 0x0202 // +2 +2 (North corner)
+	call [floodtile]
+
+.nots:
+	cmp bx, 0x00FE
+	je .notw
+	cmp bx, 0x00FF
+	je .notw
+	mov edi, 0x00FF // +1 -1
+	// Internal use only...
+	mov byte [esp-12], 0x1 // Corner tile
+	// Set the adjecent tile corner (north point)
+	mov esi, 0x0100 // +1 0 (South corner)
+	// Set the two close corners
+	mov ecx, 0x0200 // +2 +0 (East corner)
+	mov eax, 0x00FF // +1 -1 (West corner)
+	// Set the furthest tile corner
+	mov ebp, 0x01FF // +2 -1 (North corner)
+	call [floodtile]
+
+.notw:
+.nodiagonalflooding:
 	ret
 
 uvard floodtile		// function to flood adjacent tile
+
+// New FloodTile subroutine to help with diagonal flooding
+// This also adds a few bad tile conversion checks
+// Input :
+//	ebx - Base tile (offsets calculated from this)
+//	edi - New tile offset
+//	esi - One of the 2 joinging corner (With diagonal flooding this is the only joing corner)
+//	ebp - Other joining corner (With Diagonal flooding this is the FURTHEREST corner)
+//	eax - One of the 2 corners which do not touch the base tile
+//	ecx - Other corner which doesn't touch the base tile
+//	[esp-4] - The type of flooding to occur (value of 0x0 is normal, 0x1 is diagonal)
+// Output:
+//	Nothing?
+// Safe: edx
+global Class6FloodTile
+Class6FloodTile:
+	// Check the tile to change and it's class
+	mov dl, [ds:landscape4(di, 1)+ebx] // Get the tile Type and north corner height
+	and dl, 0xF0 // Only keep the tile class
+	cmp dl, 0x60 // Is this tile already class 6 (water or coast)
+	jz .badcorners // If it is we don't want to flood it again, so quit
+
+	cmp byte [esp-4], 0x1 // IS this diagonal flooding?
+	je .diagonalflooding
+
+	// Checks that the 2 base points are at sea level
+	mov dl, [ds:landscape4(si, 1)+ebx] // Get the tile types and corner hieghts
+	mov dh, [ss:landscape4(bp, 1)+ebx]
+	and dx, 0x0F0F // Are the north tile points at sea level
+	jnz .badcorners
+
+	// Check if this is a slope and hense if to make it a coast
+	mov dh, [ds:landscape4(ax, 1)+ebx] // Get the tile types and corner hieghts
+	mov al, [ss:landscape4(cx, 1)+ebx]
+	and dh, 0x0F // Is this corner at sea hieght
+	jnz .coast // No, so make it a coast
+	and al, 0x0F // Is this corner at sea hieght
+	jnz .coast // No, so make it a coast
+	cmp al, dh
+	jnz .badcorners
+	cmp al, dl
+	jnz .badcorners
+	jmp .plainwater
+
+.badcorners:
+	ret
+
+// Following jumps, will set the return points back to the orginal subroutine
+// in the sections that would change the tile to what is needed.
+
+.plainwater:
+	push edx
+	mov dword edx, [floodtile]
+	mov dword [esp+4], edx
+	pop edx
+#if WINTTDX
+	add dword [esp], 0x61
+#else
+	add dword [esp], 0x4D
+#endif
+	ret
+
+.coast:
+	push edx
+	mov dword edx, [floodtile]
+	mov dword [esp+4], edx
+	pop edx
+#if WINTTDX
+	add dword [esp], 0xFE
+#else
+	add dword [esp], 0xDE
+#endif
+	ret
+
+// Handles diagonal flooding
+.diagonalflooding:
+	mov dl, [landscape4(si, 1)+ebx] // Get the tile types and corner hieghts
+	and dl, 0x0F // Is this corner at sea level
+	jnz .badcorners
+
+	mov dh, [landscape5(bx, 1)] // Get the subtype of tile
+	and dh, 0x0F // We are only interested in the subclass (0x0 to 0x2)
+	cmp dh, 0x1 // Is this a coast tile?
+	jnz .flat
+	ret
+
+.flat:
+
+	// Special cases for diagonal flooding (allowed) for a FLAT tile
+	mov dh, [ds:landscape4(si, 1)+ebx]
+	mov dl, [ss:landscape4(cx, 1)+ebx]
+	shl edx, 16
+	mov dh, [ds:landscape4(ax, 1)+ebx]
+	mov dl, [ss:landscape4(bp, 1)+ebx]
+	and edx, 0x0F0F0F0F
+	cmp edx, 0x00010100
+	je .dbadcorners
+
+	// If any other corners are raised it's a slope
+	mov ax, dx
+	shr edx, 16
+	and ah, 0x0F
+	jnz .coast
+	and dl, 0x0F
+	jnz .coast
+	and al, 0x0F
+	jnz .coast
+
+	// Change this for the following checks
+	cmp ah, dh
+	jnz .dbadcorners
+	cmp ah, al
+	jnz .dbadcorners
+	cmp ah, dl
+	jnz .dbadcorners
+	jmp .plainwater
+
+.dbadcorners:
+	ret
+
+// Handles getting the sprites for the coasts, since 8 new types have appeared
+global Class6CoastSprites, coastspritebase, newcoastspritebase, newcoastspritenum
+Class6CoastSprites:
+	cmp edi, 0x20
+	jb .goodoffset
+
+// Alters the values for steep slopes so they can use the old array
+	cmp edi, 0x2E
+	jne .next1
+	mov edi, 0x00
+	jmp .goodoffset
+.next1:
+	cmp edi, 0x36
+	jne .next2
+	mov edi, 0x0A
+	jmp .goodoffset
+.next2:
+	cmp edi, 0x3A
+	jne .next3
+	mov edi, 0x14
+	jmp .goodoffset
+.next3:
+	mov edi, 0x1E
+
+.goodoffset:
+	cmp word [newcoastspritebase], -1
+	jne .newsprites
+
+.badnewsprites:
+	push ecx
+	mov ecx, [coastspritebase]
+	mov bx, [ecx+edi]
+	pop ecx
+	ret
+
+.newsprites:
+	cmp [newcoastspritenum], 0x10
+	jne .badnewsprites
+	mov bx, [newcoastspritebase]
+	shr di, 1
+	add bx, di
+	ret
+
+uvard coastspritebase
+uvarw newcoastspritebase, 1, s
+var newcoastspritenum
+	dd 0
 
 uvard tempSplittextlinesNumlinesptr,1,s
 uvard SplittextlinesMaxlines,1,s

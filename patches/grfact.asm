@@ -60,6 +60,7 @@ extern setinduproducedcargos,setindustryacceptedcargos,industrydestroymultis
 extern allocfonttable,hasaction12,setsnowlinetable,snowytemptreespritebase
 extern numsnowytemptrees,setstatcargotriggers,industilespecflags
 extern ttdpatchversion
+extern newcoastspritebase, newcoastspritenum
 
 uvarb action1lastfeature
 
@@ -4233,8 +4234,8 @@ numgrfvarreinit equ (grfvarreinitend-grfvarreinitstart)/4
 
 	// for action 5, where to store the first sprite number
 	// (the ones that are -1 are safe to be reused)
-var newgraphicsspritebases, dd presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,deftwocolormaps,tramtracks,snowytemptreespritebase
-var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,-1,numtramtracks,numsnowytemptrees
+var newgraphicsspritebases, dd presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,deftwocolormaps,tramtracks,snowytemptreespritebase,newcoastspritebase
+var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,-1,numtramtracks,numsnowytemptrees,newcoastspritenum
 
 global numnewgraphicssprites
 numnewgraphicssprites equ (newgraphicsspritenums-newgraphicsspritebases)/4

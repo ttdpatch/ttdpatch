@@ -23,6 +23,9 @@ extern reloadenginesfn
 extern reversetrain.cantreversemessage
 extern vehnametextids
 extern wait27ms_nogiveaway,backupvehnametexts
+extern Class6FloodTile
+extern Class6CoastSprites, coastspritebase
+extern newgraphicssetsenabled
 
 ext_frag oldrecordlastactionxy
 
@@ -652,6 +655,29 @@ codefragment oldfindtilestorefresh,3
 codefragment newfindtilestorefresh
 	dw (8<<5) + 0x1f
 
+#if WINTTDX
+codefragment oldfloodtile,-32
+#else
+codefragment oldfloodtile,-20
+#endif
+	mov dh, [landscape4(bp, 1)+ebx]
+	and dx, 0x0F0F
+
+codefragment newfloodtile
+	icall Class6FloodTile
+	ret
+
+codefragment findcoastsprites
+	dw 0, 4063, 4064, 4068
+
+codefragment oldcoastsprites
+	mov bx, [dword 0+edi]
+ovar waterbankptr, -4
+
+codefragment newcoastsprites
+	icall Class6CoastSprites
+	setfragmentsize 7
+
 endcodefragments
 
 patchgeneralfixes:
@@ -895,11 +921,37 @@ patchgeneralfixes:
 	pop eax
 
 	test bh,MISCMODS_NOWORLDEDGEFLOODING>>8
-	jnz .noedgeflood
+	jnz near .noedgeflood
 
 	mov edi,addr(class6periodicproc)
 	xchg edi,[eax+0x20]	// class 6 periodic proc handler
 
+	// Only run the following fragements if diagonal flooding is enabled
+	test byte [miscmodsflags+2], MISCMODS_NODIAGONALFLOODING>>(8*2)
+	jnz near .nodiagonalflooding
+
+	patchcode oldfloodtile, newfloodtile // Loads the new flood subroutine which allows diagonal flooding.
+
+	stringaddress findcoastsprites // Get the address of the old sprite array
+
+	mov dword [waterbankptr], edi // allow the patch fragment to work
+	mov dword [coastspritebase], edi // Set the variable for the subroutine to use it
+
+	// Populate bad array entries
+	mov word [edi+0x00], 3997 // Steep
+	mov word [edi+0x0A], 3998 // Steep
+	mov word [edi+0x0E], 3988
+	mov word [edi+0x14], 3996 // Steep
+	mov word [edi+0x16], 3992
+	mov word [edi+0x1A], 3994
+	mov word [edi+0x1C], 3995
+	mov word [edi+0x1E], 3999 // Steep
+
+	patchcode oldcoastsprites, newcoastsprites // patch the place where it is used in TTD
+
+	// Allow the action5 graphics to be loaded
+	or dword [newgraphicssetsenabled], 1<<0x0D
+.nodiagonalflooding:
 .noedgeflood:
 
 	// ------- change vehicle messages to show vehicle name --------
