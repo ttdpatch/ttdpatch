@@ -2706,7 +2706,7 @@ Class6CoastSprites:
 	ret
 
 .newsprites:
-	cmp [newcoastspritenum], 0x10
+	cmp dword [newcoastspritenum], 0x10
 	jne .badnewsprites
 	mov bx, [newcoastspritebase]
 	shr di, 1
@@ -2715,8 +2715,7 @@ Class6CoastSprites:
 
 uvard coastspritebase
 uvarw newcoastspritebase, 1, s
-var newcoastspritenum
-	dd 0
+uvard newcoastspritenum
 
 uvard tempSplittextlinesNumlinesptr,1,s
 uvard SplittextlinesMaxlines,1,s

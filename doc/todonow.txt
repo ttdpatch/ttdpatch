@@ -717,3 +717,6 @@ CHANGELOG
 
 
 2.5 beta 5
+- by Lakie:
+  * allow water to flood diagonally (disable with
+    miscmods.nodiagonalflooding on) and support graphics for resulting coasts

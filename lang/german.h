@@ -517,6 +517,7 @@ BIT(nodesynchwarning,      "Keine Warnung wenn Synchronisation im Mehrspielermod
 BIT(noworldedgeflooding,   "Felder am Kartenrand fluten nicht angrenzende Felder")
 BIT(doshowintro,           "Zeige Spielintro (wird normal Åbersprungen)")
 BIT(nonewspritesorter,     "Nicht den neuen Algorithmus zum sortieren der Sprites verwenden")
+BIT(nodiagonalflooding,    "Wasser nicht auch in der Diagonalen fluten lassen")
 BIT(noenhancedcomp,        "Keine Verbesserung der Komprimierung von SpielstÑnden")
 BIT(breakdownatsignal,     "Keine Korrektur der Wahrscheinlichkeit von ZugschÑden wÑhrend sie vor roten Signalen warten")
 BIT(smallspritelimit,      "Kein erhîhtes Sprite-Limit")
