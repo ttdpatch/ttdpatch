@@ -62,8 +62,7 @@ shiftInParentMovement:
 	push	eax
 	push	dx
 	mov	dl, byte [esi+veh.movementstat]
-	xor	eax,eax
-	mov	ax, [esi+veh.nextunitidx]
+	movzx	eax, word [esi+veh.nextunitidx]
 	shl	ax, 7
 	add	eax, [veharrayptr]
 	mov	byte [eax+veh.parentmvstat], dl
@@ -79,8 +78,7 @@ shiftInParentMovement:
 .loopTrailers:
 	cmp	word [eax+veh.nextunitidx], 0xFFFF
 	je	.noTrailer
-	xor	eax, eax
-	mov	ax, [esi+veh.nextunitidx]
+	movzx	eax, word [esi+veh.nextunitidx]
 	shl	ax, 7
 	add	eax, [veharrayptr]
 	mov	byte [eax+veh.parentmvstat], dl
@@ -96,6 +94,8 @@ checkIfTrailerAndCancelCollision:
 	mov	ax, word [edi+veh.engineidx]		//am I an Engine/Single car?
 	cmp	ax, word [edi+veh.idx]
 	je	.checkIfHead
+	cmp	word [edi+0x6A], 0			//check if vehicle is doing a u-turn
+	jne	.zeroCollisionOnOtherVehicle
 	mov	ax, word [esi+veh.nextunitidx]		//is the target my 'parent'
 	cmp	ax, word [edi+veh.idx]			//note: this is _not_ always the engine!
 	je	.checkIfInStation			//(we want to collide with the parent)
@@ -163,6 +163,14 @@ setTrailerToMax:
 	inc	ax	// |
 	inc	ax	// |
 	inc	ax	// -
+	inc	ax
+	inc	ax
+	inc	ax
+	inc	ax
+	inc	ax
+	inc	ax
+	inc	ax
+	inc	ax
 	retn
 .notATrailer:
 	mov	bx, word [esi+veh.maxspeed]
@@ -241,3 +249,97 @@ ovar .origfn, -4, $, sellRVTrailers
 	jne	.recurseOut				//more trailers.
 	mov	word [edx+veh.nextunitidx], 0xFFFF	//is this needed?
 	jmp	sellRVTrailers				//head? back to top.
+
+var	diroffset, dw 0x0000, 0x0001, 0x0000, 0xFF00, 0x0000, 0xFFFF, 0x0000, 0x0100
+var	dirdanger, dw 0x0000, 0x0002, 0x0000, 0xFE00, 0x0000, 0xFFFE, 0x0000, 0x0200
+var	diruuturn, dw 0x0000, 0xFFFE, 0x0000, 0x0200, 0x0000, 0x0002, 0x0000, 0xFE00
+
+global updateTrailerPosAfterRVProc
+updateTrailerPosAfterRVProc:
+	call	near $
+ovar .origfn, -4, $, updateTrailerPosAfterRVProc
+
+;	push	eax
+;	push	ebx
+;	push	ecx
+;	movzx	eax, word [esi+veh.engineidx]
+;	cmp	ax, word [esi+veh.idx]
+;	je	.dontShiftFinal
+;.loopToFindPrevVeh:
+;	shl	ax, 7
+;	add	eax, [veharrayptr]
+;	mov	cx, word [eax+veh.nextunitidx]
+;	cmp	cx, [esi+veh.idx]
+;	je	.gotThePrevVeh
+;	movzx	eax, word [eax+veh.nextunitidx]
+;	jmp	.loopToFindPrevVeh
+;.gotThePrevVeh:
+;	movzx	ebx, byte [eax+veh.direction]
+;	mov	bx, word [dirdanger+ebx*2]
+;	mov	cx, word [eax+veh.XY]
+;	cmp	bx, 0000h
+;	je	.dontUpdateTrailerPos
+;	add	cx, bx
+;	cmp	cx, word [esi+veh.XY]
+;	jne	.dontUpdateTrailerPos
+;	movzx	ebx, byte [eax+veh.direction]
+;	mov	bx, word [diroffset+ebx*2]
+;	mov	cx, word [eax+veh.XY]
+;	add	cx, bx
+;	mov	word [esi+veh.XY], cx
+;.dontUpdateTrailerPos:
+;.dontShiftFinal:
+;	pop	ecx
+;	pop	ebx
+;	pop	eax
+
+	push	eax
+	push	ebx
+;	push	ecx
+	movzx	eax, word [esi+veh.engineidx]
+	cmp	ax, word [esi+veh.idx]
+	je	.justQuit
+	mov	ax, word [esi+veh.engineidx]
+	shl	ax, 7
+	add	eax, [veharrayptr]
+	cmp	byte [eax+0x6A], 0
+	je	.justQuit
+	push	ecx
+	mov	ecx, dword [eax+veh.xpos]		;we want to move 2 words, the veh.* are just offsets
+	mov	dword [esi+veh.xpos], ecx
+	mov	ecx, dword [eax+veh.zpos]
+	mov	dword [esi+veh.zpos], ecx
+	mov	cx, word [eax+veh.XY]
+	movzx	ebx, byte [eax+veh.direction]
+	mov	bx, word [diroffset+ebx*2]
+	add	cx, bx
+	mov	word [esi+veh.XY], cx
+	pop	ecx
+.justQuit:
+;	pop	ecx
+	pop	ebx
+	pop	eax
+	retn
+
+global turnTrailersAroundToo
+turnTrailersAroundToo:
+	test	bl, 1
+	jz	.justReturn
+	mov	byte [edx+0x6A], 180
+	push	ecx
+	movzx	ecx, word [edx+veh.engineidx]
+	cmp	cx, word [edx+veh.idx]
+	jne	.cleanAndJustReturn
+	mov	ecx, edx
+.doZeeLoop:
+	cmp	word [ecx+veh.nextunitidx], 0xFFFF	//MORE?
+	je	.cleanAndJustReturn
+	mov	cx, word [ecx+veh.nextunitidx]
+	shl	cx, 7
+	add	cx, [veharrayptr]
+	mov	byte [ecx+0x6A], 180
+	jmp	.doZeeLoop
+.cleanAndJustReturn:
+	pop	ecx
+.justReturn:
+	retn

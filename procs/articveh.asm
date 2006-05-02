@@ -41,6 +41,8 @@ extern OpenRVWindow
 extern skipTrailersInDepotWindow, skipTrailersInRVList
 extern dontAddScheduleForTrailers
 extern sellRVTrailers, sellRVTrailers.origfn, delveharrayentry
+extern updateTrailerPosAfterRVProc, updateTrailerPosAfterRVProc.origfn
+extern turnTrailersAroundToo
 
 patchproc articulatedrvs, patcharticulatedvehicles
 
@@ -136,6 +138,16 @@ begincodefragments
 	codefragment newRVCollisionTimeout
 		setfragmentsize 8
 
+	codefragment oldCallRVProcessing, 9
+		retn
+		push	edi
+		mov	esi, edi
+
+	codefragment oldRVForceTurnAround, -2
+		mov	byte [edx+0x6A], 180
+
+	codefragment newRVForceTurnAround
+		icall	turnTrailersAroundToo
 endcodefragments
 
 patcharticulatedvehicles:
@@ -182,4 +194,13 @@ patcharticulatedvehicles:
 	chainfunction sellRVTrailers, .origfn, 1
 
 	patchcode oldRVCollisionTimeout, newRVCollisionTimeout, 1, 1
+
+#if WINTTDX
+	stringaddress oldCallRVProcessing, 1, 5
+#else
+	stringaddress oldCallRVProcessing, 3, 5
+#endif
+	chainfunction updateTrailerPosAfterRVProc, .origfn, 1
+
+	patchcode oldRVForceTurnAround, newRVForceTurnAround, 1, 1
 	retn
