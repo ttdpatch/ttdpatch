@@ -2499,7 +2499,7 @@ class6periodicproc:
 
 	cmp bh, 0xFE
 	jae .note
-	cmp bh, 0x0
+	cmp bl, 0x0
 	je .note
 	mov edi, 0xFFFFFF01 // -1 +1
 	// Internal use only...
