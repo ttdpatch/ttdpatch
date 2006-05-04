@@ -2478,7 +2478,9 @@ class6periodicproc:
 	test byte [miscmodsflags+2], MISCMODS_NODIAGONALFLOODING>>(8*2)
 	jnz near .nodiagonalflooding
 
-	cmp bx, 0x0
+	cmp bh, 0x0
+	je .notn
+	cmp bl, 0x0
 	je .notn
 	// Tile to change
 	mov edi, -0x0101 // -1 -1
@@ -2495,9 +2497,9 @@ class6periodicproc:
 
 .notn:
 
-	cmp bx, 0xFE00
-	je .note
-	cmp bx, 0xFF00
+	cmp bh, 0xFE
+	jae .note
+	cmp bh, 0x0
 	je .note
 	mov edi, 0xFFFFFF01 // -1 +1
 	// Internal use only...
@@ -2512,10 +2514,10 @@ class6periodicproc:
 	call [floodtile]
 
 .note:
-	cmp bx, 0xFEFE
-	je .nots
-	cmp bx, 0xFFFF
-	je .nots
+	cmp bh, 0xFE
+	jae .nots
+	cmp bl, 0xFE
+	jae .nots
 	mov edi, 0x0101 // +1 +1
 	// Internal use only...
 	mov byte [esp-12], 0x1 // Corner tile
@@ -2529,9 +2531,9 @@ class6periodicproc:
 	call [floodtile]
 
 .nots:
-	cmp bx, 0x00FE
-	je .notw
-	cmp bx, 0x00FF
+	cmp bl, 0xFE
+	jae .notw
+	cmp bh, 0x0
 	je .notw
 	mov edi, 0x00FF // +1 -1
 	// Internal use only...
@@ -2567,7 +2569,7 @@ uvard floodtile		// function to flood adjacent tile
 global Class6FloodTile
 Class6FloodTile:
 	// Check the tile to change and it's class
-	mov dl, [ds:landscape4(di, 1)+ebx] // Get the tile Type and north corner height
+	mov dl, [landscape4(di, 1)+ebx] // Get the tile Type and north corner height
 	and dl, 0xF0 // Only keep the tile class
 	cmp dl, 0x60 // Is this tile already class 6 (water or coast)
 	jz .badcorners // If it is we don't want to flood it again, so quit
@@ -2576,14 +2578,14 @@ Class6FloodTile:
 	je .diagonalflooding
 
 	// Checks that the 2 base points are at sea level
-	mov dl, [ds:landscape4(si, 1)+ebx] // Get the tile types and corner hieghts
-	mov dh, [ss:landscape4(bp, 1)+ebx]
+	mov dl, [landscape4(si, 1)+ebx] // Get the tile types and corner hieghts
+	mov dh, [landscape4(bp, 1)+ebx]
 	and dx, 0x0F0F // Are the north tile points at sea level
 	jnz .badcorners
 
 	// Check if this is a slope and hense if to make it a coast
-	mov dh, [ds:landscape4(ax, 1)+ebx] // Get the tile types and corner hieghts
-	mov al, [ss:landscape4(cx, 1)+ebx]
+	mov dh, [landscape4(ax, 1)+ebx] // Get the tile types and corner hieghts
+	mov al, [landscape4(cx, 1)+ebx]
 	and dh, 0x0F // Is this corner at sea hieght
 	jnz .coast // No, so make it a coast
 	and al, 0x0F // Is this corner at sea hieght
@@ -2639,11 +2641,11 @@ Class6FloodTile:
 .flat:
 
 	// Special cases for diagonal flooding (allowed) for a FLAT tile
-	mov dh, [ds:landscape4(si, 1)+ebx]
-	mov dl, [ss:landscape4(cx, 1)+ebx]
+	mov dh, [landscape4(si, 1)+ebx]
+	mov dl, [landscape4(cx, 1)+ebx]
 	shl edx, 16
-	mov dh, [ds:landscape4(ax, 1)+ebx]
-	mov dl, [ss:landscape4(bp, 1)+ebx]
+	mov dh, [landscape4(ax, 1)+ebx]
+	mov dl, [landscape4(bp, 1)+ebx]
 	and edx, 0x0F0F0F0F
 	cmp edx, 0x00010100
 	je .dbadcorners
