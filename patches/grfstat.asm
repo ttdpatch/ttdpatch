@@ -1151,6 +1151,7 @@ grfstatuscreatedebug:
 .goterrmsg:
 	mov edi, grfstatusbuffer
 	pusha
+	mov eax, ebx
 	call newtexthandler
 	popa
 	mov esi, grfstatusbuffer
