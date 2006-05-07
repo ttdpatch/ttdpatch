@@ -2492,8 +2492,10 @@ exported stationanimhandler
 	test byte [stationflags+edx],4
 	jz .norandom
 
+	push eax
 	call [randomfn]
 	mov [miscgrfvar],eax
+	pop eax
 .norandom:
 
 	mov byte [grffeature],4
