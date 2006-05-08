@@ -920,21 +920,35 @@ patchgeneralfixes:
 
 	pop eax
 
+	xor ebp,ebp
+
 	test bh,MISCMODS_NOWORLDEDGEFLOODING>>8
 	jnz near .noedgeflood
 
 	mov edi,addr(class6periodicproc)
 	xchg edi,[eax+0x20]	// class 6 periodic proc handler
 
-	// Only run the following fragements if diagonal flooding is enabled
-	test byte [miscmodsflags+2], MISCMODS_NODIAGONALFLOODING>>(8*2)
-	jnz near .nodiagonalflooding
+	mov ebp,1
 
-	patchcode oldfloodtile, newfloodtile // Loads the new flood subroutine which allows diagonal flooding.
+.noedgeflood:
+	// Only run the following fragements if diagonal flooding is enabled
+
+	bt ebx, MISCMODS_NODIAGONALFLOODING_NUM
+	cmc
+	adc ebp,0
+
+	// now ebp=2 if and only if both edge flooding and diagonal flooding are enabled
+
+	// Loads the new flood subroutine which allows diagonal flooding.
+	patchcode oldfloodtile,newfloodtile,1,1,,{cmp ebp,2},e
 
 	stringaddress findcoastsprites // Get the address of the old sprite array
 
 	mov dword [waterbankptr], edi // allow the patch fragment to work
+
+	cmp ebp,2
+	jnz near .nodiagonalflooding
+
 	mov dword [coastspritebase], edi // Set the variable for the subroutine to use it
 
 	// Populate bad array entries
@@ -947,12 +961,11 @@ patchgeneralfixes:
 	mov word [edi+0x1C], 3995
 	mov word [edi+0x1E], 3999 // Steep
 
-	patchcode oldcoastsprites, newcoastsprites // patch the place where it is used in TTD
-
 	// Allow the action5 graphics to be loaded
 	or dword [newgraphicssetsenabled], 1<<0x0D
 .nodiagonalflooding:
-.noedgeflood:
+
+	patchcode oldcoastsprites,newcoastsprites,1,1,,{cmp ebp,2},e // patch the place where it is used in TTD
 
 	// ------- change vehicle messages to show vehicle name --------
 
