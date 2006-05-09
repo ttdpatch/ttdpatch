@@ -20,6 +20,13 @@ uvard	rvCollisionFoundVehicle
 uvard	rvCollisionCurrVehicle
 uvard	JumpOutOfRVRVCollision
 
+uvard	ScrewWithRVDirection
+uvard	UpdateRVPos
+uvard	SetRoadVehObjectOffsets
+uvard	SelectRVSpriteByLoad
+uvard	SetCurrentVehicleBBox
+uvard	off_111D62
+
 
 global newbuyroadvehicle
 newbuyroadvehicle:
@@ -53,40 +60,57 @@ grabMovementFromParentIfTrailer3:
 
 global shiftInParentMovement
 shiftInParentMovement:
-	push	eax
-	xor	eax,eax
-	mov	ax, [esi+veh.engineidx]
-	cmp	ax, [esi+veh.idx]
-	pop	eax
-	jne	.processRVTrailer
+;	push	eax
+;	xor	eax,eax
+;	mov	ax, [esi+veh.engineidx]
+;	cmp	ax, [esi+veh.idx]
+;	pop	eax
+;	jne	.processRVTrailer
+	cmp	word [esi+veh.nextunitidx], 0xFFFF
+	je	.justReturnNoPop
+	push	esi
 	push	eax
 	push	dx
+	push	bx
 	mov	dl, byte [esi+veh.movementstat]
-	movzx	eax, word [esi+veh.nextunitidx]
-	shl	ax, 7
-	add	eax, [veharrayptr]
-	mov	byte [eax+veh.parentmvstat], dl
-	pop	dx
-	pop	eax
-	retn
-.processRVTrailer:
-	push	eax
-	push	dx
-	mov	dl, byte [esi+veh.parentmvstat]
-	mov	byte [esi+veh.movementstat], dl
-	mov	eax, esi
+	mov	bl, byte [esi+veh.direction]
 .loopTrailers:
-	cmp	word [eax+veh.nextunitidx], 0xFFFF
-	je	.noTrailer
 	movzx	eax, word [esi+veh.nextunitidx]
 	shl	ax, 7
 	add	eax, [veharrayptr]
-	mov	byte [eax+veh.parentmvstat], dl
+	mov	byte [eax+veh.movementstat], dl
+	mov	byte [eax+0x63], 6
+	and	word [esi+veh.vehstatus], 0xFFFE
+	mov	byte [esi+veh.direction], bl
+	cmp	word [eax+veh.nextunitidx], 0xFFFF
+	je	.justReturn
+	mov	esi, eax
 	jmp	.loopTrailers
-.noTrailer:
+.justReturn:
+	pop	bx
 	pop	dx
 	pop	eax
+	pop	esi
+.justReturnNoPop:
 	retn
+;.processRVTrailer:
+;	push	eax
+;	push	dx
+;	mov	dl, byte [esi+veh.parentmvstat]
+;	mov	byte [esi+veh.movementstat], dl
+;	mov	eax, esi
+;.loopTrailers:
+;	cmp	word [eax+veh.nextunitidx], 0xFFFF
+;	je	.noTrailer
+;	movzx	eax, word [esi+veh.nextunitidx]
+;	shl	ax, 7
+;	add	eax, [veharrayptr]
+;	mov	byte [eax+veh.parentmvstat], dl
+;	jmp	.loopTrailers
+;.noTrailer:
+;	pop	dx
+;	pop	eax
+;	retn
 
 global checkIfTrailerAndCancelCollision
 checkIfTrailerAndCancelCollision:
@@ -250,96 +274,92 @@ ovar .origfn, -4, $, sellRVTrailers
 	mov	word [edx+veh.nextunitidx], 0xFFFF	//is this needed?
 	jmp	sellRVTrailers				//head? back to top.
 
-var	diroffset, dw 0x0000, 0x0001, 0x0000, 0xFF00, 0x0000, 0xFFFF, 0x0000, 0x0100
-var	dirdanger, dw 0x0000, 0x0002, 0x0000, 0xFE00, 0x0000, 0xFFFE, 0x0000, 0x0200
-var	diruuturn, dw 0x0000, 0xFFFE, 0x0000, 0x0200, 0x0000, 0x0002, 0x0000, 0xFE00
-
 global updateTrailerPosAfterRVProc
 updateTrailerPosAfterRVProc:
+	push	ebx
+	movzx	ebx, word [esi+veh.engineidx]
+	cmp	bx, word [esi+veh.idx]
+	pop	ebx
+	jne	.justQuit			;engine? continue: not? quit.
+	pushad
 	call	near $
 ovar .origfn, -4, $, updateTrailerPosAfterRVProc
-
-;	push	eax
-;	push	ebx
-;	push	ecx
-;	movzx	eax, word [esi+veh.engineidx]
-;	cmp	ax, word [esi+veh.idx]
-;	je	.dontShiftFinal
-;.loopToFindPrevVeh:
-;	shl	ax, 7
-;	add	eax, [veharrayptr]
-;	mov	cx, word [eax+veh.nextunitidx]
-;	cmp	cx, [esi+veh.idx]
-;	je	.gotThePrevVeh
-;	movzx	eax, word [eax+veh.nextunitidx]
-;	jmp	.loopToFindPrevVeh
-;.gotThePrevVeh:
-;	movzx	ebx, byte [eax+veh.direction]
-;	mov	bx, word [dirdanger+ebx*2]
-;	mov	cx, word [eax+veh.XY]
-;	cmp	bx, 0000h
-;	je	.dontUpdateTrailerPos
-;	add	cx, bx
-;	cmp	cx, word [esi+veh.XY]
-;	jne	.dontUpdateTrailerPos
-;	movzx	ebx, byte [eax+veh.direction]
-;	mov	bx, word [diroffset+ebx*2]
-;	mov	cx, word [eax+veh.XY]
-;	add	cx, bx
-;	mov	word [esi+veh.XY], cx
-;.dontUpdateTrailerPos:
-;.dontShiftFinal:
-;	pop	ecx
-;	pop	ebx
-;	pop	eax
-
-	push	eax
-	push	ebx
-;	push	ecx
-	movzx	eax, word [esi+veh.engineidx]
-	cmp	ax, word [esi+veh.idx]
+	popad
+	cmp	word [esi+veh.nextunitidx], 0xFFFF	;trailers? continue.
 	je	.justQuit
-	mov	ax, word [esi+veh.engineidx]
-	shl	ax, 7
-	add	eax, [veharrayptr]
-	cmp	byte [eax+0x6A], 0
-	je	.justQuit
-	push	ecx
-	mov	ecx, dword [eax+veh.xpos]		;we want to move 2 words, the veh.* are just offsets
-	mov	dword [esi+veh.xpos], ecx
-	mov	ecx, dword [eax+veh.zpos]
-	mov	dword [esi+veh.zpos], ecx
-	mov	cx, word [eax+veh.XY]
-	movzx	ebx, byte [eax+veh.direction]
-	mov	bx, word [diroffset+ebx*2]
-	add	cx, bx
-	mov	word [esi+veh.XY], cx
-	pop	ecx
+	push	esi
+.loopToNextTrailer:
+	movzx	esi, word [esi+veh.nextunitidx]
+	shl	si, 7
+	add	esi, dword [veharrayptr]	;we now have the first trailers ptr.
+	pushad
+	call	hackedTrailerRVProcessing	;see below.
+	popad
+	cmp	word [esi+veh.nextunitidx], 0xFFFF	;morE?
+	jne	.loopToNextTrailer
+	pop	esi
 .justQuit:
-;	pop	ecx
-	pop	ebx
-	pop	eax
 	retn
 
-global turnTrailersAroundToo
-turnTrailersAroundToo:
-	test	bl, 1
-	jz	.justReturn
-	mov	byte [edx+0x6A], 180
+;-------------MY HACKY FUNCTION... THIS, in the end, NEEDS TO REPLICATE RVProcessing.
+; BUT ONLY THE BITS WE NEED... EVERYONE CAN HELP WITH THIS :)))
+
+global hackedTrailerRVProcessing
+hackedTrailerRVProcessing:
+	test	word [esi+veh.vehstatus], 2
+	jnz	near .DontKnowJustQuit
+	cmp	byte [esi+0x66], 0x00
+	jz	.continueProcessing
+	inc	byte [esi+0x67]
+	cmp	byte [esi+0x67], 0x23
+	jb	.continueProcessing
+	mov	byte [esi+0x66], 0x00
+
+.continueProcessing:
+	call	[SetCurrentVehicleBBox]
+	movzx	ebx, byte [esi+veh.movementstat]
+	cmp	bl, 0FFh
+	jz	near .DontKnowJustQuit						;WHAT SHOULD I DO HERE?
+	add	bl, byte [roadtrafficside]
+	xor	bl, byte [esi+0x66]
 	push	ecx
-	movzx	ecx, word [edx+veh.engineidx]
-	cmp	cx, word [edx+veh.idx]
-	jne	.cleanAndJustReturn
-	mov	ecx, edx
-.doZeeLoop:
-	cmp	word [ecx+veh.nextunitidx], 0xFFFF	//MORE?
-	je	.cleanAndJustReturn
-	mov	cx, word [ecx+veh.nextunitidx]
-	shl	cx, 7
-	add	cx, [veharrayptr]
-	mov	byte [ecx+0x6A], 180
-	jmp	.doZeeLoop
-.cleanAndJustReturn:
+	mov	ecx, dword [off_111D62]
+	mov	ebx, [ecx+ebx*4]		;GET ADDRESS
 	pop	ecx
-.justReturn:
+	movzx	edx, byte [esi+0x63]
+	shl	edx, 1
+	add	ebx, edx
+	mov	dx, [ebx+2]
+	test	dl, 80h
+	jnz	.DontKnowJustQuit ;loc_165CD8					;WHAT SHOULD I DO HERE?
+	test	dl, 40h
+	jnz	.DontKnowJustQuit ;loc_165E56					;WHAT SHOULD I DO HERE?
+	mov	ax, word [esi+veh.xpos]
+	mov	cx, word [esi+veh.ypos]
+	and	al, 0F0h
+	and	cl, 0F0h
+	or	al, dl
+	or	cl, dh
+	mov	bl, dl
+	call	[ScrewWithRVDirection] ;sub_1659E6				;GET ADDRESS
+	mov	bl, byte [esi+veh.movementstat]
+;----------------------------cut out: (loc_165B05-loc_165B20)
+	mov	dh, byte [esi+veh.direction]
+	cmp	dl, dh
+	jz	.DontKnowJustQuit ;short loc_165B58			;needs work... something to do with stations
+	mov	byte [esi+veh.direction], dl
+	mov	dl, dh
+	mov	bp, word [esi+veh.speed]
+	shr	bp, 2
+	sub	word [esi+veh.speed], bp
+	cmp	dl, bl
+	jz	.DontKnowJustQuit ;short loc_165B58			;needs work... something to do with stations
+	mov	ax, word [esi+veh.xpos]
+	mov	cx, word [esi+veh.ypos]
+	movzx	bx, byte [esi+veh.direction]
+	call	[SelectRVSpriteByLoad]
+	call	[SetRoadVehObjectOffsets]
+	call	[UpdateRVPos] ;sub_166376					;GET ADDRESS
+
+.DontKnowJustQuit:
 	retn

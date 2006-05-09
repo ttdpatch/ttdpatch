@@ -44,6 +44,8 @@ extern sellRVTrailers, sellRVTrailers.origfn, delveharrayentry
 extern updateTrailerPosAfterRVProc, updateTrailerPosAfterRVProc.origfn
 extern turnTrailersAroundToo
 
+extern ScrewWithRVDirection, UpdateRVPos, SetRoadVehObjectOffsets, SelectRVSpriteByLoad, SetCurrentVehicleBBox, off_111D62
+
 patchproc articulatedrvs, patcharticulatedvehicles
 
 begincodefragments
@@ -143,11 +145,32 @@ begincodefragments
 		push	edi
 		mov	esi, edi
 
-	codefragment oldRVForceTurnAround, -2
-		mov	byte [edx+0x6A], 180
+;----new shit to try and replicate RVProc
+	codefragment findScrewWithRVDirection, -12
+		inc	dl
+		and	dl, 7
 
-	codefragment newRVForceTurnAround
-		icall	turnTrailersAroundToo
+	codefragment findUpdateRVPos, 1
+		retn
+		push	bx
+		mov	word [esi+veh.xpos], ax
+	
+	codefragment findSetRoadVehObjectOffsets
+		push	ebx
+		movzx	ebx, byte [esi+veh.direction]
+	
+	codefragment findSelectRVSpriteByLoad
+		push	ax
+		push	edi
+		movzx	edi, byte [esi+veh.spritetype]
+	
+	codefragment findSetCurrentVehicleBBox, 1
+		retn
+		mov	ax, word [esi+0x2A]	;spritebox.x1
+	
+	codefragment findWhatIThinkIsMovementSchemes, -4
+		movzx	edx, byte [esi+0x63]
+
 endcodefragments
 
 patcharticulatedvehicles:
@@ -185,7 +208,7 @@ patcharticulatedvehicles:
 	patchcode oldRVCollisionCheck, newRVCollisionCheck, 2, 3
 #endif
 
-	patchcode oldIncrementRVSpeed, newIncrementRVSpeed, 1, 1
+	patchcode oldIncrementRVSpeed, newIncrementRVSpeed, 1, 1	;deprecated.
 	patchcode oldOpenRVWindow, newOpenRVWindow, 2, 4
 	patchcode oldListRVsInDepotWindow, newListRVsInDepotWindow, 2, 2
 
@@ -202,5 +225,19 @@ patcharticulatedvehicles:
 #endif
 	chainfunction updateTrailerPosAfterRVProc, .origfn, 1
 
-	patchcode oldRVForceTurnAround, newRVForceTurnAround, 1, 1
+;------------new stuffs.
+	stringaddress findScrewWithRVDirection, 1, 1
+	mov	[ScrewWithRVDirection], edi
+	stringaddress findUpdateRVPos, 2, 2
+	mov	[UpdateRVPos], edi
+	stringaddress findSetRoadVehObjectOffsets, 1, 1
+	mov	[SetRoadVehObjectOffsets], edi
+	stringaddress findSelectRVSpriteByLoad, 2, 2
+	mov	[SelectRVSpriteByLoad], edi
+	stringaddress findSetCurrentVehicleBBox, 1, 2
+	mov	[SetCurrentVehicleBBox], edi
+	stringaddress findWhatIThinkIsMovementSchemes
+	mov	edi, [edi]
+	mov	dword [off_111D62], edi
+
 	retn
