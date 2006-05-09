@@ -26,7 +26,7 @@ uvard	SetRoadVehObjectOffsets
 uvard	SelectRVSpriteByLoad
 uvard	SetCurrentVehicleBBox
 uvard	off_111D62
-
+uvard	RVProcReEntry
 
 global newbuyroadvehicle
 newbuyroadvehicle:
@@ -71,23 +71,21 @@ shiftInParentMovement:
 	push	esi
 	push	eax
 	push	dx
-	push	bx
+	push	cx
 	mov	dl, byte [esi+veh.movementstat]
-	mov	bl, byte [esi+veh.direction]
+	mov	cx, word [esi+veh.vehstatus]
 .loopTrailers:
 	movzx	eax, word [esi+veh.nextunitidx]
 	shl	ax, 7
 	add	eax, [veharrayptr]
 	mov	byte [eax+veh.movementstat], dl
-	mov	byte [eax+0x63], 6
-	and	word [esi+veh.vehstatus], 0xFFFE
-	mov	byte [esi+veh.direction], bl
+	mov	word [esi+veh.vehstatus], cx
 	cmp	word [eax+veh.nextunitidx], 0xFFFF
 	je	.justReturn
 	mov	esi, eax
 	jmp	.loopTrailers
 .justReturn:
-	pop	bx
+	pop	cx
 	pop	dx
 	pop	eax
 	pop	esi
@@ -293,7 +291,8 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 	shl	si, 7
 	add	esi, dword [veharrayptr]	;we now have the first trailers ptr.
 	pushad
-	call	hackedTrailerRVProcessing	;see below.
+	;call	hackedTrailerRVProcessing	;see below.
+	;COMMENTED OUT..
 	popad
 	cmp	word [esi+veh.nextunitidx], 0xFFFF	;morE?
 	jne	.loopToNextTrailer
@@ -319,7 +318,7 @@ hackedTrailerRVProcessing:
 	call	[SetCurrentVehicleBBox]
 	movzx	ebx, byte [esi+veh.movementstat]
 	cmp	bl, 0FFh
-	jz	near .DontKnowJustQuit						;WHAT SHOULD I DO HERE?
+	jz	near .reEnter
 	add	bl, byte [roadtrafficside]
 	xor	bl, byte [esi+0x66]
 	push	ecx
@@ -363,3 +362,6 @@ hackedTrailerRVProcessing:
 
 .DontKnowJustQuit:
 	retn
+
+.reEnter:
+	jmp	near [RVProcReEntry] ;loc_165F00

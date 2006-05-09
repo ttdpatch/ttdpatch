@@ -45,6 +45,7 @@ extern updateTrailerPosAfterRVProc, updateTrailerPosAfterRVProc.origfn
 extern turnTrailersAroundToo
 
 extern ScrewWithRVDirection, UpdateRVPos, SetRoadVehObjectOffsets, SelectRVSpriteByLoad, SetCurrentVehicleBBox, off_111D62
+extern RVProcReEntry
 
 patchproc articulatedrvs, patcharticulatedvehicles
 
@@ -154,22 +155,27 @@ begincodefragments
 		retn
 		push	bx
 		mov	word [esi+veh.xpos], ax
-	
+
 	codefragment findSetRoadVehObjectOffsets
 		push	ebx
 		movzx	ebx, byte [esi+veh.direction]
-	
+
 	codefragment findSelectRVSpriteByLoad
 		push	ax
 		push	edi
 		movzx	edi, byte [esi+veh.spritetype]
-	
+
 	codefragment findSetCurrentVehicleBBox, 1
 		retn
 		mov	ax, word [esi+0x2A]	;spritebox.x1
-	
+
 	codefragment findWhatIThinkIsMovementSchemes, -4
 		movzx	edx, byte [esi+0x63]
+
+	codefragment findJumpBackIntoRVProc, 2
+		pop	ax
+		test	ebp, 40000000h
+
 
 endcodefragments
 
@@ -240,4 +246,6 @@ patcharticulatedvehicles:
 	mov	edi, [edi]
 	mov	dword [off_111D62], edi
 
+	stringaddress findJumpBackIntoRVProc, 2, 3
+	mov	dword [RVProcReEntry], edi
 	retn
