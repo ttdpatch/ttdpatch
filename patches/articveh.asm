@@ -30,6 +30,8 @@ uvard	SelectRVSpriteByLoad
 uvard	SetCurrentVehicleBBox
 uvard	off_111D62
 uvard	byte_112552
+uvard	word_11257A
+uvard	unk_112582
 
 uvard GenerateFirstRVArrivesMessage
 uvard ProcessNextRVOrder
@@ -295,6 +297,8 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 ;-------------MY HACKY FUNCTION... THIS, in the end, NEEDS TO REPLICATE RVProcessing.
 ; BUT ONLY THE BITS WE NEED... EVERYONE CAN HELP WITH THIS :)))
 
+var unk_1125D7,		db 0x00,0x01,0x08,0x09
+var unk_1125DB,		db 0x01,0x03,0x05,0x07,0x90
 
 
 global RVTrailerProcessing
@@ -439,7 +443,7 @@ loc_165BBB:
 	movzx	ebp, byte [vaTempLocation1]
 	imul	bp, 8Eh
 	add	ebp, [stationarrayptr]
-	and	byte ptr [edx+ebp], not 80h
+	and	byte [edx+ebp], not 80h
 	mov	al, byte [vaTempLocation1]
 	mov	byte [esi+veh.laststation], al
 	call	[GenerateFirstRVArrivesMessage]
@@ -470,7 +474,7 @@ loc_165C08:
 
 loc_165C29:
 	mov	bx, word [esi+veh.idx]
-	mov	ax, cWinTypeVehicle or cWinElemRel or cWinElem4
+	mov	ax, 0x48D ;cWinTypeVehicle or cWinElemRel or cWinElem4
 	call	[RefreshWindows]	; AL = window type
 					; AH = element idx (only if AL:7 set)
 					; BX = window ID (only if AL:6 clear)
@@ -480,13 +484,13 @@ loc_165C29:
 loc_165C37:
 	push	ax
 	mov	 word [esi+veh.XY]
-                mov     ebx, station.busstat
+	mov	ebx, [station.busstop]
 	mov	al, byte [landscape5(bp,1)]
 	cmp	al, 43h
 	jb	short loc_165C51
 	cmp	al, 47h
 	jnb	short loc_165C51
-                mov     bl, station.lorrystat
+	mov	bl, [station.truckstop]
 
 loc_165C51:
 	movzx	ebp, byte [vaTempLocation1]
@@ -513,7 +517,7 @@ loc_165C7A:
 loc_165C8E:
 	call	RVStartSound
 	mov	bx, word [esi+veh.idx]
-	mov	ax, cWinTypeVehicle or cWinElemRel or cWinElem4
+	mov	ax, 0x48D ;cWinTypeVehicle or cWinElemRel or cWinElem4
 	call	RefreshWindows		; AL = window type
 					; AH = element idx (only if AL:7 set)
 					; BX = window ID (only if AL:6 clear)
@@ -543,7 +547,7 @@ loc_165CBE:
 	and	edx, 3
 	mov	byte [byte_11258E], dl			;seems to be a temp location for dl... which is the new movement stat?
 	mov	di, word [esi+veh.XY]
-	add	di, word_11257A[edx*2]
+	add	di, [word_11257A+edx*2]
 	push	di
 	call	[RoadVehiclePathFinder]
 	pop	di
@@ -679,7 +683,7 @@ loc_165CBE:
 	cmp	bl, 90h
 	jnz	.zeroSpeedAndReturn
 	movzx	ebx, byte [byte_11258E]
-	movzx	dx, byte ptr unk_112582[ebx]
+	movzx	dx, byte [unk_112582+ebx]
 	jmp	.loopThisChunkAgain
 ; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
@@ -784,9 +788,9 @@ loc_165CBE:
 	mov	di, [esi+veh.XY]
 	mov	bl, byte [landscape5(di,1)]
 	and	ebx, 3
-	mov	dl, byte ptr unk_1125DB[ebx]		;Direction to leave depot
+	mov	dl, byte [unk_1125D7+ebx]		;Direction to leave depot
 	mov	[esi+veh.direction], dl			;set vehicles direction
-	mov	bl, byte ptr unk_1125D7[ebx]		;next move after depot?
+	mov	bl, byte [unk_1125DB+ebx]		;next move after depot?
 	mov	dl, byte [roadtrafficside]
 	and	edx, 7Fh
 	add	dl, bl

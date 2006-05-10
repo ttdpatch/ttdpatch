@@ -185,6 +185,13 @@ begincodefragments
 	codefragment findRVMountainSpeedManagement, 1
 		retn
 		cmp	dl, byte [esi+veh.zpos]
+	codefragment findword_11257A, 17
+		retn
+		and	edx, 3
+	codefragment findunk_112582, -9
+		and	edx, 3
+		mov	di, word [esi+veh.XY]
+
 endcodefragments
 
 patcharticulatedvehicles:
@@ -256,8 +263,12 @@ patcharticulatedvehicles:
 	storeaddress findGenerateFirstRVArrivesMessage, 1, 1
 	mov	dword [GenerateFirstRVArrivesMessage], edi
 	storeaddress findTwoStationFunctionsInRVProcessing, 1, 1
+	push	edi
+	mov	edi, [edi]
 	mov	dword [ProcessNextRVOrder], edi
-	mov	edi, [edi+5]
+	pop	edi
+	add	edi, 5
+	mov	edi, [edi]
 	mov	dword [ProcessLoadUnload], edi
 	storeaddress findIncrementRVMovementFrac, 1, 2
 	mov	dword [IncrementRVMovementFrac], edi
@@ -268,7 +279,14 @@ patcharticulatedvehicles:
 	storeaddress findRVCheckCollisionWithRV, 3, 3
 	mov	dword [RVCheckCollisionWithRV], edi
 	storeaddress findbyte_112552, 1, 1
+	mov	edi, [edi]
 	mov	dword [byte_112552], edi
 	storeaddress findRVMountainSpeedManagement, 2, 2
 	mov	dword [RVMountainSpeedManagement], edi
+	stringaddress findword_11257A
+	mov	edi, [edi]
+	mov	dword [word_11257A], edi
+	stringaddress findunk_112582
+	mov	edi, [edi]
+	mov	dword [unk_112582], edi
 	retn
