@@ -10,8 +10,12 @@
 #include <misc.inc>
 #include <vehtype.inc>
 #include <window.inc>
+#include <station.inc>
 
 extern newbuyrailvehicle, discard, vehcallback, articulatedvehicle, delveharrayentry, sellroadvehicle
+
+uvarb byte_11258E
+uvarb vaTempLocation1
 
 uvard	oldbuyroadvehicle
 uvarb	buildingroadvehicle
@@ -20,13 +24,23 @@ uvard	rvCollisionFoundVehicle
 uvard	rvCollisionCurrVehicle
 uvard	JumpOutOfRVRVCollision
 
-uvard	ScrewWithRVDirection
-uvard	UpdateRVPos
+uvard	RedrawRoadVehicle
 uvard	SetRoadVehObjectOffsets
 uvard	SelectRVSpriteByLoad
 uvard	SetCurrentVehicleBBox
 uvard	off_111D62
-uvard	RVProcReEntry
+uvard	byte_112552
+
+uvard GenerateFirstRVArrivesMessage
+uvard ProcessNextRVOrder
+uvard ProcessLoadUnload
+uvard IncrementRVMovementFrac
+uvard ProcessCrashedRV
+uvard ProcessBrokenDownRV
+uvard ChkForRVCollisionWithTrain
+uvard RVCheckCollisionWithRV
+uvard RVMountainSpeedManagement
+
 
 global newbuyroadvehicle
 newbuyroadvehicle:
@@ -60,55 +74,34 @@ grabMovementFromParentIfTrailer3:
 
 global shiftInParentMovement
 shiftInParentMovement:
-;	push	eax
-;	xor	eax,eax
-;	mov	ax, [esi+veh.engineidx]
-;	cmp	ax, [esi+veh.idx]
-;	pop	eax
-;	jne	.processRVTrailer
 	cmp	word [esi+veh.nextunitidx], 0xFFFF
 	je	.justReturnNoPop
 	push	esi
 	push	eax
 	push	dx
-	push	cx
+	push	bx
 	mov	dl, byte [esi+veh.movementstat]
-	mov	cx, word [esi+veh.vehstatus]
+	mov	bl, byte [esi+veh.direction]
 .loopTrailers:
 	movzx	eax, word [esi+veh.nextunitidx]
 	shl	ax, 7
 	add	eax, [veharrayptr]
 	mov	byte [eax+veh.movementstat], dl
-	mov	word [esi+veh.vehstatus], cx
+	mov	byte [eax+0x63], 6
+	and	word [esi+veh.vehstatus], 0xFFFE
+	mov	byte [esi+veh.direction], bl
 	cmp	word [eax+veh.nextunitidx], 0xFFFF
 	je	.justReturn
 	mov	esi, eax
 	jmp	.loopTrailers
 .justReturn:
-	pop	cx
+	pop	bx
 	pop	dx
 	pop	eax
 	pop	esi
 .justReturnNoPop:
 	retn
-;.processRVTrailer:
-;	push	eax
-;	push	dx
-;	mov	dl, byte [esi+veh.parentmvstat]
-;	mov	byte [esi+veh.movementstat], dl
-;	mov	eax, esi
-;.loopTrailers:
-;	cmp	word [eax+veh.nextunitidx], 0xFFFF
-;	je	.noTrailer
-;	movzx	eax, word [esi+veh.nextunitidx]
-;	shl	ax, 7
-;	add	eax, [veharrayptr]
-;	mov	byte [eax+veh.parentmvstat], dl
-;	jmp	.loopTrailers
-;.noTrailer:
-;	pop	dx
-;	pop	eax
-;	retn
+
 
 global checkIfTrailerAndCancelCollision
 checkIfTrailerAndCancelCollision:
@@ -243,7 +236,7 @@ dontAddScheduleForTrailers:
 
 global sellRVTrailers
 sellRVTrailers:
-	cmp	word [edx+veh.nextunitidx], 0xFFFF	//do we have trailers?
+	cmp	word [edx+veh.nextunitidx], 0xFFFF	;do we have trailers?
 	jne	.trailersExist
 
 	call	near $
@@ -251,26 +244,26 @@ ovar .origfn, -4, $, sellRVTrailers
 	retn
 
 .trailersExist:
-	pushad						//push prev veh onto stack
-	movzx	edx, word [edx+veh.nextunitidx]		//iterate to last trailer...
+	pushad						;push prev veh onto stack
+	movzx	edx, word [edx+veh.nextunitidx]		;iterate to last trailer...
 	shl	dx, 7
 	add	edx, [veharrayptr]
-	cmp	word [edx+veh.nextunitidx], 0xFFFF	//MORE? push them on the stack
+	cmp	word [edx+veh.nextunitidx], 0xFFFF	;MORE? push them on the stack
 	jne	.trailersExist
 .recurseOut:
-	mov	word [edx+veh.nextunitidx], 0xFFFF	//is this needed?
+	mov	word [edx+veh.nextunitidx], 0xFFFF	;is this needed?
 	movzx	edx, word [edx+veh.idx]
-	mov	bl, 1					//no idea what's meant to be in here
-							//but sellRoadVehicle wants 1
-	call	[sellroadvehicle]			//del trailer.
+	mov	bl, 1					;no idea what's meant to be in here
+							;but sellRoadVehicle wants 1
+	call	[sellroadvehicle]			;del trailer.
 	popad
 	push	eax
 	mov	ax, [edx+veh.idx]
 	cmp	ax, [edx+veh.engineidx]
 	pop	eax
-	jne	.recurseOut				//more trailers.
-	mov	word [edx+veh.nextunitidx], 0xFFFF	//is this needed?
-	jmp	sellRVTrailers				//head? back to top.
+	jne	.recurseOut				;more trailers.
+	mov	word [edx+veh.nextunitidx], 0xFFFF	;is this needed?
+	jmp	sellRVTrailers				;head? back to top.
 
 global updateTrailerPosAfterRVProc
 updateTrailerPosAfterRVProc:
@@ -291,8 +284,7 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 	shl	si, 7
 	add	esi, dword [veharrayptr]	;we now have the first trailers ptr.
 	pushad
-	;call	hackedTrailerRVProcessing	;see below.
-	;COMMENTED OUT..
+	call	RVTrailerProcessing	;see below.
 	popad
 	cmp	word [esi+veh.nextunitidx], 0xFFFF	;morE?
 	jne	.loopToNextTrailer
@@ -303,22 +295,64 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 ;-------------MY HACKY FUNCTION... THIS, in the end, NEEDS TO REPLICATE RVProcessing.
 ; BUT ONLY THE BITS WE NEED... EVERYONE CAN HELP WITH THIS :)))
 
-global hackedTrailerRVProcessing
-hackedTrailerRVProcessing:
-	test	word [esi+veh.vehstatus], 2
-	jnz	near .DontKnowJustQuit
-	cmp	byte [esi+0x66], 0x00
-	jz	.continueProcessing
-	inc	byte [esi+0x67]
-	cmp	byte [esi+0x67], 0x23
-	jb	.continueProcessing
-	mov	byte [esi+0x66], 0x00
 
-.continueProcessing:
-	call	[SetCurrentVehicleBBox]
-	movzx	ebx, byte [esi+veh.movementstat]
-	cmp	bl, 0FFh
-	jz	near .reEnter
+
+global RVTrailerProcessing
+RVTrailerProcessing:
+	inc	byte [esi+veh.cycle]
+	cmp	byte [esi+0x6A], 0
+	jz	short .skipCounter
+	dec	byte [esi+0x6A]		;what counter is this?
+.skipCounter:
+	cmp	word [esi+0x68], 0
+	jnz	.ProcessCrashedRV
+	call	[ChkForRVCollisionWithTrain]
+	cmp	byte [esi+veh.breakdowncountdown], 0
+	jz	short .noBreakDown
+	cmp	byte [esi+veh.breakdowncountdown], 2
+	jbe	short .breakDownRV		;if we're 2 or 1, since 0 gets skipped... we're broken
+						;2 == draw smoke, make noise, etc....
+						;1 == just tick down the breakdown timer...
+	dec	byte [esi+veh.breakdowncountdown]
+	jmp	short .noBreakDown		;otherwise just business as usual... though we have decrmented
+.ProcessCrashedRV:
+	jmp	[ProcessCrashedRV]
+.breakDownRV: 
+	call	[ProcessBrokenDownRV]
+	retn
+
+.noBreakDown:
+	test	word [esi+veh.vehstatus], 2		;2 == stopped... so just quit.
+	jnz	.justQUIT
+	call	[ProcessNextRVOrder]			;get next station, if necessary
+	call	[ProcessLoadUnload]			;process load/unload state
+	mov	ax, word [esi+veh.currorder]
+	and	al, 1Fh
+	cmp	al, 4				;4== _N0_IDEA_ (ie. not on way to station,depot,etc)
+	jz	short .notOnWayToStationDepotOrNowhere
+	cmp	al, 3				;3== loading/unloading
+	jnb	.justQUIT			;so if we're 3 or above... just quit...
+
+.notOnWayToStationDepotOrNowhere:
+	cmp	byte [esi+veh.movementstat], 0FEh
+	jz	.inDepot
+	call	[IncrementRVMovementFrac]			;process vehicle tick, if overflow then make movement
+	jb	short .haventHitMaxSpeed
+	retn
+
+.haventHitMaxSpeed:
+	cmp	byte [esi+0x66], 0		;are we overtaking?
+	jz	short .doTheOvertake
+	inc	byte [esi+0x67]
+	cmp	byte [esi+0x67], 23h		;seems that 23 is the max overtaking steps
+	jb	short .doTheOvertake
+	mov	byte [esi+0x66], 0		;stop overtaking.
+
+.doTheOvertake: 
+	call	[SetCurrentVehicleBBox]			;overtaking........
+	movzx	ebx, byte [esi+veh.movementstat]	;i'm not going to bother dechipering the following
+	cmp	bl, 0FFh				;movementstat of -1? what the!
+	jz	.skipOvertake
 	add	bl, byte [roadtrafficside]
 	xor	bl, byte [esi+0x66]
 	push	ecx
@@ -330,9 +364,9 @@ hackedTrailerRVProcessing:
 	add	ebx, edx
 	mov	dx, [ebx+2]
 	test	dl, 80h
-	jnz	.DontKnowJustQuit ;loc_165CD8					;WHAT SHOULD I DO HERE?
+	jnz	.CallPathfinderForNewTile			;Runs off and does pathfinder stuffssss  ?????????????????
 	test	dl, 40h
-	jnz	.DontKnowJustQuit ;loc_165E56					;WHAT SHOULD I DO HERE?
+	jnz	.Process2ndTurnInUTurn			;
 	mov	ax, word [esi+veh.xpos]
 	mov	cx, word [esi+veh.ypos]
 	and	al, 0F0h
@@ -340,28 +374,450 @@ hackedTrailerRVProcessing:
 	or	al, dl
 	or	cl, dh
 	mov	bl, dl
-	call	[ScrewWithRVDirection] ;sub_1659E6				;GET ADDRESS
+	call	[LimitTurnToFortyFiveDegrees]	;make sure new turn is only 45deg
 	mov	bl, byte [esi+veh.movementstat]
-;----------------------------cut out: (loc_165B05-loc_165B20)
+	cmp	bl, 20h				;are we going 'straight'?
+	jb	short .checkIfWeCanOvertake
+	cmp	bl, 30h				;we're turning, or something, don't even bother
+	jb	short .noNeedToAttemptOvertake
+
+.checkIfWeCanOvertake: 
+	call	[RVCheckCollisionWithRV]		;are we up the ass of an RV?
+	jnb	short .noNeedToAttemptOvertake	;no... continue
+	cmp	byte [esi+0x66], 0
+	jnz	.justQUIT
+	;call	[RVCheckOvertake]		;CANCELLED OUT.. conflicts with trams and is unecessary for trailers anyway.
+	jmp	.justQUIT
+; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+.noNeedToAttemptOvertake: 
 	mov	dh, byte [esi+veh.direction]
-	cmp	dl, dh
-	jz	.DontKnowJustQuit ;short loc_165B58			;needs work... something to do with stations
-	mov	byte [esi+veh.direction], dl
+	cmp	dl, dh				;We're turning, LimitTurnToFortyFiveDegrees has changed the dir.
+	jz	short .noTurnRequired
+	mov	byte [esi+veh.direction], dl	;shift in new direction
 	mov	dl, dh
-	mov	bp, word [esi+veh.speed]
-	shr	bp, 2
-	sub	word [esi+veh.speed], bp
+	mov	bp, word [esi+veh.speed]		;quarter the speed!
+	shr	bp, 2					;quarter the speed!
+	sub	word [esi+veh.speed], bp		;quarter the speed!
 	cmp	dl, bl
-	jz	.DontKnowJustQuit ;short loc_165B58			;needs work... something to do with stations
+	jz	short .noTurnRequired
 	mov	ax, word [esi+veh.xpos]
 	mov	cx, word [esi+veh.ypos]
 	movzx	bx, byte [esi+veh.direction]
 	call	[SelectRVSpriteByLoad]
 	call	[SetRoadVehObjectOffsets]
-	call	[UpdateRVPos] ;sub_166376					;GET ADDRESS
+	jmp	[RedrawRoadVehicle]
+; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
-.DontKnowJustQuit:
+.noTurnRequired:
+	movzx	ebx, byte [esi+veh.movementstat]
+	sub	bl, 20h
+	jb	.JustMoveIntoNextTile				;this is not a station!
+	add	bl, byte [roadtrafficside]
+	mov	bl, [byte_112552+ebx]				;the ends of the tiles? or maybe the ends of the stations.
+	cmp	bl, byte [esi+0x63]				;this is the px into the current tile 0x0-0xF
+	jnz	.JustMoveIntoNextTile
+	movzx	ebp, word [esi+veh.XY]				;ugh.. from here is station code... nasty
+	mov	bl, [landscape2+ebp]
+	mov	byte [vaTempLocation1], bl
+	mov	bx, word [esi+veh.currentorder]
+	and	bl, 1Fh
+	cmp	bl, 4
+	jz	loc_165C37
+	cmp	bl, 2
+	jz	loc_165C37
+	mov	bp, word [esi+veh.XY]
+	mov	edx, [station.busstop]
+	mov	al, byte [landscape5(bp,1)]
+	cmp	al, 43h
+	jb	short loc_165BBB
+	cmp	al, 47h
+	jnb	short loc_165BBB
+	mov	dl, [station.truckstop]
+
+loc_165BBB:
+	movzx	ebp, byte [vaTempLocation1]
+	imul	bp, 8Eh
+	add	ebp, [stationarrayptr]
+	and	byte ptr [edx+ebp], not 80h
+	mov	al, byte [vaTempLocation1]
+	mov	byte [esi+veh.laststation], al
+	call	[GenerateFirstRVArrivesMessage]
+	mov	ax, word [esi+veh.currorder]
+	mov	word [esi+veh.currorder], 3
+	mov	dl, al
+	and	dl, 1Fh
+	cmp	dl, 1
+	jnz	short loc_165C08
+	cmp	ah, byte [vaTempLocation1]
+	jnz	short loc_165C08
+	or	word [esi+veh.currorder], 80h
+	and	ax, 60h
+	or	word [esi+veh.currorder], ax
+
+loc_165C08:
+	mov	bCurrentExpensesType, companyexpenses.rvincome
+	call	[LoadUnloadCargo]	; in: esi->vehicle
+					; out: al=flags (see below)
+	or	al, al
+	jz	short loc_165C29
+	movzx	bx, byte [esi+veh.owner]
+	mov	al, cWinTypeRVList
+	call	[RefreshWindows]	; AL = window type
+					; AH = element idx (only if AL:7 set)
+					; BX = window ID (only if AL:6 clear)
+	call	[RefreshRoadVehicle]
+
+loc_165C29:
+	mov	bx, word [esi+veh.idx]
+	mov	ax, cWinTypeVehicle or cWinElemRel or cWinElem4
+	call	[RefreshWindows]	; AL = window type
+					; AH = element idx (only if AL:7 set)
+					; BX = window ID (only if AL:6 clear)
 	retn
+; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
-.reEnter:
-	jmp	near [RVProcReEntry] ;loc_165F00
+loc_165C37:
+	push	ax
+	mov	 word [esi+veh.XY]
+                mov     ebx, station.busstat
+	mov	al, byte [landscape5(bp,1)]
+	cmp	al, 43h
+	jb	short loc_165C51
+	cmp	al, 47h
+	jnb	short loc_165C51
+                mov     bl, station.lorrystat
+
+loc_165C51:
+	movzx	ebp, byte [vaTempLocation1]
+	imul	bp, 8Eh
+	add	ebp, [stationarrayptr]
+	mov	ax, word [esi+veh.currentorder]
+	and	al, 1Fh
+	cmp	al, 2
+	jz	short loc_165C7A
+	test	byte [ebx+ebp], 80h
+	jz	short loc_165C7A
+	pop	ax
+	jmp	.zeroSpeedAndReturn
+; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+loc_165C7A:
+	or	byte [ebx+ebp], 80h
+	mov	ax, word [esi+veh.currentorder]
+	and	al, 1Fh
+	cmp	al, 2
+	jz	short loc_165C8E
+	mov	word [esi+veh.currorder], 0
+
+loc_165C8E:
+	call	RVStartSound
+	mov	bx, word [esi+veh.idx]
+	mov	ax, cWinTypeVehicle or cWinElemRel or cWinElem4
+	call	RefreshWindows		; AL = window type
+					; AH = element idx (only if AL:7 set)
+					; BX = window ID (only if AL:6 clear)
+	pop     ax
+
+.JustMoveIntoNextTile:
+	mov	bp, word [esi+veh.XY]
+	call	VehEnterLeaveTile
+	or	ebp, ebp
+	js	.zeroSpeedAndReturn
+	test	ebp, 40000000h
+	jnz	short loc_165CBE
+	inc	byte [esi+0x63]
+
+loc_165CBE:
+	movzx	bx, byte [esi+veh.direction]
+	call	SelectRVSpriteByLoad
+	call	SetRoadVehObjectOffsets
+	call	RedrawRoadVehicle
+	call	RVMountainSpeedManagement
+
+.justQUIT:
+	retn
+; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+.CallPathfinderForNewTile:
+	and	edx, 3
+	mov	byte [byte_11258E], dl			;seems to be a temp location for dl... which is the new movement stat?
+	mov	di, word [esi+veh.XY]
+	add	di, word_11257A[edx*2]
+	push	di
+	call	[RoadVehiclePathFinder]
+	pop	di
+	bt	bx, dx
+	jb	.zeroSpeedAndReturn
+
+.loopThisChunkAgain:
+	mov	al, dl
+	and	al, 7
+	cmp	al, 6
+	jb	short .dontMoveInXY
+	mov	di, word [esi+veh.XY]
+
+.dontMoveInXY:
+	and	edx, 0FFh
+	add	dl, byte [roadtrafficside]
+	xor	dl, byte [esi+0x66]
+	push	ecx
+	mov	ecx, dword [off_111D62]
+	mov	ebx, [ecx+ebx*4]
+	pop	ecx
+	mov	bp, di
+	rol	di, 4
+	mov	ax, di
+	mov	cx, di
+	rol	cx, 8
+	and	ax, 0FF0h
+	and	cx, 0FF0h
+	add	al, [ebx]
+	add	cl, [ebx+1]
+	mov	bl, dl
+	and	bl, 0EFh
+	push	bx
+	call	LimitTurnToFortyFiveDegrees
+	pop	bx
+	call	RVCheckCollisionWithRV
+	jb	short .justQUIT
+	call	VehEnterLeaveTile
+	or	ebp, ebp				;we can't move into the next tile
+	js	.checkForTunnelOrTryAgain
+	push	ax
+	push	ebx
+	push	ebp
+	mov	ah, byte [esi+veh.movementstat]
+	cmp	ah, 20h					;station maneuver?
+	jb	short .finaliseAndMove
+	cmp	ah, 30h
+	jnb	short .finaliseAndMove
+	mov	dh, bl
+	movzx	ebx, [esi+veh.XY]
+	mov	al, byte [landscape4(bx)]
+	and	al, 0F0h
+	cmp	al, 50h
+	jnz	short .finaliseAndMove
+	mov	al, dh					;otherwise we're entering a station! (or exiting)
+	and	al, 7
+	cmp	al, 6
+	jnb	short .stopVehicleEntirely
+	mov	al, [landscape5(bx,1)]
+	movzx	ebx, [landscape2+ebx]
+	imul	bx, 8Eh
+	add	ebx, [stationarrayptr]
+	cmp	al, 43h
+	jb	short .workWithBusStops
+	cmp	al, 47h
+	jb	short .workWithTruckStops
+
+.workWithBusStops:
+	cmp	al, 47h
+	jb	short .finaliseAndMove
+	cmp	al, 4Bh
+	jnb	short .finaliseAndMove
+	mov	al, 1
+	test	ah, 2
+	jz	short .dontChangeALForBusStop
+	shl	al, 1
+
+.dontChangeALForBusStop:
+	or	al, byte [ebx+station.busstop]
+	and	al, not 80h
+	mov	byte [ebx+station.busstop], al
+	jmp	short .finaliseAndMove
+; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+.stopVehicleEntirely:
+	pop	ebp
+	pop	ebx
+	pop	ax
+	mov	word [esi+veh.speed], 0
+	retn
+; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+.workWithTruckStops:
+	mov	al, 1
+	test	ah, 2
+	jz	short .dontChangeALForTruckStop
+	shl	al, 1
+
+.dontChangeALForTruckStop:
+	or	al, byte [ebx+station.truckstop]
+	and	al, 7Fh
+	mov	byte [ebx+station.truckstop], al
+
+.finaliseAndMove:
+	pop	ebp
+	pop	ebx
+	pop	ax
+	test	ebp, 40000000h
+	jnz	short .dontActuallyMoveVehicle		;something failed and we can't use this move.
+	mov	word [esi+veh.XY], bp
+	mov	byte [esi+veh.movementstat], bl
+	mov	byte [esi+0x63], 0
+
+.dontActuallyMoveVehicle:
+	cmp	dl, byte [esi+veh.direction]
+	jz	short .weAreNotTurning
+	mov	byte [esi+veh.direction], dl		;change direction
+	mov	bp, word [esi+veh.speed]		;slow down
+	shr	bp, 2					;slow down
+	sub	word [esi+veh.speed], bp		;slow down
+
+.weAreNotTurning:
+	movzx	bx, byte [esi+veh.direction]
+	call	[SelectRVSpriteByLoad]
+	call	[SetRoadVehObjectOffsets]
+	call	[RedrawRoadVehicle]
+	jmp	[RVMountainSpeedManagement]
+; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+.checkForTunnelOrTryAgain:
+	mov	bl, fs:[bp+0]
+	and	bl, 0F0h
+	cmp	bl, 90h
+	jnz	.zeroSpeedAndReturn
+	movzx	ebx, byte [byte_11258E]
+	movzx	dx, byte ptr unk_112582[ebx]
+	jmp	.loopThisChunkAgain
+; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+.Process2ndTurnInUTurn:					;seems to be called only when we're doing a UTURN
+	and	edx, 3
+	mov	di, word [esi+veh.XY]
+	push	di
+	call	[RoadVehiclePathFinder]
+	pop	di
+	bt	bx, dx
+	jb	.zeroSpeedAndReturn
+	and	edx, 0FFh
+	add	bl, byte [roadtrafficside]
+	push	ecx
+	mov	ecx, dword [off_111D62]
+	mov	ebx, [ecx+ebx*4]
+	pop	ecx
+	mov	bp, di
+	rol	di, 4
+	mov	ax, di
+	mov	cx, di
+	rol	cx, 8
+	and	ax, 0FF0h
+	and	cx, 0FF0h
+	add	al, [ebx+2]
+	add	cl, [ebx+3]
+	mov	bl, dl
+	and	bl, 0EFh
+	push	bx
+	call	[LimitTurnToFortyFiveDegrees]
+	pop	bx
+	call	[RVCheckCollisionWithRV]
+	jb	.justQUIT
+	call	[VehEnterLeaveTile]
+	or	ebp, ebp
+	js	short .zeroSpeedAndReturn
+	mov	byte [esi+veh.movementstat], bl
+	mov	byte [esi+0x63], 1
+	cmp	dl, byte [esi+veh.direction]
+	jz	short .skipTurnCode
+	mov	byte [esi+veh.direction], dl
+	mov	bp, word [esi+veh.speed]
+	shr	bp, 2
+	sub	word [esi+veh.speed], bp
+
+.skipTurnCode:
+	movzx	bx, byte [esi+veh.direction]
+	call	[SelectRVSpriteByLoad]
+	call	[SetRoadVehObjectOffsets]
+	call	[RedrawRoadVehicle]
+	jmp	[RVMountainSpeedManagement]
+
+; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+.zeroSpeedAndReturn:
+	mov	word [esi+veh.speed], 0
+	retn
+; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+.skipOvertake:
+	call	GetVehicleNewPos		; ESI -> vehicle
+						; Return: AX,CX = new X,Y coordinates
+						;         DI = new XY index
+						;         EBX = current XY index
+						;         ZF set if BX=DI
+	mov	dl, byte [esi+veh.direction]
+	call	RVCheckCollisionWithRV		;check if there is a vehicle 'in front' of us.
+	jb	short .zeroSpeedAndReturn
+	mov	dl, fs:[di]			;landscape 4
+	and	dl, 0F0h
+	cmp	dl, 90h				;IS THIS A STATION?
+	jnz	short .notJustRoad
+	test	byte [landscape5(di,1)], 0F0h		;IS THIS LEVEL CROSSING OR DEPOT?
+	jnz	short .notJustRoad
+	mov	bp, di
+	call	VehEnterLeaveTile
+	test	ebp, 40000000h			;are we entering a new tile? or just moving forward?
+	jnz	short .enterNewTile
+
+.notJustRoad:
+	mov	word [esi+veh.X], ax
+	mov	word [esi+veh.Y], cx
+	call	UpdateVehicleSpriteBox
+	retn
+; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+.enterNewTile:
+	call	UpdateDirectionIfMovedTooFar	;checks if the calculated positions are more than one pixel
+						;greater than the previous positions and then changes the direction
+						;(well, moves it into bl)
+	push	bx				;but now we mask the new direction
+	movzx	bx, byte [esi+veh.direction]
+	call	SelectRVSpriteByLoad	;why do we want to use the current direction instead of the new one?
+	call	SetRoadVehObjectOffsets	;this func doesn't even care for any input params, except esi
+					;from which it gets veh.direction.
+	pop	bx
+	call	RedrawRoadVehicle
+	retn
+; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+.inDepot:
+	mov	[esi+veh.speed], 0			;exit depot
+	mov	di, [esi+veh.XY]
+	mov	bl, byte [landscape5(di,1)]
+	and	ebx, 3
+	mov	dl, byte ptr unk_1125DB[ebx]		;Direction to leave depot
+	mov	[esi+veh.direction], dl			;set vehicles direction
+	mov	bl, byte ptr unk_1125D7[ebx]		;next move after depot?
+	mov	dl, byte [roadtrafficside]
+	and	edx, 7Fh
+	add	dl, bl
+	push	ecx
+	mov	ecx, dword [off_111D62]
+	mov	ebx, [ecx+ebx*4]
+	pop	ecx					;get the movementstat for the next move!?!?!?!?
+	rol	di, 4
+	mov	ax, di
+	mov	cx, di
+	rol	cx, 8
+	and	ax, 0FF0h
+	and	cx, 0FF0h
+	add	al, byte [edx+0Ch]			;set up the collision box.
+	add	cl, byte [edx+0Dh]			;and this is the other coord of the box
+	mov	dl, byte [esi+veh.direction]
+	call	[RVCheckCollisionWithRV]			;is there an RV in the way?
+	jb	.zeroSpeedAndReturn			;don't move!
+	call	[RVStartSound]				;make noise.
+	and	byte [roadtrafficside], 7Fh
+	push	ax
+	call	[SetCurrentVehicleBBox]
+	pop	ax
+	and	word [esi+veh.status], 0FFFEh		;set all the relevant starting values
+	mov	byte [esi+veh.movementstat], bl
+	mov	byte [esi+0x63], 6			;what the hell is this?
+	movzx	bx, byte [esi+veh.direction]
+	call	[SelectRVSpriteByLoad]
+	call	[SetRoadVehObjectOffsets]
+	call	[RedrawRoadVehicle]
+	mov	al, 12h ;cWinTypeDepot
+	mov	bx, word [esi+veh.XY]
+	call	[RefreshWindows]
+	retn

@@ -45,7 +45,6 @@ extern updateTrailerPosAfterRVProc, updateTrailerPosAfterRVProc.origfn
 extern turnTrailersAroundToo
 
 extern ScrewWithRVDirection, UpdateRVPos, SetRoadVehObjectOffsets, SelectRVSpriteByLoad, SetCurrentVehicleBBox, off_111D62
-extern RVProcReEntry
 
 patchproc articulatedrvs, patcharticulatedvehicles
 
@@ -147,36 +146,45 @@ begincodefragments
 		mov	esi, edi
 
 ;----new shit to try and replicate RVProc
-	codefragment findScrewWithRVDirection, -12
+	codefragment findLimitTurnToFortyFiveDegrees, -12
 		inc	dl
 		and	dl, 7
-
-	codefragment findUpdateRVPos, 1
+	codefragment findRedrawRoadVehicle, 1
 		retn
 		push	bx
 		mov	word [esi+veh.xpos], ax
-
 	codefragment findSetRoadVehObjectOffsets
 		push	ebx
 		movzx	ebx, byte [esi+veh.direction]
-
 	codefragment findSelectRVSpriteByLoad
 		push	ax
 		push	edi
 		movzx	edi, byte [esi+veh.spritetype]
-
 	codefragment findSetCurrentVehicleBBox, 1
 		retn
 		mov	ax, word [esi+0x2A]	;spritebox.x1
-
 	codefragment findWhatIThinkIsMovementSchemes, -4
 		movzx	edx, byte [esi+0x63]
-
-	codefragment findJumpBackIntoRVProc, 2
-		pop	ax
-		test	ebp, 40000000h
-
-
+	codefragment findGenerateFirstRVArrivesMessage
+		and	eax, 0FFh
+		imul	ax, 8Eh
+	codefragment findTwoStationFunctionsInRVProcessing, -13
+		and	al, 1Fh
+		cmp	al, 4
+	codefragment findIncrementRVMovementFrac
+		mov	ax, word [esi+veh.speed]
+		inc	ax
+	codefragment findProcessCrashedRV
+		inc	word [esi+0x68]
+	codefragment findChkForCollisionWithTrain
+		cmp	byte [esi+veh.movementstat], 0xFF
+	codefragment findRVCheckCollisionWithRV
+		cmp	byte [esi+0x6A], 0
+	codefragment findbyte_112552
+		db 0x14,0x14,0x10,0x10,0x00,0x00,0x00,0x00
+	codefragment findRVMountainSpeedManagement, 1
+		retn
+		cmp	dl, byte [esi+veh.zpos]
 endcodefragments
 
 patcharticulatedvehicles:
@@ -232,10 +240,10 @@ patcharticulatedvehicles:
 	chainfunction updateTrailerPosAfterRVProc, .origfn, 1
 
 ;------------new stuffs.
-	stringaddress findScrewWithRVDirection, 1, 1
-	mov	[ScrewWithRVDirection], edi
-	stringaddress findUpdateRVPos, 2, 2
-	mov	[UpdateRVPos], edi
+	stringaddress findLimitTurnToFortyFiveDegrees, 1, 1
+	mov	[LimitTurnToFortyFiveDegrees], edi
+	stringaddress findRedrawRoadVehicle, 2, 2
+	mov	[RedrawRoadVehicle], edi
 	stringaddress findSetRoadVehObjectOffsets, 1, 1
 	mov	[SetRoadVehObjectOffsets], edi
 	stringaddress findSelectRVSpriteByLoad, 2, 2
@@ -245,7 +253,22 @@ patcharticulatedvehicles:
 	stringaddress findWhatIThinkIsMovementSchemes
 	mov	edi, [edi]
 	mov	dword [off_111D62], edi
-
-	stringaddress findJumpBackIntoRVProc, 2, 3
-	mov	dword [RVProcReEntry], edi
+	storeaddress findGenerateFirstRVArrivesMessage, 1, 1
+	mov	dword [GenerateFirstRVArrivesMessage], edi
+	storeaddress findTwoStationFunctionsInRVProcessing, 1, 1
+	mov	dword [ProcessNextRVOrder], edi
+	mov	edi, [edi+5]
+	mov	dword [ProcessLoadUnload], edi
+	storeaddress findIncrementRVMovementFrac, 1, 2
+	mov	dword [IncrementRVMovementFrac], edi
+	storeaddress findProcessCrashedRV, 2, 2
+	mov	dword [ProcessCrashedRV], edi
+	storeaddress findChkForCollisionWithTrain, 2, 2
+	mov	dword [ChkForRVCollisionWithTrain], edi
+	storeaddress findRVCheckCollisionWithRV, 3, 3
+	mov	dword [RVCheckCollisionWithRV], edi
+	storeaddress findbyte_112552, 1, 1
+	mov	dword [byte_112552], edi
+	storeaddress findRVMountainSpeedManagement, 2, 2
+	mov	dword [RVMountainSpeedManagement], edi
 	retn
