@@ -301,7 +301,7 @@ ${OTMP}%.wpo : %.c
 ttdprotd.pe ttdprotd.map: $(asmdobjs) reloc.a
 ttdprotw.pe ttdprotw.map: $(asmwobjs) reloc.a
 
-.INTERMEDIATE: ttdprotd.pe ttdprotw.pe
+.INTERMEDIATE: ttdprotd.pe ttdprotw.pe ttdprotd.exe ttdprotw.exe
 
 IMAGEBASE_d=0x200000
 IMAGEBASE_w=0x600000
