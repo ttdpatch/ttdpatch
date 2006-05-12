@@ -39,7 +39,7 @@ uvard ProcessNextRVOrder
 uvard ProcessLoadUnload
 uvard IncrementRVMovementFrac
 uvard ProcessCrashedRV
-uvard ProcessBrokenDownRV
+;uvard ProcessBrokenDownRV
 uvard ChkForRVCollisionWithTrain
 uvard RVCheckCollisionWithRV
 uvard RVMountainSpeedManagement
@@ -86,26 +86,23 @@ global shiftInParentMovement
 shiftInParentMovement:
 	cmp	word [esi+veh.nextunitidx], 0xFFFF
 	je	.justReturnNoPop
-	push	esi
+;	push	esi
 	push	eax
 	push	dx
 	mov	dl, byte [esi+veh.movementstat]
-.loopTrailers:
+;.loopTrailers:
 	movzx	eax, word [esi+veh.nextunitidx]
 	shl	ax, 7
 	add	eax, [veharrayptr]
-	mov	byte [eax+veh.movementstat], dl
-	;mov	byte [eax+0x63], 6
-	;and	word [esi+veh.vehstatus], 0xFFFE
-	;mov	byte [esi+veh.direction], bl
-	cmp	word [eax+veh.nextunitidx], 0xFFFF
-	je	.justReturn
-	mov	esi, eax
-	jmp	.loopTrailers
-.justReturn:
+	mov	byte [eax+veh.parentmvstat], dl
+;	cmp	word [eax+veh.nextunitidx], 0xFFFF
+;	je	.justReturn
+;	mov	esi, eax
+;	jmp	.loopTrailers
+;justReturn:
 	pop	dx
 	pop	eax
-	pop	esi
+;	pop	esi
 .justReturnNoPop:
 	retn
 
@@ -168,35 +165,6 @@ checkIfTrailerAndStartInDepot:
 	je	.jumpToEnd
 	cmp	byte [esi+veh.movementstat], 0FEh
 	je	.jumpToEnd
-	retn
-
-global setTrailerToMax
-setTrailerToMax:
-	push	eax
-	mov	ax, [esi+veh.engineidx]
-	cmp	ax, [esi+veh.idx]
-	pop	eax
-	je	.notATrailer
-	mov	ax, word [esi+veh.maxspeed]
-	inc	ax	// -
-	inc	ax	// |
-	inc	ax	// |-----> used to give me bytes to play with in olly
-	inc	ax	// |
-	inc	ax	// |
-	inc	ax	// |
-	inc	ax	// -
-	inc	ax
-	inc	ax
-	inc	ax
-	inc	ax
-	inc	ax
-	inc	ax
-	inc	ax
-	inc	ax
-	retn
-.notATrailer:
-	mov	bx, word [esi+veh.maxspeed]
-	cmp	ax, bx
 	retn
 
 global dontOpenRVWindowForTrailer
@@ -274,17 +242,28 @@ ovar .origfn, -4, $, sellRVTrailers
 
 global updateTrailerPosAfterRVProc
 updateTrailerPosAfterRVProc:
+	mov	byte [runTrailer], 0
 	push	ebx
 	movzx	ebx, word [esi+veh.engineidx]
 	cmp	bx, word [esi+veh.idx]
 	pop	ebx
 	jne	.justQuit			;engine? continue: not? quit.
+	push	bx
+	mov	bl, byte [esi+veh.movementfract]
 	pushad
 	call	near $
 ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 	popad
+	cmp	bl, byte [esi+veh.movementfract]
+	pop	bx
+	jb	.setTrailerFlag
+	jmp	.continueRunningTrailers
+.setTrailerFlag:
+	mov	byte [runTrailer], 1
+.continueRunningTrailers:
 	cmp	word [esi+veh.nextunitidx], 0xFFFF	;trailers? continue.
 	je	.justQuit
+	;now we need to check if rvproc was actually run, there is a ticker inside that stops it run on every call.
 	push	esi
 .loopToNextTrailer:
 	movzx	esi, word [esi+veh.nextunitidx]
@@ -302,9 +281,9 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 ;-------------MY HACKY FUNCTION... THIS, in the end, NEEDS TO REPLICATE RVProcessing.
 ; BUT ONLY THE BITS WE NEED... EVERYONE CAN HELP WITH THIS :)))
 
-var unk_1125D7,		db 0x00,0x01,0x08,0x09
-var unk_1125DB,		db 0x01,0x03,0x05,0x07,0x90
-
+var	unk_1125D7,		db 0x00,0x01,0x08,0x09
+var	unk_1125DB,		db 0x01,0x03,0x05,0x07,0x90
+uvarb	runTrailer
 
 global RVTrailerProcessing
 RVTrailerProcessing:
@@ -315,19 +294,22 @@ RVTrailerProcessing:
 .skipCounter:
 	cmp	word [esi+0x68], 0
 	jnz	.ProcessCrashedRV
-	call	[ChkForRVCollisionWithTrain]
-	cmp	byte [esi+veh.breakdowncountdown], 0
-	jz	short .noBreakDown
-	cmp	byte [esi+veh.breakdowncountdown], 2
-	jbe	short .breakDownRV		;if we're 2 or 1, since 0 gets skipped... we're broken
+
+	;breakdowns and collisions need to be shifted in from the parent...
+
+	;call	[ChkForRVCollisionWithTrain]
+	;cmp	byte [esi+veh.breakdowncountdown], 0		we don't care for breakdowns... the head will work this out.
+	;jz	short .noBreakDown
+	;cmp	byte [esi+veh.breakdowncountdown], 2
+	;jbe	short .breakDownRV		;if we're 2 or 1, since 0 gets skipped... we're broken
 						;2 == draw smoke, make noise, etc....
 						;1 == just tick down the breakdown timer...
-	dec	byte [esi+veh.breakdowncountdown]
+	;dec	byte [esi+veh.breakdowncountdown]
 	jmp	short .noBreakDown		;otherwise just business as usual... though we have decrmented
 .ProcessCrashedRV:
 	jmp	[ProcessCrashedRV]
 .breakDownRV:
-	call	[ProcessBrokenDownRV]
+	;call	[ProcessBrokenDownRV]
 	retn
 
 .noBreakDown:
@@ -346,10 +328,13 @@ RVTrailerProcessing:
 	cmp	byte [esi+veh.movementstat], 0FEh
 	jz	near .inDepot
 	call	[IncrementRVMovementFrac]			;process vehicle tick, if overflow then make movement
-	jb	short .haventHitMaxSpeed
+	;jb	short .makeAMove				;needs to be called... but we don't want it governing whether or not
+								;this process runs!
+	cmp	byte [runTrailer], 1
+	je	.makeAMove
 	retn
 
-.haventHitMaxSpeed:
+.makeAMove:
 	cmp	byte [esi+0x66], 0		;are we overtaking?
 	jz	short .doTheOvertake
 	inc	byte [esi+0x67]
@@ -396,6 +381,7 @@ RVTrailerProcessing:
 	;cmp	byte [esi+0x66], 0
 	;jnz	near .justQUIT
 	;call	[RVCheckOvertake]		;CANCELLED OUT.. conflicts with trams and is unecessary for trailers anyway.
+	;but we'll feed in the flags from the parent anyway.
 	jmp	near .justQUIT
 ; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
@@ -405,9 +391,9 @@ RVTrailerProcessing:
 	jz	short .noTurnRequired
 	mov	byte [esi+veh.direction], dl	;shift in new direction
 	mov	dl, dh
-	mov	bp, word [esi+veh.speed]		;quarter the speed!
-	shr	bp, 2					;quarter the speed!
-	sub	word [esi+veh.speed], bp		;quarter the speed!
+;	mov	bp, word [esi+veh.speed]		;quarter the speed!
+;	shr	bp, 2					;quarter the speed!
+;	sub	word [esi+veh.speed], bp		;quarter the speed!
 	cmp	dl, bl
 	jz	short .noTurnRequired
 	mov	ax, word [esi+veh.xpos]
@@ -578,7 +564,7 @@ RVTrailerProcessing:
 	xor	dl, byte [esi+0x66]
 	push	ecx
 	mov	ecx, dword [off_111D62]
-	mov	ebx, [ecx+ebx*4]
+	mov	ebx, [ecx+edx*4]
 	pop	ecx
 	mov	bp, di
 	rol	di, 4
@@ -669,7 +655,7 @@ RVTrailerProcessing:
 	test	ebp, 40000000h
 	jnz	short .dontActuallyMoveVehicle		;something failed and we can't use this move.
 	mov	word [esi+veh.XY], bp
-	mov	byte [esi+veh.movementstat], bl
+	call	useParentMovement	;mov	byte [esi+veh.movementstat], bl
 	mov	byte [esi+0x63], 0
 
 .dontActuallyMoveVehicle:
@@ -734,14 +720,14 @@ RVTrailerProcessing:
 	call	[VehEnterLeaveTile]
 	or	ebp, ebp
 	js	short .zeroSpeedAndReturn
-	mov	byte [esi+veh.movementstat], bl
+	call	useParentMovement	;mov	byte [esi+veh.movementstat], bl
 	mov	byte [esi+0x63], 1
 	cmp	dl, byte [esi+veh.direction]
 	jz	short .skipTurnCode
 	mov	byte [esi+veh.direction], dl
-	mov	bp, word [esi+veh.speed]
-	shr	bp, 2
-	sub	word [esi+veh.speed], bp
+;	mov	bp, word [esi+veh.speed]		kill the turn speed slowdown...
+;	shr	bp, 2
+;	sub	word [esi+veh.speed], bp
 
 .skipTurnCode:
 	movzx	bx, byte [esi+veh.direction]
@@ -765,6 +751,7 @@ RVTrailerProcessing:
 	mov	dl, byte [esi+veh.direction]
 	call	[RVCheckCollisionWithRV]		;check if there is a vehicle 'in front' of us.
 	jb	short .zeroSpeedAndReturn
+	
 	mov	dl, byte [landscape4(di)]			;landscape 4
 	and	dl, 0F0h
 	cmp	dl, 90h				;IS THIS A STATION?
@@ -829,7 +816,7 @@ RVTrailerProcessing:
 	call	[SetCurrentVehicleBBox]
 	pop	ax
 	and	word [esi+veh.vehstatus], 0FFFEh		;set all the relevant starting values
-	mov	byte [esi+veh.movementstat], bl
+	call	useParentMovement	;mov	byte [esi+veh.movementstat], bl
 	mov	byte [esi+0x63], 6			;what the hell is this?
 	movzx	bx, byte [esi+veh.direction]
 	call	[SelectRVSpriteByLoad]
@@ -838,4 +825,42 @@ RVTrailerProcessing:
 	mov	al, 12h ;cWinTypeDepot
 	mov	bx, word [esi+veh.XY]
 	call	[RefreshWindows]
+	retn
+
+global	useParentMovement
+useParentMovement:
+	push	eax
+	push	edx
+	push	ecx
+	movzx	edx, byte [esi+veh.movementstat]
+	cmp	byte [esi+veh.parentmvstat], 0
+	jl	.justUseParent
+	cmp	byte [esi+veh.parentmvstat], 0x20
+	jg	.justUseParent
+	cmp	dl, byte [esi+veh.parentmvstat]
+	je	.moveTheValueIn
+	jl	.manageLess
+.manageMore:
+	sub	dl, 0x1
+	jmp	.moveTheValueIn
+.manageLess:
+	add	dl, 0x1
+	jmp	.moveTheValueIn
+.justUseParent:
+	movzx	edx, byte [esi+veh.parentmvstat]
+.moveTheValueIn:
+	mov	byte [esi+veh.movementstat], dl
+	mov	eax, esi
+;.loopTrailers:
+	cmp	word [eax+veh.nextunitidx], 0xFFFF
+	je	.noTrailer
+	movzx	eax, word [esi+veh.nextunitidx]
+	shl	ax, 7
+	add	eax, [veharrayptr]
+	mov	byte [eax+veh.parentmvstat], dl
+;	jmp	.loopTrailers
+.noTrailer:
+	pop	ecx
+	pop	edx
+	pop	eax
 	retn

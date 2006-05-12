@@ -58,7 +58,7 @@ extern ProcessNextRVOrder
 extern ProcessLoadUnload
 extern IncrementRVMovementFrac
 extern ProcessCrashedRV
-extern ProcessBrokenDownRV
+;extern ProcessBrokenDownRV
 extern ChkForRVCollisionWithTrain
 extern RVCheckCollisionWithRV
 extern RVMountainSpeedManagement
@@ -121,14 +121,6 @@ begincodefragments
 
 	codefragment startTrailerInDepot
 		icall	checkIfTrailerAndStartInDepot
-
-	codefragment oldIncrementRVSpeed
-		mov	bx, word [esi+veh.maxspeed]
-		cmp	ax, bx
-
-	codefragment newIncrementRVSpeed
-		icall	setTrailerToMax
-		nop
 
 	codefragment oldOpenRVWindow
 		mov	cl, 0Dh
@@ -193,7 +185,8 @@ begincodefragments
 		and	eax, 0FFh
 		imul	ax, 8Eh
 	codefragment findProcessNextRVOrder, -10
-		mov     al, byte [esi+veh.totalorders]
+		mov	al, byte [esi+veh.totalorders]
+		cmp	al, byte [esi+veh.currorderidx]
 	codefragment findProcessLoadUnload
 		mov	ax, word [esi+veh.currorder]
 		or	ax, ax
@@ -271,14 +264,13 @@ patcharticulatedvehicles:
 	patchcode oldRVCollisionCheck, newRVCollisionCheck, 2, 3
 #endif
 
-	;patchcode oldIncrementRVSpeed, newIncrementRVSpeed, 1, 1	;deprecated.
+	patchcode oldRVCollisionTimeout, newRVCollisionTimeout, 1, 1
 
 ;probably should re-enable eventually.
 	;patchcode oldOpenRVWindow, newOpenRVWindow, 2, 4
 	;patchcode oldListRVsInDepotWindow, newListRVsInDepotWindow, 2, 2
 	;stringaddress oldSellRoadVehicle, 2+WINTTDX, 5
 	;chainfunction sellRVTrailers, .origfn, 1
-	;patchcode oldRVCollisionTimeout, newRVCollisionTimeout, 1, 1
 
 	;patchcode oldAddRVScheduleWhenBuilding, newAddRVScheduleWhenBuilding, 2, 4
 
@@ -292,11 +284,11 @@ patcharticulatedvehicles:
 ;------------new stuffs.
 	stringaddress findLimitTurnToFortyFiveDegrees, 1, 1
 	mov	[LimitTurnToFortyFiveDegrees], edi
-	stringaddress findRedrawRoadVehicle, 2, 2
+	stringaddress findRedrawRoadVehicle, 2-WINTTDX, 2
 	mov	[RedrawRoadVehicle], edi
 	stringaddress findSetRoadVehObjectOffsets, 1, 1
 	mov	[SetRoadVehObjectOffsets], edi
-	stringaddress findSelectRVSpriteByLoad, 2, 2
+	stringaddress findSelectRVSpriteByLoad, 2-WINTTDX, 2
 	mov	[SelectRVSpriteByLoad], edi
 	stringaddress findSetCurrentVehicleBBox, 1, 2
 	mov	[SetCurrentVehicleBBox], edi
@@ -305,10 +297,10 @@ patcharticulatedvehicles:
 	mov	dword [off_111D62], edi
 	stringaddress findGenerateFirstRVArrivesMessage, 2, 4
 	mov	dword [GenerateFirstRVArrivesMessage], edi
-	stringaddress findProcessNextRVOrder, 5+WINTTDX, 7
-#if WINTTDX
-	sub	edi, 11
-#endif
+	stringaddress findProcessNextRVOrder, 2, 4
+;#if WINTTDX
+;	sub	edi, 11
+;#endif
 	mov	dword [ProcessNextRVOrder], edi
 	stringaddress findProcessLoadUnload, 2, 4
 	mov	dword [ProcessLoadUnload], edi
@@ -321,7 +313,6 @@ patcharticulatedvehicles:
 	stringaddress findRVCheckCollisionWithRV, 3, 3
 	mov	dword [RVCheckCollisionWithRV], edi
 	stringaddress findbyte_112552, 1, 1
-	mov	edi, [edi]
 	mov	dword [byte_112552], edi
 	stringaddress findRVMountainSpeedManagement, 1, 1
 	mov	dword [RVMountainSpeedManagement], edi
@@ -333,7 +324,7 @@ patcharticulatedvehicles:
 	mov	dword [unk_112582], edi
 	stringaddress findVehEnterLeaveTile, 1, 1
 	mov	dword [VehEnterLeaveTile], edi
-	stringaddress findRVStartSound, 1, 3
+	stringaddress findRVStartSound, 1+WINTTDX, 3
 	mov	dword [RVStartSound], edi
 	stringaddress findRoadVehiclePathFinder, 1, 2
 	mov	dword [RoadVehiclePathFinder], edi
@@ -341,6 +332,6 @@ patcharticulatedvehicles:
 	mov	dword [GetVehicleNewPos], edi
 	stringaddress findUpdateVehicleSpriteBox, 1, 1
 	mov	dword [UpdateVehicleSpriteBox], edi
-	stringaddress findUpdateDirectionIfMovedTooFar, 2, 3
+	stringaddress findUpdateDirectionIfMovedTooFar, 2-WINTTDX, 3
 	mov	dword [UpdateDirectionIfMovedTooFar], edi
 	retn
