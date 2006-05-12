@@ -474,7 +474,7 @@ ttdpatch.exe:
 	${_C}cp $(if $(findstring .exe,$<),$<,$<.exe) $@
 	${_C}$(STRIPD) $@
 ifndef NOUPX
-	${_C}upx -qqq --best $@
+	${_C}${UPX} -qqq --best $@
 endif
 	${_C}${CAT} language.dat loaderd.bin ttdprotd.bin relocd.bin >> $@
 
@@ -483,7 +483,7 @@ ttdpatchw.exe:
 	${_C}cp $(if $(findstring .exe,$<),$<,$<.exe) $@
 	${_C}${STRIP} -s $@
 ifndef NOUPX	
-	${_C}upx -qqq --best --compress-icons=0 $@
+	${_C}${UPX} -qqq --best --compress-icons=0 $@
 endif
 	${_C}${CAT} language.dat loaderw.bin ttdprotw.bin relocw.bin patchdll.bin >> $@
 

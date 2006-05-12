@@ -13,8 +13,8 @@ TARGETPREF = $(subst gcc,,${CC})
 CXX = $(TARGETPREF)g++
 AS = $(TARGETPREF)as
 
-CFLAGS = -g -Os -mno-cygwin -Wall
-LDOPTS = -Wl,--subsystem,windows,-s -ldsound -mno-cygwin
+CFLAGS = -g -Os -mno-cygwin -Wall ${CFLAGS-DLL}
+LDOPTS = -Wl,--subsystem,windows,-s -ldsound -mno-cygwin ${LDOPTS-DLL}
 #LDOPTS = -Wl,--subsystem,console
 LDOPTS += -lshlwapi
 DLLOPTS = $(LDOPTS) -Wl,--enable-auto-image-base,-e,_DllMain@12
