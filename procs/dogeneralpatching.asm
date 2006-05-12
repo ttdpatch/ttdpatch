@@ -65,7 +65,7 @@ extern CreateTextInputWindow, findroadvehicledepot
 extern addrailfence1,addrailfence2,addrailfence3,addrailfence4
 extern addrailfence5,addrailfence6,addrailfence7,addrailfence8
 extern rvcheckovertake,findFrSpaTownNameFlags,runspectexthandlers
-extern fncheckvehintheway
+extern fncheckvehintheway,languageid,origlanguageid
 
 
 begincodefragments
@@ -1724,6 +1724,9 @@ dogeneralpatching:
 	mov [readspriteinfofn],eax
 	add eax,0x89
 	mov [decodespritefn],eax
+
+	mov al,[languageid]
+	mov [origlanguageid],al
 
 	call initializegraphics
 
