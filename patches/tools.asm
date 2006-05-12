@@ -1489,6 +1489,8 @@ lookuptranslatedcargo:
 
 .translate:
 	mov eax,[eax+spriteblock.cargotransptr]
+	cmp bl,byte [eax+cargotrans.numtrans]
+	jae .notset
 	mov eax,[eax+cargotrans.tableptr]
 	mov eax,[eax+4*ebx]
 

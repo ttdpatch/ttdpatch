@@ -965,9 +965,9 @@ setcargobit:
 	jne .unresid
 .notmandatory:
 	bts [cargobits], eax
-	mov [cargotypes+ebx], al
 	mov [cargoid+eax],bl
 .nonewbit:
+	mov [cargotypes+ebx], al
 	inc ebx
 	loop .next
 	clc
