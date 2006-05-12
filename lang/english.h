@@ -201,7 +201,6 @@ TEXTARRAY(halflines,) =
 	  "-R:  Road vehicles queue up",
 	  "-S:  New ship models",
 	  "-T:  New train models",
-	  "-Z:  Low memory version (3.5MB)",
 
 	  "-2:  Windows 2000/XP compatibility",
 
@@ -234,6 +233,7 @@ TEXTARRAY(halflines,) =
 	  "-XP: New aircraft models",
 	  "-XR: New road vehicle models",
 	  "-XS: Manage AI subsidiaries",
+	  "-XZ: Low memory version (3.5MB)",
  
 	  "-Ya: Ratings more tolerant to veh.ages",
 	  "-Yb: Building more things on slopes",
