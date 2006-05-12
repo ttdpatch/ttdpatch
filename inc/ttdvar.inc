@@ -299,4 +299,5 @@ ttdvar(colorschememap, 0x9ed5f)		// B[8*16]: 8 color shades for each of the 16 c
 
 ttdvar(newgameclimate, 0x9f159)		// B: selected climate for new game
 ttdvar(currconstrtooltracktype,0x9f15a)	// B: current track type for railway construction
+ttdvar(autosavesetting, 0x9ef2C)		// B: autosave setting 0=off, 1=3Months, 2=6Months, 3=12Months
 

@@ -169,4 +169,8 @@ defbit forcegameoptions_townsgerman,	6 // Set town name style to german
 defbit forcegameoptions_townsamerican,	7 // Set town name style to amerian
 defbit forcegameoptions_townslatin,		8 // Set town name style to latin amerian
 defbit forcegameoptions_townssilly,		9 // Set town name style to silly
+defbit forcegameoptions_autosavedisabled, 10 // Set autosave to off
+defbit forcegameoptions_autosave3months, 11 // Set autosave to 3 months
+defbit forcegameoptions_autosave6months, 12 // Set autosave to 6 months
+defbit forcegameoptions_autosave12months, 13 // Set autosave to 12 months
 enddefbits

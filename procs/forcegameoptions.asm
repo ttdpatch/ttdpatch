@@ -4,7 +4,6 @@
 
 patchproc forcegameoptions, patchforcegameoptions
 
-extern newroadtrafficside
 begincodefragments
 
 codefragment oldsetnewroadtrafficside
@@ -29,6 +28,26 @@ patchforcegameoptions:
 	jz .nometric
 	mov byte [measuresys], 1
 .nometric:
+	mov al, byte [autosavesetting]
+	mov ebx, dword [forcegameoptionssettings]
+	
+	test ebx, forcegameoptions_autosavedisabled
+	jz .no_disabled
+	mov al, 0
+.no_disabled:
+	test ebx, forcegameoptions_autosave3months
+	jz .no_3months
+	mov al, 1
+.no_3months:
+	test ebx, forcegameoptions_autosave6months
+	jz .no_6months
+	mov al, 2
+.no_6months:
+	test ebx, forcegameoptions_autosave12months
+	jz .no_12months
+	mov al, 3
+.no_12months:
+	mov byte [autosavesetting], al
 
 	multipatchcode oldsetnewroadtrafficside,newsetnewroadtrafficside,2
 	multipatchcode oldsetnewtownnamestyle,newsetnewtownnamestyle,2

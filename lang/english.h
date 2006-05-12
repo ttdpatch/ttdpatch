@@ -605,7 +605,10 @@ BIT(townsgerman,	"Set town name style to german")
 BIT(townsamerican,	"Set town name style to amerian")
 BIT(townslatin,		"Set town name style to latin amerian")
 BIT(townssilly,		"Set town name style to silly")
-
+BIT(autosavedisabled,	"Set autosave to off")
+BIT(autosave3months,	"Set autosave to 3 months")
+BIT(autosave6months,	"Set autosave to 6 months")
+BIT(autosave12months,	"Set autosave to 12 months")
 
 // A cfg file (%s) could not be found and is ignored.
 SETTEXT(LANG_CFGFILENOTFOUND, "Couldn't find cfg file %s.  Ignored.\n")

@@ -1,8 +1,6 @@
 #include <std.inc>
 #include <bitvars.inc>
 
-extern newroadtrafficside, new
-
 exported setnewroadtrafficside
 	test dword [forcegameoptionssettings], forcegameoptions_trafficleft
 	jz .noforceleft
