@@ -161,6 +161,11 @@ begincodefragments
 		push	edi
 		mov	esi, edi
 
+	codefragment oldRVForceTurnAround, -2
+		mov     byte [edx+0x6A], 180
+	codefragment newRVForceTurnAround
+		icall   turnTrailersAroundToo
+
 ;----new shit to try and replicate RVProc
 	codefragment findLimitTurnToFortyFiveDegrees, -12
 		inc	dl
@@ -280,6 +285,8 @@ patcharticulatedvehicles:
 	stringaddress oldCallRVProcessing, 3, 5
 #endif
 	chainfunction updateTrailerPosAfterRVProc, .origfn, 1
+
+	patchcode oldRVForceTurnAround, newRVForceTurnAround, 1, 1
 
 ;------------new stuffs.
 	stringaddress findLimitTurnToFortyFiveDegrees, 1, 1

@@ -86,23 +86,23 @@ global shiftInParentMovement
 shiftInParentMovement:
 	cmp	word [esi+veh.nextunitidx], 0xFFFF
 	je	.justReturnNoPop
-;	push	esi
 	push	eax
 	push	dx
 	mov	dl, byte [esi+veh.movementstat]
-;.loopTrailers:
 	movzx	eax, word [esi+veh.nextunitidx]
 	shl	ax, 7
 	add	eax, [veharrayptr]
+	cmp	byte [eax+veh.parentmvstat], 0xFF
+	jne	.shiftIntoUpper
+.doNormal:
 	mov	byte [eax+veh.parentmvstat], dl
-;	cmp	word [eax+veh.nextunitidx], 0xFFFF
-;	je	.justReturn
-;	mov	esi, eax
-;	jmp	.loopTrailers
-;justReturn:
+	mov	byte [eax+0x6E], 0xFF
+	jmp	.shifted
+.shiftIntoUpper:
+	mov	byte [eax+0x6E], dl
+.shifted:
 	pop	dx
 	pop	eax
-;	pop	esi
 .justReturnNoPop:
 	retn
 
@@ -712,10 +712,10 @@ RVTrailerProcessing:
 	add	cl, [ebx+3]
 	mov	bl, dl
 	and	bl, 0EFh
-	push	bx
-	call	[LimitTurnToFortyFiveDegrees]
-	pop	bx
-	call	[RVCheckCollisionWithRV]
+	;push	bx
+	;call	[LimitTurnToFortyFiveDegrees]
+	;pop	bx
+	;call	[RVCheckCollisionWithRV]
 	jb	.justQUIT
 	call	[VehEnterLeaveTile]
 	or	ebp, ebp
@@ -751,7 +751,7 @@ RVTrailerProcessing:
 	mov	dl, byte [esi+veh.direction]
 	call	[RVCheckCollisionWithRV]		;check if there is a vehicle 'in front' of us.
 	jb	short .zeroSpeedAndReturn
-	
+
 	mov	dl, byte [landscape4(di)]			;landscape 4
 	and	dl, 0F0h
 	cmp	dl, 90h				;IS THIS A STATION?
@@ -829,38 +829,50 @@ RVTrailerProcessing:
 
 global	useParentMovement
 useParentMovement:
-	push	eax
 	push	edx
-	push	ecx
-	movzx	edx, byte [esi+veh.movementstat]
-	cmp	byte [esi+veh.parentmvstat], 0
-	jl	.justUseParent
-	cmp	byte [esi+veh.parentmvstat], 0x20
-	jg	.justUseParent
-	cmp	dl, byte [esi+veh.parentmvstat]
-	je	.moveTheValueIn
-	jl	.manageLess
-.manageMore:
-	sub	dl, 0x1
-	jmp	.moveTheValueIn
-.manageLess:
-	add	dl, 0x1
-	jmp	.moveTheValueIn
-.justUseParent:
-	movzx	edx, byte [esi+veh.parentmvstat]
-.moveTheValueIn:
+	mov	dl, byte [esi+veh.parentmvstat]
+	mov	dh, byte [esi+0x6E]
+	mov	byte [esi+veh+0x6E], 0xFF
+	mov	byte [esi+veh.parentmvstat], dh
 	mov	byte [esi+veh.movementstat], dl
-	mov	eax, esi
-;.loopTrailers:
-	cmp	word [eax+veh.nextunitidx], 0xFFFF
+	cmp	word [esi+veh.nextunitidx], 0xFFFF
 	je	.noTrailer
+	push	eax
 	movzx	eax, word [esi+veh.nextunitidx]
 	shl	ax, 7
 	add	eax, [veharrayptr]
+	cmp	byte [eax+veh.parentmvstat], 0xFF
+	jne	.shiftIntoUpper
 	mov	byte [eax+veh.parentmvstat], dl
-;	jmp	.loopTrailers
-.noTrailer:
-	pop	ecx
-	pop	edx
+	mov	byte [eax+0x6E], 0xFF
+	jmp	.shifted
+.shiftIntoUpper:
+	mov	byte [eax+0x6E], dl
+.shifted:
 	pop	eax
+.noTrailer:
+	pop	edx
+	retn
+
+global turnTrailersAroundToo
+turnTrailersAroundToo:
+	test	bl, 1
+	jz	.justReturn
+	mov	byte [edx+0x6A], 180
+	push	ecx
+	movzx	ecx, word [edx+veh.engineidx]
+	cmp	cx, word [edx+veh.idx]
+	jne	.cleanAndJustReturn
+	mov	ecx, edx
+.doZeeLoop:
+	cmp	word [ecx+veh.nextunitidx], 0xFFFF      //MORE?
+	je	.cleanAndJustReturn
+	mov	cx, word [ecx+veh.nextunitidx]
+	shl	cx, 7
+	add	cx, [veharrayptr]
+	mov	byte [ecx+0x6A], 180
+	jmp	.doZeeLoop
+.cleanAndJustReturn:
+	pop	ecx
+.justReturn:
 	retn

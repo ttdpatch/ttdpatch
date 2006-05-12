@@ -222,7 +222,7 @@ ovar exchtrainvehicles, -4
 	pop edx
 	param_call advancewagons, 1
 
-	xor byte [esi+veh.modflags+1],1<<(MOD_REVERSE-8) 
+	xor byte [esi+veh.modflags+1],1<<(MOD_REVERSE-8)
 .markcur:
 	testflags pathbasedsignalling
 	jnc .nopathsig2
@@ -690,7 +690,7 @@ showvehrefittable:
 
 .gotcount:
 	push ecx
-	
+
 	// try counting the inverse
 	mov eax,[lastrefitmask]
 	not eax
@@ -761,7 +761,7 @@ showvehrefittable:
 	jb .shownext
 
 	mov word [textrefstack+2+10*2],statictext(ellipsis)
-	
+
 .haveall:
 	mov bx,di
 	add bx,ourtext(refittableto)
@@ -1225,6 +1225,8 @@ proc newbuyrailvehicle
 	// attach to engine
 	mov byte [edi+veh.currorderidx],0	// in case any left-over was in there
 	mov byte [edi+veh.subclass],2
+	mov byte [edi+veh.parentmvstat],0xFF 	//StevenHoefel: Used for bendy bus movement
+	mov byte [edi+0x6E],0xFF 		//StevenHoefel: Used for bendy bus movement
 	mov edx,[%$veh]
 	mov dx,[edx+veh.idx]
 	mov [edi+veh.engineidx],dx
