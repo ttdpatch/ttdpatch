@@ -167,10 +167,11 @@
 #define enhancemultiplayer	214	// allow more than two players in multiplayer
 #define autoslope		215	// allows to terraform without destroying tile structure
 #define enhancetunnels		216	// allow building bridges on tunnel entrances
-
+#define forcegameoptions	217	// forces certain gam setting and overwrites the climate selector defaults
+	
 // NOTE!! If you add a bit here, also add it to patchflagsfixedmap in vars.ah!!
 
-#define lastbitdefaultoff	216	// META: last bit defined not to be set by -a unless DEBUG
+#define lastbitdefaultoff	217	// META: last bit defined not to be set by -a unless DEBUG
 
 // so far unused flags, simply to remember what names I've used already
 // the numbers of these can be changed as desired

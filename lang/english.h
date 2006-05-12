@@ -472,6 +472,7 @@ SWITCHTEXT(autoslope, "Allows terraforming without removing structures", "")
 SWITCHTEXT(followvehicle, "Follow vehicle motion in main map", "")
 SWITCHTEXT(trams, "Enable trams on Roads", "")
 SWITCHTEXT(enhancetunnels, "Allows building track on top of tunnel entrances", "")
+SWITCHTEXT(forcegameoptions, "Allows you to force game options","")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -591,6 +592,19 @@ BIT(symafter,  "Currency symbol displayed always after number")
 BIT(noeuro,    "Do not introduce the Euro")
 BIT(comma,     "Always use comma to separate thousands")
 BIT(period,    "Always use period to separate thousands")
+
+// Description for forcegameoptions bits
+BITSWITCH(forcegameoptions)
+BIT(trafficleft,	"Force the road traffic side to be left")
+BIT(trafficright,	"Force the road traffic side to be right")
+BIT(imperial,		"Force the use of imperial (miles) distance units")
+BIT(metric,		"Force the use of metric (kilometers) distance units")
+BIT(townsenglish,	"Set town name style to english")
+BIT(townsfrench,	"Set town name style to french")
+BIT(townsgerman,	"Set town name style to german")
+BIT(townsamerican,	"Set town name style to amerian")
+BIT(townslatin,		"Set town name style to latin amerian")
+BIT(townssilly,		"Set town name style to silly")
 
 
 // A cfg file (%s) could not be found and is ignored.
@@ -816,6 +830,7 @@ SETTEXT(CFG_AUTOSLOPE, "`%s' (%s) allows to terraform without removeing structur
 SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) allows the main view to follow a vehicle with a right mouse click on the Center View button in the vehicles window.")
 SETTEXT(CFG_TRAMS, "`%s' (%s) allows trams to be built.")
 SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) allows to build track on top of tunnel entrances")
+SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) allows you to force game options.")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

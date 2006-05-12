@@ -487,6 +487,7 @@ enum langtextids {
 	CFG_FOLLOWVEHICLE,
 	CFG_TRAMS,
 	CFG_ENHANCETUNNELS,
+	CFG_FORCEGAMEOPTIONS,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS
@@ -531,7 +532,7 @@ enum langtextids {
 
 #define TRAINTYPENUM 4		// number of train types for -mc display
 
-#define BITSWITCHNUM 12		// number of bit switches
+#define BITSWITCHNUM 13		// number of bit switches
 
 // Index numbers of the strings in language.dat file. Must be increasing.
 #define LANGCODE_NAME(i) (-0x4000-(i))

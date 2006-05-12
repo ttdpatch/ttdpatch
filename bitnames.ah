@@ -157,3 +157,16 @@ defbit morecurrencies_comma,		3 // Always use comma to separate thousands
 defbit morecurrencies_period,		4 // Always use period to separate thousands
 enddefbits
 
+
+defbitvar forcegameoptions,forcegameoptionssettings
+defbit forcegameoptions_trafficleft,	0 // Force the road traffic side to be left
+defbit forcegameoptions_trafficright,	1 // Force the road traffic side to be right
+defbit forcegameoptions_imperial,	2 // Force the use of imperial (miles) distance units
+defbit forcegameoptions_metric,	3 // Force the use of metric (kilometers) distance units
+defbit forcegameoptions_townsenglish,	4 // Set town name style to english
+defbit forcegameoptions_townsfrench,	5 // Set town name style to french
+defbit forcegameoptions_townsgerman,	6 // Set town name style to german
+defbit forcegameoptions_townsamerican,	7 // Set town name style to amerian
+defbit forcegameoptions_townslatin,		8 // Set town name style to latin amerian
+defbit forcegameoptions_townssilly,		9 // Set town name style to silly
+enddefbits

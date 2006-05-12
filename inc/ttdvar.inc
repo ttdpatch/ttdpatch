@@ -238,6 +238,8 @@ ttdvar(buslorrystationorientation, 0x9ED3B)	// B: orientation of road station
 ttdvar(showcatchmentarea, 0x9EDEB) 			// B: 0=disabled 1=enabled
 ttdvar(actionnestlevel,0x9edec)		// B: nesting level of [actionhandler] calls (see below)
 
+ttdvar(newroadtrafficside,0x9eded)		// B: side of road for vehicles to drive on at a new game: 0=left, 10h=right; +80h=can be changed, always set!
+ttdvar(newtownnamestyle,0x9edee)		// B: town name style 0=English, 1=French, 2=German, 3=American, 4=Latin American, 5=Silly
 
 ttdvar(uiflags,0x9f1e6)			// W: bit 10: edit control active; other bits=??
 
