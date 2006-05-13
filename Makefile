@@ -39,6 +39,10 @@ FORCE:
 # like -d; those will be added later because they differ
 EXTRADEFS = DEBUG=$(DEBUG) 
 
+ifeq ($(NOREV),1)
+	EXTRADEFS += RELEASE=1
+endif
+
 WDEF_d = WINTTDX=0
 WDEF_w = WINTTDX=1
 WDEF_l = WINTTDX=0
@@ -141,6 +145,7 @@ cleantemp:
 	rm -f *.asp
 	rm -f *.{o,obj,OBJ}
 	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po
+	rm -f ${OTMP}*.*lst ${OTMP}patches/*.*lst ${OTMP}procs/*.*lst
 	rm -f lang/*.{o,map,exe} lang/language.*
 	rm -f host/*.o host/lang/* host/mkpttxt host/makelang
 	rm -f *.*.lst.gz *.*lst *.LST patches/*.*lst

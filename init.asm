@@ -1239,6 +1239,22 @@ proc dofindstring
 
 .failmiserablydec:
 	dec dword [%$maxcount]	// so the error message reports right count
+	jmp short .failmiserably
+
+.goodsearch:
+	// good. we found it exactly as often as wished!
+	mov edi,[%$found]
+	dec edi			// edi always points to next byte, so take -1
+	add edi,[%$correction]
+
+	call storeversionaddress
+
+	xor ecx,ecx
+
+.searchdone:
+
+	pop ebx
+	_ret	// does leave automatically
 
 	global dofindstring.failmiserably
 .failmiserably:		// it wasn't found often enough, or too often
@@ -1269,23 +1285,24 @@ proc dofindstring
 	mov cl,8
 	call hexnibbles
 
+#ifndef RELEASE
+	mov esi,[lastsearchfragmentname]
+	test esi,esi
+	jle .noname
+	mov edi,findstringerr_name
+	mov ecx,findstringerr_name_len
+.copy:
+	lodsb
+	test al,al
+	stosb
+	loopnz .copy
+	mov eax,0x1013	// CRLF<nul>
+	stosd
+.noname:
+#endif
+
 	mov edx,findstringerror
 	jmp criticalerror
-
-.goodsearch:
-	// good. we found it exactly as often as wished!
-	mov edi,[%$found]
-	dec edi			// edi always points to next byte, so take -1
-	add edi,[%$correction]
-
-	call storeversionaddress
-
-	xor ecx,ecx
-
-.searchdone:
-
-	pop ebx
-	_ret	// does leave automatically
 
 endproc // dofindstring
 
@@ -1296,8 +1313,16 @@ var findstringerr_callfrom, db		  "########, found "
 var findstringerr_occurence, db				  "##/"
 var findstringerr_outof, db				     "## at "
 var findstringerr_at, db					   "########"
+#ifndef RELEASE
+	db " for"
+var findstringerr_name
+	db " ????",13,10,0,"                                            ",0
+findstringerr_name_len equ $-findstringerr_name-4
+#else
 	db 13,10,0
+#endif
 
+uvard lastsearchfragmentname
 uvard lastsearchcalladdr
 
 	//
