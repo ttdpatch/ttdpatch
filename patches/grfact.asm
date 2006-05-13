@@ -1915,10 +1915,10 @@ replacettdsprite:
 	ja .spritenumbad
 
 .spritenumok:
-	lea dx,[eax+edi]
+	lea dx,[ecx+edi]
 	cmp dx,[ebp+spriteblock.numsprites]
 	mov dh,INVSP_BLOCKTOOLARGE
-	jae .bad
+	ja .bad
 
 	mov edx,ebp
 	mov ebp,edi
