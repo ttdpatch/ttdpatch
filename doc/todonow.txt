@@ -747,6 +747,9 @@ CHANGELOG
 - by Csaba:
   * added callbacks 140, 141 and 142 for station animations
   * fixed electrifiedrail patch code overwriting some random memory
+  * fixed some incorrect cargo type handling for GRFs with version 7
+  * the language of the EXE is now restored correctly when all translation 
+    GRFs are disabled
 - by Lakie:
   * allow water to flood diagonally (disable with
     miscmods.nodiagonalflooding on) and support graphics for resulting coasts
@@ -754,4 +757,5 @@ CHANGELOG
   * fixed crash while creating grf debug log if grf had error condition
   * new switch "forcegameoptions" to set default game options
 - renamed -Z switch to -XZ to later allow -Z? extended switches
-- when fragment search fails show name of failed fragment
+- when fragment search fails show name of failed fragment and its patch proc
+- fixed zeppelin crash bug getting patched twice
