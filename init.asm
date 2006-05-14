@@ -1261,6 +1261,9 @@ proc dofindstring
 	mov [%$found],edi		// for the error message
 	mov edi,findstringerr_strnum
 	xchg eax,edx
+#ifndef RELEASE
+	sub eax,[lastpatchprocstartedx]
+#endif
 	mov cl,4
 	call hexnibbles		// in patches/catchgpf.asm
 
@@ -1296,8 +1299,25 @@ proc dofindstring
 	test al,al
 	stosb
 	loopnz .copy
+	sub ecx,3
+	jbe .noproc
+	dec edi
+	mov ax,"in"
+	stosw
+	mov esi,[lastpatchprocname]
+	test esi,esi
+	jle .noproc
+.copyproc:
+	lodsb
+	test al,al
+	stosb
+	loopnz .copyproc
+.noproc:
+#if !WINTTDX
+	dec edi
 	mov eax,0x1013	// CRLF<nul>
 	stosd
+#endif
 .noname:
 #endif
 
@@ -1322,6 +1342,8 @@ findstringerr_name_len equ $-findstringerr_name-4
 	db 13,10,0
 #endif
 
+uvard lastpatchprocname
+uvard lastpatchprocstartedx
 uvard lastsearchfragmentname
 uvard lastsearchcalladdr
 

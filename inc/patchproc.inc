@@ -39,7 +39,21 @@
 #ifdef __extern_procs__
         extern %1
 #endif
+#ifndef RELEASE
+	[section .datab]
+	%%_patchproc_%1_name:
+		stringify db,%1,{,0}	// makes db " %1 ",0
+	[section .text]
+	%%_patchproc_jmp:
+	extern lastpatchprocname,lastpatchprocstartedx
+	mov dword [lastpatchprocname], %%_patchproc_%1_name
+	mov [lastpatchprocstartedx],edx
+	jmp %1
+	[section .pproc]
+	dd %%_patchproc_jmp
+#else
 	dd %1
+#endif
 	__SECT__
 %endmacro
 

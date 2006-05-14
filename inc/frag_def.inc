@@ -2,6 +2,8 @@
 // Fragment definition and search macros
 //
 
+#include <stringify.inc>
+
 
 // macros to define the code fragments
 %macro begincodefragments 0.nolist
@@ -273,13 +275,12 @@
 #ifndef __no_extern__
 extern lastsearchfragmentname
 #endif
-[warning -]	// disable "unterminated string" warning due to the lone quote below
 %macro usesearchfragment 1
-	%define quote "
-	noglobal varb %%_stringaddress_%1_name, quote %1 quote,0
+	noglobal varb %%_stringaddress_%1_name
+		stringify db,%1,{,0}	// makes db " %1 ",0
+	endvar
 	mov dword [lastsearchfragmentname], %%_stringaddress_%1_name
 %endmacro
-[warning +]
 %macro donesearchfragment 0
 	and dword [lastsearchfragmentname], 0
 %endmacro
