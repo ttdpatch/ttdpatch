@@ -2547,7 +2547,7 @@ class6periodicproc:
 	mov ebp, 0x01FF // +2 -1 (North corner)
 	call [floodtile]
 
-.notw:
+.note:
 .nodiagonalflooding:
 	ret
 
