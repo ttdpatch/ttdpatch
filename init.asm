@@ -1313,11 +1313,6 @@ proc dofindstring
 	stosb
 	loopnz .copyproc
 .noproc:
-#if !WINTTDX
-	dec edi
-	mov eax,0x1013	// CRLF<nul>
-	stosd
-#endif
 .noname:
 #endif
 
@@ -1336,10 +1331,10 @@ var findstringerr_at, db					   "########"
 #ifndef RELEASE
 	db " for"
 var findstringerr_name
-	db " ????",13,10,0,"                                            ",0
+	db " ????",0,"                                            ",0
 findstringerr_name_len equ $-findstringerr_name-4
 #else
-	db 13,10,0
+	db 0
 #endif
 
 uvard lastpatchprocname
