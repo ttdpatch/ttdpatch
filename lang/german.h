@@ -158,10 +158,6 @@ SETTEXT(LANG_LOADCUSTOMTEXTS, "Lade Åbersetzte Spieltexte.\n")
 // ttdpttxt.dat is not in a valid format
 SETTEXT(LANG_CUSTOMTXTINVALID, "Fehler beim Lesen von %s: UngÅltiges Dateiformat.\n")
 
-SETTEXT(LANG_CUSTOMTXTWRONGVER,
-	"%s mu· aktualisiert werden fÅr diese TTDPatch-Version.\n"
-	"Bitte installieren und starten Sie die aktualisierte Version von mkpttxt.exe.\n")
-
 
 //-----------------------------------------------
 //   COMMAND LINE HELP (-h)

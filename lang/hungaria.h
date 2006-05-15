@@ -153,10 +153,6 @@ SETTEXT(LANG_LOADCUSTOMTEXTS, "EgyÇni j†tÇkon belÅli szîvegek betîltÇse.\n")
 // ttdpttxt.dat is not in a valid format
 SETTEXT(LANG_CUSTOMTXTINVALID, "%s olvas†sa: êrvÇnytelen f†jlform†tum.\n")
 
-SETTEXT(LANG_CUSTOMTXTWRONGVER,
-	"%s-t £jra lÇtre kell hozni a TTDPatch ezen verzi¢j†hoz.\n"
-	"KÇrlek tîltsd le Çs futtasd a leg£jabb mkpttxt.exe programot.\n")
-
 
 //-----------------------------------------------
 //   COMMAND LINE HELP (-h)
