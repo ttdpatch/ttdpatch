@@ -153,10 +153,6 @@ SETTEXT(LANG_LOADCUSTOMTEXTS, "Loading custom in-game texts.\n")
 // ttdpttxt.dat is not in a valid format
 SETTEXT(LANG_CUSTOMTXTINVALID, "Reading %s: Invalid file format.\n")
 
-SETTEXT(LANG_CUSTOMTXTWRONGVER,
-	"%s must be remade for this version of TTDPatch.\n"
-	"Please download and run the latest mkpttxt.exe program.\n")
-
 
 //-----------------------------------------------
 //   COMMAND LINE HELP (-h)

@@ -284,7 +284,6 @@ enum langtextids {
 
 	LANG_LOADCUSTOMTEXTS,		// Installing custom in-game texts
 	LANG_CUSTOMTXTINVALID,
-	LANG_CUSTOMTXTWRONGVER,
 
 //---------------------------------------
 //  MESSAGES DISPLAYED BY TTDLOAD
@@ -516,6 +515,7 @@ enum langtextids {
 	LANG_NOFILEFOUND,		// (Windows) neither does GameGFX.exe
 	CFG_AIBOOST,	
 	CFG_MOREINDUSTRIESPERCLIMATE,
+	LANG_CUSTOMTXTWRONGVER,
 
 	LANG_REALLYLASTSTRING		// Must be the last, used below to determine how many entries we need
 
