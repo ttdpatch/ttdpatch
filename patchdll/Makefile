@@ -43,7 +43,7 @@ ttdpatch.def: ${OBJECTFILES}
 	${_E} [BUILD] $@
 	${_C}$(CC) -o $@ -shared $^ $(DLLOPTS) 
 ifndef NOUPX
-	${_C}upx -qqq --best $@
+	${_C} ${UPX} -qqq --best $@
 endif
 
 # make assembly file for testing the compile output
