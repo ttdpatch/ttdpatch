@@ -2,7 +2,7 @@
 // Localization strings for TTDPatch.
 //
 
-// Vertaald door: Jan Willem van Dormolen, jw.van.dormolen@hccnet.nl
+// Vertaald door: Jan Willem van Dormolen, jw.van.dormolen@xs4all.nl
 // 
 //
 
@@ -42,7 +42,7 @@ SETTEXT(LANG_STARTING, " wordt gestart.\n")
 SETTEXT(LANG_SIZE, "grootte")
 
 // Shown if the version is recognized
-SETTEXT(LANG_KNOWNVERSION, "De adressen in deze programmaversie zijn bekend.\n")
+SETTEXT(LANG_KNOWNVERSION, "Deze programmaversie is bekend.\n")
 
 // Warning if the version isn't recognized.  Be sure *not* to use tabs
 // in the text.  All but the last lines should end in ...\n"
@@ -53,9 +53,9 @@ SETTEXT(LANG_WRONGVERSION, "\n"
 	"\n"
 	"         Afhankelijk van hoe je besturingssysteem een beschermingsfout afhandelt,\n"
 	"         kan je computer vastlopen; als gevolg daarvan kun je gegevens kwijtraken. "
-/***/	"          Please read\n"
-/***/	"          the \"Version Trouble\" section in the TTDPatch manual for more\n"
-/***/	"          information.\n"
+      "         Raadpleeg het gedeelte\n"
+    	"         \"Version Trouble\" in de handleiding bij TTDPatch voor\n"
+      "         nadere informatie.\n"
 	"\n"
 	"Antwoord alleen 'j' als je ZEKER weet wat je doet.\n JE BENT GEWAARSCHUWD!\n"
 	"Wil je Transport Tycoon toch starten? ")
@@ -81,11 +81,11 @@ SETTEXT(LANG_WARNVERSION, "LET OP!: Versie is niet bekend!\n")
 // TTDLOAD.OVL doesn't exist
 SETTEXT(LANG_OVLNOTFOUND, " niet gevonden, ik zoek de originele bestanden:\n")
 
-// (DOS) neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
+// neither do the original files (two %s are two filenames)
 SETTEXT(LANG_NOFILESFOUND, "Kon noch %s noch %s vinden.\n")
 
-// (Windows) and GameGFX.exe either.  %s is GameGFX.EXE
-SETTEXT(LANG_NOFILEFOUND, "Kon %s niet vinden.\n")
+// default Windows language executable (american/english/french/german/spanish).exe
+SETTEXT(LANG_WINDEFLANGEXE, "AMERICAN.EXE");
 
 // Shown when copying tycoon.exe or ttdx.exe (first %s) to ttdload.ovl (2nd %s)
 SETTEXT(LANG_SHOWCOPYING, "Kopiâren: %s naar %s")
@@ -135,14 +135,14 @@ SETTEXT(LANG_INVALIDSEGMENTLEN, "Ongeldige originele segmentlengte van %lx.")
 SETTEXT(LANG_INCREASECODELENGTH, "Codesegment aangepast naar %s MB.\n")
 
 // Can't write to TTDLOAD.OVL (%s) [or TTDLOADW.OVL for the Windows version]
-SETTEXT(LANG_WRITEERROR, "Kan niet schrijven naar TTDLOAD.OVL, is het alleen-lezen?\n")
+SETTEXT(LANG_WRITEERROR, "Kan niet schrijven naar %s, is het alleen-lezen?\n")
 
 // Installing the code loader
 SETTEXT(LANG_INSTALLLOADER, "Installatie: codelader.\n")
 
 // TTDLOAD.OVL (%s) is invalid, needs to be deleted.
 SETTEXT(LANG_TTDLOADINVALID, "Kon codelader niet installeren")
-// wrong translation SETTEXT(LANG_DELETEOVL, "%s wordt verwijderd.\n")
+SETTEXT(LANG_DELETEOVL, " - verwijder %s en probeer het nog eens.\n")
 
 // TTDLOAD.OVL was verified to be correct
 SETTEXT(LANG_TTDLOADOK, "%s is OK.\n")
@@ -157,11 +157,7 @@ SETTEXT(LANG_PRESSESCTOEXIT, "Druk op Escape om af te breken, of op een andere t
 SETTEXT(LANG_LOADCUSTOMTEXTS, "Aangepaste teksten worden geladen.\n")
 
 // ttdpttxt.dat is not in a valid format
-SETTEXT(LANG_CUSTOMTXTINVALID, "Lezen van %s: Ongeldige bestandsopmaak.\n")
-
-SETTEXT(LANG_CUSTOMTXTWRONGVER,
-	"Voor deze versie van TTDPatch moet %s opnieuw worden gemaakt.\n"
-	"Download de nieuwste versie van mkpttxt.exe en start deze.\n")
+SETTEXT(LANG_CUSTOMTXTINVALID, "Fout bij lezen van %s: Ongeldige bestandsopmaak.\n")
 
 
 //-----------------------------------------------
@@ -169,7 +165,7 @@ SETTEXT(LANG_CUSTOMTXTWRONGVER,
 //-----------------------------------------------
 
 // Introduction, prefixed with "TTDPATCH V<version> - "
-SETTEXT(LANG_COMMANDLINEHELP, "Past TTD aan en start het aangepaste programma %s\n"
+SETTEXT(LANG_COMMANDLINEHELP, "Past TTDL aan en start het aangepaste programma %s\n"
 	  "\n"
 	  "Gebruik: TTDPATCH [-C cfg-file] [opties] [CD-pad] [-W cfg-bestand]\n"
 	  "\n")
@@ -187,6 +183,7 @@ TEXTARRAY(halflines,) =
 	  "-n:  Nieuwe non-stop-afhandeling",
 	  "-q:  Ander (uit-)laad-algoritme",
 	  "-s:  Valsspelen met bordjes toestaan",
+	  "-u:  Verbeterde multiplayer-spelen",
 	  "-v:  Bij starten alle opties weergeven",
 	  "-w:  Voorseinen gebruiken",
 	  "-y:  Stel geen vragen over onbekende", "    versies",
@@ -197,50 +194,67 @@ TEXTARRAY(halflines,) =
 	  "-E:  Foutmeldingen naar rechtsboven",
 	  "-F:  \"Full load\" betekent ÇÇn van", "    de mogelijke typen vracht ipv alle",
 	  "-G:  Grondstof per station selecteren",
+	  "-H:  Nieuwe bruggenhoofden",
 	  "-I:  Zet inflatie af",
 	  "-J:  Meer luchthavens per stad",
 	  "-L:  Alles lenen/aflossen met 'Ctrl'",
-	  "-N:  Meer krantenberichten",
+	  "-N:  Meer nieuwsberichten",
 	  "-O:  Kantoorflats accepteren voedsel",
 	  "-P:  Locomotieven blijven beschikbaar", "    indien in gebruik",
 	  "-R:  Auto's wachten bij laadstations",
 	  "-S:  Nieuwe schepen",
 	  "-T:  Nieuwe treinmodellen",
-	  "-Z:  Weinig geheugen (2,5 MB)",
 
-	  "-2:  Verbeteringen voor Windows 2000 ",
+	  "-2:  Windows 2000/XP-compatibiliteit",
 
 	  "-Xb: Gemeenten omkopen",
 	  "-Xd: Depots in orders gebruiken",
 	  "-Xe: Eeuwig doorspelen na 2070",
 	  "-Xf: Aanvoerservice m.g.v. 'unload'",
 	  "-Xg: Geleidelijk laden van voertuigen",
-	  "-Xi: Ind. sluit niet bij stabiele eco.",
+	  "-Xh: Nieuwe gebouwen in steden",
+	  "-Xi: Industrieân sluiten niet bij", "    stabiele economie",
+	  "-Xl: Kanalen en sluizen",
 	  "-Xm: Laad-optie in schijfmenu",
 	  "-Xo: Valsspelen met bordjes kost geld",
+	  "-Xp: Nieuwe berekening van prestaties",
 	  "-Xr: Maak steeds nieuw TTDPATCH.OVL",
 	  "-Xs: Snelheden weergeven",
 	  "-Xw: Uitgebreide voorseinen gebruiken",
 	  "-Xx: Extra gegevens opslaan en laden",
 
 	  "-XA: Verplicht vernieuwen met -Xa",
+	  "-XB: Bouwen tijdens pauze mogelijk",
 	  "-XE: Electrische treinen",
 	  "-XF: Experimentele opties aan",
 	  "-XG: Alle nieuwe plaatjes laden",
+	  "-XH: Oud nieuws opslaan en weergeven",
+	  "-XI: Seinen met routering",
+	  "-XL: Winst in voertuiglijst weergeven",
+	  "-XO: Orders delen en kopiâren",
 	  "-XP: Nieuwe vliegtuigen",
 	  "-XR: Nieuwe wegvoertuigen",
 	  "-XS: Computerspelers overnemen",
+	  "-XZ: Weinig geheugen (2,5 MB)",
 
 	  "-Ya: Minder invloed veroudering voert.",
 	  "-Yb: Meer bouwen op hellingen",
-	  "-Yc: Versch. kosten versch. baantypen",
+	  "-Yc: Verschillende kosten voor", "    verschillende spoortypen",
+	  "-Yd: Nieuwe bruggen",
+	  "-Yg: Spelsnelheid aanpasbaar",
+	  "-Yh: Hogere bruggen mogelijk",
 	  "-Ym: Handm. baantype wijzigen mogelijk",
+	  "-Yn: Nieuwe stations",
 	  "-Ys: Treinseinen aan wegverkeerkant",
 	  "-Yt: Meer statistieken in stadsvenster",
-	  "-Yw: Sneller wagons verkopen",
+	  "-Yw: Wagons in ÇÇn keer verkopen",
 
 	  "-YC: Op kusten bouwen",
+	  "-YD: Verbeterde moeilijkheidsinst.",
+	  "-YF: Eerste voert. wordt eerst geladen",
 	  "-YH: Meer/nieuwe sneltoetsen",
+	  "-YL: Snelh.beperkingen voor wagons",
+	  "-YN: Nieuwe stadsnamen",
 	  "-YP: Vliegtuigsnelheid als aangegeven",
 	  "-YS: Semafoorseinen voor 1975",
 
@@ -256,28 +270,40 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-x #:    Vergroot voertuigarray naar 850*#. Lees handleiding!\n"
 	  "-mc #:   Nieuwe bergen- of bochtenafhandeling.\n"
 	  "-trpb #: Verhoog aantal t)treinen, r)auto's, p)vliegtuigen en/of b)schepen.\n"
-	  "-A #:    Artificiâle intelligentie verbeteren. (Kleine waarden svp)\n"
 	  "-M #:    Treinen met meerdere locs, snelheidstoename in procenten.\n"
+	  "-U #:    Gebruikersomgeving als die van Locomotion. 1 voor omg. zonder ctrl.\n"
 	  "-Xa #:   Vernieuw automatisch voertuigen # maanden nadat ze verouderd zijn\n"
 	  "-Xc #:   Vliegtuigongelukken instellen\n"
 	  "-Yr #:   Trein-/voertuigbotsingen als aangegeven (1/2)\n"
 	  "-Xt #:   Maximumgrootte tot waar een stad kan groeien\n"
+	  "-Xv #:   Sorteer voertuiglijsten en stel tijd tussen bijwerken ervan in\n"
+	  "-Xz #:   Vensters 'klikken' samen\n"
 	  "-XC #:   Meer valuta, en valutaweergaveopties instellen\n"
 	  "-XD #:   Kies welke rampen mogelijk zijn\n"
+	  "-XN #:   TTD-nieuws in kleur na opgegeven jaartal\n"
 	  "-XM #:   Monorail- en maglev-banen combineren\n"
 	  "-XT #:   Een op de hoeveel steden groeien sneller en groter\n"
-	  "-XX #:   Monorail/maglev-snelheid op bruggen, in procent van max. snelheid\n"
+	  "-XX #:   Monorail/maglev-snelheid op bruggen, in perc. van max. snelheid\n"
 	  "-XY #:   Standaard startjaar voor nieuw willekeurig spel instellen\n"
+	  "-XW #:   Spreid het TTD-venster tot deze grootte in pixels (alleen Windows-versie)\n"
 	  "-X1 #, -X2 #: Max. tijd dat een trein wacht bij een ÇÇnr.- of tweer.sein in dagen\n"
+	  "-Yf #:   Vrachttreinen zijn deze factor zwaarder\n"
+	  "-Yl #:   Ondersteuning voor muiswiel en opties (alleen Windows-versie)\n"
 	  "-Yo #:   Sommige opties van andere schakelopties wijzigen (zie documentatie)\n"
 	  "-Yp #:   Meerdere bomen planten, plantmethode instellen\n"
+	  "-YA #:   Verlaten wegen raken eigenaar kwijt, stel methode in met parameter\n"
 	  "-YB #:   Meer bouwopties, instellen met parameter\n"
 	  "-YE #:   Tijd in seconden dat rode foutmeldingen verschijnen instellen\n"
-	  "-YG #:   Betere gebruikersinterface, optie kiezen met parameter\n"
+	  "-YM #:   Meer (of minder) rookpluimen, waarde stelt hoeveelheid in\n"
+	  "-YG #:   Betere gebruikersomgeving, stel opties in met parameter\n"
+	  "-YO #:   Sneeuwgrens instellen in gematigd klimaat\n"
+	  "-YR #:   Kaart wordt elke # ticks ververst\n"
 	  "-YT #:   Stadsgroeialgorithme instellen\n"
+	  "-YW #:   Maximum aantal venster instellen\n"
 	  "\n"
 	  "-C cfg-file:  Gebruik dit configuratiebestand i.p.v. ttdpatch.cfg\n"
 	  "-W cfg-file:  Maakt een configuratiebestand met de gegeven configuratie\n"
+	  "-Xn cfg-file: Gebruik dit configuratiebestand voor nieuwe grafische sets\n"
 	  "\n"
 	  "Gebruik de juiste hoofd- en kleine letters!\n"
 	  "\n"
@@ -299,6 +325,9 @@ SETTEXT(LANG_UNKNOWNSTATE, "Waarschuwing: Onbekende aan-/uitwaarde %s, uitgezet.
 
 // switch is unknown.  %c is '-' or '/' etc, %s is the switch char
 SETTEXT(LANG_UNKNOWNSWITCH, "Onbekende optie '%c%s'. Gebruik -h voor help.\n")
+
+// switch bit name is unknown.  First %s is bit name, 2nd is switch name
+SETTEXT(LANG_UNKNOWNSWITCHBIT, "Onbekende bitwaarde '%s' voor optie '%s'.\n")
 
 // cfg command %s is unknown
 SETTEXT(LANG_UNKNOWNCFGLINE, "Waarschuwing: Fout in configuratieregel: '%s'.\n")
@@ -331,7 +360,7 @@ SWITCHTEXT(noinflation, "Zet inflatie uit", "")
 SWITCHTEXT(maxloanwithctrl, "Max. lenen/aflossen met 'Ctrl'", "")
 SWITCHTEXT(persistentengines, "Locomotieven blijven beschikbaar", "")
 SWITCHTEXT(fullloadany, "Full load: willekeurige lading", "")
-SWITCHTEXT(selectstationgoods, "Goederen indien service", "")
+SWITCHTEXT(selectstationgoods, "Goederen indien service", " %d d. lang")
 SWITCHTEXT(morethingsremovable, "Meer dingen slopen", "")
 SWITCHTEXT(multihead, "Meerdere locs", ", snelh.toename: %d%%")
 SWITCHTEXT(newlineup, "Auto's wachten bij laadstation", "")
@@ -341,7 +370,7 @@ SWITCHTEXT(moreairports, "Meer luchthavens per stad", "")
 SWITCHTEXT(bribe, "Omkopen toegestaan", "")
 SWITCHTEXT(noplanecrashes, "Vliegtuigongelukken aanpassen", ": %d")
 SWITCHTEXT(showspeed, "Snelheden weergeven van voertuigen", "")
-SWITCHTEXT(autorenew, "Voert. autom. vernieuwen", " op %d mndn")
+SWITCHTEXT(autorenew, "Voert. autom. vernieuwen", " na %d mndn")
 SWITCHTEXT(cheatscost, "Valsspelen met bordjes kost geld", "")
 SWITCHTEXT(extpresignals, "Voorseinen instellen met 'Ctrl'", "")
 SWITCHTEXT(diskmenu, "Optie 'load' in schijfmenu", "")
@@ -356,7 +385,7 @@ SWITCHTEXT(setsignal1waittime, "Wachttijd van treinen bij seinen", ":")
 SWITCHTEXT(setsignal2waittime, "", "")                          // dummy entry
 SWITCHTEXT(maskdisasters, "Rampencode", ": %d")
 SWITCHTEXT(forceautorenew, "Verplicht autom. vernieuwen", "")
-SWITCHTEXT(morenews, "Meer krantenberichten", "")
+SWITCHTEXT(morenews, "Meer nieuwsberichten", "")
 SWITCHTEXT(unifiedmaglev, "GeÅnificeerde maglev", ", modus %d")
 SWITCHTEXT(newbridgespeeds, "Max. snelh. op maglev-bruggen", ": %d%%")
 SWITCHTEXT(eternalgame, "Eeuwig doorspelen na 2070", "")
@@ -370,27 +399,219 @@ SWITCHTEXT(newstartyear, "Standaard startjaar", ": %d")
 SWITCHTEXT(newerrorpopuptime, "Weergavetijd foutmeldingen", ": %d sec.")
 SWITCHTEXT(newtowngrowthfactor, "Stadsgroeifactor wordt", " %d")
 SWITCHTEXT(largertowns, "Grotere steden", ", elke 1 van de %d")
-SWITCHTEXT(miscmods, "Diverse opties", ": %d")
+SWITCHTEXT(miscmods, "Diverse opties", ": %ld")
 SWITCHTEXT(loadallgraphics, "Altijd alle nieuwe plaatjes laden", "")
 SWITCHTEXT(saveoptdata, "Optionele gegevens opslaan en laden", "")
 SWITCHTEXT(morebuildoptions, "Meer bouwopties", ": %d")
 SWITCHTEXT(semaphoresignals, "Semafoorseinen voor 1975", "")
 SWITCHTEXT(morehotkeys, "Meer/nieuwe sneltoetsen", "")
 SWITCHTEXT(plantmanytrees, "Meer bomen tegelijk planten", ", modus %d")
-SWITCHTEXT(morecurrencies, "Meer valuta", ", vlaggen: %d")
+SWITCHTEXT(morecurrencies, "Meer valuta", ", opties: %d")
 SWITCHTEXT(manualconvert, "Handmatig spoor converteren", "")
 SWITCHTEXT(newtowngrowthrate, "Nieuw stadsgroeialgorithme", ": %d")
 SWITCHTEXT(displmoretownstats, "Meer stadsstatistieken weergeven", "")
-SWITCHTEXT(enhancegui, "Betere spelinterface", ": %d")
+SWITCHTEXT(enhancegui, "Betere spelinterface", "")
 SWITCHTEXT(newagerating, "Minder invloed veroudering voert.", "")
 SWITCHTEXT(buildonslopes, "Meer dingen bouwen op hellingen", "")
 SWITCHTEXT(buildoncoasts, "Op kusten bouwen mogelijk", "")
-SWITCHTEXT(experimentalfeatures, "Nieuwste experim. opties aanzetten", ": %d")
+SWITCHTEXT(experimentalfeatures, "Nieuwste experim. opties aanzetten", ": %u")
 SWITCHTEXT(tracktypecostdiff, "Versch. kosten versch. soorten spoor", "")
-SWITCHTEXT(planespeed, "Echte vliegtuigsnelheid gebruiken", "")
+SWITCHTEXT(planespeed, "Echte vliegtuigsnelheid gebruiken", ": %d/4")
 SWITCHTEXT(fastwagonsell, "Sneller wagons verkopen", "")
 SWITCHTEXT(newrvcrash, "Botsingen wijzigen"," (modus %d)")
 SWITCHTEXT(stableindustry, "Industrieân sluiten niet","")
+SWITCHTEXT(newperformance, "Nieuwe prestatiebeoordeling", "")
+SWITCHTEXT(sortvehlist, "Voertuiglijst sorteren", ", elke: %d")
+SWITCHTEXT(showprofitinlist, "Winst weergeven in voertuiglijst", "")
+SWITCHTEXT(newspapercolour, "Nieuwsberichten in kleur", " na %d")
+SWITCHTEXT(sharedorders, "Orders delen en kopieâren", "")
+SWITCHTEXT(moresteam, "Meer rookpluimen", ": %x")
+SWITCHTEXT(abandonedroads, "Ongebr. wegen verl. eigendom", ", modus %d")
+SWITCHTEXT(newstations, "Nieuw stations", "")
+SWITCHTEXT(buildwhilepaused, "Bouwen tijdens pauze mogelijk", "")
+SWITCHTEXT(losttrains, "Verdw. treinen melden", " na %d dagen")
+SWITCHTEXT(lostrvs, "Verdw. wegvoert. melden", " na %d dagen")
+SWITCHTEXT(lostships, "Verdw. schepen melden", " na %d dagen")
+SWITCHTEXT(lostaircraft, "Verdw. vliegtuigen melden", " na %d dagen")
+SWITCHTEXT(maprefresh, "Kaartbijwerkfrekwentie", " elke %d ticks")
+SWITCHTEXT(disconnectontimeout, "Netw.spel afsl. bij geen respons", " %d s")
+SWITCHTEXT(moretoylandfeatures, "Willek. spelopties in Speelg.land", ": %d")
+SWITCHTEXT(stretchwindow, "TTD-venster spreiden", " tot %d pixels")
+SWITCHTEXT(canals, "Kanalen en sluizen bouwen", "")
+SWITCHTEXT(higherbridges, "Hogere bruggen bouwen", "")
+SWITCHTEXT(gamespeed, "Spelsnelheid aanpasbaar", "; startw. %d")
+SWITCHTEXT(freighttrains, "Vrachttreinen zijn zwaarder", " (x%d)")
+SWITCHTEXT(mousewheel, "Muiswiel gebruiken",", optie: %d")
+SWITCHTEXT(morewindows, "Groter max. aantal vensters", ", nl. %d")
+SWITCHTEXT(enhanceddiffsettings, "Verbeterde moeilijkheidsinstellingen", "")
+SWITCHTEXT(newbridges, "Nieuwe bruggen", "")
+SWITCHTEXT(newhouses, "Nieuwe gebouwen in steden", "")
+SWITCHTEXT(newtownnames,"Nieuwe stijl voor stadsnamen","")
+SWITCHTEXT(moreanimation,"Meer vlakken met animatie",", max. %d")
+SWITCHTEXT(newshistory, "Nieuwsgeschiedenis", "")
+SWITCHTEXT(wagonspeedlimits, "Snelheidsbeperkingen voor treinwagons", "")
+SWITCHTEXT(pathbasedsignalling, "Seinen met routering", "")
+SWITCHTEXT(aichoosechances, "Kansverdeling voor computerroutes", "")
+SWITCHTEXT(custombridgeheads, "Aangepaste bruggenhoofden", "")
+SWITCHTEXT(townbuildnoroads, "Steden bouwen geen wegen", "")
+SWITCHTEXT(newcargodistribution, "Verbeterde vrachtverdeling", "")
+SWITCHTEXT(windowsnap, "Vensters klikken samen", " bij %d pixels")
+SWITCHTEXT(resolutionwidth, "Resolutiebreedte", " %d pixels")
+SWITCHTEXT(resolutionheight, "Resolutiehoogte", " %d pixels")
+SWITCHTEXT(newindustries, "Nieuwe industrieân", "")
+SWITCHTEXT(locomotiongui, "Gebruikersomgeving als in Locomotion", "")
+SWITCHTEXT(fifoloading, "Eerste voertuig wordt eerst geladen", "");
+SWITCHTEXT(tempsnowline, "Sneeuwlijn in gematigd klimaat", "")
+SWITCHTEXT(townroadbranchprob, "Kans op wegsplitsingen in steden", " : %d")
+SWITCHTEXT(newcargos, "Nieuwe typen vracht", "")
+SWITCHTEXT(enhancemultiplayer, "Netwerkverbeteringen (meer spelers)", "")
+SWITCHTEXT(newsounds, "Aangepaste geluiden toevoegen", "")
+SWITCHTEXT(morestats, "Uitgebreidere statistieken", "")
+SWITCHTEXT(onewayroads, "Eenrichtingsverkeer op wegen met Ctrl", "")
+SWITCHTEXT(irrstations, "Onregelmatig gevormde stations bouwen", "")
+SWITCHTEXT(autoreplace, "Oude voert. upgraden", "; betrbh. %d%%.")
+SWITCHTEXT(autoslope, "Bebouwd terrein wijzigen", "")
+SWITCHTEXT(followvehicle, "Voertuig volgen in hoofdvenster", "")
+SWITCHTEXT(trams, "Trams", "")
+SWITCHTEXT(enhancetunnels, "Spoor/wegen bouwen op tunnelingangen", "")
+SWITCHTEXT(forcegameoptions, "Verplichte spelopties","")
+
+//---------------------------------------
+//  BIT SWITCH DESCRIPTIONS
+//---------------------------------------
+
+// Description for noplanecrashes bits
+BITSWITCH(noplanecrashes)
+BIT(normdis,      "Normale vliegtuigongelukken als rampen uit staat")
+BIT(jetsdis,      "Straalvliegtuigen verongelukken op kleine vliegvelden als rampen uit staat")
+BIT(normbrdown,   "Normale vliegtuigongelukken alleen voor kapotte vliegtuigen, aantal * 4")
+BIT(jetssamerate, "Evenveel ongelukken met straalvliegtuigen op kleine vliegvelden als normale ongelukken")
+BIT(normoff,      "Geen normale vliegtuigongelukken")
+BIT(jetsoff,      "Geen ongelukken met straalvliegtuigen op kleine vliegvelden")
+
+// Description for miscmods bits
+BITSWITCH(miscmods)
+BIT(nobuildonbanks,        "Steden bouwen niet op kusten")
+BIT(servintonlyhuman,      "Onderhoudsinterval geldt niet voor computerspelers")
+BIT(noroadtakeover,        "Steden pakken niet alle wegen in de scenario-editor")
+BIT(gradualloadbywagon,    "Geleidelijk laden betekent wagon voor wagon")
+BIT(dontfixlitres,         "Wijzig liters niet in 1000 l = 1 ton in plaats van 100 l")
+BIT(dontfixtropicbanks,    "Soorten banken niet repareren in sub-tropisch klimaat")
+BIT(dontfixhousesprites,   "Kantoren die als kerken worden weergeven niet repareren")
+BIT(oldtownterrmodlimit,   "Hoogst mogelijke kosten voor terrein wijzigen in steden niet veranderen")
+BIT(nozeppelinonlargeap,   "Zeppelins storten niet neer op grote vliegvelden")
+BIT(nodefaultoldtracktype, "Vorig spoortype niet als nieuwe standaard gebruiken")
+BIT(usevehnnumbernotname,  "Geen voertuignamen gebruiken in nieuwsberichten")
+BIT(norescalecompanygraph, "Bedrijfsgrafiek niet aanpassen als bedrijf wordt gedeseledteerd")
+BIT(noyearlyfinances,      "Geen financieel overzicht op 1 januari")
+BIT(notimegiveaway,        "Geen tijd overslaan om processor te ontzien")
+BIT(nodesynchwarning,      "Niet waarschuwen dat meerpersoonsspelen hun synchronisatie kwijtraken")
+BIT(noworldedgeflooding,   "Rand van de kaart niet onder water laten lopen")
+BIT(doshowintro,           "Spelintro weergeven (niet overslaan)")
+BIT(nonewspritesorter,     "Nieuw spritesorteeralgorithme niet gebruiken")
+BIT(nodiagonalflooding,    "Diagonaal onder water lopen en kusthoeken niet gebruiken")
+BIT(noenhancedcomp,        "Spellen niet opslaan met verbeterd compressiealgorithme")
+BIT(breakdownatsignal,     "Treinen mogen kapot gaan terwijl ze voor rood sein wachten")
+BIT(smallspritelimit,      "Maximum aantal sprites niet verhogen")
+BIT(displaytownsize,       "Stadsgrootte weergeven in stadsnaam")
+BIT(noextendstationrange,  "Maximumafstand tussen stationsnaam en industrie voor het afleveren van vracht niet verhogen")
+BIT(nooldvehiclenews,      "Geen melding weergeven als voertuigen oud worden")
+BIT(dontfixpaymentgraph,   "X-as van vrachtopbrengstvenster niet repareren")
+BIT(loaduntilgreen,        "Doorgaan met laden in station totdat uitgangssein groen is")
+BIT(dontshowaltitude,      "Geen hoogte weergeven in vlakinfovenster")
+BIT(nogrfidsinscreenshots, "Actieve grf-id's niet weergeven in schermafbeeldingen")
+BIT(dontchangesnow,        "Hoogteberekening voor sneeuw niet wijzigen")
+
+// Description for morebuildoptions bits
+BITSWITCH(morebuildoptions)
+BIT(ctunnel,         "Kruisende tunnels toestaan")
+BIT(oilrefinery,     "Overal olieraffinaderijen mogelijk")
+BIT(moreindustries,  "Meer dan een industrie van hetzelfde type mogelijk")
+BIT(removeobjects,   "Standbeelden, vuurtorens en zendmasten kunnen worden verwijderd")
+BIT(removeindustry,  "Industrieân kunnen worden verwijderd")
+BIT(closeindustries, "Eendere industrieân kunnen dicht bij elkaar staan")
+BIT(enhancedbuoys,   "Boeien gedragen zich als gewone stations")
+BIT(bulldozesignals, "Automatisch seinen opblazen bij spoor verwijderen")
+
+// Description for experimentalfeatures bits
+BITSWITCH(experimentalfeatures)
+BIT(slowcrossing, "Treinen verminderen vaart voor overwegen")
+BIT(cooperative,  "Coîperatief spelen, zeer beperkte mogelijkheden")
+BIT(mandatorygrm, "GRF-bronbeheer verplicht voor .grf-bestanden")
+
+// Description for maskdisasters bits
+BITSWITCH(maskdisasters)
+BIT(zeppelincrash,      "Zeppelin kan neerstorten")
+BIT(smallufo,           "Kleine UFO kan verschijnen")
+BIT(refineryexplosion,  "Raffinaderij kan ontploffen")
+BIT(factoryexplosion,   "Fabriek kan ontploffen")
+BIT(largeufo,           "Grote UFO kan verschijnen")
+BIT(smallsubmarine,     "Kleine onderzeeâr kan verschijnen")
+BIT(largesubmarine,     "Grote onderzeeâr kan verschijnen")
+BIT(coalminesubsidence, "Kolenmijnopslag kan gaan schuiven")
+
+// Description for mousewheel bits
+BITSWITCH(mousewheel)
+BIT(cursorzoom, "Zoomen op cursorpositie in plaats van op midden van scherm")
+BIT(safezoom,   "Zoomen start pas na twee klikjes van het zoomwiel")
+BIT(legacy,     "Ondersteuning voor oudere besturingssystemen en stuurprogramma's (normaalgesproken niet nodig)")
+
+// Description for plantmanytrees bits
+BITSWITCH(plantmanytrees)
+BIT(morethanonepersquare,   "Meer dan ÇÇn boom per vlakje planten mogelijk")
+BIT(rectangular,            "Rechthoekig gebied beplanten met 'Ctrl' mogelijk")
+BIT(morethanonerectangular, "Meer dan ÇÇn boom per vlakje bij planten van rechthoekig gebied")
+
+// Description for moretoylandfeatures bits
+BITSWITCH(moretoylandfeatures)
+BIT(lighthouses, "Vuurtorens op kusten mogelijk in Speelgoedland")
+BIT(woodlands,   "Bossen (meerdere bomen bij elkaar) mogelijk in Speelgoedland")
+
+// Description for locomotiongui bits
+BITSWITCH(locomotiongui)
+BIT(usenewgui,      "Nieuwe gebruikersomgeving gebruiken")
+BIT(defaultnewgui,  "Standaard de nieuwe gebruikersomgeving gebruiken (zonder dit kun je de nieuwe gebruikersomgeving gebruiken met CTRL, met deze optie gebruik je met CTRL de oude gebruikersomgeving)")
+BIT(defaultstation, "De knop Station bouwen opent het tabblad Station van de Locomotion-gebruikersomgeving.")
+
+// Description for pathbasedsignalling bits
+BITSWITCH(pathbasedsignalling)
+BIT(autoconvertpresig,    "Converteer voor-, uitgangs- en gecombineerde seinen in routeringsseinen")
+BIT(manualpbssig,         "Handmatig instellen van routeringsseinen mogelijk")
+BIT(preservemanualpresig, "Wissels met handmatig ingestelde seinen niet converteren naar routering")
+BIT(showreservedpath,     "Gerouteerd spoor donkerder weergeven")
+BIT(shownonjunctionpath,  "Behalve wissels ook ander gerouteerd spoor weergeven")
+BIT(allowunsafejunction,  "Treinen niet tegenhouden bij onveilige gerouteerde seinen")
+BIT(allowunsafereverse,   "Treinen niet tegenhouden die niet veilig kunnen omkeren")
+
+// Description for newsounds bits
+BITSWITCH(newsounds)
+BIT(highfrequency, "(alleen DOS) Geluiden mixen op 22 KHz in plaats van de standaard 11 KHz. Geluiden van 22KHz worden correct weergegeven.")
+
+// Description for morecurrencies bits
+BITSWITCH(morecurrencies)
+BIT(symbefore, "Valutasymbool staat altijd voor het bedrag")
+BIT(symafter,  "Valutasymbool staat altijd achter het bedrag")
+BIT(noeuro,    "Euro niet invoeren")
+BIT(comma,     "Altijd komma als duizendscheidingsteken gebruiken")
+BIT(period,    "Altijd punt als duizendscheidingsteken gebruiken")
+
+// Description for forcegameoptions bits
+BITSWITCH(forcegameoptions)
+BIT(trafficleft,	"Wegverkeer rijdt altijd links")
+BIT(trafficright,	"Wegverkeer rijdt altijd rechts")
+BIT(imperial,		"Gebruik altijd mijlen i.p.v. kilometers")
+BIT(metric,		"Gebruik altijd kilometers i.p.v. mijlen")
+BIT(townsenglish,	"Stel stadsnamen in op Brits")
+BIT(townsfrench,	"Stel stadsnamen in op Frans")
+BIT(townsgerman,	"Stel stadsnamen in op Duits")
+BIT(townsamerican,	"Stel stadsnamen in op Amerikaans")
+BIT(townslatin,		"Stel stadsnamen in op Latijns-Amerikaans")
+BIT(townssilly,		"Stel stadsnamen in op koddig")
+BIT(autosavedisabled,	"Zet automatisch opslaan uit")
+BIT(autosave3months,	"Stel automatisch opslaan in op 3 maanden")
+BIT(autosave6months,	"Stel automatisch opslaan in op 6 maanden")
+BIT(autosave12months,	"Stel automatisch opslaan in op 12 maanden")
+
 
 // A cfg file (%s) could not be found and is ignored.
 SETTEXT(LANG_CFGFILENOTFOUND, "Kon config.bestand %s niet vinden. Genegeerd.\n")
@@ -439,7 +660,7 @@ SETTEXT(CFG_NEWSWITCHINTRO, "**** Nieuwe schakelopties ****")
 // For switches which have no command line equivalent
 SETTEXT(CFG_NOCMDLINE, "geen opdrachtregelschakeloptie")
 
-// Definitions of the cfg file comments.
+// 
 // All can have a place holder %s to stand for the actual setting name,
 // and all but CFG_CDPATH can have a %s *after* the %s for the command
 // line switch.
@@ -465,115 +686,171 @@ SETTEXT(CFG_PRESIGNALS, "`%s' (%s) maakt 'voorseinen' mogelijk waarmee stations 
 SETTEXT(CFG_MOREVEHICLES, "`%s' (%s) verhoogt het maximum aantal voertuigen naar waarde*850. Bereik %ld - %ld, standaard is %ld.")
 SETTEXT(CFG_MAMMOTHTRAINS, "`%s' (%s) maakt mammoettreinen mogelijk met max. 126 wagons.")
 SETTEXT(CFG_FULLLOADANY, "`%s' (%s) laat een trein vertrekken zodra een van de producten volledig geladen is.")
-SETTEXT(CFG_SELECTGOODS, "Met `%s' (%s) worden pas goederen afgeleverd als er een service voor bestaat.")
+SETTEXT(CFG_SELECTGOODS, "Met `%s' (%s) worden pas goederen afgeleverd als er een service voor bestaat. Het afleveren stopt als er het gegeven aantal dagen geen goederen zijn afgehaald. Als je 2 opgeeft dan houdt het afleveren nooit op.  Bereik: %ld - %ld.  Standaard: %ld.")
 SETTEXT(CFG_DEBTMAX, "`%s' (%s) maakt het mogelijk met 'Ctrl' alles te lenen of af te lossen.")
 SETTEXT(CFG_OFFICEFOOD, "`%s' (%s) zorgt dat kantoorflats voedsel accepteren (tropische en arctische scenario's).")
-SETTEXT(CFG_ENGINESPERSIST, "`%s' (%s) zorgt dat voertuigen te koop blijven zolang je ze gebruikt.")
-SETTEXT(CFG_CDPATH, "`%s' (%s) stelt het pad naar de cd in.")
-// Note- CFG_CDPATH heeft geen optie, dus geef geen %s!
-SETTEXT(CFG_KEEPSMALLAP, "Met `%s' (%s) blijven kleine vliegvelden ook later in het spel beschikbaar.")
-SETTEXT(CFG_AIBOOST, "`%s' (%s) verhoogt de AI-recursie met deze waarde.")
-SETTEXT(CFG_LONGBRIDGES, "Met `%s' (%s) kun je langere bruggen bouwen (maximaal 127 vlakjes lang).")
-SETTEXT(CFG_DYNAMITE, "Met `%s' (%s) kun je meer objecten opblazen met dynamiet.")
-SETTEXT(CFG_RVQUEUEING, "Met `%s' (%s) wachten wegvoertuigen voor een vol laadstation ipv om te draaien.")
-SETTEXT(CFG_LOWMEMORY, "`%s' (%s) staat TTDPatch toe te draaien in 3,5 MB geheugen.")
-SETTEXT(CFG_GENERALFIXES, "`%s' (%s) verbetert een aantal kleine programmafouten.")
-SETTEXT(CFG_MOREAIRPORTS, "Met `%s' (%s) kun je meer dan twee luchthavens per stad bouwen.")
-SETTEXT(CFG_BRIBE, "`%s' (%s) voegt de optie `bribe' (omkopen) toe aan stadsmenu's.")
-SETTEXT(CFG_PLANECRCTRL, "`%s' (%s) maakt het mogelijk te bepalen wanneer vliegtuigen kunnen neerstorten. Bitgecodeerde waarde, standaard is 1.")
-SETTEXT(CFG_SHOWSPEED, "`%s' (%s) geeft de huidige snelheid van voertuigen weer in hun voertuigvenster.")
-SETTEXT(CFG_AUTORENEW, "`%s' (%s) vervangt voertuigen automatisch dit aantal maanden nadat ze `zeer oud' worden. Bereik %ld - +%ld, standaard is %ld.")
-SETTEXT(CFG_EXTPRESIGNALS, "Met `%s' (%s) kun je verschillende soorten (voor)seinen instellen: normaal, voorsein, uitgangssein of gecombineerd sein. Je stelt deze in met 'Ctrl'.")
-SETTEXT(CFG_FORCEREBUILDOVL, "`%s' (%s) zorgt ervoor dat TTDPatch elke keer dat je het programma start een nieuw bestand TTDLOAD.OVL of TTDLOADW.OVL maakt.")
-SETTEXT(CFG_MULTIHEAD, "Met `%s' (%s) kun je een trein meerdere locs geven. Extra locs koop je met 'Ctrl'. Als parameter geef je de max. extra snelheid die de extra locs opleveren, als percentage van %ld - %ld, standaard is %ld%%.")
+SETTEXT(CFG_ENGINESPERSIST, "'%s' (%s) zorgt dat voertuigen te koop blijven zolang je ze gebruikt.")
+SETTEXT(CFG_CDPATH, "'%s' (%s) stelt het pad naar de cd in.")
+// 
+SETTEXT(CFG_KEEPSMALLAP, "Met '%s' (%s) blijven kleine vliegvelden ook later in het spel beschikbaar.")
+SETTEXT(CFG_LONGBRIDGES, "Met '%s' (%s) kun je langere bruggen bouwen (maximaal 127 vlakjes lang).")
+SETTEXT(CFG_DYNAMITE, "Met '%s' (%s) kun je meer objecten opblazen met dynamiet.")
+SETTEXT(CFG_RVQUEUEING, "Met '%s' (%s) wachten wegvoertuigen voor een vol laadstation ipv om te draaien.")
+SETTEXT(CFG_LOWMEMORY, "Met '%s' (%s) kun je TTDPatch starten in 3,5 MB geheugen.")
+SETTEXT(CFG_GENERALFIXES, "'%s' (%s) verbetert een aantal kleine programmafouten.")
+SETTEXT(CFG_MOREAIRPORTS, "Met '%s' (%s) kun je meer dan twee luchthavens per stad bouwen.")
+SETTEXT(CFG_BRIBE, "'%s' (%s) voegt de optie 'bribe' (omkopen) toe aan stadsmenu's.")
+SETTEXT(CFG_PLANECRCTRL, "'%s' (%s) maakt het mogelijk te bepalen wanneer vliegtuigen kunnen neerstorten. Bitgecodeerde waarde, standaard is 1.")
+SETTEXT(CFG_SHOWSPEED, "'%s' (%s) geeft de huidige snelheid van voertuigen weer in hun voertuigvenster.")
+SETTEXT(CFG_AUTORENEW, "'%s' (%s) vervangt voertuigen automatisch dit aantal maanden nadat ze 'zeer oud' worden. Bereik %ld - +%ld, standaard is %ld.")
+SETTEXT(CFG_EXTPRESIGNALS, "Met '%s' (%s) kun je verschillende soorten (voor)seinen instellen: normaal, voorsein, uitgangssein of gecombineerd sein. Je stelt deze in met 'Ctrl'.")
+SETTEXT(CFG_FORCEREBUILDOVL, "'%s' (%s) zorgt ervoor dat TTDPatch elke keer dat je het programma start een nieuw bestand TTDLOAD.OVL of TTDLOADW.OVL maakt.")
+SETTEXT(CFG_MULTIHEAD, "Met '%s' (%s) kun je een trein meerdere locs geven. Extra locs koop je met 'Ctrl'. Als parameter geef je de max. extra snelheid die de extra locs opleveren, als percentage van %ld - %ld, standaard is %ld%%.")
 SETTEXT(CFG_CHEATSCOST, "'%s' (%s) maakt dat valsspelen met bordjes geld kost.")
-SETTEXT(CFG_DISKMENU, "`%s' (%s) voegt de optie `load' (laden) toe aan het schijfmenu, en 'load game' (spel laden) of 'save game' (spel opslaan, gebruik hiervoor Ctrl) aan de scenario-editor.")
-SETTEXT(CFG_WIN2K, "`%s' (%s) maakt de Windows-versie van TTD compatibel met Windows 2000/XP.")
-SETTEXT(CFG_FEEDERSERVICE, "`%s' (%s) wijzigt de optie 'unload'. Een station dat anders de lading zou accepteren laat die lading nu klaar staan voor een andere service die de lading verder kan vervoeren.")
-SETTEXT(CFG_GOTODEPOT, "Met `%s' (%s) kunt u depots toevoegen aan de orders om voertuigen naar garage, remise, hangar of dok te sturen.")
-SETTEXT(CFG_NEWSHIPS, "`%s' (%s) geeft meer en andere schepen.")
-SETTEXT(CFG_SUBSIDIARIES, "Met `%s' (%s) kunt u computerspelers overnemen waarvan u meer dan 75%% in bezit hebt.")
-SETTEXT(CFG_GRADUALLOADING, "`%s' (%s) maakt dat voertuigen beetje bij beetje worden geladen, wat realistischer oogt. (stelt ook automatisch de optie `loadtime' in).")
-SETTEXT(CFG_MOVEERRORPOPUP, "`%s' (%s) maakt dat alle rode foutmeldingen rechtsboven op het scherm worden weergegeven.")
-SETTEXT(CFG_SIGNAL1WAITTIME, "`%s' (%s) wijzigt het aantal dagen dat een trein wacht voor een ÇÇnrichtingssein voordat hij het opgeeft en omkeert. Bereik 0 - 254; met 255 wacht de trein tot St. Juttemis.")
-SETTEXT(CFG_SIGNAL2WAITTIME, "`%s' (%s) wijzigt het aantal dagen dat een trein wacht voor een tweerichtingssein voordat hij het opgeeft en omkeert. Bereik 0 - 254; met 255 wacht de trein tot St. Juttemis.")
-SETTEXT(CFG_DISASTERS, "Met `%s' (%s) kun je kiezen welke rampen er kunnen gebeuren. Bitgecodeerde waarde, standaard is 255 (alle rampen).")
-SETTEXT(CFG_FORCEAUTORENEW, "Met `%s' (%s) gaan voertuigen naar het depot wanneer het tijd is om vervangen te worden (zie `autorenew').")
-SETTEXT(CFG_MORENEWS, "`%s' (%s) genereert (kranten-)berichten voor meer gebeurtenissen, zie de documentatie voor nadere informatie.")
-SETTEXT(CFG_UNIFIEDMAGLEV, "Met `%s' (%s) kun je monorail-locs kopen in maglev-remises en vice versa. Modi: 1 - converteer alle maglev-locs naar monorail; 2 - converteer alle monorail-locs naar maglev; 3 - houdt monorail en maglev apart.")
-SETTEXT(CFG_BRIDGESPEEDS, "`%s' (%s) wijzigt de snelheidslimieten op buisbruggen voor monorail en maglev in het opgegeven percentage van de hoogste maximum loc-snelheid in de klasse. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_ETERNALGAME, "Met `%s' (%s) kun je eeuwig door blijven spelen, de datum wordt niet teruggezet na 2070.")
-SETTEXT(CFG_SHOWFULLDATE, "Met `%s' (%s) wordt altijd de volledige datum in de statusbalk weergegeven (niet alleen tijdens pauzeren).")
-SETTEXT(CFG_NEWTRAINS, "`%s' (%s) activeert nieuwe treinmodellen.")
-SETTEXT(CFG_NEWRVS, "`%s' (%s) activeert nieuwe wegvoertuigmodellen.")
-SETTEXT(CFG_NEWPLANES, "`%s' (%s) activeert nieuwe vliegtuigmodellen.")
-SETTEXT(CFG_SIGNALSONTRAFFICSIDE, "`%s' (%s) zet treinseinen aan dezelfde kant van het spoor als waar wegvoertuigen op de weg rijden.")
-SETTEXT(CFG_ELECTRIFIEDRAIL, "`%s' (%s) verwijdert ÇÇn van de magnetische spoorsystemen (Monorail of MagLev) en vervangt die door geâlektrificeerde treinsporen.")
-SETTEXT(CFG_STARTYEAR, "`%s' (%s) stelt het standaardstartjaar voor willekeurige spelen in en biedt meer mogelijkheden voor startjaren in de scenario-maker. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_ERRORPOPUPTIME, "`%s' (%s) wijzigt de tijd dat rode foutmeldingen op het scherm blijven staan. Bereik 1 - 255 (in seconden), of 0 voor verschrikkelijk lang. Standaard 10.")
-SETTEXT(CFG_TOWNGROWTHLIMIT, "`%s' (%s) wijzigt de factor die de maximumgrootte van steden beperkt. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_LARGERTOWNS, "`%s' (%s) maakt dat ÇÇn van elke zoveel steden sneller en groter kunnen groeien (waarbij bovendien `towngrowthlimit' selectief wordt toegepast). Bereik %ld - %ld. Standaard %ld (ÇÇn op elke vier steden).")
-SETTEXT(CFG_MISCMODS, "`%s' (%s) maakt het mogelijk om de werking van bepaalde andere schakelopties te wijzigen, lees de documentatie voor meer info. Bitgecodeerde waarde, standaard 0 (geen wijzigingen).")
-SETTEXT(CFG_LOADALLGRAPHICS, "`%s' (%s) dwingt TTDPatch om altijd alle .grf-bestanden in newgrf(w).cfg te laden, ongeacht of ze in een geladen spel (enz.) al waren gebruikt of niet.")
-SETTEXT(CFG_SAVEOPTDATA, "Met `%s' (%s) slaat TTDPatch meer (optionele) gegevens op aan het einde van opgeslagen spellen, en laadt die ook weer in.")
-SETTEXT(CFG_MOREBUILDOPTIONS, "Met `%s' (%s) krijg je meer mogelijkheden bij bouwen. Bitgecodeerde waarde, bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_SEMAPHORES, "`%s' (%s) verandert nieuwe treinseinen die voor 1975 gebouwd worden in semafoorseinen (met bewegende arm).")
-SETTEXT(CFG_MOREHOTKEYS, "Nieuwe sneltoetsen krijg je met `%s' (%s).")
-SETTEXT(CFG_MANYTREES, "Met `%s' (%s) kun je meer dan ÇÇn boom op ÇÇn plek planten; met Ctrl kun je een cirkelvormig gebied volplanten.")
-SETTEXT(CFG_MORECURRENCIES,"Met `%s' (%s) worden meer valuta mogelijk, waaronder de Euro. Parameter: 0 - valutasymbool op standaardpositie; 1 - valutasymbool voor bedrag; 2 - valutasymbool achter bedrag. Tel hierbij 4 op om de Euro uit te schakelen.")
-SETTEXT(CFG_MANCONVERT,"`%s' (%s) maakt het mogelijk handmatig spoortypen te wijzigen door nieuw spoor over oud spoor heen te bouwen.")
-SETTEXT(CFG_NEWAGERATING, "`%s' (%s) maakt de stationsbeoordelingen toleranter voor oudere voertuigen. Voertuigen mogen nu 21 jaar oud zijn in plaats van 3.")
-SETTEXT(CFG_ENHANCEGUI,"`%s' (%s) verbetert de gebruikersinterface.")
-SETTEXT(CFG_TOWNGROWTHRATEMODE, "Met `%s' (%s) kun je de regels definiâren voor de berekening van het groeitempo van steden. Modi: 0 - TTD origineel, 1 - TTD uitgebreid, 2 - zelfbepaald. Zie de documentatie voor meer informatie.")
-SETTEXT(CFG_TOWNGROWTHRATEMIN, "`%s' (%s) definieert het minimumgroeitempo van steden, in nieuwe huizen per eeuw. Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TOWNGROWTHRATEMAX, "`%s' (%s) definieert het maximumgroeitempo van steden, in nieuwe huizen per eeuw. Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRACTSTATIONEXIST, "`%s' (%s) definieert hoeveel bestaande aktieve stations bijdragen aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - +%ld. Standaard %ld.")
-SETTEXT(CFG_TGRACTSTATIONS, "`%s' (%s) definieert hoeveel elk aktief station het groeitempo van een stad vergroot (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRACTSTATIONSWEIGHT, "`%s' (%s) definieert hoe effectief aktieve stations zijn in het bijdragen aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRPASSOUTWEIGHT, "`%s' (%s) definieert hoe effectief getransporteerde passagiers bijdragen aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRMAILOUTWEIGHT, "`%s' (%s) definieert hoe effectief getransporteerde post bijdraagt aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRPASSINMAX, "`%s' (%s) definieert het maximum aantal binnenkomende passagiers dat invloed heeft op de groei van een stad (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRPASSINWEIGHT, "`%s' (%s) definieert hoe effectief binnenkomende passagiers bijdragen aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRMAILINOPTIM, "`%s' (%s) definieert het optimale inwonertal per elke 2 zakken binnenkomende post (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRMAILINWEIGHT, "`%s' (%s) definieert hoe effectief binnenkomende post bijdraagt aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRGOODSINOPTIM, "`%s' (%s) definieert het optimale inwonertal per elke 2 kratten inkomende goederen (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRGOODSINWEIGHT, "`%s' (%s) definieert hoe effectief inkomende goederen bijdragen aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRFOODINMIN, "`%s' (%s) definieert de minimum hoeveelheid voedsel die vereist is voor steden boven de sneeuwgrens of in de woestijn, in inwoners per 2 ton binnenkomend voedsel (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRFOODINOPTIM, "`%s' (%s) definieert het optimale inwonertal per elke 2 ton binnenkomend voedsel(zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRFOODINWEIGHT, "`%s' (%s) definieert hoe effectief binnenkomend voedsel bijdraagt aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRWATERINMIN, "`%s' (%s) definieert de minimum hoeveelheid water voor steden in woestijngebieden, in inwoners per 2 ton (2.000 liter) binnenkomend water (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRWATERINOPTIM, "`%s' (%s) definieert het optimale inwonertal per elke 2 ton (2.000 liter) binnenkomend water in het sub-tropische klimaat (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRWATERINWEIGHT, "`%s' (%s) definieert hoe effectief binnenkomend water bijdraagt aan het groeitempo van een stad in het sub-tropische klimaat (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRSWEETSINOPTIM, "`%s' (%s) definieert het optimale inwonertal per elke 2 zakken binnenkomend snoep in speelgoedland (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRSWEETSINWEIGHT, "`%s' (%s) definieert hoe effectief binnenkomend snoep bijdraagt aan het groeitempo van een stad in speelgoedland (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRFIZZYDRINKSINOPTIM, "`%s' (%s) definieert het optimale inwonertal per elke 2 binnenkomende frisdranken in speelgoedland (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRFIZZYDRINKSINWEIGHT, "`%s' (%s) definieert hoe effectief binnenkomende frisdrank bijdraagt aan het groeitempo van een stad in speelgoedland (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRTOWNSIZEBASE, "`%s' (%s) definieert het basisaantal stadsgebouwen voor de berekening die `tgrtownsizefactor' betreft (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TGRTOWNSIZEFACTOR, "`%s' (%s) definieert hoeveel de grootte van een stad zijn groeitempo beãnvloedt (zie documentatie voor meer info). Alleen aktief als `towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld (bijv. 25%% invloed).")
-SETTEXT(CFG_TOWNMINPOPULATIONSNOW, "`%s' (%s) definieert het minimum inwonertal waartot steden boven de sneeuwgrens kunnen groeien als er geen voedsel wordt aangevoerd. Aktief als `towngrowthratemode', `towngrowthlimit' of `generalfixes' is ingeschakeld. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_TOWNMINPOPULATIONDESERT, "`%s' (%s) definieert het minimum inwonertal waartot steden in woestijngebieden kunnen groeien als er geen voedsel en water wordt aangevoerd. Aktief als `towngrowthratemode', `towngrowthlimit' of `generalfixes' is ingeschakeld. Bereik %ld - %ld. Standaard %ld.")
-SETTEXT(CFG_MORETOWNSTATS, "Met `%s' (%s) worden er meer statistieken weergegeven in stadsinformatievensters.")
-SETTEXT(CFG_BUILDONSLOPES, "`%s' (%s) maakt het mogelijk om sporen, wegen en stations te bouwen op hellingen, door fundamenten te gebruiken zoals die door huizen worden gebruikt.")
-SETTEXT(CFG_BUILDONCOASTS, "`%s' (%s) maakt het mogelijk om op kusten en rivieroevers te bouwen, zonder eerst de plek op te hoeven blazen.")
-SETTEXT(CFG_TRACKTYPECOSTDIFF, "`%s' (%s) geeft verschillende typen spoor verschillende bouwkosten.")
-SETTEXT(CFG_CUSMULTIPLIER, "`%s' (%s) stelt de wisselkoers in voor de eigen valuta CUS * 1000. Standaard is 1000 (1 CUS = 1 pond). Alleen aktief als `morecurrencies' aan staat.")
-SETTEXT(CFG_EXPERIMENTALFEATURES, "`%s' (%s) schakelt de nieuwste experimentele opties in.")
-SETTEXT(CFG_PLANESPEED, "`%s' (%s) zorgt ervoor dat vliegtuigen vliegen met de snelheid die aangegeven wordt, en niet een kwart daarvan; bovendien vliegen vliegtuigen op 5/8 van de gewone snelheid als ze panne hebben.")
-SETTEXT(CFG_FASTWAGONSELL, "Met `%s' (%s) kun je sneller wagons verkopen met de Ctrl-toets.")
-SETTEXT(CFG_NEWRVCRASH,"`%s' (%s) wijzigt wat er gebeurt bij trein-/voertuigbotsingen. Met 1 gaat de trein kapot na de botsing. Met 2 worden botsingen onmogelijk. Standaard: type 1.");
-SETTEXT(CFG_STABLEINDUSTRY,"`%s' (%s) voorkomt dat industrieân sluiten als de economie is ingesteld op Stabiel in de moeilijkheidsgraadopties.");
+SETTEXT(CFG_DISKMENU, "'%s' (%s) voegt de optie 'load' (laden) toe aan het schijfmenu, en 'load game' (spel laden) of 'save game' (spel opslaan, gebruik hiervoor Ctrl) aan de scenario-editor.")
+SETTEXT(CFG_WIN2K, "'%s' (%s) maakt de Windows-versie van TTD compatibel met Windows 2000/XP.")
+SETTEXT(CFG_FEEDERSERVICE, "'%s' (%s) wijzigt de optie 'unload'. Een station dat anders de lading zou accepteren laat die lading nu klaar staan voor een andere service die de lading verder kan vervoeren.")
+SETTEXT(CFG_GOTODEPOT, "Met '%s' (%s) kun je depots toevoegen aan de orders om voertuigen naar garage, remise, hangar of dok te sturen.")
+SETTEXT(CFG_NEWSHIPS, "'%s' (%s) geeft meer en andere schepen.")
+SETTEXT(CFG_SUBSIDIARIES, "Met '%s' (%s) kun je computerspelers overnemen waarvan je meer dan 75%% in bezit hebt.")
+SETTEXT(CFG_GRADUALLOADING, "'%s' (%s) maakt dat voertuigen beetje bij beetje worden geladen, wat realistischer oogt. (stelt ook automatisch de optie 'loadtime' in).")
+SETTEXT(CFG_MOVEERRORPOPUP, "'%s' (%s) maakt dat alle rode foutmeldingen in de bovenhoek van het scherm worden weergegeven.")
+SETTEXT(CFG_SIGNAL1WAITTIME, "'%s' (%s) wijzigt het aantal dagen dat een trein wacht voor een ÇÇnrichtingssein voordat hij het opgeeft en omkeert. Bereik 0 - 254; met 255 wacht de trein tot St. Juttemis.")
+SETTEXT(CFG_SIGNAL2WAITTIME, "'%s' (%s) wijzigt het aantal dagen dat een trein wacht voor een tweerichtingssein voordat hij het opgeeft en omkeert. Bereik 0 - 254; met 255 wacht de trein tot St. Juttemis.")
+SETTEXT(CFG_DISASTERS, "Met '%s' (%s) kun je kiezen welke rampen er kunnen gebeuren. Bitgecodeerde waarde, standaard is 255 (alle rampen).")
+SETTEXT(CFG_FORCEAUTORENEW, "Met '%s' (%s) gaan voertuigen naar het depot wanneer het tijd is om vervangen te worden (zie 'autorenew').")
+SETTEXT(CFG_MORENEWS, "'%s' (%s) genereert (nieuws-)berichten voor meer gebeurtenissen, zie de documentatie voor nadere informatie.")
+SETTEXT(CFG_UNIFIEDMAGLEV, "Met '%s' (%s) kun je monorail-locs kopen in maglev-remises en vice versa. Modi: 1 - converteer alle maglev-locs naar monorail; 2 - converteer alle monorail-locs naar maglev; 3 - houdt monorail en maglev apart.")
+SETTEXT(CFG_BRIDGESPEEDS, "'%s' (%s) wijzigt de snelheidslimieten op buisbruggen voor monorail en maglev in het opgegeven percentage van de hoogste maximum loc-snelheid in de klasse. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_ETERNALGAME, "Met '%s' (%s) kun je eeuwig door blijven spelen, de datum wordt niet teruggezet na 2070.")
+SETTEXT(CFG_SHOWFULLDATE, "Met '%s' (%s) wordt altijd de volledige datum in de statusbalk weergegeven (niet alleen tijdens pauzeren).")
+SETTEXT(CFG_NEWTRAINS, "'%s' (%s) activeert nieuwe treinmodellen.")
+SETTEXT(CFG_NEWRVS, "'%s' (%s) activeert nieuwe wegvoertuigmodellen.")
+SETTEXT(CFG_NEWPLANES, "'%s' (%s) activeert nieuwe vliegtuigmodellen.")
+SETTEXT(CFG_SIGNALSONTRAFFICSIDE, "'%s' (%s) zet treinseinen aan dezelfde kant van het spoor als waar wegvoertuigen op de weg rijden.")
+SETTEXT(CFG_ELECTRIFIEDRAIL, "'%s' (%s) verwijdert ÇÇn van de magnetische spoorsystemen (Monorail of MagLev) en vervangt die door geâlektrificeerde treinsporen.")
+SETTEXT(CFG_STARTYEAR, "'%s' (%s) stelt het standaardstartjaar voor willekeurige spelen in en biedt meer mogelijkheden voor startjaren in de scenario-maker. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_ERRORPOPUPTIME, "'%s' (%s) wijzigt de tijd dat rode foutmeldingen op het scherm blijven staan. Bereik 1 - 255 (in seconden), of 0 voor verschrikkelijk lang. Standaard 10.")
+SETTEXT(CFG_TOWNGROWTHLIMIT, "'%s' (%s) wijzigt de factor die de maximumgrootte van steden beperkt. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_LARGERTOWNS, "'%s' (%s) maakt dat ÇÇn van elke zoveel steden sneller en groter kunnen groeien (waarbij bovendien 'towngrowthlimit' selectief wordt toegepast). Bereik %ld - %ld. Standaard %ld (ÇÇn op elke vier steden).")
+SETTEXT(CFG_MISCMODS, "'%s' (%s) maakt het mogelijk om de werking van bepaalde andere schakelopties te wijzigen, lees de documentatie voor meer info. Bitgecodeerde waarde, standaard 0 (geen wijzigingen).")
+SETTEXT(CFG_LOADALLGRAPHICS, "'%s' (%s) dwingt TTDPatch om altijd alle .grf-bestanden in newgrf(w).cfg te laden, ongeacht of ze in een geladen spel (enz.) al waren gebruikt of niet.")
+SETTEXT(CFG_SAVEOPTDATA, "Met '%s' (%s) slaat TTDPatch meer (optionele) gegevens op aan het einde van opgeslagen spellen, en laadt die ook weer in.")
+SETTEXT(CFG_MOREBUILDOPTIONS, "Met '%s' (%s) krijg je meer mogelijkheden bij bouwen. Bitgecodeerde waarde.")
+SETTEXT(CFG_SEMAPHORES, "'%s' (%s) verandert nieuwe treinseinen die voor 1975 gebouwd worden in semafoorseinen (met bewegende arm).")
+SETTEXT(CFG_MOREHOTKEYS, "Nieuwe sneltoetsen krijg je met '%s' (%s).")
+SETTEXT(CFG_MANYTREES, "Met '%s' (%s) kun je meer dan ÇÇn boom op ÇÇn plek planten; met Ctrl kun je een rechthoekig gebied volplanten.")
+SETTEXT(CFG_MORECURRENCIES,"Met '%s' (%s) worden meer valuta mogelijk, waaronder de Euro. Bitgecodeerde waarde. Standaard is 0.")
+SETTEXT(CFG_MANCONVERT,"'%s' (%s) maakt het mogelijk handmatig spoortypen te wijzigen door nieuw spoor over oud spoor heen te bouwen.")
+SETTEXT(CFG_NEWAGERATING, "'%s' (%s) maakt de stationsbeoordelingen toleranter voor oudere voertuigen. Voertuigen mogen nu 21 jaar oud zijn in plaats van 3.")
+SETTEXT(CFG_ENHANCEGUI,"'%s' (%s) verbetert de gebruikersomgeving.")
+SETTEXT(CFG_TOWNGROWTHRATEMODE, "Met '%s' (%s) kun je de regels definiâren voor de berekening van het groeitempo van steden. Modi: 0 - TTD origineel, 1 - TTD uitgebreid, 2 - zelfbepaald. Zie de documentatie voor meer informatie.")
+SETTEXT(CFG_TOWNGROWTHRATEMIN, "'%s' (%s) definieert het minimumgroeitempo van steden, in nieuwe huizen per eeuw. Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TOWNGROWTHRATEMAX, "'%s' (%s) definieert het maximumgroeitempo van steden, in nieuwe huizen per eeuw. Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRACTSTATIONEXIST, "'%s' (%s) definieert hoeveel bestaande aktieve stations bijdragen aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - +%ld. Standaard %ld.")
+SETTEXT(CFG_TGRACTSTATIONS, "'%s' (%s) definieert hoeveel elk aktief station het groeitempo van een stad vergroot (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRACTSTATIONSWEIGHT, "'%s' (%s) definieert hoe effectief aktieve stations zijn in het bijdragen aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRPASSOUTWEIGHT, "'%s' (%s) definieert hoe effectief getransporteerde passagiers bijdragen aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRMAILOUTWEIGHT, "'%s' (%s) definieert hoe effectief getransporteerde post bijdraagt aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRPASSINMAX, "'%s' (%s) definieert het maximum aantal binnenkomende passagiers dat invloed heeft op de groei van een stad (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRPASSINWEIGHT, "'%s' (%s) definieert hoe effectief binnenkomende passagiers bijdragen aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRMAILINOPTIM, "'%s' (%s) definieert het optimale inwonertal per elke 2 zakken binnenkomende post (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRMAILINWEIGHT, "'%s' (%s) definieert hoe effectief binnenkomende post bijdraagt aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRGOODSINOPTIM, "'%s' (%s) definieert het optimale inwonertal per elke 2 kratten inkomende goederen (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRGOODSINWEIGHT, "'%s' (%s) definieert hoe effectief inkomende goederen bijdragen aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRFOODINMIN, "'%s' (%s) definieert de minimum hoeveelheid voedsel die vereist is voor steden boven de sneeuwgrens of in de woestijn, in inwoners per 2 ton binnenkomend voedsel (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRFOODINOPTIM, "'%s' (%s) definieert het optimale inwonertal per elke 2 ton binnenkomend voedsel(zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRFOODINWEIGHT, "'%s' (%s) definieert hoe effectief binnenkomend voedsel bijdraagt aan het groeitempo van een stad (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRWATERINMIN, "'%s' (%s) definieert de minimum hoeveelheid water voor steden in woestijngebieden, in inwoners per 2 ton (2.000 liter) binnenkomend water (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRWATERINOPTIM, "'%s' (%s) definieert het optimale inwonertal per elke 2 ton (2.000 liter) binnenkomend water in het sub-tropische klimaat (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRWATERINWEIGHT, "'%s' (%s) definieert hoe effectief binnenkomend water bijdraagt aan het groeitempo van een stad in het sub-tropische klimaat (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRSWEETSINOPTIM, "'%s' (%s) definieert het optimale inwonertal per elke 2 zakken binnenkomend snoep in speelgoedland (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRSWEETSINWEIGHT, "'%s' (%s) definieert hoe effectief binnenkomend snoep bijdraagt aan het groeitempo van een stad in speelgoedland (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRFIZZYDRINKSINOPTIM, "'%s' (%s) definieert het optimale inwonertal per elke 2 binnenkomende frisdranken in speelgoedland (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRFIZZYDRINKSINWEIGHT, "'%s' (%s) definieert hoe effectief binnenkomende frisdrank bijdraagt aan het groeitempo van een stad in speelgoedland (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRTOWNSIZEBASE, "'%s' (%s) definieert het basisaantal stadsgebouwen voor de berekening die 'tgrtownsizefactor' betreft (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TGRTOWNSIZEFACTOR, "'%s' (%s) definieert hoeveel de grootte van een stad zijn groeitempo beãnvloedt (zie documentatie voor meer info). Alleen aktief als 'towngrowthratemode' is ingesteld op 2. Bereik %ld - %ld. Standaard %ld (bijv. 25%% invloed).")
+SETTEXT(CFG_TOWNMINPOPULATIONSNOW, "'%s' (%s) definieert het minimum inwonertal waartot steden boven de sneeuwgrens kunnen groeien als er geen voedsel wordt aangevoerd. Aktief als 'towngrowthratemode', 'towngrowthlimit' of 'generalfixes' is ingeschakeld. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TOWNMINPOPULATIONDESERT, "'%s' (%s) definieert het minimum inwonertal waartot steden in woestijngebieden kunnen groeien als er geen voedsel en water wordt aangevoerd. Aktief als 'towngrowthratemode', 'towngrowthlimit' of 'generalfixes' is ingeschakeld. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_MORETOWNSTATS, "Met '%s' (%s) worden er meer statistieken weergegeven in stadsinformatievensters.")
+SETTEXT(CFG_BUILDONSLOPES, "'%s' (%s) maakt het mogelijk om sporen, wegen en stations te bouwen op hellingen, door fundamenten te gebruiken zoals die door huizen worden gebruikt.")
+SETTEXT(CFG_BUILDONCOASTS, "'%s' (%s) maakt het mogelijk om op kusten en rivieroevers te bouwen, zonder eerst de plek op te hoeven blazen.")
+SETTEXT(CFG_TRACKTYPECOSTDIFF, "'%s' (%s) geeft verschillende typen spoor verschillende bouwkosten.")
+SETTEXT(CFG_EXPERIMENTALFEATURES, "'%s' (%s) schakelt de nieuwste experimentele opties in.")
+SETTEXT(CFG_PLANESPEED, "'%s' (%s) zorgt ervoor dat vliegtuigen vliegen met de snelheid die aangegeven wordt, en niet een kwart daarvan; bovendien vliegen vliegtuigen op 5/8 van de gewone snelheid als ze panne hebben. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_FASTWAGONSELL, "Met '%s' (%s) kun je sneller wagons verkopen met de Ctrl-toets.")
+SETTEXT(CFG_NEWRVCRASH,"'%s' (%s) wijzigt wat er gebeurt bij trein-/voertuigbotsingen. Met 1 gaat de trein kapot na de botsing. Met 2 worden botsingen onmogelijk. Standaard: 1.");
+SETTEXT(CFG_STABLEINDUSTRY,"'%s' (%s) voorkomt dat industrieân sluiten als de economie is ingesteld op Stabiel in de moeilijkheidsgraadopties.");
+SETTEXT(CFG_NEWPERF, "Met '%s' (%s) wordt een redelijker manier van berekenen van de winst van een voertuig gebruikt.")
+SETTEXT(CFG_SORTVEHLIST, "Met '%s' (%s) kun je voertuigen in de voertuiglijst sorteren. De parameter geeft aan om de hoeveel tijd de weergave wordt bijgewerkt. Lagere instellingen vergen meer processortijd, maar de lijst blijft actueler. De instelling 10 komt ongeveer overeen met ÇÇn TTD-dag. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_NEWSPAPERCOLOUR, "Met '%s' (%s) worden nieuwsberichten in kleur weergegeven vanaf het gegeven jaar. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_SHAREDORDERS, "Met '%s' (%s) kun je orders delen en kopieâren.")
+SETTEXT(CFG_SHOWPROFITINLIST, "Met '%s' (%s) wordt de hoogte van de winst in de voertuiglijst in verschillende kleuren weergegeven.")
+SETTEXT(CFG_MORESTEAM, "Met '%s' (%s) krijg je meer (of minder) rookpluimen. De parameter heeft twee cijfers: de eerste geeft de lengte van de pluim aan, de tweede de hoeveelheid. Daarbij is 2 de standaard van TTD. Elke punt meer of minder verdubbelt of halveert de lengte of de hoeveelheid. Bereik %02lx - %02lx. Standaard %02lx.")
+SETTEXT(CFG_ABANDONEDROADS, "Als je '%s' (%s) instelt verliezen wegen hun eigenaar als ze een zekere tijd niet gebruikt worden. Je kunt ze dan verwijderen als ze in de weg liggen. Bovendien wordt je eigenaar van de weg als een van jouw voertuigen hem gebruikt. In modus 0 raken alle wegen hun eigenaar kwijt, in modus 1 worden wegen in de buurt van steden overgenomen door die stad als ze een tijdlang niet gebruikt zijn, en in modus 2 worden ze onmiddellijk overgenomen.")
+SETTEXT(CFG_NEWSTATIONS, "'%s' (%s) maakt nieuwe typen stations mogelijk.")
+SETTEXT(CFG_BUILDWHILEPAUSED, "Met '%s' (%s) kun je alles bouwen zelfs als het spel gepauzeerd is.")
+SETTEXT(CFG_TRAINLOSTTIME, "Dankzij '%s' (%s) krijg je na het gegeven aantal dagen een waarschuwing als een trein verdwaald is. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_RVLOSTTIME, "Dankzij '%s' (%s) krijg je na het gegeven aantal dagen een waarschuwing als een wegvoertuig verdwaald is. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_SHIPLOSTTIME, "Dankzij '%s' (%s) krijg je na het gegeven aantal dagen een waarschuwing als een schip verdwaald is. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_AIRCRAFTLOSTTIME, "Dankzij '%s' (%s) krijg je na het gegeven aantal dagen een waarschuwing als een vliegtuig verdwaald is. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_MAPREFRESH, "Met '%s' (%s) wordt het venster van TTD vaker of minder vaak bijgewerkt. Lagere waarden betekenen sneller bijwerken en meer belasting voor de processor. TTD's standaard is 64. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_NETWORKTIMEOUT, "Als '%s' (%s) is ingesteld dan wordt een netwerkspel afgesloten als er een bepaald aantal seconden geen reactie is gekomen. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_TOYLANDFEATURES, "Met '%s' (%s) kun je landschapselementen gebruiken in willekeurige spellen in Speelgoedland die normaal zijn uitgeschakeld (bijv. vuurtorens). Bitgecodeerde waarde.")
+SETTEXT(CFG_STRETCHWINDOW, "Het TTD-venster wordt met '%s' (%s) uitgestrekt tot het opgegeven aantal horizontale pixels (alleen bij de Windows-versie van TTD in vensterweergave). Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_CANALS, "Met '%s' (%s) kun je kanalen en sluizen bouwen met het gereedschap 'Land kopen' in het havenbouwmenu.")
+SETTEXT(CFG_FREIGHTTRAINS, "'%s' (%s) vermenigvuldigt de vracht van vrachttreinen met de opgegeven waarde. Zo kun je zeer lange vrachttreinen simuleren. Dit is alleen van invloed op het optrekken van de trein, er wordt niet meer vracht vervoerd. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_GAMESPEED, "Met '%s' (%s) kun je de snelheid van het spel wijzigen. Hiervoor moet de optie 'hotkeys' (sneltoetsen) aanstaan. Een druk op 'q' verdubbelt de spelsnelheid (tot maximaal 8x) en met 'w' maak je hem lager. De parameter geeft de beginwaarde aan. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_HIGHERBRIDGES, "Met '%s' (%s) kun je hogere bruggen bouwen.")
+SETTEXT(CFG_NEWGRFCFG, "'%s' (%s) geeft aan welk configuratiebestand voor nieuwe grafische elementen je wilt gebruiken.")
+SETTEXT(CFG_MOUSEWHEEL, "Met '%s' (%s) kun je het muiswiel gebruiken in de Windows-versie. 0 betekent normaal zoomen met het wiel (het midden van het scherm blijft op zijn plaats). 1 betekent zoomen in OpenTTD-stijl (het punt onder de muiscursor blijft - zo mogelijk - op zijn plaats). Tel hierbij 2 op als je 'veilig' wilt zoomen (pas na twee 'klikjes' begint het zoomen). Tel hierbij 4 op voor ondersteuning van oudere muizen (nodig bij sommige stuurprogramma's en voor Win95). Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_MOREWINDOWS, "Met '%s' (%s) kun je meer vensters open houden op het scherm. TTD's standaard is 10, maar er zijn er al meteen 3 vergeven aan werkbalk, hoofdvenster en statusbalk, dus het eigenlijke maximum aantal is 7. Openklappende menu's en nieuwsberichten tellen ook mee als venster. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_ENHANCEDDIFFICULTYSETTINGS, "Met '%s' (%s) kun je 'none' (geen) kiezen als aantal industrieân in de moeilijkheidsgraadopties.")
+SETTEXT(CFG_NEWBRIDGES, "'%s' (%s) biedt ondersteuning voor nieuwe bruggen.")
+SETTEXT(CFG_NEWHOUSES, "'%s' (%s) biedt ondersteuning voor nieuwe gebouwen in steden.")
+SETTEXT(CFG_NEWTOWNNAMES, "'%s' (%s) biedt nieuwe stadsnaamstijlen in willekeurige spellen, mits een grf-bestand gebruikt wordt.")
+SETTEXT(CFG_MOREANIMATION, "'%s' (%s) verhoogt het aantal vlakjes dat animatie kan vertonen. TTD's standaard is 256. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_NEWSHISTORY, "'%s' (%s) maakt bewaren en weergeven van oude nieuwsberichten mogelijk.")
+SETTEXT(CFG_WAGONSPEEDLIMITS, "'%s' (%s) stelt snelheidsbeperkingen in voor treinwagons.")
+SETTEXT(CFG_PATHBASEDSIGNALLING, "Met '%s' (%s) worden routeringseinen mogelijk. Voordat je dit aanzet: LEES DE HANDLEIDING; deze functie is niet zo hÇÇl makkelijk in gebruik.")
+SETTEXT(CFG_CUSTOMBRIDGEHEADS, "'%s' (%s) biedt aangepaste bruggenhoofden.")
+SETTEXT(CFG_TOWNBUILDNOROADS, "Met '%s' (%s) bouwen steden geen wegen.")
+SETTEXT(CFG_NEWCARGODISTRIBUTION, "Met '%s' (%s) wordt vracht beter verdeeld.")
+SETTEXT(CFG_WINDOWSNAP, "'%s' (%s) laat vensters 'samenklikken'. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_RESOLUTIONWIDTH, "'%s' (%s) stelt de breedte van de resolutie in.")
+SETTEXT(CFG_RESOLUTIONHEIGHT, "'%s' (%s) stelt de hoogte van de resolutie in.")
+SETTEXT(CFG_AICHOOSECHANCES, "Met '%s' (%s) kun je opgeven hoe groot de kans is dat computerspelers een bepaald type route bouwen (de kans op een scheepsroute is 1-railchance-rvchance-airchance).")
+SETTEXT(CFG_AIBUILDRAILCHANCE, "'%s' (%s) is de kans dat een computerspeler een spoorroute bouwt. Bereik %ld - %ld, 0=0%%, 65535=100%%. Standaard %ld.")
+SETTEXT(CFG_AIBUILDRVCHANCE, "'%s' (%s) is de kans dat een computerspeler een wegroute bouwt. Bereik %ld - %ld, 0=0%%, 65535=100%%. Standaard %ld.")
+SETTEXT(CFG_AIBUILDAIRCHANCE, "'%s' (%s) is de kans dat een computerspeler een vliegroute bouwt. Bereik %ld - %ld, 0=0%%, 65535=100%%. Standaard %ld.")
+SETTEXT(CFG_NEWINDUSTRIES, "'%s' (%s) maakt nieuwe soorten industrieân mogelijk.")
+SETTEXT(CFG_LOCOMOTIONGUI, "'%s' (%s) stelt de nieuwe gebruikersomgeving in (als die van Locomotion).")
+SETTEXT(CFG_FIFOLOADING, "'%s' (%s) maakt FIFO-laden mogelijk: het eerst binnengekomen voertuig wordt het eerst geladen.")
+SETTEXT(CFG_TEMPSNOWLINE, "'%s' (%s) voert de sneeuwgrens in voor het gematigde klimaat (je hebt een GRF-bestand nodig om daadwerkelijk sneeuw te zien)")
+SETTEXT(CFG_TOWNROADBRANCHPROB, "'%s' (%s) wijzigt de kans dat een stad een wegsplitsing bouwt. 0 betekent vrijwel geen splitsingen, 65535 betekent dat overal splitsingen mogelijk zijn. TTD's standaard is 26214. Bereik %ld - %ld. Standaard %ld.")
+SETTEXT(CFG_NEWCARGOS, "'%s' (%s) biedt ondersteuning voor nieuwe typen vracht.")
+SETTEXT(CFG_ENHMULTI, "'%s' (%s) biedt verbeteringen voor spelen met meerdere spelers, m.n. een groter maximum aantal menselijke deelnemers.")
+SETTEXT(CFG_ONEWAYROADS, "'%s' (%s) maakt eenrichtingsverkeersstraten mogelijk")
+SETTEXT(CFG_NEWSOUNDS, "Met '%s' (%s) kun je nieuwe geluiden gebruiken door middel van GRF-bestanden.")
+SETTEXT(CFG_IRRSTATIONS, "Met '%s' (%s) kun je onregelmatig gevormde stations bouwen.")
+SETTEXT(CFG_MORESTATS, "'%s' (%s) biedt uitgebreidere statistieken (maar dan moet ook de optie 'enhancegui' aanstaan).")
+SETTEXT(CFG_AUTOREPLACE, "Met '%s' (%s) worden voertuigen vernieuwd door het beste beschikbare nieuwe type (upgrade), met de opgegeven minimum betrouwbaarheid in procenten. Bereik 1 - 100. Standaard 80.")
+SETTEXT(CFG_AUTOSLOPE, "'%s' (%s) maakt het mogelijk om terrein te wijzigen zonder gebouwen te hoeven verwijderen.")
+SETTEXT(CFG_FOLLOWVEHICLE, "Met '%s' (%s) volgt het hoofdvenster een voertuig als je met rechts op de knop Beeld centreren (Center View) klikt in het voertuigvenster.")
+SETTEXT(CFG_TRAMS, "Met '%s' (%s) kun je trams bouwen.")
+SETTEXT(CFG_ENHANCETUNNELS, "Met '%s' (%s) kun je wegen en spoor bouwen op tunnelingangen")
+SETTEXT(CFG_FORCEGAMEOPTIONS, "Met '%s' (%s) kun je spelopties vastleggen.")
 
 
 //----------------------------------------------------
-//   SWITCH DISPLAY ('-v')
+//  SWITCH DISPLAY ('-v')
 //----------------------------------------------------
 
 // Wait for a key before displaying the switches
 SETTEXT(LANG_SWWAITFORKEY, "\nDruk op Enter om TTD te starten, op Escape om af te breken of op een andere toets om de instellingen weer te geven.")
 
 // Introduction
-SETTEXT(LANG_SHOWSWITCHINTRO, "    Opties:   (%c ingeschakeld, %c uitgeschakeld)\n"
-	  )
+SETTEXT(LANG_SHOWSWITCHINTRO, "  Opties:  (%c ingeschakeld, %c uitgeschakeld)\n")
 
 // Five characters: vertical line for the table; enabled switch; disabled switch;
 // table heading; table heading column separator.
@@ -587,14 +864,20 @@ SETTEXT(LANG_SWTWOWAY, "Tweerichtings: ")
 SETTEXT(LANG_TIMEDAYS, "%d dag(en)")
 SETTEXT(LANG_INFINITETIME, "oneindig")
 
+// Shows the keys to scroll the verbose switch table
+SETTEXT(LANG_SCROLLKEYS, " Toetsen: Omhoog Omlaag PgUp PgDown Home End ")
+
+// ... and to abort TTDPatch
+SETTEXT(LANG_SCROLLABORTKEY, " Escape = stoppen ")
+
 // Shows the load options for ttdload. %s is the given parameters to be passed to ttdload
-SETTEXT(LANG_SWSHOWLOAD, "Druk op een toets om \"TTDLOAD %s\" uit te voeren (afbreken met Esc).")
+SETTEXT(LANG_SWSHOWLOAD, "Enter/spatiebalk = start \"TTDLOAD %s\"")
 
 SETTEXT(LANG_SWABORTLOAD, "\nProgrammastart afgebroken door gebruiker.\n")
 
 
 //---------------------------------------
-//  STARTUP AND REPORTING
+// STARTUP AND REPORTING
 //---------------------------------------
 
 // Internal error in TTDPatch (%d is error number)
@@ -603,14 +886,18 @@ SETTEXT(LANG_INTERNALERROR, "*** Interne TTDPatch-fout #%d ***\n")
 // Error fixing the Windows version HDPath registry entry
 SETTEXT(LANG_REGISTRYERROR, "TTD is niet correct geãnstalleerd (registerfout %d)\n")
 
-// DOS reports no memory available
-SETTEXT(LANG_NOTENOUGHMEM, "Niet genoeg geheugen %s, heb %d kB meer nodig\n")
+// Trying no-registry file
+SETTEXT(LANG_TRYINGNOREGIST, "Ik probeer buiten het register om de nodige informatie te krijgen vanuit %s\n")
 
-// ...for starting TTD
-SETTEXT(LANG_TOSTARTTTD, "om TTD te starten")
+// no-registry file failed
+SETTEXT(LANG_NOREGISTFAILED, "Informatie buiten register om niet beschikbaar.\n")
 
-// Protected mode code exceeds 32kb
-SETTEXT(LANG_PROTECTEDTOOLARGE, "Protected mode code te groot!\n")
+// DOS reports not enough memory available to start TTD
+SETTEXT(LANG_NOTENOUGHMEMTTD, "Niet genoeg geheugen om TTD te starten, heb %d kB meer nodig\n")
+
+// Other out-of-memory messages
+// %s is a function or variable name to identify where the memory allocation failed
+SETTEXT(LANG_NOTENOUGHMEM, "%s: Niet genoeg geheugen beschikbaar, heb %d kB meer nodig.\n")
 
 // Swapping TTDPatch out
 SETTEXT(LANG_SWAPPING, "Bezig met swappen.\n")
@@ -620,14 +907,34 @@ SETTEXT(LANG_SWAPPING, "Bezig met swappen.\n")
 // and the 3rd %s contains the options
 SETTEXT(LANG_RUNTTDLOAD, "%s%s%s wordt gestart\n")
 
-// Error executing ttdload.  1st %s is ttdload.ovl, 2nd %s is the error message from the OS
+// Error executing ttdload. 1st %s is ttdload.ovl, 2nd %s is the error message from the OS
 SETTEXT(LANG_RUNERROR, "Kon %s niet uitvoeren: %s\n")
+
+// Failed to create the new process for ttdloadw.ovl
+SETTEXT(LANG_CRPROCESSFAIL, "Proces creâren mislukt")
+
+// Interprocess communication error: TTDPatchW seems to be already running
+SETTEXT(LANG_IPCEXISTS, "Er draait al een exemplaar van TTDPatch!\n")
+
+// Failed to convert language strings to Unicode
+SETTEXT(LANG_STRINGCONVFAIL, "Fout bij het voorbereiden van gegevens voor TTDPatch!\n")
 
 // Show the result after after running, %s is one of the following strings
 SETTEXT(LANG_RUNRESULT, "Resultaat: [%s]\n")
 SETTEXT(LANG_RUNRESULTOK, "OK")
-SETTEXT(LANG_RUNRESULTERROR, "Fout!")
+SETTEXT(LANG_RUNRESULTERROR, "fout!")
 
-// Messages about the graphics file ttdpatch.grf
-SETTEXT(LANG_NOTTDPATCHGRF, "Kon aangepast afbeeldingsbestand %s niet vinden, genereer bestand.\n")
-SETTEXT(LANG_ERRORCREATING, "Fout bij het maken van %s: %s\n")
+
+
+//---------------------------------------
+// MESSAGES DISPLAYED BY TTDLOAD
+//---------------------------------------
+
+// Messages in this category will have "TTDPatch: " prefixed and "\r\n" suffixed
+// when displayed by the DOS version.
+
+// Out of memory (in protected mode)
+SETTEXT(LANG_PMOUTOFMEMORY, "Niet genoeg vrij geheugen!")
+
+// Interprocess communication failed (WinTTDX only)
+SETTEXT(LANG_PMIPCERROR, "Fout bij communicatie tussen processen")
