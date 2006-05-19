@@ -2,6 +2,6 @@
 // Edit perl/memsize.pl instead.
 
 // Output from mem /c:
-//   TTDPATCH   146,512  (143K)    146,512  (143K)          0    (0K)
+//   TTDPATCH   164,528  (161K)    164,528  (161K)          0    (0K)
 
-#define TTDPATCHSIZE 146512
+#define TTDPATCHSIZE 164528
