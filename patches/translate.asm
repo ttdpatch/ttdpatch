@@ -64,6 +64,8 @@ varb aSpGraphics, 0x98, "Gr", 0xe1, "ficos: ", 0x80, 0
 
 vard GraphicsTexts, aEnUsGraphics,aEnUsGraphics,aGeGraphics,aFrGraphics,aSpGraphics
 
+uvarb origlanguageid		// what languageid was before GRFs could modify it
+
 // Set default TTD language if given from 
 global setdeflanguage
 setdeflanguage:

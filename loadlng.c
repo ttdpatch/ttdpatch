@@ -44,9 +44,9 @@ langinfo *langinfo_new()
   fseek(linfo->f, dataloc(linfo, LANGCODELEN), SEEK_SET);
   fread(&versid, sizeof(versid), 1, linfo->f);
 
-  if (versid != TTDPATCHVERSIONNUM)
+  if (versid != (TTDPATCHVERSIONNUM & 0xffffffff))
 	error("Language data version mismatch.\n"
-		"This is TTDPatch V%lx, language data is for V%lx.",
+		"This is TTDPatch V%llx, language data is for V%lx.",
 		TTDPATCHVERSIONNUM, versid);
 
   fread(&linfo->ingameofs, sizeof(linfo->ingameofs), 1, linfo->f);

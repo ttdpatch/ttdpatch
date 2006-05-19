@@ -153,10 +153,6 @@ SETTEXT(LANG_LOADCUSTOMTEXTS, "EgyÇni j†tÇkon belÅli szîvegek betîltÇse.\n")
 // ttdpttxt.dat is not in a valid format
 SETTEXT(LANG_CUSTOMTXTINVALID, "%s olvas†sa: êrvÇnytelen f†jlform†tum.\n")
 
-SETTEXT(LANG_CUSTOMTXTWRONGVER,
-	"%s-t £jra lÇtre kell hozni a TTDPatch ezen verzi¢j†hoz.\n"
-	"KÇrlek tîltsd le Çs futtasd a leg£jabb mkpttxt.exe programot.\n")
-
 
 //-----------------------------------------------
 //   COMMAND LINE HELP (-h)
@@ -202,7 +198,6 @@ TEXTARRAY(halflines,) =
 	  "-R:  Kîz£ti j†rm˚vek felsorakoznak",
 	  "-S:  Èj haj¢t°pusok",
 	  "-T:  Èj vonatmodellek",
-	  "-Z:  Alacsony mem¢riahaszn†lat (3.5MB)",
 
 	  "-2:  Windows 2000/XP kompatibilit†s",
 
@@ -234,6 +229,7 @@ TEXTARRAY(halflines,) =
 	  "-XP: Èj repÅlãgÇpmodellek",
 	  "-XR: Èj kîz£ti j†m˚modellek",
 	  "-XS: MI le†nyv†llalatok ir†ny°t†sa",
+	  "-XZ: Alacsony mem¢riahaszn†lat (3.5MB)",
 
 	  "-Ya: Jobb minãs°tÇs koros j†rm˚vekkel",
 	  "-Yb: Tîbb dolog Çp°thetã lejtãn",
@@ -476,6 +472,7 @@ SWITCHTEXT(autoslope, "Fîldmunka engedÇlyezÇse az ÇpÅletek bont†sa nÇlkÅl", "")
 SWITCHTEXT(followvehicle, "Egy j†rm˚ mozg†s†nak kîvetÇse a fãtÇrkÇpen", "")
 SWITCHTEXT(trams, "Utakon fut¢ villamosok engedÇlyezÇse", "")
 SWITCHTEXT(enhancetunnels, "S°nÇp°tÇs engedÇlyezÇse alag£tbej†ratok fîlÇ", "")
+/***/SWITCHTEXT(forcegameoptions, "Allows you to force game options","")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -510,6 +507,7 @@ BIT(nodesynchwarning,      "Ne figyelmeztessen a szinkronb¢l kiesã tîbbj†tÇkos j
 BIT(noworldedgeflooding,   "A tÇrkÇp szÇlÇn levã v°z nem folyhat †t m†s mezãkre")
 BIT(doshowintro,           "Mutassa az intro-t (ne ugorja †t)")
 BIT(nonewspritesorter,     "Ne haszn†lja az £j sprite-rendezã algoritmust")
+/***/BIT(nodiagonalflooding,    "disable diagonal flooding and corner coasts")
 BIT(noenhancedcomp,        "Ne jav°tson a mentÇst tîmîr°tã algoritmuson")
 BIT(breakdownatsignal,     "Ne szÅntesse meg a piros l†mp†n†l v†rakoz¢ vonatok lerobban†s†t")
 BIT(smallspritelimit,      "Ne nîvelje meg a sprite-korl†tot")
@@ -594,6 +592,23 @@ BIT(symafter,  "A pÇnznemszimb¢lum mindig a sz†m ut†n jelenjen meg")
 BIT(noeuro,    "Ne vezesse be az eur¢t")
 BIT(comma,     "Mindig vesszã legyen az ezredes elv†laszt¢")
 BIT(period,    "Mindig pont legyen az ezredes elv†laszt¢")
+/***/
+/***/// Description for forcegameoptions bits
+/***/BITSWITCH(forcegameoptions)
+/***/BIT(trafficleft,	"Force the road traffic side to be left")
+/***/BIT(trafficright,	"Force the road traffic side to be right")
+/***/BIT(imperial,		"Force the use of imperial (miles) distance units")
+/***/BIT(metric,		"Force the use of metric (kilometers) distance units")
+/***/BIT(townsenglish,	"Set town name style to english")
+/***/BIT(townsfrench,	"Set town name style to french")
+/***/BIT(townsgerman,	"Set town name style to german")
+/***/BIT(townsamerican,	"Set town name style to amerian")
+/***/BIT(townslatin,		"Set town name style to latin amerian")
+/***/BIT(townssilly,		"Set town name style to silly")
+/***/BIT(autosavedisabled,	"Set autosave to off")
+/***/BIT(autosave3months,	"Set autosave to 3 months")
+/***/BIT(autosave6months,	"Set autosave to 6 months")
+/***/BIT(autosave12months,	"Set autosave to 12 months")
 
 
 // A cfg file (%s) could not be found and is ignored.
@@ -820,6 +835,7 @@ SETTEXT(CFG_AUTOSLOPE, "`%s' (%s) lehetãvÇ teszi a fîldmunk†t az ÇpÅletek leromb
 SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) seg°tsÇgÇvel a fã nÇzet kîvethet egy j†rm˚vet. Ehhez jobb gombbal kell kattintani a 'j†rm˚ megnÇzÇse' gombra a j†rm˚ablakban.")
 SETTEXT(CFG_TRAMS, "`%s' (%s) lehetãvÇ teszi villamosok Çp°tÇsÇt.")
 SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) lehetãvÇ teszi s°n Çp°tÇsÇt az alagutak bej†rat†ra.")
+/***/SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) allows you to force game options.")
 
 
 //----------------------------------------------------

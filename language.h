@@ -284,7 +284,6 @@ enum langtextids {
 
 	LANG_LOADCUSTOMTEXTS,		// Installing custom in-game texts
 	LANG_CUSTOMTXTINVALID,
-	LANG_CUSTOMTXTWRONGVER,
 
 //---------------------------------------
 //  MESSAGES DISPLAYED BY TTDLOAD
@@ -487,6 +486,7 @@ enum langtextids {
 	CFG_FOLLOWVEHICLE,
 	CFG_TRAMS,
 	CFG_ENHANCETUNNELS,
+	CFG_FORCEGAMEOPTIONS,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS
@@ -515,6 +515,7 @@ enum langtextids {
 	LANG_NOFILEFOUND,		// (Windows) neither does GameGFX.exe
 	CFG_AIBOOST,	
 	CFG_MOREINDUSTRIESPERCLIMATE,
+	LANG_CUSTOMTXTWRONGVER,
 
 	LANG_REALLYLASTSTRING		// Must be the last, used below to determine how many entries we need
 
@@ -531,7 +532,7 @@ enum langtextids {
 
 #define TRAINTYPENUM 4		// number of train types for -mc display
 
-#define BITSWITCHNUM 12		// number of bit switches
+#define BITSWITCHNUM 13		// number of bit switches
 
 // Index numbers of the strings in language.dat file. Must be increasing.
 #define LANGCODE_NAME(i) (-0x4000-(i))

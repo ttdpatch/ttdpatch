@@ -494,10 +494,12 @@ patchwindowsizer:
 .depotwinelemlist3 equ $-4
 	patchcode findvariableaccess,newvariable,1,1
 	patchcode oldlastdepotcoldrawn,newlastdepotcoldrawn,1,1
-	
-	stringaddress oldlastdepotrowdrawn,2,2
-.depotrowcount equ $-8
-.depotrownum equ $-10
+
+	mov eax,2
+.depotrownum equ $-4
+	mov ecx,2
+.depotrowcount equ $-4
+	stringaddress oldlastdepotrowdrawn,eax,ecx
 	mov al, [edi+5]
 	mov [depotjmpoffset], al
 	storefragment newlastdepotrowdrawn

@@ -361,6 +361,7 @@
   http://www.tt-forums.net/viewtopic.php?p=387407#387407
 
 - crash in depot-all-trash with enhancegui off
+  http://www.tt-forums.net/viewtopic.php?p=438850#438850
 
 - newsounds off = TTD sounds off too?
   http://www.tt-forums.net/viewtopic.php?p=394539#394539
@@ -455,6 +456,36 @@
 
 - another signal/pathfinder problem
   http://www.tt-forums.net/viewtopic.php?p=429375#429375
+
+- lots of irreversible trains in DOS version only?
+
+- new cargo types broken for grfs that don't have trl table?
+  http://www.tt-forums.net/viewtopic.php?p=438034#438034
+
+- action 6 change broke action 2/3 stuff?
+18:57:07 #tycoon: < DaleStan> patchman: It appears your changes to Action 6 scribbled 
+				the ability to write cargoIDs into 2s and 3s with 6s.
+                              Obviously, it's possible to skip the 6 with a skip-always
+				7, but is there a better way?
+00:32:09 #tycoon: < DaleStan> patchman: For example http://www.tt-forums.net/viewtopic.php?p=224050#224050
+				with a parameter of 0. More
+                              generally, any attempt to write to a <cargo-ID> word in 
+				a var2, random2 or 3. (The offending code for the
+                              battlecruiser is 0*0 06 00 01 08 FF 
+				/ 0*0 03 03 01 25 01 FF 02 00 01 00)
+
+- bus acceleration problem? http://www.tt-forums.net/viewtopic.php?p=440474#440474
+
+- email translators
+
+- combine blue graphics + canals into single grf
+  * elrails/trkfound/nsignals/canals?/gui/dualcc/oneway/trams
+  * parameter for trkfound from Szappy?
+  * add basetunnels? with grf parameter to enable it?
+
+- cfg line too long (32 chars) -> 32 should be %d
+
+- change ttdpatch.txt to wiki manual
 
 ==== Rather urgent =====
 
@@ -717,6 +748,19 @@ CHANGELOG
 
 
 2.5 beta 5
+- by Csaba:
+  * added callbacks 140, 141 and 142 for station animations
+  * fixed electrifiedrail patch code overwriting some random memory
+  * fixed some incorrect cargo type handling for GRFs with version 7
+  * the language of the EXE is now restored correctly when all translation 
+    GRFs are disabled
 - by Lakie:
   * allow water to flood diagonally (disable with
     miscmods.nodiagonalflooding on) and support graphics for resulting coasts
+- by eis_os:
+  * fixed crash while creating grf debug log if grf had error condition
+  * new switch "forcegameoptions" to set default game options
+- renamed -Z switch to -XZ to later allow -Z? extended switches
+- when fragment search fails show name of failed fragment and its patch proc
+- fixed zeppelin crash bug getting patched twice
+- updated German, Dutch and Italian translations

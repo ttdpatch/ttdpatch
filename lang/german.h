@@ -158,10 +158,6 @@ SETTEXT(LANG_LOADCUSTOMTEXTS, "Lade Åbersetzte Spieltexte.\n")
 // ttdpttxt.dat is not in a valid format
 SETTEXT(LANG_CUSTOMTXTINVALID, "Fehler beim Lesen von %s: UngÅltiges Dateiformat.\n")
 
-SETTEXT(LANG_CUSTOMTXTWRONGVER,
-	"%s mu· aktualisiert werden fÅr diese TTDPatch-Version.\n"
-	"Bitte installieren und starten Sie die aktualisierte Version von mkpttxt.exe.\n")
-
 
 //-----------------------------------------------
 //   COMMAND LINE HELP (-h)
@@ -208,7 +204,6 @@ TEXTARRAY(halflines,) =
 	  "-R:  LKW/Busse warten bis Stelle frei",
 	  "-S:  Neue Schiffsmodelle",
 	  "-T:  Neue Eisenbahnmodelle",
-	  "-Z:  Option fÅr wenig Speicher (3.5MB)",
 
 	  "-2:  Windows 2000/XP KompatibilitÑt",
 
@@ -241,6 +236,7 @@ TEXTARRAY(halflines,) =
 	  "-XP: Neue Flugzeugmodelle",
 	  "-XR: Neue Stra·enfahrzeugmodelle",
 	  "-XS: Tochterfirmen verwalten",
+	  "-XZ: Option fÅr wenig Speicher (3.5MB)",
 
 	  "-Ya: Bahnhofsbewertungen toleranter",
 	  "     bezÅglich Waggonalter",
@@ -320,7 +316,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "          \"ttdpatch -h|more\")\n")
 
 // Referral to the docs, prefixed by "Copyright (C) 1999 by Josef Drexler.  "
-SETTEXT(LANG_HELPTRAILER, "Lesen Sie TTDPATCH.TXT fÅr weitere \nInformationen.\n")
+SETTEXT(LANG_HELPTRAILER, "\nLesen Sie TTDPATCH.TXT fÅr weitere Informationen.\n")
 
 
 //-----------------------------------------------
@@ -483,6 +479,7 @@ SWITCHTEXT(autoslope, "Ermîglicht énderungen der Hangneigung unter bestehenden O
 SWITCHTEXT(followvehicle, "Folge Fahrzeugbewegung in der Hauptansicht", "")
 SWITCHTEXT(trams, "Ermîgliche Stra·enbahnbau", "")
 SWITCHTEXT(enhancetunnels, "Ermîgliche Bau von Schienen Åber Tunneleinfahrten", "")
+SWITCHTEXT(forcegameoptions, "Voreinstellungen bei Spielstart","")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -602,6 +599,23 @@ BIT(symafter,  "Zeige WÑhrungssymbol immer nach der Zahl")
 BIT(noeuro,    "Keine EinfÅhrung des Euro")
 BIT(comma,     "Verwende immer Komma zur Trennung der Tausenderstellen")
 BIT(period,    "Verwende immer Punkt zur Trennung der Tausenderstellen")
+
+// Description for forcegameoptions bits
+BITSWITCH(forcegameoptions)
+BIT(trafficleft,	"Stra·enfahrzeuge fahren links")
+BIT(trafficright,	"Stra·enfahrzeuge fahren rechts")
+BIT(imperial,		"Verwende imperiale Entfernungseinheiten (Meilen)")
+BIT(metric,		"Verwende metrische Entfernungseinheiten (Kilometer)")
+BIT(townsenglish,	"Englische StÑdtenamen")
+BIT(townsfrench,	"Franzîsische StÑdtenamen")
+BIT(townsgerman,	"Deutsche StÑdtenamen")
+BIT(townsamerican,	"Amerikanische StÑdtenamen")
+BIT(townslatin,		"Latein-Amerikanische StÑdtenamen")
+BIT(townssilly,		"VerrÅckte StÑdtenamen")
+BIT(autosavedisabled,	"Auto-Sicherung aus")
+BIT(autosave3months,	"Auto-Sicherung alle 3 Monate")
+BIT(autosave6months,	"Auto-Sicherung alle 6 Monate")
+BIT(autosave12months,	"Auto-Sicherung alle 12 Monate")
 
 
 // A cfg file (%s) could not be found and is ignored.
@@ -828,6 +842,7 @@ SETTEXT(CFG_AUTOSLOPE, "`%s' (%s) ermîglicht die énderung der Hangneigung auch v
 SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) lÑ·t die Hauptansicht einem Fahrzeug folgen durch 'Strg'-Klick auf dessen 'Auge'-Symbol.")
 SETTEXT(CFG_TRAMS, "`%s' (%s) ermîglicht den Bau von Stra·enbahnen.")
 SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) ermîglicht den Bau von Schienen auf Tunneleinfahrten.")
+SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) setzt verschiedene Voreinstellungen bei Spielstart.")
 
 
 //----------------------------------------------------

@@ -13,8 +13,8 @@ TARGETPREF = $(subst gcc,,${CC})
 CXX = $(TARGETPREF)g++
 AS = $(TARGETPREF)as
 
-CFLAGS = -g -Os -mno-cygwin -Wall
-LDOPTS = -Wl,--subsystem,windows,-s -ldsound -mno-cygwin
+CFLAGS = -g -Os -mno-cygwin -Wall ${CFLAGS-DLL}
+LDOPTS = -Wl,--subsystem,windows,-s -ldsound -mno-cygwin ${LDOPTS-DLL}
 #LDOPTS = -Wl,--subsystem,console
 LDOPTS += -lshlwapi
 DLLOPTS = $(LDOPTS) -Wl,--enable-auto-image-base,-e,_DllMain@12
@@ -43,7 +43,7 @@ ttdpatch.def: ${OBJECTFILES}
 	${_E} [BUILD] $@
 	${_C}$(CC) -o $@ -shared $^ $(DLLOPTS) 
 ifndef NOUPX
-	${_C}upx -qqq --best $@
+	${_C} ${UPX} -qqq --best $@
 endif
 
 # make assembly file for testing the compile output

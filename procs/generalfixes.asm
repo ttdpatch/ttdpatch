@@ -719,7 +719,6 @@ patchgeneralfixes:
 	mov byte [eax+0x4c2f],0xe1	// 31C8000h+4579 -> 31C8000h+4577
 
 .shopsspritesdone:
-	patchcode oldgeneratezeppelin,newgeneratezeppelin,1,1,,{test bh,MISCMODS_NOZEPPELINONLARGEAP>>8},nz
 	patchcode oldfindcompanygraphmax,newfindcompanygraphmax,1,1,,{test BH,MISCMODS_NORESCALECOMPANYGRAPH>>8},z
 	patchcode oldendofyear,newendofyear,1,1,,{test bh,MISCMODS_NOYEARLYFINANCES>>8},nz
 

@@ -21,6 +21,7 @@
 deflong(miscmodsflags)		// flags for the miscmods switch
 deflong(animarraysize)		// new size of the animated tiles array
 deflong(autoslopevalue)		// setting for autoslope cost
+deflong(forcegameoptionssettings)	// game options settings in ttdpatch bit format
 
 #define flags_long_end newservint
 

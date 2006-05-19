@@ -488,7 +488,7 @@ var monorailtextreplace
 	dw ourtext(monorailwagon),ourtext(maglevwagon)
 
 	// text IDs to save and restore (all TTD IDs in the above list)
-varw railtypetextids, 0x100b,0x100c,0x1016,0x1017,0x8106,0x8107,0x881d,0x881e
+varw railtypetextids, 0x100b,0x100c,0x1016,0x1017,0x8106,0x8107,0x881d,0x881e,-1
 uvard railtypetextbackup,8	// as many as there are IDs in railtypetextids
 
 global nummonorailtextreplace

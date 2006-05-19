@@ -58,6 +58,7 @@ extern snowlinetableptr,getymd,restoresnowytrees,snowytemptreespritebase
 extern applysnowytemptrees,alwaysminusone
 extern updateTramStopSpriteLayout,setelrailstexts,gettextintableptr
 extern gettextandtableptrs,defaultstylename,fixupvehnametexts
+extern origlanguageid
 
 // New class 0xF (vehtype management) initialization handler
 // does additional things before calling the original function
@@ -445,6 +446,8 @@ infoapply:
 global postinforeserve
 postinforeserve:
 	call resolvecargotranslations
+	mov al,[origlanguageid]
+	mov [languageid],al
 	call setdeflanguage
 	mov eax,[languagesettings]
 	cmp eax,-1
@@ -937,6 +940,8 @@ preinfoapply:
 	je .nounicode
 	call initglyphtables
 .nounicode:
+
+	or dword [languagesettings], byte -1
 	ret
 
 var cargowagonspeedlimit, db 0,96,0,96,80,120,96,96,96,96,120,120

@@ -15,12 +15,12 @@ my @lines;
 my %varofs;
 while(<>) {
 	if (/^\.relocv/ ... /^$/) {
-		next unless /^\s*(0x[0-9a-f]{8})\s+(\w+)_var/;
+		next unless /^\s*(0x[0-9a-f]{8,16})\s+(\w+)_var/;
 		$varofs{$2} = hex $1;
 		#print STDERR "Var $2 is at $1 ($varofs{$2})\n";
 		next;
 	}
-	next unless /(0x[0-9a-f]{8})\s+_+fu\d+_(\w+)/;
+	next unless /(0x[0-9a-f]{8,16})\s+_+fu\d+_(\w+)/;
 	#print STDERR "Found reloc for $2 at $1\n";
 	push @{$ptrs{$2}{substr $1,-6,4}},"0x".substr $1, -2;
 }

@@ -71,6 +71,8 @@ langinfo *linfo;int acp;	// to make switches.c happy
 
 #define UNTRANSLATED ((char*)(-1L))
 #define OBSOLETE ((char*)(-2L))
+#define INVALIDSWITCH -1
+
 
 // For the in-game texts
 
@@ -460,11 +462,13 @@ const char *patchedfilename = "";
 #define NUMBLOCK (2*UCBLOCK)	//	26..51 = upper case, 52..61 = numbers
 #define XBLOCK (SWITCHBLOCK)
 #define YBLOCK (2*SWITCHBLOCK)
-#define NOCMDSWITCHES (3*SWITCHBLOCK)
+#define ZBLOCK (3*SWITCHBLOCK)
+#define NOCMDSWITCHES (4*SWITCHBLOCK)
 #define TOTALSWITCHES (NOCMDSWITCHES+128)
 
 int switchid(int ch)
 {
+  int orgch = ch;
   int ind = 0;
 
   if (firstchar(ch) == 'X') {
@@ -473,13 +477,23 @@ int switchid(int ch)
   } else if (firstchar(ch) == 'Y') {
 	ind = YBLOCK;
 	ch = secondchar(ch);
+  } else if (firstchar(ch) == 'Z') {
+	ind = ZBLOCK;
+	ch = secondchar(ch);
+	if (ch == 0) {
+		// hack to support both obsolete 'Z' and new style 'Z?'
+		ch = orgch;
+		ind = 0;
+	}
   } else if ( (firstchar(ch) >= 128) && (firstchar(ch) <= 255) ) {
 	return NOCMDSWITCHES + ch - 128;
   }
 
-  if (ch > 0xff)
-	error("Invalid two-byte char: %c%c\n",
-		firstchar(ch), secondchar(ch));
+  if (ch > 0xff) {
+	warning("%s: Invalid two-byte char: %c%c\n",
+		langname, firstchar(ch), secondchar(ch));
+	return INVALIDSWITCH;
+  }
 
   if (isalpha(ch)) {
 	ind += tolower(ch) - 'a';
@@ -492,10 +506,13 @@ int switchid(int ch)
 	switch (ch) {
 		case '?': break;
 		default:
-			error("Unknown command line switch '%s' (%d %d)\n",
-				dchartostr(ch), firstchar(ch), secondchar(ch));
+			warning("%s: Unknown command line switch '%s' (%d %d), block %d ind %d",
+				langname, dchartostr(orgch),
+				firstchar(orgch), secondchar(orgch),
+				ind, ch);
+			return INVALIDSWITCH;
 	}
-	ind = -1;
+	ind = INVALIDSWITCH;
   }
 
   return ind;
@@ -509,7 +526,7 @@ int getswitchid(const char **str)
   ch = *str[0];
   (*str)++;
 
-  if (ch == 'X' || ch == 'Y') {
+  if (ch == 'X' || ch == 'Y' || ch == 'Z') {
 	ext = *str[0];
 	(*str)++;
 
@@ -518,7 +535,7 @@ int getswitchid(const char **str)
 
   ind = switchid(ch);
   if (ind >= TOTALSWITCHES)
-	error("%s: Invalid index for switch '%s' in line: %s\n",
+	warning("%s: Invalid index for switch '%s' in line: %s\n",
 		langname, dchartostr(ch), orgstr);
   return ind;
 }
@@ -721,7 +738,7 @@ u32 writelanguages(FILE *dat)
   for (i=0; i<LANGCODELEN; i++)	// it's XOR'd in the EXE file
 	langcode[i] ^= 32;
 
-  versid = littleendian(TTDPATCHVERSIONNUM, 4);
+  versid = littleendian(TTDPATCHVERSIONNUM & 0xffffffff, 4);
   fwrite(langcode, sizeof(char), LANGCODELEN, dat);
   fwrite(&versid, sizeof(versid), 1, dat);
   vfwrite(i, dat);	// offset to in-game strings; written later.

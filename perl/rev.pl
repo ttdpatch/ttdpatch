@@ -1,12 +1,16 @@
 #!/usr/bin/perl -l
 
 $_ = <STDIN>;
-my ($old) = (/(\d+)/, 0);
+my ($old) = (/(\d+E?)/, 0);
 $_ = $ENV{REV};
-my ($new) = (/:(\d+)\D*$/, /(\d+)\D*$/, 0);
+my ($new) = (/:(\d+M?)\D*$/, /(\d+M?)\D*$/, 0);
+my @lines = split /\n/;
+$new .= "M" if @lines > 3 and $lines[3] !~ /:/;
+
+$new =~ s/M/E/;
 
 #print "Old: $old New: $new (from $ENV{REV})";
-exit 0 if $new == $old;
+exit 0 if $new eq $old;
 
 my $file = shift;
 open my $out, ">", $file or die "Can't write $file: $!\n";

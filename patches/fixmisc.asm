@@ -2497,10 +2497,10 @@ class6periodicproc:
 
 .notn:
 
-	cmp bh, 0xFE
-	jae .note
-	cmp bl, 0x0
-	je .note
+	cmp bl, 0xFE
+	jae .notw
+	cmp bh, 0x0
+	je .notw
 	mov edi, 0xFFFFFF01 // -1 +1
 	// Internal use only...
 	mov byte [esp-12], 0x1 // Corner tile
@@ -2513,7 +2513,7 @@ class6periodicproc:
 	mov ebp, 0xFFFFFF02 // -1 +2 (North corner)
 	call [floodtile]
 
-.note:
+.notw:
 	cmp bh, 0xFE
 	jae .nots
 	cmp bl, 0xFE
@@ -2531,10 +2531,10 @@ class6periodicproc:
 	call [floodtile]
 
 .nots:
-	cmp bl, 0xFE
-	jae .notw
-	cmp bh, 0x0
-	je .notw
+	cmp bh, 0xFE
+	jae .note
+	cmp bl, 0x0
+	je .note
 	mov edi, 0x00FF // +1 -1
 	// Internal use only...
 	mov byte [esp-12], 0x1 // Corner tile
@@ -2547,7 +2547,7 @@ class6periodicproc:
 	mov ebp, 0x01FF // +2 -1 (North corner)
 	call [floodtile]
 
-.notw:
+.note:
 .nodiagonalflooding:
 	ret
 

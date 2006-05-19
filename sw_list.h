@@ -101,7 +101,7 @@
 	SPCL ('W', "writecfg", 0, NULL),
 	     //X reserved for extended switches, see below
 	     //Y reserved for extended switches, see below
-	YESNO('Z', "lowmemory", CFG_LOWMEMORY, lowmemory),
+	SPCL ('Z', "lowmemory", 0, OBSOLETE),
 
 	YESNO('2', "win2k", CFG_WIN2K, win2k),
 
@@ -167,7 +167,7 @@
 	RANGE('W',"stretchwindow", CFG_STRETCHWINDOW, stretchwindow, 0, 1, FLAGDATA(windowsize), 40, 20480, 1280),
 	RANGE('X',"bridgespeedlimits", CFG_BRIDGESPEEDS, newbridgespeeds, 0, 0, FLAGDATA(newbridgespeedpc), 25, 250, 90),
 	RANGE('Y',"startyear", CFG_STARTYEAR, newstartyear, 2, 1, &startyear, 1921, 2030, 1930),
-	     //Z
+	YESNO('Z', "lowmemory", CFG_LOWMEMORY, lowmemory),
 
 
 		// Y-extended, lowercase
@@ -292,8 +292,7 @@
 	YESNO(184,"trams", CFG_TRAMS, trams),
 	YESNO(185,"enhancetunnels", CFG_ENHANCETUNNELS, enhancetunnels),
 	SPCL (186,"saveextradata", 0, OBSOLETE),
-
-
+	BITS (187,"forcegameoptions", CFG_FORCEGAMEOPTIONS, forcegameoptions, 3, FLAGDATA(forcegameoptionssettings), 0),
 //
 // Here follows the switch order list
 // This list defines the order of switches in the switch table
@@ -446,3 +445,5 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	followvehicle,
 	trams,
 	enhancetunnels,
+	forcegameoptions,
+

@@ -2,6 +2,8 @@
 // Fragment definition and search macros
 //
 
+#include <stringify.inc>
+
 
 // macros to define the code fragments
 %macro begincodefragments 0.nolist
@@ -269,6 +271,26 @@
 %endmacro
 %endif
 
+#ifndef RELEASE
+#ifndef __no_extern__
+extern lastsearchfragmentname
+#endif
+%macro usesearchfragment 1
+	noglobal varb %%_stringaddress_%1_name
+		stringify db,%1,{,0}	// makes db " %1 ",0
+	endvar
+	mov dword [lastsearchfragmentname], %%_stringaddress_%1_name
+%endmacro
+%macro donesearchfragment 0
+	and dword [lastsearchfragmentname], 0
+%endmacro
+#else
+%macro usesearchfragment 1.nolist
+%endmacro
+%define donesearchfragment ;
+#endif
+
+
 // this macro finds the address of a code fragment
 // see the function dofindstring for details
 %macro stringaddress 1-3.nolist 1,1	// params: fragment,occurence,maxcount
@@ -282,8 +304,12 @@
 		%endif
 	%endif
 
+	usesearchfragment %1
+
 	%%_stringaddress_%1_:
 	param_call calldofindstring, %1_start, _size, %2, %3, _add
+
+	donesearchfragment
 
 	%undef _size
 	%undef _add
@@ -333,6 +359,9 @@ extern dopatchcode,calldofindstring,store_cj_fragment
 	%else
 		%define %%addr2 %2_start
 	%endif
+
+	usesearchfragment %1
+
 %ifdef %1_isextern
 	callpatchcode, %1_start, %%addr2, %1_len, %3, %4, %1_add, %2_len
 %elifdef %2_isextern
@@ -340,6 +369,8 @@ extern dopatchcode,calldofindstring,store_cj_fragment
 %else
 	callpatchcode, %1_start, %%addr2, 0+%1_len, %3, %4, 0+%1_add, 0+%2_len
 %endif
+
+	donesearchfragment
 
 	%define lastediadj %2_adj
 	%undef callpatchcode

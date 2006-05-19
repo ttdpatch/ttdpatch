@@ -28,8 +28,10 @@ while (<>) {
 	/e if $repl;
 
 	/"(.*?)"/ or /'(.)'/ or next;
-	die "Duplicate cfg name $1" if exists $sw{$1};
-	$sw{$1} = $_;
+	my $key = $1;
+	$key = "\xff$key" if /OBSOLETE/;
+	die "Duplicate cfg name $key" if exists $sw{$key};
+	$sw{$key} = $_;
 }
 print $sw{$_} for sort keys %sw;
 

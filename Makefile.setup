@@ -123,6 +123,8 @@ NASMOPT-PPC = -f macho -dMACHO
 
 SVNVERSION = svnversion .
 
+UPX = upx
+
 -include ${MAKEFILELOCAL}
 
 # Now use the appropriate settings to define the final variables

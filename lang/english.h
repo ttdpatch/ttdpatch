@@ -153,10 +153,6 @@ SETTEXT(LANG_LOADCUSTOMTEXTS, "Loading custom in-game texts.\n")
 // ttdpttxt.dat is not in a valid format
 SETTEXT(LANG_CUSTOMTXTINVALID, "Reading %s: Invalid file format.\n")
 
-SETTEXT(LANG_CUSTOMTXTWRONGVER,
-	"%s must be remade for this version of TTDPatch.\n"
-	"Please download and run the latest mkpttxt.exe program.\n")
-
 
 //-----------------------------------------------
 //   COMMAND LINE HELP (-h)
@@ -201,7 +197,6 @@ TEXTARRAY(halflines,) =
 	  "-R:  Road vehicles queue up",
 	  "-S:  New ship models",
 	  "-T:  New train models",
-	  "-Z:  Low memory version (3.5MB)",
 
 	  "-2:  Windows 2000/XP compatibility",
 
@@ -234,6 +229,7 @@ TEXTARRAY(halflines,) =
 	  "-XP: New aircraft models",
 	  "-XR: New road vehicle models",
 	  "-XS: Manage AI subsidiaries",
+	  "-XZ: Low memory version (3.5MB)",
  
 	  "-Ya: Ratings more tolerant to veh.ages",
 	  "-Yb: Building more things on slopes",
@@ -472,6 +468,7 @@ SWITCHTEXT(autoslope, "Allows terraforming without removing structures", "")
 SWITCHTEXT(followvehicle, "Follow vehicle motion in main map", "")
 SWITCHTEXT(trams, "Enable trams on Roads", "")
 SWITCHTEXT(enhancetunnels, "Allows building track on top of tunnel entrances", "")
+SWITCHTEXT(forcegameoptions, "Allows you to force game options","")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -592,6 +589,22 @@ BIT(noeuro,    "Do not introduce the Euro")
 BIT(comma,     "Always use comma to separate thousands")
 BIT(period,    "Always use period to separate thousands")
 
+// Description for forcegameoptions bits
+BITSWITCH(forcegameoptions)
+BIT(trafficleft,	"Force the road traffic side to be left")
+BIT(trafficright,	"Force the road traffic side to be right")
+BIT(imperial,		"Force the use of imperial (miles) distance units")
+BIT(metric,		"Force the use of metric (kilometers) distance units")
+BIT(townsenglish,	"Set town name style to English")
+BIT(townsfrench,	"Set town name style to French")
+BIT(townsgerman,	"Set town name style to German")
+BIT(townsamerican,	"Set town name style to American")
+BIT(townslatin,		"Set town name style to Latin American")
+BIT(townssilly,		"Set town name style to Silly")
+BIT(autosavedisabled,	"Set autosave to off")
+BIT(autosave3months,	"Set autosave to 3 months")
+BIT(autosave6months,	"Set autosave to 6 months")
+BIT(autosave12months,	"Set autosave to 12 months")
 
 // A cfg file (%s) could not be found and is ignored.
 SETTEXT(LANG_CFGFILENOTFOUND, "Couldn't find cfg file %s.  Ignored.\n")
@@ -816,6 +829,7 @@ SETTEXT(CFG_AUTOSLOPE, "`%s' (%s) allows to terraform without removeing structur
 SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) allows the main view to follow a vehicle with a right mouse click on the Center View button in the vehicles window.")
 SETTEXT(CFG_TRAMS, "`%s' (%s) allows trams to be built.")
 SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) allows to build track on top of tunnel entrances")
+SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) allows you to force game options.")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')
