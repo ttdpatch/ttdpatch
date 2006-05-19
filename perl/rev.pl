@@ -4,7 +4,8 @@ $_ = <STDIN>;
 my ($old) = (/(\d+M?)/, 0);
 $_ = $ENV{REV};
 my ($new) = (/:(\d+M?)\D*$/, /(\d+M?)\D*$/, 0);
-$new .= "M" if /Local modifications found/;
+my @lines = split /\n/;
+$new .= "M" if @lines > 3 and $lines[3] !~ /:/;
 
 #print "Old: $old New: $new (from $ENV{REV})";
 exit 0 if $new == $old;
