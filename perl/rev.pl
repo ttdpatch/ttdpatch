@@ -10,7 +10,6 @@ exit 0 if $new == $old;
 
 my $file = shift;
 open my $out, ">", $file or die "Can't write $file: $!\n";
+$new =~ s/M/E/;
 print $out "SVNREV=$new";
-$new =~ s/M$//;
-print $out "SVNREVN=$new";
 close $out;

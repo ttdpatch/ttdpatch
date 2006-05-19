@@ -483,6 +483,10 @@
   * parameter for trkfound from Szappy?
   * add basetunnels? with grf parameter to enable it?
 
+- cfg line too long (32 chars) -> 32 should be %d
+
+- change ttdpatch.txt to wiki manual
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -759,3 +763,4 @@ CHANGELOG
 - renamed -Z switch to -XZ to later allow -Z? extended switches
 - when fragment search fails show name of failed fragment and its patch proc
 - fixed zeppelin crash bug getting patched twice
+- updated German, Dutch and Italian translations

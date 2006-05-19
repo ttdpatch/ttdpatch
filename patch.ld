@@ -79,6 +79,7 @@ SECTIONS
   __pbss_size_dwords = ((__pbss_end - __pbss_start + 3) >> 2);
   __psbss_size_dwords = ((__psbss_end - __psbss_start + 3) >> 2);
   __ttdpatchvercode__ = __ttdpatchvercode;
+  __ttdpatchrevision__ = __ttdpatchrevision;
   .relocv 0 : { *(.relocv) }
   /DISCARD/ :
   {
