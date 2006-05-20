@@ -156,10 +156,6 @@ SETTEXT(LANG_LOADCUSTOMTEXTS, "Sto caricando i testi personalizzati.\n")
 // ttdpttxt.dat is not in a valid format
 SETTEXT(LANG_CUSTOMTXTINVALID, "%s: Formato file non valido.\n")
 
-SETTEXT(LANG_CUSTOMTXTWRONGVER,
-	"%s deve essere ricreato per questa versione di ttdpatch TTDPatch.\n"
-	"Scaricare ed eseguire l'ultima versione di mkpttxt.exe.\n")
-
 
 //-----------------------------------------------
 //   COMMAND LINE HELP (-h)
@@ -200,7 +196,7 @@ TEXTARRAY(halflines,) =
 	  "     di merce fa partire il treno",
 	  "-G:  Le merci arrivano alle stazioni",
 	  "solo quando il servizio Š cominciato",
- 	  "-H:  Estremit… dei ponti personalizzabili",
+ 	  "-H:  Cime dei ponti personalizzabili",
 	  "-I:  Disattiva l'inflazione",
 	  "-J:  Citt… con pi— di 2 aeroporti",
 	  "-L:  Prestito/rimborso max ",
@@ -219,7 +215,7 @@ TEXTARRAY(halflines,) =
 	  "-Xe: Partite eterne dopo il 2070",
 	  "-Xf: Scar. forz. lascia merci in staz.",
 	  "-Xg: Caricamento graduale dei veicoli",
- 	  "-Xh: Nuovi edifici nelle citt…",
+ 	  "-Xh: Nuovi edifici citt…",
 	  "-Xi: Nessuna industria chiude se ",
           "     l'economia Š stabile",
 	  "-Xl: Costruisci canali e dighe",
@@ -237,10 +233,10 @@ TEXTARRAY(halflines,) =
 	  "-XE: Ferrovie elettrificate",
 	  "-XF: Abilita funzionalit… sperimentali",
 	  "-XG: Carica tutti i nuovi elem grafici",
- 	  "-XH: Salva e mostra lo storico delle notizie",
-	  "-XI: Attiva i segnali basati sul percorso",
- 	  "-XL: Mostra il profitto nella lista dei veicoli",
-	  "-XO: Ordini ai veicoli possono essere condivisi/copiati",
+ 	  "-XH: Salva lo storico delle notizie",
+	  "-XI: Attiva i segnali PBS",
+ 	  "-XL: Profitto nella lista dei veicoli",
+	  "-XO: Ordini ai veic. condivisi/copiati",
 	  "-XP: Nuovi modelli di aereo",
 	  "-XR: Nuovi modelli di bus e camion",
 	  "-XS: Dirigi ditte col 75%%",
@@ -258,11 +254,11 @@ TEXTARRAY(halflines,) =
 	  "-Yt: Nuove stat. nella finestra citt…",
 	  "-Yw: Vendita istant. di tutti i vagoni",
 	  "-YC: Costruzioni sulle coste",
- 	  "-YD: Migliora le impostazioni della difficolt…",
+ 	  "-YD: Migliori impostazioni difficolt…",
  	  "-YF: caricamento FIFO",
 	  "-YH: Nuove hotkey",
- 	  "-YL: Limiti di velocit… per vagoni ferroviari",
- 	  "-YN: Nuovi schemi per i nomi delle citt…",
+ 	  "-YL: Limiti di velocit… per vagoni",
+ 	  "-YN: Nuovi schemi per nomi delle citt…",
 	  "-YP: Gli aerei volano alla vel. indic.",
 	  "-YS: Semafori a barra prima del 1975",
 
@@ -460,7 +456,7 @@ SWITCHTEXT(moreanimation,"Anima pi— caselline",", fino a %d")
 SWITCHTEXT(newshistory, "Storico delle notizie", "")
 SWITCHTEXT(wagonspeedlimits, "Limiti di velocit… per i vagoni ferroviari", "")
 SWITCHTEXT(pathbasedsignalling, "Attiva i segnali a percorso", "")
-SWITCHTEXT(aichoosechances, "Decidi le probabilit… quando l'intelligenza artificiale decide cosa costruire", "")
+SWITCHTEXT(aichoosechances, "Decidi probabilit… quando l'intelligenza artificiale decide cosa costruire", "")
 SWITCHTEXT(custombridgeheads, "Estremit… dei ponti personalizzabili", "")
 SWITCHTEXT(townbuildnoroads, "Le citt… non costruiscono strade", "")
 SWITCHTEXT(newcargodistribution, "Distribuzione delle merci migliorata", "")
@@ -478,7 +474,7 @@ SWITCHTEXT(newsounds, "Permetti di aggiungere nuovi suoni al gioco", "")
 SWITCHTEXT(morestats, "Raccogli pi— statistiche", "")
 SWITCHTEXT(onewayroads, "Attiva le strade a senso unico con 'Ctrl'", "")
 SWITCHTEXT(irrstations, "Attiva stazioni non rettangolari", "")
-SWITCHTEXT(autoreplace, "Sostituisci i veicoli quando sono vecchi", "; %d%% min affidabilit… del nuovo modello")
+SWITCHTEXT(autoreplace, "Sostituisci i veicoli vecchi", "; %d%% min affidabilit… del nuovo modello")
 SWITCHTEXT(autoslope, "Permette di muovere il terreno senza rimuovere le strutture", "")
 SWITCHTEXT(followvehicle, "Segui il movimento dei veicoli nella mappa principale", "")
 SWITCHTEXT(trams, "Attiva i tram", "")
@@ -513,7 +509,7 @@ BIT(nodefaultoldtracktype, "non usare il tipo di binario precedente come nuovo v
 BIT(usevehnnumbernotname,  "non cambiare le notizie per farle usare i nomi dei veicoli")
 BIT(norescalecompanygraph, "non ridimensionare i grafici delle aziende quando vengono deselezionate")
 BIT(noyearlyfinances,      "non mostrare il rapporto finanziario il primo gennaio")
-/***/BIT(notimegiveaway,        "don't try to give time slices away to conserve power")
+BIT(notimegiveaway,        "non cedere risorse della CPU se sono necessarie per TTD")
 BIT(nodesynchwarning,      "non avvertire quando le partite in rete si desincronizzano")
 BIT(noworldedgeflooding,   "non coprire d'acqua il bordo della mappa")
 BIT(doshowintro,           "mostra l'introduzione del gioco (non saltarla)")
@@ -892,11 +888,11 @@ SETTEXT(LANG_INTERNALERROR, "*** TTDPatch: errore interno #%d ***\n")
 // Error fixing the Windows version HDPath registry entry
 SETTEXT(LANG_REGISTRYERROR, "TTD non Š installato correttamente (errore %d nel registro)\n")
 
-/***/// Trying no-registry file
-/***/SETTEXT(LANG_TRYINGNOREGIST, "Trying no-registry information from %s\n")
-/***/
-/***/// no-registry file failed
-/***/SETTEXT(LANG_NOREGISTFAILED, "No-registry information not available.\n")
+// Prova a non leggere dal registry (leggi noregist.ini invece)
+SETTEXT(LANG_TRYINGNOREGIST, "Provo a leggere il file di config. scavalcando il registry %s\n")
+
+// non sono riuscito a leggere noregist.ini, devo leggere dal registry
+SETTEXT(LANG_NOREGISTFAILED, "Il file di config. che scavalca il registry non Š disponibile.\n")
 
 // DOS dice che la memoria Š insufficiente per avviare TTD
 SETTEXT(LANG_NOTENOUGHMEMTTD, "Memoria insufficiente to start TTD, servono %d KB in pi—.\n")
