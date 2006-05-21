@@ -27,7 +27,7 @@ extern movetrainvehicle,newcargotypenames,newsmessagefn
 extern onlycheckpath,patchflags,pbssettings,prevtrainveh
 extern vehtypetextids
 extern TrainSpeedBuyNewVehicle.lwagon
-
+extern resetconsistsprites
 
 
 
@@ -222,6 +222,7 @@ ovar exchtrainvehicles, -4
 	param_call advancewagons, 1
 
 	xor byte [esi+veh.modflags+1],1<<(MOD_REVERSE-8)
+	call resetconsistsprites
 
 .markcur:
 	testflags pathbasedsignalling

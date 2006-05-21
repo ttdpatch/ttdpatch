@@ -718,12 +718,41 @@ resetnewsprites:
 	pusha
 	mov esi,[veharrayptr]
 .nextveh:
+	call resetvehsprite
+	sub esi,byte -vehiclesize
+	cmp esi,[veharrayendptr]
+	jb .nextveh
+	popa
+	ret
+; endp resetnewsprites
+
+// same as above but only for one consist
+// in:	esi->veh in consist
+// uses:---
+exported resetconsistsprites
+	pusha
+	movzx esi,word [esi+veh.engineidx]
+.nextveh:
+	shl esi,7
+	add esi,[veharrayptr]
+	call resetvehsprite
+	movzx esi,word [esi+veh.nextunitidx]
+	cmp si,byte -1
+	jne .nextveh
+	popa
+	ret
+
+// and only for one vehicle
+// in:	esi->veh
+// uses:all but esi?
+exported resetvehsprite
 	mov al,[esi+veh.class]
 	cmp al,0x10
 	jb .skipveh
 	cmp al,0x13
 	ja .skipveh
 
+	call setveh2cache
 	call setvehcallbacks
 
 	// find the right sprite number
@@ -733,12 +762,7 @@ resetnewsprites:
 	call [orgsetsprite+(eax-0x10)*4]
 
 .skipveh:
-	sub esi,byte -vehiclesize
-	cmp esi,[veharrayendptr]
-	jb .nextveh
-	popa
 	ret
-; endp resetnewsprites
 
 global resetplanesprite
 resetplanesprite:
