@@ -1188,7 +1188,7 @@ resolvecargotranslations:
 .found:
 	// eax=label ebx->cargotrans ecx=translation edx=slot
 	movzx eax,byte [cargotypes+edx]	// now eax=bit
-	cmp eax,32
+	cmp eax,NUMCARGOS
 	jae .findnext
 
 	mov [ebx+cargotrans.fromslot+edx],cl
