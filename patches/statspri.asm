@@ -1813,8 +1813,8 @@ gettrackcont:
 	ret
 
 	align 4
-.dir:	db 5,1,3,7,3,3,7,7		// station in X direction
-	db 3,7,5,1,5,5,1,1		// station in Y direction
+.dir:	db 5,1,3,7,5,1,5,1		// station in X direction
+	db 3,7,5,1,3,7,3,7		// station in Y direction
 .ofs:	dw 1,-1,0x100,-0x100,0x101,0xff,-0xff,-0x101
 	dw 0x100,-0x100,1,-1,0x101,-0xff,0xff,-0x101
 

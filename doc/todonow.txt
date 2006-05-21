@@ -487,6 +487,8 @@
 
 - change ttdpatch.txt to wiki manual
 
+- check why DOS memsize is so large suddenly(?)
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -764,3 +766,5 @@ CHANGELOG
 - when fragment search fails show name of failed fragment and its patch proc
 - fixed zeppelin crash bug getting patched twice
 - updated German, Dutch and Italian translations
+- fixed train reversing problems with PBS in DOS
+- update consist callback variables when train reverses
