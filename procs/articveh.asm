@@ -224,7 +224,7 @@ begincodefragments
 		retn
 		mov	ax, 2
 		push	esi
-	codefragment findGetVehicleNewPos
+	codefragment findGetVehicleNewPos, 1
 		retn
 		movzx	ebx, byte [esi+veh.direction]
 	codefragment findUpdateVehicleSpriteBox
@@ -335,7 +335,7 @@ patcharticulatedvehicles:
 	mov	dword [RVStartSound], edi
 	stringaddress findRoadVehiclePathFinder, 1, 2
 	mov	dword [RoadVehiclePathFinder], edi
-	stringaddress findGetVehicleNewPos, 1, 4
+	stringaddress findGetVehicleNewPos, 1+WINTTDX, 4
 	mov	dword [GetVehicleNewPos], edi
 	stringaddress findUpdateVehicleSpriteBox, 1, 1
 	mov	dword [UpdateVehicleSpriteBox], edi
