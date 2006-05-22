@@ -457,8 +457,6 @@
 - another signal/pathfinder problem
   http://www.tt-forums.net/viewtopic.php?p=429375#429375
 
-- lots of irreversible trains in DOS version only?
-
 - new cargo types broken for grfs that don't have trl table?
   http://www.tt-forums.net/viewtopic.php?p=438034#438034
 
@@ -476,8 +474,6 @@
 
 - bus acceleration problem? http://www.tt-forums.net/viewtopic.php?p=440474#440474
 
-- email translators
-
 - combine blue graphics + canals into single grf
   * elrails/trkfound/nsignals/canals?/gui/dualcc/oneway/trams
   * parameter for trkfound from Szappy?
@@ -488,6 +484,8 @@
 - change ttdpatch.txt to wiki manual
 
 - check why DOS memsize is so large suddenly(?)
+
+- can't find search strings, see MB and JWvD emails
 
 ==== Rather urgent =====
 
@@ -768,3 +766,6 @@ CHANGELOG
 - updated German, Dutch and Italian translations
 - fixed train reversing problems with PBS in DOS
 - update consist callback variables when train reverses
+- changed station var.45 bits 4..7 to refer to connection to neighbouring
+  platform not further along platform direction
+- fixed bit switch descriptions not being written with correct charset

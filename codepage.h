@@ -11,8 +11,10 @@
 
 #if WINTTDX
 	const char *langcfg(size_t index);
+	const char *langstr(const char *str);
 #else
 #	define langcfg(index) langtext[index]
+#	define langstr(s) s
 #endif
 
 const char *converttoACP(const char *str);

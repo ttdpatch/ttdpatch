@@ -668,7 +668,7 @@ void writebitswitch(int switchid, FILE *cfg)
 	fprintf(cfg, "%s.%s %s   // %s",
 		cfgcmd, names[i],
 		val & (((s32)1) << i) ? switchonofftext[0] : switchofftext,
-		bitswitchdesc[bitswid][i]);
+		langstr(bitswitchdesc[bitswid][i]));
   }
 }
 
@@ -1524,7 +1524,7 @@ void printbits(FILE *f, switchinfo* s)
   for (i=0; names[i]; i++) {
 	if (!names[i]) continue;
 	fprintf(f, "\t\t<bit num=\"%d\" name=\"%s\" desc=\"", i, names[i]);
-	putxmlstr(f, bitswitchdesc[s->bitswitchid][i]);
+	putxmlstr(f, langstr(bitswitchdesc[s->bitswitchid][i]));
 	fputs("\"/>\n", f);
   }
 }

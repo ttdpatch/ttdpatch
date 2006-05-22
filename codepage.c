@@ -109,6 +109,12 @@ const char *langcfg(size_t index) {
   return converttoACP(langtext[index]);
 }
 
+const char *langstr(const char *str) {
+  if (!str)
+	error("langstr got NULL pointer!\n");
+  return converttoACP(str);
+}
+
 
 // Convert all "&#xHHHH;" escape sequences to Unicode characters in a wide string
 // assumes wchar_t is Unicode
@@ -183,6 +189,7 @@ void convertescapedstring(char *str)
 void convertescapedstring(char *str) { }
 
 const char *langcfg(size_t index) { return NULL; }
+const char *langstr(const char *str) { return NULL; }
 
 #endif	/* linux */
 #endif /* WINTTDX */
