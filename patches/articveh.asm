@@ -101,6 +101,10 @@ shiftInParentMovement:
 .shiftIntoUpper:
 	mov	byte [eax+0x6E], dl
 .shifted:
+	cmp	byte [esi+0x6A], 0
+	je	.dontDoTurnAround
+	mov	byte [eax+0x6A], 180
+.dontDoTurnAround:
 	pop	dx
 	pop	eax
 .justReturnNoPop:
@@ -476,6 +480,7 @@ RVTrailerProcessing:
 ; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 .loc_165C37:
+	retn				//ADDED TO STOP TRAILERS FROM DOING STATIONS.
 	push	ax
 	mov	bp, word [esi+veh.XY]
 	mov	ebx, [station.busstop]
@@ -743,6 +748,7 @@ RVTrailerProcessing:
 ; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 .skipOvertake:
+	xor	edi, edi
 	call	[GetVehicleNewPos]		; ESI -> vehicle
 						; Return: AX,CX = new X,Y coordinates
 						;         DI = new XY index
@@ -751,8 +757,7 @@ RVTrailerProcessing:
 	mov	dl, byte [esi+veh.direction]
 	call	[RVCheckCollisionWithRV]		;check if there is a vehicle 'in front' of us.
 	jb	short .zeroSpeedAndReturn
-
-	mov	dl, byte [landscape4(di)]			;landscape 4
+	mov	dl, byte [landscape4(di,1)]			;landscape 4
 	and	dl, 0F0h
 	cmp	dl, 90h				;IS THIS A STATION?
 	jnz	short .notJustRoad
@@ -849,6 +854,10 @@ useParentMovement:
 .shiftIntoUpper:
 	mov	byte [eax+0x6E], dl
 .shifted:
+	cmp	byte [esi+0x68], 0
+	je	.dontDoTurnAround
+	mov	byte [eax+0x68], 180
+.dontDoTurnAround:
 	pop	eax
 .noTrailer:
 	pop	edx
@@ -864,14 +873,14 @@ turnTrailersAroundToo:
 	cmp	cx, word [edx+veh.idx]
 	jne	.cleanAndJustReturn
 	mov	ecx, edx
-.doZeeLoop:
+;.doZeeLoop:
 	cmp	word [ecx+veh.nextunitidx], 0xFFFF      //MORE?
 	je	.cleanAndJustReturn
 	mov	cx, word [ecx+veh.nextunitidx]
 	shl	cx, 7
 	add	cx, [veharrayptr]
 	mov	byte [ecx+0x6A], 180
-	jmp	.doZeeLoop
+	;jmp	.doZeeLoop
 .cleanAndJustReturn:
 	pop	ecx
 .justReturn:
