@@ -18,6 +18,9 @@ extern RefreshWindows, LoadUnloadCargo
 uvarb byte_11258E
 uvarb vaTempLocation1
 
+uvarw	ParentXY
+uvard	ParentIDX
+
 uvard	oldbuyroadvehicle
 uvarb	buildingroadvehicle
 uvard	oldchoosevehmove
@@ -101,9 +104,8 @@ shiftInParentMovement:
 .shiftIntoUpper:
 	mov	byte [eax+0x6E], dl
 .shifted:
-	cmp	byte [esi+0x6A], 0
-	je	.dontDoTurnAround
-	mov	byte [eax+0x6A], 180
+	mov	dl, byte [esi+0x6A]
+	mov	byte [eax+0x6A], dl
 .dontDoTurnAround:
 	pop	dx
 	pop	eax
@@ -270,6 +272,11 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 	;now we need to check if rvproc was actually run, there is a ticker inside that stops it run on every call.
 	push	esi
 .loopToNextTrailer:
+	push	cx
+	mov	cx, word [esi+veh.XY]
+	mov	word [ParentXY], cx
+	mov	dword [ParentIDX], esi
+	pop	cx
 	movzx	esi, word [esi+veh.nextunitidx]
 	shl	si, 7
 	add	esi, dword [veharrayptr]	;we now have the first trailers ptr.
@@ -334,6 +341,10 @@ RVTrailerProcessing:
 	call	[IncrementRVMovementFrac]			;process vehicle tick, if overflow then make movement
 	;jb	short .makeAMove				;needs to be called... but we don't want it governing whether or not
 								;this process runs!
+	inc	ax
+	inc	ax
+	inc	ax						;play catch up
+	inc	ax
 	cmp	byte [runTrailer], 1
 	je	.makeAMove
 	retn
@@ -395,9 +406,6 @@ RVTrailerProcessing:
 	jz	short .noTurnRequired
 	mov	byte [esi+veh.direction], dl	;shift in new direction
 	mov	dl, dh
-;	mov	bp, word [esi+veh.speed]		;quarter the speed!
-;	shr	bp, 2					;quarter the speed!
-;	sub	word [esi+veh.speed], bp		;quarter the speed!
 	cmp	dl, bl
 	jz	short .noTurnRequired
 	mov	ax, word [esi+veh.xpos]
@@ -520,7 +528,7 @@ RVTrailerProcessing:
 	call	[RefreshWindows]		; AL = window type
 					; AH = element idx (only if AL:7 set)
 					; BX = window ID (only if AL:6 clear)
-	pop     ax
+	pop	ax
 
 .JustMoveIntoNextTile:
 	mov	bp, word [esi+veh.XY]
@@ -546,6 +554,7 @@ RVTrailerProcessing:
 	and	edx, 3
 	mov	byte [byte_11258E], dl			;seems to be a temp location for dl... which is the new movement stat?
 	mov	di, word [esi+veh.XY]
+
 	push	ebx
 	mov	ebx, dword [word_11257A]
 	add	di, [ebx+edx*2]
@@ -553,6 +562,13 @@ RVTrailerProcessing:
 	push	di
 	call	[RoadVehiclePathFinder]
 	pop	di
+	push	esi
+	mov	esi, dword [ParentIDX]
+	cmp	byte [esi+0x6A], 0
+	pop	esi
+	jne	.somewhere1
+	mov	dl, byte [esi+veh.parentmvstat]
+.somewhere1:
 	bt	bx, dx
 	jb	near .zeroSpeedAndReturn
 
@@ -585,9 +601,14 @@ RVTrailerProcessing:
 	push	bx
 	call	[LimitTurnToFortyFiveDegrees]
 	pop	bx
-	call	[RVCheckCollisionWithRV]
-	jb	near .justQUIT
 	call	[VehEnterLeaveTile]
+	push	esi
+	mov	esi, dword [ParentIDX]
+	cmp	byte [esi+0x6A], 0
+	pop	esi
+	je	.somewhere
+	mov	bp, word [ParentXY]
+.somewhere:
 	or	ebp, ebp				;we can't move into the next tile
 	js	near .checkForTunnelOrTryAgain
 	push	ax
@@ -698,6 +719,13 @@ RVTrailerProcessing:
 	push	di
 	call	[RoadVehiclePathFinder]
 	pop	di
+	push	esi
+	mov	esi, dword [ParentIDX]
+	cmp	byte [esi+0x6A], 0
+	pop	esi
+	jne	.somewhere12
+	mov	dl, byte [esi+veh.parentmvstat]
+.somewhere12:
 	bt	bx, dx
 	jb	near .zeroSpeedAndReturn
 	and	edx, 0FFh
@@ -717,11 +745,9 @@ RVTrailerProcessing:
 	add	cl, [ebx+3]
 	mov	bl, dl
 	and	bl, 0EFh
-	;push	bx
-	;call	[LimitTurnToFortyFiveDegrees]
-	;pop	bx
-	;call	[RVCheckCollisionWithRV]
-	jb	.justQUIT
+	push	bx
+	call	[LimitTurnToFortyFiveDegrees]
+	pop	bx
 	call	[VehEnterLeaveTile]
 	or	ebp, ebp
 	js	short .zeroSpeedAndReturn
@@ -730,9 +756,6 @@ RVTrailerProcessing:
 	cmp	dl, byte [esi+veh.direction]
 	jz	short .skipTurnCode
 	mov	byte [esi+veh.direction], dl
-;	mov	bp, word [esi+veh.speed]		kill the turn speed slowdown...
-;	shr	bp, 2
-;	sub	word [esi+veh.speed], bp
 
 .skipTurnCode:
 	movzx	bx, byte [esi+veh.direction]
@@ -854,10 +877,8 @@ useParentMovement:
 .shiftIntoUpper:
 	mov	byte [eax+0x6E], dl
 .shifted:
-	cmp	byte [esi+0x68], 0
-	je	.dontDoTurnAround
-	mov	byte [eax+0x68], 180
-.dontDoTurnAround:
+	mov	dl, byte [esi+0x6A]
+	mov	byte [eax+0x6A], dl
 	pop	eax
 .noTrailer:
 	pop	edx
@@ -869,19 +890,24 @@ turnTrailersAroundToo:
 	jz	.justReturn
 	mov	byte [edx+0x6A], 180
 	push	ecx
+	push	ax
 	movzx	ecx, word [edx+veh.engineidx]
+	mov	ax, word [edx+veh.XY]
 	cmp	cx, word [edx+veh.idx]
 	jne	.cleanAndJustReturn
 	mov	ecx, edx
-;.doZeeLoop:
+.doZeeLoop:
 	cmp	word [ecx+veh.nextunitidx], 0xFFFF      //MORE?
 	je	.cleanAndJustReturn
 	mov	cx, word [ecx+veh.nextunitidx]
 	shl	cx, 7
 	add	cx, [veharrayptr]
-	mov	byte [ecx+0x6A], 180
-	;jmp	.doZeeLoop
+;	mov	ax, word [edx+veh.XY]
+;	mov	word [ecx+veh.XY], ax
+;	mov	byte [ecx+0x6A], 180
+	jmp	.doZeeLoop
 .cleanAndJustReturn:
+	pop	ax
 	pop	ecx
 .justReturn:
 	retn
