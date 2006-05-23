@@ -53,6 +53,7 @@ patchaibuyvehicle:
 	mov word [edi+lastediadj-24],0xCB8B				// mov ch,bh -> mov ecx,ebx
 
 .nonewtrains:
+	inc edi		// make sure we don't find the same address again
 	stringaddress oldcanaibuyvehicle,1,0
 
 	testmultiflags newrvs
@@ -64,6 +65,7 @@ patchaibuyvehicle:
 	mov word [edi+lastediadj+12],0x06eb
 
 .nonewrvs:
+	inc edi
 	stringaddress oldcanaibuyvehicle,1,0
 
 	testmultiflags newplanes
@@ -72,6 +74,7 @@ patchaibuyvehicle:
 	storefragment newcanaibuyplane
 
 .nonewplanes:
+	inc edi
 	stringaddress oldcanaibuyvehicle,1,0
 
 	testmultiflags newships

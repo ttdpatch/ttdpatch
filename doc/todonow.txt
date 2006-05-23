@@ -769,3 +769,5 @@ CHANGELOG
 - changed station var.45 bits 4..7 to refer to connection to neighbouring
   platform not further along platform direction
 - fixed bit switch descriptions not being written with correct charset
+- fixed problem finding AI buy vehicle code if not all newvehicles switches
+  are on
