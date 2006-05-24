@@ -620,7 +620,7 @@ SETTEXT(LANG_CFGFILENOTFOUND, "Kon config.bestand %s niet vinden. Genegeerd.\n")
 SETTEXT(LANG_CFGFILENOTWRITABLE, "Kon niet naar %s schrijven.\n")
 
 // A non-comment line is longer than 32 chars, rest ignored.
-SETTEXT(LANG_CFGLINETOOLONG, "Waarschuwing! Configuratieregel is langer dan 32 tekens, afgekapt.\n")
+SETTEXT(LANG_CFGLINETOOLONG, "Waarschuwing! Configuratieregel is langer dan %d tekens, afgekapt.\n")
 
 // Shown if an obsolete switch is used. First option is %s which is the
 // config name, second one is %s which is the command line char

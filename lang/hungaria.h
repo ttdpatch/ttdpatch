@@ -618,7 +618,7 @@ SETTEXT(LANG_CFGFILENOTFOUND, "%s nevû cfg-f jl nem tal lhat¢. µtugorva.\n")
 SETTEXT(LANG_CFGFILENOTWRITABLE, "%s nem ¡rhat¢.\n")
 
 // A non-comment line is longer than 32 chars, rest ignored.
-SETTEXT(LANG_CFGLINETOOLONG, "Figyelem!  A konfigur ci¢s sor hoszabb 32 karaktern‚l, lev gva.\n")
+SETTEXT(LANG_CFGLINETOOLONG, "Figyelem!  A konfigur ci¢s sor hoszabb %d karaktern‚l, lev gva.\n")
 
 // Shown if an obsolete switch is used. First option is %s which is the
 // config name, second one is %s which is the command line char

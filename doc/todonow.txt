@@ -479,13 +479,9 @@
   * parameter for trkfound from Szappy?
   * add basetunnels? with grf parameter to enable it?
 
-- cfg line too long (32 chars) -> 32 should be %d
-
 - change ttdpatch.txt to wiki manual
 
 - check why DOS memsize is so large suddenly(?)
-
-- can't find search strings, see MB and JWvD emails
 
 ==== Rather urgent =====
 

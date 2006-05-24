@@ -625,7 +625,7 @@ SETTEXT(LANG_CFGFILENOTFOUND, "Konfigurationsdatei %s nicht vorhanden, wurde ign
 SETTEXT(LANG_CFGFILENOTWRITABLE, "Konnte %s nicht schreiben.\n")
 
 // A non-comment line is longer than 32 chars, rest ignored.
-SETTEXT(LANG_CFGLINETOOLONG, "Warnung! Konfigurationszeile ist l„nger als 32 Zeichen, wurde abgeschnitten.\n")
+SETTEXT(LANG_CFGLINETOOLONG, "Warnung! Konfigurationszeile ist l„nger als %d Zeichen, wurde abgeschnitten.\n")
 
 // Shown if an obsolete switch is used. First option is %s which is the
 // config name, second one is %s which is the command line char

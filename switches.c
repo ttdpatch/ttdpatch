@@ -612,7 +612,7 @@ int readcfgfile(const char *filename)
 
 	if (isalpha(cfgline[linepos])) {	// all lines starting with a-z are options
 		if (linetoolong)
-			warning(langtext[LANG_CFGLINETOOLONG]);
+			warning(langtext[LANG_CFGLINETOOLONG], CFGLINEMAXLEN);
 
 		{
 		  char *eol = strchr(cfgline, '\n');

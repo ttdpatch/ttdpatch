@@ -625,7 +625,7 @@ SETTEXT(LANG_CFGFILENOTFOUND, "File cfg %s non trovato, ignorato.\n")
 SETTEXT(LANG_CFGFILENOTWRITABLE, "Non riesco ad aprire %s per la scrittura.\n")
 
 // A non-comment line is longer than 32 chars, rest ignored.
-SETTEXT(LANG_CFGLINETOOLONG, "Attenzione!  La linea di configurazione Š pi— lunga di 32 chr. Troncata.\n")
+SETTEXT(LANG_CFGLINETOOLONG, "Attenzione!  La linea di configurazione Š pi— lunga di %d chr. Troncata.\n")
 
 // Shown if an obsolete switch is used. First option is %s which is the
 // config name, second one is %s which is the command line char
