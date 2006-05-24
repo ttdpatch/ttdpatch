@@ -42,7 +42,7 @@ extern skipTrailersInDepotWindow, skipTrailersInRVList
 extern dontAddScheduleForTrailers
 extern sellRVTrailers, sellRVTrailers.origfn, delveharrayentry
 extern updateTrailerPosAfterRVProc, updateTrailerPosAfterRVProc.origfn
-extern turnTrailersAroundToo
+;extern turnTrailersAroundToo
 
 extern	RedrawRoadVehicle
 extern	SetRoadVehObjectOffsets
@@ -161,10 +161,10 @@ begincodefragments
 		push	edi
 		mov	esi, edi
 
-	codefragment oldRVForceTurnAround, -2
-		mov     byte [edx+0x6A], 180
-	codefragment newRVForceTurnAround
-		icall   turnTrailersAroundToo
+;	codefragment oldRVForceTurnAround, -2
+;		mov	byte [edx+0x6A], 180
+;	codefragment newRVForceTurnAround
+;		icall	turnTrailersAroundToo
 
 ;----new shit to try and replicate RVProc
 	codefragment findLimitTurnToFortyFiveDegrees, -12
@@ -272,10 +272,10 @@ patcharticulatedvehicles:
 	patchcode oldRVCollisionTimeout, newRVCollisionTimeout, 1, 1
 
 ;probably should re-enable eventually.
-	;patchcode oldOpenRVWindow, newOpenRVWindow, 2, 4
-	;patchcode oldListRVsInDepotWindow, newListRVsInDepotWindow, 2, 2
-	;stringaddress oldSellRoadVehicle, 2+WINTTDX, 5
-	;chainfunction sellRVTrailers, .origfn, 1
+	patchcode oldOpenRVWindow, newOpenRVWindow, 2, 4
+	patchcode oldListRVsInDepotWindow, newListRVsInDepotWindow, 2, 2
+	stringaddress oldSellRoadVehicle, 2+WINTTDX, 5
+	chainfunction sellRVTrailers, .origfn, 1
 
 	;patchcode oldAddRVScheduleWhenBuilding, newAddRVScheduleWhenBuilding, 2, 4
 
@@ -286,7 +286,7 @@ patcharticulatedvehicles:
 #endif
 	chainfunction updateTrailerPosAfterRVProc, .origfn, 1
 
-	patchcode oldRVForceTurnAround, newRVForceTurnAround, 1, 1
+;	patchcode oldRVForceTurnAround, newRVForceTurnAround, 1, 1
 
 ;------------new stuffs.
 	stringaddress findLimitTurnToFortyFiveDegrees, 1, 1

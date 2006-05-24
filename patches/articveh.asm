@@ -253,7 +253,7 @@ updateTrailerPosAfterRVProc:
 	movzx	ebx, word [esi+veh.engineidx]
 	cmp	bx, word [esi+veh.idx]
 	pop	ebx
-	jne	.justQuit			;engine? continue: not? quit.
+	jne	near .justQuit			;engine? continue: not? quit.
 	push	bx
 	mov	bl, byte [esi+veh.movementfract]
 	pushad
@@ -283,6 +283,19 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 	pushad
 	call	RVTrailerProcessing	;see below.
 	popad
+	push	ecx
+	mov	ecx, dword [ParentIDX]
+	cmp	byte [ecx+veh.movementstat], 0xFE
+	pop	ecx
+	jne	.justProcessNext
+	mov	byte [esi+veh.movementstat], 0xFE
+	bts	word [esi+veh.vehstatus], 1
+	bts	word [esi+veh.vehstatus], 0
+	push	cx
+	mov	cx, word [ParentXY]
+	mov	word [esi+veh.XY], cx
+	pop	cx
+.justProcessNext:
 	cmp	word [esi+veh.nextunitidx], 0xFFFF	;morE?
 	jne	.loopToNextTrailer
 	pop	esi
@@ -326,16 +339,16 @@ RVTrailerProcessing:
 .noBreakDown:
 	test	word [esi+veh.vehstatus], 2		;2 == stopped... so just quit.
 	jnz	near .justQUIT
-	call	[ProcessNextRVOrder]			;get next station, if necessary
-	call	[ProcessLoadUnload]			;process load/unload state
-	mov	ax, word [esi+veh.currorder]
-	and	al, 1Fh
-	cmp	al, 4				;4== _N0_IDEA_ (ie. not on way to station,depot,etc)
-	jz	short .notOnWayToStationDepotOrNowhere
-	cmp	al, 3				;3== loading/unloading
-	jnb	near .justQUIT			;so if we're 3 or above... just quit...
+;	call	[ProcessNextRVOrder]			;get next station, if necessary
+;	call	[ProcessLoadUnload]			;process load/unload state
+;	mov	ax, word [esi+veh.currorder]
+;	and	al, 1Fh
+;	cmp	al, 4				;4== _N0_IDEA_ (ie. not on way to station,depot,etc)
+;	jz	short .notOnWayToStationDepotOrNowhere
+;	cmp	al, 3				;3== loading/unloading
+;	jnb	near .justQUIT			;so if we're 3 or above... just quit...
 
-.notOnWayToStationDepotOrNowhere:
+;.notOnWayToStationDepotOrNowhere:
 	cmp	byte [esi+veh.movementstat], 0FEh
 	jz	near .inDepot
 	call	[IncrementRVMovementFrac]			;process vehicle tick, if overflow then make movement
@@ -884,30 +897,30 @@ useParentMovement:
 	pop	edx
 	retn
 
-global turnTrailersAroundToo
-turnTrailersAroundToo:
-	test	bl, 1
-	jz	.justReturn
-	mov	byte [edx+0x6A], 180
-	push	ecx
-	push	ax
-	movzx	ecx, word [edx+veh.engineidx]
-	mov	ax, word [edx+veh.XY]
-	cmp	cx, word [edx+veh.idx]
-	jne	.cleanAndJustReturn
-	mov	ecx, edx
-.doZeeLoop:
-	cmp	word [ecx+veh.nextunitidx], 0xFFFF      //MORE?
-	je	.cleanAndJustReturn
-	mov	cx, word [ecx+veh.nextunitidx]
-	shl	cx, 7
-	add	cx, [veharrayptr]
+;global turnTrailersAroundToo
+;turnTrailersAroundToo:
+;	test	bl, 1
+;	jz	.justReturn
+;	mov	byte [edx+0x6A], 180
+;	push	ecx
+;	push	ax
+;	movzx	ecx, word [edx+veh.engineidx]
+;	mov	ax, word [edx+veh.XY]
+;	cmp	cx, word [edx+veh.idx]
+;	jne	.cleanAndJustReturn
+;	mov	ecx, edx
+;.doZeeLoop:
+;	cmp	word [ecx+veh.nextunitidx], 0xFFFF      //MORE?
+;	je	.cleanAndJustReturn
+;	mov	cx, word [ecx+veh.nextunitidx]
+;	shl	cx, 7
+;	add	cx, [veharrayptr]
 ;	mov	ax, word [edx+veh.XY]
 ;	mov	word [ecx+veh.XY], ax
 ;	mov	byte [ecx+0x6A], 180
-	jmp	.doZeeLoop
-.cleanAndJustReturn:
-	pop	ax
-	pop	ecx
-.justReturn:
-	retn
+;	jmp	.doZeeLoop
+;.cleanAndJustReturn:
+;	pop	ax
+;	pop	ecx
+;.justReturn:
+;	retn
