@@ -1321,6 +1321,7 @@ section .text
 // 12	The industry can be exploded by a military helicopter (factory) 	
 // 13	The industry can cause a subsidence (coal mine) 	
 // 14	Automatic production multiplier handing (No industry has this bit set by default.)
+// 15	The production callback gets random bits in var. 10
 uvard industryspecialflags,NINDUSTRIES
 
 // The default values for the above special flags, ie. a bit is only set if the unpatched TTD industry would
@@ -3950,6 +3951,15 @@ doproductioncallback:
 .nodiv:
 
 	mov [getincargo_div],bp
+
+	bt dword [industryspecialflags+eax*4],15
+	jnc .norandombits
+	push eax
+	call [randomfn]
+	mov [miscgrfvar],eax
+	pop eax
+.norandombits:
+
 	mov byte [grffeature],0xa
 	and word [callback_extrainfo+1],0
 	mov byte [callback_extrainfo+3],0
@@ -4014,12 +4024,14 @@ doproductioncallback:
 
 // restore division factor
 	mov word [getincargo_div],1
+	and dword [miscgrfvar],0
 	popa
 	ret
 
 .error:
 // if an error occurs, quit the loop and restore division factor
 	mov word [getincargo_div],1
+	and dword [miscgrfvar],0
 	pop eax
 	popa
 	ret
