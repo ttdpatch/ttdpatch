@@ -97,7 +97,6 @@ shiftInParentMovement:
 	add	eax, [veharrayptr]
 	cmp	byte [eax+veh.parentmvstat], 0xFF
 	jne	.shiftIntoUpper
-.doNormal:
 	mov	byte [eax+veh.parentmvstat], dl
 	mov	byte [eax+0x6E], 0xFF
 	jmp	.shifted
@@ -280,12 +279,21 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 	movzx	esi, word [esi+veh.nextunitidx]
 	shl	si, 7
 	add	esi, dword [veharrayptr]	;we now have the first trailers ptr.
+	test	byte [esi+veh.vehstatus], 2
+	jz	.dontStartTrailer
+	push	ecx
+	mov	ecx, dword [ParentIDX]
+	test	byte [ecx+veh.vehstatus], 2		;is ze parental in ze depot?
+	pop	ecx
+	jnz	.dontStartTrailer
+	btc	word [esi+veh.vehstatus], 1
+.dontStartTrailer:
 	pushad
 	call	RVTrailerProcessing	;see below.
 	popad
 	push	ecx
 	mov	ecx, dword [ParentIDX]
-	cmp	byte [ecx+veh.movementstat], 0xFE
+	cmp	byte [ecx+veh.movementstat], 0xFE		;is ze parental in ze depot?
 	pop	ecx
 	jne	.justProcessNext
 	mov	byte [esi+veh.movementstat], 0xFE
