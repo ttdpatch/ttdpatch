@@ -1645,15 +1645,15 @@ vard varavailability
 	dd 100001000b,1<<31,	100001000b,1<<31	// veh.vars 43, 48
 	dd 100001000b,1<<31,	100001000b,1<<31	// veh.vars 43, 48
 	dd 100001000b,1<<31,	100001000b,1<<31	// veh.vars 43, 48
-	dd 1000b,1<<15,		0,1<<15			// station var 43, towns
-	dd 0,1<<15,		0,1<<15			// canals
-	dd 0,1<<15,		0,1<<15			// bridges
-	dd 0,1<<15,		0,1<<15			// houses, bridges
-	dd 0,1<<15,		0,1<<15			// generic variables
-	dd 0,1<<15,		0,1<<15			// industry tiles, industries
-	dd 0,1<<15,		0,1<<15			// industries, towns
-	dd 0,1<<15,		0,1<<15			// cargos
-	dd 0,1<<15,		0,1<<15			// sounds
+	dd 1000b,1<<31,		0,1<<31			// station var 43, towns
+	dd 0,1<<31,		0,1<<31			// canals
+	dd 0,1<<31,		0,1<<31			// bridges
+	dd 0,1<<31,		0,1<<31			// houses, bridges
+	dd 0,1<<31,		0,1<<31			// generic variables
+	dd 0,1<<31,		0,1<<31			// industry tiles, industries
+	dd 0,1<<31,		0,1<<31			// industries, towns
+	dd 0,1<<31,		0,1<<31			// cargos
+	dd 0,1<<31,		0,1<<31			// sounds
 
 checkfeaturesize varavailability, (4*2*2)
 
