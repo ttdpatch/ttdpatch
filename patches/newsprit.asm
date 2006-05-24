@@ -933,7 +933,7 @@ getvariationalvariable:
 	movzx esi,byte [grffeature]
 	add esi,esi
 	add esi,[isother]
-	bt [varavailability+esi*8],eax
+	bt [varavailability-0x40/8+esi*8],eax
 	mov esi,0		// restore esi without affecting flags
 	jc .usevar
 	jmp short .novar
@@ -1641,10 +1641,10 @@ endvar
 	// even without a structure; once for 81+x and once for 82+x
 	// (all 60+x must set bit 15, which is special!)
 vard varavailability
-	dd 100001000b,1<<15,	100001000b,1<<15	// veh.vars 43, 48
-	dd 100001000b,1<<15,	100001000b,1<<15	// veh.vars 43, 48
-	dd 100001000b,1<<15,	100001000b,1<<15	// veh.vars 43, 48
-	dd 100001000b,1<<15,	100001000b,1<<15	// veh.vars 43, 48
+	dd 100001000b,1<<31,	100001000b,1<<31	// veh.vars 43, 48
+	dd 100001000b,1<<31,	100001000b,1<<31	// veh.vars 43, 48
+	dd 100001000b,1<<31,	100001000b,1<<31	// veh.vars 43, 48
+	dd 100001000b,1<<31,	100001000b,1<<31	// veh.vars 43, 48
 	dd 1000b,1<<15,		0,1<<15			// station var 43, towns
 	dd 0,1<<15,		0,1<<15			// canals
 	dd 0,1<<15,		0,1<<15			// bridges

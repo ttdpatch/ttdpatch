@@ -771,3 +771,4 @@ CHANGELOG
 - fixed bit switch descriptions not being written with correct charset
 - fixed problem finding AI buy vehicle code if not all newvehicles switches
   are on
+- fixed problem with wrong variables being available in purchase window
