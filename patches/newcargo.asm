@@ -967,13 +967,11 @@ setcargobit:
 .notmandatory:
 	bts [cargobits], eax
 	mov [cargoid+eax],bl
-.nonewbit:
-	mov [cargotypes+ebx], al
-	cmp dword [globalcargolabels+ebx*4],byte -1
-	jne .haslabel
+
 	// provide default cargo label (otherwise the default translation table won't work)
 	mov [globalcargolabels+ebx*4],esi	// that should be a pretty unlikely but unique label
-.haslabel:
+.nonewbit:
+	mov [cargotypes+ebx], al
 	inc ebx
 	loop .next
 	clc
