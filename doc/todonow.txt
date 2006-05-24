@@ -457,9 +457,6 @@
 - another signal/pathfinder problem
   http://www.tt-forums.net/viewtopic.php?p=429375#429375
 
-- new cargo types broken for grfs that don't have trl table?
-  http://www.tt-forums.net/viewtopic.php?p=438034#438034
-
 - action 6 change broke action 2/3 stuff?
 18:57:07 #tycoon: < DaleStan> patchman: It appears your changes to Action 6 scribbled 
 				the ability to write cargoIDs into 2s and 3s with 6s.
@@ -768,3 +765,4 @@ CHANGELOG
 - fixed problem finding AI buy vehicle code if not all newvehicles switches
   are on
 - fixed problem with wrong variables being available in purchase window
+- fixed cargo types without cargo labels not being available for refit

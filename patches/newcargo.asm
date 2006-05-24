@@ -951,6 +951,7 @@ setcargobit:
 	cmp al,0xff
 	je .nooldbit
 	btr [cargobits], eax
+	or dword [globalcargolabels+ebx*4],byte -1
 .nooldbit:
 	lodsb
 	cmp al,0xff		// FFh means clearing the bit only
@@ -968,6 +969,11 @@ setcargobit:
 	mov [cargoid+eax],bl
 .nonewbit:
 	mov [cargotypes+ebx], al
+	cmp dword [globalcargolabels+ebx*4],byte -1
+	jne .haslabel
+	// provide default cargo label (otherwise the default translation table won't work)
+	mov [globalcargolabels+ebx*4],esi	// that should be a pretty unlikely but unique label
+.haslabel:
 	inc ebx
 	loop .next
 	clc
