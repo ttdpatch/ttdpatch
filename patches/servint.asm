@@ -22,6 +22,7 @@ extern lastmovementstat,lastwagoncleartile,makerisingcost,miscgrfvar
 extern miscmodsflags,newservint,noattachnewwagon,numheads,patchflags
 extern randomtrigger,replaceage,replaceminreliab,savevehordersfn,tiledeltas
 extern vehbase,vehiclecosttables,newvehdata,getdefvehcargotype
+extern resetconsistsprites
 
 
 
@@ -224,6 +225,12 @@ endvar
 	// safe:dx
 global trainenterdepot
 trainenterdepot:
+	and byte [edi+veh.modflags+1],~1<<(MOD_REVERSE-8)
+	push esi
+	mov esi,edi
+	call resetconsistsprites
+	pop esi
+
 	testflags pathbasedsignalling
 	jnc .notpbs
 

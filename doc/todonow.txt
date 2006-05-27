@@ -747,6 +747,7 @@ CHANGELOG
   * fixed some incorrect cargo type handling for GRFs with version 7
   * the language of the EXE is now restored correctly when all translation 
     GRFs are disabled
+  * industries now can request random bits for the production callback
 - by Lakie:
   * allow water to flood diagonally (disable with
     miscmods.nodiagonalflooding on) and support graphics for resulting coasts
@@ -758,7 +759,7 @@ CHANGELOG
 - fixed zeppelin crash bug getting patched twice
 - updated German, Dutch and Italian translations
 - fixed train reversing problems with PBS in DOS
-- update consist callback variables when train reverses
+- update consist callback variables when train reverses and in depot
 - changed station var.45 bits 4..7 to refer to connection to neighbouring
   platform not further along platform direction
 - fixed bit switch descriptions not being written with correct charset

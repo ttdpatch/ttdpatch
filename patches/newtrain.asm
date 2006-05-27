@@ -46,7 +46,6 @@ trainleavedepot:
 	mov cx,[dword esi+1]
 ovar nexttrainvehthreshold, -4
 
-	and byte [edi+veh.modflags+1],~1<<(MOD_REVERSE-8)
 	movzx eax,word [edi+veh.nextunitidx]
 	cmp ax,byte -1
 	je .nextnotactive

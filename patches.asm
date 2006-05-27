@@ -143,7 +143,7 @@
 		// must be processed after any patch that adds new graphics
 	patchproc diskmenu,enhancegui,canmodifygraphics, patchdropdownmenu
 	patchproc feederservice,gradualloading,canmodifygraphics,fifoloading, patchenterstation
-	patchproc autorenew,canmodifygraphics,pathbasedsignalling, patchtrainenterdepot
+	patchproc autorenew,canmodifygraphics,pathbasedsignalling,newtrains, patchtrainenterdepot
 	patchproc autorenew,canmodifygraphics, patchautorenew
 
 		// enhancetunnels requires access to sprite 4898
