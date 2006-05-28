@@ -472,7 +472,7 @@ SWITCHTEXT(autoslope, "F”ldmunka enged‚lyez‚se az ‚pletek bont sa n‚lkl", "")
 SWITCHTEXT(followvehicle, "Egy j rmû mozg s nak k”vet‚se a f‹t‚rk‚pen", "")
 SWITCHTEXT(trams, "Utakon fut¢ villamosok enged‚lyez‚se", "")
 SWITCHTEXT(enhancetunnels, "S¡n‚p¡t‚s enged‚lyez‚se alag£tbej ratok f”l‚", "")
-/***/SWITCHTEXT(forcegameoptions, "Allows you to force game options","")
+SWITCHTEXT(forcegameoptions, "Bizonyos j t‚kbeli be ll¡t sok kik‚nyszer¡t‚se","")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -507,7 +507,7 @@ BIT(nodesynchwarning,      "Ne figyelmeztessen a szinkronb¢l kies‹ t”bbj t‚kos j
 BIT(noworldedgeflooding,   "A t‚rk‚p sz‚l‚n lev‹ v¡z nem folyhat  t m s mez‹kre")
 BIT(doshowintro,           "Mutassa az intro-t (ne ugorja  t)")
 BIT(nonewspritesorter,     "Ne haszn lja az £j sprite-rendez‹ algoritmust")
-/***/BIT(nodiagonalflooding,    "disable diagonal flooding and corner coasts")
+BIT(nodiagonalflooding,    "µtl¢s el rad s ‚s sarkos v¡zpartok kikapcsol sa")
 BIT(noenhancedcomp,        "Ne jav¡tson a ment‚st t”m”r¡t‹ algoritmuson")
 BIT(breakdownatsignal,     "Ne szntesse meg a piros l mp n l v rakoz¢ vonatok lerobban s t")
 BIT(smallspritelimit,      "Ne n”velje meg a sprite-korl tot")
@@ -592,23 +592,23 @@ BIT(symafter,  "A p‚nznemszimb¢lum mindig a sz m ut n jelenjen meg")
 BIT(noeuro,    "Ne vezesse be az eur¢t")
 BIT(comma,     "Mindig vessz‹ legyen az ezredes elv laszt¢")
 BIT(period,    "Mindig pont legyen az ezredes elv laszt¢")
-/***/
-/***/// Description for forcegameoptions bits
-/***/BITSWITCH(forcegameoptions)
-/***/BIT(trafficleft,	"Force the road traffic side to be left")
-/***/BIT(trafficright,	"Force the road traffic side to be right")
-/***/BIT(imperial,		"Force the use of imperial (miles) distance units")
-/***/BIT(metric,		"Force the use of metric (kilometers) distance units")
-/***/BIT(townsenglish,	"Set town name style to english")
-/***/BIT(townsfrench,	"Set town name style to french")
-/***/BIT(townsgerman,	"Set town name style to german")
-/***/BIT(townsamerican,	"Set town name style to amerian")
-/***/BIT(townslatin,		"Set town name style to latin amerian")
-/***/BIT(townssilly,		"Set town name style to silly")
-/***/BIT(autosavedisabled,	"Set autosave to off")
-/***/BIT(autosave3months,	"Set autosave to 3 months")
-/***/BIT(autosave6months,	"Set autosave to 6 months")
-/***/BIT(autosave12months,	"Set autosave to 12 months")
+
+// Description for forcegameoptions bits
+BITSWITCH(forcegameoptions)
+BIT(trafficleft,	"Balrahajts kik‚nyszer¡t‚se")
+BIT(trafficright,	"Jobbrahajts kik‚nyszer¡t‚se")
+BIT(imperial,		"M‚rf”ld alap£ t vols gegys‚gek kik‚nyszer¡t‚se")
+BIT(metric,		"Kilom‚ter alap£ t vols gegys‚gek kik‚nyszer¡t‚se")
+BIT(townsenglish,	"V rosn‚v-st¡lus angolra  ll¡t sa")
+BIT(townsfrench,	"V rosn‚v-st¡lus franci ra  ll¡t sa")
+BIT(townsgerman,	"V rosn‚v-st¡lus n‚metre  ll¡t sa")
+BIT(townsamerican,	"V rosn‚v-st¡lus amerikaira  ll¡t sa")
+BIT(townslatin,		"V rosn‚v-st¡lus latin-amerikaira  ll¡t sa")
+BIT(townssilly,		"V rosn‚v-st¡lus komolytalanra  ll¡t sa")
+BIT(autosavedisabled,	"Automata ment‚s kikapcsol sa")
+BIT(autosave3months,	"Automata ment‚s 3 havonta")
+BIT(autosave6months,	"Automata ment‚s 6 havonta")
+BIT(autosave12months,	"Automata ment‚s 12 havonta")
 
 
 // A cfg file (%s) could not be found and is ignored.
@@ -835,7 +835,7 @@ SETTEXT(CFG_AUTOSLOPE, "`%s' (%s) lehet‹v‚ teszi a f”ldmunk t az ‚pletek leromb
 SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) seg¡ts‚g‚vel a f‹ n‚zet k”vethet egy j rmûvet. Ehhez jobb gombbal kell kattintani a 'j rmû megn‚z‚se' gombra a j rmûablakban.")
 SETTEXT(CFG_TRAMS, "`%s' (%s) lehet‹v‚ teszi villamosok ‚p¡t‚s‚t.")
 SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) lehet‹v‚ teszi s¡n ‚p¡t‚s‚t az alagutak bej rat ra.")
-/***/SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) allows you to force game options.")
+SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) bizonyos j t‚kbeli be ll¡t sok kik‚nyszer¡t‚s‚t teszi lehet‹v‚.")
 
 
 //----------------------------------------------------
