@@ -10,8 +10,7 @@ extern RefreshWindowArea,TabClicked,TitleBarClicked,currscreenupdateblock
 extern dfree,dmalloc,errorpopup,fillrectangle,redrawscreen
 extern win_newshistory_constraints,win_newshistory_elements
 extern windowstack,CheckBoxClicked
-
-
+extern CalcTrainDepotWidth
 
 
 uvard winelemdrawptrs,cWinElemMax+1,s
@@ -1181,26 +1180,34 @@ ovar depotcolumn, -1
 global drawtrainindepot
 drawtrainindepot:
 	add cx, 21
+	push	ecx
+	mov	ecx,0x0000
 	call CalcTrainDepotWidth
+	pop	ecx
 	ret
 
 global drawtrainwagonsindepot
 drawtrainwagonsindepot:
 	add cx, 50
+	push	ecx
+	mov	ecx,0x0101
 	call CalcTrainDepotWidth
+	pop	ecx
 	dec al
 	ret
 
-global CalcTrainDepotWidth
-CalcTrainDepotWidth:
-	mov ax, [esi+window.width]
-	sub ax, 59
-	push bx
-	mov bl, 29
-	div bl
-	pop bx
-
-	ret
+// Replaced by new one in trainwins.asm
+//
+//global CalcTrainDepotWidth
+//CalcTrainDepotWidth:
+//	mov ax, [esi+window.width]
+//	sub ax, 59
+//	push bx
+//	mov bl, 29
+//	div bl
+//	pop bx
+//
+//	ret
 
 global traindepotwindowhandler
 traindepotwindowhandler:

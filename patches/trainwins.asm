@@ -13,9 +13,9 @@
 #include <veh.inc>
 #include <window.inc>
 
-extern CalcTrainDepotWidth
 extern isengine
 extern patchflags
+extern getwagonlength
 
 /************************************** Taken From Fixmisc ***************************************/
 
@@ -58,7 +58,14 @@ var trainvehsperdepotrow, db 10	// Can be overwritten at any time by enhancegui!
 // returns CF and EDI=>next if train is not done, otherwise NC and ZF and DI=-1
 advancetonextrow:
 	pushf
+	push	ecx
+	mov	ecx,0x0
+	cmp	byte [edi+veh.subclass],0
+	je	.lnotplusrow
+	mov	ecx,0x0101
+.lnotplusrow:
 	call CalcTrainDepotWidth
+	pop ecx
 	popf
 	sbb al,0
 
@@ -148,7 +155,14 @@ checktrainindepot:
 global showtrain
 showtrain:
 	add cx,0x15
+	push	ecx
+	mov	ecx,0x0
+	cmp	byte [edi+veh.subclass],0
+	je	.lplusrow
+	mov	ecx,0x0101
+.lplusrow:
 	call CalcTrainDepotWidth
+	pop	ecx
 	cmp byte [edi+veh.subclass],0
 	je .regular
 
@@ -265,3 +279,65 @@ movedcheckiswaggonui:
 .done:
 	ret
 
+/********************************* Replaces the winsize.asm one **********************************/
+// Calculates the number of vehicles which will fit in the depot window.
+// This is for when the depot window changes length. (enchancedgui)
+//
+// Input:  edi - vehicle id
+//	   ch  - number of vehicles to add (Before returning value)
+//	   cl  - number of vehicles to subtrack (Before calculating total length avaible)
+//
+// Output: al  - number of vehicles which can fit
+//
+// Used:   eax,ebx,ecx,edi,esp
+// Safe:   ?
+//
+// Notes:  Changed to work with Shortened vehicles (.l* labels)
+global CalcTrainDepotWidth
+CalcTrainDepotWidth:
+	mov ax, [esi+window.width]
+	sub ax, 59
+	push bx
+	mov bl, 29
+	div bl
+	pop bx
+
+.lstart:
+	push	edi // Backup registers to be used
+	push	ebx
+	mov	bh,ch // Move the number of ids to add
+	mov	ch,0
+	sub	ax,cx // Remove the number of vehicles before
+	shl	ax,3 // 8 * numvehs
+	mov	bl,0 // Reset counter to avoid spilage
+
+.lgetlen:
+	push	edi // Vehicle shortened by values not stored yet, so use getwagonlength
+	call	getwagonlength
+	mov	cl,[esp]
+	add	esp,4
+	and	cl,0x7F
+	neg	cl
+	add	cl,0x8
+
+.ldepotlen:
+	sub	ax,cx // Get length remaining
+	jb	.ldone // If less than 0 then jump to end
+	inc	bl
+
+.lgetveh:
+	movzx	edi,word [edi+veh.nextunitidx] // Get next vehicle id in consist
+	cmp	di,-1
+	je	.ldone	// Jump to end if no id
+
+	shl	edi,vehicleshift
+	add	edi,[veharrayptr]
+	jmp	.lgetlen
+	
+.ldone:
+	mov	al,bl // Return number of vehicles
+	add	al,bh // Add number of vehicles from the offset
+	pop	ebx // Restore Registers
+	pop	edi
+
+	ret
