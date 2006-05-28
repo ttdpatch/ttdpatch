@@ -53,7 +53,7 @@ uvard RoadVehiclePathFinder
 uvard GetVehicleNewPos
 uvard UpdateVehicleSpriteBox
 uvard UpdateDirectionIfMovedTooFar
-
+uvard oldrvdailyproc
 
 global newbuyroadvehicle
 newbuyroadvehicle:
@@ -132,11 +132,11 @@ checkIfTrailerAndCancelCollision:
 	pop	eax
 	retn
 .checkIfInStation:
-	movzx	eax, word [esi+veh.XY]
-	mov	al, byte [landscape4(ax)]
-	and	al, 0xF0
-	cmp	al, 0x50
-	je	.zeroCollisionOnOtherVehicle
+;	movzx	eax, word [esi+veh.XY]
+;	mov	al, byte [landscape4(ax)]
+;	and	al, 0xF0
+;	cmp	al, 0x50
+;	je	.zeroCollisionOnOtherVehicle
 	jmp	.moveInCollision
 .checkIfHead:
 	cmp	word [edi+veh.nextunitidx], 0xFFFF	//do i have trailers?
@@ -362,9 +362,12 @@ RVTrailerProcessing:
 	call	[IncrementRVMovementFrac]			;process vehicle tick, if overflow then make movement
 	;jb	short .makeAMove				;needs to be called... but we don't want it governing whether or not
 								;this process runs!
+	mov	ax, word [esi+veh.maxspeed]
 	inc	ax
 	inc	ax
 	inc	ax						;play catch up
+	inc	ax
+	inc	ax
 	inc	ax
 	cmp	byte [runTrailer], 1
 	je	.makeAMove
@@ -543,7 +546,7 @@ RVTrailerProcessing:
 	mov	word [esi+veh.currorder], 0
 
 .loc_165C8E:
-	call	RVStartSound
+;	call	RVStartSound
 	mov	bx, word [esi+veh.idx]
 	mov	ax, 0x48D ;cWinTypeVehicle or cWinElemRel or cWinElem4
 	call	[RefreshWindows]		; AL = window type
@@ -557,10 +560,10 @@ RVTrailerProcessing:
 	or	ebp, ebp
 	js	near .zeroSpeedAndReturn
 	test	ebp, 40000000h
-	jnz	short .loc_165CBE
+	jnz	short .dontIncrementBlockedCount
 	inc	byte [esi+0x63]
 
-.loc_165CBE:
+.dontIncrementBlockedCount:
 	movzx	bx, byte [esi+veh.direction]
 	call	[SelectRVSpriteByLoad]
 	call	[SetRoadVehObjectOffsets]
@@ -587,9 +590,16 @@ RVTrailerProcessing:
 	mov	esi, dword [ParentIDX]
 	cmp	byte [esi+0x6A], 0
 	pop	esi
-	jne	.somewhere1
+	jne	.dontAdjustMovementStat
+	push	cx
+	mov	cl, byte [esi+veh.parentmvstat]
+	cmp	cl, 0xFE
+	pop	cx
+	je	.dontAdjustMovementStat
+	cmp	byte [esi+veh.parentmvstat], 0xFF
+	je	.dontAdjustMovementStat
 	mov	dl, byte [esi+veh.parentmvstat]
-.somewhere1:
+.dontAdjustMovementStat:
 	bt	bx, dx
 	jb	near .zeroSpeedAndReturn
 
@@ -622,6 +632,8 @@ RVTrailerProcessing:
 	push	bx
 	call	[LimitTurnToFortyFiveDegrees]
 	pop	bx
+	call	[RVCheckCollisionWithRV]
+	jb	.justQUIT
 	call	[VehEnterLeaveTile]
 	push	esi
 	mov	esi, dword [ParentIDX]
@@ -709,9 +721,9 @@ RVTrailerProcessing:
 	cmp	dl, byte [esi+veh.direction]
 	jz	short .weAreNotTurning
 	mov	byte [esi+veh.direction], dl		;change direction
-	mov	bp, word [esi+veh.speed]		;slow down
-	shr	bp, 2					;slow down
-	sub	word [esi+veh.speed], bp		;slow down
+;	mov	bp, word [esi+veh.speed]		;slow down
+;	shr	bp, 2					;slow down
+;	sub	word [esi+veh.speed], bp		;slow down
 
 .weAreNotTurning:
 	movzx	bx, byte [esi+veh.direction]
@@ -744,16 +756,25 @@ RVTrailerProcessing:
 	mov	esi, dword [ParentIDX]
 	cmp	byte [esi+0x6A], 0
 	pop	esi
-	jne	.somewhere12
+	jne	.skipUsingParentMovementForUTurn
+	push	cx
+	mov	cl, byte [esi+veh.parentmvstat]
+	cmp	cl, 0xFE
+	pop	cx
+	je	.skipUsingParentMovementForUTurn
+	cmp	byte [esi+0x6A], 0
+	je	.skipUsingParentMovementForUTurn
+	cmp	byte [esi+veh.parentmvstat], 0xFF
+	je	.skipUsingParentMovementForUTurn
 	mov	dl, byte [esi+veh.parentmvstat]
-.somewhere12:
+.skipUsingParentMovementForUTurn:
 	bt	bx, dx
 	jb	near .zeroSpeedAndReturn
 	and	edx, 0FFh
 	add	bl, byte [roadtrafficside]
 	push	ecx
 	mov	ecx, dword [off_111D62]
-	mov	ebx, [ecx+ebx*4]
+	mov	ebx, [ecx+edx*4]
 	pop	ecx
 	mov	bp, di
 	rol	di, 4
@@ -769,6 +790,8 @@ RVTrailerProcessing:
 	push	bx
 	call	[LimitTurnToFortyFiveDegrees]
 	pop	bx
+	call	[RVCheckCollisionWithRV]
+	jb	.justQUIT
 	call	[VehEnterLeaveTile]
 	or	ebp, ebp
 	js	short .zeroSpeedAndReturn
@@ -859,7 +882,7 @@ RVTrailerProcessing:
 	mov	dl, byte [esi+veh.direction]
 	call	[RVCheckCollisionWithRV]			;is there an RV in the way?
 	jb	.zeroSpeedAndReturn			;don't move!
-	call	[RVStartSound]				;make noise.
+;	call	[RVStartSound]				;make noise.
 	and	byte [roadtrafficside], 7Fh
 	push	ax
 	call	[SetCurrentVehicleBBox]
@@ -932,3 +955,14 @@ useParentMovement:
 ;	pop	ecx
 ;.justReturn:
 ;	retn
+
+global rvdailyprocoverride
+rvdailyprocoverride:
+	push	eax
+	mov	ax, [edi+veh.engineidx]
+	cmp	ax, [edi+veh.idx]
+	pop	eax
+	jne	.skipRVDailyProc
+	call	[oldrvdailyproc]
+.skipRVDailyProc:
+	retn
