@@ -81,6 +81,7 @@ foundationtypes equ 14+8
 #define INVSP_BADFONT 25	// invalid font in action 12
 #define INVSP_NOTINBLOCK 26	// range crosses block boundary
 #define INVSP_INVPROPVAL 27	// invalid property value
+#define INVSP_INVTEST 28	// invalid condition type in action 7/9
 
 #endif	// ndef __GRF_INC__
 

@@ -2167,7 +2167,7 @@ skipspriteif:
 
 	cmp ecx,(numextvars+0x80)*4
 	mov al,INVSP_INVVAR
-	jae checknewgraphicsblock.invalid
+	jae .invalid
 
 	mov edx,[externalvars+ecx-0x80*4]
 	mov bh,1
@@ -2216,59 +2216,75 @@ skipspriteif:
 	mov bh,0
 
 .notgamevar:
-	// now eax = value
-	lea ebx,[addr(.comptests)+ebx*4]
-	cmp eax,edx
-	jmp ebx
+	or ecx,byte -1
 
-	// each case must be 4 bytes here (except last one)
-.comptests:	// 2 = equal
+	// now eax = value
+	cmp ebx,byte .numtests
+	jae .invtest
+
+	cmp eax,edx
+	jmp [.comptests+ebx*4]
+
+noglobal vard .comptests
+	dd .equal, .notequal, .greater, .less
+	dd .isactive, .inactive, .willbeactive, .active
+	dd .notactive, .notcargotype, .cargotype
+.numtests equ ($-.comptests)/4
+endvar
+
+.invtest:
+	mov al,INVSP_INVTEST
+.invalid:
+	jmp checknewgraphicsblock.invalid
+
+.equal:		// 2 = equal
 	je .skipit
 	jmp short .dont		// "jmp" isn't short by default... stupid...
 
-		// 3 = not equal
+.notequal:	// 3 = not equal
 	jne .skipit
 	jmp short .dont
 
-		// 4 = greater
+.greater:	// 4 = greater
 	ja .skipit
 	jmp short .dont
 
-		// 5 = less
+.less:		// 5 = less
 	jb .skipit
 	jmp short .dont
 
-		// 6 = GRFID is active
+.isactive:	// 6 = GRFID is active
 	mov bl,1
 	jmp short .findgrfid
 
-		// 7 = GRFID is inactive
+.inactive:	// 7 = GRFID is inactive
 	mov bl,0
 	jmp short .findgrfid
 
-		// 8 = GRFID is inactive but will become active
+.willbeactive:	// 8 = GRFID is inactive but will become active
 	mov bl,3
 	jmp short .findgrfid
 
-		// 9 = GRFID is or will be active
+.active:	// 9 = GRFID is or will be active
 	mov bl,7
 	jmp short .findgrfid
 
-		// A = GRFID is not or will not be active
+.notactive:	// A = GRFID is not or will not be active
 	mov bl,6
+	mov cl,0
 	jmp short .findgrfid
 
-		// B = Cargo type is not defined
+.notcargotype:	// B = Cargo type is not defined
 	mov bl,0
 	jmp short .findcargo
 
-		// C = Cargo type is defined
+.cargotype:	// C = Cargo type is defined
 	mov bl,1
 	jmp short .findcargo
 
 .findgrfid:
 	mov bh,bl
-	not bh
+	xor bh,cl	// cl=FF except cl=FF for condition 0A
 
 	test edx,edx
 	jz .gotstate	// bh is such that bh!=bl

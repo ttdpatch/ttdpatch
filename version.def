@@ -6,8 +6,9 @@
 # VERSIONMINOR is the minor version number for the Windows resource file
 # VERSIONREVISION is the revision version number for the Windows resource file
 # VERSIONBUILD is the build number for the Windows resource file
+REV=${subst E,mod,${SVNREV}}
 VERSION = 25b4${if ${NOREV},,r${SVNREV}}
-VERSIONSTR = 2.5 beta 4${if ${NOREV},, r${SVNREV}}
+VERSIONSTR = 2.5 beta 4${if ${NOREV},, r${REV}}
 VERSIONNUM = 25b4${if ${NOREV},,d${SVNREV}}
 
 # Important: increase the build number by 10 every time VERSIONNUM changes
