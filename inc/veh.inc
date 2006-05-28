@@ -144,7 +144,7 @@ endstruc_32
 
 // Format of data in veh2 array (for temporary, unsaved vehicle data)
 %define numvehvar40x 4			// highest 40+x variable that's cacheable
-%define cachevehvar40x_def 01111b	// bitmask of actually cacheable 40+x
+%define cachevehvar40x_def 0	// bitmask of actually cacheable 40+x
 					// variables (any 40+x variables that do
 					// not change while train is in motion)
 struc veh2
