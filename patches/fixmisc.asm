@@ -36,6 +36,7 @@ extern stationarray2ofst,stationarray2ptr,tmpbuffer1,townarray2ofst
 extern trainrunningcost,ttdtexthandler,vehdirectionroutemasks
 extern yeartodate
 extern spriteblockptr,gettextintableptr,gettextandtableptrs
+extern waterbanksprites
 
 
 
@@ -2673,7 +2674,7 @@ Class6FloodTile:
 	ret
 
 // Handles getting the sprites for the coasts, since 8 new types have appeared
-global Class6CoastSprites, coastspritebase, newcoastspritebase, newcoastspritenum
+global Class6CoastSprites, newcoastspritebase, newcoastspritenum
 Class6CoastSprites:
 	cmp edi, 0x20
 	jb .goodoffset
@@ -2702,7 +2703,7 @@ Class6CoastSprites:
 
 .badnewsprites:
 	push ecx
-	mov ecx, [coastspritebase]
+	mov ecx, [waterbanksprites]
 	mov bx, [ecx+edi]
 	pop ecx
 	ret
@@ -2715,7 +2716,6 @@ Class6CoastSprites:
 	add bx, di
 	ret
 
-uvard coastspritebase
 uvarw newcoastspritebase, 1, s
 uvard newcoastspritenum
 

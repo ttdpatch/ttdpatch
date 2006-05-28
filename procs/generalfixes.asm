@@ -24,8 +24,9 @@ extern reversetrain.cantreversemessage
 extern vehnametextids
 extern wait27ms_nogiveaway,backupvehnametexts
 extern Class6FloodTile
-extern Class6CoastSprites, coastspritebase
+extern Class6CoastSprites
 extern newgraphicssetsenabled
+extern waterbanksprites
 
 ext_frag oldrecordlastactionxy
 
@@ -667,12 +668,9 @@ codefragment newfloodtile
 	icall Class6FloodTile
 	ret
 
-codefragment findcoastsprites
-	dw 0, 4063, 4064, 4068
-
 codefragment oldcoastsprites
 	mov bx, [dword 0+edi]
-ovar waterbankptr, -4
+noglobal ovar oldcoastsprites.ptr, -4
 
 codefragment newcoastsprites
 	icall Class6CoastSprites
@@ -941,16 +939,11 @@ patchgeneralfixes:
 	// Loads the new flood subroutine which allows diagonal flooding.
 	patchcode oldfloodtile,newfloodtile,1,1,,{cmp ebp,2},e
 
-	stringaddress findcoastsprites // Get the address of the old sprite array
-
-	mov dword [waterbankptr], edi // allow the patch fragment to work
-
 	cmp ebp,2
 	jnz near .nodiagonalflooding
 
-	mov dword [coastspritebase], edi // Set the variable for the subroutine to use it
-
 	// Populate bad array entries
+	mov edi,[waterbanksprites]
 	mov word [edi+0x00], 3997 // Steep
 	mov word [edi+0x0A], 3998 // Steep
 	mov word [edi+0x0E], 3988
@@ -964,6 +957,8 @@ patchgeneralfixes:
 	or dword [newgraphicssetsenabled], 1<<0x0D
 .nodiagonalflooding:
 
+	mov edi,[waterbanksprites]
+	mov [oldcoastsprites.ptr],edi
 	patchcode oldcoastsprites,newcoastsprites,1,1,,{cmp ebp,2},e // patch the place where it is used in TTD
 
 	// ------- change vehicle messages to show vehicle name --------

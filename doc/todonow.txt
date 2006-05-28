@@ -757,7 +757,7 @@ CHANGELOG
 - renamed -Z switch to -XZ to later allow -Z? extended switches
 - when fragment search fails show name of failed fragment and its patch proc
 - fixed zeppelin crash bug getting patched twice
-- updated German, Dutch and Italian translations
+- updated German, Dutch, Italian and Hungarian translations
 - fixed train reversing problems with PBS in DOS
 - update consist callback variables when train reverses and in depot
 - changed station var.45 bits 4..7 to refer to connection to neighbouring
