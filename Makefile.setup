@@ -121,7 +121,7 @@ CFLAGS-PPC = -g -Wall -Wno-unused -Wwrite-strings
 LDFLAGS-PPC = $(LDLIBS)
 NASMOPT-PPC = -f macho -dMACHO
 
-SVNVERSION = svnversion .
+SVNVERSION = svnversion -c .
 
 -include ${MAKEFILELOCAL}
 
