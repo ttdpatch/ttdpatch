@@ -59,6 +59,7 @@ extern applysnowytemptrees,alwaysminusone
 extern updateTramStopSpriteLayout,setelrailstexts,gettextintableptr
 extern gettextandtableptrs,defaultstylename,fixupvehnametexts
 extern origlanguageid
+extern grfmodflags
 
 // New class 0xF (vehtype management) initialization handler
 // does additional things before calling the original function
@@ -942,6 +943,7 @@ preinfoapply:
 .nounicode:
 
 	or dword [languagesettings], byte -1
+	btr dword [grfmodflags], 3 // Clear this flag so that it needs the actual grf to be active (32px depots)
 	ret
 
 var cargowagonspeedlimit, db 0,96,0,96,80,120,96,96,96,96,120,120
