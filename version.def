@@ -7,13 +7,13 @@
 # VERSIONREVISION is the revision version number for the Windows resource file
 # VERSIONBUILD is the build number for the Windows resource file
 REV=${subst E,mod,${SVNREV}}
-VERSION = 25b4${if ${NOREV},,r${SVNREV}}
-VERSIONSTR = 2.5 beta 4${if ${NOREV},, r${REV}}
-VERSIONNUM = 25b4${if ${NOREV},,d${SVNREV}}
+VERSION = 25b5${if ${NOREV},,r${SVNREV}}
+VERSIONSTR = 2.5 beta 5${if ${NOREV},, r${REV}}
+VERSIONNUM = 25b5${if ${NOREV},,d${SVNREV}}
 
 # Important: increase the build number by 10 every time VERSIONNUM changes
 # Limits: VERSIONMAJOR up to 255, MINOR and REVISION up to 15, BUILD up to 65535
 VERSIONMAJOR = 2
 VERSIONMINOR = 5
 VERSIONREVISION = 0
-VERSIONBUILD = 41
+VERSIONBUILD = 50

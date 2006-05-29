@@ -3557,3 +3557,34 @@ before 1.6
 - fixed crash with enhancetunnels on but manuconv off
 - fixed status bar news messages are missing first char and having wrong colour
   in unicode mode
+
+2.5 beta 5
+- by Csaba:
+  * added callbacks 140, 141 and 142 for station animations
+  * fixed electrifiedrail patch code overwriting some random memory (this
+    fixes a crash on startup with enhancegui off)
+  * fixed some incorrect cargo type handling for GRFs with version 7
+  * the language of the EXE is now restored correctly when all translation 
+    GRFs are disabled
+  * industries now can request random bits for the production callback
+- by Lakie:
+  * allow water to flood diagonally (disable with
+    miscmods.nodiagonalflooding on) and support graphics for resulting coasts
+- by eis_os:
+  * fixed crash while creating grf debug log if grf had error condition
+  * new switch "forcegameoptions" to set default game options
+- renamed -Z switch to -XZ to later allow -Z? extended switches
+- when fragment search fails show name of failed fragment and its patch proc
+- fixed zeppelin crash bug getting patched twice
+- updated German, Dutch, Italian and Hungarian translations
+- fixed train reversing problems with PBS in DOS
+- update consist callback variables when train reverses and in depot
+- changed station var.45 bits 4..7 to refer to connection to neighbouring
+  platform not further along platform direction
+- fixed bit switch descriptions not being written with correct charset
+- fixed problem finding AI buy vehicle code if not all newvehicles switches
+  are on
+- fixed problem with wrong variables being available in purchase window
+- fixed cargo types without cargo labels not being available for refit
+- action 7/9 check 0A now jumps if the GRFID is not found at all
+- fixed tenders errorneously appearing in purchase list
