@@ -166,6 +166,10 @@ patchbusstop:
 	movsb
 	popa
 	mov dword [edi], salorrystationguielements
+//steven hoefel: resize truck stop window
+	sub edi, 21
+	mov dword [edi], 0x00B100D0
+//------------------------------------end
 
 	stringaddress findwindowbusstationelements,1,1
 	add edi, 12
@@ -186,6 +190,27 @@ patchbusstop:
 	add edi, 12
 	mov byte [edi], cWinElemLast
 
+//steven hoefel: add in gui elements for Truck Stops
+	mov dword [edi], salorrystationguielements 
+	add edi, 12
+	mov word [edi+4], 0xCF
+	add edi, 12
+	mov word [edi+4], 0xCF
+	add edi, 12*7
+
+	mov word [edi], 0x0E01
+	mov dword [edi+2], 0x00CC008B // reversed x1 & x2
+	mov dword [edi+6], 0x00420011 // reversed y1 & y2
+	mov word [edi+10], 0
+	add edi, 12
+	mov word [edi], 0x0E01
+	mov dword [edi+2], 0x00CC008B // reversed x1 & x2
+	mov dword [edi+6], 0x00760045 // reversed y1 & y2
+	mov word [edi+10], 0
+	add edi, 12
+	mov byte [edi], cWinElemLast
+//------------------------------------------------end
+
 	stringaddress findwindowbusstationcreatesize,1,1
 	mov dword [edi], 0x00B100D0
 	patchcode oldbuslorrystationwindowclickhandler, newbuslorrystationwindowclickhandler,1,1
@@ -193,7 +218,7 @@ patchbusstop:
 	stringaddress findwindowbusstationtooltipdisp,1,1
 	mov dword [edi], newbusorienttooltips
 
-	mov eax, [ophandler+0x5*8]			
+	mov eax, [ophandler+0x5*8]
 	mov eax, [eax+0x4]
 	mov edi, [eax+3]
 	mov eax, [edi+7*4]

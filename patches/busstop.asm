@@ -48,7 +48,7 @@ var dorvstationcolldet	// bit set = no collision detection for that movement sta
 uvard rvmovementscheme,1,z
 uvarb rvmovementschemestops, 32
 
-uvarb salorrystationguielements, 109
+uvarb salorrystationguielements, 133	//steven hoefel: added space for two new station styles
 
 global NewClass5RouteMapHandler
 NewClass5RouteMapHandler:
