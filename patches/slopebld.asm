@@ -111,7 +111,7 @@ displayfoundation:
 
 .gotdim:
 
-	mov edi,esi	
+	mov edi,esi
 	pop ebp	// steepslopes
 
 	bt ebp, 4
@@ -140,7 +140,7 @@ displayfoundation:
 //	add ebp, esi
 //	pop esi
 	mov ebp, [steepslopefoundationmap+ebp*4]
-	lea ebx,[ebp+989]	
+	lea ebx,[ebp+989]
 	sub ebp,14+1				// 14 sprites in TRG1, offsets counted from 1 up
 	jb .havenoext
 	lea ebx,[edi+ebp]
@@ -290,7 +290,7 @@ getroadfoundationtype:
 	cmp dh, 0   //check for tram tracks...
 	jne 	.dontInsertTramTracks0
 	mov	dh, [landscape3+esi*2]
-	
+
 .dontInsertTramTracks0:
 	push edx
 	cmp byte [alwaysraiseland], 0
@@ -306,7 +306,7 @@ getroadfoundationtype:
 	cmp	dh, 0   //check for tram tracks...
 	jnz 	.dontInsertTramTracks
 	mov	dh, [landscape3+esi*2]
-	
+
 .dontInsertTramTracks:
 	call auxisinclinedfoundation
 	jna .done
@@ -339,7 +339,7 @@ getbridgefoundationtype:
 	push edx
 	cmp byte [alwaysraiseland], 1
 	jz .usetrack
-	
+
 	and dh,1
 	mov cx,0x100
 	call auxisinclinedfoundation
@@ -416,8 +416,8 @@ auxisinclinedfoundation:
 	//add ebp,15			// guarantees ZF clear
 	shl ebp, 8
 	bts ebp, 7
-	test esp, esp	// set zf flag to clear 
-	
+	test esp, esp	// set zf flag to clear
+
 	stc
 	jmp .done
 
@@ -432,11 +432,19 @@ global correctstationalt
 correctstationalt:
 	test di,di
 	jz .done
-	
+
 	// Busstops
 	cmp dh, 0x53
 	je .slope
 	cmp dh, 0x54
+	je .slope
+	cmp dh, 0x55
+	je .slope
+	cmp dh, 0x56
+	je .slope
+	cmp dh, 0x57
+	je .slope
+	cmp dh, 0x58
 	je .slope
 
 	cmp dh,0x4b
@@ -465,6 +473,14 @@ displstationgroundsprite:
 	cmp dh, 0x53
 	je .slope
 	cmp dh, 0x54
+	je .slope
+	cmp dh, 0x55
+	je .slope
+	cmp dh, 0x56
+	je .slope
+	cmp dh, 0x57
+	je .slope
+	cmp dh, 0x58
 	je .slope
 
 .noslope:
@@ -688,7 +704,7 @@ displbridgeendgroundsprite:
 	cmp byte [landscape4(ax,1)], 90h
 	je .testcoast
 	jmp .nocoast
-	
+
 .testcoast:
 	test byte [landscape5(ax,1)], 20h
 	jnz .nocoast
@@ -759,6 +775,14 @@ correctstationexactalt:
 	cmp dh, 0x53
 	je correctexactalt.chkslope
 	cmp dh, 0x54
+	je correctexactalt.chkslope
+	cmp dh, 0x55
+	je correctexactalt.chkslope
+	cmp dh, 0x56
+	je correctexactalt.chkslope
+	cmp dh, 0x57
+	je correctexactalt.chkslope
+	cmp dh, 0x58
 	je correctexactalt.chkslope
 
 	cmp dh,0x4b
@@ -882,7 +906,7 @@ correctbridgeendexactalt:
 	cmp dh, 0
 	jnz .dontInsertTramTracks
 	mov dh, byte [landscape3 + 2*esi]
-	
+
 .dontInsertTramTracks:
 	test word [landscape3 + 2*esi], 3 << 13
 	popa
@@ -912,7 +936,7 @@ correctbridgeendexactalt:
 	xor dh, dh
 	pop ebp
 	ret
-					
+
 
 // Called to check whether land under airport is flat
 // in:	AX,CX,DL,DH,DI,ESI as returned by gettileinfo for the currently checked tile
@@ -1001,6 +1025,11 @@ stationbusstopcheck:
 	shr bx, 8
 	and ebx, 0xf
 	sub bl, 0x0C // well the directions are a bit screwed here ?!?
+	cmp bl, 0xF9 //steven hoefel: truck stops are much higher on the bl, so they need
+			//to be reduced to 0/1
+	jg .notTruckDriveThru
+	add bl, 8
+.notTruckDriveThru:
 	bt [busstopfoundation+ebx*2],di
 	pop ebx
 	jc stationallowslope
@@ -1196,11 +1225,11 @@ chkbuildroadslope:
 	push ebx
 	xor edi,edi			// this ensures EDI<31:16>=0 for the subsequent code
 	call [gettileinfo]
-	
+
 	cmp	byte [landscape3+esi*2], 0   //check for tram tracks...
 	jz 	.dontInsertTramTracks2
 	mov	dh, [landscape3+esi*2]
-	
+
 .dontInsertTramTracks2:
 	xor esi,esi
 	cmp bl,0x10
@@ -1271,12 +1300,12 @@ buildroadslopeext:
 
 	// check if there's already road (in which case we don't add the foundation cost)
 	call [gettileinfo]
-	
+
 	cmp	byte [landscape3+esi*2], 0   //check for tram tracks...
 	jz 	.dontInsertTramTracks3
 	mov	dh, [landscape3+esi*2]
 .dontInsertTramTracks3:
-	
+
 	xor edi,edi
 	cmp bl,0x10
 	jz .skip

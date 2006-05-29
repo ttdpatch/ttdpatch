@@ -6,10 +6,14 @@
 extern BusLorryStationDrawHandler,Class5ClearTileBusStopError
 extern Class5CreateBusStationAction,Class5CreateLorryWinOrient
 extern newbusorienttooltips,oldclass5createbusstation
+extern Class5CreateTruckStationAction,oldclass5createtruckstation
 extern oldclass5createlorrywinorient,paStationEntry1
 extern paStationbusstop1,paStationbusstop2,rvmovementscheme
+extern paStationtruckstop1,paStationtruckstop2
 extern rvmovementschemestops,salorrystationguielements
-extern ttdstationspritelayout
+extern ttdstationspritelayout,Class5ClearTileTruckStop
+extern Class5ClearTileTruckStopError,Class5QueryHandlerTruckStop
+extern newtruckorienttooltips
 
 extern paStationtramstop1, paStationtramstop2
 
@@ -36,7 +40,19 @@ codefragment oldclass5cleartilebusstop
 
 codefragment newclass5cleartilebusstop
 	icall Class5ClearTileBusStop
-	nop 
+	nop
+	nop
+	db 0x72
+
+codefragment oldclass5cleartiletruckstop
+	cmp dh, 43h
+	jb $+2+0x05
+	cmp dh, 47h
+	jb $+2+0x3A
+
+codefragment newclass5cleartiletruckstop
+	icall Class5ClearTileTruckStop
+	nop
 	nop
 	db 0x72
 
@@ -66,7 +82,7 @@ codefragment newbuslorrystationwindowclickhandler
 codefragment findwindowbusstationtooltipdisp, 22
 	js $+6+0x274
 	movzx ebx, cx
-	
+
 codefragment oldclass5queryhandlerbusstop
 	mov ax, 0x3062
 	cmp cl, 0x4B
@@ -75,12 +91,27 @@ codefragment newclass5queryhandlerbusstop
 	icall Class5QueryHandlerBusStop
 	nop
 
+codefragment oldclass5queryhandlertruckstop
+	mov ax, 0x3061
+	cmp cl, 0x47
+
+codefragment newclass5queryhandlertruckstop
+	icall Class5QueryHandlerTruckStop
+	nop
+
 codefragment oldclass5cleartilebusstoperror, 2
 	jb $+2+0x05
 	cmp dh, 0x4B
 	jb $+2+0x4B
 
 codefragment_call newclass5cleartilebusstoperror,Class5ClearTileBusStopError,5
+
+codefragment oldclass5cleartiletruckstoperror, 2
+	jb $+2+0x05
+	cmp dh, 47h
+	jb $+2+0x38
+
+codefragment_call newclass5cleartiletruckstoperror,Class5ClearTileTruckStopError,5
 
 codefragment oldbuslorrystationwindowdrawhandler, -5
 	add dx, 34h
@@ -95,37 +126,45 @@ patchbusstop:
 	storeaddresspointer findrvmovementscheme,1,1,rvmovementscheme
 	patchcode oldcheckfield63busstop, newcheckfield63busstop,1,1
 	patchcode oldclass5cleartilebusstop, newclass5cleartilebusstop,1,1
+	patchcode oldclass5cleartiletruckstop, newclass5cleartiletruckstop,1,1
 
-	mov eax, [ophandler+0x5*8]			
+	mov eax, [ophandler+0x5*8]
 	mov eax, [eax+0x10]
 	mov edi, [eax+9]
 	mov eax, [edi+5*4]
 	mov dword [oldclass5createbusstation], eax
 	mov dword [edi+5*4], addr(Class5CreateBusStationAction)
 
+	mov eax, [ophandler+0x5*8]
+	mov eax, [eax+0x10]
+	mov edi, [eax+9]
+	mov eax, [edi+6*4]
+	mov dword [oldclass5createtruckstation], eax
+	mov dword [edi+6*4], addr(Class5CreateTruckStationAction)
+
 	mov edi, [rvmovementscheme]
 	mov eax, [edi]
 	mov [edi+4*0x24], eax
 	mov eax, [edi+4]
 	mov [edi+4*0x25], eax
-	
+
 	mov eax, [edi+4*8]
 	mov [edi+4*0x2C], eax
 	mov eax, [edi+4*9]
 	mov [edi+4*0x2D], eax
-	
+
 	mov eax, [edi+4*16]
 	mov [edi+4*(0x24+16)], eax
 	mov eax, [edi+4*(1+16)]
 	mov [edi+4*(0x25+16)], eax
-	
+
 	mov eax, [edi+4*(8+16)]
 	mov [edi+4*(0x2C+16)], eax
 	mov eax, [edi+4*(9+16)]
 	mov [edi+4*(0x2D+16)], eax
 
 	stringaddress findrvmovementschemestops,1,1
-	
+
 	pusha
 	mov esi, dword [edi]
 	mov edi, rvmovementschemestops
@@ -155,6 +194,8 @@ patchbusstop:
 	mov dword [edi+4], paStationbusstop2
 	mov dword [edi+8], paStationtramstop1
 	mov dword [edi+12], paStationtramstop2
+	mov dword [edi+16], paStationtruckstop1
+	mov dword [edi+20], paStationtruckstop2
 
 	// rewrite the window system
 	stringaddress findwindowlorrystationelements,1,1
@@ -191,7 +232,7 @@ patchbusstop:
 	mov byte [edi], cWinElemLast
 
 //steven hoefel: add in gui elements for Truck Stops
-	mov dword [edi], salorrystationguielements 
+	mov edi, salorrystationguielements
 	add edi, 12
 	mov word [edi+4], 0xCF
 	add edi, 12
@@ -214,9 +255,11 @@ patchbusstop:
 	stringaddress findwindowbusstationcreatesize,1,1
 	mov dword [edi], 0x00B100D0
 	patchcode oldbuslorrystationwindowclickhandler, newbuslorrystationwindowclickhandler,1,1
-	
+
 	stringaddress findwindowbusstationtooltipdisp,1,1
 	mov dword [edi], newbusorienttooltips
+	add edi, 13
+	mov dword [edi], newtruckorienttooltips
 
 	mov eax, [ophandler+0x5*8]
 	mov eax, [eax+0x4]
@@ -227,6 +270,8 @@ patchbusstop:
 
 	// Some Error Handler...
 	patchcode oldclass5queryhandlerbusstop, newclass5queryhandlerbusstop,1,1
+	patchcode oldclass5queryhandlertruckstop, newclass5queryhandlertruckstop,1,1
 	patchcode class5cleartilebusstoperror
+	patchcode class5cleartiletruckstoperror
 	patchcode buslorrystationwindowdrawhandler
 	ret

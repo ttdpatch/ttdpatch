@@ -39,6 +39,26 @@ var paStationbusstop2
 	dd 4079
 	db 0x80
 
+var paStationtruckstop1
+	dd 1314
+	db 8,14,0,1,2,16
+	dd 1407
+	db 6,14,10,1,2,8
+	dd 4300
+	db 14,14,10,1,2,8
+	dd 4302
+	db 0x80
+
+var paStationtruckstop2
+	dd 1313
+	db 2,4,0,2,1,16
+	dd 1407
+	db 0,8,4,1,2,8
+	dd 4300
+	db 0,4,4,1,2,8
+	dd 4302
+	db 0x80
+
 	align 4
 var dorvstationcolldet	// bit set = no collision detection for that movement stat
 	dd 0			// 00-1F = regular roads
@@ -63,7 +83,11 @@ NewClass5RouteMapHandler:
 	mov byte al, [landscape5(di)]
 	cmp al, 0x53
 	je .busstop1
+	cmp al, 0x57		//truck stop has same movement
+	je .busstop1
 	cmp al, 0x54
+	je .busstop2
+	cmp al, 0x58		//truck stop has same movement
 	je .busstop2
 //	cmp al, 0x07
 //	jbe .railstation
@@ -124,23 +148,27 @@ Class5VehEnterLeaveBusStop:
 	call isrvbus
 	xchg esi,edi
 	// cmp byte [edi+veh.cargotype], 0
-	jne .done
+	// jne .done
 
 	cmp al, 0x53
 	je .busstop
+	cmp al, 0x57
+	je .busstop
 	cmp al, 0x54
+	je .busstop
+	cmp al, 0x58
 	je .busstop
 .done:
 	ret
 
 .busstop:
-	
+
 	mov dx, [edi+veh.currorder]
 	mov ax, dx
 
 	and dl,0x1f
 	cmp dl,1	// order = station
-	jne .busstopdone			
+	jne .busstopdone
 
 
 //	or al, al	// nonstop
@@ -184,6 +212,14 @@ Class5CreateBusStationAction:
 .done:
 	jmp [oldclass5createbusstation]
 
+uvard oldclass5createtruckstation,1,z
+global Class5CreateTruckStationAction
+Class5CreateTruckStationAction:
+	cmp bh, 4
+	jb .done
+	add bh, 0x0E
+.done:
+	jmp [oldclass5createtruckstation]
 
 global Class5ClearTileBusStop
 Class5ClearTileBusStop:
@@ -194,6 +230,23 @@ Class5ClearTileBusStop:
 	cmp dh, 0x53
 	je .removeit
 	cmp dh, 0x54
+	je .removeit
+.done:
+	clc
+	ret
+.removeit:
+	stc
+	ret
+
+global Class5ClearTileTruckStop
+Class5ClearTileTruckStop:
+	cmp dh, 0x43
+	jb .done
+	cmp dh, 0x47
+	jb .removeit
+	cmp dh, 0x57
+	je .removeit
+	cmp dh, 0x58
 	je .removeit
 .done:
 	clc
@@ -216,6 +269,20 @@ Class5ClearTileBusStopError:
 	mov ebx, 0x80000000
 	ret
 
+global Class5ClearTileTruckStopError
+Class5ClearTileTruckStopError:
+	cmp dh, 0x47
+	jb .error
+	cmp dh, 0x57
+	je .error
+	cmp dh, 0x58
+	je .error
+	ret
+.error:
+	add esp, 4
+	mov ebx, 0x80000000
+	ret
+
 
 global Class5QueryHandlerBusStop
 Class5QueryHandlerBusStop:
@@ -230,6 +297,19 @@ Class5QueryHandlerBusStop:
 	stc
 	ret
 
+global Class5QueryHandlerTruckStop
+Class5QueryHandlerTruckStop:
+	mov ax, 0x3061
+	cmp cl, 0x57
+	je .truckstop
+	cmp cl, 0x58
+	je .truckstop
+	cmp cl, 0x47
+	ret
+.truckstop:
+	stc
+	ret
+
 
 global RVMakeStationBusywhenleaving
 RVMakeStationBusywhenleaving:
@@ -237,7 +317,11 @@ RVMakeStationBusywhenleaving:
 	mov byte al, [landscape5(ax,1)]
 	cmp al, 0x53
 	je .busstop
+	cmp al, 0x57
+	je .busstop
 	cmp al, 0x54
+	je .busstop
+	cmp al, 0x58
 	je .busstop
 	or byte [ebx+ebp], 0x80
 .busstop:
@@ -247,23 +331,36 @@ RVMakeStationBusywhenleaving:
 // GUI
 var newbusorienttooltips
 	dw 0x18B, 0x18C, 0, 0x3051, 0x3051, 0x3051, 0x3051, 0x3065, 0x3064, 0x3051, 0x3051
-
+var newtruckorienttooltips
+	dw 0x18B, 0x18C, 0, 0x3052, 0x3052, 0x3052, 0x3052, 0x3065, 0x3064, 0x3052, 0x3052
 
 global BusLorryStationDrawHandler
 BusLorryStationDrawHandler:
 	call [DrawStationImageInSelWindow]
-	cmp bl, 0x43
-	jnz .busstops
-	ret
-.busstops:
+;	cmp bl, 0x43				removed the bus stop check, we want this working
+;	jnz .busstops				with trucks now... and have added the truck stop
+;	ret					pointers below
+;.busstops:
 	cmp byte [editTramMode], 1
 	jz .drawTramStops
 	pusha
 	add cx, 0x44
-	mov bl, 0x53
+	cmp bl, 0x43
+	jnz .firstBusStop
+	mov bl, 0x57		//move in truck stop
+	jmp .firstStopSet
+.firstBusStop:
+	mov bl, 0x53		//move in bus stop
+.firstStopSet:
 	xor al, al
 	call [DrawStationImageInSelWindow]
-	mov bl, 0x54
+	cmp bl, 0x57
+	jnz .secondBusStop
+	mov bl, 0x58		//move in truck stop
+	jmp .secondStopSet
+.secondBusStop:
+	mov bl, 0x54		//move in bus stop
+.secondStopSet:
 	add dx, 0x34
 	xor al, al
 	call [DrawStationImageInSelWindow]
