@@ -8,8 +8,8 @@
 #include <human.inc>
 
 extern autoslopevalue,curplayerctrlkey,gettileinfoshort,ishumanplayer
-
-
+extern getindustileid,industilecallbackflags
+extern grffeature,curcallback,getnewsprite
 
 
 
@@ -23,12 +23,12 @@ var cornerchecktile1, db 3,0,1,2
 var cornerchecktile2, db 1,2,3,0
 
 var numbertobit, db 1b, 10b, 100b, 1000b, 10000b, 100000b, 1000000b, 10000000b
-//  3
+//  3 
 //  /\
 //a/  \d
 //0    2
 //b\  /c
-//  \/
+//  \/ 
 //   1
 var railgetol5, db 10110b, 11001b, 101010b, 100101b, 10110b
 var roadedgetol5, db 1b, 10b, 100b, 1000b, 1b
@@ -70,10 +70,10 @@ autoslopechecklandscape:
 	// do old code
 	cmp byte [autoslopechecklandscapezf], 0
 	ret
-
+	
 // ---
 .stationtile:
-	pusha
+	pusha	
 	mov esi, ebx
 	call [gettileinfoshort]
 
@@ -85,14 +85,14 @@ autoslopechecklandscape:
 	mov dh, [stationtoroutetranslation+eax]
 	mov ecx, railgetol5
 	jmp .routecommon
-
+	
 .norailstation:
 	cmp dh, 0x42
-	jb near .exit
+	jb near .exit 
 	jne .noheliport
 	popa
 	jmp .noroutetiles
-
+	
 .noheliport:
 	cmp dh, 0x4A
 	ja .nobays
@@ -104,22 +104,22 @@ autoslopechecklandscape:
 .nobays:
 	cmp dh, 0x58
 	jb near .exit
-// busstops
+// busstops	
 	mov dh, 1010b
 	je .nototherdir
 	mov dh, 101b
 .nototherdir:
 	mov ecx, roadedgetol5
 	jmp .routecommon
-
-// ---
+	
+// --- 
 .railtile:
 	pusha
 	mov esi, ebx
 	call [gettileinfoshort]
 	xor ecx, ecx
 	mov ecx, railgetol5
-
+	
 	mov dl, dh
 	bt dx, 7					// depot
 	jnc .noraildepot
@@ -127,10 +127,10 @@ autoslopechecklandscape:
 	and eax, 3
 	mov dh, byte [roadconvertdepottobit+eax]
 	mov ecx, roadedgetol5
-
+	
 .noraildepot:
 	jmp .routecommon
-
+	
 .roadtile:
 	pusha
 	mov esi, ebx
@@ -140,30 +140,30 @@ autoslopechecklandscape:
 	mov dl, dh
 	bt dx, 4					// crossing
 	jc near .exit
-
+	
 	bt dx, 5					// depot
 	jnc .noroaddepot
 	movzx eax, dh
 	and eax, 3
 	mov dh, byte [roadconvertdepottobit+eax]
-
+	
 .noroaddepot:
 	mov ecx, roadedgetol5
 	// fall
-
+	
 .routecommon:
 
 	mov bl, byte [bTempRaiseLowerDirection]		// bTempRaiseLowerDirection
 	cmp bl, 1
 	je near .routeup
 
-.routedown:
+.routedown:	
 	// di = corner map
 	// dh = L5 (maybe faked)
 	// ecx = route test table
 	cmp di, 0
 	je near .oktochange
-
+	
 	and di, 0x1F
 	bt di, 4
 	jc near .exit				// steep slopes are to complicate
@@ -174,12 +174,12 @@ autoslopechecklandscape:
 	test al, ah
 	jz near .exit
 
-	mov ebx, 3
+	mov ebx, 3 
 	sub bl, byte [bTempRaiseLowerCorner]		// corner to change
 
 	bt di, bx					// already set bit
 	jnc near .exit
-
+	
 	mov dl, byte [ecx+ebx]
 	test dh, dl
 	jz .roaddown_noroute1
@@ -199,24 +199,24 @@ autoslopechecklandscape:
 	jnc near .exit
 .roaddown_noroute2:
 	jmp .oktochange
-
+	
 .routeup:
 	// di = corner map
 	// dh = L5
 	// ecx = route test table
 	cmp di, 0
 	je near .exit
-
+	
 	and di, 0x1F
 	bt di, 4
 	jc near .exit				// steep slopes are to complicate
 
-	mov ebx, 3
+	mov ebx, 3 
 	sub bl, byte [bTempRaiseLowerCorner]		// corner to change
-
+	
 	bt di, bx					// already set bit
 	jc near .exit
-
+	
 	mov dl, byte [ecx+ebx]
 	test dh, dl
 	jz .roadup_noroute1
@@ -238,14 +238,27 @@ autoslopechecklandscape:
 	jmp .oktochange
 
 .industrytile:
-	// ebx  = tile xy
-	// For Csaba:
-	// call a function to check if it's allowed to change this tile
-	// yes: .noroutetiles
-	// no:  jmp to near .exit with a pusha before
+
+	xor eax,eax
+	call getindustileid
+	jnc .noroutetiles
+
+	test byte [industilecallbackflags+eax],0x40
+	jz .noroutetiles
+
+	xchg esi,ebx
+	mov byte [grffeature],9
+	mov byte [curcallback],0x3C
+	call getnewsprite
+	mov byte [curcallback],0
+	xchg esi,ebx
+	jc .noroutetiles
+
+	test eax,eax
+	jnz .exit_nopop
 
 // normal tiles
-.noroutetiles:
+.noroutetiles:	
 	pusha
 	mov esi, ebx
 	call [gettileinfoshort]
@@ -259,19 +272,19 @@ autoslopechecklandscape:
 	and di, 0x1F
 	bt di, 4
 	jc .exit				// steep slopes are to complicate
-
-	mov bx, 3
+	
+	mov bx, 3 
 	sub bl, byte [bTempRaiseLowerCorner]		// corner to change
-
+	
 	mov ax, di
-	// Apart from the value 0, if only one bit is set in a variable x, it
-	// has no bits in common with (x-1). SO after trapping for a zero parameter,
-	// just use this test.
+	// Apart from the value 0, if only one bit is set in a variable x, it 
+	// has no bits in common with (x-1). SO after trapping for a zero parameter, 
+	// just use this test. 
 	mov ah, al   				// test if more than 1 bit is set
 	dec al
 	test al, ah
 	jz .exit
-
+	
 	bt di, bx
 	jc .oktochange
 
@@ -285,11 +298,12 @@ autoslopechecklandscape:
 
 	mov bx, 3
 	sub bl, byte [bTempRaiseLowerCorner]		// corner to change
-
+	
 	bt di, bx
 	jnc .oktochange
 .exit:
 	popa
+.exit_nopop:
 	// or eax, eax
 	// do old code
 	cmp	byte [autoslopechecklandscapezf], 0
@@ -325,15 +339,15 @@ ovar tempraiseloweraffectedtilearray, -4
 	ret
 
 // comp.lang.asm.x86  "One bit set? (Was: Bit Counting)"
-// Apart from the value 0, if only one bit is set in a variable x, it
-// has no bits in common with (x-1). SO after trapping for a zero parameter,
-// just use this test.
-//;; Return ZERO flag set if one and only one bit was set:
-//  mov  ah,al   ;copy into AH
-//  sub  al,1    ;dec AL, set CARRY and Clear ZERO if 0
-//  jc  AL_Was_Zero
-//  test al,ah   ; this sets the ZERO flag if only one bit was set
-// AL_Was_Zero:   ; Jumps here with ZERO cleared if AL == 0
-//  ret
+// Apart from the value 0, if only one bit is set in a variable x, it 
+// has no bits in common with (x-1). SO after trapping for a zero parameter, 
+// just use this test. 
+//;; Return ZERO flag set if one and only one bit was set: 
+//  mov  ah,al   ;copy into AH 
+//  sub  al,1    ;dec AL, set CARRY and Clear ZERO if 0 
+//  jc  AL_Was_Zero 
+//  test al,ah   ; this sets the ZERO flag if only one bit was set 
+// AL_Was_Zero:   ; Jumps here with ZERO cleared if AL == 0 
+//  ret 
 //
 //
