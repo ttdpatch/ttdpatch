@@ -42,7 +42,7 @@ extern skipTrailersInDepotWindow, skipTrailersInRVList
 extern dontAddScheduleForTrailers
 extern sellRVTrailers, sellRVTrailers.origfn, delveharrayentry
 extern updateTrailerPosAfterRVProc, updateTrailerPosAfterRVProc.origfn
-;extern turnTrailersAroundToo
+extern rvdailyprocoverride, oldrvdailyproc
 
 extern	RedrawRoadVehicle
 extern	SetRoadVehObjectOffsets
@@ -238,10 +238,17 @@ patcharticulatedvehicles:
 	mov eax,[ophandler+0x11*8]		// class 11: road vehicles
 	mov eax,[eax+0x10]			// 	action handler
 	mov esi,[eax+9]			// 	action handler table
-
 	mov eax,addr(newbuyroadvehicle)
 	xchg eax,[esi]
-	mov [oldbuyroadvehicle],eax
+	mov dword [oldbuyroadvehicle],eax
+
+	mov eax,[ophandler+0x11*8]		// class 11: road vehicles
+	mov esi, eax
+	add esi, 0x1C
+	mov eax,[eax+0x1C]			// 	action handler
+	mov eax,addr(rvdailyprocoverride)
+	xchg eax,[esi]
+	mov dword [oldrvdailyproc],eax
 
 	patchcode oldSetMovementStat, newSetMovementStat, 1, 1
 	patchcode oldSetMovementStat2, newSetMovementStat2, 1, 1
