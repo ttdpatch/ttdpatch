@@ -148,13 +148,15 @@ Class5VehEnterLeaveBusStop:
 	call isrvbus
 	xchg esi,edi
 	// cmp byte [edi+veh.cargotype], 0
-	// jne .done
+	jne .truck
 
 	cmp al, 0x53
 	je .busstop
-	cmp al, 0x57
-	je .busstop
 	cmp al, 0x54
+	je .busstop
+	jmp .done
+.truck:
+	cmp al, 0x57
 	je .busstop
 	cmp al, 0x58
 	je .busstop
@@ -162,7 +164,6 @@ Class5VehEnterLeaveBusStop:
 	ret
 
 .busstop:
-
 	mov dx, [edi+veh.currorder]
 	mov ax, dx
 
@@ -315,14 +316,21 @@ global RVMakeStationBusywhenleaving
 RVMakeStationBusywhenleaving:
 	movzx eax,word [esi+veh.XY]
 	mov byte al, [landscape5(ax,1)]
+	pushad
+	call isrvbus
+	popad
+	jne .truck
 	cmp al, 0x53
-	je .busstop
-	cmp al, 0x57
 	je .busstop
 	cmp al, 0x54
 	je .busstop
+	jmp .done
+.truck:
+	cmp al, 0x57
+	je .busstop
 	cmp al, 0x58
 	je .busstop
+.done:
 	or byte [ebx+ebp], 0x80
 .busstop:
 	mov ax, [esi+veh.currorder]
