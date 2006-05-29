@@ -917,3 +917,6 @@ var gpfdebugend
 global __ttdpatchvercode
 __ttdpatchvercode equ (TTDPATCHVERSIONMAJOR<<24)+(TTDPATCHVERSIONMINOR<<20)+(TTDPATCHVERSIONREVISION<<16)+TTDPATCHVERSIONBUILD
 var ttdpatchvercode, dd __ttdpatchvercode
+
+global __ttdpatchrevision
+__ttdpatchrevision equ TTDPATCHVERSIONSVNREV

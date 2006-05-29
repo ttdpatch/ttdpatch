@@ -695,7 +695,7 @@ u32 writelanguages(FILE *dat)
   for (i=0; i<LANGCODELEN; i++)	// it's XOR'd in the EXE file
 	langcode[i] ^= 32;
 
-  versid = littleendian(TTDPATCHVERSIONNUM, 4);
+  versid = littleendian(TTDPATCHVERSIONNUM & 0xffffffff, 4);
   fwrite(langcode, sizeof(char), LANGCODELEN, dat);
   fwrite(&versid, sizeof(versid), 1, dat);
   vfwrite(i, dat);	// offset to in-game strings; written later.
