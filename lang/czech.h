@@ -46,14 +46,13 @@ SETTEXT(LANG_KNOWNVERSION, "Verze programu je spr vn \n")
 // Warning if the version isn't recognized.  Be sure *not* to use tabs
 // in the text.  All but the last lines should end in ...\n"
 SETTEXT(LANG_WRONGVERSION, "\n"
-	"POZOR!   Nezn m  verze programu. M…§eme se pokusit\n"
+	"POZOR!   Nezn m  verze programu. M…§ete se pokusit\n"
 	"         jej i pýesto spustit a zjistit potýebn‚ informace, pokud\n"
 	"         se to nepovede, TTD nahl s¡ chybu ochrany a bude ukonŸen.\n"
 	"\n"
 	"         V z vislosti na schopnostech operaŸn¡ho syst‚mu nakl dat s GPF, se m…§e\n"
-/***/	"         poŸ¡taŸ zablokovat a vy pýij¡t o data. 	Please read\n"
-/***/	"         the \"Version Trouble\" section in the TTDPatch manual for more\n"
-/***/	"         information.\n"
+	"         poŸ¡taŸ zablokovat a vy pýij¡t o data. Pro v¡ce informac¡ si pýeŸtØte Ÿ st\n"
+	"        \"Version Trouble\" v TTDPatch manualu.\n"
 	"\n"
 	"OdpovØzte 'a' jen pokud opravdu v¡te, co dØl te. BYL JSTE VAROVµN!\n"
 	"Chcete i pýesto TTD spustit? ")
@@ -79,11 +78,11 @@ SETTEXT(LANG_WARNVERSION, "POZOR: Nezn m  verze!\n")
 // TTDLOAD.OVL doesn't exist
 SETTEXT(LANG_OVLNOTFOUND, " nenalezen, hled m origin ln¡ soubory:\n")
 
-// (DOS) neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
+// neither do the original files (two %s are two filenames)
 SETTEXT(LANG_NOFILESFOUND, "Nemohu nal‚zt ani %s ani %s.\n")
 
-// (Windows) neither does GameGFX.exe.  %s is GameGFX.EXE
-SETTEXT(LANG_NOFILEFOUND, "Nemohu nal‚zt %s.\n")
+// default Windows language executable (american/english/french/german/spanish).exe
+SETTEXT(LANG_WINDEFLANGEXE, "AMERICAN.EXE");
 
 // Shown when copying tycoon.exe or ttdx.exe (first %s) to ttdload.ovl (2nd %s)
 SETTEXT(LANG_SHOWCOPYING, "Kop¡ruji %s do %s")
@@ -175,7 +174,7 @@ SETTEXT(LANG_COMMANDLINEHELP, "Uprav¡ TTD a spust¡ patchovac¡ program %s\n"
 // If you need more chars just insert another line.
 TEXTARRAY(halflines,) =
 	{ "-a: Vçechny volby kromØ -x",
-	  "-d: V§dy uk §e cel‚ datum",
+	  "-d: V§dy uk zat cel‚ datum",
 	  "-f: Refitov n¡ vlak…",
 	  "-g: Oprava glob ln¡ch chyb",
 	  "-k: Mal‚ letiçtØ v§dy",
@@ -183,17 +182,19 @@ TEXTARRAY(halflines,) =
 	  "-n: Novì non-stop",
 	  "-q: Vylepçen‚ nakl d n¡/vykl d n¡",
 	  "-s: Povolen¡ cheat…",
-	  "-v: Zobrazit aktivn¡ volby",
-	  "-w: Super-semafory automaticky",
+	  "-u: Zlepçen¡ multiplayeru",
+	  "-v: Zobrazen¡ aktivn¡ volby",
+	  "-w: Presign ly automaticky",
 	  "-y: PýeskoŸit hl çen¡ nezn m‚ verze",
 	  "-z: Dlouh‚ vlaky (126 voz…)",
 
 	  "-B: Dlouh‚ mosty",
 	  "-D: Super-dynamit",
-	  "-E: Pýesunuto Ÿerven‚ hl çen¡",
+	  "-E: Pýesunout Ÿerven‚ hl çen¡",
 	  "-F: Full load alespoå jednoho typu",
 	  "-G: VìbØr n kladu ve stanici",
-	  "-I: Vypnuta inflace",
+	  "-H: Upravit pýedmost¡",
+	  "-I: Vypnout inflaci",
 	  "-J: V¡ce letiçœ ve mØstØ",
 	  "-L: P…jŸit/splatit max. s 'Ctrl'",
 	  "-N: Rozç¡ýen‚ News",
@@ -202,41 +203,57 @@ TEXTARRAY(halflines,) =
 	  "-R: Auta Ÿekaj¡c¡ ve frontØ",
 	  "-S: Nov‚ modely lod¡",
 	  "-T: Nov‚ modely vlak…",
-	  "-Z: Verze s malou pamØt¡ (3.5MB)",
 
-	  "-2: NØkter‚ opravy pro Windows 2000",
+	  "-2: Kompatibilita pro Windows 2000/XP",
 
 	  "-Xb: éplatky v menu Local Autority",
-	  "-Xd: Pýid n¡ dep do pý¡kazu GOTO",
+	  "-Xd: Pýid n¡ depa do pý¡kazu GOTO",
 	  "-Xe: NekoneŸn  hra po roce 2070",
-	  "-Xf: Zefektivn¡ pomocn  vozidla",
+	  "-Xf: Zefektivn¡ kooperuj¡c¡ vozidla",
 	  "-Xg: Postupn‚ nakl d n¡/vykl d n¡",
+	  "-Xh: Nov‚ domy ve mØstØ",
 	  "-Xi: Zabr n¡ krachov n¡ pr…myslu",
+	  "-Xl: Stavba pr…plav… a zdymadel",
 	  "-Xm: Volba Load v menu",
 	  "-Xo: Cheaty za pen¡ze",
+	  "-Xp: Novì zp…sob vìpoŸtu vìkonnosti",
 	  "-Xr: V§dy vytvoýit TTDLOAD.OVL",
 	  "-Xs: Zobrazen¡ rychlosti",
-	  "-Xw: Nastaven¡ super-semafor…",
+	  "-Xw: Nastaven¡ presign l…",
 	  "-Xx: Ukl d  a nahr v  dalç¡ data",
 
 	  "-XA: Nucen  obnova vozidel s -Xa",
+	  "-XB: Umo§nit stavbu pýi zapauzovan‚ hýe",
 	  "-XE: Electrifikovan‚ tratØ",
-	  "-XF: Nastav¡ experimentaln¡ volby",
+	  "-XF: Nastavit experimentaln¡ volby",
 	  "-XG: V§dy nahraje novou grafiku",
+	  "-XH: Ulo§it a zobrazit historii zpr v",
+	  "-XI: Umo§nit path based signalling (PBS)",
+	  "-XL: Zobrazit zisk v pýehledu vozidel",
+	  "-XO: Umo§nit kop¡rov n¡ j¡zdn¡ch ý d…",
 	  "-XP: Nov‚ modely letadel",
 	  "-XR: Nov‚ modely aut",
 	  "-XS: Ovl d n¡ PC soupeýe",
+	  "-XZ: Verze s malou pamØt¡ (3.5MB)",
 
 	  "-Ya: Ratingy tolerant. ke vØku vozidel",
-	  "-Yb: StavØn¡ v¡ce vØc¡ na svahu",
+	  "-Yb: StavØn¡ na svahu",
 	  "-Yc: R…zn‚ ceny za r…zn‚ typy trat¡",
-	  "-Ym: Umo§n¡ manu ln¡ zmØnu trat¡",
+	  "-Yd: Nov‚ mosty",
+	  "-Yg: Mo§nost zmØnit rychlost hry",
+	  "-Yh: Umo§nit vyçç¡ mosty",
+	  "-Ym: Umo§nit manu ln¡ zmØnu trat¡",
+	  "-Yn: Umo§nit novou grafiku stanic",
 	  "-Ys: Semafor na stranØ, kde jezd¡ auta",
-	  "-Yt: Uk §e v¡ce vØc¡ v oknØ mØst",
+	  "-Yt: Uk §at v¡ce info v oknØ mØst",
 	  "-Yw: Rychlì prodej vagon…",
 
-	  "-YC: StavØn¡ na býehu",
+	  "-YC: StavØn¡ na pobýe§¡",
+	  "-YD: Rozç¡ýen‚ nasataven¡ obt¡§nosti",
+	  "-YF: FIFO nakl d n¡ (kdo dý¡v pýijede, ten dý¡v nakl d )",
 	  "-YH: V¡ce/nov‚ hotkeys",
+	  "-YL: Omezit rychlost §elezniŸn¡ch vagon…",
+	  "-YN: Umo§nit nov‚ sch‚ma pojmenov n¡ mØst",
 	  "-YP: Letadla se skuteŸnou rychlost¡",
 	  "-YS: Star‚ semafory pýed rokem 1975",
 
@@ -247,33 +264,46 @@ SETARRAY(halflines);
 // Text describing the switches with values.  The lines have to be shorter
 // than 79 chars, excluding the "\n".  Start new lines if necessary.
 SETTEXT(LANG_FULLSWITCHES, "\n"
-	  "-e #:    Umo§n¡ rozlehlejç¡ zast vky\n"
+	  "-e #:    Umo§nit rozlehlejç¡ zast vky\n"
 	  "-i #:    Nastaven¡ servisn¡ho intervalu ve dnech\n"
-	  "-x #:    Rozç¡ý¡ vehicle array na 850*#. Dalç¡ informace v manu lu!\n"
-	  "-mc #:   Zvìç¡ rychlost vlak… v kopc¡ch a zat Ÿk ch\n"
-	  "-trpb #: Zvìç¡ poŸet vlak…, aut, letadel a lod¡\n"
-	  "-A #:    Zvìç¡ inteligenci soupeý…. Pou§¡vejte pouze mal‚ hodnoty.\n"
-	  "-M #:    Umo§n¡ v¡cemaçinovìm vlak…m nastavit zvìçen¡ rychlosti v %%.\n"
+	  "-x #:    Rozç¡ýit vehicle array na 850*#. Dalç¡ informace v manu lu!\n"
+	  "-mc #:   Zvìçit rychlost vlak… v kopc¡ch a zat Ÿk ch\n"
+	  "-trpb #: Zvìçit poŸet vlak…, aut, letadel a lod¡\n"
+	  "-M #:    Umo§nit v¡cemaçinovìm vlak…m nastavit zvìçen¡ rychlosti v %%.\n"
+	  "-U #:    Pro stavbu tratØ umo§nit pou§¡t stejn‚ grafick‚ rozhran¡,\n"
+	  "jako m  Locomotion. Hodnota 1 zapne nov‚ GUI bez Ctrl.\n"
 	  "-Xa #:   Automatick  obnova vozidel # mØs¡ce pýed ukonŸen¡m jejich §ivotnosti\n"
 	  "-Xc #:   Sn¡§¡ pravdØpodobnost hav rie letadla\n"
 	  "-Yr #:   ZmØn¡ auto-vlakov‚ kolize na danì typ (1/2)\n"
 	  "-Xt #:   Nastav¡ maxim ln¡ velikost mØst\n"
+	  "-Xv #:   Uspoý d  seznam vozidel a nastav¡ interval mezi jeho aktualizacemi\n"
+	  "-Xz #:   Vz jemnØ pýichyt v  okna\n"
 	  "-XC #:   Umo§n¡ v¡ce mØn a nastav¡ jejich volby\n"
 	  "-XD #:   Vybere, kter‚ katastrofy se mohou pýihodit\n"
+	  "-XN #:   Po zadan‚m roce jsou noviny v TTD barevn‚\n"
 	  "-XM #:   Umo§n¡ kombinovat monorail a maglev\n"
 	  "-XT #:   Nastav¡ kolik mØst bude r…st rychleji a v¡ce\n"
 	  "-XX #:   Rychlost na mostech u monorail a maglev v procentech z max.rychlosti\n"
 	  "-XY #:   Nastav¡ startovn¡ rok pro novou hru\n"
+	  "-XW #:   Rozt hne okno TTD na tento rozmØr v pixelech (pouze Windows verze)\n"
 	  "-X1 #, -X2 #: Max. Ÿas Ÿek n¡ vlaku pýed jednosmØrnìmi resp. obousmØrnìmi semafory\n"
+	  "-Yf #:   \"ZvØtç¡\" n kladn¡ vlaky danìm koeficientem\n"
+	  "-Yl #:   Pýid  podporu koleŸka myçi a nastav¡ mo§nosti (pouze Windows verze)\n"
 	  "-Yo #:   Ovl d n¡ dalç¡ch voleb (viz. dokumentace)\n"
 	  "-Yp #:   Umo§n¡ s zen¡ v¡ce strom… najednou\n"
+	  "-YA #:   Nepou§¡van‚ silnice ztrat¡ sv‚ho vlastn¡ka, re§im z vis¡ na parametru\n"
 	  "-YB #:   V¡ce stavØc¡ch voleb, ovl d n¡ s parametrem\n"
 	  "-YE #:   Nastav¡ Ÿas v sec. jak dlouho bude zobrazeno Ÿerven‚ hl çen¡\n"
+	  "-YM #:   Zobraz¡ v¡ce (nebo m‚nØ) oblak… p ry, hodnota nastavuje mno§stv¡\n"
 	  "-YG #:   Rozç¡ý¡ u§ivatelskì interface, vìbØr volby s parametrem\n"
+	  "-YO #:   Povol¡ hranici snØhu v m¡rn‚m podneb¡ a nastav¡ jej¡ vìçku\n"
+	  "-YR #:   Nastav¡ frekvenci obnovy mapy po # kroc¡ch\n"
 	  "-YT #:   Nastav¡ algoritmus r…stu mØst\n"
+	  "-YW #:   Nastav¡ maxim ln¡ poŸet otevýenìch oken\n"
 	  "\n"
 	  "-C cfg-file:  Spust¡ TTDPatch s t¡mto cfg souborem m¡sto ttdpatch.cfg\n"
 	  "-W cfg-file:  Vytvoý¡ cfg soubor se souŸasnou konfigurac¡\n"
+	  "-Xn cfgfile:  Pou§ije tento soubor jako konfiguraci pro novou grafiku\n"
 	  "\n"
 	  "Pozor na psan¡ velkìch a malìch p¡smen!\n"
 	  "\n"
@@ -295,6 +325,9 @@ SETTEXT(LANG_UNKNOWNSTATE, "Pozor: Nezn mì parametr %s, nastaveno na off.\n")
 
 // switch is unknown.  %c is '-' or '/' etc, %s is the switch char
 SETTEXT(LANG_UNKNOWNSWITCH, "Nezn mì parametr '%c%s'. Pou§ijte -h pro pomoc.\n")
+
+// switch bit name is unknown.  First %s is bit name, 2nd is switch name
+SETTEXT(LANG_UNKNOWNSWITCHBIT, "Nezn m  hodnota '%s' volby '%s'.\n")
 
 // cfg command %s is unknown
 SETTEXT(LANG_UNKNOWNCFGLINE, "Pozor: Chybnì pý¡kaz v cfg souboru '%s'.\n")
@@ -327,7 +360,7 @@ SWITCHTEXT(noinflation, "Vypnut  inflace", "")
 SWITCHTEXT(maxloanwithctrl, "P…jŸit/splatit max. s 'Ctrl'", "")
 SWITCHTEXT(persistentengines, "Aktivace starìch vozidel", "")
 SWITCHTEXT(fullloadany, "Full load alespoå jednoho typu", "")
-SWITCHTEXT(selectstationgoods, "VìbØr n kladu ve stanici", "")
+SWITCHTEXT(selectstationgoods, "VìbØr n kladu ve stanici", " pro %d dn…")
 SWITCHTEXT(morethingsremovable, "V¡ce vØc¡ lze obnovit", "")
 SWITCHTEXT(multihead, "V¡cemaçinov‚ vlaky", "rychlost: %d%%")
 SWITCHTEXT(newlineup, "Auta Ÿekaj¡c¡ ve frontØ", "")
@@ -339,7 +372,7 @@ SWITCHTEXT(noplanecrashes, "Hav rie letadel", " k¢d %d")
 SWITCHTEXT(showspeed, "Zobrazen  rychlost vozidel", "")
 SWITCHTEXT(autorenew, "Auto-obnova vozidel", " od %d mØs¡c…")
 SWITCHTEXT(cheatscost, "Cheaty za pen¡ze", "")
-SWITCHTEXT(extpresignals, "Nastaven¡ super-semafor…", "")
+SWITCHTEXT(extpresignals, "Nastaven¡ presign l…", "")
 SWITCHTEXT(diskmenu, "Volba Load v menu", "")
 SWITCHTEXT(win2k, "NØkter‚ opravy pro Windows 2000/XP", "")
 SWITCHTEXT(feederservice, "Pomocn  vozidla maj¡ zisk", "")
@@ -366,7 +399,7 @@ SWITCHTEXT(newstartyear, "Startovn¡ rok", ": %d")
 SWITCHTEXT(newerrorpopuptime, "Trv n¡ Ÿerven‚ho hl çen¡", ": %d s")
 SWITCHTEXT(newtowngrowthfactor, "Faktor r…stu mØst", " k¢d %d")
 SWITCHTEXT(largertowns, "VØtç¡ mØsta", ", ka§d‚ 1 z %d")
-SWITCHTEXT(miscmods, "Mnohostrann‚ m¢dy", " k¢d %d")
+SWITCHTEXT(miscmods, "Mnohostrann‚ m¢dy", " k¢d %ld")
 SWITCHTEXT(loadallgraphics, "Nahr n¡ ka§d‚ho souboru nov‚ grafiky", "")
 SWITCHTEXT(saveoptdata, "Ulo§en¡ a nahr t¡ rozç¡ýenìch dat", "")
 SWITCHTEXT(morebuildoptions, "Rozç¡ýen‚ stavØn¡", " k¢d %d")
@@ -377,16 +410,208 @@ SWITCHTEXT(morecurrencies, "V¡ce mØn", ", k¢d %d")
 SWITCHTEXT(manualconvert, "Manu ln¡ zmØna trat¡", "")
 SWITCHTEXT(newtowngrowthrate, "Algoritmus r…stu mØst", " k¢d %d")
 SWITCHTEXT(displmoretownstats, "V¡ce statistik v oknØ mØst", "")
-SWITCHTEXT(enhancegui, "Rozç¡ýenì hern¡ interface", " k¢d %d")
+SWITCHTEXT(enhancegui, "Rozç¡ýenì hern¡ interface", "")
 SWITCHTEXT(newagerating, "Rating tolerantnØjç¡ ke vØku vozidel", "")
 SWITCHTEXT(buildonslopes, "StavØn¡ na svahu", "")
 SWITCHTEXT(buildoncoasts, "StavØn¡ na pobýe§¡ bez dynamitu", "")
-SWITCHTEXT(experimentalfeatures, "Posledn¡ experiment ln¡ mo§nosti", ": %d")
+SWITCHTEXT(experimentalfeatures, "Posledn¡ experiment ln¡ mo§nosti", ": %u")
 SWITCHTEXT(tracktypecostdiff, "R…zn‚ ceny za r…zn‚ typy trat¡", "")
-SWITCHTEXT(planespeed, "Re ln  rychlost letadel", "")
+SWITCHTEXT(planespeed, "Re ln  rychlost letadel", ": %d/4")
 SWITCHTEXT(fastwagonsell, "Rychlejç¡ prodej vagon…", "")
 SWITCHTEXT(newrvcrash, "Auto-vlakov‚ kolize"," k¢d %d")
 SWITCHTEXT(stableindustry, "Pr…mysl nekrachuje pýi stabl. ekonom","")
+SWITCHTEXT(newperformance, "Nov‚ hodnocen¡ vìkonnosti", "")
+SWITCHTEXT(sortvehlist, "Tý¡dit seznam vozidel", ", aktualizace po: %d")
+SWITCHTEXT(showprofitinlist, "Zobrazuje zisk v seznamu vozidel", "")
+SWITCHTEXT(newspapercolour, "Noviny jsou barevn‚", " po roce %d")
+SWITCHTEXT(sharedorders, "Umo§nit kop¡rov n¡ j¡zdn¡ch ý d…", "")
+SWITCHTEXT(moresteam, "Zobrazit v¡ce oblak… p ry", ": %x")
+SWITCHTEXT(abandonedroads, "Nepou§¡van‚ silnice ztrat¡ sv‚ho vlastn¡ka", ", re§im %d")
+SWITCHTEXT(newstations, "Umo§nit novou grafiku stanic", "")
+SWITCHTEXT(buildwhilepaused, "Umo§nit stavØt pýi zapauzovan‚ hýe", "")
+SWITCHTEXT(losttrains, "Varov n¡ o ztracen‚m vlaku", " po %d dnech")
+SWITCHTEXT(lostrvs, "Varov n¡ o ztracen‚m automobilu", " po %d dnech")
+SWITCHTEXT(lostships, "Varov n¡ o ztracen‚ lodi", " po %d dnech")
+SWITCHTEXT(lostaircraft, "Varov n¡ o ztracen‚m letadle", " po %d dnech")
+SWITCHTEXT(maprefresh, "Obnovov n¡ mapy po", ": %d kroc¡ch")
+SWITCHTEXT(disconnectontimeout, "Opdojit hru po s¡ti, pokud nen¡ odezva", " po %d sec.")
+SWITCHTEXT(moretoylandfeatures, "Umo§nit n hodn‚ procesy v toylandu", ": %d")
+SWITCHTEXT(stretchwindow, "Rozt hnout okno TTD", " na %d pixel…")
+SWITCHTEXT(canals, "StavØt pr…plavy s zdymadla", "")
+SWITCHTEXT(higherbridges, "Umo§nit vyçç¡ mosty", "")
+SWITCHTEXT(gamespeed, "Mo§nost zmØnit rychlost hry", ", vìchoz¡ hodnota %d")
+SWITCHTEXT(freighttrains, "\"ZvØtç¡\" n kladn¡ vlaky danìm koeficientem", " (x%d)")
+SWITCHTEXT(mousewheel, "Pýid  podporu koleŸka myçi",", nastaven¡: %d")
+SWITCHTEXT(morewindows, "Zvìç¡ maxim ln¡ poŸet otevýenìch oken", " na %d")
+SWITCHTEXT(enhanceddiffsettings, "Rozç¡ýen‚ nasataven¡ obt¡§nosti", "")
+SWITCHTEXT(newbridges, "Nov‚ mosty", "")
+SWITCHTEXT(newhouses, "Nov‚ domy ve mØstech", "")
+SWITCHTEXT(newtownnames,"Novì styl pojmenov n¡ mØst","")
+SWITCHTEXT(moreanimation,"Povolit v¡ce animovanìch pol¡Ÿek",", a§ do %d")
+SWITCHTEXT(newshistory, "Historie zpr v", "")
+SWITCHTEXT(wagonspeedlimits, "Omezen¡ rychlosti pro vag¢ny", "")
+SWITCHTEXT(pathbasedsignalling, "Povolit PBS (path based signalling)", "")
+SWITCHTEXT(aichoosechances, "UrŸuje jakou pou§¡t pravdØpodobnost, kdy§ se AI rozhoduje co bude stavØt", "")
+SWITCHTEXT(custombridgeheads, "Upraven  pýedmost¡", "")
+SWITCHTEXT(townbuildnoroads, "MØsta nestav¡ silnice", "")
+SWITCHTEXT(newcargodistribution, "Zlepçen‚ rozdØlov n¡ n kladu", "")
+SWITCHTEXT(windowsnap, "Okna se pýichyt¡", " kdy§ jsou bl¡§e ne§ %d pixel…")
+SWITCHTEXT(resolutionwidth, "Rozliçen¡ - ç¡ýka", " %d pixel…")
+SWITCHTEXT(resolutionheight, "Rozliçen¡ - vìçka", " %d pixel…")
+SWITCHTEXT(newindustries, "Novì pr…mysl", "")
+SWITCHTEXT(locomotiongui, "Povolit GUI jako v Locomotion", "")
+SWITCHTEXT(fifoloading, "Povolit FIFO nakl d n¡ (kdo dý¡v pýijede, ten dý¡v nakl d )", "");
+SWITCHTEXT(tempsnowline, "Povolit hranici snØhu v m¡rn‚m podneb¡", "")
+SWITCHTEXT(townroadbranchprob, "ZmØnit pravdØpodobnost vytvoýen¡ silniŸn¡ odboŸky mØstem", " na %d")
+SWITCHTEXT(newcargos, "Povolit nov‚ druhy n kladu", "")
+SWITCHTEXT(enhancemultiplayer, "Zlepçenì multiplayer (povolit v¡ce hr Ÿ…)", "")
+SWITCHTEXT(newsounds, "Povolit pýid n¡ novìch zvuk… do hry", "")
+SWITCHTEXT(morestats, "Umo§nit z¡sk v n¡ v¡ce statistik", "")
+SWITCHTEXT(onewayroads, "Povolit zmØnu silnic na jednosmØrky s 'Ctrl'", "")
+SWITCHTEXT(irrstations, "Umo§nit stavbu nepravidelnìch n dra§¡", "")
+SWITCHTEXT(autoreplace, "VymØnit vozidla za novì model, kdy§ zest rnou", "; %d%% min. spolehlivost pro nov‚ho modelu")
+SWITCHTEXT(autoslope, "Umo§nit zmØnu ter‚nu bez odstranØn¡ staveb", "")
+SWITCHTEXT(followvehicle, "N sledovat vozidlo pohledem v hlavn¡m oknØ", "")
+SWITCHTEXT(trams, "Povolit tramvaje na silnic¡ch", "")
+SWITCHTEXT(enhancetunnels, "Povolit stavbu kolej¡ nad vjezdem do tunelu", "")
+SWITCHTEXT(forcegameoptions, "Povolit zmØnu nastaven¡ hry","")
+
+//---------------------------------------
+//  BIT SWITCH DESCRIPTIONS
+//---------------------------------------
+
+// Description for noplanecrashes bits
+BITSWITCH(noplanecrashes)
+BIT(normdis,      "norm ln¡ letadlo nehavaruje pokud jsou vypnuty katastrofy")
+BIT(jetsdis,      "proudov  letadla na malìch letiçt¡ch nehavaruj¡ pokud jsou vypnuty katastrofy")
+BIT(normbrdown,   "norm ln¡ letadlo se pýi hav rii pouze porouch , pomØr * 4")
+BIT(jetssamerate, "stejnì pomØr pro proudov  letadla na malìch letiçt¡ch a norm ln¡ hav rie")
+BIT(normoff,      "norm ln¡ letadla nehavaruj¡")
+BIT(jetsoff,      "proudov  letadla na malìch letiçt¡ch nehavaruj¡")
+
+// Description for miscmods bits
+BITSWITCH(miscmods)
+BIT(nobuildonbanks,        "mØsta nestav¡ na býehu")
+BIT(servintonlyhuman,      "nastaven¡ servisn¡ho intervalu se nevztahuje na AI")
+BIT(noroadtakeover,        "mØsta nezaberou vçechny cesty v editoru sc‚n ý…")
+BIT(gradualloadbywagon,    "posstupn‚ nakl d n¡ nakl d  pýednostnØ po jednotlivìch vagonech")
+BIT(dontfixlitres,         "nemØå litry tak, §e 1 tuna je 1000 l, nam¡sto 100 l")
+BIT(dontfixtropicbanks,    "neopravuj typy pobýe§¡ v sub-tropick‚m klimatu")
+BIT(dontfixhousesprites,   "neopravuj kancel ýe, kter‚ se zobrazuj¡ jako kostely")
+BIT(oldtownterrmodlimit,   "nemØå horn¡ cenu £pravy ter‚nu pro mØsta")
+BIT(nozeppelinonlargeap,   "zabraå vzducholod¡m havarovat na velkìch letiçt¡ch")
+BIT(nodefaultoldtracktype, "nepou§¡vej pýedeçlì druh kolej¡ jako novì default")
+BIT(usevehnnumbernotname,  "nemØå pou§it¡ jmen vozidel v novinovìch zpr v ch")
+BIT(norescalecompanygraph, "nemØå mØý¡tko grafu spoleŸnost¡ kdy§ jsou spoleŸnosti odebr ny z vìbØru")
+BIT(noyearlyfinances,      "nezobrazuj roŸn¡ finanŸn¡ vìkaz 1. ledna")
+BIT(notimegiveaway,        "nezkouçej vyhazovat Ÿasov‚ £seky kv…li £spoýe energie")
+BIT(nodesynchwarning,      "nevaruj pýi desynchronizaci multiplayerov‚ hry")
+BIT(noworldedgeflooding,   "nenech vej okraje mapy zatopen‚")
+BIT(doshowintro,           "uka§ £vod do hry (nepýeskakuj ho)")
+BIT(nonewspritesorter,     "nepou§¡vej novì algoritmus vyb¡r n¡ sprit…")
+BIT(nodiagonalflooding,    "znemo§ni …hlopý¡Ÿn‚ zaplaven¡ a rohov  pobýe§¡")
+BIT(noenhancedcomp,        "nezlepçuj algoritmus komprese ulo§enìch her")
+BIT(breakdownatsignal,     "neopravuj poruchu vlaku pýi Ÿek n¡ na sign lu st…j")
+BIT(smallspritelimit,      "nezvyçuj limit poŸtu sprit…")
+BIT(displaytownsize,       "zobrazuj velikost mØsta v n zvu")
+BIT(noextendstationrange,  "nezvyçuj nejvØtç¡ dovolenou vzd lenost mezi znaŸkou stanice a pr…myslem pro pýev §en‚ zbo§¡")
+BIT(nooldvehiclenews,      "nevytv ýej nov‚ zpr vy kdy§ je vozidlo zastaral‚")
+BIT(dontfixpaymentgraph,   "neopravuj osu X v oknØ grafu ceny za pýepravenì n klad")
+BIT(loaduntilgreen,        "pokraŸuj v nakl d n¡ ve stanici dokud nen¡ odjezdov‚ n vØstidlo na volno")
+BIT(dontshowaltitude,      "nezobrazuj vìçku v oknØ informac¡ o pol¡Ÿku")
+BIT(nogrfidsinscreenshots, "nezobrazuj aktivn¡ GrfIDy ve screenshotech")
+BIT(dontchangesnow,        "nemØå zp…sob vìpoŸtu vìçky pro zasnØ§en¡")
+
+// Description for morebuildoptions bits
+BITSWITCH(morebuildoptions)
+BIT(ctunnel,         "povol ký¡§en¡ tunel…")
+BIT(oilrefinery,     "povol rafin‚rii vçude")
+BIT(moreindustries,  "povol v¡ce ne§ jeden pr…mysl ka§d‚ho druhu")
+BIT(removeobjects,   "povol odstranØn¡ soch, maj k… a vys¡laŸ…")
+BIT(removeindustry,  "povol odstranØn¡ pr…myslu")
+BIT(closeindustries, "povol stejn‚mu pr…myslu bìt bl¡zko vedle sebe")
+BIT(enhancedbuoys,   "povol b¢j¡m, aby fungovaly jako norm ln¡ stanice")
+BIT(bulldozesignals, "automaticky odstraåuj n vØstidla na trati")
+
+// Description for experimentalfeatures bits
+BITSWITCH(experimentalfeatures)
+BIT(slowcrossing, "vlaky pýed pýejezdem zpomal¡")
+BIT(cooperative,  "spolupr ce (kooperativn¡ hra), velmi omezen ")
+BIT(mandatorygrm, "GRF Resource Management je povinnì pro soubory .grf")
+
+// Description for maskdisasters bits
+BITSWITCH(maskdisasters)
+BIT(zeppelincrash,      "Povol hav rii vzducholodi")
+BIT(smallufo,           "Povol mal‚ UFO")
+BIT(refineryexplosion,  "Povol vìbuch rafin‚rie")
+BIT(factoryexplosion,   "Povol vìbuch tov rny")
+BIT(largeufo,           "Povol velk‚ UFO")
+BIT(smallsubmarine,     "Povol malou ponorku")
+BIT(largesubmarine,     "Povol velkou ponorku")
+BIT(coalminesubsidence, "Povol pokles poddolovan‚ho ter‚nu")
+
+// Description for mousewheel bits
+BITSWITCH(mousewheel)
+BIT(cursorzoom, "Zoom se stýedem v m¡stØ kursoru nam¡sto stýedu obrazovky")
+BIT(safezoom,   "Zoom pouze po zarolov n¡ koleŸkem o dva \"zoubky\"")
+BIT(legacy,     "Umo§nit podporu pro starç¡ operaŸn¡ syst‚my a ovladaŸe (norm lnØ nepotýebn‚)")
+
+// Description for plantmanytrees bits
+BITSWITCH(plantmanytrees)
+BIT(morethanonepersquare,   "Povol zasazen¡ v¡ce ne§ jednoho stromu na pol¡Ÿko")
+BIT(rectangular,            "Umo§ni zasadit obd‚ln¡kovou oblast se stiknutìm 'Ctrl'")
+BIT(morethanonerectangular, "V¡ce ne§ jeden strom na pol¡Ÿko pýi obd‚ln¡kov‚m s zen¡")
+
+// Description for moretoylandfeatures bits
+BITSWITCH(moretoylandfeatures)
+BIT(lighthouses, "Povolit maj ky na pobýe§¡ v Toylandu")
+BIT(woodlands,   "Povolit lesy (shluky strom…) v Toylandu")
+
+// Description for locomotiongui bits
+BITSWITCH(locomotiongui)
+BIT(usenewgui,      "Umo§nit nov‚ GUI")
+BIT(defaultnewgui,  "StandardnØ pou§ij nov‚ GUI (pokud je toto zak z no, nov‚ GUI m…§e bìt vyvol no s 'Ctrl'; pokud je povoleno, s 'Ctrl' bude pou§ito star‚ GUI)")
+BIT(defaultstation, "TlaŸ¡tko stavby stanice otevýe Locomotion GUI staniŸn¡ z lo§ku")
+
+// Description for pathbasedsignalling bits
+BITSWITCH(pathbasedsignalling)
+BIT(autoconvertpresig,    "Pýev‚st vjezdov , odjezdov  a cestov  n vØstidla na PBS n vØstidla")
+BIT(manualpbssig,         "Povolit ruŸn¡ nastaven¡ PBS n vØstidel")
+BIT(preservemanualpresig, "Nepýev dØj vìhybky s ruŸnØ nastavenìmi n vØstidly na PBS")
+BIT(showreservedpath,     "Zobraz vytvoýenou vlakovou cestu tmavØji")
+BIT(shownonjunctionpath,  "Zobraz vytvoýenou vlakovou cestu tak‚ na ne-vìhybkovìch pol¡Ÿc¡ch")
+BIT(allowunsafejunction,  "Nezastavuj vlak u nejist‚hoPBS n vØstidla")
+BIT(allowunsafereverse,   "Nezastavuj vlak, kterì se nem…§e bezpeŸnØ obr tit")
+
+// Description for newsounds bits
+BITSWITCH(newsounds)
+BIT(highfrequency, "(pouze DOS) M¡chej zvuky na 22KHz m¡sto standardn¡ch 11KHz. Umo§åuje spr vnØ pýehr vat  22KHz zvuky.")
+
+// Description for morecurrencies bits
+BITSWITCH(morecurrencies)
+BIT(symbefore, "Symbol mØny se v§dy zobrazuje pýed Ÿ¡slem")
+BIT(symafter,  "Symbol mØny se v§dy zobrazuje za Ÿ¡slem")
+BIT(noeuro,    "Nezav dØj Euro")
+BIT(comma,     "V§dy pou§ij Ÿ rku k oddØlen¡ tis¡c…")
+BIT(period,    "V§dy pou§ij teŸku k oddØlen¡ tis¡c…")
+
+// Description for forcegameoptions bits
+BITSWITCH(forcegameoptions)
+BIT(trafficleft,	"Vnuœ hýe levostrannì silniŸn¡ provoz")
+BIT(trafficright,	"Vnuœ hýe pravostrannì silniŸn¡ provoz")
+BIT(imperial,		"Vnuœ hýe pou§it¡ britskìch d‚lkovìch jednotek (m¡le)")
+BIT(metric,		"Vnuœ hýe pou§it¡ metrickìch d‚lkovìch jednotek (kilometry)")
+BIT(townsenglish,	"Nastav anglickì styl jmen mØst")
+BIT(townsfrench,	"Nastav francouzskì styl jmen mØst")
+BIT(townsgerman,	"Nastav nØmeckì styl jmen mØst")
+BIT(townsamerican,	"Nastav americkì styl jmen mØst")
+BIT(townslatin,		"Nastav latinskoamerickì styl jmen mØst")
+BIT(townssilly,		"Nastav bl znivì styl jmen mØst")
+BIT(autosavedisabled,	"Zruç automatick‚ ukl d n¡")
+BIT(autosave3months,	"Nastav automatick‚ ukl d n¡ po 3 mØs¡c¡ch")
+BIT(autosave6months,	"Nastav automatick‚ ukl d n¡ po 6 mØs¡c¡ch")
+BIT(autosave12months,	"Nastav automatick‚ ukl d n¡ po 12 mØs¡c¡ch")
+
 
 // A cfg file (%s) could not be found and is ignored.
 SETTEXT(LANG_CFGFILENOTFOUND, "Nemohu nal‚zt cfg soubor %s.  Ignoruji jej.\n")
@@ -432,9 +657,9 @@ SETTEXT(CFG_INTRO,
 SETTEXT(CFG_NEWSWITCHINTRO, "**** Seznam voleb ****")
 
 // For switches which have no command line equivalent
-SETTEXT(CFG_NOCMDLINE, "§ dnì switch")
+SETTEXT(CFG_NOCMDLINE, "pýep¡naŸ nem  mo§nost z pisu v pý¡kazov‚m ý dku")
 
-// Definitions of the cfg file comments.
+// 
 // All can have a place holder %s to stand for the actual setting name,
 // and all but CFG_CDPATH can have a %s *after* the %s for the command
 // line switch.
@@ -460,14 +685,13 @@ SETTEXT(CFG_PRESIGNALS, "`%s' (%s) Automaticky nastavuje super-semafory.")
 SETTEXT(CFG_MOREVEHICLES, "`%s' (%s) Celkovì poŸet vozidel na hodnota*850.  Rozsah %ld - %ld.  Default %ld.")
 SETTEXT(CFG_MAMMOTHTRAINS, "`%s' (%s) Dlouh‚ vlaky s a§ 126 vagony.")
 SETTEXT(CFG_FULLLOADANY, "`%s' (%s) Umo§n¡ aby vlak opustil stanici jestli§e jeden z typ… n kladu je nalo§en.")
-SETTEXT(CFG_SELECTGOODS, "With `%s' (%s) Zbo§¡ se objev¡ ve stanici a§ ho nØkter‚ vozidlo vy§aduje.")
+SETTEXT(CFG_SELECTGOODS, "S `%s' (%s) Zbo§¡ se objev¡ ve stanici a§ ho nØkter‚ vozidlo vy§aduje, a zmiz¡ po zadan‚m poŸtu dn¡ pokud je odvoz zastaven (nikdo si pro nØj nepýijel). Zad n¡ hjodnoty 2 znamen  §e zbo§¡ nikdy nezmiz¡. Rozsah: %ld..%ld.  Default: %ld.")
 SETTEXT(CFG_DEBTMAX, "`%s' (%s) Zapne p…jŸov n¡/spl cen¡ cel‚ maxim ln¡ Ÿ stky s 'Ctrl'.")
 SETTEXT(CFG_OFFICEFOOD, "`%s' (%s) Office towers akceptuj¡ j¡dlo (tropic/arctic scenaria).")
 SETTEXT(CFG_ENGINESPERSIST, "`%s' (%s) Zobraz¡ ke koupi star  vozidla.")
 SETTEXT(CFG_CDPATH, "`%s' (%s) Nastav¡ cestu k CD.")
-// Note- CFG_CDPATH has no command line switch, so don't give the second %s!
+// 
 SETTEXT(CFG_KEEPSMALLAP, "`%s' (%s) Umo§n¡ v§dy stavØt mal  letiçtØ.")
-SETTEXT(CFG_AIBOOST, "`%s' (%s) Inteligence soupeý….")
 SETTEXT(CFG_LONGBRIDGES, "`%s' (%s) Umo§n¡ stavØt mosty dlouh‚ a§ 127 Ÿtverc….")
 SETTEXT(CFG_DYNAMITE, "`%s' (%s) Umo§n¡ v¡ce mo§nost¡ pro bour n¡ dynamitem.")
 SETTEXT(CFG_MULTIHEAD, "`%s' (%s) Umo§n¡ v¡ce maçinov‚ vlaky s 'Ctrl'.  Parametr je max. souŸet rychlost¡ maçin, v procentech %ld %ld, default %ld%%.")
@@ -515,7 +739,7 @@ SETTEXT(CFG_MOREBUILDOPTIONS, "`%s' (%s) V¡ce mo§nost¡ pýi stavØn¡. Rozsah %ld -
 SETTEXT(CFG_SEMAPHORES, "`%s' (%s) Pýed rokem 1975 jdou postavit pouze star‚ mechanick‚ semafory.")
 SETTEXT(CFG_MOREHOTKEYS, "`%s' (%s) Zapnuty nov‚ kl vesy pro ovl d n¡ nØkterìch funkc¡ ve hýe.")
 SETTEXT(CFG_MANYTREES, "`%s' (%s) Umo§n¡ zasadit  v¡ce ne§ jeden strom najednou, oznaŸen¡m dvou protilehlìch vrchol… obdl‚ln¡ku s Ctrl.")
-SETTEXT(CFG_MORECURRENCIES,"`%s' (%s) Zapne v¡ce mØn vŸetnØ Euro po roce 2002.  0 - jednotka je na p…vodn¡m m¡stØ; 1 - jednotka je pýed Ÿ¡sly; 2 - jednotka je za Ÿ¡sly. 4 - zak §e Euro.")
+SETTEXT(CFG_MORECURRENCIES,"`%s' (%s) Zapne v¡ce mØn vŸetnØ Euro po roce 2002.  Bitov  hodnota.  Default 0.")
 SETTEXT(CFG_MANCONVERT,"`%s' (%s) Umo§n¡ ruŸn¡ zmØnu trat¡ um¡stØn¡m nov‚ho typu tratØ na ji§ existuj¡c¡ traœ (bez dynamitu).")
 SETTEXT(CFG_NEWAGERATING, "`%s' (%s) Rating zast vek je v¡ce tolerantn¡ k vØku vozidel.  Vag¢ny mohou bìt a§ 21 let star‚ m¡sto 3 let.")
 SETTEXT(CFG_ENHANCEGUI,"`%s' (%s) ZmØn¡ grafickì vzhled nØkterìch oken.")
@@ -551,12 +775,70 @@ SETTEXT(CFG_MORETOWNSTATS, "`%s' (%s) Zobraz¡ v¡ce informac¡ v oknØ mØsta.")
 SETTEXT(CFG_BUILDONSLOPES, "`%s' (%s) Umo§n¡ stavØn¡ trat¡, silnic a zast vek na svahu se stejnìm z kladem jako u dom….")
 SETTEXT(CFG_BUILDONCOASTS, "`%s' (%s) Umo§n¡ stavØn¡ na býehu bez pýedchoz¡ho pou§it¡ dynamitu.")
 SETTEXT(CFG_TRACKTYPECOSTDIFF, "`%s' (%s) R…zn‚ typy trat¡ maj¡ r…znou cenu.")
-SETTEXT(CFG_CUSMULTIPLIER, "`%s' (%s) PýepoŸ¡t vac¡ koeficient pro vlastn¡ mØnu - custom currency CUS * 1000.  Default is 1000 (1 CUS = 1 pound).  Aktivn¡ pouze pýi zapnut¡ `morecurrencies'.")
 SETTEXT(CFG_EXPERIMENTALFEATURES, "`%s' (%s) Zapne nov‚ experiment ln¡ volby.")
-SETTEXT(CFG_PLANESPEED, "`%s' (%s) Zrychl¡ letadla na jejich skuteŸnou indikovanou rychlost (p…vodn¡ rychlost je Ÿtvrtinov  oproti indikovan‚) a pýi stavu Brake Down zredukuje rychlost na 5/8.")
+SETTEXT(CFG_PLANESPEED, "`%s' (%s) Zrychl¡ letadla na jejich skuteŸnou indikovanou rychlost (p…vodn¡ rychlost je Ÿtvrtinov  oproti indikovan‚) a pýi stavu Brake Down zredukuje rychlost na 5/8.  Rozsah %ld..%ld.  Default %ld.")
 SETTEXT(CFG_FASTWAGONSELL, "`%s' (%s) Rychlejç¡ prodej vag¢n… s Ctrl")
 SETTEXT(CFG_NEWRVCRASH,"`%s' (%s) MØn¡ auto-vlakov‚ kolize. Hodnota 1 znamen , §e vlak po kolizi s autem bude chv¡li ve stavu Brake Down. Hodnota 2 vypne auto-vlakov‚ kolize. Default 1.");
 SETTEXT(CFG_STABLEINDUSTRY,"`%s' (%s) ¦ dnì pr…mysl nezkrachuje pýi stabiln¡ ekonomice (v menu Difficulty settings je polo§ka Economy nastavena na Steady).");
+SETTEXT(CFG_NEWPERF, "`%s' (%s) uplatåuje rozumnØjç¡ vìpoŸet vìkonnosti vzhledem k zisk…m vozidel.")
+SETTEXT(CFG_SORTVEHLIST, "`%s' (%s) ýad¡ vozidla v oknØ seznamu vozidel. Hodnota ud v  Ÿas mezi dvØma aktualizacemi. Ni§ç¡ hodnota vy§aduje v¡ce Ÿasu procesoru, ale udr§uje seznam aktu lnØjç¡. Nastaven¡ na 10 znamen  pýibli§nØ jeden den v TTD. Rozsah %ld..%ld. Default %ld.")
+SETTEXT(CFG_NEWSPAPERCOLOUR, "`%s' (%s) zmØn¡ noviny na barevn‚ v dan‚m roce. Rozsah %ld..%ld.  Default %ld.")
+SETTEXT(CFG_SHAREDORDERS, "`%s' (%s) umo§n¡ sd¡len‚ nebo zkop¡rovan‚ j¡zdn¡ ý dy.")
+SETTEXT(CFG_SHOWPROFITINLIST, "`%s' (%s) zobraz¡ barevnØ rozliçen‚ zisky v seznamu vozidel.")
+SETTEXT(CFG_MORESTEAM, "`%s' (%s) zobraz¡ v¡ce (nebo m‚nØ) oblak… p ry. Hodnota m  dvØ Ÿ¡slice, prvn¡ pro d‚lku oblaku p ry, druhou pro frekvenci, pýiŸem§ 2 je default TTD. Pýid n¡/odebr n¡ jedn‚ zdvojn sob¡/zpoloviŸn¡ d‚lku nebo frekvenci. Rozsah %02lx..%02lx.  Default %02lx.")
+SETTEXT(CFG_ABANDONEDROADS, "`%s' (%s) zp…sob¡, §e silnice ztrat¡ sv‚ho majitele pokud nejsou po urŸitou dobu pou§¡v ny, tak§e m…§ete odstranit nepou§¡van‚ silnice, pokud pýek §ej¡ v cestØ. Tak‚ z¡sk te vlastnictv¡ silnic, kter‚ pou§¡vaj¡ vaçe vozidla. V re§imu 0 vçechny silnice ztrat¡ sv‚ majitele, v re§imu 1 jsou silnice bl¡zko mØst pýevzaty mØstem pokud nejsou nØjakì Ÿas pou§¡v ny, v re§imu 2 jsou pýevzaty okam§itØ.")
+SETTEXT(CFG_NEWSTATIONS, "`%s' (%s) umo§n¡ novou grafiku stanic.")
+SETTEXT(CFG_BUILDWHILEPAUSED, "`%s' (%s) umo§n¡ prov dØt vçechny stavebn¡ operace pýi zapauzovan‚ hýe.")
+SETTEXT(CFG_TRAINLOSTTIME, "`%s' (%s) d v  varovnou hl çku o ztracen‚m vlaku po zadan‚m poŸtu dn¡. Rozsah %ld..%ld.  Default %ld.")
+SETTEXT(CFG_RVLOSTTIME, "`%s' (%s) d v  varovnou hl çku o ztracen‚m automobilu po zadan‚m poŸtu dn¡. Rozsah %ld..%ld.  Default %ld.")
+SETTEXT(CFG_SHIPLOSTTIME, "`%s' (%s) d v  varovnou hl çku o ztracen‚ lodi po zadan‚m poŸtu dn¡. Rozsah %ld..%ld.  Default %ld.")
+SETTEXT(CFG_AIRCRAFTLOSTTIME, "`%s' (%s) d v  varovnou hl çku o ztracen‚m letadle po zadan‚m poŸtu dn¡. Rozsah %ld..%ld.  Default %ld.")
+SETTEXT(CFG_MAPREFRESH, "`%s' (%s) pýenastav¡ frekvenci obnnovov n¡ okna mapy. Ni§ç¡ hodnota znamen  rychlejç¡ pýekreslen¡ a v¡ce vyu§it¡ procesoru. Default TTD je 64. Rozsah %ld..%ld.  Default %ld.")
+SETTEXT(CFG_NETWORKTIMEOUT, "`%s' (%s) odpoj¡ s¡œovou hru pokud nen¡ odezva po zadanì poŸet sekund. Rozsah %ld..%ld.  Default %ld.")
+SETTEXT(CFG_TOYLANDFEATURES, "`%s' (%s) umo§n¡ prvky krajiny, kter‚ jsou norm lnØ v n hodn‚ hýe v Toylandu znemo§nØn‚, jako napý¡klad maj ky. Bitov  hodnota.")
+SETTEXT(CFG_STRETCHWINDOW, "`%s' (%s) rozt hne okno TTD do t‚to vodorovn‚ velikosti bv pixelech (pouze pro Windows verzi TTD spuçtØnou v oknØ). Rozsah %ld..%ld.  Default %ld.")
+SETTEXT(CFG_CANALS, "`%s' (%s) umo§n¡ stavØt pr…plavy a zdymadla pou§it¡m n stroje 'koupit pozemek' z menu stavby doku.")
+SETTEXT(CFG_FREIGHTTRAINS, "`%s' (%s) n sob¡ n klad pýev §enì n kladn¡m vlakem zadanou hodnotou pro simulaci velmi dlouhìch n kladn¡ch vlak…. P…sob¡ to pouze na zrychlen¡, vlaky nepýev §ej¡ v¡ce n kladu. Rozsah %ld..%ld.  Default %ld.")
+SETTEXT(CFG_GAMESPEED, "`%s' (%s) umo§åuje mØnit rychlost hry. Toto vy§aduje hotkeys patch. Stiskem kl vesy 'q' se hra dvakr t zrychl¡ (a§ do maxim lnØ 8x rychlejç¡), stiskem kl vesy 'w' se hra zpomal¡. Hodnota je poŸ teŸn¡ nastaven¡. Rozsah %ld..%ld.  Default %ld.")
+SETTEXT(CFG_HIGHERBRIDGES, "`%s' (%s) umo§n¡ stavØt vyçç¡ mosty.")
+SETTEXT(CFG_NEWGRFCFG, "`%s' (%s) vybere konfiguraŸn¡ soubor pro novou grafiku.")
+SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s) umo§åuje pou§it¡ koleŸka myçi ve Windows verzi. 0 znamen  p…vodn¡ zoomov n¡ koleŸkem (stýed zvØtçen¡ je ve stýedu obrazovky), 1 znamen  zoomov n¡ jako v OpenTTD (stýed zvØtçen¡ je pod kursorem, pokud je to mo§n‚). PýiŸtØte 2 pro 'bezpeŸn‚' zoomov n¡ (dva rolovac¡ kroky koleŸkem pro zvØtçen¡). PýiŸtØte 4 pro podporu starç¡ch syst¡m… a ovladaŸ… (nutn‚ pro nØkter‚ ovladaŸe a Windows95). Rozsah %ld..%ld. Default %ld.")
+SETTEXT(CFG_MOREWINDOWS, "`%s' (%s) umo§n¡ v¡ce otevýenìch oken na obrazovce. Default TTD je 10, ale 3 pozice jsou v§dy obsazen‚ (hlavn¡ panel n stroj…, hlavn¡ pohled, stavovì ý dek), tak§e souŸasn‚ maximum je 7. Rozbalovac¡ nab¡dky a novinov‚ zpr vy se tak‚ poŸ¡taj¡ jako okna. Rozsah %ld..%ld. Default %ld.")
+SETTEXT(CFG_ENHANCEDDIFFICULTYSETTINGS, "'%s' (%s) umo§åuje vybrat '§ dn‚' pro poŸet pr…myslu v nastaven¡ obt¡§nosti.")
+SETTEXT(CFG_NEWBRIDGES, "`%s' (%s) umo§åuje novou grafiku pro mosty.")
+SETTEXT(CFG_NEWHOUSES, "`%s' (%s) aktivuje nov‚ typy budov ve mØstØ s novou grafikou.")
+SETTEXT(CFG_NEWTOWNNAMES, "`%s' (%s) umo§åuje pýidat nov‚ n zvy mØst pro n hodn‚ hry pomoc¡ novìch grf soubor….")
+SETTEXT(CFG_MOREANIMATION, "`%s' (%s) umo§åuje zvìçit poŸet pol¡Ÿek, kter  budou animov na. Default TTD je 256. Rozsah %ld..%ld. Default %ld.")
+SETTEXT(CFG_NEWSHISTORY, "`%s' (%s) umo§åuje z znam a zobrazen¡ historie zpr v.")
+SETTEXT(CFG_WAGONSPEEDLIMITS, "`%s' (%s) umo§åuje omezen¡ rychlosti pro vag¢ny.")
+SETTEXT(CFG_PATHBASEDSIGNALLING, "`%s' (%s) umo§åuje PBS - path based signalling. Pýed pou§it¡m si PROSÖM pýeŸtØte manu l, spr vn‚ pou§it¡ t‚to funkce je ponØkud obt¡§nØjç¡.")
+SETTEXT(CFG_CUSTOMBRIDGEHEADS, "`%s' (%s) upravuje pýedmost¡.")
+SETTEXT(CFG_TOWNBUILDNOROADS, "`%s' (%s) mØsta nestav¡ silnice.")
+SETTEXT(CFG_NEWCARGODISTRIBUTION, "`%s' (%s) zlepçen‚ rozdØlov n¡ n kladu.")
+SETTEXT(CFG_WINDOWSNAP, "`%s' (%s) dovol¡ okn…m se vz jemnØ pýichyt vat. Rozsah %ld..%ld. Default %ld.")
+SETTEXT(CFG_RESOLUTIONWIDTH, "`%s' (%s) umo§åuje a nastavuje ç¡ýku rozliçen¡ patche.")
+SETTEXT(CFG_RESOLUTIONHEIGHT, "`%s' (%s) umo§åuje a nastavuje vìçku rozliçen¡ patche.")
+SETTEXT(CFG_AICHOOSECHANCES, "`%s' (%s) ud v  jakou pravdØpodobnost pou§¡t, kdy§ se AI rozhoduje co bude stavØt (pravdØpodobnost stavby lodn¡ linky je 1 - pst. §eleznice - pst. silnice - pst. letadla).")
+SETTEXT(CFG_AIBUILDRAILCHANCE, "`%s' (%s) pravdØpodobnost, §e AI bude stavØt §elezniŸn¡ spojen¡, kdy§ bude cht¡t postavit novou trasu. Rozsah %ld..%ld, 0=0%%, 65535=100%%. Default %ld.")
+SETTEXT(CFG_AIBUILDRVCHANCE, "`%s' (%s) pravdØpodobnost, §e AI bude stavØt automobilov‚ spojen¡, kdy§ bude cht¡t postavit novou trasu. Rozsah %ld..%ld, 0=0%%, 65535=100%%. Default %ld.")
+SETTEXT(CFG_AIBUILDAIRCHANCE, "`%s' (%s) pravdØpodobnost, §e AI bude stavØt leteck‚ spojen¡, kdy§ bude cht¡t postavit novou trasu. Rozsah %ld..%ld, 0=0%%, 65535=100%%. Default %ld.")
+SETTEXT(CFG_NEWINDUSTRIES, "`%s' (%s) umo§åuje podporu pro nov‚ druhy pr…myslu.")
+SETTEXT(CFG_LOCOMOTIONGUI, "`%s' (%s) umo§åuje nov‚ GUI jako v Locomotion.")
+SETTEXT(CFG_FIFOLOADING, "`%s' (%s) umo§åuje FIFO nakl d n¡ (kdo dý¡v pýijede, ten dý¡v nakl d ).")
+SETTEXT(CFG_TEMPSNOWLINE, "`%s' (%s) umo§åuje hranici snØhu v m¡rn‚m podneb¡ (potýebuje vhodnì grafickì .grf soubor pro skuteŸn‚ zobrazen¡ snØhu)")
+SETTEXT(CFG_TOWNROADBRANCHPROB, "`%s' (%s) mØn¡ pravdØpodobnost, §e mØsto postav¡ silniŸn¡ odboŸku. 0 znamen  skoro § dn‚ odboŸky, 65535 znamen  odboŸky vçude kde je to mo§n‚. Default TTD je 26214. Rozsah %ld..%ld. Default %ld.")
+SETTEXT(CFG_NEWCARGOS, "`%s' (%s) umo§åuje podporu pro nov‚ druhy n kladu.")
+SETTEXT(CFG_ENHMULTI, "`%s' (%s) zlepçuje multiplayer dovolen¡m v¡ce lidskìch hr Ÿ….")
+SETTEXT(CFG_ONEWAYROADS, "`%s' (%s) umo§åuje jednosmØrn‚ silnice")
+SETTEXT(CFG_NEWSOUNDS, "`%s' (%s) dovoluje do hry pýidat nov‚ zvuky pýes r…zn‚ .grf soubory.")
+SETTEXT(CFG_IRRSTATIONS, "`%s' (%s) dovoluje postavit n dra§¡ v nepravideln‚m tvaru.")
+SETTEXT(CFG_MORESTATS, "`%s' (%s) umo§åuje z¡sk n¡ v¡ce statistik (funguje pouze pokud je souŸasnØ povolen‚ 'enhancegui').")
+SETTEXT(CFG_AUTOREPLACE, "`%s' (%s) pýi obnovØ star‚ho vozidla ho vymØn¡ za nejlepç¡ dostupnì novì typ s danou minim ln¡ spolehlivost¡ v procentech. Rozsah 1..100, default 80.")
+SETTEXT(CFG_AUTOSLOPE, "`%s' (%s) dovoluje zmØnu ter‚nu bez nutnosti bourat stavby na nØm.")
+SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) dovoluje, aby hlavn¡ pohled sledoval vozidlo pýi kliknut¡ pravìm myç¡tkem na tlaŸ¡tko 'Vystýedit Pohled' v oknØ vozidla.")
+SETTEXT(CFG_TRAMS, "`%s' (%s) dovoluje stavØt tramvaje.")
+SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) dovoluje stavØt traœ nad vjezdem do tunelu.")
+SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) dovol¡ v m vynutit mo§nosti hry.")
 
 
 //----------------------------------------------------
@@ -581,8 +863,14 @@ SETTEXT(LANG_SWTWOWAY, "ObousmØrn‚: ")
 SETTEXT(LANG_TIMEDAYS, "%d dn…")
 SETTEXT(LANG_INFINITETIME, "nekoneŸnì")
 
+// Shows the keys to scroll the verbose switch table
+SETTEXT(LANG_SCROLLKEYS, " Kl vesy: Nahoru Dol… PgUp PgDown Home End ")
+
+// ... and to abort TTDPatch
+SETTEXT(LANG_SCROLLABORTKEY, " Escape = zruçit ")
+
 // Shows the load options for ttdload.  %s is the given parameters to be passed to ttdload
-SETTEXT(LANG_SWSHOWLOAD, "Stiskni kl vesu pro start \"TTDLOAD %s\" (Escape pro odchod).")
+SETTEXT(LANG_SWSHOWLOAD, "Enter/Space = spustit \"TTDLOAD %s\"")
 
 SETTEXT(LANG_SWABORTLOAD, "\nProgram je pýeruçen u§ivatelem.\n")
 
@@ -597,14 +885,18 @@ SETTEXT(LANG_INTERNALERROR, "*** Vnitýn¡ chyba TTDPatch #%d ***\n")
 // Error fixing the Windows version HDPath registry entry
 SETTEXT(LANG_REGISTRYERROR, "TTD nen¡ spr vnØ nainstalov n (chyba registru %d)\n")
 
-// DOS reports no memory available
-SETTEXT(LANG_NOTENOUGHMEM, "Nen¡ dost pamØti pro start programu. Nyn¡ je %s, a je potýeba %d KB.\n")
+// Trying no-registry file
+SETTEXT(LANG_TRYINGNOREGIST, "Zkouç¡m neregistrov‚ informace z %s\n")
 
-// ...for starting TTD
-SETTEXT(LANG_TOSTARTTTD, "pro start TTD")
+// no-registry file failed
+SETTEXT(LANG_NOREGISTFAILED, "Neregistrov‚ informace nejsou dostupn‚.\n")
 
-// Protected mode code exceeds 32kb
-SETTEXT(LANG_PROTECTEDTOOLARGE, "Ochrannì m¢d je pý¡liç rozlehlì!\n")
+// DOS reports not enough memory available to start TTD
+SETTEXT(LANG_NOTENOUGHMEMTTD, "Nen¡ dost pamØti pro start programu. Nyn¡ je to start TTD, a je potýeba %d KB.\n")
+
+// Other out-of-memory messages
+// %s je funkce nebo jm‚no promØnn‚ pro identifikaci kde selhalo pýidØlen¡ pamØti
+SETTEXT(LANG_NOTENOUGHMEM, "%s: Nedostatek dostupn‚ pamØti, potýebuji o %d KB v¡ce.\n")
 
 // Swapping TTDPatch out
 SETTEXT(LANG_SWAPPING, "Swapov n¡ ukonŸeno.\n")
@@ -617,11 +909,33 @@ SETTEXT(LANG_RUNTTDLOAD, "Startuje %s%s%s\n")
 // Error executing ttdload.  1st %s is ttdload.ovl, 2nd %s is the error message from the OS
 SETTEXT(LANG_RUNERROR, "Nemohu naj¡t %s: %s\n")
 
+// Failed to create the new process for ttdloadw.ovl
+SETTEXT(LANG_CRPROCESSFAIL, "Tvorba procesu selhala")
+
+// Interprocess communication error: TTDPatchW seems to be already running
+SETTEXT(LANG_IPCEXISTS, "Jin‚ spuçtØn¡ TTDPatche pr vØ bØ§¡!\n")
+
+// Failed to convert language strings to Unicode
+SETTEXT(LANG_STRINGCONVFAIL, "Chyba pýi pý¡pravØ dat TTDPatche!\n")
+
 // Show the result after after running, %s is one of the following strings
 SETTEXT(LANG_RUNRESULT, "Vìsledek: [%s]\n")
 SETTEXT(LANG_RUNRESULTOK, "OK")
 SETTEXT(LANG_RUNRESULTERROR, "Chyba!")
 
-// Messages about the graphics file ttdpatch.grf
-SETTEXT(LANG_NOTTDPATCHGRF, "Nemohu naj¡t cestu k souboru %s, vytv ý¡m pr zdnì soubor.\n")
-SETTEXT(LANG_ERRORCREATING, "Chyba pýi vytv ýen¡ %s: %s\n")
+
+
+//---------------------------------------
+//  MESSAGES DISPLAYED BY TTDLOAD
+//---------------------------------------
+
+// Messages in this category will have "TTDPatch: " prefixed and "\r\n" suffixed
+// when displayed by the DOS version.
+
+// Out of memory (in protected mode)
+SETTEXT(LANG_PMOUTOFMEMORY, "Nedostatek voln‚ pamØti!")
+
+// Interprocess communication failed (WinTTDX only)
+SETTEXT(LANG_PMIPCERROR, "Pýenosov  chyba procesu")
+
+
