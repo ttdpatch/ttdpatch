@@ -123,6 +123,13 @@ proc monthlyengineloop
 	bt [%$engineuse],ecx
 	jnc short .engineloop
 
+		// right climate?
+	imul eax,ecx,0+vehtypeinfo_size
+	add eax,[vehtypedataptr]
+	movzx ebx,byte [climate]
+	bt [eax+vehtypeinfo.climates],ebx
+	jnc .engineloop
+
 		// this engine is in use
 	and byte [esi+vehtype.availinfo],~3	// make it available if it wasn't
 	or byte [esi+vehtype.availinfo],1

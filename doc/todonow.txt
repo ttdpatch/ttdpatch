@@ -360,9 +360,6 @@
 - callback 23 doesn't set curmiscgrf correctly?
   http://www.tt-forums.net/viewtopic.php?p=387407#387407
 
-- crash in depot-all-trash with enhancegui off
-  http://www.tt-forums.net/viewtopic.php?p=438850#438850
-
 - newsounds off = TTD sounds off too?
   http://www.tt-forums.net/viewtopic.php?p=394539#394539
 
@@ -743,7 +740,8 @@ CHANGELOG
 2.5 beta 5
 - by Csaba:
   * added callbacks 140, 141 and 142 for station animations
-  * fixed electrifiedrail patch code overwriting some random memory
+  * fixed electrifiedrail patch code overwriting some random memory (this
+    fixes a crash on startup with enhancegui off)
   * fixed some incorrect cargo type handling for GRFs with version 7
   * the language of the EXE is now restored correctly when all translation 
     GRFs are disabled
@@ -767,3 +765,5 @@ CHANGELOG
   are on
 - fixed problem with wrong variables being available in purchase window
 - fixed cargo types without cargo labels not being available for refit
+- action 7/9 check 0A now jumps if the GRFID is not found at all
+- fixed tenders errorneously appearing in purchase list
