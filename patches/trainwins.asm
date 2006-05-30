@@ -268,7 +268,124 @@ uvard nextrowoftrainveh
 uvard nextvehtocheck
 
 /************************************* Taken From newTrains **************************************/
+// called when calculating the position of the next vehicle
+// in the train depot display
+//
+// in:	cx=old pos
+//	edi=vehicle ptr
+// out:	cx adjusted
+//	di=nextunitidx
+// safe:?
+global displaytrainindepot
+displaytrainindepot:
+	push eax
+	push edi
+	call getwagonlength
+	pop eax
+	mov [edi+veh.shortened],al
+	bt dword [grfmodflags], 3
+	jc .is32
+	lea eax,[eax*3-0x1D]
+	jmp .not32
+.is32:
+	lea eax,[eax*4-0x20]
+.not32:
+	sub cx,ax
+	mov di,[edi+veh.nextunitidx]
+	pop eax
+	ret
 
+// find out which train vehicle the user clicked on in a depot
+//
+// in:	al*1d+ah=x coord within window
+//	edi=first veh in consist
+// out:  al=0
+//	edi=0 if beyond consist
+// safe: ah
+global choosetrainvehindepot
+choosetrainvehindepot:
+	push ebx
+	xchg eax,ebx
+
+	bt dword [grfmodflags], 3
+	jc .is32
+	mov al,0x1D
+	jmp .not32
+.is32:
+	mov al,0x20
+.not32:
+
+	mul bl
+	add al,bh
+	adc ah,0
+
+.nextveh:
+	push edi
+	call getwagonlength
+	pop ebx
+
+	bt dword [grfmodflags], 3 // For 32px depots
+	jc .is32x
+	lea ebx,[ebx*3-0x1D]
+	jmp .not32x
+.is32x:
+	lea ebx,[ebx*4-0x20]
+
+.not32x:
+
+	neg ebx
+	sub ax,bx
+	jbe .foundit
+
+	movzx edi,word [edi+veh.nextunitidx]
+	cmp di,-1
+	je .notfound
+	shl edi,vehicleshift
+	add edi,[veharrayptr]
+
+	bt dword [grfmodflags], 3 // For 32px depots
+	jnc .nextveh
+	sub ax, 3 // Fixes a slight problem with odd results (now pixil perfect with bounding boxes)
+	jbe .foundit
+
+	jmp .nextveh
+
+.notfound:
+	xor edi,edi
+.foundit:
+	mov al,0
+	pop ebx
+	ret
+
+
+// calculate coords for the white rectangle around the active train vehicle
+//
+// in:	cx=start y
+//	dx=start x
+//	edi=vehicle
+// out: ax=start y
+//	bx=start x-how much veh is shorter
+//	cx=start x
+// safe:si edi bp
+global showactivetrainveh
+showactivetrainveh:
+	mov ax,cx
+	mov cx,dx
+	push edi
+	call getwagonlength
+	pop ebx
+
+	bt dword [grfmodflags], 3 // Corrects a slight offset problem with 32px
+	jc .is32x
+	lea ebx,[ebx*3]
+	jmp .not32x
+.is32x:
+	lea ebx,[ebx*4-2]
+.not32x:
+
+	neg ebx
+	add bx,ax
+	ret
 
 /************************************* Taken From Multihead **************************************/
 

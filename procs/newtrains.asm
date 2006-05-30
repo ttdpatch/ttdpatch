@@ -27,9 +27,9 @@ codefragment newdisplaytraininfosprite
 	call runindex(displaytraininfosprite)
 	setfragmentsize 8
 
-codefragment newshowactivetrainveh
-	call runindex(showactivetrainveh)
-	setfragmentsize 9
+//codefragment newshowactivetrainveh // ledit
+//	call runindex(showactivetrainveh)
+//	setfragmentsize 9
 
 codefragment oldshowtraindetailssprite,1
 	push edi
@@ -60,12 +60,12 @@ codefragment olddisplaytraininfotext
 codefragment newdisplaytraininfotext
 	db 38
 
-codefragment oldchoosetrainvehindepot
-	dec al
-	js $+2+0x1a
+//codefragment oldchoosetrainvehindepot // ledit
+//	dec al
+//	js $+2+0x1a
 
-codefragment newchoosetrainvehindepot
-	jmp runindex(choosetrainvehindepot)
+//codefragment newchoosetrainvehindepot
+//	jmp runindex(choosetrainvehindepot)
 
 codefragment oldtrainleavedepot,-7
 	jne $+2+0x3e
@@ -76,13 +76,13 @@ codefragment newtrainleavedepot
 	call runindex(trainleavedepot)
 	setfragmentsize 7
 
-codefragment olddisplaytrainindepot
-	add cx,0x1d
-	mov di,[edi+veh.nextunitidx]
+//codefragment olddisplaytrainindepot // ledit
+//	add cx,0x1d
+//	mov di,[edi+veh.nextunitidx]
 
-codefragment newdisplaytrainindepot
-	call runindex(displaytrainindepot)
-	setfragmentsize 8
+//codefragment newdisplaytrainindepot
+//	call runindex(displaytrainindepot)
+//	setfragmentsize 8
 
 codefragment oldtrainentersdepot
 	or word [edi+veh.vehstatus],1
@@ -189,8 +189,8 @@ endcodefragments
 
 patchnewtrains:
 	patchcode olddisplaytraininfosprite,newdisplaytraininfosprite,1,1
-	add edi,lastediadj+44
-	storefragment newshowactivetrainveh
+//	add edi,lastediadj+44
+//	storefragment newshowactivetrainveh
 
 	stringaddress oldshowtraindetailssprite
 	copyrelative fnshowtrainsprites,3
@@ -200,14 +200,14 @@ patchnewtrains:
 	patchcode oldcounttrainslots,newcounttrainslots
 
 	patchcode olddisplaytraininfotext,newdisplaytraininfotext,1,1
-	patchcode oldchoosetrainvehindepot,newchoosetrainvehindepot,1,1
-	mov word [edi+lastediadj-18],0xc38b	// mov eax,ebx instead of mov al,bl
+//	patchcode oldchoosetrainvehindepot,newchoosetrainvehindepot,1,1
+//	mov word [edi+lastediadj-18],0xc38b	// mov eax,ebx instead of mov al,bl
 
 	stringaddress oldtrainleavedepot,1,1
 	mov eax,[edi+3]
 	mov [nexttrainvehthreshold],eax
 	storefragment newtrainleavedepot
-	patchcode olddisplaytrainindepot,newdisplaytrainindepot,1,1
+//	patchcode olddisplaytrainindepot,newdisplaytrainindepot,1,1
 	patchcode oldtrainentersdepot,newtrainentersdepot,1,1
 
 	storeaddress findmovetrainvehicle,1,1,movetrainvehicle,65
