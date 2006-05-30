@@ -26,6 +26,7 @@ extern wait27ms_nogiveaway,backupvehnametexts
 extern Class6FloodTile
 extern Class6CoastSprites, coastspritebase
 extern newgraphicssetsenabled
+extern drawtrainindepot, drawtrainwagonsindepot
 
 ext_frag oldrecordlastactionxy
 
@@ -678,6 +679,20 @@ codefragment newcoastsprites
 	icall Class6CoastSprites
 	setfragmentsize 7
 
+codefragment olddrawtrainindepot
+	add cx, 21
+	mov al, 10
+
+codefragment newdrawtrainindepot
+	icall drawtrainindepot
+
+codefragment olddrawtrainwagonsindepot
+	add cx, 50
+	mov al, 9
+
+codefragment newdrawtrainwagonsindepot
+	icall drawtrainwagonsindepot
+
 endcodefragments
 
 patchgeneralfixes:
@@ -1117,6 +1132,9 @@ patchgeneralfixes:
 	patchcode calcboxz
 	patchcode findtilestorefresh
 
+	// Couple of fragments taken from other code to try and keep depot window fixes without dependences
+	patchcode olddrawtrainindepot,newdrawtrainindepot,1,1 // Failsafe from winsize.asm
+	patchcode olddrawtrainwagonsindepot,newdrawtrainwagonsindepot//,1,1
 	ret
 
 // shares some code fragments

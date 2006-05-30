@@ -1177,25 +1177,6 @@ ovar depotcolumn, -1
 	mov al, 1
 	ret
 
-global drawtrainindepot
-drawtrainindepot:
-	add cx, 21
-	push	ecx
-	mov	ecx,0x0000
-	call CalcTrainDepotWidth
-	pop	ecx
-	ret
-
-global drawtrainwagonsindepot
-drawtrainwagonsindepot:
-	add cx, 50
-	push	ecx
-	mov	ecx,0x0101
-	call CalcTrainDepotWidth
-	pop	ecx
-	dec al
-	ret
-
 // Replaced by new one in trainwins.asm
 //
 //global CalcTrainDepotWidth

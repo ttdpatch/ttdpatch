@@ -173,20 +173,20 @@ codefragment newlasttraindepotrowdrawn
 	icall lasttraindepotrowdrawn
 	setfragmentsize 7
 
-codefragment olddrawtrainindepot
-	add cx, 21
-	mov al, 10
-
-codefragment newdrawtrainindepot
-	icall drawtrainindepot
-
-codefragment olddrawtrainwagonsindepot
-	add cx, 50
-	mov al, 9
-
-codefragment newdrawtrainwagonsindepot
-	icall drawtrainwagonsindepot
-	
+//codefragment olddrawtrainindepot
+//	add cx, 21
+//	mov al, 10
+//
+//codefragment newdrawtrainindepot
+//	icall drawtrainindepot
+//
+//codefragment olddrawtrainwagonsindepot
+//	add cx, 50
+//	mov al, 9
+//
+//codefragment newdrawtrainwagonsindepot
+//	icall drawtrainwagonsindepot
+//	
 codefragment oldtraindepotclick, 2
 	div dl,0	// ,0 to disable div-by-zero handling code
 	cmp al, 6
@@ -436,8 +436,8 @@ patchwindowsizer:
 	mov [depotjmpoffset], al
 	storefragment newlastdepotrowdrawn
 	patchcode oldlasttraindepotrowdrawn,newlasttraindepotrowdrawn,1,1
-	patchcode olddrawtrainindepot,newdrawtrainindepot,1,1
-	patchcode olddrawtrainwagonsindepot,newdrawtrainwagonsindepot,1,1
+//	patchcode olddrawtrainindepot,newdrawtrainindepot,1,1
+//	patchcode olddrawtrainwagonsindepot,newdrawtrainwagonsindepot,1,1
 	patchcode oldtraindepotclick,newtraindepotclick,1,1
 	patchcode oldtraindepotwindowhandler,newtraindepotwindowhandler,1,1
 

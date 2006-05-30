@@ -16,6 +16,7 @@
 extern isengine
 extern patchflags
 extern getwagonlength
+extern grfmodflags
 
 /************************************** Taken From Fixmisc ***************************************/
 
@@ -28,11 +29,11 @@ extern getwagonlength
 // safe:cl,others?
 global counttrainsindepot
 counttrainsindepot:
-	cmp ax,[edi+veh.XY]
+	cmp ax, [edi+veh.XY]
 	jne .done
 	cmp byte [edi+veh.movementstat],0x80
 	jne .done
-	cmp cl,4
+	cmp cl, 4
 	je .done	// only count one row for wagon rows
 	clc
 
@@ -70,12 +71,12 @@ advancetonextrow:
 	sbb al,0
 
 .next:
-	movzx edi,word [edi+veh.nextunitidx]
-	cmp di,byte -1
+	movzx edi, word [edi+veh.nextunitidx]
+	cmp di, byte -1
 	je .done
 
-	shl edi,vehicleshift
-	add edi,[veharrayptr]
+	shl edi, vehicleshift
+	add edi, [veharrayptr]
 	dec al
 	jnz .next
 
@@ -92,12 +93,12 @@ advancetonextrow:
 global checktrainindepot
 checktrainindepot:
 	push eax
-	xor eax,eax
-	xchg eax,[nextrowoftrainveh]
-	test eax,eax
+	xor eax, eax
+	xchg eax, [nextrowoftrainveh]
+	test eax, eax
 	jz .notcontinued
 
-	xchg eax,edi
+	xchg eax, edi
 	cmp dword [nextvehtocheck],0
 	stc
 	jne .gotrow
@@ -109,7 +110,7 @@ checktrainindepot:
 	test eax,eax
 	jz .notafterrow
 
-	xchg eax,edi
+	xchg eax, edi
 
 .notafterrow:
 	cmp byte [edi+veh.class],0x10
@@ -118,8 +119,8 @@ checktrainindepot:
 	cmp byte [edi+veh.subclass],0
 	jne .done
 
-	mov ax,[esi+6]
-	cmp ax,[edi+veh.XY]
+	mov ax, [esi+6]
+	cmp ax, [edi+veh.XY]
 	jne .done
 
 	cmp byte [edi+veh.movementstat],0x80
@@ -154,7 +155,11 @@ checktrainindepot:
 // safe:?
 global showtrain
 showtrain:
-	add cx,0x15
+	add cx, 21
+	bt dword [grfmodflags], 3 // Fixes a slight offset for 32px depots
+	jnc .lnot32
+	add cx, 2
+.lnot32:
 	push	ecx
 	mov	ecx,0x0
 	cmp	byte [edi+veh.subclass],0
@@ -167,6 +172,10 @@ showtrain:
 	je .regular
 
 	add cx,29
+	bt dword [grfmodflags], 3 // Fixes a slight offset for 32px depots
+	jnc .lnot32x
+	add cx, 3
+.lnot32x:
 	dec al
 
 .regular:
@@ -185,8 +194,8 @@ showtrainnum:
 	stc
 	jne .continued
 
-	mov bx,0xe2
-	mov bp,[edi+veh.maxage]
+	mov bx, 0xe2
+	mov bp, [edi+veh.maxage]
 	clc
 
 .continued:
@@ -220,7 +229,7 @@ showtrainflag:
 // safe:?
 global depotclick
 depotclick:
-	cmp byte [edi+veh.movementstat],0x80
+	cmp byte [edi+veh.movementstat], 0x80
 	jne .nope
 
 	dec al		// is it this row?
@@ -237,9 +246,9 @@ depotclick:
 	jns .trynextrow
 
 	// yep, right train
-	add esp,8
+	add esp, 8
 .gotit:
-	test al,al	// restore sign flag
+	test al, al	// restore sign flag
 	ret
 
 .trynextrow:
@@ -252,11 +261,14 @@ depotclick:
 	pop ebx
 	pop edi
 .nope:
-	test al,0	// clear sign flag
+	test al, 0	// clear sign flag
 	ret
 
 uvard nextrowoftrainveh
 uvard nextvehtocheck
+
+/************************************* Taken From newTrains **************************************/
+
 
 /************************************* Taken From Multihead **************************************/
 
@@ -279,6 +291,34 @@ movedcheckiswaggonui:
 .done:
 	ret
 
+/************************************ Taken From winsize.asm *************************************/
+global drawtrainindepot // Failsafe
+drawtrainindepot:
+	add cx, 21
+	bt dword [grfmodflags], 3 // Fixes a slight offset for 32px depots
+	jnc .lnot32
+	add cx, 2
+.lnot32:
+	push	ecx
+	mov	ecx,0x0000
+	call CalcTrainDepotWidth
+	pop	ecx
+	ret
+
+global drawtrainwagonsindepot
+drawtrainwagonsindepot:
+	add cx, 50
+	bt dword [grfmodflags], 3 // Fixes a slight offset for 32px depots
+	jnc .lnot32
+	add cx, 5
+.lnot32:
+	push	ecx
+	mov	ecx,0x0101
+	call CalcTrainDepotWidth
+	pop	ecx
+	dec al
+	ret
+
 /********************************* Replaces the winsize.asm one **********************************/
 // Calculates the number of vehicles which will fit in the depot window.
 // This is for when the depot window changes length. (enchancedgui)
@@ -299,45 +339,50 @@ CalcTrainDepotWidth:
 	sub ax, 59
 	push bx
 	mov bl, 29
+	bt dword [grfmodflags], 3
+	jnc .lnot32
+	mov bl, 32
+.lnot32:
 	div bl
+	xor ah, ah // Remove any remainers, we are only interested in whole units
 	pop bx
 
 .lstart:
-	push	edi // Backup registers to be used
-	push	ebx
-	mov	bh,ch // Move the number of ids to add
-	mov	ch,0
-	sub	ax,cx // Remove the number of vehicles before
-	shl	ax,3 // 8 * numvehs
-	mov	bl,0 // Reset counter to avoid spilage
+	push edi // Backup registers to be used
+	push ebx
+	mov bh, ch // Move the number of ids to add
+	mov ch, 0
+	sub ax, cx // Remove the number of vehicles before
+	shl ax, 3 // 8 * numvehs
+	mov bl, 0 // Reset counter to avoid spilage
 
 .lgetlen:
-	push	edi // Vehicle shortened by values not stored yet, so use getwagonlength
-	call	getwagonlength
-	mov	cl,[esp]
-	add	esp,4
-	and	cl,0x7F
-	neg	cl
-	add	cl,0x8
+	push edi // Vehicle shortened by values not stored yet, so use getwagonlength
+	call getwagonlength
+	mov cl, [esp]
+	add esp, 4
+	and cl, 0x7F
+	neg cl
+	add cl, 0x8
 
 .ldepotlen:
-	sub	ax,cx // Get length remaining
-	jb	.ldone // If less than 0 then jump to end
-	inc	bl
+	sub ax, cx // Get length remaining
+	jb .ldone // If less than 0 then jump to end
+	inc bl
 
 .lgetveh:
-	movzx	edi,word [edi+veh.nextunitidx] // Get next vehicle id in consist
-	cmp	di,-1
-	je	.ldone	// Jump to end if no id
+	movzx edi, word [edi+veh.nextunitidx] // Get next vehicle id in consist
+	cmp di, -1
+	je .ldone	// Jump to end if no id
 
-	shl	edi,vehicleshift
-	add	edi,[veharrayptr]
-	jmp	.lgetlen
+	shl edi, vehicleshift
+	add edi, [veharrayptr]
+	jmp .lgetlen
 	
 .ldone:
-	mov	al,bl // Return number of vehicles
-	add	al,bh // Add number of vehicles from the offset
-	pop	ebx // Restore Registers
-	pop	edi
+	mov al, bl // Return number of vehicles
+	add al, bh // Add number of vehicles from the offset
+	pop ebx // Restore Registers
+	pop edi
 
 	ret
