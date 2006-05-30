@@ -181,6 +181,7 @@ ttdvar(curmousecursor,0x771b0)		// D:sprite data for current mouse cursor
 ttdvar(curmousetooltype,0x771c0)		// B: current mouse tool type
 ttdvar(curmousetoolwintype,0x771c1)		// B: current mouse tool window type
 ttdvar(selectedtool,0x771cc)		// W: current tool
+ttdvar(mousetoolclicklocxy,0x771c8)	// W: XY location of mouse click
 ttdvar(mousetoolclicklocfinex,0x771ca)	// B: fine x location of mouse click
 ttdvar(mouseflags,0x771be)		// W: bit 0: mouse installed, bit 1: view drag mode, bit 2: landsacpe markers area, bit 3: dot landscape markers, bit 4: red landscape marker
 

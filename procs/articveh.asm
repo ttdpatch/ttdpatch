@@ -43,6 +43,7 @@ extern dontAddScheduleForTrailers
 extern sellRVTrailers, sellRVTrailers.origfn, delveharrayentry
 extern updateTrailerPosAfterRVProc, updateTrailerPosAfterRVProc.origfn
 extern rvdailyprocoverride, oldrvdailyproc
+extern dontLetARVsInNormalRVStops
 
 extern	RedrawRoadVehicle
 extern	SetRoadVehObjectOffsets
@@ -98,24 +99,24 @@ begincodefragments
 		nop
 
 	codefragment oldRVCollisionCheck, -6
-		pop     ebp
-		pop     edi
-		pop     dx
-		pop     cx
-		pop     ebx
-		pop     ax
+		pop	ebp
+		pop	edi
+		pop	dx
+		pop	cx
+		pop	ebx
+		pop	ax
 		retn
 
 	codefragment newRVCollisionCheck
 		icall	checkIfTrailerAndCancelCollision
 
 	codefragment oldRVCollisionCheck2, 11
-		push    ax
-		push    ebx
-		push    cx
-		push    dx
-		push    edi
-		push    ebp
+		push	ax
+		push	ebx
+		push	cx
+		push	dx
+		push	edi
+		push	ebp
 
 	reusecodefragment oldRVCollisionCheck3, oldRVCollisionCheck2, 24
 
@@ -131,8 +132,8 @@ begincodefragments
 
 
 	codefragment oldListRVsInDepotWindow, 23
-		add     dx, 15
-		cmp     byte [edi+veh.class], 11h
+		add	dx, 15
+		cmp	byte [edi+veh.class], 11h
 
 	codefragment newListRVsInDepotWindow
 		icall	skipTrailersInDepotWindow
@@ -160,11 +161,6 @@ begincodefragments
 		retn
 		push	edi
 		mov	esi, edi
-
-;	codefragment oldRVForceTurnAround, -2
-;		mov	byte [edx+0x6A], 180
-;	codefragment newRVForceTurnAround
-;		icall	turnTrailersAroundToo
 
 ;----new shit to try and replicate RVProc
 	codefragment findLimitTurnToFortyFiveDegrees, -12
@@ -208,7 +204,7 @@ begincodefragments
 		db 0x14,0x14,0x10,0x10,0x00,0x00,0x00,0x00
 	codefragment findRVMountainSpeedManagement, -7
 		mov	dx, word [esi+veh.speed]
-		shr     dx, 2
+		shr	dx, 2
 	codefragment findword_11257A, 18
 		retn
 		and	edx, 3
@@ -232,49 +228,56 @@ begincodefragments
 	codefragment findUpdateDirectionIfMovedTooFar
 		movzx	ebx, ax
 		mov	dx, cx
+
+	codefragment oldAddStationToRVSchedule, 16
+		mov	ah, 8
+		cmp	al, 11h
+
+	codefragment newAddStationToRVSchedule
+		icall	dontLetARVsInNormalRVStops
 endcodefragments
 
 patcharticulatedvehicles:
-	mov eax,[ophandler+0x11*8]		// class 11: road vehicles
-	mov eax,[eax+0x10]			// 	action handler
-	mov esi,[eax+9]			// 	action handler table
-	mov eax,addr(newbuyroadvehicle)
-	xchg eax,[esi]
-	mov dword [oldbuyroadvehicle],eax
+	mov	eax,[ophandler+0x11*8]		// class 11: road vehicles
+	mov	eax,[eax+0x10]			// 	action handler
+	mov	esi,[eax+9]			// 	action handler table
+	mov	eax,addr(newbuyroadvehicle)
+	xchg	eax,[esi]
+	mov	dword [oldbuyroadvehicle],eax
 
-	mov eax,[ophandler+0x11*8]		// class 11: road vehicles
-	mov esi, eax
-	add esi, 0x1C
-	mov eax,[eax+0x1C]			// 	action handler
-	mov eax,addr(rvdailyprocoverride)
-	xchg eax,[esi]
-	mov dword [oldrvdailyproc],eax
+	mov	eax,[ophandler+0x11*8]		// class 11: road vehicles
+	mov	esi, eax
+	add	esi, 0x1C
+	mov	eax,[eax+0x1C]			// 	action handler
+	mov	eax,addr(rvdailyprocoverride)
+	xchg	eax,[esi]
+	mov	dword [oldrvdailyproc],eax
 
 	patchcode oldSetMovementStat, newSetMovementStat, 1, 1
 	patchcode oldSetMovementStat2, newSetMovementStat2, 1, 1
 	patchcode oldSetMovementStat3, newSetMovementStat3, 1, 1
 
-#if WINTTDX
-	stringaddress oldRVCollisionCheck2, 1, 3
+;#if WINTTDX
+;	stringaddress oldRVCollisionCheck2, 1, 3
+;	mov	edi, [edi]
+;	mov	dword [rvCollisionCurrVehicle], edi
+;	patchcode oldRVCollisionCheck3, startTrailerInDepot, 1, 3
+;	storeaddress oldRVCollisionCheck, 1, 3, JumpOutOfRVRVCollision, 6
+;	stringaddress oldRVCollisionCheck, 1, 3
+;	mov	edi, [edi+2]
+;	mov	dword [rvCollisionFoundVehicle], edi
+;	patchcode oldRVCollisionCheck, newRVCollisionCheck, 1, 3
+;#else
+	stringaddress oldRVCollisionCheck2, 2-WINTTDX, 3
 	mov	edi, [edi]
 	mov	dword [rvCollisionCurrVehicle], edi
-	patchcode oldRVCollisionCheck3, startTrailerInDepot, 1, 3
-	storeaddress oldRVCollisionCheck, 1, 3, JumpOutOfRVRVCollision, 6
-	stringaddress oldRVCollisionCheck, 1, 3
+	patchcode oldRVCollisionCheck3, startTrailerInDepot, 2-WINTTDX, 3
+	storeaddress oldRVCollisionCheck, 2-WINTTDX, 3, JumpOutOfRVRVCollision, 6
+	stringaddress oldRVCollisionCheck, 2-WINTTDX, 3
 	mov	edi, [edi+2]
 	mov	dword [rvCollisionFoundVehicle], edi
-	patchcode oldRVCollisionCheck, newRVCollisionCheck, 1, 3
-#else
-	stringaddress oldRVCollisionCheck2, 2, 3
-	mov	edi, [edi]
-	mov	dword [rvCollisionCurrVehicle], edi
-	patchcode oldRVCollisionCheck3, startTrailerInDepot, 2, 3
-	storeaddress oldRVCollisionCheck, 2, 3, JumpOutOfRVRVCollision, 6
-	stringaddress oldRVCollisionCheck, 2, 3
-	mov	edi, [edi+2]
-	mov	dword [rvCollisionFoundVehicle], edi
-	patchcode oldRVCollisionCheck, newRVCollisionCheck, 2, 3
-#endif
+	patchcode oldRVCollisionCheck, newRVCollisionCheck, 2-WINTTDX, 3
+;#endif
 
 	patchcode oldRVCollisionTimeout, newRVCollisionTimeout, 1, 1
 
@@ -293,8 +296,6 @@ patcharticulatedvehicles:
 #endif
 	chainfunction updateTrailerPosAfterRVProc, .origfn, 1
 
-;	patchcode oldRVForceTurnAround, newRVForceTurnAround, 1, 1
-
 ;------------new stuffs.
 	stringaddress findLimitTurnToFortyFiveDegrees, 1, 1
 	mov	[LimitTurnToFortyFiveDegrees], edi
@@ -312,9 +313,6 @@ patcharticulatedvehicles:
 	stringaddress findGenerateFirstRVArrivesMessage, 2, 4
 	mov	dword [GenerateFirstRVArrivesMessage], edi
 	stringaddress findProcessNextRVOrder, 2, 4
-;#if WINTTDX
-;	sub	edi, 11
-;#endif
 	mov	dword [ProcessNextRVOrder], edi
 	stringaddress findProcessLoadUnload, 2, 4
 	mov	dword [ProcessLoadUnload], edi
@@ -348,4 +346,7 @@ patcharticulatedvehicles:
 	mov	dword [UpdateVehicleSpriteBox], edi
 	stringaddress findUpdateDirectionIfMovedTooFar, 2-WINTTDX, 3
 	mov	dword [UpdateDirectionIfMovedTooFar], edi
+
+	//NOTE!: this code overwrites the 'call' to gotodepo.asm:294
+	patchcode oldAddStationToRVSchedule, newAddStationToRVSchedule, 1, 1
 	retn

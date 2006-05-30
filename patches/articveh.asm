@@ -13,7 +13,7 @@
 #include <station.inc>
 
 extern newbuyrailvehicle, discard, vehcallback, articulatedvehicle, delveharrayentry, sellroadvehicle
-extern RefreshWindows, LoadUnloadCargo
+extern RefreshWindows, LoadUnloadCargo, checkgototype, isrvbus
 
 uvarb byte_11258E
 uvarb vaTempLocation1
@@ -928,34 +928,6 @@ useParentMovement:
 	pop	edx
 	retn
 
-;global turnTrailersAroundToo
-;turnTrailersAroundToo:
-;	test	bl, 1
-;	jz	.justReturn
-;	mov	byte [edx+0x6A], 180
-;	push	ecx
-;	push	ax
-;	movzx	ecx, word [edx+veh.engineidx]
-;	mov	ax, word [edx+veh.XY]
-;	cmp	cx, word [edx+veh.idx]
-;	jne	.cleanAndJustReturn
-;	mov	ecx, edx
-;.doZeeLoop:
-;	cmp	word [ecx+veh.nextunitidx], 0xFFFF      //MORE?
-;	je	.cleanAndJustReturn
-;	mov	cx, word [ecx+veh.nextunitidx]
-;	shl	cx, 7
-;	add	cx, [veharrayptr]
-;	mov	ax, word [edx+veh.XY]
-;	mov	word [ecx+veh.XY], ax
-;	mov	byte [ecx+0x6A], 180
-;	jmp	.doZeeLoop
-;.cleanAndJustReturn:
-;	pop	ax
-;	pop	ecx
-;.justReturn:
-;	retn
-
 global rvdailyprocoverride
 rvdailyprocoverride:
 	push	eax
@@ -965,4 +937,21 @@ rvdailyprocoverride:
 	jne	.skipRVDailyProc
 	call	[oldrvdailyproc]
 .skipRVDailyProc:
+	retn
+
+//in: EDI is the station pointer.
+global dontLetARVsInNormalRVStops
+dontLetARVsInNormalRVStops:
+	jecxz	.justDoNormal				//this is a depot... do the usual code
+	cmp	word [esi+veh.nextunitidx], 0xFFFF
+	je	.justDoNormal				//does our RV have trailers? check if the station is ok
+	push	edi
+	movzx	edi, word [mousetoolclicklocxy]		//grab the XY of the selected station.
+	cmp	byte [landscape5(di)], 0x53		//shit... we have to find the real XY, not just the truck station.
+	pop	edi
+	jge	.justDoNormal
+	and	ah, 0
+	retn
+.justDoNormal:
+	call	checkgototype
 	retn
