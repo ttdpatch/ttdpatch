@@ -81,17 +81,35 @@ NewClass5RouteMapHandler:
 .bus:
 	xor eax, eax
 	mov byte al, [landscape5(di)]
+	//steven hoefel: first check for articulated vehicle, they arent allowed to enter normal stops
+	push esi
+	mov esi, [esp+0x0C]		//grab the esi pointer that was pushed onto the stack
+	cmp esi, 0x100000		//an arbitrarily-low value which will tells me if i have the right stack value
+	jg .goodAddress
+	mov esi, [esp+0x04]		//depending on what called this func, we either need to shift 12 or 4
+.goodAddress:
+	cmp word [esi+veh.nextunitidx], 0xFFFF		//do we have a trailer(s)?
+	pop esi
+	je .continueAsNormal		//not articulated
 	cmp al, 0x53
+	jl .doNotAllowEntry		//articulated AND we are trying to go into a normal stop, disallow!
+.continueAsNormal:
+	cmp al, 0x53		//bus stop
 	je .busstop1
 	cmp al, 0x57		//truck stop has same movement
 	je .busstop1
-	cmp al, 0x54
+	cmp al, 0x54		//bus stop
 	je .busstop2
 	cmp al, 0x58		//truck stop has same movement
 	je .busstop2
 //	cmp al, 0x07
 //	jbe .railstation
 	xor eax, eax
+	ret
+
+.doNotAllowEntry:
+	xor eax, eax	//zero the 'tile route map'
+	xor edi, edi	//ruin the landscape XY pointer so that the routemapper wont allow entry.
 	ret
 
 #if 0
