@@ -306,15 +306,7 @@ global choosetrainvehindepot
 choosetrainvehindepot:
 	push ebx
 	xchg eax,ebx
-
-	bt dword [grfmodflags], 3
-	jc .is32
 	mov al,0x1D
-	jmp .not32
-.is32:
-	mov al,0x20
-.not32:
-
 	mul bl
 	add al,bh
 	adc ah,0
@@ -335,19 +327,13 @@ choosetrainvehindepot:
 
 	neg ebx
 	sub ax,bx
-	jbe .foundit
+	jb .foundit
 
 	movzx edi,word [edi+veh.nextunitidx]
 	cmp di,-1
 	je .notfound
 	shl edi,vehicleshift
 	add edi,[veharrayptr]
-
-	bt dword [grfmodflags], 3 // For 32px depots
-	jnc .nextveh
-	sub ax, 3 // Fixes a slight problem with odd results (now pixil perfect with bounding boxes)
-	jbe .foundit
-
 	jmp .nextveh
 
 .notfound:
@@ -376,12 +362,13 @@ showactivetrainveh:
 	pop ebx
 
 	bt dword [grfmodflags], 3 // Corrects a slight offset problem with 32px
-	jc .is32x
+	jc .is32
 	lea ebx,[ebx*3]
-	jmp .not32x
-.is32x:
+	jmp .not32
+.is32:
 	lea ebx,[ebx*4-2]
-.not32x:
+	dec ax
+.not32:
 
 	neg ebx
 	add bx,ax
