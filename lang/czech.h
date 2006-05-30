@@ -155,10 +155,6 @@ SETTEXT(LANG_LOADCUSTOMTEXTS, "Nahr v m obvykl‚ hern¡ texty.\n")
 // ttdpttxt.dat is not in a valid format
 SETTEXT(LANG_CUSTOMTXTINVALID, "¬ten¡ %s: Chybnì form t souboru.\n")
 
-SETTEXT(LANG_CUSTOMTXTWRONGVER,
-	"%s mus¡ bìt znovu vytvoýen pro tuto verzi TTDPatch.\n"
-	"Spusœte nejnovØjç¡ verzi mkpttxt.exe\n")
-
 
 //-----------------------------------------------
 //   COMMAND LINE HELP (-h)
@@ -223,12 +219,12 @@ TEXTARRAY(halflines,) =
 	  "-Xx: Ukl d  a nahr v  dalç¡ data",
 
 	  "-XA: Nucen  obnova vozidel s -Xa",
-	  "-XB: Umo§nit stavbu pýi zapauzovan‚ hýe",
+	  "-XB: Stavba pýi zapauzovan‚ hýe",
 	  "-XE: Electrifikovan‚ tratØ",
 	  "-XF: Nastavit experimentaln¡ volby",
 	  "-XG: V§dy nahraje novou grafiku",
 	  "-XH: Ulo§it a zobrazit historii zpr v",
-	  "-XI: Umo§nit path based signalling (PBS)",
+	  "-XI: Umo§nit path based signall.(PBS)",
 	  "-XL: Zobrazit zisk v pýehledu vozidel",
 	  "-XO: Umo§nit kop¡rov n¡ j¡zdn¡ch ý d…",
 	  "-XP: Nov‚ modely letadel",
@@ -250,10 +246,10 @@ TEXTARRAY(halflines,) =
 
 	  "-YC: StavØn¡ na pobýe§¡",
 	  "-YD: Rozç¡ýen‚ nasataven¡ obt¡§nosti",
-	  "-YF: FIFO nakl d n¡ (kdo dý¡v pýijede, ten dý¡v nakl d )",
+	  "-YF: Umo§nit FIFO nakl d n¡",
 	  "-YH: V¡ce/nov‚ hotkeys",
-	  "-YL: Omezit rychlost §elezniŸn¡ch vagon…",
-	  "-YN: Umo§nit nov‚ sch‚ma pojmenov n¡ mØst",
+	  "-YL: Omezit rychlost vlakovìch vagon…",
+	  "-YN: Umo§nit nov‚ sch‚ma jmen mØst",
 	  "-YP: Letadla se skuteŸnou rychlost¡",
 	  "-YS: Star‚ semafory pýed rokem 1975",
 
@@ -400,7 +396,7 @@ SWITCHTEXT(newerrorpopuptime, "Trv n¡ Ÿerven‚ho hl çen¡", ": %d s")
 SWITCHTEXT(newtowngrowthfactor, "Faktor r…stu mØst", " k¢d %d")
 SWITCHTEXT(largertowns, "VØtç¡ mØsta", ", ka§d‚ 1 z %d")
 SWITCHTEXT(miscmods, "Mnohostrann‚ m¢dy", " k¢d %ld")
-SWITCHTEXT(loadallgraphics, "Nahr n¡ ka§d‚ho souboru nov‚ grafiky", "")
+SWITCHTEXT(loadallgraphics, "Nahr t ka§dì soubor nov‚ grafiky", "")
 SWITCHTEXT(saveoptdata, "Ulo§en¡ a nahr t¡ rozç¡ýenìch dat", "")
 SWITCHTEXT(morebuildoptions, "Rozç¡ýen‚ stavØn¡", " k¢d %d")
 SWITCHTEXT(semaphoresignals, "Star‚ semafory pýed rokem 1975", "")
@@ -421,12 +417,12 @@ SWITCHTEXT(fastwagonsell, "Rychlejç¡ prodej vagon…", "")
 SWITCHTEXT(newrvcrash, "Auto-vlakov‚ kolize"," k¢d %d")
 SWITCHTEXT(stableindustry, "Pr…mysl nekrachuje pýi stabl. ekonom","")
 SWITCHTEXT(newperformance, "Nov‚ hodnocen¡ vìkonnosti", "")
-SWITCHTEXT(sortvehlist, "Tý¡dit seznam vozidel", ", aktualizace po: %d")
+SWITCHTEXT(sortvehlist, "Tý¡dit seznam vozidel", ", refresh po: %d")
 SWITCHTEXT(showprofitinlist, "Zobrazuje zisk v seznamu vozidel", "")
 SWITCHTEXT(newspapercolour, "Noviny jsou barevn‚", " po roce %d")
 SWITCHTEXT(sharedorders, "Umo§nit kop¡rov n¡ j¡zdn¡ch ý d…", "")
 SWITCHTEXT(moresteam, "Zobrazit v¡ce oblak… p ry", ": %x")
-SWITCHTEXT(abandonedroads, "Nepou§¡van‚ silnice ztrat¡ sv‚ho vlastn¡ka", ", re§im %d")
+SWITCHTEXT(abandonedroads, "Nepou§¡van‚ silnice ztrat¡ vlastn¡ka", ", re§im %d")
 SWITCHTEXT(newstations, "Umo§nit novou grafiku stanic", "")
 SWITCHTEXT(buildwhilepaused, "Umo§nit stavØt pýi zapauzovan‚ hýe", "")
 SWITCHTEXT(losttrains, "Varov n¡ o ztracen‚m vlaku", " po %d dnech")
@@ -434,15 +430,15 @@ SWITCHTEXT(lostrvs, "Varov n¡ o ztracen‚m automobilu", " po %d dnech")
 SWITCHTEXT(lostships, "Varov n¡ o ztracen‚ lodi", " po %d dnech")
 SWITCHTEXT(lostaircraft, "Varov n¡ o ztracen‚m letadle", " po %d dnech")
 SWITCHTEXT(maprefresh, "Obnovov n¡ mapy po", ": %d kroc¡ch")
-SWITCHTEXT(disconnectontimeout, "Opdojit hru po s¡ti, pokud nen¡ odezva", " po %d sec.")
+SWITCHTEXT(disconnectontimeout, "Opdojit hru po s¡ti,je-li bez odezvy", " po %d sec.")
 SWITCHTEXT(moretoylandfeatures, "Umo§nit n hodn‚ procesy v toylandu", ": %d")
 SWITCHTEXT(stretchwindow, "Rozt hnout okno TTD", " na %d pixel…")
 SWITCHTEXT(canals, "StavØt pr…plavy s zdymadla", "")
 SWITCHTEXT(higherbridges, "Umo§nit vyçç¡ mosty", "")
 SWITCHTEXT(gamespeed, "Mo§nost zmØnit rychlost hry", ", vìchoz¡ hodnota %d")
-SWITCHTEXT(freighttrains, "\"ZvØtç¡\" n kladn¡ vlaky danìm koeficientem", " (x%d)")
+SWITCHTEXT(freighttrains, "\"ZvØtç¡\" n kladn¡ vlaky o koeficient", " (x%d)")
 SWITCHTEXT(mousewheel, "Pýid  podporu koleŸka myçi",", nastaven¡: %d")
-SWITCHTEXT(morewindows, "Zvìç¡ maxim ln¡ poŸet otevýenìch oken", " na %d")
+SWITCHTEXT(morewindows, "Zvìç¡ max. poŸet otevýenìch oken", " na %d")
 SWITCHTEXT(enhanceddiffsettings, "Rozç¡ýen‚ nasataven¡ obt¡§nosti", "")
 SWITCHTEXT(newbridges, "Nov‚ mosty", "")
 SWITCHTEXT(newhouses, "Nov‚ domy ve mØstech", "")
@@ -451,7 +447,7 @@ SWITCHTEXT(moreanimation,"Povolit v¡ce animovanìch pol¡Ÿek",", a§ do %d")
 SWITCHTEXT(newshistory, "Historie zpr v", "")
 SWITCHTEXT(wagonspeedlimits, "Omezen¡ rychlosti pro vag¢ny", "")
 SWITCHTEXT(pathbasedsignalling, "Povolit PBS (path based signalling)", "")
-SWITCHTEXT(aichoosechances, "UrŸuje jakou pou§¡t pravdØpodobnost, kdy§ se AI rozhoduje co bude stavØt", "")
+SWITCHTEXT(aichoosechances, "PravdØpodobnost,co bude AI stavØt", "")
 SWITCHTEXT(custombridgeheads, "Upraven  pýedmost¡", "")
 SWITCHTEXT(townbuildnoroads, "MØsta nestav¡ silnice", "")
 SWITCHTEXT(newcargodistribution, "Zlepçen‚ rozdØlov n¡ n kladu", "")
@@ -460,20 +456,20 @@ SWITCHTEXT(resolutionwidth, "Rozliçen¡ - ç¡ýka", " %d pixel…")
 SWITCHTEXT(resolutionheight, "Rozliçen¡ - vìçka", " %d pixel…")
 SWITCHTEXT(newindustries, "Novì pr…mysl", "")
 SWITCHTEXT(locomotiongui, "Povolit GUI jako v Locomotion", "")
-SWITCHTEXT(fifoloading, "Povolit FIFO nakl d n¡ (kdo dý¡v pýijede, ten dý¡v nakl d )", "");
+SWITCHTEXT(fifoloading, "FIFO nakl d n¡ (kdo dý¡v,ten dý¡v)", "");
 SWITCHTEXT(tempsnowline, "Povolit hranici snØhu v m¡rn‚m podneb¡", "")
-SWITCHTEXT(townroadbranchprob, "ZmØnit pravdØpodobnost vytvoýen¡ silniŸn¡ odboŸky mØstem", " na %d")
+SWITCHTEXT(townroadbranchprob, "PravdØpdb. vytvoýen¡ siln.odboŸky", " na %d")
 SWITCHTEXT(newcargos, "Povolit nov‚ druhy n kladu", "")
 SWITCHTEXT(enhancemultiplayer, "Zlepçenì multiplayer (povolit v¡ce hr Ÿ…)", "")
 SWITCHTEXT(newsounds, "Povolit pýid n¡ novìch zvuk… do hry", "")
 SWITCHTEXT(morestats, "Umo§nit z¡sk v n¡ v¡ce statistik", "")
 SWITCHTEXT(onewayroads, "Povolit zmØnu silnic na jednosmØrky s 'Ctrl'", "")
 SWITCHTEXT(irrstations, "Umo§nit stavbu nepravidelnìch n dra§¡", "")
-SWITCHTEXT(autoreplace, "VymØnit vozidla za novì model, kdy§ zest rnou", "; %d%% min. spolehlivost pro nov‚ho modelu")
+SWITCHTEXT(autoreplace, "VymØnit star  vozidla za nov ", "; %d%% min. spolehlivost nov‚ho modelu")
 SWITCHTEXT(autoslope, "Umo§nit zmØnu ter‚nu bez odstranØn¡ staveb", "")
-SWITCHTEXT(followvehicle, "N sledovat vozidlo pohledem v hlavn¡m oknØ", "")
+SWITCHTEXT(followvehicle, "N sledovat vozidlo pohledem v oknØ", "")
 SWITCHTEXT(trams, "Povolit tramvaje na silnic¡ch", "")
-SWITCHTEXT(enhancetunnels, "Povolit stavbu kolej¡ nad vjezdem do tunelu", "")
+SWITCHTEXT(enhancetunnels, "Povolit koleje nad vjezdem do tunelu", "")
 SWITCHTEXT(forcegameoptions, "Povolit zmØnu nastaven¡ hry","")
 
 //---------------------------------------
@@ -796,13 +792,13 @@ SETTEXT(CFG_AIRCRAFTLOSTTIME, "`%s' (%s) d v  varovnou hl çku o ztracen‚m letadl
 SETTEXT(CFG_MAPREFRESH, "`%s' (%s) pýenastav¡ frekvenci obnnovov n¡ okna mapy. Ni§ç¡ hodnota znamen  rychlejç¡ pýekreslen¡ a v¡ce vyu§it¡ procesoru. Default TTD je 64. Rozsah %ld..%ld.  Default %ld.")
 SETTEXT(CFG_NETWORKTIMEOUT, "`%s' (%s) odpoj¡ s¡œovou hru pokud nen¡ odezva po zadanì poŸet sekund. Rozsah %ld..%ld.  Default %ld.")
 SETTEXT(CFG_TOYLANDFEATURES, "`%s' (%s) umo§n¡ prvky krajiny, kter‚ jsou norm lnØ v n hodn‚ hýe v Toylandu znemo§nØn‚, jako napý¡klad maj ky. Bitov  hodnota.")
-SETTEXT(CFG_STRETCHWINDOW, "`%s' (%s) rozt hne okno TTD do t‚to vodorovn‚ velikosti bv pixelech (pouze pro Windows verzi TTD spuçtØnou v oknØ). Rozsah %ld..%ld.  Default %ld.")
+SETTEXT(CFG_STRETCHWINDOW, "`%s' (%s) rozt hne okno TTD do t‚to vodorovn‚ velikosti v pixelech (pouze pro Windows verzi TTD spuçtØnou v oknØ). Rozsah %ld..%ld.  Default %ld.")
 SETTEXT(CFG_CANALS, "`%s' (%s) umo§n¡ stavØt pr…plavy a zdymadla pou§it¡m n stroje 'koupit pozemek' z menu stavby doku.")
 SETTEXT(CFG_FREIGHTTRAINS, "`%s' (%s) n sob¡ n klad pýev §enì n kladn¡m vlakem zadanou hodnotou pro simulaci velmi dlouhìch n kladn¡ch vlak…. P…sob¡ to pouze na zrychlen¡, vlaky nepýev §ej¡ v¡ce n kladu. Rozsah %ld..%ld.  Default %ld.")
 SETTEXT(CFG_GAMESPEED, "`%s' (%s) umo§åuje mØnit rychlost hry. Toto vy§aduje hotkeys patch. Stiskem kl vesy 'q' se hra dvakr t zrychl¡ (a§ do maxim lnØ 8x rychlejç¡), stiskem kl vesy 'w' se hra zpomal¡. Hodnota je poŸ teŸn¡ nastaven¡. Rozsah %ld..%ld.  Default %ld.")
 SETTEXT(CFG_HIGHERBRIDGES, "`%s' (%s) umo§n¡ stavØt vyçç¡ mosty.")
 SETTEXT(CFG_NEWGRFCFG, "`%s' (%s) vybere konfiguraŸn¡ soubor pro novou grafiku.")
-SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s) umo§åuje pou§it¡ koleŸka myçi ve Windows verzi. 0 znamen  p…vodn¡ zoomov n¡ koleŸkem (stýed zvØtçen¡ je ve stýedu obrazovky), 1 znamen  zoomov n¡ jako v OpenTTD (stýed zvØtçen¡ je pod kursorem, pokud je to mo§n‚). PýiŸtØte 2 pro 'bezpeŸn‚' zoomov n¡ (dva rolovac¡ kroky koleŸkem pro zvØtçen¡). PýiŸtØte 4 pro podporu starç¡ch syst¡m… a ovladaŸ… (nutn‚ pro nØkter‚ ovladaŸe a Windows95). Rozsah %ld..%ld. Default %ld.")
+SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s) umo§åuje pou§it¡ koleŸka myçi ve Windows verzi. 0 znamen  p…vodn¡ zoomov n¡ koleŸkem (stýed zvØtçen¡ je ve stýedu obrazovky), 1 znamen  zoomov n¡ jako v OpenTTD (stýed zvØtçen¡ je pod kursorem, pokud je to mo§n‚). PýiŸtØte 2 pro 'bezpeŸn‚' zoomov n¡ (dva rolovac¡ kroky koleŸkem pro zvØtçen¡). PýiŸtØte 4 pro podporu starç¡ch syst‚m… a ovladaŸ… (nutn‚ pro nØkter‚ ovladaŸe a Windows95). Rozsah %ld..%ld. Default %ld.")
 SETTEXT(CFG_MOREWINDOWS, "`%s' (%s) umo§n¡ v¡ce otevýenìch oken na obrazovce. Default TTD je 10, ale 3 pozice jsou v§dy obsazen‚ (hlavn¡ panel n stroj…, hlavn¡ pohled, stavovì ý dek), tak§e souŸasn‚ maximum je 7. Rozbalovac¡ nab¡dky a novinov‚ zpr vy se tak‚ poŸ¡taj¡ jako okna. Rozsah %ld..%ld. Default %ld.")
 SETTEXT(CFG_ENHANCEDDIFFICULTYSETTINGS, "'%s' (%s) umo§åuje vybrat '§ dn‚' pro poŸet pr…myslu v nastaven¡ obt¡§nosti.")
 SETTEXT(CFG_NEWBRIDGES, "`%s' (%s) umo§åuje novou grafiku pro mosty.")
@@ -811,14 +807,14 @@ SETTEXT(CFG_NEWTOWNNAMES, "`%s' (%s) umo§åuje pýidat nov‚ n zvy mØst pro n hodn‚
 SETTEXT(CFG_MOREANIMATION, "`%s' (%s) umo§åuje zvìçit poŸet pol¡Ÿek, kter  budou animov na. Default TTD je 256. Rozsah %ld..%ld. Default %ld.")
 SETTEXT(CFG_NEWSHISTORY, "`%s' (%s) umo§åuje z znam a zobrazen¡ historie zpr v.")
 SETTEXT(CFG_WAGONSPEEDLIMITS, "`%s' (%s) umo§åuje omezen¡ rychlosti pro vag¢ny.")
-SETTEXT(CFG_PATHBASEDSIGNALLING, "`%s' (%s) umo§åuje PBS - path based signalling. Pýed pou§it¡m si PROSÖM pýeŸtØte manu l, spr vn‚ pou§it¡ t‚to funkce je ponØkud obt¡§nØjç¡.")
+SETTEXT(CFG_PATHBASEDSIGNALLING, "`%s' (%s) umo§åuje PBS - path based signalling. Pýed pou§it¡m si pýeŸtØte manu l, spr vn‚ pou§it¡ t‚to funkce je ponØkud obt¡§nØjç¡.")
 SETTEXT(CFG_CUSTOMBRIDGEHEADS, "`%s' (%s) upravuje pýedmost¡.")
 SETTEXT(CFG_TOWNBUILDNOROADS, "`%s' (%s) mØsta nestav¡ silnice.")
 SETTEXT(CFG_NEWCARGODISTRIBUTION, "`%s' (%s) zlepçen‚ rozdØlov n¡ n kladu.")
 SETTEXT(CFG_WINDOWSNAP, "`%s' (%s) dovol¡ okn…m se vz jemnØ pýichyt vat. Rozsah %ld..%ld. Default %ld.")
-SETTEXT(CFG_RESOLUTIONWIDTH, "`%s' (%s) umo§åuje a nastavuje ç¡ýku rozliçen¡ patche.")
-SETTEXT(CFG_RESOLUTIONHEIGHT, "`%s' (%s) umo§åuje a nastavuje vìçku rozliçen¡ patche.")
-SETTEXT(CFG_AICHOOSECHANCES, "`%s' (%s) ud v  jakou pravdØpodobnost pou§¡t, kdy§ se AI rozhoduje co bude stavØt (pravdØpodobnost stavby lodn¡ linky je 1 - pst. §eleznice - pst. silnice - pst. letadla).")
+SETTEXT(CFG_RESOLUTIONWIDTH, "`%s' (%s) umo§åuje a nastavuje ç¡ýku rozliçen¡ obrazu.")
+SETTEXT(CFG_RESOLUTIONHEIGHT, "`%s' (%s) umo§åuje a nastavuje vìçku rozliçen¡ obrazu.")
+SETTEXT(CFG_AICHOOSECHANCES, "`%s' (%s) ud v  jakou pravdØpodobnost pou§¡t, kdy§ se AI rozhoduje co bude stavØt (pravdØpodobnost stavby lodn¡ linky je 1 - çance §eleznice - çance silnice - çance letadla).")
 SETTEXT(CFG_AIBUILDRAILCHANCE, "`%s' (%s) pravdØpodobnost, §e AI bude stavØt §elezniŸn¡ spojen¡, kdy§ bude cht¡t postavit novou trasu. Rozsah %ld..%ld, 0=0%%, 65535=100%%. Default %ld.")
 SETTEXT(CFG_AIBUILDRVCHANCE, "`%s' (%s) pravdØpodobnost, §e AI bude stavØt automobilov‚ spojen¡, kdy§ bude cht¡t postavit novou trasu. Rozsah %ld..%ld, 0=0%%, 65535=100%%. Default %ld.")
 SETTEXT(CFG_AIBUILDAIRCHANCE, "`%s' (%s) pravdØpodobnost, §e AI bude stavØt leteck‚ spojen¡, kdy§ bude cht¡t postavit novou trasu. Rozsah %ld..%ld, 0=0%%, 65535=100%%. Default %ld.")

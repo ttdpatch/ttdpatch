@@ -475,6 +475,10 @@
 
 - change ttdpatch.txt to wiki manual
 
+- don't combine wagons of different cargo types in depot, and show cargo icon
+
+- action D global variables set as soon as flag is green, not only after apply
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -736,3 +740,4 @@ CHANGELOG
 
 
 2.5 beta 6
+- updated Czech translation
