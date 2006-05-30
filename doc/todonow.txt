@@ -740,4 +740,4 @@ CHANGELOG
 
 
 2.5 beta 6
-- updated Czech translation
+- updated Czech, Spanish translations
