@@ -21,8 +21,8 @@ extern lastgenericspritealloc,malloc,malloccrit,newgrfflags,newspritedata
 extern newspritenum,numactsprites,numgrfswitchparam,numspriteactions
 extern numgrfvarreinitalways,numgrfvarreinitzero,numgrfvarreinitsigned
 extern openfilefn,patchflags,readspriteinfofn,readwordfn
-extern removespritefromcache,spriteblockptr,spriteinitializeaction
-extern spritesloadedaction,tempvard,grfvarreinitgrmstart,numgrfvarreinitgrm
+extern removespritefromcache,spriteblockptr
+extern tempvard,grfvarreinitgrmstart,numgrfvarreinitgrm
 extern vehids,curextragrm,lastextragrm,ourtext_ptr,defcargotrans
 
 
@@ -776,9 +776,9 @@ resolvesprites:
 
 	// process each block individually, so that it can
 	// adjust its sprite numbers to the real sprite numbers
-	mov eax,spritesloadedaction
+	mov eax,PROCALL_LOADED
 	call procallsprites
-	mov eax,spriteinitializeaction
+	mov eax,PROCALL_INITIALIZE
 	call procallsprites
 
 .done:
@@ -811,9 +811,12 @@ uvard spritehandlertable
 
 uvarb procallsprites_noreset
 uvarb procallsprites_replaygrm
+uvard procall_type
 
 global procallsprites
 procallsprites:
+	mov [procall_type],eax
+	mov eax,[procall_handlers+eax*4]
 	mov [spritehandlertable],eax
 	mov edx,[spriteblockptr]
 
@@ -875,6 +878,9 @@ procallsprites:
 	mov byte [procallsprites_replaygrm],0
 	ret
 ; endp procallsprites
+
+extern PROCALL_HANDLERS
+vard procall_handlers, PROCALL_HANDLERS
 
 
 global procgrffile

@@ -45,7 +45,7 @@ extern rvpowerinit,savedvehclass,saveindustrydata,setactivegrfs
 extern setbasecostmult,setbridgespeedlimits,setcargoclasses
 extern setcharwidthtablefn,setdefaultcargo,soundoverrides
 extern specificpropertybase,specificpropertylist,specificpropertyofs
-extern spriteactivateaction,spritecacheptr,spriteerror,spritereserveaction
+extern spritecacheptr,spriteerror
 extern stationclassesused,stationidgrfmap,stationpylons,temp_snowline
 extern textcolortablewithcompany,undogentextnames,unimaglevmode
 extern updatecurrlist,veh2ptr,vehbnum,vehsorttable,setwillbeactive
@@ -426,7 +426,7 @@ infoapply:
 	mov dword [numactsprites],baseoursprites
 	call exsresetspritecounts
 
-	mov eax,spritereserveaction
+	mov eax,PROCALL_RESERVE
 	call procallsprites
 	call postinforeserve
 
@@ -435,7 +435,7 @@ infoapply:
 
 	mov byte [procallsprites_replaygrm],1
 	mov byte [procallsprites_noreset],1
-	mov eax,spriteactivateaction
+	mov eax,PROCALL_ACTIVATE
 	call procallsprites
 
 	call postinfoapply

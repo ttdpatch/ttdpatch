@@ -2689,7 +2689,7 @@ actiond:
 
 setparam:
 	test al,al
-	js .ok
+	js .globalvar
 	cmp al,[edx+spriteblock.numparam]
 	jb .ok
 
@@ -2714,6 +2714,11 @@ setparam:
 	popa
 	jnc .doop
 	ret
+
+.globalvar:
+	extern procall_type
+	cmp dword [procall_type],PROCALL_ACTIVATE
+	jne .done	// skip writing to global variables unless doing activation
 
 .ok:
 	test byte [esi],0x80

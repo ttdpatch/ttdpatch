@@ -52,6 +52,15 @@ foundationtypes equ 14+8
 #define SHIPACTION 2
 #define AIRCRAFTACTION 3
 
+	// types of calls to procallsprites
+%define PROCALL_LOADED		0	// called once after all sprites are loaded
+%define PROCALL_INITIALIZE	1	// called once after _LOADED
+%define PROCALL_RESERVE		2	// called before activating to to GRM
+%define PROCALL_ACTIVATE	3	// called to activate everything
+%define PROCALL_TEST		4	// called to check whether sets will activate
+
+	// handlers for the above, in the right order
+%define PROCALL_HANDLERS spritesloadedaction, spriteinitializeaction, spritereserveaction, spriteactivateaction, spritetestactaction,
 
 	// invalid sprite error codes
 #define INVSP_ISREAL 1		// using real sprite where pseudo sprite expected

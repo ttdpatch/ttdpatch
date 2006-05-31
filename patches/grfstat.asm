@@ -21,7 +21,7 @@ extern exsshowstats,externalvars,fillrectangle,formatspriteerror,hexdigits
 extern invalidatehandle,makegrfidlist,miscmodsflags,numactsprites
 extern procallsprites,setactivegrfs,setgrfidact,specialtext1,specialtext2
 extern specialtext3,specialtext4
-extern spriteblockptr,spritetestactaction,tempSplittextlinesNumlinesptr
+extern spriteblockptr,tempSplittextlinesNumlinesptr
 extern totalmem
 extern totalnewsprites
 extern newtexthandler,int21handler,hasaction12,getutf8char,tmpbuffer1,hexnibbles,errorpopup
@@ -188,7 +188,7 @@ win_grfstat_setgrfactivation:
 
 	// now go through all .grf files and check whether they would activate
 	call setactivegrfs
-	mov eax,spritetestactaction
+	mov eax,PROCALL_TEST
 	call procallsprites
 
 	// and set the real activation back, keep the new one
@@ -302,7 +302,7 @@ actiongrfstat:
 .titleapply:
 	mov byte [activatedefault],1
 	call setactivegrfs
-	mov eax,spritetestactaction
+	mov eax,PROCALL_TEST
 	call procallsprites
 	call win_grfstat_swapnewactive
 	xor ebx,ebx
