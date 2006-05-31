@@ -166,10 +166,6 @@ SETTEXT(LANG_LOADCUSTOMTEXTS, "Cargando textos del juego modificados.\n")
 // ttdpttxt.dat is not in a valid format
 SETTEXT(LANG_CUSTOMTXTINVALID, "Leyendo %s: Formato de archivo inv lido.\n") 
 
-SETTEXT(LANG_CUSTOMTXTWRONGVER,
-	"%s debe rehacerse para esta versi¢n de TTDPatch.\n" 
-	"Por favor descargue y ejecute la £ltima versi¢n del programa mkpttxt.exe.\n") 
-
 
 //-----------------------------------------------
 //   COMMAND LINE HELP (-h)
@@ -212,11 +208,11 @@ TEXTARRAY(halflines,) =
 	  "-N:  Noticias de m s eventos", 
 	  "-O:  Edif. de ofic. aceptan alimentos",
 	  "-P:  Mantener locom. si est n en uso",
-	  "-R:  Camiones esperan en fila",
+	  "-R:  Los camiones esperan en fila",
 	  "-S:  Nuevos modelos de barcos", 
 	  "-T:  Nuevos modelos de tren",
 
-	  "-2:  Compatibilidad con Windows 2000/XP",
+	  "-2:  Compatibilidad Windows 2000/XP",
 
 	  "-Xb: Opci¢n de soborno en men£ de A.L.",
 	  "-Xd: A¤adir coch. a ¢rdenes de vehic",
@@ -225,7 +221,7 @@ TEXTARRAY(halflines,) =
 	  "-Xg: Carga gradual de veh¡culos", 
 	  "-Xh: Nuevos edificios",
 	  "-Xi: No cierres ind. con eco. estable",
-	  "-Xl: Construcci¢n de canales y esclusas",
+	  "-Xl: Construcc. de canales y esclusas",
 	  "-Xm: Opci¢n de cargar juego en men£",
 	  "-Xo: Los c¢digos en r¢t. valen dinero",
 	  "-Xp: Nuevo c lculo del funcionamiento",
@@ -239,7 +235,7 @@ TEXTARRAY(halflines,) =
 	  "-XE: V¡as ferreas electrificadas",
 	  "-XF: Activar opciones experimentales",
 	  "-XG: Cargar todos los nuevos gr ficos",
-	  "-XH: Guarda+muestra el hist. de niticias",
+	  "-XH: Guarda+muestra hist. de noticias",
 	  "-XI: Se¤ales Basadas en la Trayectoria",
 	  "-XL: Provecho en lista de veh¡culos",
 	  "-XO: Permite compartir/copiar ¢rdenes",
@@ -265,7 +261,7 @@ TEXTARRAY(halflines,) =
 	  "-YF: Carga FIFO",
 	  "-YH: M s/nuevas teclas de funci¢n",
 	  "-YL: L¡mites de velocidad para vagones",
-	  "-YN: Nuevos esquemas de nombre de ciudad",
+	  "-YN: Nuev. esquema de nombre de ciudad",
 	  "-YP: Aviones vuelan a velocidad real",
 	  "-YS: Sem foros antes de 1975",
 
@@ -463,7 +459,7 @@ SWITCHTEXT(moreanimation,"Permitir m s azulejos animados",", up to %d")
 SWITCHTEXT(newshistory, "Hist¢rico de noticias", "")
 SWITCHTEXT(wagonspeedlimits, "L¡mites de velocidad para los vagones de tren", "")
 SWITCHTEXT(pathbasedsignalling, "Permitir Se¤ales Basadas en la Trayectoria", "")
-/***/SWITCHTEXT(aichoosechances, "Specify which chances to use when the ai decides what to build", "")
+SWITCHTEXT(aichoosechances, "Especifica qu‚ probabilidad usar cuando la IA decida construir", "")
 SWITCHTEXT(custombridgeheads, "Cabeceras de los puentes a medida", "")
 SWITCHTEXT(townbuildnoroads, "Las ciudades no construyen carreteras", "")
 SWITCHTEXT(newcargodistribution, "Distribuci¢n de mercancias mejorada", "")
@@ -481,7 +477,7 @@ SWITCHTEXT(newsounds, "Permite a¤adir nuevos sonidos en el juego", "")
 SWITCHTEXT(morestats, "Permite una colecci¢n de m s estad¡sticas", "")
 SWITCHTEXT(onewayroads, "Permite cambiar carreteras a un s¢lo sentido con 'Ctrl'", "")
 SWITCHTEXT(irrstations, "Permite la construcci¢n de estaciones irregulares", "")
-SWITCHTEXT(autoreplace, "Actualizar veh¡culos cuando est‚n viejos", "; %d%% min. fiabilidad para el modelo nuevo")
+SWITCHTEXT(autoreplace, "Renovar veh¡culos al estar viejos", "; %d%% min. fiabilidad del modelo nuevo")
 SWITCHTEXT(autoslope, "Permite movimientos de tierra sin destruir estructuras", "")
 SWITCHTEXT(followvehicle, "Seguir el movimiento del veh¡culo en el mapa principal", "")
 SWITCHTEXT(trams, "Permite tramvias en carreteras", "")
@@ -503,7 +499,7 @@ BIT(jetsoff,      "accidentes de reactores en aeropuertos peque¤os desactivados"
 
 // Description for miscmods bits
 BITSWITCH(miscmods)
-/***/BIT(nobuildonbanks,        "towns don't build on waterbanks")
+BIT(nobuildonbanks,        "las ciudades no contruyen en vados")
 BIT(servintonlyhuman,      "la configuraci¢n del interval de servicio no se aplica a los jugadores IA")
 BIT(noroadtakeover,        "las ciudades no reclaman las carreteras en el editor de escenarios")
 BIT(gradualloadbywagon,    "la carga gradual se carga vagon por vagon")
@@ -513,15 +509,15 @@ BIT(dontfixhousesprites,   "no fijar que oficinas sean mostradas como igl‚sias")
 BIT(oldtownterrmodlimit,   "no cambiar el coste de modificaci¢n del terreno para las ciudades")
 BIT(nozeppelinonlargeap,   "previene que los Zeppelins tengan accidentes en aeropuertos grandes")
 BIT(nodefaultoldtracktype, "no usar el anterior tipo de vias por defecto")
-/***/BIT(usevehnnumbernotname,  "don't change news messages to use vehicle names")
+BIT(usevehnnumbernotname,  "no modifica las noticias para usar los nombres de veh¡culos")
 BIT(norescalecompanygraph, "no reescalar los gr ficos de las compa¤ias cuando estas sean deseleccionadas")
 BIT(noyearlyfinances,      "no mostrar las finanzas anuales en el 1ero de Enero")
-/***/BIT(notimegiveaway,        "don't try to give time slices away to conserve power")
+BIT(notimegiveaway,        "no intente dar tiempos de ejecuci¢n hacia fuera para tener toda la pot‚ncia")
 BIT(nodesynchwarning,      "no avisar cuando las partidas multijugador se desincronicen")
-/***/BIT(noworldedgeflooding,   "don't let the edge of the map flood")
+BIT(noworldedgeflooding,   "evita que la esquina del mapa se inunde")
 BIT(doshowintro,           "mostrar la introducci¢n del juego (no se saltar )")
 BIT(nonewspritesorter,     "no usar el nuevo algoritmo de ordenaci¢n de punteros")
-/***/BIT(nodiagonalflooding,    "disable diagonal flooding and corner coasts")
+BIT(nodiagonalflooding,    "deshabilita inundaciones en diagonal y costas en la esquina")
 BIT(noenhancedcomp,        "no mejorar el algoritmo de compresion de guardar partidas")
 BIT(breakdownatsignal,     "no fijar que los trenes se estropeen cuando esperan en un sem foro en rojo")
 BIT(smallspritelimit,      "no incrementar el l¡mite de punteros")
@@ -813,12 +809,12 @@ SETTEXT(CFG_FREIGHTTRAINS, "`%s' (%s) multiplica la mercancia transportada po un
 SETTEXT(CFG_GAMESPEED, "`%s' (%s) Hace la velocidad del juego cambiable. Esto requiere el parche de las teclas. Presione 'q' para duplicar la velocidad de juego (hasta un m ximo de 8x), y 'w' para reducirla. El par metro ser  la configuraci¢n inicial. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_HIGHERBRIDGES, "`%s' (%s) permite la construcci¢n de puentes altos.")
 SETTEXT(CFG_NEWGRFCFG, "`%s' (%s) especifica el archivo de configuraci¢n de los nuevos juegos de gr ficos.")
-/***/SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s) enables using the mouse wheel in the Windows version. 0 means original zooming with wheel (center stays), 1 means OpenTTD-style zooming (point under mouse cursor stays if possible). Add 2 to enable 'safe' zooming (two rollings trigger zoom). Add 4 for legacy wheel support (needed for some drivers and Win95). Range %ld..%ld. Default %ld.")
+SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s)  habilita el uso de la rueda del rat¢n en la versi¢n de Windows. 0 significa zoom original con la rueda (mantiene el centrado), 1 significa zoom estilo OpenTTD (el puntero bajo el cursor del rat¢n se mantiene si es posible). Suma 2 para habilitar el zoom \"seguro\" (dos giros inicia el zoom). Suma 4 para soporte de rueda normalizado (se necesita para algunos controladores y Win95). Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_MOREWINDOWS, "`%s' (%s) permite mas ventanas abiertas en la pantalla. El valor por defecto de TTD es de 10, pero 3 ventanas estan ocupadas (barra de herramientas principal, Vista principal y barra de estado), por lo que el m ximo de ventanas abiertas actual es de 7. Men£s desplegables y avisos cuentan igualmente como ventanas. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_ENHANCEDDIFFICULTYSETTINGS, "'%s' (%s) hace posible seleccionar 'no' en el n£mero de industrias en la configuraci¢n de dificultad.")
 SETTEXT(CFG_NEWBRIDGES, "`%s' (%s) permite nuevos gr ficos para puentes.")
 SETTEXT(CFG_NEWHOUSES, "`%s' (%s) activa nuevos tipos de edificios con nuevos gr ficos.")
-/***/SETTEXT(CFG_NEWTOWNNAMES, "`%s' (%s) allows adding new town name styles for random games via new grf files.")
+SETTEXT(CFG_NEWTOWNNAMES, "`%s' (%s) permite agregar nuevos estilos de nombre de ciudades para juegos al azar via nuevos archivos grf.")
 SETTEXT(CFG_MOREANIMATION, "`%s' (%s) permite incrementar el n£mero de azulejos que pueden ser animados. El valor por defecto de TTD es de 256. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_NEWSHISTORY, "`%s' (%s) permite coleccionar y mostrar el hist¢rico de noticias.")
 SETTEXT(CFG_WAGONSPEEDLIMITS, "`%s' (%s) permite l¡mites de velocidad para vagones de tren.")
@@ -829,10 +825,10 @@ SETTEXT(CFG_NEWCARGODISTRIBUTION, "`%s' (%s) mejorada la distribuci¢n de mercanc
 SETTEXT(CFG_WINDOWSNAP, "`%s' (%s) ajunta las ventanas que estan cercanas. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_RESOLUTIONWIDTH, "`%s' (%s) permite y configura la anchura de la resoluci¢n del parche.")
 SETTEXT(CFG_RESOLUTIONHEIGHT, "`%s' (%s) permite y configura la altura de la resoluci¢n del parche.")
-/***/SETTEXT(CFG_AICHOOSECHANCES, "`%s' (%s) specify which chances to use when the ai decides what to build next (chance of building a ship route is 1-railchance-rvchance-airchance).")
-/***/SETTEXT(CFG_AIBUILDRAILCHANCE, "`%s' (%s) the chance that the ai will build a rail-route when it wants to build a new route. Range %ld..%ld, 0=0%%, 65535=100%%. Default %ld.")
-/***/SETTEXT(CFG_AIBUILDRVCHANCE, "`%s' (%s) the chance that the ai will build a rv-route when it wants to build a new route. Range %ld..%ld, 0=0%%, 65535=100%%. Default %ld.")
-/***/SETTEXT(CFG_AIBUILDAIRCHANCE, "`%s' (%s) the chance that the ai will build a air-route when it wants to build a new route. Range %ld..%ld, 0=0%%, 65535=100%%. Default %ld.")
+SETTEXT(CFG_AICHOOSECHANCES, "`%s' (%s) especifica que probabilidad usar cuando la IA decide que contruir a continuaci¢n (la probabilidad de crear una ruta naviera es 1-prob.ferrovias-prob.carrretera-prob.aire).")
+SETTEXT(CFG_AIBUILDRAILCHANCE, "`%s' (%s) la probabilidad de que la IA contruya una ruta ferroviaria cuando quiera crear una nueva ruta. Rango %ld..%ld, 0=0%%, 65535=100%%. Por defecto %ld.")
+SETTEXT(CFG_AIBUILDRVCHANCE, "`%s' (%s) la probabilidad de que la IA contruya una ruta por carretera cuando quiera crear una nueva ruta. Rango  %ld..%ld, 0=0%%, 65535=100%%. Por defecto %ld.")
+SETTEXT(CFG_AIBUILDAIRCHANCE, "`%s' (%s) la probabilidad de que la IA contruya una ruta por aire cuando quiera crear una nueva ruta. Rango %ld..%ld, 0=0%%, 65535=100%%. Por defecto %ld.")
 SETTEXT(CFG_NEWINDUSTRIES, "`%s' (%s) permite soporte para nuevos tipos de industrias.")
 SETTEXT(CFG_LOCOMOTIONGUI, "`%s' (%s) permite la nueva interfaz de usuario al estilo locomotion.")
 SETTEXT(CFG_FIFOLOADING, "`%s' (%s) permite la carga FIFO.")
