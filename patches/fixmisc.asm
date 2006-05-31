@@ -1148,7 +1148,7 @@ setnewsbackground:
 //	ebx shr 8: source vehicle type
 //	al: source sprite type (used by the old code)
 // out:	zf set to allow
-// safe: ???
+// safe: edx
 global lookforsamewagontype
 lookforsamewagontype:
 	cmp byte [noattachnewwagon],0

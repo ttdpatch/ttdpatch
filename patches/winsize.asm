@@ -11,6 +11,7 @@ extern dfree,dmalloc,errorpopup,fillrectangle,redrawscreen
 extern win_newshistory_constraints,win_newshistory_elements
 extern windowstack,CheckBoxClicked
 extern CalcTrainDepotWidth
+extern grfmodflags
 
 
 uvard winelemdrawptrs,cWinElemMax+1,s
@@ -18,6 +19,9 @@ uvard windowsizesbufferptr
 
 uvarw guispritebase,1,s
 var numguisprites, dd 3+12
+
+var depotscalefactor
+	db 0
 
 global drawresizebox
 drawresizebox:
@@ -477,6 +481,10 @@ global FindWindowData
 FindWindowData:
 	mov dl, cWinElemExtraData
 	mov edi, [esi+window.elemlistptr]
+
+	cmp byte [esi+window.type], 0x12
+	je .raildepot
+
 .loop:
 	cmp byte [edi], cWinElemLast
 	je .fail
@@ -490,9 +498,21 @@ FindWindowData:
 	clc
 	ret
 
+.raildepot:
+	bt dword [grfmodflags], 3
+	jnc .loop
+	mov dword [tmpAddress+2], depotwindowconstraints
+	mov dword [tmpAddress+6], traindepotwindowsizes32
+	mov edi, tmpAddress
+	jmp .found
+
 .fail:
 	stc
 	ret
+
+var tmpAddress // Used to stop a slight oversight by me above (Lakie)
+	db cWinElemExtraData, cWinDataSizer
+	dd 0x0, 0x0
 
 global drawwindowelements
 drawwindowelements:
@@ -593,6 +613,9 @@ RestoreWindowSize:
 	inc esi
 .gotit:
 	shl esi, 2
+	// Depots have a slightly different code because of the 32px and 29px variants
+	cmp esi, 0x10
+	je .raildepot
 .isnodepot:
 	add esi, [vehlistwinsizesptr]
 	//now esi points to the correct place in the array
@@ -606,6 +629,60 @@ RestoreWindowSize:
 	ret
 .fail:
 	stc
+	ret
+
+.raildepot:
+	add esi, [vehlistwinsizesptr]
+	//now esi points to the correct place in the array
+	mov ax, [esi]
+	mov cx, [esi+2]
+	pop ebx
+	cmp ax, 0
+	jz .lfail
+
+	push ebx
+	sub ax, 59
+	xor ebx, ebx
+	mov bl, [depotscalefactor]
+	cmp bl, 26
+	jbe .lbadfactor
+
+.lcontinue:
+	div bl
+	mov bl, 29
+	bt dword [grfmodflags], 3
+	jnc .not32
+	add bl, 3
+
+.not32:
+	mul bl
+	add ax, 59
+	pop ebx
+	pop esi
+	clc
+	ret
+
+.lbadfactor:
+	push ax
+	mov bl, 29
+	div bl
+	cmp ah, 0
+	je .lend
+	mov bl, 32
+.lend:
+	pop ax
+	jmp .lcontinue
+
+.lfail:
+	bt dword [grfmodflags], 3
+	jnc .lnot32
+	add esi, 0x10
+.lnot32:
+	sub esi, [vehlistwinsizesptr]
+	mov ax, [origwindowsizes+esi]
+	mov cx, [origwindowsizes+esi+2]
+	pop esi
+	clc
 	ret
 	
 //IN: edi = window-type, edx = window-ID
@@ -644,6 +721,15 @@ SaveWindowSize:
 	inc esi
 .gotit:
 	shl esi, 2
+
+	// Rail depots have a little extra code
+	cmp esi, 0x10
+	jne .isnodepot
+	mov byte [depotscalefactor], 29
+	bt dword [grfmodflags], 3
+	jnc .isnodepot
+	add byte [depotscalefactor], 3
+
 .isnodepot:
 	add esi, [vehlistwinsizesptr]
 	//now esi points to the correct place in the array
@@ -652,7 +738,6 @@ SaveWindowSize:
 	pop ebx
 	pop esi
 	ret
-
 
 var defaultwindowsizes
 	dd 0,0,0,0,0,0,0,0
@@ -708,12 +793,14 @@ var origwindowsizes //train,rv,ship,air
 	dw 315,68
 	dw 305,74
 	dw 331,74
+	dw 379,110 // 32px depots
+
 ResetOpenWindows:
 	mov esi, [windowstack]
 
 .windowloop:
 	cmp esi, [windowstacktop]
-	jnb .done
+	jnb near .done
 	
 	test word [esi+window.flags], 800h
 	jz .nextwindow	//not resized
@@ -737,6 +824,14 @@ ResetOpenWindows:
 	shl ebx, 2
 
 .resizewindow:
+
+	cmp ebx, 0x10
+	jne .notraildepot
+	bt dword [grfmodflags], 3
+	jnc .notraildepot
+	add ebx, 0x10
+.notraildepot:
+
 	mov ax, [origwindowsizes+ebx]
 	mov cx, [origwindowsizes+ebx+2]
 	
@@ -757,9 +852,85 @@ ResetOpenWindows:
 	mov [esi+window.height], cx
 .nextwindow:
 	add esi, window_size
-	jmp short .windowloop
+	jmp .windowloop
 	
 .done:
+	call redrawscreen
+	ret
+
+// Used to update the depot windows for trains
+global ResizeOpenWindows
+ResizeOpenWindows:
+	mov esi, [windowstack]
+
+.windowloop:
+	cmp esi, [windowstacktop]
+	jnb near .done
+	
+	test word [esi+window.flags], 800h
+	jz .nextwindow	//not resized
+	
+	mov al, [esi+window.type]
+	cmp al, 0x0C
+	jbe .nextwindow
+	cmp al, 0x12
+	jne .nextwindow
+	//depot's
+	movzx ebx, word [esi+window.opclassoff]
+	sub ebx, 80h
+	shr ebx, 1
+	add ebx, 4*4
+
+	cmp ebx, 0x10
+	jne .nextwindow
+
+	mov ax, [esi+window.width] // Get the current height and width
+	mov cx, [esi+window.height]
+	
+	// Calculate the number of units from the length
+	sub ax, 59
+	mov bl, [depotscalefactor]
+	div bl // This gives us the number of units to show
+
+	// Calculate new width of the window
+	mov bl, 29
+	bt dword [grfmodflags], 3
+	jnc .lnot32
+	add bl, 3 // 32px-29px = 3px more
+.lnot32:
+	mul bl // Gives the new total length of all the units
+	add ax, 59 // Adds the extra window bits on to the total length of the window
+
+	mov dh, cWinDataSizer
+	call FindWindowData
+	jc .nosizerdata
+	push edi
+	mov edi, [edi+4]
+	call HandleSizeConstraints
+	pop edi
+	pusha
+	mov edi, [edi]
+	mov bx, cx
+	call ResizeWindowElements
+	popa
+.nosizerdata:
+	mov [esi+window.width], ax
+	mov [esi+window.height], cx
+.nextwindow:
+	add esi, window_size
+	jmp .windowloop
+	
+.done:
+	// Updates the scale factor of the game
+	push bx
+	mov bl, 29
+	bt dword [grfmodflags], 3
+	jnc .lnot32x
+	add bl, 3 // 32px-29px = 3px more
+.lnot32x:
+	mov byte [depotscalefactor], bl
+	pop bx
+
 	call redrawscreen
 	ret
 
@@ -913,7 +1084,13 @@ var traindepotwindowsizes
 	dw 110-4*14, 2048//Y
 	db 14 ,2
 	dw 26
-
+var traindepotwindowsizes32
+	dw 379-6*32, 2048//X
+	db 32, -1 
+	dw 59
+	dw 110-4*14, 2048//Y
+	db 14 ,2
+	dw 26
 
 //Functions to make the mini-map window resizable:
 global openmapwindowpre
@@ -1198,7 +1375,11 @@ traindepotwindowhandler:
 	je .resizewindow
 	cmp dl, cWinEventRedraw
 	ret
+
 .resizewindow:
+	bt dword [grfmodflags], 3
+	jc .resizewindowx
+
 	pop ecx
 	mov ax, [esi+window.width]
 	dec ax
@@ -1209,6 +1390,22 @@ traindepotwindowhandler:
 	mov al, 33
 .gotsize:
 	sub al, 6
+	movzx ax, al
+	add ax, statictext(depotsize4)
+	call [CreateTooltip]
+	ret
+
+.resizewindowx:
+	pop ecx
+	mov ax, [esi+window.width]
+	sub ax, 0x3B	// Removes the constant window widths
+	mov cl, 32	// Get the number of slots
+	div cl
+	cmp al, 31	// Is it greater than 30?
+	jna .gotsizex
+	mov al, 31
+.gotsizex:
+	sub al, 4	// Changed values to get right results ingame (...)
 	movzx ax, al
 	add ax, statictext(depotsize4)
 	call [CreateTooltip]

@@ -32,7 +32,7 @@ extern makestationclassdropdown,makestationseldropdown,numstationsinclass
 extern patchflags,redrawscreen,setmousetool,stationclassesused
 extern stationseldropdownclick,windowsizesbufferptr,windowstack
 extern winelemdrawptrs
-
+extern depotscalefactor
 
 
 
@@ -713,7 +713,10 @@ loadenhanceguisettingsfrombuffer:
 	mov byte [egui_stationsignstyle], al
 	mov byte [egui_depotalltrash], ah
 	mov ax, [esi+6]
-	mov byte [egui_depotsize], al
+//	mov byte [egui_depotsize], al // Byte no longer used
+	cmp [depotscalefactor], 0
+	jne .invalid
+	mov byte [depotscalefactor], al // replacing with the scale factor
 .invalid:
 	ret
 ;endp	loadenhanceguisettingsfrombuffer		
@@ -723,7 +726,8 @@ saveenhanceguisettingstobuffer:
 	mov al, byte [egui_stationsignstyle]
 	mov ah, byte [egui_depotalltrash]
 	mov [esi+4], ax
-	mov al, byte [egui_depotsize]
+//	mov al, byte [egui_depotsize] // Byte no longer used
+	mov al, byte [depotscalefactor] // Replacing with scale factor
 	mov ah, 0
 	mov [esi+6], ax 
 	mov dword [esi+8], 0

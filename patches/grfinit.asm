@@ -60,6 +60,7 @@ extern updateTramStopSpriteLayout,setelrailstexts,gettextintableptr
 extern gettextandtableptrs,defaultstylename,fixupvehnametexts
 extern origlanguageid
 extern grfmodflags
+extern ResizeOpenWindows, depotscalefactor
 
 // New class 0xF (vehtype management) initialization handler
 // does additional things before calling the original function
@@ -1556,6 +1557,26 @@ postinfoapply:
 	call fixupvehnametexts
 
 .nofixupvehtexts:
+	testflags enhancegui
+	jnc .lnoenhancegui
+
+	push bx
+	mov bl, [depotscalefactor]
+	mov bh, 29
+	bt dword [grfmodflags], 3
+	jnc .lnot32
+	add bh, 3
+.lnot32:
+	cmp bh, bl
+	pop bx
+	je .lendofdepots
+
+	// Resize all open depot windows for the new scaling
+	call ResizeOpenWindows
+
+	jmp .lendofdepots
+.lnoenhancegui:
+.lendofdepots:
 	ret
 
 // List of vehicles the should be made eternal
