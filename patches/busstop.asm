@@ -139,6 +139,7 @@ Class5VehEnterLeaveBusStop:
 	mov byte al, [landscape5(bx)]
 	cmp	al, 0x53
 	jge	.notArticulated
+	mov	byte [esi+0x6A], 180 	//UTURN!
 	or	ebx, 0x80000000
 	jmp	.quit
 
@@ -173,9 +174,9 @@ Class5VehEnterLeaveBusStop:
 	jmp .done
 .truck:
 	cmp al, 0x57
-	je .quit
+	je .busstop
 	cmp al, 0x58
-	je .quit
+	je .busstop
 .done:
 	ret
 

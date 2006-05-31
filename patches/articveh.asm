@@ -120,12 +120,18 @@ checkIfTrailerAndCancelCollision:
 	je	.checkIfHead
 	cmp	word [edi+0x6A], 0			//check if vehicle is doing a u-turn
 	jne	.zeroCollisionOnOtherVehicle
-	mov	ax, word [esi+veh.nextunitidx]		//is the target my 'parent'
-	cmp	ax, word [edi+veh.idx]			//note: this is _not_ always the engine!
-	je	.checkIfInStation			//(we want to collide with the parent)
-	mov	ax, word [esi+veh.idx]			//is the target my engine?
-	cmp	ax, word [edi+veh.engineidx]		//note that I need to collide with my 'parent'
-	je	.checkIfInStation			//AND my engine... the other cars are ok.
+;	mov	ax, word [esi+veh.nextunitidx]		//is the target my 'parent'
+;	cmp	ax, word [edi+veh.idx]			//note: this is _not_ always the engine!
+;	je	.checkIfInStation			//(we want to collide with the parent)
+;	mov	ax, word [esi+veh.idx]			//is the target my engine?
+;	cmp	ax, word [edi+veh.engineidx]		//note that I need to collide with my 'parent'
+;	je	.checkIfInStation			//AND my engine... the other cars are ok.
+	mov	ax, word [esi+veh.engineidx]
+	cmp	ax, word [edi+veh.engineidx]		//is this a trailer of my tram?
+	jne	.zeroCollisionOnOtherVehicle
+	mov	ax, word [esi+veh.idx]
+	cmp	ax, word [edi+veh.idx]			//does this trailer come before me?
+	jle	.moveInCollision
 .zeroCollisionOnOtherVehicle:
 	mov	eax, dword [rvCollisionFoundVehicle]
 	mov	dword [eax], 0x0			//cancel any collision!
