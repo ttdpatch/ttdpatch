@@ -597,15 +597,15 @@ BITSWITCH(morecurrencies)
 BIT(symbefore, "Zeige WÑhrungssymbol immer vor der Zahl")
 BIT(symafter,  "Zeige WÑhrungssymbol immer nach der Zahl")
 BIT(noeuro,    "Keine EinfÅhrung des Euro")
-BIT(comma,     "Verwende immer Komma zur Trennung der Tausenderstellen")
-BIT(period,    "Verwende immer Punkt zur Trennung der Tausenderstellen")
+BIT(comma,     "Komma zur Trennung der Tausenderstellen")
+BIT(period,    "Punkt zur Trennung der Tausenderstellen")
 
 // Description for forcegameoptions bits
 BITSWITCH(forcegameoptions)
 BIT(trafficleft,	"Stra·enfahrzeuge fahren links")
 BIT(trafficright,	"Stra·enfahrzeuge fahren rechts")
-BIT(imperial,		"Verwende imperiale Entfernungseinheiten (Meilen)")
-BIT(metric,		"Verwende metrische Entfernungseinheiten (Kilometer)")
+BIT(imperial,		"Imperiale Entfernungseinheiten (Meilen)")
+BIT(metric,		"Metrische Entfernungseinheiten (Kilometer)")
 BIT(townsenglish,	"Englische StÑdtenamen")
 BIT(townsfrench,	"Franzîsische StÑdtenamen")
 BIT(townsgerman,	"Deutsche StÑdtenamen")
@@ -625,7 +625,7 @@ SETTEXT(LANG_CFGFILENOTFOUND, "Konfigurationsdatei %s nicht vorhanden, wurde ign
 SETTEXT(LANG_CFGFILENOTWRITABLE, "Konnte %s nicht schreiben.\n")
 
 // A non-comment line is longer than 32 chars, rest ignored.
-SETTEXT(LANG_CFGLINETOOLONG, "Warnung! Konfigurationszeile ist lÑnger als %d Zeichen, wurde abgeschnitten.\n")
+SETTEXT(LANG_CFGLINETOOLONG, "Warnung! Konfigurationszeile ist lÑnger als %d Zeichen, wurde gekÅrzt.\n")
 
 // Shown if an obsolete switch is used. First option is %s which is the
 // config name, second one is %s which is the command line char
