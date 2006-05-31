@@ -43,7 +43,7 @@ extern dontAddScheduleForTrailers
 extern sellRVTrailers, sellRVTrailers.origfn, delveharrayentry
 extern updateTrailerPosAfterRVProc, updateTrailerPosAfterRVProc.origfn
 extern rvdailyprocoverride, oldrvdailyproc
-extern dontLetARVsInNormalRVStops
+extern dontLetARVsInNormalRVStops, decrementBHIfRVTrailer
 
 extern	RedrawRoadVehicle
 extern	SetRoadVehObjectOffsets
@@ -235,6 +235,12 @@ begincodefragments
 
 	codefragment newAddStationToRVSchedule
 		icall	dontLetARVsInNormalRVStops
+
+	codefragment oldCompanyVehiclesSummaryPart, 6
+		add	ebx, 10000h
+
+	codefragment newCompanyVehiclesSummaryPart
+		icall	decrementBHIfRVTrailer
 endcodefragments
 
 patcharticulatedvehicles:
@@ -349,4 +355,6 @@ patcharticulatedvehicles:
 
 	//NOTE!: this code overwrites the 'call' to gotodepo.asm:294
 	patchcode oldAddStationToRVSchedule, newAddStationToRVSchedule, 1, 1
+
+	patchcode oldCompanyVehiclesSummaryPart, newCompanyVehiclesSummaryPart, 1, 1
 	retn

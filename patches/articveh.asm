@@ -120,9 +120,9 @@ checkIfTrailerAndCancelCollision:
 	je	.checkIfHead
 	cmp	word [edi+0x6A], 0			//check if vehicle is doing a u-turn
 	jne	.zeroCollisionOnOtherVehicle
-;	mov	ax, word [esi+veh.nextunitidx]		//is the target my 'parent'
-;	cmp	ax, word [edi+veh.idx]			//note: this is _not_ always the engine!
-;	je	.checkIfInStation			//(we want to collide with the parent)
+	mov	ax, word [esi+veh.nextunitidx]		//is the target my 'parent'
+	cmp	ax, word [edi+veh.idx]			//note: this is _not_ always the engine!
+	je	.moveInCollision			//(we want to collide with the parent)
 ;	mov	ax, word [esi+veh.idx]			//is the target my engine?
 ;	cmp	ax, word [edi+veh.engineidx]		//note that I need to collide with my 'parent'
 ;	je	.checkIfInStation			//AND my engine... the other cars are ok.
@@ -945,7 +945,6 @@ rvdailyprocoverride:
 .skipRVDailyProc:
 	retn
 
-//in: EDI is the station pointer.
 global dontLetARVsInNormalRVStops
 dontLetARVsInNormalRVStops:
 	jecxz	.justDoNormal				//this is a depot... do the usual code
@@ -960,4 +959,19 @@ dontLetARVsInNormalRVStops:
 	retn
 .justDoNormal:
 	call	checkgototype
+	retn
+
+global decrementBHIfRVTrailer
+decrementBHIfRVTrailer:
+	cmp	byte [esi+veh.class], 0x11		//are we a road vehicle?
+	jne	.notRoadVehicleOrRoadVehicleEngine
+	push	ax
+	mov	ax, word [esi+veh.engineidx]		//are we the engine?
+	cmp	ax, word [esi+veh.idx]			//if yes, then dont decrement
+	pop	ax
+	je	.notRoadVehicleOrRoadVehicleEngine
+	dec	bh					//we are a trailer, remove from vehicle count.
+.notRoadVehicleOrRoadVehicleEngine:
+	add	esi, 80h				//this is the line we covered in the code
+							//incement to the next vehicle in the array.
 	retn
