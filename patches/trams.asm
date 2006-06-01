@@ -26,7 +26,7 @@ extern	patchflags, gettunnelotherend, DestroyWindow
 
 extern	CloseWindow, RefreshWindowArea, findroadvehicledepot
 
-extern paStationbusstop1, paStationbusstop2
+extern paStationbusstop1, paStationbusstop2, paStationtruckstop1, paStationtruckstop2
 
 extern bridgedrawrailunder, displayfoundation
 
@@ -71,7 +71,9 @@ uvard	checkdepot3return,1,s
 uvard	checkdepot4return,1,s
 uvard	checkdepot5return,1,s
 
-vard paStationtramstop, paStationtramstop1, paStationtramstop2
+//this is 'added' onto the end of the ttdstation sprite lists....
+vard 	paStationtramstop,	paStationbusstop1,paStationbusstop2,paStationtramstop1,paStationtramstop2,paStationtruckstop1,paStationtruckstop2,paStationtramfreightstop1,paStationtramfreightstop2		//0x5A
+
 var paStationtramstop1
 	dd 1314
 	db 0,0,0,0,0,0
@@ -95,6 +97,39 @@ var paStationtramstop2
 	db 0,0,0,24,16,16
 	dd 4079 //unknown
 	db 80h
+
+var paStationtramfreightstop1
+	dd 1314
+	db 0,0,0,0,0,0
+	dd 4079
+	db 3,3,7,2,2,3
+	dd 4079
+	db 0,0,0,24,2,16
+	dd 4079
+	db 0,0,0,24,16,16
+	dd 1407
+	db 6,14,10,1,2,8
+	dd 4300
+	db 14,14,10,1,2,8
+	dd 4079
+	db 80h
+
+var paStationtramfreightstop2
+	dd 1313
+	db 0,0,0,0,0,0
+	dd 4079
+	db 3,3,7,2,2,3
+	dd 4079
+	db 0,0,0,24,2,16
+	dd 4079
+	db 0,0,0,24,16,16
+	dd 1407
+	db 0,8,4,1,2,8
+	dd 4300
+	db 0,4,4,1,2,8
+	dd 4079
+	db 80h
+
 uvard roadmenuelemlisty2
 
 global setTramPtrWhilstRVProcessing
@@ -540,6 +575,26 @@ updateTramStopSpriteLayout:
 	mov	cx, 38h
 	add	cx, word [tramtracks]
 	mov	dword [paStationtramstop2+40], ecx
+//truck stations
+	xor	ecx,ecx
+	mov	cx, 05h
+	add	cx, word [tramtracks]
+	mov	dword [paStationtramfreightstop1+10], ecx
+	mov	cx, 37h
+	add	cx, word [tramtracks]
+	mov	dword [paStationtramfreightstop1+20], ecx
+	mov	cx, 39h
+	add	cx, word [tramtracks]
+	mov	dword [paStationtramfreightstop1+30], ecx
+	mov	cx, 04h
+	add	cx, word [tramtracks]
+	mov	dword [paStationtramfreightstop2+10], ecx
+	mov	cx, 37h
+	add	cx, word [tramtracks]
+	mov	dword [paStationtramfreightstop2+20], ecx
+	mov	cx, 38h
+	add	cx, word [tramtracks]
+	mov	dword [paStationtramfreightstop2+30], ecx
 	pop	ecx
 	retn
 
@@ -576,8 +631,8 @@ createRoadConstructionWindow:
 	mov	word [edi], ourtext(txtetramstationheader)
 	mov	edi, dword [busdepotwindow]
 	mov	word [edi], ourtext(txtetramdepotheader)
-	mov	edi, dword [buildtruckstopprocarea]
-	mov	dword [edi], null_proc
+;	mov	edi, dword [buildtruckstopprocarea]
+;	mov	dword [edi], null_proc
 	pop	ecx
 	pop	edi
 	jmp	.movedInData
@@ -591,9 +646,9 @@ createRoadConstructionWindow:
 	mov	edi, dword [busdepotwindow]
 	mov	ax, [oldbusdepottext]
 	mov	word [edi], ax
-	mov	edi, dword [buildtruckstopprocarea]
-	mov	eax, dword [buildtruckstopfunction]
-	mov	dword [edi], eax
+;	mov	edi, dword [buildtruckstopprocarea]
+;	mov	eax, dword [buildtruckstopfunction]
+;	mov	dword [edi], eax
 	pop	edi
 	pop	eax
 .movedInData:
@@ -613,10 +668,10 @@ createRoadConstructionWindow:
 	mov	edi, [stdRoadElemListPtr]
 .doneElemList:
 	mov	dword [esi+window.elemlistptr], edi
-	cmp	byte [editTramMode], 1
-	jne	.dontSetTruckStopDisabled
-	mov	dword [esi+window.disabledbuttons], 200h
-.dontSetTruckStopDisabled:
+;	cmp	byte [editTramMode], 1
+;	jne	.dontSetTruckStopDisabled
+;	mov	dword [esi+window.disabledbuttons], 200h
+;.dontSetTruckStopDisabled:
 	pop	edi
 	retn
 
@@ -1791,8 +1846,8 @@ gettunnelotherendmystyle:
 	pop	esi
 	retn
 
-global updateDisableBusStops
-updateDisableBusStops:
+global updateDisableStandardRVStops
+updateDisableStandardRVStops:
 	mov	ebp, 8
 	call	[CreateWindowRelative]
 	cmp	byte [editTramMode], 1

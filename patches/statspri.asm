@@ -1219,8 +1219,11 @@ getstationspritelayout:
 
 	cmp dh, 0x53
 	jb .notours
+	cmp dh, 0x5A					//patchman, eis_os? I need some advice on this!!!
+	jbe .newRVStop
 	test byte [landscape3+ebx*2],0x10
 	jz .notours
+.newRVStop:
 	movzx ebp,dh
 	mov ebp,[paStationtramstop+(ebp-0x53)*4]
 	retn
@@ -1257,10 +1260,16 @@ global getstationdisplayspritelayout
 getstationdisplayspritelayout:
 	cmp ebx,8
 	jb .isitours
+	cmp ebx,0x53
+	jge .newRVStops
 
 .notours:
 	mov eax,[ttdstationspritelayout]
 	mov ebx,[eax+ebx*4]
+	ret
+
+.newRVStops:
+	mov ebx,[paStationtramstop+(ebx-0x53)*4]
 	ret
 
 .isitours:

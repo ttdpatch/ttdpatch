@@ -16,6 +16,7 @@ extern Class5ClearTileTruckStopError,Class5QueryHandlerTruckStop
 extern newtruckorienttooltips
 
 extern paStationtramstop1, paStationtramstop2
+extern paStationtramfreightstop1, paStationtramfreightstop2
 
 global patchbusstop
 
@@ -192,10 +193,12 @@ patchbusstop:
 	add edi, 0x53*4
 	mov dword [edi], paStationbusstop1
 	mov dword [edi+4], paStationbusstop2
-	mov dword [edi+8], paStationtramstop1
-	mov dword [edi+12], paStationtramstop2
-	mov dword [edi+16], paStationtruckstop1
-	mov dword [edi+20], paStationtruckstop2
+;	mov dword [edi+8], paStationtramstop1
+;	mov dword [edi+12], paStationtramstop2
+;	mov dword [edi+16], paStationtruckstop1
+;	mov dword [edi+20], paStationtruckstop2
+;	mov dword [edi+24], paStationtramfreightstop1
+;	mov dword [edi+28], paStationtramfreightstop2
 
 	// rewrite the window system
 	stringaddress findwindowlorrystationelements,1,1

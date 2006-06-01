@@ -224,14 +224,14 @@ begincodefragments
 		push	bx
 
 	codefragment oldBuildBusStop, -10
-		push    bx
-		push    dx
-		push    edi
-		push    si
-		push    bp
-		rol     di, 4
-		mov     ax, di
-		mov     cx, di
+		push	bx
+		push	dx
+		push	edi
+		push	si
+		push	bp
+		rol	di, 4
+		mov	ax, di
+		mov	cx, di
 
 
 	codefragment newBuildBusStop
@@ -246,7 +246,7 @@ begincodefragments
 	//-------------------Find creation of road Depot-----------------
 	codefragment oldCreateRoadDepot
 	#if WINTTDX
-		mov     byte [landscape5(di)], bh
+		mov	byte [landscape5(di)], bh
 	#else
 		db 0x67, 0x65, 0x88, 0x3D
 	#endif
@@ -263,10 +263,10 @@ begincodefragments
 	#endif
 	//------------------Hack the drawing to show our new depots--------
 	codefragment oldDrawRoadDepot, -7
-		pop     edi
-		pop     cx
-		pop     ax
-		add     edi, 8
+		pop	edi
+		pop	cx
+		pop	ax
+		add	edi, 8
 	codefragment newDrawRoadDepot
 		icall	drawTramOrRoadDepot
 		setfragmentsize 7
@@ -286,9 +286,9 @@ begincodefragments
 		setfragmentsize 7
     
 	codefragment drawTramTracksUnderBridgeOld, 36
-		and     ebx, 2
-		or      esi, ebx
-		shl     esi, 1
+		and	ebx, 2
+		or	esi, ebx
+		shl	esi, 1
 
 	codefragment drawTramTracksUnderBridgeNew
 		icall	drawTramTracksUnderBridge
@@ -319,9 +319,9 @@ begincodefragments
 
 	codefragment bridgeRemovalKeepTramsUnderOld
 #if WINTTDX
-		and     byte [landscape4(di)], 0Fh
-		or      byte [landscape4(di)], dh
-		mov     byte [landscape5(di)], dl
+		and	byte [landscape4(di)], 0Fh
+		or	byte [landscape4(di)], dh
+		mov	byte [landscape5(di)], dl
 #else
 		// same but different order of prefixes
 		db 0x67,0x64,0x80,0x25,0x0f
@@ -345,8 +345,8 @@ begincodefragments
 		pop	ax
 
 	codefragment vehicleToDepotOld2, 10
-		and     al, 5Fh
-		cmp     al, 42h
+		and	al, 5Fh
+		cmp	al, 42h
 
 	codefragment vehicleToDepotNew
 		icall	newSendVehicleToDepot
@@ -356,12 +356,12 @@ begincodefragments
 		icall	newSendVehicleToDepotAuto
 		setfragmentsize	7
 
-	codefragment oldfindcreatebusstopwindow, 4
-		mov     dx, 28h
-		mov     ebp, 8
+	codefragment oldfindcreatebusORtruckstationwindow, 4
+		mov	dx, 28h
+		mov	ebp, 8
 
-	codefragment newfindcreatebusstopwindow
-		icall	updateDisableBusStops
+	codefragment newfindcreatebusORtruckstationwindow
+		icall	updateDisableStandardRVStops
 		setfragmentsize	10
 
 	codefragment findwindowbusstationelements, 10
@@ -388,30 +388,30 @@ begincodefragments
 		setfragmentsize 12
 
 	codefragment oldDepotListRvs2
-		bt      [ebx+vehtype.playeravail], cx
-		adc     dl, 0
+		bt	[ebx+vehtype.playeravail], cx
+		adc	dl, 0
 
 	codefragment newDepotListRvs2
 		icall	checkIfTramDepot2
 		setfragmentsize 7
 
 	codefragment oldDepotListRvs3, 5
-		mov     ebx, 116
-		bt      [eax+vehtype.playeravail], bp
+		mov	ebx, 116
+		bt	[eax+vehtype.playeravail], bp
 
 	codefragment newDepotListRvs3
 		icall	checkIfTramDepot3
 
 	codefragment oldDepotListRvs4, 2
-		mov     bl, 116
-		bt      [eax+vehtype.playeravail], bp
+		mov	bl, 116
+		bt	[eax+vehtype.playeravail], bp
 
 	codefragment newDepotListRvs4
 		icall	checkIfTramDepot4
 
 	codefragment oldDepotListRvs5, 5
-		mov     ebx, 116
-		bt      [eax+vehtype.playeravail], bp
+		mov	ebx, 116
+		bt	[eax+vehtype.playeravail], bp
 
 	codefragment newDepotListRvs5
 		icall	checkIfTramDepot5
@@ -466,7 +466,8 @@ patchtrams:
 	mov	dword [buildtruckstopfunction], eax
 	pop	eax
 
-	patchcode oldfindcreatebusstopwindow, newfindcreatebusstopwindow, 1, 2
+	patchcode oldfindcreatebusORtruckstationwindow, newfindcreatebusORtruckstationwindow, 2, 2	//trucks
+	patchcode oldfindcreatebusORtruckstationwindow, newfindcreatebusORtruckstationwindow, 1, 1	//buses
 	patchcode oldSetSelectedBusStop, newSetSelectedBusStop, 1, 1
 
 	stringaddress oldGroundAltidudeGetTileInfo, 1
