@@ -232,12 +232,12 @@ TEXTARRAY(halflines,) =
 
 	  "-XA: Auto-renovaci¢n forzada con -Xa", 
 	  "-XB: Permite la construcci¢n con pausa",
-	  "-XE: V¡as ferreas electrificadas",
+	  "-XE: V¡as f‚rreas electrificadas",
 	  "-XF: Activar opciones experimentales",
 	  "-XG: Cargar todos los nuevos gr ficos",
 	  "-XH: Guarda+muestra hist. de noticias",
 	  "-XI: Se¤ales Basadas en la Trayectoria",
-	  "-XL: Provecho en lista de veh¡culos",
+	  "-XL: Provecho en la lista de veh¡culos",
 	  "-XO: Permite compartir/copiar ¢rdenes",
 	  "-XP: Nuevos modelos de avi¢n",
 	  "-XR: Nuevos mod. de veh. de carretera",
@@ -272,8 +272,8 @@ SETARRAY(halflines);
 // Text describing the switches with values.  The lines have to be shorter
 // than 79 chars, excluding the "\n".  Start new lines if necessary.
 SETTEXT(LANG_FULLSWITCHES, "\n"
-	  "-e #:    Aumentar el cubrimiento posible de estaci¢n\n"
-	  "-i #:    Intervalo de servicio por defecto es el n£mero dado de d¡as\n"
+	  "-e #:    Aumentar el cubrimiento posible de las estaciones\n"
+	  "-i #:    Int‚rvalo de servicio por defecto es el n£mero dado de d¡as\n"
 	  "-x #:    Extender la cantidad de vehiculos hasta 850*#. Leer documentaci¢n!\n"
 	  "-mc #:   Nuevo manejo de monta¤a o curva, respectivamente\n"
 	  "-trpb #: Aumentar el n£mero de trenes, camiones, aviones o barcos, resp.\n"
@@ -673,7 +673,7 @@ SETTEXT(CFG_NOCMDLINE, "sin modificador de l¡nea de comandos")
 // line switch.
 // They will have the "comment" char and a space prefixed.
 //
-SETTEXT(CFG_SHIPS, "`%s' (%s) aumeta el n£mero m ximo de barcos.  Rango %ld..%ld.  Por defecto %ld.")
+SETTEXT(CFG_SHIPS, "`%s' (%s) aumenta el n£mero m ximo de barcos.  Rango %ld..%ld.  Por defecto %ld.")
 SETTEXT(CFG_CURVES, "`%s' (%s) establece la velocidad en curva normal: (0), m s r pido (1), la m s r pida (2) o realista (3).  Un d¡gito para cada veh¡culo tren, monorrail, maglev y veh¡culos de carretera. Por defecto 0120.")
 SETTEXT(CFG_MOUNTAINS, "`%s' (%s) establece las velocidades en monta¤as: normal (0), m s r pido (1), la m s r pida (2) o realista (3).  Un d¡gito para cada veh¡culo tren, monorrail, maglev y veh¡culos de carretera. Por defecto 0120.")
 SETTEXT(CFG_SPREAD, "`%s' (%s) Hace que las estaciones puedan tener mayor cubrimiento.  Rango %ld..%ld.  por defecto %ld.")
@@ -688,7 +688,7 @@ SETTEXT(CFG_ROADVEHS, "`%s' (%s) aumenta el n£mero m ximo de veh¡culos de carret
 SETTEXT(CFG_SIGNCHEATS, "`%s' (%s) activa los c¢digos trampa en r¢tulos.") 
 SETTEXT(CFG_TRAINS, "`%s' (%s) aumenta el n£mero m ximo de trenes.  Rango %ld..%ld.  por defecto %ld.")
 SETTEXT(CFG_VERBOSE, "`%s' (%s) muestra una lista de los modificadores antes de iniciar TTD.")
-SETTEXT(CFG_PRESIGNALS, "`%s' (%s) permiete el uso de pre-se¤ales para mejorar el uso de estaciones.")
+SETTEXT(CFG_PRESIGNALS, "`%s' (%s) permite el uso de pre-se¤ales para mejorar el uso de estaciones.")
 SETTEXT(CFG_MOREVEHICLES, "`%s' (%s) aumenta el n£mero total de veh¡culos a un valor*850.  Rango %ld..%ld.  por defecto %ld.")
 SETTEXT(CFG_MAMMOTHTRAINS, "`%s' (%s) permite trenes mamut de hasta 126 vagones.")
 SETTEXT(CFG_FULLLOADANY, "`%s' (%s) hace que el tren salga de la estaci¢n si est  lleno de alg£n tipo de carga.")
@@ -809,7 +809,7 @@ SETTEXT(CFG_FREIGHTTRAINS, "`%s' (%s) multiplica la mercancia transportada po un
 SETTEXT(CFG_GAMESPEED, "`%s' (%s) Hace la velocidad del juego cambiable. Esto requiere el parche de las teclas. Presione 'q' para duplicar la velocidad de juego (hasta un m ximo de 8x), y 'w' para reducirla. El par metro ser  la configuraci¢n inicial. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_HIGHERBRIDGES, "`%s' (%s) permite la construcci¢n de puentes altos.")
 SETTEXT(CFG_NEWGRFCFG, "`%s' (%s) especifica el archivo de configuraci¢n de los nuevos juegos de gr ficos.")
-SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s)  habilita el uso de la rueda del rat¢n en la versi¢n de Windows. 0 significa zoom original con la rueda (mantiene el centrado), 1 significa zoom estilo OpenTTD (el puntero bajo el cursor del rat¢n se mantiene si es posible). Suma 2 para habilitar el zoom \"seguro\" (dos giros inicia el zoom). Suma 4 para soporte de rueda normalizado (se necesita para algunos controladores y Win95). Rango %ld..%ld. Por defecto %ld.")
+SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s)  habilita el uso de la rueda del rat¢n en la versi¢n de Windows. 0 significa zoom original con la rueda (mantiene el centrado), 1 significa zoom estilo OpenTTD (el puntero bajo el cursor del rat¢n se mantiene si es posible). Suma 2 para habilitar el zoom "seguro" (dos giros inicia el zoom). Suma 4 para soporte de rueda normalizado (se necesita para algunos controladores y Win95). Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_MOREWINDOWS, "`%s' (%s) permite mas ventanas abiertas en la pantalla. El valor por defecto de TTD es de 10, pero 3 ventanas estan ocupadas (barra de herramientas principal, Vista principal y barra de estado), por lo que el m ximo de ventanas abiertas actual es de 7. Men£s desplegables y avisos cuentan igualmente como ventanas. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_ENHANCEDDIFFICULTYSETTINGS, "'%s' (%s) hace posible seleccionar 'no' en el n£mero de industrias en la configuraci¢n de dificultad.")
 SETTEXT(CFG_NEWBRIDGES, "`%s' (%s) permite nuevos gr ficos para puentes.")
