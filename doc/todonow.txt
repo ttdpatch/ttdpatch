@@ -477,6 +477,9 @@
 
 - don't combine wagons of different cargo types in depot, and show cargo icon
 
+- crash in new town names
+  http://www.tt-forums.net/viewtopic.php?p=449886#449886
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter

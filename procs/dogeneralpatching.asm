@@ -1390,34 +1390,6 @@ ext_frag oldloadfilemask,oldgetdisasteryear
 // pointers to the ptrvar ptrs for the specific properties of each vehicle class
 vard vehclassspecptr, trainpower_ptr, rvspeed_ptr, shipsprite_ptr, planesprite_ptr
 
-	// syntax of patchcode et.al.:
-	//
-	// patchcode oldcode,newcode,hitnum,occur
-	// oldcode is the code fragment with the old code, and newcode
-	// is the code to be replaced with newcode
-	// hitnum is the number of the occurence we want out of a total
-	// of occur occurences.
-	//
-	// there are a few alternative ways of using it, see ttdprot.ah
-	// in particular patchcode stuff which expands to
-	// patchcode oldstuff,newstuff,1,1
-	//
-	// syntax of storeaddress:
-	// storeaddres code,hitnum,occur,index
-	// code, hitnum, occur and labelname are as in patchcode
-	// index is the index where the address is to be saved
-	//
-	// NOTE: You MUST NOT skip searches within a patchproc.
-	//	 If you have to skip a patch under some conditions,
-	//	 use the extended version of the patchcode macro
-	//	 (see ttdprot.ah).
-
-
-	// NOTE! EDX is sacred and may not be modified!
-	//       Also, ECX must be zero before each storefragment.
-	//	 This is automatically the case if you use the
-	//	 predefined macros.
-
 global dogeneralpatching
 dogeneralpatching:
 

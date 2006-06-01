@@ -4,9 +4,50 @@
 
 #include <stringify.inc>
 
+//
+// syntax of the important procs for patching:
+//
+// most of these have short forms with only one or two arguments for the
+// common cases, e.g. usually hitnum,occur can be omitted if both are
+// equal to 1
+//
+// patchcode oldcode,newcode,hitnum,occur
+// short forms:	patchcode code  (same as patchcode oldcode,newcode,1,1)
+//		patchcode code,hitnum,occur
+// a longer version with pre/post conditions and code is available, see below
+//
+// oldcode is the code fragment with the old code, and newcode
+// is the code to be replaced with newcode
+// hitnum is the number of the occurence we want out of a total
+// of occur occurences.
+// if occur=hitnum-1  (e.g. 1,0 or 2,1) then we search for the next
+// occurence starting at current edi, and don't check the total count
+//
+// storeaddress code,hitnum,occur,var
+// short forms:	storeaddress var  (same as storeaddress findvar,1,1,var)
+// 		storeaddress code,var
+//
+// code, hitnum, occur as in patchcode
+// var is the variable name where the address is to be saved
+//
+// other functions available, see below
+//
+// NOTE! You MUST NOT skip searches within a patchproc.
+//	 If you have to skip a patch under some conditions,
+//	 use the extended version of the patchcode macro
+//	 (see below), or split it into stringaddress (done always)
+//	 and storefragment (done conditionally).
+//
+//
+// NOTE! EDX is sacred and may not be modified!
+//       Also, ECX must be zero before each storefragment.
+//	 This is automatically the case if you use the
+//	 predefined macros.
+
 
 // macros to define the code fragments
 %macro begincodefragments 0.nolist
+	section .datab
 	%assign fragmentendvalue 0
 %endmacro
 
@@ -19,10 +60,12 @@
 			%error Fragment length > 255 not supported
 		%endif
 	%endif
+	section .text
 %endmacro
 
 %macro codefragment 1-3.nolist // params: name[,addedi,addediw]
 	endcodefragments
+	begincodefragments
 
 	%define curfragment %1
 	%define fragmentstart %1_start
