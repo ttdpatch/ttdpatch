@@ -274,12 +274,12 @@ SETARRAY(halflines);
 SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-e #:    Aumentar el cubrimiento posible de las estaciones\n"
 	  "-i #:    Int‚rvalo de servicio por defecto es el n£mero dado de d¡as\n"
-	  "-x #:    Extender la cantidad de vehiculos hasta 850*#. Leer documentaci¢n!\n"
+	  "-x #:    Extender la cantidad de veh¡culos hasta 850*#. Leer documentaci¢n!\n"
 	  "-mc #:   Nuevo manejo de monta¤a o curva, respectivamente\n"
 	  "-trpb #: Aumentar el n£mero de trenes, camiones, aviones o barcos, resp.\n"
 	  "-M #:    Permite trenes con varias locomotoras, aumenta vel. en porcentaje.\n"
 	  "-U #:    Permite el nuevo interfaz parecido al de locomotion. 1 para usarlo sin ctrl.\n"
-	  "-Xa #:   Renueva veh¡c. autom tic. # meses despu‚s de finalizar vida £til\n"
+	  "-Xa #:   Renueva veh¡c. autom tic. # meses despu‚s de finalizar la vida £til\n"
 	  "-Xc #:   Control de ocurrencia de accidentes a‚reos\n"
 	  "-Yr #:   Modificar los choques de veh. de carret/tren. al tipo dado (1/2)\n"
 	  "-Xt #:   Establece el tama¤o m ximo al que pueden crecer las ciudades\n"
@@ -293,7 +293,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-XX #:   Nueva vel. en puentes de Monorrail y MagLev, porcentaje de la vel. m x.\n"
 	  "-XY #:   Establece el a¤o de inicio para juegos aletorios\n"
 	  "-XW #:   Ajustar la ventana del TTD hasta este tama¤o en puntos (versi¢n Windows)\n"
-	  "-X1 #, -X2 #: Tiempo m x. que espera un tren a se¤al roja en una o\n"
+	  "-X1 #, -X2 #: Tiempo m x. que espera un tren a se¤al roja en una \n"
 	  "-Yf #:   Hacer los trenes mercantes m s pesados por el factor dado\n"
 	  "-Yl #:   Soporte de rueda del rat¢n y establece opciones (solamente versi¢n Windows)\n"
 	  "-Yo #:   Controla caracter¡sticas de otros modificadores (ver docs.)\n"
@@ -303,7 +303,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-YE #:   Estab. los segundos que una ventana de error permanece abierta\n"
 	  "-YM #:   Mostrar m s (o menos) nuves de vapor, el valor establece la cantidad\n"
 	  "-YG #:   Mejora la interfaz de usuario, escoja las opciones con par metros\n"
-	  "-YO #:   Permite la l¡nia de nieve en el clima templado y establece su altura\n"
+	  "-YO #:   Permite la l¡nea de nieve en el clima templado y establece su altura\n"
 	  "-YR #:   Sobreescribe la frecu‚ncia de refresco del mapa a # refrescos\n"
 	  "-YT #:   Establece el algoritmo de crecimiento de las ciudades\n"
 	  "-YW #:   Establece el m ximo n£mero de ventanas permitidas\n"
@@ -351,7 +351,7 @@ SWITCHTEXT(usenewmountain, "Nuevo manejo monta¤a", " para %04x")
 SWITCHTEXT(usenewnonstop, "Nuevo manejo sin parar", "")
 SWITCHTEXT(increasetraincount, "Nuevo cont. de trenes", ": %d")
 SWITCHTEXT(increaservcount, "Nuevo cont. de camiones", ": %d")
-SWITCHTEXT(setnewservinterval, "Nueva def. intervalo serv", ": %d d¡as") 
+SWITCHTEXT(setnewservinterval, "Nueva def. int‚rvalo serv", ": %d d¡as") 
 SWITCHTEXT(usesigncheat, "Usar c¢digos en r¢t.", "") 
 SWITCHTEXT(allowtrainrefit, "Permite remod. trenes", "")
 SWITCHTEXT(increaseplanecount, "Nuevo cont. aviones", ": %d")
@@ -361,14 +361,14 @@ SWITCHTEXT(largerstations, "aument. cubrim. de est.", " a %d bloq.")
 SWITCHTEXT(morestationtracks, "Estaciones extensibles", "")
 SWITCHTEXT(longerbridges, "Puentes m s largos", "")
 SWITCHTEXT(improvedloadtimes, "Tiempo de carga mejorado.", "")
-SWITCHTEXT(mammothtrains, "Trenes Mamut (largo 127)", "")
+SWITCHTEXT(mammothtrains, "Trenes Mamut (127 largo)", "")
 SWITCHTEXT(presignals, "Usar pre-se¤ales", "")
 SWITCHTEXT(officefood, "Edif. de ofic. acept. alimentos", "")
 SWITCHTEXT(noinflation, "Desactivar inflaci¢n", "") 
-SWITCHTEXT(maxloanwithctrl, "M ximo pr‚stmo/pago con 'ctrl'", "")
+SWITCHTEXT(maxloanwithctrl, "M ximo pr‚stamo/pago con 'ctrl'", "")
 SWITCHTEXT(persistentengines, "Locomot. persist. si en uso", "")
 SWITCHTEXT(fullloadany, "Carga compl. en cualq. tipo", "")
-SWITCHTEXT(selectstationgoods, "Est. selecc. de mercanc¡as", " para %d dias")
+SWITCHTEXT(selectstationgoods, "Est. selecc. de mercancias", " para %d dias")
 SWITCHTEXT(morethingsremovable, "M s objetos removibles", "")
 SWITCHTEXT(multihead, "Trenes multi-motor", ", se acelera: %d%%")
 SWITCHTEXT(newlineup, "Camiones esperan en fila", "")
@@ -431,26 +431,26 @@ SWITCHTEXT(stableindustry, "Prevenir cierre de industrias","")
 SWITCHTEXT(newperformance, "Nuevo c lculo del funcionamiento", "")
 SWITCHTEXT(sortvehlist, "Ordena lista de veh¡culos", ", retraso: %d")
 SWITCHTEXT(showprofitinlist, "Mostrar provecho en lista de veh.", "")
-SWITCHTEXT(newspapercolour, "Las not¡cias est n en color", " despu‚s de %d")
+SWITCHTEXT(newspapercolour, "Las noticias est n en color", " despu‚s de %d")
 SWITCHTEXT(sharedorders, "Permite compartir/copiar ¢rdenes", "")
 SWITCHTEXT(moresteam, "Mostrar m s nuves de vapor", ": %x")
 SWITCHTEXT(abandonedroads, "Carreteras abandonadas pierden su propietario", ", mode %d")
 SWITCHTEXT(newstations, "Permite los nuevos gr ficos de estaciones", "")
 SWITCHTEXT(buildwhilepaused, "Permite la construcci¢n mientras haya la pausa", "")
-SWITCHTEXT(losttrains, "Aviso de trenes perdidos", " after %d days")
-SWITCHTEXT(lostrvs, "Aviso de autom¢viles perdidos", " after %d days")
-SWITCHTEXT(lostships, "Aviso de barcos perdidos", " after %d days")
-SWITCHTEXT(lostaircraft, "Aviso de aviones perdidos", " after %d days")
+SWITCHTEXT(losttrains, "Aviso de trenes perdidos", " despu‚s de %d dias")
+SWITCHTEXT(lostrvs, "Aviso de autom¢viles perdidos", " despu‚s de %d dias")
+SWITCHTEXT(lostships, "Aviso de barcos perdidos", " despu‚s de %d dias")
+SWITCHTEXT(lostaircraft, "Aviso de aviones perdidos", " despu‚s de %d dias")
 SWITCHTEXT(maprefresh, "Nueva frecu‚ncia de refresco del mapa", ": %d ticks")
-SWITCHTEXT(disconnectontimeout, "Desconectar un juego de red si no hay respuesta", " for %d sec.")
+SWITCHTEXT(disconnectontimeout, "Desconectar un juego de red si no hay respuesta", " en %d seg.")
 SWITCHTEXT(moretoylandfeatures, "Permite algunas funcionalidades aleatorias en toyland", ": %d")
 SWITCHTEXT(stretchwindow, "Estirar la ventana de TTD", " hasta %d puntos")
 SWITCHTEXT(canals, "Construye canales y esclusas", "")
 SWITCHTEXT(higherbridges, "Permite puentes altos", "")
 SWITCHTEXT(gamespeed, "Velocidad del juego cambiable", ", inicialmente %d")
 SWITCHTEXT(freighttrains, "Hacer los trenes de carga m s pesados", " (x%d)")
-SWITCHTEXT(mousewheel, "Permite la rueda del rat¢n",", setting: %d")
-SWITCHTEXT(morewindows, "Incrementa el n£mero m ximo de ventanas", " to %d")
+SWITCHTEXT(mousewheel, "Permite la rueda del rat¢n",", establecer: %d")
+SWITCHTEXT(morewindows, "Incrementa el n£mero m ximo de ventanas", " a %d")
 SWITCHTEXT(enhanceddiffsettings, "Configuraci¢n de la dificultad mejorada", "")
 SWITCHTEXT(newbridges, "Nuevos puentes", "")
 SWITCHTEXT(newhouses, "Nuevos edificios", "")
@@ -471,7 +471,7 @@ SWITCHTEXT(locomotiongui, "Permite el estilo locomotion de interfaz de usuario",
 SWITCHTEXT(fifoloading, "Permitir la carga FIFO", "");
 SWITCHTEXT(tempsnowline, "Permite la l¡nea de nieve en clima templado", "")
 SWITCHTEXT(townroadbranchprob, "Cambiar la prob. que una ciudad construya carreteras", " a %d")
-SWITCHTEXT(newcargos, "Permite nuevos tipos de mercanc¡as", "")
+SWITCHTEXT(newcargos, "Permite nuevos tipos de mercancias", "")
 SWITCHTEXT(enhancemultiplayer, "Mejora en juegos multijugador (permite m s jugadores)", "")
 SWITCHTEXT(newsounds, "Permite a¤adir nuevos sonidos en el juego", "")
 SWITCHTEXT(morestats, "Permite una colecci¢n de m s estad¡sticas", "")
@@ -628,7 +628,7 @@ SETTEXT(LANG_CFGFILENOTFOUND, "No se encontr¢ archivo cfg %s. Ignorado.\n")
 SETTEXT(LANG_CFGFILENOTWRITABLE, "No se pudo abrir %s para escritura.\n")
 
 // A non-comment line is longer than 32 chars, rest ignored.
-SETTEXT(LANG_CFGLINETOOLONG, "Arvertencia! L¡nea de conficuraci¢nes m s larga de 32 caract, truncada.\n")
+SETTEXT(LANG_CFGLINETOOLONG, "Arvertencia! L¡nea de conficuraci¢n es m s larga de 32 caract, truncada.\n")
 
 // Shown if an obsolete switch is used. First option is %s which is the
 // config name, second one is %s which is the command line char
@@ -648,7 +648,7 @@ SETTEXT(CFG_INTRO,
 	CFG_COMMENT "El formato para los modificadores es:\n"
 	CFG_COMMENT "   nombre del modificador = valor del modificador\n"
 	CFG_COMMENT "\n"
-	CFG_COMMENT "El \"=\" se puede omitir, o puede ser espacios. De todas formas es ignorado.\n"
+	CFG_COMMENT "El \"=\" se puede omitir, o puede ser espacio. De todas formas es ignorado.\n"
 	CFG_COMMENT "\n"
 	CFG_COMMENT "Para modificadores s¡/no [y/n], el valor puede ser uno:\n" 
 	CFG_COMMENT "   s¡, y, activado, 1, no, n, desctivado, 0\n" 
@@ -674,16 +674,16 @@ SETTEXT(CFG_NOCMDLINE, "sin modificador de l¡nea de comandos")
 // They will have the "comment" char and a space prefixed.
 //
 SETTEXT(CFG_SHIPS, "`%s' (%s) aumenta el n£mero m ximo de barcos.  Rango %ld..%ld.  Por defecto %ld.")
-SETTEXT(CFG_CURVES, "`%s' (%s) establece la velocidad en curva normal: (0), m s r pido (1), la m s r pida (2) o realista (3).  Un d¡gito para cada veh¡culo tren, monorrail, maglev y veh¡culos de carretera. Por defecto 0120.")
-SETTEXT(CFG_MOUNTAINS, "`%s' (%s) establece las velocidades en monta¤as: normal (0), m s r pido (1), la m s r pida (2) o realista (3).  Un d¡gito para cada veh¡culo tren, monorrail, maglev y veh¡culos de carretera. Por defecto 0120.")
-SETTEXT(CFG_SPREAD, "`%s' (%s) Hace que las estaciones puedan tener mayor cubrimiento.  Rango %ld..%ld.  por defecto %ld.")
+SETTEXT(CFG_CURVES, "`%s' (%s) establece la velocidad en curva normal: (0), m s r pido (1), la m s r pida (2) o realista (3).  Un d¡gito para cada veh¡culo: tren, monorrail, maglev y veh¡culos de carretera. Por defecto 0120.")
+SETTEXT(CFG_MOUNTAINS, "`%s' (%s) establece las velocidades en monta¤as: normal (0), m s r pido (1), la m s r pida (2) o realista (3).  Un d¡gito para cada veh¡culo: tren, monorrail, maglev y veh¡culos de carretera. Por defecto 0120.")
+SETTEXT(CFG_SPREAD, "`%s' (%s) Hace que las estaciones puedan tener mayor cubrimiento. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_TRAINREFIT, "`%s' (%s) Hace posible remodelar locomotoras.")
-SETTEXT(CFG_SERVINT, "`%s' (%s) permite cambiar el intervalo de servicio para nuevas locomotoras.  Rango %ld..%ld.  por defecto %ld.")
+SETTEXT(CFG_SERVINT, "`%s' (%s) permite cambiar el int‚rvalo de servicio para nuevas locomotoras. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_NOINFLATION, "`%s' (%s) Desactiva la inflaci¢n de costo y renovaci¢n.") 
 SETTEXT(CFG_LARGESTATIONS, "`%s' (%s) Permite a¤adir m s platafomas a una estaci¢n, hasta 4x7 o 7x5.")
 SETTEXT(CFG_NONSTOP, "`%s' (%s) Hace que la orden \"sin parar\" se comporte diferente.") 
 SETTEXT(CFG_PLANES, "`%s' (%s) aumenta el n£mero m ximo de aviones.  Rango %ld..%ld.  por defecto %ld.")
-SETTEXT(CFG_LOADTIME, "`%s' (%s) Activa un calculo diferente del tiempo de carga/descarga.")
+SETTEXT(CFG_LOADTIME, "`%s' (%s) Activa un c lculo diferente del tiempo de carga/descarga.")
 SETTEXT(CFG_ROADVEHS, "`%s' (%s) aumenta el n£mero m ximo de veh¡culos de carretera. Rango %ld..%ld.  por defecto %ld.")
 SETTEXT(CFG_SIGNCHEATS, "`%s' (%s) activa los c¢digos trampa en r¢tulos.") 
 SETTEXT(CFG_TRAINS, "`%s' (%s) aumenta el n£mero m ximo de trenes.  Rango %ld..%ld.  por defecto %ld.")
@@ -692,9 +692,9 @@ SETTEXT(CFG_PRESIGNALS, "`%s' (%s) permite el uso de pre-se¤ales para mejorar el
 SETTEXT(CFG_MOREVEHICLES, "`%s' (%s) aumenta el n£mero total de veh¡culos a un valor*850.  Rango %ld..%ld.  por defecto %ld.")
 SETTEXT(CFG_MAMMOTHTRAINS, "`%s' (%s) permite trenes mamut de hasta 126 vagones.")
 SETTEXT(CFG_FULLLOADANY, "`%s' (%s) hace que el tren salga de la estaci¢n si est  lleno de alg£n tipo de carga.")
-SETTEXT(CFG_SELECTGOODS, "With `%s' (%s) las mercanc¡as llegan a una estaci¢n s¢lo si un servicio ha llegado, y desaparece despu‚s de un n£mero dado de dias si el servicio para. Especificando 2 significa que las mercancias nunca desaparecen. Rango: %ld..%ld. Por defecto: %ld.")
+SETTEXT(CFG_SELECTGOODS, "Con `%s' (%s) las mercancias llegan a una estaci¢n s¢lo si un servicio ha llegado, y desaparece despu‚s de un n£mero dado de dias si el servicio para. Especificando 2 significa que las mercancias nunca desaparecen. Rango: %ld..%ld. Por defecto: %ld.")
 SETTEXT(CFG_DEBTMAX, "`%s' (%s) permite pagar/pedir prestado la m xima cantidad posible presionando Ctrl.")
-SETTEXT(CFG_OFFICEFOOD, "`%s' (%s) Hace que los edificios de oficina acepten alimentos (en escenarios Tropico y µrtico).")
+SETTEXT(CFG_OFFICEFOOD, "`%s' (%s) Hace que los edificios de oficinas acepten alimentos (en escenarios Tropico y µrtico).")
 SETTEXT(CFG_ENGINESPERSIST, "`%s' (%s) Mantiene las locomotoras disponibles mientras est‚n en uso.")
 SETTEXT(CFG_CDPATH, "`%s' (%s) pone la ruta del CD.")
 // 
@@ -724,9 +724,9 @@ SETTEXT(CFG_MOVEERRORPOPUP, "`%s' (%s) mueve los mensajes de error a una esquina
 SETTEXT(CFG_SIGNAL1WAITTIME, "`%s' (%s) cambia el n£mero de d¡as que espera un tren antes de darse la vuelta en una v¡a £nica . Rango 0..254, o 255 para esperar indefinidamente.") 
 SETTEXT(CFG_SIGNAL2WAITTIME, "`%s' (%s) cambia el n£mero de d¡as que espera un tren antes de darse la vuelta en una v¡a doble. Rango 0..254, o 255 para esperar indefinidamente.") 
 SETTEXT(CFG_DISASTERS, "`%s' (%s) permite escoger qu‚ desastres pueden ocurrir. Valor codificado, por defecto 255 (todos los desastres).") 
-SETTEXT(CFG_FORCEAUTORENEW, "`%s' (%s) forza el servicio a veh¡culos cuando es hora de la auto-renovaci¢n (vea `autorenew').") 
+SETTEXT(CFG_FORCEAUTORENEW, "`%s' (%s) fuerza el servicio a veh¡culos cuando es hora de la auto-renovaci¢n (vea `autorenew').") 
 SETTEXT(CFG_MORENEWS, "`%s' (%s) genera reportes de noticias para m s eventos, vea la documentaci¢n para mayor informaci¢n.") 
-SETTEXT(CFG_UNIFIEDMAGLEV, "`%s' (%s) permite que compres monorailes en dep¢sitos de maglev y viceversa. Modo: 1 - covierte los maglev en monorailes; 2 - convierte los monorieles en maglev; 3 - mantiene separados los monorailes y maglev.")
+SETTEXT(CFG_UNIFIEDMAGLEV, "`%s' (%s) permite que compres monorailes en dep¢sitos de maglev y viceversa. Modo: 1 - covierte los maglev en monorailes; 2 - convierte los monorailes en maglev; 3 - mantiene separados los monorailes y maglev.")
 SETTEXT(CFG_BRIDGESPEEDS, "`%s' (%s) cambia el l¡mite de velocidad en puentes tubulares de monorail y maglev a este porcentaje de la velocidad m xima del veh¡culo.  Rango %ld..%ld.  por defecto %ld.")
 SETTEXT(CFG_ETERNALGAME, "`%s' (%s) permite jugar para siempre, la fecha no regresa al principio despu‚s de 2070.")
 SETTEXT(CFG_SHOWFULLDATE, "`%s' (%s) mostrar la fecha completa en la barra de estado siempre, no solo cuando el juego est‚ en pausa.")
@@ -734,14 +734,14 @@ SETTEXT(CFG_NEWTRAINS, "`%s' (%s) activa los nuevos modelos de tren con los nuev
 SETTEXT(CFG_NEWRVS, "`%s' (%s) activa los nuevos modelos de veh¡culos de carretera con los nuevos gr ficos.")
 SETTEXT(CFG_NEWPLANES, "`%s' (%s) activa los nuevos modelos de avi¢n con los nuevos gr ficos.")
 SETTEXT(CFG_SIGNALSONTRAFFICSIDE, "`%s' (%s) muestra las se¤ales de paso a nivel en el mismo lado en el que va el veh¡culo de carretera.")
-SETTEXT(CFG_ELECTRIFIEDRAIL, "`%s' (%s) remueve uno de los sistemas ferreos magn‚ticos (Monorrail o MagLev) y lo reemplaza con un sistema de ferrocarril electrificado.")
+SETTEXT(CFG_ELECTRIFIEDRAIL, "`%s' (%s) remueve uno de los sistemas f‚rreos magn‚ticos (Monorrail o MagLev) y lo reemplaza con un sistema de ferrocarril electrificado.")
 SETTEXT(CFG_STARTYEAR, "`%s' (%s) establece un nuevo a¤o de inicio para juegos aleatorios y permite m s fechas de inicio en el editor de escenarios.  Rango %ld..%ld.  Por defecto %ld.")
 SETTEXT(CFG_ERRORPOPUPTIME, "`%s' (%s) cambia el tiempo que tarda en cerrarse sola una ventana roja de error.  Rango 1..255 (en segundos), o 0 para un tiempo muy largo.  Por defecto 10.")
 SETTEXT(CFG_TOWNGROWTHLIMIT, "`%s' (%s) cambia el factor que limita la mayor extensi¢n que puede tener una ciudad.  Rango %ld..%ld.  Por defecto %ld.")
 SETTEXT(CFG_LARGERTOWNS, "`%s' (%s) hace que una de un n£mero dado de ciudades crezca m s r pido y m s grande (aplicando tambi‚n `towngrowthlimit' selectivamente).  Rango %ld..%ld.  Por defecto %ld (una de cuatro ciudades).")
 SETTEXT(CFG_MISCMODS, "`%s' (%s) modifica la manera en que algunos modificadores trabaja, v‚a la documentaci¢n para mayor informaci¢n. Valor codificado en bits, Por defecto 0 (sin modificaciones).")
 SETTEXT(CFG_LOADALLGRAPHICS, "`%s' (%s) hace que TTDPatch carge siempre todos los archivos .grf en newgrf(w).cfg, sin importar si fueron utilizados en un juego gurdado anterior(etc.) o no.")
-SETTEXT(CFG_SAVEOPTDATA, "`%s' (%s) hece que TTDPatch guarde y cargue informaci¢n adicional (opcional) al final de los juegos guardados.")
+SETTEXT(CFG_SAVEOPTDATA, "`%s' (%s) hace que TTDPatch guarde y cargue informaci¢n adicional (opcional) al final de los juegos guardados.")
 SETTEXT(CFG_MOREBUILDOPTIONS, "`%s' (%s) aumenta las opciones de construcci¢n. Valor codificado en bits.")
 SETTEXT(CFG_SEMAPHORES, "`%s' (%s) convierte las se¤ales construidas antes de 1975 en se¤ales de sem foro.")
 SETTEXT(CFG_MOREHOTKEYS, "`%s' (%s) activa nuevas teclas de funci¢n.")
@@ -767,7 +767,7 @@ SETTEXT(CFG_TGRGOODSINWEIGHT, "`%s' (%s) define con qu‚ efectividad la mercanc¡a
 SETTEXT(CFG_TGRFOODINMIN, "`%s' (%s) define el requerimento m¡nimo de alimento para ciudades cubiertas por nieve o en  reas des‚rticas, en poblaci¢n por 2 toneladas de alimento (v‚a la documentaci¢n para m s informaci¢n).  Active £nicamente si `towngrowthratemode' tiene el valor  2. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_TGRFOODINOPTIM, "`%s' (%s) define la poblaci¢n ¢ptima por cada 2 toneladas de alimento que llegan a la ciudad (v‚a la documentaci¢n para m s informaci¢n).  Active £nicamente si `towngrowthratemode' tiene el valor  2. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_TGRFOODINWEIGHT, "`%s' (%s) define con qu‚ efectividad el alimento que llega a una ciudad afecta su crecimiento (v‚a la documentaci¢n para m s informaci¢n).  Active £nicamente si `towngrowthratemode' tiene el valor  2. Rango %ld..%ld. Por defecto %ld.")
-SETTEXT(CFG_TGRWATERINMIN, "`%s' (%s) define el requerimento m¡nimno de agua para ciudades en  reas des‚rticas, en poblaci¢n por 2 toneladas (2,000 litros) de agua (v‚a la documentaci¢n para m s informaci¢n).  Active £nicamente si `towngrowthratemode' tiene el valor  2. Rango %ld..%ld. Por defecto %ld.")
+SETTEXT(CFG_TGRWATERINMIN, "`%s' (%s) define el requerimento m¡nimo de agua para ciudades en  reas des‚rticas, en poblaci¢n por 2 toneladas (2,000 litros) de agua (v‚a la documentaci¢n para m s informaci¢n).  Active £nicamente si `towngrowthratemode' tiene el valor  2. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_TGRWATERINOPTIM, "`%s' (%s) define la poblaci¢n ¢ptima por cada 2 toneladas (2,000 litros) de agua que llegan a la ciudad en el clima sub-tropical (v‚a la documentaci¢n para m s informaci¢n).  Active £nicamente si `towngrowthratemode' tiene el valor  2. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_TGRWATERINWEIGHT, "`%s' (%s) define con qu‚ efectividad el agua que llega a una ciudad afecta su crecimiento en el clima sub-tropical (v‚a la documentaci¢n para m s informaci¢n).  Active £nicamente si `towngrowthratemode' tiene el valor  2. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_TGRSWEETSINOPTIM, "`%s' (%s) define la poblaci¢n ¢ptima por cada 2 bolsas de dulces que llegan a la ciudad  (v‚a la documentaci¢n para m s informaci¢n).  Active £nicamente si `towngrowthratemode' tiene el valor  2. Rango %ld..%ld. Por defecto %ld.")
@@ -777,8 +777,8 @@ SETTEXT(CFG_TGRFIZZYDRINKSINWEIGHT, "`%s' (%s) define con qu‚ efectividad los re
 SETTEXT(CFG_TGRTOWNSIZEBASE, "`%s' (%s) define el n£mero base de edificios para el c lculo que involucra `tgrtownsizefactor' (v‚a la documentaci¢n para m s informaci¢n).  Active £nicamente si `towngrowthratemode' tiene el valor  2. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_TGRTOWNSIZEFACTOR, "`%s' (%s) define que tanto influye el tama¤o de una ciudad en su crecimiento (v‚a la documentaci¢n para m s informaci¢n).  Active £nicamente si `towngrowthratemode' tiene el valor  2. Rango %ld..%ld. Por defecto %ld (i.e. 25%% de influencia).")
 SETTEXT(CFG_TOWNMINPOPULATIONSNOW, "`%s' (%s) define la poblaci¢n m¡nima a la que pueden crecer las ciudades cubiertas de nieve sin suministro de alimento.  Active si `towngrowthratemode', `towngrowthlimit' o `generalfixes' est  activado. Rango %ld..%ld. Por defecto %ld.")
-SETTEXT(CFG_TOWNMINPOPULATIONDESERT, "`%s' (%s) define la poblaci¢n m¡nima a la que pueden crecer las ciudades en  reas deserticas sin suministro de agua.  Active si `towngrowthratemode', `towngrowthlimit' o `generalfixes' est  activado. Rango %ld..%ld. Por defecto %ld.")
-SETTEXT(CFG_MORETOWNSTATS, "With `%s' (%s) estad¡sticas adicionales en la ventana de informaci¢n de ciudades.")
+SETTEXT(CFG_TOWNMINPOPULATIONDESERT, "`%s' (%s) define la poblaci¢n m¡nima a la que pueden crecer las ciudades en  reas des‚rticas sin suministro de agua.  Active si `towngrowthratemode', `towngrowthlimit' o `generalfixes' est  activado. Rango %ld..%ld. Por defecto %ld.")
+SETTEXT(CFG_MORETOWNSTATS, "Con `%s' (%s) estad¡sticas adicionales en la ventana de informaci¢n de ciudades.")
 SETTEXT(CFG_BUILDONSLOPES, "`%s' (%s) posibilita la contrucci¢n de v¡as f‚rreas, carreteras y estaciones en laderas, sobre un relleno como las casas.")
 SETTEXT(CFG_BUILDONCOASTS, "`%s' (%s) hace posible construir en costas o riveras sin utilizar dinamita antes.")
 SETTEXT(CFG_TRACKTYPECOSTDIFF, "`%s' (%s) hace que los diferentes tipos de v¡as f‚rreas tengan costes de construcci¢n distintos.")

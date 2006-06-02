@@ -473,6 +473,8 @@
   * parameter for trkfound from Szappy?
   * add basetunnels? with grf parameter to enable it?
 
+- add LRV V4 to patch graphics http://george.zernebok.net/newgrf/downloads.html#dlv4
+
 - change ttdpatch.txt to wiki manual
 
 - don't combine wagons of different cargo types in depot, and show cargo icon
@@ -743,3 +745,9 @@ CHANGELOG
 2.5 beta 6
 - updated Czech, Spanish translations
 - fixed action D global variables getting set as soon as flag is green
+- by steven_h:
+  * implemented truck stops
+- by Csaba:
+  * fixed FIFO data being stuck if an order is skipped manually 
+  * fixed station trigger 3 and animation trigger 4; now they should work
+    even without gradualloading

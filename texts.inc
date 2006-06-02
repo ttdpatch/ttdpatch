@@ -799,7 +799,7 @@ def bribedesc, db 94h,80h,13,90h
 	db "Sie erwischt werden."
 	db 13,"  Kosten: ",7fh,0
 
-def bribefailed, db 94h,"Ihr Bestechungsversuch wurde aufgedeckt durch eine staatliche Untersuchung.",0
+def bribefailed, db 94h,"Ihr Bestechungsversuch wurde durch eine staatliche Untersuchung aufgedeckt.",0
 
 def headingfor, db 95h,80h,", ",84h,0
 def headingfordepot1, db 95h,80h,"-Zugdepot, ", 84h,0
@@ -920,7 +920,7 @@ def grflisthint, db 0x98,"Klicken Sie auf den Namen, um weitere Informationen "
 	db "um die Datei zu (de)aktivieren.",0
 def grfapplyhint, db 0x98,"Neue Einstellungen in aktuellem Spielstand aktivieren",0
 def grfresethint, db 0x98,"Alle Einstellungen zum Standard zurücksetzen und aktivieren",0
-def grfdebughint, db 0x98,"Erzeugt eine Debug-Datei des gesamt GRF Status",0 
+def grfdebughint, db 0x98,"Erzeugt eine Debug-Datei des gesamten GRF Status",0 
 def grfdebugmsg, db 0x94, "Grafik-Statusinformationen geschrieben nach ",80h,": ",80h,0
 
 def grfstatusmenu, db "Status neuer Grafiken", 0
@@ -998,7 +998,7 @@ def vehiclelost, db 0x94,0x80," ",0x7c," scheint sich verfahren zu haben",0
 
 def wrongrailtype, db 94h,"...inkompatible Schienenart",0
 
-def neterror1, db 0x94,"Netzworkfehler!",0
+def neterror1, db 0x94,"Netzwerkfehler!",0
 def neterror2, db 0x94,"Spieleverbindung getrennt!",0
 
 def desynch1, db 0x94,"Spieleynchronisation verloren!",0
@@ -1025,8 +1025,8 @@ def newvehveryveryold, db 0
 def newvehiclelost, db 0
 def newcantreverse, db 0
 
-def txtetoolboxmenu, db "Erweiterte GUI Einstellungen", 0
-def txtetoolbox, db 0x94, "Erweiterte GUI Einstellungen", 0
+def txtetoolboxmenu, db "GUI Einstellungen", 0
+def txtetoolbox, db 0x94, "GUI Einstellungen", 0
 def txtetoolbox_tsigns, db 0x98, "Bahnhofsschilder", 0
 def txtetoolbox_tsignstrans, db "Transparent",0
 def txtetoolbox_tsignsold, db "Normal",0
@@ -1043,9 +1043,9 @@ def txtetoolbox_d20, db "Depot 20  (10)",0
 def txtetoolbox_depotalltrash, db 0x98, "Depot allTrash",0
 def txtetoolbox_on, db "An",0
 def txtetoolbox_off, db "Aus",0
-def txtetoolbox_saveinsavegame, db 0x98, "Einstellungen anstecken",0
-def txtetoolbox_usedefaultinsave, db 0x98, "Entfernen",0
-def txtetoolbox_saveasdefault, db 0x98, "As Standard speichern",0
+def txtetoolbox_saveinsavegame, db 0x98, "Mit Spielstand speichern",0
+def txtetoolbox_usedefaultinsave, db 0x98, "Vom Spielstand entfernen",0
+def txtetoolbox_saveasdefault, db 0x98, "Als Standard speichern",0
 def txtetoolbox_resetdefaultsizes, db 0x98, "Standard wiederherstellen",0
 
 def none, db "Keine", 0
@@ -1105,7 +1105,7 @@ def newinduprospect_tooltip, db 0x98,"Rohstofferkundung für die Industrie finanz
 
 def newindu_cargowaiting, db 0x98,"Zu verarbeitende Rohstoffe:",0x90,0x0d,0x80,0x0d,0x80,0x0d,0x80,0
 
-def warning_notowns, db 94h,"Warnung: Diese Spiel hat keine Städte. TTD wird vermütlich abstürzen wenn es geladen wird!",0
+def warning_notowns, db 94h,"Warnung: Diese Spiel hat keine Städte. TTD wird vermutlich abstürzen wenn es geladen wird!",0
 
 def localplayer, db " (lokaler Spieler)",0
 def remoteplayer, db " (entfernter Spieler)",0
@@ -1117,7 +1117,7 @@ def ttdpatch_dll_notfound, db 94h,"Konnte ttdpatch.dll nicht laden, keine neuen 
 
 def statistics, db 0x98, "Statistiken",0
 def statistics_white, db 0x94, "Statistiken",0
-def totalcargo, db 0x8E, "Gesamtzahl der transportieren Fracht",0
+def totalcargo, db 0x8E, "Transportierte Fracht insgesamt",0
 def statistics_tooltip, db 0x98, "Firmenstatistik öffnen",0
 
 def landareainfoheight, db 0x98,"Höhe: ",0x95,0x7B,0
