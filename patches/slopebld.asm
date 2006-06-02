@@ -435,18 +435,10 @@ correctstationalt:
 
 	// Busstops
 	cmp dh, 0x53
-	je .slope
-	cmp dh, 0x54
-	je .slope
-	cmp dh, 0x55
-	je .slope
-	cmp dh, 0x56
-	je .slope
-	cmp dh, 0x57
-	je .slope
-	cmp dh, 0x58
-	je .slope
-
+	jl .normalStation
+	cmp dh, 0x5A
+	jle .slope
+.normalStation:
 	cmp dh,0x4b
 	jae .done
 .slope:
@@ -471,17 +463,9 @@ displstationgroundsprite:
 
 	// Busstops
 	cmp dh, 0x53
-	je .slope
-	cmp dh, 0x54
-	je .slope
-	cmp dh, 0x55
-	je .slope
-	cmp dh, 0x56
-	je .slope
-	cmp dh, 0x57
-	je .slope
-	cmp dh, 0x58
-	je .slope
+	jl .noslope
+	cmp dh, 0x5A
+	jle .slope
 
 .noslope:
 	call [addgroundsprite]
@@ -492,9 +476,9 @@ displstationgroundsprite:
 
 global displbasewithfoundation
 displbasewithfoundation:
-    cmp	dh, 0
-    jne .dontInsertTracks
-    mov dh, [landscape3+esi*2]
+	cmp dh, 0
+	jne .dontInsertTracks
+	mov dh, [landscape3+esi*2]
 .dontInsertTracks:
 	call displayfoundation
 
@@ -510,9 +494,9 @@ displfoundationrelsprite:
 	add ecx,8
 
 .relok:
-    mov     di, 6
-    mov     si, 6
-    mov     dh, 10
+	mov di, 6
+	mov si, 6
+	mov dh, 10
 	call [addrelsprite]
 	popa
 	ret
@@ -773,17 +757,9 @@ global correctstationexactalt,correctexactalt.getfoundationtype
 correctstationexactalt:
 	// Busstops
 	cmp dh, 0x53
-	je correctexactalt.chkslope
-	cmp dh, 0x54
-	je correctexactalt.chkslope
-	cmp dh, 0x55
-	je correctexactalt.chkslope
-	cmp dh, 0x56
-	je correctexactalt.chkslope
-	cmp dh, 0x57
-	je correctexactalt.chkslope
-	cmp dh, 0x58
-	je correctexactalt.chkslope
+	jl correctexactalt.done
+	cmp dh, 0x5A
+	jle correctexactalt.chkslope
 
 	cmp dh,0x4b
 	jb correctexactalt.chkslope
@@ -1024,12 +1000,16 @@ stationbusstopcheck:
 	push ebx
 	shr bx, 8
 	and ebx, 0xf
-	sub bl, 0x0C // well the directions are a bit screwed here ?!?
-	cmp bl, 0xF9 //steven hoefel: truck stops are much higher on the bl, so they need
-			//to be reduced to 0/1
-	jg .notTruckDriveThru
-	add bl, 8
-.notTruckDriveThru:
+//	sub bl, 0x0C	// well the directions are a bit screwed here ?!?
+			// yes, they were, but they were still Odd for NE->SW and Even for NW->SE
+			// so we can just check for that and use accordingly
+	test bl, 1
+	jz .even
+	mov ebx, 1
+	jmp .indexAdjusted
+.even:
+	mov ebx, 0
+.indexAdjusted:
 	bt [busstopfoundation+ebx*2],di
 	pop ebx
 	jc stationallowslope
