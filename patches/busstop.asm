@@ -81,17 +81,30 @@ NewClass5RouteMapHandler:
 .bus:
 	xor eax, eax
 	mov byte al, [landscape5(di)]
-	cmp al, 0x53
+	cmp al, 0x53		//bus stop
+	je .busstop1
+	cmp al, 0x55		//truck stop has same movement
 	je .busstop1
 	cmp al, 0x57		//truck stop has same movement
 	je .busstop1
-	cmp al, 0x54
+	cmp al, 0x59		//tramfreight stop
+	je .busstop1
+	cmp al, 0x54		//bus stop
+	je .busstop2
+	cmp al, 0x56		//truck stop has same movement
 	je .busstop2
 	cmp al, 0x58		//truck stop has same movement
+	je .busstop2
+	cmp al, 0x5A		//tram freight stop
 	je .busstop2
 //	cmp al, 0x07
 //	jbe .railstation
 	xor eax, eax
+	ret
+
+.doNotAllowEntry:
+	xor eax, eax	//zero the 'tile route map'
+	xor edi, edi	//ruin the landscape XY pointer so that the routemapper wont allow entry.
 	ret
 
 #if 0
@@ -127,6 +140,18 @@ NewClass5RouteMapHandler:
 
 global Class5VehEnterLeaveBusStop
 Class5VehEnterLeaveBusStop:
+.justDoNormal:
+	cmp	word [edi+veh.nextunitidx], 0xFFFF
+	je	.notArticulated
+	movzx	ebx, bx
+	mov	byte al, [landscape5(bx)]
+	cmp	al, 0x53
+	jge	.notArticulated
+	mov	byte [esi+0x6A], 180 	//UTURN!
+	or	ebx, 0x80000000
+	jmp	.quit
+
+.notArticulated:
 	cmp byte [edi+veh.targetairport], 0
 	jz .teststation
 .quit:
@@ -151,15 +176,15 @@ Class5VehEnterLeaveBusStop:
 	jne .truck
 
 	cmp al, 0x53
-	je .busstop
-	cmp al, 0x54
-	je .busstop
+	jl .done
+	cmp al, 0x56
+	jle .busstop
 	jmp .done
 .truck:
 	cmp al, 0x57
-	je .busstop
-	cmp al, 0x58
-	je .busstop
+	jl .done
+	cmp al, 0x5A
+	jle .busstop
 .done:
 	ret
 
@@ -209,7 +234,14 @@ global Class5CreateBusStationAction
 Class5CreateBusStationAction:
 	cmp bh, 4
 	jb .done
-	add bh, 8-2
+	testmultiflags trams				//trams enabled?
+	jz .dontAddTramStopOffset
+	cmp byte [editTramMode], 1			//currently adding trams?
+	jnz .dontAddTramStopOffset
+	add bh, 8					//set it to be a standard bus stop
+	jmp short .done
+.dontAddTramStopOffset:
+	add bh, 8-2					//set it to be a tram stop
 .done:
 	jmp [oldclass5createbusstation]
 
@@ -218,6 +250,13 @@ global Class5CreateTruckStationAction
 Class5CreateTruckStationAction:
 	cmp bh, 4
 	jb .done
+	testmultiflags trams
+	jz .dontAddTramFreightStopOffset
+	cmp byte [editTramMode], 1
+	jnz .dontAddTramFreightStopOffset
+	add bh, 0x10
+	jmp short .done
+.dontAddTramFreightStopOffset:
 	add bh, 0x0E
 .done:
 	jmp [oldclass5createtruckstation]
@@ -229,9 +268,9 @@ Class5ClearTileBusStop:
 	cmp dh, 0x4B
 	jb .removeit
 	cmp dh, 0x53
-	je .removeit
-	cmp dh, 0x54
-	je .removeit
+	jl .done
+	cmp dh, 0x56
+	jle .removeit
 .done:
 	clc
 	ret
@@ -246,9 +285,9 @@ Class5ClearTileTruckStop:
 	cmp dh, 0x47
 	jb .removeit
 	cmp dh, 0x57
-	je .removeit
-	cmp dh, 0x58
-	je .removeit
+	jl .done
+	cmp dh, 0x5A
+	jle .removeit
 .done:
 	clc
 	ret
@@ -261,9 +300,10 @@ Class5ClearTileBusStopError:
 	cmp dh, 0x4B
 	jb .error
 	cmp dh, 0x53
-	je .error
-	cmp dh, 0x54
-	je .error
+	jl .noerror
+	cmp dh, 0x56
+	jle .error
+.noerror:
 	ret
 .error:
 	add esp, 4
@@ -275,9 +315,10 @@ Class5ClearTileTruckStopError:
 	cmp dh, 0x47
 	jb .error
 	cmp dh, 0x57
-	je .error
-	cmp dh, 0x58
-	je .error
+	jl .noerror
+	cmp dh, 0x5A
+	jle .error
+.noerror:
 	ret
 .error:
 	add esp, 4
@@ -289,9 +330,10 @@ global Class5QueryHandlerBusStop
 Class5QueryHandlerBusStop:
 	mov ax, 0x3062
 	cmp cl, 0x53
-	je .busstop
-	cmp cl, 0x54
-	je .busstop
+	jl .doNormal
+	cmp cl, 0x56
+	jle .busstop
+.doNormal:
 	cmp cl, 0x4B
 	ret
 .busstop:
@@ -302,9 +344,10 @@ global Class5QueryHandlerTruckStop
 Class5QueryHandlerTruckStop:
 	mov ax, 0x3061
 	cmp cl, 0x57
-	je .truckstop
-	cmp cl, 0x58
-	je .truckstop
+	jl .doNormal
+	cmp cl, 0x5A
+	jle .truckstop
+.doNormal:
 	cmp cl, 0x47
 	ret
 .truckstop:
@@ -321,15 +364,15 @@ RVMakeStationBusywhenleaving:
 	popad
 	jne .truck
 	cmp al, 0x53
-	je .busstop
-	cmp al, 0x54
-	je .busstop
-	jmp .done
+	jl .done
+	cmp al, 0x56
+	jle .busstop
+	jmp short .done
 .truck:
 	cmp al, 0x57
-	je .busstop
-	cmp al, 0x58
-	je .busstop
+	jl .done
+	cmp al, 0x5A
+	jle .busstop
 .done:
 	or byte [ebx+ebp], 0x80
 .busstop:
@@ -377,10 +420,22 @@ BusLorryStationDrawHandler:
 .drawTramStops:
 	pusha
 	add cx, 0x44
+	cmp bl, 0x43
+	jnz .firstTramStop
+	mov bl, 0x59		//move in truck stop
+	jmp .firstTramStopSet
+.firstTramStop:
 	mov bl, 0x55
+.firstTramStopSet:
 	xor al, al
 	call [DrawStationImageInSelWindow]
-	mov bl, 0x56
+	cmp bl, 0x59
+	jnz .secondTramStop
+	mov bl, 0x5A		//move in truck stop
+	jmp .secondTramStopSet
+.secondTramStop:
+	mov bl, 0x56		//move in bus stop
+.secondTramStopSet:
 	add dx, 0x34
 	xor al, al
 	call [DrawStationImageInSelWindow]
