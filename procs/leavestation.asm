@@ -2,7 +2,7 @@
 #include <frag_mac.inc>
 #include <patchproc.inc>
 
-patchproc fifoloading, patchfifoloading
+patchproc fifoloading,newstations, patchleavestation
 
 begincodefragments
 
@@ -11,21 +11,18 @@ codefragment oldtrainleavestation, 5
 	test word [esi+veh.currorder], 80h
 	mov word [esi+veh.currorder], 4
 
-codefragment newtrainleavestation
-	icall trainleavestation
+codefragment_call newtrainleavestation,trainleavestation
 
 codefragment oldsendtraintodepot,1
 	db 0x08
 	movzx esi, dx
 	shl esi, 7
 
-codefragment newsendtraintodepot
-	icall sendtraintodepot
-
+codefragment_call newsendtraintodepot,sendtraintodepot,19
 
 endcodefragments
 
-patchfifoloading:
+patchleavestation:
 	patchcode oldtrainleavestation,newtrainleavestation
 	patchcode oldsendtraintodepot,newsendtraintodepot
 	ret

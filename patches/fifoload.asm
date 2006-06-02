@@ -1,18 +1,21 @@
 
-#include <defs.inc>
+#include <std.inc>
+#include <flags.inc>
 #include <station.inc>
 #include <veh.inc>
-#include <ttdvar.inc>
 
-extern stationarray2ptr
+extern stationarray2ptr,trainleaveplatform,patchflags
 
 global trainleavestation
 trainleavestation:
 	call removetrainfromqueue
+	call trainleaveplatform
 	test word [esi+veh.currorder], 80h
 	ret
 
 removetrainfromqueue:
+	testflags fifoloading
+	jnc .done
 	pusha
 	movzx eax, byte [esi+veh.laststation]
 	mov bx, station2_size
@@ -39,16 +42,23 @@ removetrainfromqueue:
 	jnz .cargoloop
 	
 	popa
+.done:
 	ret
 
 global sendtraintodepot
 sendtraintodepot:
 	movzx esi, dx
 	shl esi, 7
-	push esi
 	add esi, [veharrayptr]
+
+	mov dx,[esi+veh.currorder]
+	and dl,0x1f
+	cmp dl,3	// are we loading currently?
+	jne .notloading
+
 	call removetrainfromqueue
-	pop esi
+	call trainleaveplatform
+.notloading:
 	ret
 
 global clearfifodata

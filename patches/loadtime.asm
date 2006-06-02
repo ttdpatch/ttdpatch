@@ -34,19 +34,7 @@ loadtimedone:
 	// not done if full load is set
 	test ah,0x40
 	stc
-	jnz .haveitz
-
-	pushf
-	push edx
-	mov edx,4
-	call stationplatformanimtrigger
-
-	or edx,byte -1
-	push 8
-	call stationplatformtrigger
-	pop edx
-	popf
-	ret
+	jz .haveit
 
 .haveitz:
 	test al,0	// set zero flag and clear carry
@@ -55,6 +43,19 @@ loadtimedone:
 	ret
 ; endp loadtimedone
 
+exported trainleaveplatform
+	testflags newstations
+	jnc .done
+	push edx
+	mov edx,4
+	call stationplatformanimtrigger
+
+	or edx,byte -1
+	push 8
+	call stationplatformtrigger
+	pop edx
+.done:
+	ret
 
 uvarw totalloadamount		// how much cargo to load/unload at a time for gradualloading
 uvarb numvehstillunloading	// number of vehicles not yet done with unloading

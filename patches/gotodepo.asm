@@ -643,7 +643,12 @@ skipbutton:
 	mov dl,0
 
 .nottoolarge:
+	mov bl,[edi+veh.currorder]		// are we going to a depot?
+	and bl,0x1f
+	cmp bl,2
+	jne .notdepot
 	mov word [edi+veh.currorder],0		// force to check commands again
+.notdepot:
 	ret
 ; endp skipbutton 
 
