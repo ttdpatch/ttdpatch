@@ -43,9 +43,11 @@ codefragment findmanagernamelist,10
 	add ah, cl
 	movzx esi,ah
 
-codefragment findmanagerinitials,5
+codefragment findmanagerinitials,9
 	movzx esi,ah
 	db 0x8a, 0x86
+
+codefragment_call newmanagerinitials,putmanagerinitials,8
 
 codefragment findparentdir,4
 	db 0
@@ -163,8 +165,16 @@ patchtranslation:
 // find some pointers and text arrays in the code that haven't got textIDs
 	storeaddresspointer findcompanynamelist,1+WINTTDX,2,pDefaultCompanyNameTable
 	storeaddresspointer findmanagernamelist,1,2,pDefaultAIPlayerNameTable
-	storeaddress findmanagerinitials,1,2,pAIFirstNameList
-	storeaddress findmanagerinitials,2,2,pAIMiddleNameList
+	stringaddress findmanagerinitials,1,2
+	lea eax,[edi-4]
+	mov [pAIFirstNameList],eax
+	mov word [edi-6],0xbe90			// mov al, [esi+offs] -> nop; mov esi, offs
+	storefragment newmanagerinitials
+	stringaddress findmanagerinitials,1,1
+	lea eax,[edi-4]
+	mov [pAIMiddleNameList],eax
+	mov word [edi-6],0xbe90			// mov al, [esi+offs] -> nop; mov esi, offs
+	storefragment newmanagerinitials
 	storeaddress findparentdir,1,1,pParentDirName
 	storeaddress finddir,1,1,pDirName
 	storeaddress findtransport1,1,1,pTransport1

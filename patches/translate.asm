@@ -4,7 +4,7 @@
 #include <textdef.inc>
 
 extern gettextandtableptrs,mainstringtable,languageid,malloccrit,realcurrency
-extern specialtext1,ttdtexthandler,texthandler
+extern specialtext1,ttdtexthandler,texthandler,getutf8char,hasaction12,storeutf8char
 
 uvard PrintDword
 
@@ -367,4 +367,50 @@ restoredefaultcurr:
 	xor ah,ah
 .notcustom:
 	mov [currency],ah
+	ret
+
+exported putmanagerinitials
+	mov cl,ah
+
+	push ebp
+
+	mov ebp, .loadchar
+	cmp word [esi],0x9EC3
+	jne .notunicode
+
+	mov ebp, getutf8char
+	lodsw
+
+.notunicode:
+	xor eax,eax
+
+.nextchar:
+	call ebp
+	test eax,eax
+	jz .error
+	dec cl
+	jns .nextchar
+
+	cmp byte [hasaction12],0
+	je .normalstore
+
+	call storeutf8char
+	jmp short .stored
+
+.normalstore:
+	stosb
+.stored:
+	mov al,'.'
+	stosb
+	pop ebp
+	ret
+
+.error:
+	mov ax,'?.'
+	stosw
+	pop ebp
+	ret
+
+.loadchar:
+	lodsb
 	ret
