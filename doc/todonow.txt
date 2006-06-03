@@ -751,3 +751,8 @@ CHANGELOG
   * fixed FIFO data being stuck if an order is skipped manually 
   * fixed station trigger 3 and animation trigger 4; now they should work
     even without gradualloading
+- by Oskar:
+  * fixed display of coast under higherbridges if canals is off
+  * fixed canals/higherbridges coast code, reduced size
+  * changed the diagonal flood code by Lakie, 
+    less code called by tick, bridges use the action 5 coast sprites aswell

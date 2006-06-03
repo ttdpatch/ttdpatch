@@ -135,9 +135,9 @@ patchhigherbridges:
 
 	stringaddress oldbridgedrawmiddlepartpillar,1,1
 	storefunctioncall bridgedrawmiddlepartpillar
-
-	stringaddress oldselectgroundforbridge
-	storefunctioncall selectgroundforbridge
+// now in patchcanalshigherbridges
+//	stringaddress oldselectgroundforbridge
+//	storefunctioncall selectgroundforbridge
 
 // Manage Bridge building
 	stringaddress oldbridgecheckzstartend,1,2

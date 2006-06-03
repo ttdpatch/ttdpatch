@@ -2676,6 +2676,31 @@ Class6FloodTile:
 // Handles getting the sprites for the coasts, since 8 new types have appeared
 global Class6CoastSprites, newcoastspritebase, newcoastspritenum
 Class6CoastSprites:
+	bt edi, 5	// is steep slope?
+	jc .steepslope
+	mov ebx, [waterbanksprites]
+	movzx ebx, word [ebx+edi]
+	ret
+.steepslope:
+	xor ebx, ebx 	// clears edi	
+	cmp edi, 0x2E	
+	je .newoffset
+	
+	mov ebx, 0x0A	
+	cmp edi, 0x36
+	je .newoffset
+
+	mov ebx, 0x14
+	cmp edi, 0x3A
+	je .newoffset
+	
+	mov ebx, 0x1E
+	
+.newoffset:
+	add ebx, [waterbanksprites]
+	movzx ebx, word [ebx]
+	ret
+#if 0
 	cmp edi, 0x20
 	jb .goodoffset
 
@@ -2715,9 +2740,43 @@ Class6CoastSprites:
 	shr di, 1
 	add bx, di
 	ret
-
+#endif
 uvarw newcoastspritebase, 1, s
 uvard newcoastspritenum
+
+var defaultcoastspritetable
+	dw 3997, 4063, 4064, 4068, 4062, 3998, 4066, 3988, 4065, 4069, 3996, 3992, 4067, 3994, 3995, 3999
+
+// Handles changeing the waterbanksprites with new graphics or fallback ones
+global ChangeCoastSpriteTable
+ChangeCoastSpriteTable:
+	pusha
+	// reset to default
+	mov esi, defaultcoastspritetable
+	mov edi, [waterbanksprites]
+	mov ecx, 16
+	rep movsw
+
+	// now fill the array if new water sprites if there any
+	cmp word [newcoastspritebase], -1
+	je .nosprites
+	cmp dword [newcoastspritenum], 0x10		// do we have 16 sprites?
+	jne .nosprites
+	
+	mov eax, 0
+	mov edi, dword [waterbanksprites]		// reload the address
+	movzx ebx, word [newcoastspritebase]	// get the spritenumber of the first sprite
+
+.nextentry:
+	mov word [edi+eax*2], bx
+	inc eax
+	inc ebx
+	cmp eax, 16
+	jb .nextentry
+.nosprites:
+	popa
+	ret
+
 
 uvard tempSplittextlinesNumlinesptr,1,s
 uvard SplittextlinesMaxlines,1,s

@@ -939,10 +939,11 @@ patchgeneralfixes:
 	// Loads the new flood subroutine which allows diagonal flooding.
 	patchcode oldfloodtile,newfloodtile,1,1,,{cmp ebp,2},e
 
-	cmp ebp,2
-	jnz near .nodiagonalflooding
+//	cmp ebp,2
+//	jnz near .nodiagonalflooding
 
 	// Populate bad array entries
+	// Note: Higherbridges will use them aswell, so they need to be always patched!
 	mov edi,[waterbanksprites]
 	mov word [edi+0x00], 3997 // Steep
 	mov word [edi+0x0A], 3998 // Steep
@@ -953,10 +954,14 @@ patchgeneralfixes:
 	mov word [edi+0x1C], 3995
 	mov word [edi+0x1E], 3999 // Steep
 
+	cmp ebp,2
+	jnz .nodiagonalflooding
+
 	// Allow the action5 graphics to be loaded
 	or dword [newgraphicssetsenabled], 1<<0x0D
 .nodiagonalflooding:
 
+//	see ChangeCoastSpriteTable
 	mov edi,[waterbanksprites]
 	mov [oldcoastsprites.ptr],edi
 	patchcode oldcoastsprites,newcoastsprites,1,1,,{cmp ebp,2},e // patch the place where it is used in TTD

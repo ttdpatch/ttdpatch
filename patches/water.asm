@@ -374,66 +374,28 @@ var coastdirections // xy-offsets for all possible height masks (1234h means thi
 global class9drawland
 class9drawland:
 	mov [saved_ebx], ebx
-
 	jmp [oldclass9drawlandfnc]
+
+	
+// in:	ebx = old sprite
+//		ax, cx = landscape XY
+//		dl = lowest corner
+//		dh = type of tile L5
+//		di = cornermap
+//		saved_ebx = XY index
+//
+//		We assume in this code that there are no coast tiles at higher levels.
+//		The old code checked the nearby tile if there is really a water tile,
+//		however generally we can skip this if a bridge has the water flag set it will flood at seelevel
+//		and coastlines can only happen at seelevel anyway...
+//		Or in other words, if there is a slope under a bridge and it's water, display a coast, done!
 
 global selectgroundforbridge
 selectgroundforbridge:
-	or di, di
-	jnz .isnotawatersprite
 	cmp ebx, 4061
-	jnz .isnotawatersprite
-	jmp .isawatersprite
-.isnotawatersprite:
-	cmp dl, 0
-	jz .coast
-	jmp .nocoast
-.coast:
-	push ebx
-	push edi
-	shl di, 1
-	and edi, 0xFFFF
-	movsx ebx, word [coastdirections+edi]
-	pop edi
-	cmp bx, 1234h
-	je .alwayscoast
-	cmp bx, 0000h
-	je .nocoast2
-	add ebx, [saved_ebx]
-	cmp ebx,0xffff
-	ja .nocoast	// beyond the map
-	cmp byte [landscape4(bx,1)], 60h
-	je .alwayscoast
-	cmp byte [landscape4(bx,1)], 90h
-	je .bridgecoast
-	pop ebx
-	jmp .nocoast
-	
-.bridgecoast:
-	test word [landscape3 + 2*ebx], 1	// not a canal
-	jz .alwayscoast
-	pop ebx
-	jmp .nocoast
-	
-.alwayscoast:
-	mov ebx, [saved_ebx]
-	test byte [landscape5(bx)], 20h
-	jnz .nocoast2
-	test byte [landscape5(bx)], 18h
-	jz .nocoast2
-	pop ebx
-	push edi
-	shl di, 1
-	and edi, 0xFFFF
-	add edi, [waterbanksprites]
-	mov bx, [edi]
-	pop edi
-	call [addgroundsprite]
-	ret
-
-.nocoast2:
-	pop ebx
+	jz .isawatersprite
 .nocoast:
+	// draws a normal landshape, fixes higherbridges
 	push edi
 	and edi, 0xFFFF
 	add edi, [landshapetospriteptr]
@@ -442,34 +404,51 @@ selectgroundforbridge:
 	pop edi
 	call [addgroundsprite]
 	ret
-
+	
 .isawatersprite:
+	or di, di
+	jnz .coast
 	call [addgroundsprite]
-	cmp dl, 0
-	jz .notaboveseelevel
 	testflags canals
-	jnc .notaboveseelevel
-	pusha
+	jc .hascanals
+	ret
+	
+.hascanals:
+	mov ebx, [saved_ebx]
+	cmp dl, 0
+	jnz .drawdikes
+	test word [landscape3+ebx*2], 1
+	jnz .drawdikes
+	ret
 .drawdikes:
-	xor esi, esi
-	rol cx, 8
-	mov si, cx
-	rol cx, 8
-	or si, ax
-	ror si, 4
+	pusha
+	mov esi, ebx
 	call normalwaterabove
 	popa
+.nodikes:
+	ret
+	
+.coast:
+#if 0
+	push ebx
+	mov ebx, [saved_ebx]
+	test byte [landscape5(bx)], 20h
+	jnz .nocoast2
+	test byte [landscape5(bx)], 18h
+	jz .nocoast2
+	pop ebx
+#endif
+	push edi
+	shl di, 1
+	and edi, 0xFFFF
+	add edi, [waterbanksprites]
+	movzx ebx, word [edi]
+	pop edi
+	call [addgroundsprite]
 	ret
 
-.notaboveseelevel:
-	pusha
-	mov ebx, [saved_ebx]
-	test word [landscape3 + 2*ebx], 1 
-	jz .nodikes
-	jmp .drawdikes	
-.nodikes:
-	popa
-	ret
+
+
 ;endp selectgroundforbridge
 
 // code for removing bridge on coast

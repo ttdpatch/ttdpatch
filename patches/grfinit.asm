@@ -59,6 +59,7 @@ extern applysnowytemptrees,alwaysminusone
 extern updateTramStopSpriteLayout,setelrailstexts,gettextintableptr
 extern gettextandtableptrs,defaultstylename,fixupvehnametexts
 extern origlanguageid
+extern ChangeCoastSpriteTable
 
 // New class 0xF (vehtype management) initialization handler
 // does additional things before calling the original function
@@ -1554,6 +1555,11 @@ postinfoapply:
 	call fixupvehnametexts
 
 .nofixupvehtexts:
+	test byte [miscmodsflags+2], MISCMODS_NODIAGONALFLOODING>>(8*2)
+	jnz .nochangecoastspritetable
+
+	call ChangeCoastSpriteTable
+.nochangecoastspritetable:
 	ret
 
 // List of vehicles the should be made eternal

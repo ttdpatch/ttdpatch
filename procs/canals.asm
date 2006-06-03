@@ -5,6 +5,7 @@
 #include <patchproc.inc>
 
 patchproc canals, patchcanals
+patchproc canals, higherbridges, patchcanalshigherbridges
 
 extern oldclass6maphandler,Class6RouteMapHandler,Class6VehEnterLeave
 extern oldclass6periodicproc,Class6PeriodicProc,Class6PeriodicProc
@@ -98,16 +99,8 @@ patchcanals:
 	mov [oldclass6drawlandfnc], ecx
 	mov dword [eax+0x1C],addr(Class6DrawLand)
 
-	patchcode selectgroundforbridge
-
 	storeaddress finddockwinpurchaselandico, 1, 1, dockwinpurchaselandico
 	or byte [newgraphicssetsenabled+1],1 << (8-8)
-
-	//extra patching, to display coasts under bridges
-	mov eax, [ophandler+0x09*8]
-	mov ecx, [eax+0x1C]
-	mov [oldclass9drawlandfnc], ecx
-	mov dword [eax+0x1C],addr(class9drawland)
 
 	//patch flat docks
 	patchcode oldcanbuilddockhere,newcanbuilddockhere,1,1
@@ -119,4 +112,14 @@ patchcanals:
 	mov [oldclass5drawlandfnc], ecx
 	mov dword [eax+0x1C],addr(Class5DrawLand)
 
+	ret
+
+patchcanalshigherbridges:
+	patchcode selectgroundforbridge
+	
+	//extra patching, to display coasts under bridges
+	mov eax, [ophandler+0x09*8]
+	mov ecx, [eax+0x1C]
+	mov [oldclass9drawlandfnc], ecx
+	mov dword [eax+0x1C],addr(class9drawland)
 	ret
