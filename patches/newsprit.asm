@@ -32,7 +32,7 @@ extern triggerbits,vehids,getvehtypeflags,getcargoacceptdata
 extern wagonoverride,getindutiletypeatoffset,getindutilerandombits
 extern getindustilelandslope_industry,hexdigits,int21handler
 extern getotherindustileanimstage,getotherindustileanimstage_industry
-extern getstationanimframe,getnearbystationanimframe
+extern getstationanimframe,getnearbystationanimframe,getothertypedistance
 
 uvard grffeature
 uvard curgrffeature,1,s		// must be signed to indicate "no current feature"
@@ -1794,6 +1794,7 @@ vard industryparamvarhandler
 	dd getindutilerandombits
 	dd getindustilelandslope_industry
 	dd getotherindustileanimstage_industry
+	dd getothertypedistance
 %ifndef PREPROCESSONLY
 %assign n_industryparamvarhandler (addr($)-industryparamvarhandler)/4
 %endif

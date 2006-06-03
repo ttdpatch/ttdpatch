@@ -3914,6 +3914,86 @@ exported getotherindustileanimstage_industry
 	movzx ebx,word [esi+industry.XY]
 	jmp getotherindustileanimstage.gotebx
 
+exported getothertypedistance
+	push ebx
+	push edx
+	push edi
+
+	movzx eax,ah
+	btr eax,7
+	jc .newtype
+	bt [defaultindustries],eax
+	jnc .infinity
+	mov ecx,eax
+	jmp short .gottype
+
+.newtype:
+	mov ebx,[mostrecentspriteblock]
+	mov ebx,[ebx+spriteblock.grfid]
+
+	xor ecx,ecx
+.nextslot:
+	cmp ebx,[industrydataidtogameid+ecx*8+industrygameid.grfid]
+	jne .badslot
+	cmp al,[industrydataidtogameid+ecx*8+industrygameid.setid]
+	je .gottype
+
+.badslot:
+	inc ecx
+	cmp cl,NINDUSTRIES
+	jb .nextslot
+
+.infinity:
+	or eax, byte -1
+	pop edi
+	pop edx
+	pop ebx
+	ret
+
+.gottype:
+	mov edi,[industryarrayptr]
+	or eax,byte -1
+	xor ebx,ebx
+	xor edx,edx
+	mov ch,90
+.checknext:
+	cmp word [edi+industry.XY],0
+	je .skip
+	cmp [edi+industry.type],cl
+	jne .skip
+	cmp esi,edi
+	je .skip
+
+	movzx bx,[esi+industry.XY]
+	movzx dx,[esi+industry.XY+1]
+	sub bl,[edi+industry.XY]
+	sbb bh,0
+	jns .notnegx
+	neg bx
+.notnegx:
+	sub dl,[edi+industry.XY+1]
+	sbb dh,0
+	jns .notnegy
+	neg dx
+.notnegy:
+
+	add bx,dx
+
+	cmp ebx,eax
+	ja .skip
+
+	mov eax,ebx
+
+.skip:
+	add edi, industry_size
+	dec ch
+	jnz .checknext
+
+	pop edi
+	pop edx
+	pop ebx
+	ret
+
 // a production instruction returned by the production callback
 // it contains three values to subtract from the three waiting cargo types,
 // two values to add the two outgoing cargo types, plus a boolean telling whether to
