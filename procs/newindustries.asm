@@ -515,7 +515,7 @@ codefragment newindudecreaseprod
 	icall checkindudecprod
 	jc fragmentstart-0x2b	// jc .closedown
 	jz fragmentstart+0x33	// jz .done
-	setfragmentsize 12
+	setfragmentsize 18
 
 codefragment oldtoyfactoryanimation,8
 	mov [nosplit landscape3+ebx*2],ax

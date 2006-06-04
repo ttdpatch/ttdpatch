@@ -4707,6 +4707,8 @@ industryrandomprodchange:
 	cmp al,3
 	jne .noclosedown
 .closedown:
+	call preventindustryclosedown
+	jz .nothing
 	jmp [industry_closedown]
 
 .noclosedown:
@@ -4732,9 +4734,11 @@ industryrandomprodchange:
 	cmp byte [esi+industry.prodmultiplier],4
 	je .closedown
 	shr byte [esi+industry.prodmultiplier],1
-	inc byte [esi+industry.prodrates]
+	add byte [esi+industry.prodrates],1
+	sbb byte [esi+industry.prodrates],0
 	shr byte [esi+industry.prodrates],1
-	inc byte [esi+industry.prodrates+1]
+	add byte [esi+industry.prodrates+1],1
+	sbb byte [esi+industry.prodrates+1],0
 	shr byte [esi+industry.prodrates+1],1
 	loop .decrease
 
@@ -5016,9 +5020,13 @@ exported checkindudecprod
 .done:
 	ret
 
-.reduce:	// overwritten code
+.reduce:	// overwritten code with added overflow protection
 	shr byte [esi+industry.prodmultiplier],1
-	inc byte [esi+industry.prodrates]
+	add byte [esi+industry.prodrates],1
+	sbb byte [esi+industry.prodrates],0
+	shr byte [esi+industry.prodrates],1
+	add byte [esi+industry.prodrates+1],1
+	sbb byte [esi+industry.prodrates+1],0
 	test esp,esp	// clear ZF,CF
 	ret
 
