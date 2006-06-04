@@ -39,7 +39,31 @@
 // BITS needs bit definitions in bitnames.ah
 //
 //
-// Available categories:
+// Available categories (these correspond to the manual categories):
+//
+//	BASIC		Basic patch operation switches
+//	VEH		Vehicle patches
+//	VEH_RAIL		- rail
+//	VEH_ROAD		- road
+//	VEH_AIR			- air
+//	VEH_ORDERS		- orders
+//	TERRAIN		Terrain patches
+//	INFST		Infrastructure patches
+//	INFST_BRIDGE		- bridges
+//	INFST_RAIL		- rail
+//	INFST_RAIL_SIGNAL	- rail signalling
+//	INFST_ROADS		- roads
+//	INFST_STATION		- stations
+//	HOUSESTOWNS	House/town patches
+//	INDUSTRIESCARGO	Industry/cargo patches
+//	FINANCEECONOMY	Finance/economy patches
+//	DIFFICULTY	Difficulty patches
+//	INTERFACE	Interface patches
+//	INTERFACE_NEWS		- news
+//	INTERFACE_VEH		- vehicles
+//	INTERFACE_WINDOW	- windows
+//
+//	NONE		Only for patches that aren't written to ttdpatch.cfg/switches.xml
 
 
 

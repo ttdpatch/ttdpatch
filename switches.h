@@ -18,6 +18,7 @@
 #include "common.h"
 
 
+// When adding things here, also add them to category_names in switches.c
 enum en_categories {
 	CAT_BASIC = 0,
 	CAT_VEH,

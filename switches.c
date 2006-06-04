@@ -1482,6 +1482,7 @@ void showtheswitches(const struct consoleinfo *const pcon)
   printf("\n");
 }
 
+// When adding things here, also add them to categories in switches.h
 const char *category_names[] = {
 	"BASIC",
 	"VEH",
