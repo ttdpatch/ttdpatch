@@ -6,6 +6,7 @@ extern newgraphicssetsenabled
 
 
 global patchnewvehs
+global patchstartstop
 
 begincodefragments
 
@@ -71,8 +72,11 @@ codefragment newdisplayplane_noplayer
 endcodefragments
 
 patchnewvehs:
-	multipatchcode startstopveh,4
 	or byte [newgraphicssetsenabled+1],1 << (10-8)
+	ret
+
+patchstartstop:
+	multipatchcode startstopveh,4
 	ret
 
 #if WINTTDX

@@ -107,6 +107,7 @@
 	patchproc allowtrainrefit,newtrains, patchallowtrainrefit
 	patchproc newships,newrvs,newtrains,newplanes, patchrefitting
 	patchproc newships,newrvs,newtrains,newplanes, patchnewvehs
+	patchproc newships,newrvs,newtrains,newplanes,generalfixes, patchstartstop
 	patchproc newships, patchnewships
 	patchproc newrvs, patchnewrvs
 	patchproc newplanes, patchnewplanes

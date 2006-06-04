@@ -1505,6 +1505,8 @@ counttrainslots:
 // safe:ebx edx esi edi
 global startstopveh
 startstopveh:
+	testmultiflags newtrains,newrvs,newships,newplanes
+	jz .nocallback
 	mov esi,edx
 	push eax
 	mov al,0x31
@@ -1521,10 +1523,18 @@ startstopveh:
 	pop eax
 	jc .done
 
+.nocallback:
 	test bl,1
 	jz .done
 
 	xor byte [edx+veh.vehstatus],2	// overwritten
+
+	testflags generalfixes
+	jnc .noresetspeed
+	and word [edx+veh.speed],0
+
+.noresetspeed:
+	test esp,esp	// clear cf and zf
 
 .done:
 	ret
