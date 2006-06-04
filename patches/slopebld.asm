@@ -433,14 +433,15 @@ correctstationalt:
 	test di,di
 	jz .done
 
+	cmp dh,0x4b 
+	jb .slope
+	
 	// Busstops
 	cmp dh, 0x53
-	jl .normalStation
+	jb .done
 	cmp dh, 0x5A
-	jle .slope
-.normalStation:
-	cmp dh,0x4b
-	jae .done
+	ja .done
+
 .slope:
 	add dl,8
 .done:
@@ -458,14 +459,15 @@ global displstationgroundsprite
 displstationgroundsprite:
 	test di,di
 	jz .noslope
+	
 	cmp dh,0x4b
 	jb .slope
 
 	// Busstops
 	cmp dh, 0x53
-	jl .noslope
+	jb .noslope
 	cmp dh, 0x5A
-	jle .slope
+	jbe .slope
 
 .noslope:
 	call [addgroundsprite]
@@ -755,14 +757,14 @@ displbridgelastmid2ndpart:
 // safe:EBX,ESI,EDI,EBP
 global correctstationexactalt,correctexactalt.getfoundationtype
 correctstationexactalt:
-	// Busstops
-	cmp dh, 0x53
-	jl correctexactalt.done
-	cmp dh, 0x5A
-	jle correctexactalt.chkslope
-
 	cmp dh,0x4b
 	jb correctexactalt.chkslope
+	
+	// Busstops
+	cmp dh, 0x53
+	jb correctexactalt.done
+	cmp dh, 0x5A
+	jbe correctexactalt.chkslope
 
 correctexactalt.done:
 	xor dh,dh
