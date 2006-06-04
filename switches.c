@@ -141,17 +141,17 @@ void copyflagdata(void)
 
 int radix[4] = { 0, 8, 10, 16 };
 
-#define YESNO(ch, txt, comment, sw) \
-	{ ch, txt, comment, sw,  0, 0, {-1, -1, -1}, 0, NULL, -1 }
+#define YESNO(ch, txt, comment, cat, sw) \
+	{ ch, txt, comment, sw,  0, 0, CAT_ ## cat, {-1, -1, -1}, 0, NULL, -1 }
 
-#define SPCL(ch, txt, comment, var) \
-	{ ch, txt, comment, -1,  0, 2, {-1, -1, -1}, 0, var, -1 }
+#define SPCL(ch, txt, comment, cat, var) \
+	{ ch, txt, comment, -1,  0, 2, CAT_ ## cat, {-1, -1, -1}, 0, var, -1 }
 
-#define RANGE(ch, txt, comment, sw, radix, varsize, var, low, high, default) \
-	{ ch, txt, comment, sw, radix, varsize, {low, high, default}, 0, var, -1 }
+#define RANGE(ch, txt, comment, cat, sw, radix, varsize, var, low, high, default) \
+	{ ch, txt, comment, sw, radix, varsize, CAT_ ## cat, {low, high, default}, 0, var, -1 }
 
-#define BITS(ch, txt, comment, sw, varsize, var, default) \
-	{ ch, txt, comment, sw, 0, varsize, {0, 0x7fffffff, default}, 0, var, BITSWITCH_ ## sw }
+#define BITS(ch, txt, comment, cat, sw, varsize, var, default) \
+	{ ch, txt, comment, sw, 0, varsize, CAT_ ## cat, {0, 0x7fffffff, default}, 0, var, BITSWITCH_ ## sw }
 
 
 #define noswitch -2
@@ -1482,6 +1482,32 @@ void showtheswitches(const struct consoleinfo *const pcon)
   printf("\n");
 }
 
+const char *category_names[] = {
+	"BASIC",
+	"VEH",
+	"VEH_RAIL",
+	"VEH_ROAD",
+	"VEH_AIR",
+	"VEH_ORDERS",
+	"TERRAIN",
+	"INFST",
+	"INFST_BRIDGE",
+	"INFST_RAIL",
+	"INFST_RAIL_SIGNAL",
+	"INFST_ROADS",
+	"INFST_STATION",
+	"HOUSESTOWNS",
+	"INDUSTRIESCARGO",
+	"FINANCEECONOMY",
+	"DIFFICULTY",
+	"INTERFACE",
+	"INTERFACE_NEWS",
+	"INTERFACE_VEH",
+	"INTERFACE_WINDOW",
+
+	"NONE",
+};
+
 /*
 Write switches in XML format
 
@@ -1587,6 +1613,8 @@ int dumpxmlswitches(void)
 	fprintf(f, " defstate=\"%s\"",
 		(switches[i].bit >= 0) &&
 		(switches[i].bit <= lastbitdefaulton) ? "on" : "off" );
+	fprintf(f, " categorynum=\"%d\"", switches[i].category);
+	fprintf(f, " category=\"%s\"", category_names[switches[i].category]);
 	fputs(" desc=\"", f);
 	putxmlstr(f, langcfg(switches[i].comment));
 	if (isbitswitch) {

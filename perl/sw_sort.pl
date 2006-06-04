@@ -36,7 +36,7 @@ while (<>) {
 print $sw{$_} for sort keys %sw;
 
 print <<FOOTER;
-	SPCL (  0, NULL, 0, NULL)
+	SPCL (  0, NULL, 0, NONE, NULL)
 };
 
 u8 switchorder[] = {

@@ -328,11 +328,6 @@
 - PBS crash, train out of depot
   http://www.tt-forums.net/viewtopic.php?p=379123#379123
 
-- add classes to switches, and way to enable/disable classes
-  e.g. R=greater realism, C=convenience, G=graphics
-
-- add utf8 support to grfcodec
-
 - XXX fixed crash when newcargodistribution was on but newcargos was off
   http://www.tt-forums.net/viewtopic.php?p=378684#378684
 
@@ -403,10 +398,6 @@
 
 - remove/hide class 2 if no waypoints loaded
 
-- check that utf-8 mode obeys new spec
-
-- add glyphs for 7B..7F (maybe others?) from glyphs.grf on server
-
 - font crash http://www.tt-forums.net/viewtopic.php?p=409894#409894
   * check getutf8charwidth assuming ebx(8:31)=0 is valid
   * when drawing input box, call TextProcessing to ensure utf8 is valid
@@ -468,6 +459,7 @@
   * elrails/trkfound/nsignals/canals?/gui/dualcc/oneway/trams
   * parameter for trkfound from Szappy?
   * add basetunnels? with grf parameter to enable it?
+  * add glyphs for 7B..7F (maybe others?) from glyphs.grf on server
 
 - add LRV V4 to patch graphics http://george.zernebok.net/newgrf/downloads.html#dlv4
 
@@ -759,3 +751,5 @@ CHANGELOG
     less code called by tick, bridges use the action 5 coast sprites aswell
 - fixed bug where entering à opens the "Quit game" window
 - stop action D sprite GRM from allocating sprite in main menu GRF status window
+- added categories to all switches (shown in switches.xml output)
+- loadallgraphics switch has been obsolete for a while; marked it as such

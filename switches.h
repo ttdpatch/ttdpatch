@@ -18,6 +18,33 @@
 #include "common.h"
 
 
+enum en_categories {
+	CAT_BASIC = 0,
+	CAT_VEH,
+	CAT_VEH_RAIL,
+	CAT_VEH_ROAD,
+	CAT_VEH_AIR,
+	CAT_VEH_ORDERS,
+	CAT_TERRAIN,
+	CAT_INFST,
+	CAT_INFST_BRIDGE,
+	CAT_INFST_RAIL,
+	CAT_INFST_RAIL_SIGNAL,
+	CAT_INFST_ROADS,
+	CAT_INFST_STATION,
+	CAT_HOUSESTOWNS,
+	CAT_INDUSTRIESCARGO,
+	CAT_FINANCEECONOMY,
+	CAT_DIFFICULTY,
+	CAT_INTERFACE,
+	CAT_INTERFACE_NEWS,
+	CAT_INTERFACE_VEH,
+	CAT_INTERFACE_WINDOW,
+
+	CAT_NONE,
+};
+typedef enum en_categories categories;
+
 	// this defines the bits to be set by the switches.
 typedef struct {
 	int cmdline;		// the command line switch for this
@@ -26,6 +53,7 @@ typedef struct {
 	int bit:9;		// the bit to be set.  -1 for special handling, -2 if none
 	unsigned radix:4;	// 0=auto, 1=force octal, 2=force dec, 3=force hex; +4=invert
 	unsigned varsize:3;	// 0=u8  1=u16  2=s16  3=s32  4=s8
+	int category;		// see above
 	s32 range[3];		// lower and upper bounds for the value, and the default.
 				// -1/-1 = none (yes/no)
 	int order;		// order in which switches appeared in ttdpatch.cfg

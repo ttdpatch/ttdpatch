@@ -166,7 +166,7 @@ varb patchflagsfixedmap
 	db signalsontrafficside	// 59
 	db electrifiedrail	// 60
 	times 4 db noflag
-	db loadallgraphics	// 65
+	db noflag		// 65
 	db noflag
 	db semaphoresignals	// 67
 	times 7 db noflag

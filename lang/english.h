@@ -221,7 +221,6 @@ TEXTARRAY(halflines,) =
 	  "-XB: Enable construction while paused",
 	  "-XE: Electrified railways",
 	  "-XF: Enable experimental features",
-	  "-XG: Always load all new graphics",
 	  "-XH: Save+display news history",
 	  "-XI: Enable path based signalling",
 	  "-XL: Show profit in vehicle list",
