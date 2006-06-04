@@ -1379,6 +1379,13 @@ codefragment vehicleToDepotOld, -4
 	pop     ebx
 	pop     ax
 
+codefragment oldQuitGameKeycode
+	push 0xE0
+
+codefragment oldCheckQuitGameKeycode
+	cmp al,0xe0
+	jnz $+2+10
+
 endcodefragments
 
 ptrvarall industrydatablock
@@ -2091,6 +2098,13 @@ dogeneralpatching:
 	storerelative changecolorscheme.origfn,esi
 
 	storeaddress pickrandomtreefn
+
+	stringaddress oldQuitGameKeycode,1,2
+	mov byte [edi+1],3
+	stringaddress oldQuitGameKeycode,1,0
+	mov byte [edi+1],3
+	stringaddress oldCheckQuitGameKeycode
+	mov byte [edi+1],3
 	ret
 
 global newsavename
