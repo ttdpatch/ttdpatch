@@ -3205,7 +3205,10 @@ grfcalltable grfresource
 	jae .failsprites
 	test al,GRFRESMARK
 	jz .done
+	cmp dword [procall_type],PROCALL_TEST
+	je .dontallocsprites
 	mov [numactsprites],esi
+.dontallocsprites:
 	mov esi,[curspriteblock]
 	or byte [esi+spriteblock.flags],4
 	mov [curextragrm+GRM_EXTRA_SPRITES*4],esi

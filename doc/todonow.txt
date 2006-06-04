@@ -447,10 +447,6 @@
 - hang with mountains 3323 and cztexty.grf
   http://www.tt-forums.net/viewtopic.php?p=428259#428259
 
-- multiple clicks on "Default" in title grf status increase sprite counts?
-  --> can't reproduce, ask eis_os
-  --> see newgrf_start_memory_problem.7z
-
 - another signal/pathfinder problem
   http://www.tt-forums.net/viewtopic.php?p=429375#429375
 
@@ -762,3 +758,4 @@ CHANGELOG
   * changed the diagonal flood code by Lakie, 
     less code called by tick, bridges use the action 5 coast sprites aswell
 - fixed bug where entering à opens the "Quit game" window
+- stop action D sprite GRM from allocating sprite in main menu GRF status window
