@@ -645,6 +645,12 @@ skipbutton:
 .nottoolarge:
 	mov bl,[edi+veh.currorder]		// are we going to a depot?
 	and bl,0x1f
+	testflags gradualloading
+	jnc .nogradload
+	cmp bl,3
+	jne .nogradload
+	and byte [edi+veh.modflags], ~(1 << MOD_NOTDONEYET)	// forced abortion of gradual loading
+.nogradload:
 	cmp bl,2
 	jne .notdepot
 	mov word [edi+veh.currorder],0		// force to check commands again
