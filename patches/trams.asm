@@ -76,7 +76,7 @@ vard 	paStationtramstop,	paStationbusstop1,paStationbusstop2,paStationtramstop1,
 
 var paStationtramstop1
 	dd 1314
-	db 0,0,0,0,0,0
+	db 0,0,0,16,16,0
 	dd 4079
 	db 3,3,7,2,2,3
 	dd 4079
@@ -88,7 +88,7 @@ var paStationtramstop1
 
 var paStationtramstop2
 	dd 1313
-	db 0,0,0,0,0,0
+	db 0,0,0,16,16,0
 	dd 4079
 	db 3,3,7,2,2,3
 	dd 4079
@@ -100,7 +100,7 @@ var paStationtramstop2
 
 var paStationtramfreightstop1
 	dd 1314
-	db 0,0,0,0,0,0
+	db 0,0,0,16,16,0
 	dd 4079
 	db 3,3,7,2,2,3
 	dd 4079
@@ -116,7 +116,7 @@ var paStationtramfreightstop1
 
 var paStationtramfreightstop2
 	dd 1313
-	db 0,0,0,0,0,0
+	db 0,0,0,16,16,0
 	dd 4079
 	db 3,3,7,2,2,3
 	dd 4079
