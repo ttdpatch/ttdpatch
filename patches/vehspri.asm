@@ -1611,9 +1611,11 @@ getcurveinfo:
 	// out:	motion counter
 global getmotioninfo
 getmotioninfo:
+	lea ecx,[esi*2]
 	mov eax,[esi+veh.veh2ptr]
+	and ecx,~0xff
 	mov eax,[eax+veh2.motion]
-	lea eax,[eax+esi*2]	// to make it a little more random
+	add eax,ecx		// to make it a little more random
 	ret
 
 	// 47: vehicle cargo
