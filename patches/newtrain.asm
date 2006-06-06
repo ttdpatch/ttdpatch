@@ -473,7 +473,7 @@ uvard textstackcopy,6
 //	esi=>window
 // out:	set textrefstack+6 to ax
 // safe:eax ebx edi
-extern TrainTEGenetic
+extern TrainTEGeneric
 global showlocoinfo
 showlocoinfo:
 	push esi
@@ -490,7 +490,7 @@ showlocoinfo:
 	movzx ebx,al
 	mov al,[railvehhighwt+ebx]
 	add [edi+5],al
-	call TrainTEGenetic
+	call TrainTEGeneric
 ;	movzx eax,byte [traintecoeff+ebx]
 	imul eax,10		// gravity
 	movzx esi,word [edi+4]	// weight

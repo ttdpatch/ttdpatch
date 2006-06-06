@@ -68,24 +68,24 @@ TrainSpeedBuyNewVehicle:
 GetTrainCallBackSpeed:
 	push ecx
 	mov cx, [trainspeeds+ebx*2] ; Gets the default speed of the vehicle
-	mov byte [miscgrfvar], 0x9 ; Get the speed value
+	mov ah, 0x9 ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
-	call GetCallBackResult ; Get the actual value for the speed
+	call GetCallBack36 ; Get the actual value for the speed
 	pop ecx
 	ret
 
 // Used as a generic code replacer for powers
-global TrainPowerGenertic, TrainPowerGenertic.lecx, TrainPowerGenertic.leax
-TrainPowerGenertic:
+global TrainPowerGeneric, TrainPowerGeneric.lecx, TrainPowerGeneric.leax
+TrainPowerGeneric:
 	push ecx
 	push ebx
 	push esi
 	xor esi, esi
 .lstart:
 	movzx ecx, word [trainpower+ebx*2] ; Gets the default speed of the vehicle
-	mov byte [miscgrfvar], 0xB ; Get the speed value
+	mov ah, 0xB ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
-	call GetCallBackResult ; Get the actual value for the speed
+	call GetCallBack36 ; Get the actual value for the speed
 	pop esi
 	pop ebx
 	pop ecx
@@ -96,29 +96,29 @@ TrainPowerGenertic:
 	push ebx
 	push esi
 	mov ebx, eax
-	jmp TrainPowerGenertic.lstart ; Jump to top of subroutine
+	jmp TrainPowerGeneric.lstart ; Jump to top of subroutine
 
 .lecx:
 	push eax
 	xor eax, eax
 	movzx ecx, word [trainpower+ebx*2] ; Gets the default speed of the vehicle
-	mov byte [miscgrfvar], 0xB ; Get the speed value
+	mov ah, 0xB ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
-	call GetCallBackResult ; Get the actual value for the speed
+	call GetCallBack36 ; Get the actual value for the speed
 	mov ecx, eax
 	pop eax
 	ret
 
-// Used as a genertic code to replace the te coffient
-global TrainTEGenetic, TrainTEGenetic.lebx
-TrainTEGenetic:
+// Used as a generic code to replace the te coffient
+global TrainTEGeneric, TrainTEGeneric.lebx
+TrainTEGeneric:
 	push ecx
 	push esi
 	xor esi, esi
 	movzx ecx, byte [traintecoeff+ebx] ; Get the orginal TE coffient
-	mov byte [miscgrfvar], 0x1F ; Get the speed value
+	mov ah, 0x1F ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
-	call GetCallBackResult ; Get the actual value for the TE
+	call GetCallBack36 ; Get the actual value for the TE
 	and eax, 0xFF ; Byte return from callback
 	pop esi
 	pop ecx
@@ -128,9 +128,9 @@ TrainTEGenetic:
 	push eax
 	push ecx
 	movzx ecx, byte [traintecoeff+ebx] ; Get the orginal TE coffient
-	mov byte [miscgrfvar], 0x1F ; Get the speed value
+	mov ah, 0x1F ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
-	call GetCallBackResult ; Get the actual value for the TE
+	call GetCallBack36 ; Get the actual value for the TE
 	and eax, 0xFF ; Byte return from callback
 	mov ebx, eax
 	pop ecx
@@ -147,9 +147,9 @@ GetShipCallBackSpeed:
 	push esi
 	xor esi, esi
 	movzx cx, byte [shipspeed-0xCC+ebx] ; Gets the default speed of the vehicle
-	mov byte [miscgrfvar], 0xB ; Get the speed value
+	mov ah, 0xB ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
-	call GetCallBackResult ; Get the actual value for the speed
+	call GetCallBack36 ; Get the actual value for the speed
 	and eax, 0xFF ; Byte return from callback
 	pop esi
 	pop ecx
@@ -165,19 +165,20 @@ GetPlaneCallBackSpeed:
 	push esi
 	xor esi, esi
 	movzx cx, byte [planedefspeed-0xD7+ebx] ; Gets the default speed of the vehicle
-	mov byte [miscgrfvar], 0xC ; Get the speed value
+	mov ah, 0xC ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
-	call GetCallBackResult ; Get the actual value for the speed
+	call GetCallBack36 ; Get the actual value for the speed
 	and eax, 0xFF ; Byte return from callback
 	pop esi
 	pop ecx
 	ret
 
-// Gets a callback for vehicles based off the input value
-// input: [miscgrfvar] as the property to find (matches Action0 property)
+// Run callback 36 for vehicles based off the input value
+// input: ah as the property to find (matches Action0 property)
 // 	  al as the id to use for type
 //	  esi as vehicle id if applable
-GetCallBackResult:
+GetCallBack36:
+	mov [miscgrfvar],ah
 	mov ah, 0x36 ; Id for the callback
 	call vehtypecallback ; Get the callback results
 	jnc .lresults

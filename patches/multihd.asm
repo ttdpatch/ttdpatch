@@ -30,7 +30,7 @@ addpowerbase equ (1 << (lastheadaddspower-1))-1
 	// in:	esi=vehicle
 	// out: (set esi+veh.realpower and esi+veh.maxspeed),eax=real power
 	// safe:eax,ebx,edx must be
-extern TrainPowerGenertic.leax, TrainPowerGenertic.lecx
+extern TrainPowerGeneric.leax, TrainPowerGeneric.lecx
 global calcpowerandspeed
 proc calcpowerandspeed
 	local enginepower,newpower,newspeed,engines,speedlimit,curvehspeed
@@ -40,7 +40,7 @@ proc calcpowerandspeed
 	push edi
 	mov edi,trainpower
 	movzx eax,word [esi+veh.vehtype]
-	call TrainPowerGenertic.leax
+	call TrainPowerGeneric.leax
 ;	movzx eax,word [edi+eax*2]
 	mov [%$enginepower],eax
 
@@ -80,7 +80,7 @@ proc calcpowerandspeed
 
 	mov [%$curvehspeed],ecx
 
-	call TrainPowerGenertic.lecx
+	call TrainPowerGeneric.lecx
 ;	movzx ecx,word [edi+ebx*2]
 	or ecx,ecx
 	jnz near .engine
@@ -310,7 +310,7 @@ endproc calcpowerandspeed
 	// out:	eax=weight (limited to 7fff)
 	//	also sets veh2 stuff
 	// uses:eax ebx
-extern TrainTEGenetic.lebx
+extern TrainTEGeneric.lebx
 global calcvehweight
 calcvehweight:
 	xor eax,eax
@@ -380,7 +380,7 @@ calcvehweight:
 	push ebx
 ;	mov [esp-4],ebx
 	movzx ebx,byte [esi+veh.vehtype]
-	call TrainTEGenetic.lebx
+	call TrainTEGeneric.lebx
 ;	mov bl,[traintecoeff+ebx]
 	imul ebx,10	// gravity
 	imul ebx,[esp]
@@ -944,7 +944,7 @@ getoldpower:
 	movzx eax,word [esi+veh.vehtype]
 //	shl eax,1
 //	add eax,dword [enginepowerstable]
-	call TrainPowerGenertic.leax
+	call TrainPowerGeneric.leax
 ;	movzx eax,word [trainpower+eax*2]
 .good:
 	ret

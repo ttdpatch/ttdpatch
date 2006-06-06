@@ -14,7 +14,7 @@
 // Few things need to be taken from the patches file
 extern TrainSpeedNewVehicleHandler, TrainSpeedBuyNewVehicle
 extern GetShipCallBackSpeed, GetPlaneCallBackSpeed
-extern TrainPowerGenertic
+extern TrainPowerGeneric
 
 // Procedures
 patchproc newtrains, patchtrainstat
@@ -43,7 +43,7 @@ begincodefragments
 	codefragment oldtrainpowergeneric
 		mov ax, [nosplit trainpower+ebx*2]
 	codefragment newtrainpowergeneric
-		icall TrainPowerGenertic
+		icall TrainPowerGeneric
 		setfragmentsize 8
 
 // Ships
