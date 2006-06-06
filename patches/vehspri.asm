@@ -22,6 +22,7 @@ extern showvehinfo.callback,trainspritemove
 extern trainuserbits,vehids,vehsorttable,vehvarhandler
 extern wagonoverride,getvehiclecolors,getvehiclecolors_vehtype
 extern isengine,checkoverride,newrefitvars,newcargounitweights
+extern GetCallBack36
 
 // called when TTD decides which sprite should be used for any
 // particular type of orientation and spritenum of a ship
@@ -1402,8 +1403,13 @@ getconsistcargo:
 	or al,[cargoclass+ecx*2]	// discards higher 8 bits, sadly
 
 .nocargo:
-	mov cl,[esi+veh.vehtype]
-	mov dl,[trainuserbits+ecx]
+	push eax
+	movzx eax,byte [esi+veh.vehtype]
+	mov cl,[trainuserbits+eax]
+	mov ah,0x25
+	call GetCallBack36
+	mov dl,al
+	pop eax
 	shl edx,24
 	or eax,edx
 

@@ -757,3 +757,4 @@ CHANGELOG
 - added categories to all switches (shown in switches.xml output)
 - loadallgraphics switch has been obsolete for a while; marked it as such
 - fixed veh.var 45 having inconsistent values
+- make callback 36 support train prop 25

@@ -176,8 +176,10 @@ GetPlaneCallBackSpeed:
 // Run callback 36 for vehicles based off the input value
 // input: ah as the property to find (matches Action0 property)
 // 	  al as the id to use for type
+//	  cx as the default value to use if the callback fails
 //	  esi as vehicle id if applable
-GetCallBack36:
+// out:	eax=callback value
+exported GetCallBack36
 	mov [miscgrfvar],ah
 	mov ah, 0x36 ; Id for the callback
 	call vehtypecallback ; Get the callback results
