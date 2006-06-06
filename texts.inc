@@ -1194,8 +1194,8 @@ def wpresigexits, db "sortie-signaux",0
 def wprecombined, db "signaux hybrides",0
 def presigautomatic, db "automatiques",0
 def presigmanual, db "manuels",0
-def pathbasedauto, db "automatic, path-based",0
-def pathbasedmanual, db "manual, path-based",0
+def pathbasedauto, db "automatique, basé sur le trajet",0
+def pathbasedmanual, db "manuel, basé sur le trajet",0
 
 def vehmulttoolow, db 94h,"Attention : partie sauvée avec un nombre total de véhicules multiplié par ",7eh,". "
 		db " ",7eh," composants de ",7eh," véhicules et ",7eh," objets spéciaux ont été retirés.",0
@@ -1211,17 +1211,17 @@ def gototraindepot, db "Dépot de train ",0e0h," ",80h,0
 def gotoroaddepot, db "Dépot routier ",0e0h," ",80h,0
 def gotoshipdepot, db "Dépot maritime ",0e0h," ",80h,0
 def gotoairdepot, db "Hangar ",80h,0
-def routethrough, db "Route through ",0x80,0
-def routenonstopthrough, db "Route non-stop through ",0x80,0
+def routethrough, db "Trajet via ",0x80,0
+def routenonstopthrough, db "Trajet non-stop via ",0x80,0
 
-def vehobsolete, db 94h,"Model is obsolete and ",80h,0
+def vehobsolete, db 94h,"Le modèle est obsolete et ",80h,0
 
 def cannotcheat, db 94h,"Ne peut exécuter la triche",0
 def cheatinvalidparm, db 94h,"Paramètre invalide",0
 def cheatunknown, db 94h,"Triche inconnue",0
 def cheatobsolete1, db 94h,"Remarque: Cht: ",80h," est désuet.",0
 def cheatobsolete2, db 94h,"Utilisez plutôt Cht: ",80h,".",0
-def nostationhere, db 94h,"No station here",0
+def nostationhere, db 94h,"Aucune gare ici",0
 
 def managedby1, db " (Joueur 1 prov.)",0
 def managedby2, db " (Joueur 2 prov.)",0
@@ -1246,10 +1246,10 @@ def wagoninfo,	db 98h,"Cost: ",8ah,7fh,13
 def newwagoninfo, db 98h,"Cost: ",7fh,
 	db "    Poids: ",7ch,"t",13
 	db "Capacité: ",80h," ",80h,0
-def wagonspeedlimit, db 98h,13,"Max. Speed: ",80h,84h,0
-def refittableto, db 98h,"Refittable to: ",8ah,80h,0
-def refittabletoallbut, db 98h,"Refittable to: ",8ah,"All but ",80h,0
-def refittabletoall, db 98h,"Refittable to: ",8ah,"All cargo types",0
+def wagonspeedlimit, db 98h,13,"Vitesse Max: ",80h,84h,0
+def refittableto, db 98h,"Transformable en: ",8ah,80h,0
+def refittabletoallbut, db 98h,"Transformable en: ",8ah,"Tout sauf ",80h,0
+def refittabletoall, db 98h,"Transformable en: ",8ah,"Tout types de marchandises",0
 
 def railwaywagon, db "wagon",0
 def monorailwagon, db "wagon monorail",0
@@ -1278,46 +1278,46 @@ def wronggrfversion, db 94h,"Mauvaise version de .grf (fichier ",80h,").",0
 def toomanyspritestotal, db 94h,"Ne peut pas charger plus de sprites (du fichier ",80h,").",0
 def filenotfound, db 94h,"Fichier ",22h,80h,22h," non trouvé.",0
 def invalidsprite, db 94h, "Fichier ", 22h,80h,22h," a le sprite #",7ch," invalide (code ",7ch,"/",7ch,").",0
-def notttdpatchgrf, db 94h, "File ",22h,80h,22h," is not a TTDPatch graphics file.",0
-def grferror, db 94h, "Error: ", 80h,0
-def grfwarning, db 94h, "Warning: ", 80h,0
-def grfneedspatchversion, db 94h, 80h, " requires at least TTDPatch version ", 80h, 0
-def grfneedsdoswin, db 94h, 80h, " is for the ", 80h, " version of TTD.", 0
-def grfwantsswitch, db 94h, 80h, " is designed to be used with ", 80h, 0
-def grfinvalidparam, db 94h, "Invalid parameter for ", 80h, ": parameter ", 80h, " (", 7Bh, ")", 0
-def grfconflict, db 94h,"GRF conflict with ", 80h,0x94, " (resource ", 0x7c, " at sprite ", 0x7c, ")", 0
-def conflict_itself, db "itself", 0
-def conflict_preexist, db "existing definitions", 0
+def notttdpatchgrf, db 94h, "File ",22h,80h,22h," n'est pas un fichier graphique pour TTDPatch.",0
+def grferror, db 94h, "Erreur: ", 80h,0
+def grfwarning, db 94h, "Attention: ", 80h,0
+def grfneedspatchversion, db 94h, 80h, " necessite au moins TTDPatch version ", 80h, 0
+def grfneedsdoswin, db 94h, 80h, " est pour la version ", 80h, " de TTD.", 0
+def grfwantsswitch, db 94h, 80h, " est conçue pour fonctionner avec ", 80h, 0
+def grfinvalidparam, db 94h, "Parametres invalides pour ", 80h, ": parametre ", 80h, " (", 7Bh, ")", 0
+def grfconflict, db 94h,"Conflit de GRF avec ", 80h,0x94, " (ressource ", 0x7c, " au sprite ", 0x7c, ")", 0
+def conflict_itself, db "lui même", 0
+def conflict_preexist, db "definitions existantes", 0
 
-def grfstatcaption, db 0x94,"GRF Status", 0
-def grfstatapply, db 0x98,"Apply", 0
-def grfstatreset, db 0x98,"Default", 0
+def grfstatcaption, db 0x94,"Status GRF", 0
+def grfstatapply, db 0x98,"Appliquer", 0
+def grfstatreset, db 0x98,"Defaut", 0
 def grfstatdebug, db 0x98,"Debug", 0
-def grfinfotext, db 0x95,0x80,13,0x94,"File: ",0x95,0x80,13,0x80,0x94,0x80,0
+def grfinfotext, db 0x95,0x80,13,0x94,"Fichier: ",0x95,0x80,13,0x80,0x94,0x80,0
 
-def grflisthint, db 0x98,"Click on text to display additional info about "
-	db "this file.  Click on red/green flags to toggle activation.",0
-def grfapplyhint, db 0x98,"Apply changes in active/inactive graphics to "
-	db "current game.",0
-def grfresethint, db 0x98,"Reset all graphics settings to the default and apply",0
-def grfdebughint, db 0x98,"Creates a debug output of the current active grf status",0
-def grfdebugmsg, db 0x94, "Graphics status information written to ",80h,": ",80h,0
+def grflisthint, db 0x98,"Cliquez sur le text pour avoir plus d'information sur "
+	db "ce fichier.  Cliquez sur le drapeau vert/rouge pour activer/désactiver.",0
+def grfapplyhint, db 0x98,"Appliquer les changement d'activation des graphiques à "
+	db "cette partie.",0
+def grfresethint, db 0x98,"Réinitialiser tous les réglages graphiques et appliquer",0
+def grfdebughint, db 0x98,"Créer des informations de debug des status des grf actifs",0
+def grfdebugmsg, db 0x94, "Informations sur les status graphiques enregistrés sous ",80h,": ",80h,0
 
-def grfstatusmenu, db "New graphics status", 0
-def initialgrfsettings, db 0x98, "Initial graphics settings", 0
-def initialgrfsettingshint, db 0x98, "Open the GRF Status window to select initially ",
-	db "active graphics sets", 0
+def grfstatusmenu, db "Nouveaux status graphiques", 0
+def initialgrfsettings, db 0x98, "Reglages graphiques initiaux", 0
+def initialgrfsettingshint, db 0x98, "Ouvrir la fen^tre des status graphiques pour activer les graphiques ",
+	db "activés par defaut", 0
 
-def grfstatgeninfo1, db 0x98,"Number of files: ",0x94,0x7b,13
-	db 0x98,"Memory usage: ",0x94,0x7b,0x98, " kB",13
-	db 0x98,"Total number of sprites: ",0x94,0x7b,13
-	db 0x98,"Active sprites: ",0x94,0x7b,0x98,0x80,0
+def grfstatgeninfo1, db 0x98,"Nombre de fichiers: ",0x94,0x7b,13
+	db 0x98,"Memoire utiliséee: ",0x94,0x7b,0x98, " kB",13
+	db 0x98,"Nombre total de sprites: ",0x94,0x7b,13
+	db 0x98,"Sprites actifs: ",0x94,0x7b,0x98,0x80,0
 def grfstatgeninfo2,	db 0x98,"    Trains: ",0x94,0x7b,0x98,0x80,13
-			db 0x98,"    Road vehicles: ",0x94,0x7b,0x98,0x80,0
-def grfstatgeninfo3,	db 0x98,"    Ships: ",0x94,0x7b,0x98,0x80,13
-			db 0x98,"    Planes: ",0x94,0x7b,0x98,0x80,0
-def grfstatgeninfo4,	db 0x98,"    Houses: ",0x94,0x7b,0x98,0x80,13
-			db 0x98,"    Other: ",0x94,0x7b,0x98,0x80,0
+			db 0x98,"    Camions/Bus: ",0x94,0x7b,0x98,0x80,0
+def grfstatgeninfo3,	db 0x98,"    Bateaux: ",0x94,0x7b,0x98,0x80,13
+			db 0x98,"    Avionss: ",0x94,0x7b,0x98,0x80,0
+def grfstatgeninfo4,	db 0x98,"    Maisons: ",0x94,0x7b,0x98,0x80,13
+			db 0x98,"    Autres: ",0x94,0x7b,0x98,0x80,0
 def grfstatmax, db " (",0x7b," max)",0
 
 
@@ -1356,44 +1356,44 @@ def traincleared, db 98h,0fh,"Les débris du récent accident de train près de ",8
 
 def endofsharedorders, db 1,0xa,"- - Fin de commande partagée (",85h,7ch,") - -",0
 
-def resetorders, db 0x98,"Reset",0
-def toggleservice, db 0x98,"Service",0
-def resethint, db 0x98,"Removes all orders from the schedule (doesn't affect other vehicles sharing this order)",0
-def servicehint, db 0x98,"Makes the vehicle skip this order unless it's time for service",0
+def resetorders, db 0x98,"Réinitialiser",0
+def toggleservice, db 0x98,"Révision",0
+def resethint, db 0x98,"Retirer tous les ordres (n'affecte pas les autres véhicules partageant ces ordres)",0
+def servicehint, db 0x98,"Le véhicule ignore cet ordre à moins qu'il soit temps de faire une révision",0
 
-def nosort, db "Unsorted",0
-def sortconsistnum, db "Number",0
+def nosort, db "Non trié",0
+def sortconsistnum, db "Nombre",0
 def sortprofit, db "Profit",0
-def sortlastprofit, db "Last year profit",0
+def sortlastprofit, db "Profit de l'année précédente",0
 def sortage, db "Age",0
-def sortmaxspeed, db "Max. Speed",0
-def sortreliability, db "Reliability",0
-def sortcargo, db "Cargo",0
-def sortdestination, db "First destination",0
-def sorthint, db 0x98,"Select sorting method of vehicles in this list",0
+def sortmaxspeed, db "Vitesse max",0
+def sortreliability, db "Fiabilité",0
+def sortcargo, db "Marchandise",0
+def sortdestination, db "Première destination",0
+def sorthint, db 0x98,"Choisissez le critère de tri dans cette liste",0
 
-def performance, db " (Perf. score: ",0x7e,")",0
+def performance, db " (Performance: ",0x7e,")",0
 
-def vehiclelost, db 0x94,0x80," ",0x7c," seems to be lost",0
+def vehiclelost, db 0x94,0x80," ",0x7c," semble perdu",0
 
-def wrongrailtype, db 94h,"...incompatible rail types",0
+def wrongrailtype, db 94h,"...type de rail incompatible",0
 
-def neterror1, db 0x94,"Network error!",0
-def neterror2, db 0x94,"Games disconnected!",0
+def neterror1, db 0x94,"Erreur réseau!",0
+def neterror2, db 0x94,"Partie déconnéctée!",0
 
-def desynch1, db 0x94,"Games out of sync!",0
-def desynch2, db 0x94,"Use sv2flip or reload the last save!",0
+def desynch1, db 0x94,"Synchronisation perdue!",0
+def desynch2, db 0x94,"Utilisez sv2flip ou recharger un partie sauvée!",0
 
-def refitvehicle, db 0x98,"Refit vehicle",0
-def refitcargohint, db 0x98,"Select type of cargo for vehicle to carry",0
-def refitbuttonhint, db 0x98,"Refit vehicle to carry highlighted cargo type",0
+def refitvehicle, db 0x98,"Transformer le véhicule",0
+def refitcargohint, db 0x98,"Choisissez le nouveau type de marchandise",0
+def refitbuttonhint, db 0x98,"Transforme le véhicule pour transporter le type sélectionné",0
 
-def cantbuildcanalhere, db 0x94, "Can't build canals/locks here", 0
+def cantbuildcanalhere, db 0x94, "Ne peut construire de canal/écluse ici", 0
 
-def fundprospecting, db 0x94, "Fund prospecting", 0
-def buildindustry, db 0x94, "Build industry", 0
-def fundingfailed, db 0x94, "Your funding didn't pay off. The prospecters came back empty-handed.", 0
-def cannotfundprospecting, db 0x94, "Cannot fund prospecting", 0
+def fundprospecting, db 0x94, "Recherche de nouvelles mines/forets", 0
+def buildindustry, db 0x94, "Construire une industrie", 0
+def fundingfailed, db 0x94, "Recherche infructueuse. Les prospecteurs sont revenus les mains vides.", 0
+def cannotfundprospecting, db 0x94, "Impossible d'effectuer des recherches", 0
 
 def newtrainindepot, db 0
 def newrvindepot, db 0
@@ -1405,138 +1405,138 @@ def newvehveryveryold, db 0
 def newvehiclelost, db 0
 def newcantreverse, db 0
 
-def txtetoolboxmenu, db "Enhanced GUI settings", 0
-def txtetoolbox, db 0x94, "Enhanced GUI Settings", 0
-def txtetoolbox_tsigns, db 0x98, "Station signs", 0
+def txtetoolboxmenu, db "Réglage des IHM améliorées", 0
+def txtetoolbox, db 0x94, "Réglage des IHM améliorées", 0
+def txtetoolbox_tsigns, db 0x98, "Panneaux de gare", 0
 def txtetoolbox_tsignstrans, db "Transparent",0
-def txtetoolbox_tsignsold, db "TTD Style",0
+def txtetoolbox_tsignsold, db "Style TTD",0
 
-def txtetoolbox_dsize, db 0x98, "Depot Size",0
-def txtetoolbox_d8, db "Depot  8  (4)",0
-def txtetoolbox_d10, db "Depot 10  (5)",0
-def txtetoolbox_d12, db "Depot 12  (6)",0
-def txtetoolbox_d14, db "Depot 14  (7)",0
-def txtetoolbox_d16, db "Depot 16  (8)",0
-def txtetoolbox_d18, db "Depot 18  (9)",0
-def txtetoolbox_d20, db "Depot 20  (10)",0
+def txtetoolbox_dsize, db 0x98, "Taille des dépots",0
+def txtetoolbox_d8, db "Dépot  8  (4)",0
+def txtetoolbox_d10, db "Dépot 10  (5)",0
+def txtetoolbox_d12, db "Dépot 12  (6)",0
+def txtetoolbox_d14, db "Dépot 14  (7)",0
+def txtetoolbox_d16, db "Dépot 16  (8)",0
+def txtetoolbox_d18, db "Dépot 18  (9)",0
+def txtetoolbox_d20, db "Dépot 20  (10)",0
 
-def txtetoolbox_depotalltrash, db 0x98, "Depot allTrash",0
+def txtetoolbox_depotalltrash, db 0x98, "Depot jeter tout",0
 def txtetoolbox_on, db "On",0
 def txtetoolbox_off, db "Off",0
-def txtetoolbox_saveinsavegame, db 0x98, "Stick Settings",0
-def txtetoolbox_usedefaultinsave, db 0x98, "Unstick",0
-def txtetoolbox_saveasdefault, db 0x98, "Save as Default",0
-def txtetoolbox_resetdefaultsizes, db 0x98, "Reset default sizes",0
+def txtetoolbox_saveinsavegame, db 0x98, "Sauve opt. ds partie",0
+def txtetoolbox_usedefaultinsave, db 0x98, "Ne sauve pas opt.",0
+def txtetoolbox_saveasdefault, db 0x98, "Définir par défaut",0
+def txtetoolbox_resetdefaultsizes, db 0x98, "Réinitialiser les tailles",0
 
-def none, db "None", 0
-def low,  db "Low", 0
-def normal, db "Normal", 0
-def high, db "High", 0
+def none, db "Aucun", 0
+def low,  db "Fible", 0
+def normal, db "Normale", 0
+def high, db "Elevé", 0
 
-def defaultstation, db "(default)",0
-def stationnumdefault, db "Station ",0x81,0xff,0xC7,0
-def stationclassdefault, db "Station class ",0x81,0xff,0xC7,0
+def defaultstation, db "(defaut)",0
+def stationnumdefault, db "Gare ",0x81,0xff,0xC7,0
+def stationclassdefault, db "Catégorie de gare ",0x81,0xff,0xC7,0
 
-def unnamedtownnamestyle, db "(Unnamed style)",0
+def unnamedtownnamestyle, db "(style sans nom)",0
 
-def newshistory, db "Message history",0
-def messagesettings, db "Message settings",0
+def newshistory, db "Historique des messages",0
+def messagesettings, db "Réglages des messages",0
 def messages, db 0x94, "Messages",0
 	
-def cantreverse, db 0x94,0x80," ",0x7c," needs to reverse but cannot do so safely.",0
+def cantreverse, db 0x94,0x80," ",0x7c," doit faire demi tour mais ne peut y arriver.",0
 
 def grflanguage, db "0",0
 
-def sizertooltip, db 0x98, "Drag to resize the window",0
-def stickytooltip, db 0x98, "Make this window sticky, this window won't be closed when pressing <del>",0
+def sizertooltip, db 0x98, "Tirez pour redimentionner la fenêtre",0
+def stickytooltip, db 0x98, "Rend la fenêtre attachée, elle ne sera pas fermée en appuyant sur <Suppr>",0
 
-def rcw_railway, db 0x94, "Railway", 0
-def rcw_signaltype, db 0x98, "Signal type", 0
-def rcw_semaphores, db "Semaphores", 0
-def rcw_lights, db "Lights", 0
-def rcw_automatic, db "Automatic", 0
-def rcw_normal, db "Normal", 0
-def rcw_entry, db "Entry", 0
-def rcw_exit, db "Exit", 0
+def rcw_railway, db 0x94, "Voie ferrée", 0
+def rcw_signaltype, db 0x98, "Type de signal", 0
+def rcw_semaphores, db "Sémaphores", 0
+def rcw_lights, db "Lampadaires", 0
+def rcw_automatic, db "Automatique", 0
+def rcw_normal, db "Normale", 0
+def rcw_entry, db "Entrée", 0
+def rcw_exit, db "Sortie", 0
 def rcw_combo, db "Combo", 0
-def rcw_nopbs, db "Not path based", 0
-def rcw_pbs, db "Path based", 0
-def rcw_tracks, db 0x98, "Tracks: ", 0x8E, 0x80, 0
-def rcw_length, db 0x98, "Length: ", 0x8E, 0x80, 0
-def rcw_drag, db "Drag", 0
-def rcw_class, db 0x98, "Class:", 0
+def rcw_nopbs, db "Non basé sur le trajet", 0
+def rcw_pbs, db "Basé sur le trajet", 0
+def rcw_tracks, db 0x98, "Voies: ", 0x8E, 0x80, 0
+def rcw_length, db 0x98, "Longueur: ", 0x8E, 0x80, 0
+def rcw_drag, db "Tirer", 0
+def rcw_class, db 0x98, "Catégorie:", 0
 def rcw_type, db 0x98, "Type:", 0
-def rcw_accepts, db 0x98, "Accepts:                    ", 0x8A, 0
+def rcw_accepts, db 0x98, "Accepte:                    ", 0x8A, 0
 	
-def outofdynmem, db 0x94, "Out of dynamic memory", 0
-def cantresize, db 0x94, "Can't resize window...", 0
+def outofdynmem, db 0x94, "Pas assez de mémoire dynamique", 0
+def cantresize, db 0x94, "Ne peut redimentionner la fenêtre...", 0
 
-def grftextnotfound, db "-- GRF text not found! --",0
+def grftextnotfound, db "-- teste GRF non trouvé! --",0
 
-def newindubuildindustry, db "Build industry",0
-def newindufundprospecting, db "Fund prospecting for industry",0
-def newinduproduces, db 0x98, "Produces: ", 0x90, 0x80, 0
-def toomanyindustries, db 94h,"Too many industries on map.", 0
+def newindubuildindustry, db "Construire une industrie",0
+def newindufundprospecting, db "Recherche de mine/foret pour industrie",0
+def newinduproduces, db 0x98, "Produit: ", 0x90, 0x80, 0
+def toomanyindustries, db 94h,"Trop d'industries dans ce monde.", 0
 
-def newindulist_tooltip, db 0x98,"List of available industry types - click on the one you want to build",0
-def newinduinfo_tooltip, db 0x98,"Information about the currently selected industry type",0
-def newindubuild_tooltip, db 0x98,"Build the industry",0
-def newinduprospect_tooltip, db 0x98,"Fund prospecting to find resources for this industry",0
+def newindulist_tooltip, db 0x98,"Liste des industries disponibles, cliquez sur celle que vous voulez construire",0
+def newinduinfo_tooltip, db 0x98,"Informations sur le type d'industrie sélectionné",0
+def newindubuild_tooltip, db 0x98,"Constuire l'industrie",0
+def newinduprospect_tooltip, db 0x98,"Financer une recherche de matières premières pour cette industrie",0
 
-def newindu_cargowaiting, db 0x98,"Cargo waiting to be processed:",0x90,0x0d,0x80,0x0d,0x80,0x0d,0x80,0
+def newindu_cargowaiting, db 0x98,"Marchadise attendant d'^tre transformée:",0x90,0x0d,0x80,0x0d,0x80,0x0d,0x80,0
 
-def warning_notowns, db 94h,"Warning: This game doesn't have any towns. If you try to play it, TTD may crash!",0
+def warning_notowns, db 94h,"Attention, cette partie n'a aucune ville. Si vous y jouer, TTD risque de planter!",0
 
-def localplayer, db " (local player)",0
-def remoteplayer, db " (remote player)",0
+def localplayer, db " (joueurs local)",0
+def remoteplayer, db " (joueur distant)",0
 
-def multiplayer, db 0x98,"Multiplayer",0
-def multiplayer_tooltip, db 0x98,"Select multiplayer game",0
+def multiplayer, db 0x98,"Multijoueurs",0
+def multiplayer_tooltip, db 0x98,"Choisissez la partie multijoueurs",0
 
-def ttdpatch_dll_notfound, db 94h,"Cannot load ttdpatch.dll, new sounds disabled.", 0
+def ttdpatch_dll_notfound, db 94h,"Ne peut charger ttdpatch.dll, nouveaux sons désactivés.", 0
 
-def statistics, db 0x98, "Statistics",0
-def statistics_white, db 0x94, "Statistics",0
-def totalcargo, db 0x8E, "Total amount of cargo transported",0
-def statistics_tooltip, db 0x98, "Open company statistics",0
+def statistics, db 0x98, "Statistiques",0
+def statistics_white, db 0x94, "Statistiques",0
+def totalcargo, db 0x8E, "Quantités totale de marchandises trnsportées",0
+def statistics_tooltip, db 0x98, "Ouvrir les statistiques de la compagnie",0
 
 def landareainfoheight, db 0x98,"Altitude: ",0x95,0x7B,0
 
-def txteroadmenu, db "Tramway construction",0
-def txtetramwindowheader, db 0x94,"Tramway Construction",0
-def txtetramstationheader, db 0x94,"Tram Stop Orientation",0
-def txtetramdepotheader, db 0x94,"Tram Depot Orientation",0
+def txteroadmenu, db "Construction de tramway",0
+def txtetramwindowheader, db 0x94,"Construction de tramway",0
+def txtetramstationheader, db 0x94,"Orientation de l'arrêt de tram",0
+def txtetramdepotheader, db 0x94,"Orientation du dépot de tram",0
   
 def shortdateformat, db 4, " ", 1, 0
 def longdateformat, db 2, " ", 3, " ", 1, 0
 
-def txtltwocc, db 0x94, "Company Color Scheme Window", 0
-def txtltwoccglb, db 0x98, "Global Color Scheme", 0
-def txtltwoccstm, db 0x98, "Steam Engine", 0
-def txtltwoccdsl, db 0x98, "Diesel Engine", 0
-def txtltwoccelc, db 0x98, "Electric Engine", 0
-def txtltwoccmor, db 0x98, "Monorail Engine", 0
-def txtltwoccmgv, db 0x98, "Maglev Engine", 0
-def txtltwoccdmu, db 0x98, "Diesel Multiple Unit", 0
-def txtltwoccemu, db 0x98, "Electric Multiple Unit", 0
-def txtltwoccpaw, db 0x98, "Passenger Wagons", 0
-def txtltwoccfrw, db 0x98, "Freight Wagons", 0
+def txtltwocc, db 0x94, "Fenêtre des couleurs de la compagnie", 0
+def txtltwoccglb, db 0x98, "Couleurs principales", 0
+def txtltwoccstm, db 0x98, "Locomotive à vapeur", 0
+def txtltwoccdsl, db 0x98, "Locomotive diesel", 0
+def txtltwoccelc, db 0x98, "Locomotive éléctrique", 0
+def txtltwoccmor, db 0x98, "Locomotive monorail", 0
+def txtltwoccmgv, db 0x98, "Locomotive maglev", 0
+def txtltwoccdmu, db 0x98, "Multi-locos diesel", 0
+def txtltwoccemu, db 0x98, "Multi-locos éléctriques", 0
+def txtltwoccpaw, db 0x98, "Wagons de passager", 0
+def txtltwoccfrw, db 0x98, "Wagons de fret", 0
 def txtltwoccbus, db 0x98, "Bus", 0
 def txtltwocctrm, db 0x98, "Tram", 0
-def txtltwocctrk, db 0x98, "Truck", 0
-def txtltwoccpsh, db 0x98, "Passenger Ship", 0
-def txtltwoccfsh, db 0x98, "Freight Ship", 0
-def txtltwoccsap, db 0x98, "Regional Aircraft", 0
-def txtltwocclap, db 0x98, "Express Aircraft", 0
-def txtltwoccfrp, db 0x98, "Freight Aircraft", 0
+def txtltwocctrk, db 0x98, "Camion", 0
+def txtltwoccpsh, db 0x98, "Bateau de passagers", 0
+def txtltwoccfsh, db 0x98, "Bateau de fret", 0
+def txtltwoccsap, db 0x98, "Avion régional", 0
+def txtltwocclap, db 0x98, "Avion grandes lignes", 0
+def txtltwoccfrp, db 0x98, "Avion de fret", 0
 def txtltwocchel, db 0x98, "Helicopter", 0
-def txtltwocclr1, db 0x94, "Primary", 0
-def txtltwocclr2, db 0x94, "Secondary", 0
+def txtltwocclr1, db 0x94, "Principal", 0
+def txtltwocclr2, db 0x94, "Secondaire", 0
 
-def steepslopes, db "steep slopes aren't suited", 0
-def landhigherbridgehead, db "land under bridge higher than bridgehead", 0
+def steepslopes, db "les pentes raides ne sont pas adaptées", 0
+def landhigherbridgehead, db "terrain sous le pont plus haut que la tête de pont", 0
 
-def grfhelpercaption, db 0x94,"GRF Author Helper",0
+def grfhelpercaption, db 0x94,"Aide auteur GRF",0
 def grfhelper_displxrelyrel, db 0x94,"Sprite: ",0x7E," xrel: ",0x7C," yrel: ",0x7C,0
 def textsprite, db 0x98,"Sprite",0
 
