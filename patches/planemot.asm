@@ -87,7 +87,7 @@ planebreakdownspeed:
 
 .updateCurrentSpeed:
 	cmp ax,[esi+veh.speedlimit]
-	jbe .noChange
+	jbe .nodecel
 
 	// speed is above new speed limit, need to decelerate
 	// decelerate twice as much as normal acceleration to undo
@@ -100,7 +100,11 @@ planebreakdownspeed:
 	sub [esi+veh.speedfract],bl
 	sbb ax,cx
 
-.noChange:
+.nodecel:
+	cmp ax,[esi+veh.maxspeed]
+	jbe .nottoofast
+	mov ax,[esi+veh.maxspeed]
+.nottoofast:
 	pop ecx
 	ret
 
