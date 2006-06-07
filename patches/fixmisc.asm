@@ -2637,7 +2637,18 @@ Class6FloodTile:
 	and dh, 0x0F // We are only interested in the subclass (0x0 to 0x2)
 	cmp dh, 0x1 // Is this a coast tile?
 	jnz .flat
-	ret
+
+	// Diagonal flooding from a slope
+	mov dh, [landscape4(cx, 1)+ebx] // This code only floods sharp corners
+	mov dl, [landscape4(ax, 1)+ebx]
+	and dx, 0x0F0F
+	cmp dx, 0x0101
+	jne .badcorners // Must have those corners raised
+	mov dl, [landscape4(bp, 1)+ebx]
+	and dl, 0x0F
+	cmp dl, 0x01
+	jb .badcorners // Must have this corner raised
+	jmp .coast
 
 .flat:
 
