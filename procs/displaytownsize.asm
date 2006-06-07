@@ -21,7 +21,8 @@ codefragment olddrawtownsize
 codefragment newdrawtownsize
 	icall drawtownsize
 
-codefragment oldSetTownNamePosition,1
+codefragment oldSetTownNamePosition,5
+	mov [esi+town.nameposy],cx
 	push esi
 	mov eax, [esi+town.citynameparts]
 
@@ -43,6 +44,6 @@ patchdisplaytownsize:
 	multipatchcode oldtowntextid,newtowntextid,2
 	patchcode olddrawtownsize,newdrawtownsize,1,3
 	patchcode olddrawtownsize,newdrawtownsize,1,0
-	multipatchcode oldSetTownNamePosition,newSetTownNamePosition,3
+	patchcode SetTownNamePosition
 	patchcode settownnamepositionend
 	ret
