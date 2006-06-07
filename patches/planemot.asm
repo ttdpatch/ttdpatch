@@ -51,25 +51,22 @@ ovar .doit, -4, $, moveplane
 //	bx=top speed
 //	esi=vehicle ptr
 //	flags from test[esi+veh.vehstatus],0x40
-// out:	bx=effective top speed for motion
+// out:	ax=new speed
 // safe:eax ebx
 global planebreakdownspeed
 planebreakdownspeed:
-	push eax
-	movzx ax, byte [esi+veh.movementstat]
-	cmp al, byte [esi+veh.prevmovementstat]
-	jne .movementHasChanged
-	pop eax
-	jmp .testBreakdown
-
-.movementHasChanged:
-	mov byte [esi+veh.prevmovementstat], al
 	push ecx
-	mov cx, bx
+	mov cl, byte [esi+veh.movementstat]
+	cmp cl, byte [esi+veh.prevmovementstat]
+	je .testBreakdown
+
+	// plane movementstat has changed, update speed callback
+	push eax
+	mov [esi+veh.prevmovementstat], cl
+	mov ecx, ebx
 	mov ah, 0xC //speeeeed
 	mov al, byte [esi+veh.vehtype]	//vehicles are only 0-255
 	call GetCallBack36
-	pop ecx
 	mov word [esi+veh.speedlimit], ax
 	pop eax
 
@@ -80,37 +77,31 @@ planebreakdownspeed:
 .brokendown:
 	// normally TTD just limits the speed to 27 = 216 mph
 	// now we make that 5/8 of the top speed
-	push eax
-	movzx eax, word [esi+veh.maxspeed]
-	lea eax,[eax*5]
-	shr eax,3
-	cmp ax, word [esi+veh.speedlimit]
-	jge .finishBreakDown
-	mov word [esi+veh.speedlimit], ax
+	movzx ecx, word [esi+veh.maxspeed]
+	lea ecx,[ecx*5]
+	shr ecx,3
+	cmp cx, [esi+veh.speedlimit]
+	jae .finishBreakDown
+	mov [esi+veh.speedlimit], cx
 .finishBreakDown:
-	pop eax
 
 .updateCurrentSpeed:
-	cmp ax, word [esi+veh.speed]
-	je .noChange
-	mov bx, word [esi+veh.speedlimit]
-	cmp ax, bx
-	je .noChange
-	mov ax, word [esi+veh.speed]
-	cmp ax, bx
-	jbe .incSpeed //is speed equal or below limit? just continue
-.decrement:
-	dec ax
-	cmp ax, bx
-	jae .noChange
-	mov ax, bx
-	retn
-.incSpeed:
-	inc ax //put it back to the speed it should be.
-	cmp ax, bx
+	cmp ax,[esi+veh.speedlimit]
 	jbe .noChange
-	mov ax, bx
+
+	// speed is above new speed limit, need to decelerate
+	// decelerate twice as much as normal acceleration to undo
+	// the acceleration that has already happened
+	movzx ecx,byte [esi+veh.acceleration]
+	shl ecx,3
+	mov bl,cl
+	shr ecx,8
+
+	sub [esi+veh.speedfract],bl
+	sbb ax,cx
+
 .noChange:
+	pop ecx
 	ret
 
 
