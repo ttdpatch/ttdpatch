@@ -461,15 +461,26 @@ postloadadjust:
 	call adjaivehicleptrs
 	call setbasecostmultdefault
 
+	// check if veh array has valid high byte of .modflags
 	test byte [landscape3+ttdpatchdata.flags],1
-	jnz .isok
+	setz dh
+	dec dh		// now dh=00 if bit was not set, FF if set
+
+	// adjust veharray data
 	mov edi,[veharrayptr]
 .next:
-	mov byte [edi+veh.modflags+1],0
+	and [edi+veh.modflags+1],dh	// zero high byte if bit wasn't set
+
+	cmp word [esi+veh.speedlimit], 0
+	jne .dontSetSpeedLimit
+	mov ax,[esi+veh.maxspeed]
+	mov [esi+veh.speedlimit],ax
+
+.dontSetSpeedLimit:
 	sub edi,byte -veh_size
 	cmp edi,[veharrayendptr]
 	jb .next
-.isok:
+
 	ret
 
 uvarb titlescreenloading

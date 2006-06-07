@@ -55,10 +55,6 @@ ovar .doit, -4, $, moveplane
 // safe:eax ebx
 global planebreakdownspeed
 planebreakdownspeed:
-	cmp word [esi+veh.speedlimit], 0
-	jne .dontSetSpeedLimit
-	mov word [esi+veh.speedlimit], bx
-.dontSetSpeedLimit:
 	push eax
 	movzx ax, byte [esi+veh.movementstat]
 	cmp al, byte [esi+veh.prevmovementstat]
