@@ -747,6 +747,8 @@ CHANGELOG
     industry with given type
   * fixed TTD bug: halving max. production causes zero production
   * fixed TTD bug: vehicles stopped then restarted again retained their old speed
+  * fixed displaytownsize breaking newtownnames, causing duplicate names and
+    incorrect order
 - by Oskar:
   * fixed display of coast under higherbridges if canals is off
   * fixed canals/higherbridges coast code, reduced size

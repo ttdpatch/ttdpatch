@@ -1379,12 +1379,14 @@ codefragment vehicleToDepotOld, -4
 	pop     ebx
 	pop     ax
 
+#if WINTTDX
 codefragment oldQuitGameKeycode
 	push 0xE0
 
 codefragment oldCheckQuitGameKeycode
 	cmp al,0xe0
 	jnz $+2+10
+#endif
 
 endcodefragments
 
@@ -2099,12 +2101,14 @@ dogeneralpatching:
 
 	storeaddress pickrandomtreefn
 
+#if WINTTDX
 	stringaddress oldQuitGameKeycode,1,2
 	mov byte [edi+1],3
 	stringaddress oldQuitGameKeycode,1,0
 	mov byte [edi+1],3
 	stringaddress oldCheckQuitGameKeycode
 	mov byte [edi+1],3
+#endif
 	ret
 
 global newsavename
