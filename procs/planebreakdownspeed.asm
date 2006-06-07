@@ -11,6 +11,7 @@ codefragment oldplanebreakdownspeed,-2
 
 codefragment newplanebreakdownspeed
 	call runindex(planebreakdownspeed)
+	setfragmentsize 14
 
 
 endcodefragments

@@ -5,6 +5,7 @@
 #include <std.inc>
 #include <veh.inc>
 
+extern GetCallBack36
 
 //
 // called when plane moves
@@ -54,15 +55,66 @@ ovar .doit, -4, $, moveplane
 // safe:eax ebx
 global planebreakdownspeed
 planebreakdownspeed:
-	jnz .brokendown
-	ret
+	cmp word [esi+veh.speedlimit], 0
+	jne .dontSetSpeedLimit
+	mov word [esi+veh.speedlimit], bx
+.dontSetSpeedLimit:
+	push eax
+	movzx ax, byte [esi+veh.movementstat]
+	cmp al, byte [esi+veh.prevmovementstat]
+	jne .movementHasChanged
+	pop eax
+	jmp .testBreakdown
+
+.movementHasChanged:
+	mov byte [esi+veh.prevmovementstat], al
+	push ecx
+	mov cx, bx
+	mov ah, 0xC //speeeeed
+	mov al, byte [esi+veh.vehtype]	//vehicles are only 0-255
+	call GetCallBack36
+	pop ecx
+	mov word [esi+veh.speedlimit], ax
+	pop eax
+
+.testBreakdown:
+	test word [esi+veh.vehstatus],0x40
+	jz .updateCurrentSpeed
 
 .brokendown:
 	// normally TTD just limits the speed to 27 = 216 mph
 	// now we make that 5/8 of the top speed
-	movzx ebx,bx
-	lea ebx,[ebx*5]
-	shr ebx,3
+	push eax
+	movzx eax, word [esi+veh.maxspeed]
+	lea eax,[eax*5]
+	shr eax,3
+	cmp ax, word [esi+veh.speedlimit]
+	jge .finishBreakDown
+	mov word [esi+veh.speedlimit], ax
+.finishBreakDown:
+	pop eax
+
+.updateCurrentSpeed:
+	cmp ax, word [esi+veh.speed]
+	je .noChange
+	mov bx, word [esi+veh.speedlimit]
+	cmp ax, bx
+	je .noChange
+	mov ax, word [esi+veh.speed]
+	cmp ax, bx
+	jbe .incSpeed //is speed equal or below limit? just continue
+.decrement:
+	dec ax
+	cmp ax, bx
+	jae .noChange
+	mov ax, bx
+	retn
+.incSpeed:
+	inc ax //put it back to the speed it should be.
+	cmp ax, bx
+	jbe .noChange
+	mov ax, bx
+.noChange:
 	ret
 
 
