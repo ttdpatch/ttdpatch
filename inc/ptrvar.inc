@@ -7,6 +7,7 @@ ptrvardec ophandler		// Array of pointers to tables of various object handlers
 
 ptrvardec newhousedatablock
 ptrvardec industrydatablock
+ptrvardec player2ofs
 
 // the standard vehicle properties for each vehicle class
 

@@ -15,4 +15,5 @@ RELOC(newhousedatablock)
 RELOC(industrydatablock)
 RELOC(bTempRaiseLowerDirection)
 RELOC(bTempRaiseLowerCorner)
+RELOC(player2ofs)
 

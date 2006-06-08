@@ -294,8 +294,7 @@ codefragment removeoilstation,37
 	and byte [esi+0x80],0xE7	// esi+station.facilities
 	db 0x66,0xc7,0x86,0x86		// mov word [esi+station.airportstat],0
 
-codefragment newdeductvehruncost
-	jmp runindex(dodeductvehruncost)
+codefragment_jmp newdeductvehruncost,dodeductvehruncost,5
 
 codefragment newaddexpenses
 	call runindex(doaddexpenses)
@@ -845,7 +844,7 @@ patchgeneralfixes:
 	changereltarget 0,addr(fixremoveoilstation)
 
 	mov eax,[deductvehruncost]
-	lea edi,[eax+39]
+	lea edi,[eax+30]
 	storefragment newdeductvehruncost
 	mov eax,[addexpenses]
 	lea edi,[eax+26]

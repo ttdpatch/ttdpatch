@@ -942,14 +942,21 @@ industryclosedown:
 // Make income stats still work even if the cash reaches the maximum value
 // This one is for vehicle running costs
 //
-// in:	eax=previous cash amount
+// in:	eax=amount to subtract*256
 //	ebx->player struc
-//	edx=amount to deducted from cash (plus carry)
-//	flags from subtraction
 // out:	--
-// safe:edx
+// safe:ebx edx(popped)
 global dodeductvehruncost
 dodeductvehruncost:
+	mov edx,ebx
+	mov ebx,eax
+	sar ebx,8
+	sub [edx+player.cashfract],al
+	adc ebx,0
+	call doaddexpenses
+	pop edx		// was saved by original procedure
+	ret
+#if 0
 	jno .nooverflow
 
 	mov [ebx+player.cash],eax
@@ -977,11 +984,12 @@ dodeductvehruncost:
 .done:
 	pop edx		// was saved by original procedure
 	ret
+#endif
 
 
 // Same but for regular expenses
 //
-// in:	ebx=amount deducted
+// in:	ebx=amount to deduct
 //	edx->player struc
 //	flags from subtraction
 // out:	--
@@ -993,6 +1001,14 @@ doaddexpenses:
 	add [edx+player.cash],ebx
 
 .nooverflow:
+	sub [edx+player2ofs+player2.cash],edx
+	sbb dword [edx+player2ofs+player2.cash],0
+	jno .no64overflow
+
+	add [edx+player2ofs+player2.cash],edx
+	adc dword [edx+player2ofs+player2.cash],0
+
+.no64overflow:
 	push eax
 	movzx eax,byte [currentexpensetype]
 	add [edx+player.thisyearexpenses+eax],ebx

@@ -5,7 +5,7 @@ struc player
 	.face:		resd 1	// 06h:face, bitcoded
 	.managername:	resw 1	// 0ah:manager name text ID
 	.managernameparts:resd 1// 0ch:02h:text ref stack argument for manager name text ID
-	.cash: 		resd 1	// 10h:	cash of player	(use [addexpenses] to modify for overflow protection)
+	.cash:		resd 1	// 10h:	cash of player	(use [addexpenses] to modify for overflow protection)
 	.loan:		resd 1	// 14h: loan of player
 	.colourscheme	resb 1	// 18h: Company's Colour Scheme
 	.cashfract:	resb 1	// 19h: fraction of cash, for subtracting sub-dollar amounts
@@ -59,15 +59,14 @@ endstruc
 #define COLSCHEME_NUM 18	// total number of special colours above
 
 
-// WARNING: If you use this, you must add your switch to the patchproc
-// in procs/player2.asm
 // NOTE: Don't rearrange fields here, only add new fields beyond the end,
 //	 otherwise old savegames need adjusting after load
 struc player2
 	.colschemes:	resd 1	// bit mask of COLSCHEME_# flags above
 	.col2:		resb 1	// 2nd company colour
 	.specialcol:	resb 2*COLSCHEME_NUM	// special colours, 1st and 2nd
-	ALIGNB 4		// make struct size a multiple of 4
+	.unused:	resb 1
+	.cash:		resd 2	// 64-bit cash amount
+			resb player_size-$
 endstruc
-
 
