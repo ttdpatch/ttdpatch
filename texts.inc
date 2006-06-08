@@ -1295,7 +1295,7 @@ def grfstatreset, db 0x98,"Defaut", 0
 def grfstatdebug, db 0x98,"Debug", 0
 def grfinfotext, db 0x95,0x80,13,0x94,"Fichier: ",0x95,0x80,13,0x80,0x94,0x80,0
 
-def grflisthint, db 0x98,"Cliquez sur le text pour avoir plus d'information sur "
+def grflisthint, db 0x98,"Cliquez sur le texte pour avoir plus d'information sur "
 	db "ce fichier.  Cliquez sur le drapeau vert/rouge pour activer/désactiver.",0
 def grfapplyhint, db 0x98,"Appliquer les changement d'activation des graphiques à "
 	db "cette partie.",0
@@ -1305,7 +1305,7 @@ def grfdebugmsg, db 0x94, "Informations sur les status graphiques enregistrés so
 
 def grfstatusmenu, db "Nouveaux status graphiques", 0
 def initialgrfsettings, db 0x98, "Reglages graphiques initiaux", 0
-def initialgrfsettingshint, db 0x98, "Ouvrir la fen^tre des status graphiques pour activer les graphiques ",
+def initialgrfsettingshint, db 0x98, "Ouvrir la fenêtre des status graphiques pour activer les graphiques ",
 	db "activés par defaut", 0
 
 def grfstatgeninfo1, db 0x98,"Nombre de fichiers: ",0x94,0x7b,13
@@ -1315,7 +1315,7 @@ def grfstatgeninfo1, db 0x98,"Nombre de fichiers: ",0x94,0x7b,13
 def grfstatgeninfo2,	db 0x98,"    Trains: ",0x94,0x7b,0x98,0x80,13
 			db 0x98,"    Camions/Bus: ",0x94,0x7b,0x98,0x80,0
 def grfstatgeninfo3,	db 0x98,"    Bateaux: ",0x94,0x7b,0x98,0x80,13
-			db 0x98,"    Avionss: ",0x94,0x7b,0x98,0x80,0
+			db 0x98,"    Avions: ",0x94,0x7b,0x98,0x80,0
 def grfstatgeninfo4,	db 0x98,"    Maisons: ",0x94,0x7b,0x98,0x80,13
 			db 0x98,"    Autres: ",0x94,0x7b,0x98,0x80,0
 def grfstatmax, db " (",0x7b," max)",0
@@ -1351,7 +1351,7 @@ def curr_EUR, db "Euro (",0x9E,")",0,0,0,0,0,0
 def townlastmonthaccepted, db 98h,"Marchandises acceptées par toutes les stations le mois dernier :",0
 
 def aircraftcleared, db 98h,0fh,"Les débris du récent crash d'avion de ",80h," ont été retirés!",0
-def zeppelincleared, db 98h,0fh,"Les débris du récent crash de Zepplin de ",80h," ont Ã©té retirés!",0
+def zeppelincleared, db 98h,0fh,"Les débris du récent crash de Zepplin de ",80h," ont été retirés!",0
 def traincleared, db 98h,0fh,"Les débris du récent accident de train près de ",80h," ont été déblayés!",0
 
 def endofsharedorders, db 1,0xa,"- - Fin de commande partagée (",85h,7ch,") - -",0
@@ -1390,7 +1390,7 @@ def refitbuttonhint, db 0x98,"Transforme le véhicule pour transporter le type sé
 
 def cantbuildcanalhere, db 0x94, "Ne peut construire de canal/écluse ici", 0
 
-def fundprospecting, db 0x94, "Recherche de nouvelles mines/forets", 0
+def fundprospecting, db 0x94, "Recherche de nouvelles mines/forêts", 0
 def buildindustry, db 0x94, "Construire une industrie", 0
 def fundingfailed, db 0x94, "Recherche infructueuse. Les prospecteurs sont revenus les mains vides.", 0
 def cannotfundprospecting, db 0x94, "Impossible d'effectuer des recherches", 0
@@ -1458,9 +1458,9 @@ def rcw_automatic, db "Automatique", 0
 def rcw_normal, db "Normale", 0
 def rcw_entry, db "Entrée", 0
 def rcw_exit, db "Sortie", 0
-def rcw_combo, db "Combo", 0
-def rcw_nopbs, db "Non basé sur le trajet", 0
-def rcw_pbs, db "Basé sur le trajet", 0
+def rcw_combo, db "Combiné", 0
+def rcw_nopbs, db "Non basé s/ trajet", 0
+def rcw_pbs, db "Basé s/ trajet", 0
 def rcw_tracks, db 0x98, "Voies: ", 0x8E, 0x80, 0
 def rcw_length, db 0x98, "Longueur: ", 0x8E, 0x80, 0
 def rcw_drag, db "Tirer", 0
@@ -1471,10 +1471,10 @@ def rcw_accepts, db 0x98, "Accepte:                    ", 0x8A, 0
 def outofdynmem, db 0x94, "Pas assez de mémoire dynamique", 0
 def cantresize, db 0x94, "Ne peut redimentionner la fenêtre...", 0
 
-def grftextnotfound, db "-- teste GRF non trouvé! --",0
+def grftextnotfound, db "-- texte GRF non trouvé! --",0
 
 def newindubuildindustry, db "Construire une industrie",0
-def newindufundprospecting, db "Recherche de mine/foret pour industrie",0
+def newindufundprospecting, db "Recherche de mine/forêt pour industrie",0
 def newinduproduces, db 0x98, "Produit: ", 0x90, 0x80, 0
 def toomanyindustries, db 94h,"Trop d'industries dans ce monde.", 0
 
@@ -1497,7 +1497,7 @@ def ttdpatch_dll_notfound, db 94h,"Ne peut charger ttdpatch.dll, nouveaux sons d
 
 def statistics, db 0x98, "Statistiques",0
 def statistics_white, db 0x94, "Statistiques",0
-def totalcargo, db 0x8E, "Quantités totale de marchandises trnsportées",0
+def totalcargo, db 0x8E, "Total des marchandises transportées",0
 def statistics_tooltip, db 0x98, "Ouvrir les statistiques de la compagnie",0
 
 def landareainfoheight, db 0x98,"Altitude: ",0x95,0x7B,0
