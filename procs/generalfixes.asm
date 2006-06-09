@@ -27,6 +27,7 @@ extern Class6FloodTile
 extern Class6CoastSprites
 extern newgraphicssetsenabled
 extern waterbanksprites
+extern CompanyVehiclesSummary
 
 ext_frag oldrecordlastactionxy
 
@@ -703,6 +704,14 @@ codefragment newcoastsprites
 	icall Class6CoastSprites
 	setfragmentsize 7
 
+codefragment oldcompanyvehiclessummary
+	add cx, 70
+	mov ax, [esi+window.id]
+	
+codefragment newcompanyvehiclessummary
+	ijmp CompanyVehiclesSummary
+	setfragmentsize 8
+
 endcodefragments
 
 patchgeneralfixes:
@@ -1146,6 +1155,8 @@ patchgeneralfixes:
 
 	patchcode calcboxz
 	patchcode findtilestorefresh
+
+	patchcode companyvehiclessummary
 
 	ret
 

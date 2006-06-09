@@ -755,6 +755,7 @@ CHANGELOG
   * fixed canals/higherbridges coast code, reduced size
   * changed the diagonal flood code by Lakie, 
     less code called by tick, bridges use the action 5 coast sprites aswell
+  * new routine for the company vehicle summary so it allows more then 255 vehicles
 - fixed bug where entering à opens the "Quit game" window
 - stop action D sprite GRM from allocating sprite in main menu GRF status window
 - added categories to all switches (shown in switches.xml output)
