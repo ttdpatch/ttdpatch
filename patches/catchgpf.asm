@@ -912,10 +912,10 @@ var gpfdebugend
 
 
 	// Define TTDPatch version as a DWORD
-	// MMmrbbbb  MM=major  m=minor  r=revision  bbbb=build
+	// MMmrbbbb  MM=major  m=minor  r=revision  bbbb=build (SVN revision)
 	// (must be single line, for package script)
 global __ttdpatchvercode
-__ttdpatchvercode equ (TTDPATCHVERSIONMAJOR<<24)+(TTDPATCHVERSIONMINOR<<20)+(TTDPATCHVERSIONREVISION<<16)+TTDPATCHVERSIONBUILD
+__ttdpatchvercode equ (TTDPATCHVERSIONMAJOR<<24)+(TTDPATCHVERSIONMINOR<<20)+(TTDPATCHVERSIONREVISION<<16)+TTDPATCHVERSIONSVNREV
 var ttdpatchvercode, dd __ttdpatchvercode
 
 global __ttdpatchrevision

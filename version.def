@@ -7,6 +7,7 @@
 # VERSIONREVISION is the revision version number for the Windows resource file
 # VERSIONBUILD is the build number for the Windows resource file
 REV=${subst E,mod,${SVNREV}}
+SVNREVNUM=${subst E,,${SVNREV}}
 VERSION = 25b5${if ${NOREV},,r${SVNREV}}
 VERSIONSTR = 2.5 beta 5${if ${NOREV},, r${REV}}
 VERSIONNUM = 25b5${if ${NOREV},,d${SVNREV}}
