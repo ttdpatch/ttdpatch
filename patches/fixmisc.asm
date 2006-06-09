@@ -996,39 +996,100 @@ dodeductvehruncost:
 // safe:edx
 global doaddexpenses
 doaddexpenses:
+	push eax
+
+	mov eax,ebx
+	mov ebx,edx
+	cdq
+
+	sub [ebx+player2ofs+player2.cash],eax
+	sbb [ebx+player2ofs+player2.cash+4],edx
 	jno .nooverflow
 
-	add [edx+player.cash],ebx
+	add [ebx+player2ofs+player2.cash],eax
+	adc [ebx+player2ofs+player2.cash+4],edx
 
 .nooverflow:
-	sub [edx+player2ofs+player2.cash],edx
-	sbb dword [edx+player2ofs+player2.cash],0
-	jno .no64overflow
+	// calculate 32-bit limited value of cash
+	mov edx,[ebx+player2ofs+player2.cash+4]
+	test edx,edx
+	js .isneg
 
-	add [edx+player2ofs+player2.cash],edx
-	adc dword [edx+player2ofs+player2.cash],0
+	// value is positive
+	jnz .poscap		// upper 32 bits set -> need to limit
 
-.no64overflow:
-	push eax
-	movzx eax,byte [currentexpensetype]
-	add [edx+player.thisyearexpenses+eax],ebx
+	mov edx,[ebx+player2ofs+player2.cash]
+	test edx,edx
+	jns .gotlimit
+
+	// oops, was too large for 31 bits!
+.poscap:
+	mov edx,0x7fffffff	// +maxint if upper 32bits are positive
+	jmp short .gotlimit
+
+.isneg:
+	cmp edx,byte -1		// just a negative sign extension?
+	jne .negcap
+
+	mov edx,[ebx+player2ofs+player2.cash]
+	test edx,edx
+	js .gotlimit
+
+.negcap:
+	// no, it has significant bits... this is extremely unlikely though
+	// (how does someone manage to be more than 2 billion pounds in debt?)
+	mov edx,0x80000000	// -maxint if upper 32bits are negative
+
+.gotlimit:
+	mov [ebx+player.cash],edx
+
+	movzx edx,byte [currentexpensetype]
+	add [ebx+player.thisyearexpenses+edx],eax
 	jno .nooverfloweither
 
-	sub [edx+player.thisyearexpenses+eax],ebx
+	sub [ebx+player.thisyearexpenses+edx],eax
 
 .nooverfloweither:
-	add eax,[incomequarterstatslist]
-	mov eax,[eax]
-	test eax,eax
+	add edx,[incomequarterstatslist]
+	mov edx,[edx]
+	test edx,edx
 	js .done
 
-	add [edx+player.thisquarterincome+eax],ebx
+	add [ebx+player.thisquarterincome+edx],eax
 	jno .done
 
-	sub [edx+player.thisquarterincome+eax],ebx
+	sub [ebx+player.thisquarterincome+edx],eax
 
 .done:
+	mov ebx,eax	// restore cost
 	pop eax
+	ret
+
+// Display the company cash
+//
+// in:	ebx->player
+// out:	bx=textID
+//	textrefstack set appropriately
+// safe:eax
+exported showcompanycash
+	mov eax,[ebx+player2ofs+player2.cash]
+	mov [textrefstack],eax
+	mov eax,[ebx+player2ofs+player2.cash+4]
+	mov [textrefstack+4],eax
+	ret
+
+// Display the company cash minus loan
+//
+// in:	ebx->player
+// out:	textrefstack set appropriately
+// safe:eax
+exported showcompanynet
+	mov eax,[ebx+player2ofs+player2.cash]
+	sub eax,[ebx+player.loan]
+	mov [textrefstack],eax
+	mov eax,[ebx+player2ofs+player2.cash+4]
+	sbb eax,0
+	mov [textrefstack+4],eax
 	ret
 
 // When calculating the company value, limit it to the maximum too

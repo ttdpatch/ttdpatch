@@ -293,11 +293,16 @@ section .text
 	jnb .store
 
 .special:
+	cmp al,0x9A
+	jae .extspecial
 	cmp al,0x88
 	jnb .store
 	movzx eax,al
 	mov ebx,[textspechandler]
 	jmp [ebx+(eax-0x7b)*4]
+
+.extspecial:
+	jmp [extspechandler+(eax-0x9A)*4]
 
 .three:
 	inc bl
@@ -334,6 +339,41 @@ varb undefid
 endvar
 
 ; endp texthandler
+
+// handlers for string codes 9A, 9B, 9C, 9D
+vard extspechandler, .extformat, .nothing, .nothing, .nothing
+
+.extformat:
+	xor eax,eax
+	lodsb
+	cmp eax,numextstringformat
+	jae .nothing
+	call [extstringformat+eax*4]
+.nothing:	
+	jmp textprocessing
+
+// string code 9A handlers
+vard extstringformat
+	dd print64bitcost
+numextstringformat equ ($-extstringformat)/4
+endvar
+
+print64bitcost:
+	mov ebx,[textrefstack]
+	mov edx,[textrefstack+4]
+
+	mov eax,[textrefstack+8]
+	mov [textrefstack],eax
+	mov eax,[textrefstack+0xC]
+	mov [textrefstack+4],eax
+	mov eax,[textrefstack+0x10]
+	mov [textrefstack+8],eax
+	mov eax,[textrefstack+0x14]
+	mov [textrefstack+0xC],eax
+
+	mov eax,ebx
+	extern printcash_64bit
+	jmp printcash_64bit
 
 
 	// patch text table handlers

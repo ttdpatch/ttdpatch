@@ -306,6 +306,34 @@ codefragment oldcompanyvalue,-2
 codefragment newcompanyvalue
 	jmp runindex(companyvalue)
 
+codefragment oldshowcompanycash
+	mov eax,[ebx+player.cash]
+	db 0xa3		// mov [textrefstack],eax
+
+codefragment newshowcompanycash
+	icall showcompanycash
+	mov bx,statictext(disp64bitcash_black)
+	setfragmentsize 12
+
+codefragment oldshowcompanynet
+	mov eax,[ebx+player.cash]
+	sub eax,[ebx+player.loan]
+
+codefragment newshowcompanynet
+	icall showcompanynet
+	mov bx,statictext(disp64bitcash_black)
+	setfragmentsize 15
+
+codefragment oldshowstatuscash
+	mov eax,[esi+player.cash]
+	mov [textrefstack],eax
+
+codefragment newshowstatuscash
+	mov ebx,esi
+	icall showcompanycash
+	mov bx,statictext(disp64bitcash_white)
+	setfragmentsize 12
+
 codefragment oldaddmergermoney,-11
 	add [ecx+player.cash],eax
 	add [ecx+player.thisyearexpenses+expenses_other],eax
@@ -851,6 +879,9 @@ patchgeneralfixes:
 	storefragment newaddexpenses
 	patchcode oldcompanyvalue,newcompanyvalue,1,1
 	patchcode oldaddmergermoney,newaddmergermoney
+	patchcode showcompanycash
+	patchcode showcompanynet
+	patchcode showstatuscash
 
 	patchcode oldgeneratezeppelin,newgeneratezeppelin,1,1,,{test word [miscmodsflags],MISCMODS_NOZEPPELINONLARGEAP},nz
 	multipatchcode oldcheckzeppelincrasharea1,newcheckzeppelincrasharea,2

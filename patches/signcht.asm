@@ -971,7 +971,11 @@ moneycheat:
 	movzx edi,byte [curplayer]
 	imul edi,0x3b2
 	add edi,[playerarrayptr]
-	mov dword [edi+0x10],edx
+	mov [edi+player.cash],edx
+	mov [edi+player2ofs+player2.cash],edx
+	mov eax,edx
+	cdq
+	mov [edi+player2ofs+player2.cash+4],edx
 	clc
 
 .done:

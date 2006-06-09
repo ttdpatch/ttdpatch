@@ -763,3 +763,4 @@ CHANGELOG
 - make callback 36 support train prop 25
 - by Lakie:
   * now flooding diagonally from slopes into the sharp corners as well
+- support for 64bit cash values

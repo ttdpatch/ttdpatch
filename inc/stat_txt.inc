@@ -240,3 +240,7 @@ stxt_cont	dw statictext(special1)
 stxt_cont	db 0x81
 stxt_cont	dw statictext(special2)
 stxt_cont	db 0
+
+stxt disp64bitcash_black, 0x98, 0x9a, 0x00, 0x00
+stxt disp64bitcash_white, 0x94, 0x9a, 0x00, 0x00
+

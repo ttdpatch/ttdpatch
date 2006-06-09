@@ -22,6 +22,18 @@ player2clear:
 	mov ecx,8*player2_size/4
 	xor eax,eax
 	rep stosd
+
+	// initialize .cash: copy from player array
+	mov ebx,[playerarrayptr]
+	mov cl,8
+.copycash:
+	mov eax,[ebx+player.cash]
+	cdq
+	mov [ebx+player2ofs+player2.cash],eax
+	mov [ebx+player2ofs+player2.cash+4],edx
+	add ebx,player_size
+	loop .copycash
+
 	popa
 	ret
 
