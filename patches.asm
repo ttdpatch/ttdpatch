@@ -69,7 +69,7 @@
 		// subsidiaries must be patched before maxloanwithctrl
 	patchproc subsidiaries, patchsubsidiaries
 	patchproc subsidiaries,morestats, patchcompanywindow
-	patchproc maxloanwithctrl, patchmaxloanwithctrl
+	patchproc anyflagset, patchmaxloanwithctrl
 	patchproc fullloadany, patchfullloadany
 	patchproc selectstationgoods, patchselectstationgoods
 	patchproc keepsmallairports, patchkeepsmallairports

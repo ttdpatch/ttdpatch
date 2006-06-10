@@ -1,26 +1,30 @@
 #include <defs.inc>
 #include <frag_mac.inc>
+#include <player.inc>
+#include <window.inc>
 
 global patchsubsidiaries
 
 begincodefragments
 
 codefragment oldborrow
-	add [esi+0x14],ebx
-	add [esi+0x10],ebx
+	add [esi+player.loan],ebx
+	add [esi+player.cash],ebx
 
 codefragment newborrow
 	call runindex(borrow)
 
 codefragment oldrepay,-16
-	sub [esi+0x14],ebp
-	sub [esi+0x10],ebp
+	sub [esi+player.loan],ebp
+	sub [esi+player.cash],ebp
 
 codefragment newrepay
 	call runindex(repay)
 
+codefragment_call dorepay,dorepay
+
 codefragment oldclickhq,-10
-	mov ax,[esi+6]
+	mov ax,[esi+window.id]
 	db 0x3a,5	// cmp al,[human1]
 
 codefragment newclickhq
@@ -65,4 +69,6 @@ global patchmaxloanwithctrl
 patchmaxloanwithctrl:
 	patchcode oldborrow,newborrow,1,1
 	patchcode oldrepay,newrepay,1,1
+	add edi,16+lastediadj
+	storefragment dorepay
 	ret

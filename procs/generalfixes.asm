@@ -335,6 +335,11 @@ codefragment newshowstatuscash
 	mov bx,statictext(disp64bitcash_white)
 	setfragmentsize 12
 
+codefragment oldstartnewcompany
+	mov [esi+player.tracktypes],cl
+
+codefragment_call newstartnewcompany,startnewcompany
+
 codefragment oldaddmergermoney,-11
 	add [ecx+player.cash],eax
 	add [ecx+player.thisyearexpenses+expenses_other],eax
@@ -891,6 +896,7 @@ patchgeneralfixes:
 	patchcode showcompanycash
 	patchcode showcompanynet
 	patchcode showstatuscash
+	patchcode startnewcompany
 
 	patchcode oldgeneratezeppelin,newgeneratezeppelin,1,1,,{test word [miscmodsflags],MISCMODS_NOZEPPELINONLARGEAP},nz
 	multipatchcode oldcheckzeppelincrasharea1,newcheckzeppelincrasharea,2

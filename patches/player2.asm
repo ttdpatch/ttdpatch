@@ -197,3 +197,16 @@ getvehiclecolors_vehtype:
 	pop edx
 	jmp getvehiclecolors.getcolor
 
+// initialize player2 stuff when new company is started
+//
+// in:	esi->player
+//	 cl=traintypes available (from overwritten code)
+// out:
+// safe:cl edx edi
+exported startnewcompany
+	mov [esi+player.tracktypes],cl	// overwritten
+	mov edx,[esi+player.cash]
+	mov [esi+player2ofs+player2.cash],edx
+	and dword [esi+player2ofs+player2.cash+4],0
+	ret
+
