@@ -553,7 +553,12 @@ exported printcash
 	sbb edx,[esi]
 	jb .digitok
 	inc bh
-	jmp .incdigit
+	jns .incdigit
+
+.fail:
+	mov eax,"???"
+	stosd
+	jmp short .done
 
 .digitok:
 	add eax,[esi+4]

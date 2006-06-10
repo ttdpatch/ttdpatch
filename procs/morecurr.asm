@@ -8,7 +8,7 @@
 
 patchproc morecurrencies, patchmorecurr
 
-extern backupcurrencydata,num_powersoften,powersoften_last
+extern backupcurrencydata
 
 begincodefragments
 
@@ -73,31 +73,6 @@ patchmorecurr:
 	patchcode oldwhatcurrtoshow,newwhatcurrtoshow,1,1
 	patchcode oldcurrselect,newcurrselect,1,1
 	patchcode oldcurrprint,newcurrprint,2,7
-
-	// set up table of 64-bit factors of 10
-	lea ebx,[ecx+10]	// mov ebx,10 in 3 bytes (ecx is zero)
-	lea eax,[ecx+100]
-	add ecx,num_powersoften
-	push edx
-	cdq
-	mov edi,powersoften_last
-	std
-
-.nextpower:
-	mov esi,edx
-	mul ebx			// now edx:eax = org. eax*10
-	stosd
-	xchg eax,esi
-	mov esi,edx		// esi = this edx
-	mul ebx			// now eax= org. edx*10
-	add eax,esi
-	stosd
-	xchg eax,edx
-	mov eax,[edi+8]
-	loop .nextpower
-	cld
-
-	pop edx
 
 	call backupcurrencydata
 

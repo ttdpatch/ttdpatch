@@ -66,6 +66,7 @@ extern addrailfence1,addrailfence2,addrailfence3,addrailfence4
 extern addrailfence5,addrailfence6,addrailfence7,addrailfence8
 extern rvcheckovertake,findFrSpaTownNameFlags,runspectexthandlers
 extern fncheckvehintheway,languageid,origlanguageid
+extern num_powersoften,powersoften_last
 
 
 begincodefragments
@@ -2109,6 +2110,32 @@ dogeneralpatching:
 	stringaddress oldCheckQuitGameKeycode
 	mov byte [edi+1],3
 #endif
+
+	// set up table of 64-bit factors of 10
+	lea ebx,[ecx+10]	// mov ebx,10 in 3 bytes (ecx is zero)
+	lea eax,[ecx+100]
+	add ecx,num_powersoften
+	push edx
+	cdq
+	mov edi,powersoften_last
+	std
+
+.nextpower:
+	mov esi,edx
+	mul ebx			// now edx:eax = org. eax*10
+	stosd
+	xchg eax,esi
+	mov esi,edx		// esi = this edx
+	mul ebx			// now eax= org. edx*10
+	add eax,esi
+	stosd
+	xchg eax,edx
+	mov eax,[edi+8]
+	loop .nextpower
+	cld
+
+	pop edx
+
 	ret
 
 global newsavename
