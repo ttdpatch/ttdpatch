@@ -293,8 +293,9 @@ section .text
 	jnb .store
 
 .special:
-	cmp al,0x9A
-	jae .extspecial
+	cmp al,0x99
+	je .two
+	ja .extspecial
 	cmp al,0x88
 	jnb .store
 	movzx eax,al
