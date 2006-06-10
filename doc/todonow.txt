@@ -1,4 +1,4 @@
-
+﻿
 =-=-= Very urgent =-=-=
 
 - when changing console size, remember current settings
@@ -189,8 +189,6 @@
 - Oracle reports duplicate town names when using custom town name set
 
 - save is-in-PBS-block for station, and also prop 15 (in tileproc, 256 ticks=3.5 days)
-
-- when clicking train refit button, wrong button gets shown as pressed
 
 - need to record "reserve" results to preserve them across loads even if order
   of grf files changes
@@ -756,6 +754,7 @@ CHANGELOG
   * changed the diagonal flood code by Lakie, 
     less code called by tick, bridges use the action 5 coast sprites aswell
   * new routine for the company vehicle summary so it allows more then 255 vehicles
+  * fixed clicking train refit/reverse button, refit wrong button gets pressed, reverse button not at all
 - fixed bug where entering à opens the "Quit game" window
 - stop action D sprite GRM from allocating sprite in main menu GRF status window
 - added categories to all switches (shown in switches.xml output)

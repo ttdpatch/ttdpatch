@@ -870,10 +870,11 @@ trainreverse:
 		// refit not reverse
 .dorefit:
 	add esp,byte 4
+	bts word [esi+window.activebuttons], 8
 	jmp dword [oldrefitplane]
 
 .donotrefit: 	// reverse
-	bts word [esi+0x1e],8
+	bts word [esi+window.activebuttons], 8
 	or word [esi+4],byte 5
 	ret
 

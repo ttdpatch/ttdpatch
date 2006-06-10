@@ -49,7 +49,7 @@ codefragment newtrainwindowfunc
 	call runindex(trainwindowfunc)
 	setfragmentsize 13
 
-codefragment refitplane,-71
+codefragment refitplane, -66 	//-71
 	mov dx,98h
 	mov ebp,0Ch
 
