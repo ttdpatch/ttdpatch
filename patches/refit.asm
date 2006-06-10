@@ -23,6 +23,7 @@ extern patchflags,postredrawhandle,specificpropertybase
 extern trainwindowrefit,vehcallback,newvehdata
 extern vehids,traincargosize,traincargotype
 extern vehtypecallback,vehbase,vehbnum,cargotypes,cargobits
+extern RefreshWindows
 
 vard newrefitvars
 	dd newvehdata+newvehdatastruc.refit2,newvehdata+newvehdatastruc.refit1
@@ -856,6 +857,9 @@ checkinhangar:
 
 global trainreverse
 trainreverse:
+	bts word [esi+window.activebuttons], 8
+	or word [esi+window.flags],byte 5
+
 	push eax
 	mov al,cl
 	shl al,1
@@ -865,18 +869,22 @@ trainreverse:
 	add eax,[esi+0x24]
 	cmp word [eax+0xa],0x2b4
 	pop eax
-	jne .donotrefit
-
-		// refit not reverse
+	je .dorefit
+	// reverse
+	ret
+	// refit not reverse
 .dorefit:
 	add esp,byte 4
-	bts word [esi+window.activebuttons], 8
+	push eax
+	push ebx
+	mov bx, [esi+window.id]
+	mov al, [esi+window.type]
+	or al, 0x80
+	mov ah, 8
+	call [RefreshWindows]
+	pop ebx
+	pop eax
 	jmp dword [oldrefitplane]
-
-.donotrefit: 	// reverse
-	bts word [esi+window.activebuttons], 8
-	or word [esi+4],byte 5
-	ret
 
 
 // adjust capacity for cargo type
