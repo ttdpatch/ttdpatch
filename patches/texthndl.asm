@@ -283,7 +283,7 @@ section .text
 	cmp eax,0x7b
 	jb .store
 
-	cmp eax,0x9f
+	cmp eax,0x9e
 	jb .special
 
 	cmp eax,0xe07b
