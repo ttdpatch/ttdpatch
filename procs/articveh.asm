@@ -229,12 +229,13 @@ begincodefragments
 		movzx	ebx, ax
 		mov	dx, cx
 
-	codefragment oldAddStationToRVSchedule, 16
+	codefragment oldAddStationToRVSchedule, 24
 		mov	ah, 8
 		cmp	al, 11h
 
 	codefragment newAddStationToRVSchedule
 		icall	dontLetARVsInNormalRVStops
+		setfragmentsize 8
 
 	codefragment oldCompanyVehiclesSummaryPart, 6
 		add	ebx, 10000h

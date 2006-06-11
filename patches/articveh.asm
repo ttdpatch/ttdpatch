@@ -946,6 +946,7 @@ rvdailyprocoverride:
 	retn
 
 global dontLetARVsInNormalRVStops
+#if 0
 dontLetARVsInNormalRVStops:
 	jecxz	.justDoNormal				//this is a depot... do the usual code
 	cmp	word [esi+veh.nextunitidx], 0xFFFF
@@ -960,7 +961,43 @@ dontLetARVsInNormalRVStops:
 .justDoNormal:
 	call	checkgototype
 	retn
+#endif
 
+
+// A bit better code (fragment position has changed!, 
+// so it doesn't depend on goto depot)
+// --Oskar
+// in: edi = station ptr
+//	 esi = vehicle ptr
+//	 ah = facilities type needed, 1=rail, 2=lorry, 4=bus, 8=air, 0x10=dock
+//	 al = vehicle class
+//	 facilities check already done
+dontLetARVsInNormalRVStops:
+	cmp word [esi+veh.nextunitidx], 0xFFFF
+	je .done		// no following vehicle
+	cmp al, 0x11	// following vehicle, are we a road vehicle with a trailer?
+	je .roadveh
+.done:
+	mov ax, word [esi+veh.xpos]	// overwritten
+	mov cx, word [esi+veh.ypos]	// overwritten
+	ret
+.roadveh:
+	movzx ecx, word [edi+station.busXY]
+	cmp ah, 4
+	je .isbus
+	mov cx, word [edi+station.lorryXY]
+.isbus:
+	cmp cx, 0	// the station has the facility but no tile in the landscape, should never happen, test anyway
+	je .fail
+	
+	cmp byte [landscape5(cx)], 0x53
+	jb .done	// no stop type, do normal code 
+.fail:
+	add esp, 4
+	pop esi
+	ret
+	
+	
 global decrementBHIfRVTrailer
 decrementBHIfRVTrailer:
 	cmp	byte [esi+veh.class], 0x11		//are we a road vehicle?
