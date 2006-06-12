@@ -341,23 +341,23 @@ endvar
 
 ; endp texthandler
 
+// string code 9A handlers
+vard extstringformat
+	dd print64bitcost,print64bitcost
+numextstringformat equ ($-extstringformat)/4
+endvar
+
 // handlers for string codes 9A, 9B, 9C, 9D
 vard extspechandler, .extformat, .nothing, .nothing, .nothing
 
 .extformat:
 	xor eax,eax
 	lodsb
-	cmp eax,numextstringformat
+	cmp eax,0+numextstringformat
 	jae .nothing
 	call [extstringformat+eax*4]
 .nothing:	
 	jmp textprocessing
-
-// string code 9A handlers
-vard extstringformat
-	dd print64bitcost
-numextstringformat equ ($-extstringformat)/4
-endvar
 
 print64bitcost:
 	mov ebx,[textrefstack]

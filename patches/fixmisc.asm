@@ -1068,8 +1068,7 @@ doaddexpenses:
 // Display the company cash
 //
 // in:	ebx->player
-// out:	bx=textID
-//	textrefstack set appropriately
+// out:	textrefstack set appropriately
 // safe:eax
 exported showcompanycash
 	mov eax,[ebx+player2ofs+player2.cash]
