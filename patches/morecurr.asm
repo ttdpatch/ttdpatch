@@ -458,8 +458,13 @@ exported printcash_64bit
 	js .limit	// too big for 64bit
 
 .notnegative:
+	movzx ecx,byte [currency]
+	testmultiflags morecurrencies
+	jz .notmore
+
 	getcurr ecx
 
+.notmore:
 	mov esi,eax
 
 	mov eax,edx
