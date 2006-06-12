@@ -234,7 +234,6 @@ TEXTARRAY(halflines,) =
 	  "-XB: Permite la construcci¢n con pausa",
 	  "-XE: V¡as f‚rreas electrificadas",
 	  "-XF: Activar opciones experimentales",
-	  "-XG: Cargar todos los nuevos gr ficos",
 	  "-XH: Guarda+muestra hist. de noticias",
 	  "-XI: Se¤ales Basadas en la Trayectoria",
 	  "-XL: Provecho en la lista de veh¡culos",
@@ -802,7 +801,7 @@ SETTEXT(CFG_SHIPLOSTTIME, "`%s' (%s) avisa de los barcos perdidos despu‚s de un 
 SETTEXT(CFG_AIRCRAFTLOSTTIME, "`%s' (%s) avisa de los aviones perdidos despu‚s de un n£mero dado de dias.  Rango %ld..%ld.  Defecto %ld.")
 SETTEXT(CFG_MAPREFRESH, "`%s' (%s) sobreescribe la frecu‚ncia en que TTD actualiza la ventana del mapa. Valores bajos har n un refresco m s r pido y consumir n m s CPU. El valor por defecto de TTD es 64.  Rango %ld..%ld.  Defecto %ld.")
 SETTEXT(CFG_NETWORKTIMEOUT, "`%s' (%s) desconecta un juego en red si no hay respuesta por un n£mero dado de segundos. Rango %ld..%ld.  Defecto %ld.")
-SETTEXT(CFG_TOYLANDFEATURES, "`%s' (%s) permite funcionalidades de construcci¢n que normalmente estan deshabilitadas apar el clima Toyland, como pueden ser los faros. Valor codificado en binario.")
+SETTEXT(CFG_TOYLANDFEATURES, "`%s' (%s) permite funcionalidades de construcci¢n que normalmente est n deshabilitadas para el clima Toyland, como pueden ser los faros. Valor codificado en binario.")
 SETTEXT(CFG_STRETCHWINDOW, "`%s' (%s) estirar la ventana de TTD hasta este tama¤o horizontal en puntos (solamente para les versiones Windows de TTD en modo ventana). Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_CANALS, "`%s' (%s) permite la construcci¢n de canales y esclusas usando la herramienta de construcci¢n de boyas del men£ de construcci¢n de muelles.")
 SETTEXT(CFG_FREIGHTTRAINS, "`%s' (%s) multiplica la mercancia transportada po un tren de mercancias por un factor dado, para simular trenes muy largos y pesados. Esto solamente afecta a la aceleraci¢n, el tren no transporta m s mercancias. Rango %ld..%ld. Por defecto %ld.")
@@ -810,7 +809,7 @@ SETTEXT(CFG_GAMESPEED, "`%s' (%s) Hace la velocidad del juego cambiable. Esto re
 SETTEXT(CFG_HIGHERBRIDGES, "`%s' (%s) permite la construcci¢n de puentes altos.")
 SETTEXT(CFG_NEWGRFCFG, "`%s' (%s) especifica el archivo de configuraci¢n de los nuevos juegos de gr ficos.")
 SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s)  habilita el uso de la rueda del rat¢n en la versi¢n de Windows. 0 significa zoom original con la rueda (mantiene el centrado), 1 significa zoom estilo OpenTTD (el puntero bajo el cursor del rat¢n se mantiene si es posible). Suma 2 para habilitar el zoom \"seguro\" (dos giros inicia el zoom). Suma 4 para soporte de rueda normalizado (se necesita para algunos controladores y Win95). Rango %ld..%ld. Por defecto %ld.")
-SETTEXT(CFG_MOREWINDOWS, "`%s' (%s) permite mas ventanas abiertas en la pantalla. El valor por defecto de TTD es de 10, pero 3 ventanas estan ocupadas (barra de herramientas principal, Vista principal y barra de estado), por lo que el m ximo de ventanas abiertas actual es de 7. Men£s desplegables y avisos cuentan igualmente como ventanas. Rango %ld..%ld. Por defecto %ld.")
+SETTEXT(CFG_MOREWINDOWS, "`%s' (%s) permite m s ventanas abiertas en la pantalla. El valor por defecto de TTD es de 10, pero 3 ventanas estan ocupadas (barra de herramientas principal, Vista principal y barra de estado), por lo que el m ximo de ventanas abiertas actual es de 7. Men£s desplegables y avisos cuentan igualmente como ventanas. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_ENHANCEDDIFFICULTYSETTINGS, "'%s' (%s) hace posible seleccionar 'no' en el n£mero de industrias en la configuraci¢n de dificultad.")
 SETTEXT(CFG_NEWBRIDGES, "`%s' (%s) permite nuevos gr ficos para puentes.")
 SETTEXT(CFG_NEWHOUSES, "`%s' (%s) activa nuevos tipos de edificios con nuevos gr ficos.")
@@ -826,9 +825,9 @@ SETTEXT(CFG_WINDOWSNAP, "`%s' (%s) ajunta las ventanas que estan cercanas. Rango
 SETTEXT(CFG_RESOLUTIONWIDTH, "`%s' (%s) permite y configura la anchura de la resoluci¢n del parche.")
 SETTEXT(CFG_RESOLUTIONHEIGHT, "`%s' (%s) permite y configura la altura de la resoluci¢n del parche.")
 SETTEXT(CFG_AICHOOSECHANCES, "`%s' (%s) especifica que probabilidad usar cuando la IA decide que contruir a continuaci¢n (la probabilidad de crear una ruta naviera es 1-prob.ferrovias-prob.carrretera-prob.aire).")
-SETTEXT(CFG_AIBUILDRAILCHANCE, "`%s' (%s) la probabilidad de que la IA contruya una ruta ferroviaria cuando quiera crear una nueva ruta. Rango %ld..%ld, 0=0%%, 65535=100%%. Por defecto %ld.")
-SETTEXT(CFG_AIBUILDRVCHANCE, "`%s' (%s) la probabilidad de que la IA contruya una ruta por carretera cuando quiera crear una nueva ruta. Rango  %ld..%ld, 0=0%%, 65535=100%%. Por defecto %ld.")
-SETTEXT(CFG_AIBUILDAIRCHANCE, "`%s' (%s) la probabilidad de que la IA contruya una ruta por aire cuando quiera crear una nueva ruta. Rango %ld..%ld, 0=0%%, 65535=100%%. Por defecto %ld.")
+SETTEXT(CFG_AIBUILDRAILCHANCE, "`%s' (%s) la probabilidad de que la IA construya una ruta ferroviaria cuando quiera crear una nueva ruta. Rango %ld..%ld, 0=0%%, 65535=100%%. Por defecto %ld.")
+SETTEXT(CFG_AIBUILDRVCHANCE, "`%s' (%s) la probabilidad de que la IA construya una ruta por carretera cuando quiera crear una nueva ruta. Rango  %ld..%ld, 0=0%%, 65535=100%%. Por defecto %ld.")
+SETTEXT(CFG_AIBUILDAIRCHANCE, "`%s' (%s) la probabilidad de que la IA construya una ruta por aire cuando quiera crear una nueva ruta. Rango %ld..%ld, 0=0%%, 65535=100%%. Por defecto %ld.")
 SETTEXT(CFG_NEWINDUSTRIES, "`%s' (%s) permite soporte para nuevos tipos de industrias.")
 SETTEXT(CFG_LOCOMOTIONGUI, "`%s' (%s) permite la nueva interfaz de usuario al estilo locomotion.")
 SETTEXT(CFG_FIFOLOADING, "`%s' (%s) permite la carga FIFO.")
@@ -839,7 +838,7 @@ SETTEXT(CFG_ENHMULTI, "`%s' (%s) mejorado el juego multijugador permitiendo m s 
 SETTEXT(CFG_ONEWAYROADS, "`%s' (%s) permite carreteras de un solo sentido")
 SETTEXT(CFG_NEWSOUNDS, "`%s' (%s) permite a¤adir nuevos sonidos al juego via archivos GRF personalizados.")
 SETTEXT(CFG_IRRSTATIONS, "`%s' (%s) permite la construcci¢n de estaciones de formas irregulares.")
-SETTEXT(CFG_MORESTATS, "`%s' (%s) permite collecionar m s estad¡sticas (solamente funciona si las mejoras del GUI estan activadas).")
+SETTEXT(CFG_MORESTATS, "`%s' (%s) permite coleccionar m s estad¡sticas (solamente funciona si las mejoras del GUI estan activadas).")
 SETTEXT(CFG_AUTOREPLACE, "`%s' (%s) actualiza los veh¡culos al mejor nuevo tipo disponible, con el m¡nimo valor de fiabilidad dado, en porcentage. Rango 1..100, Por defecto 80.")
 SETTEXT(CFG_AUTOSLOPE, "`%s' (%s) permite el movimiento de tierras sin destruir las estructuras.")
 SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) permite a la vista principal de seguir a un veh¡culo con pulsar el bot¢n derecho en el bot¢n de Vista al Centro de la ventana del veh¡culo.")
