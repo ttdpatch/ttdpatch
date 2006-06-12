@@ -531,6 +531,7 @@ BITSWITCH(experimentalfeatures)
 BIT(slowcrossing, "trains slow down before crossings")
 BIT(cooperative,  "cooperative play, very limited")
 BIT(mandatorygrm, "make GRF Resource Management mandatory for .grf files")
+BIT(incvehconsist, "build even more then 255 trains per company (very experimental)")
 
 // Description for maskdisasters bits
 BITSWITCH(maskdisasters)
