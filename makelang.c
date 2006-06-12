@@ -46,7 +46,7 @@ extern langproc
 	SINGELANG;
 #else
 	czech, danish, dutch, english, finnish, french, german, hungaria,
-	italian, norwegia, polish, russian, spanish;
+	italian, norwegia, polish, russian, spanish, catalan;
 #endif
 
 langproc *languagedata[] = {
@@ -56,7 +56,7 @@ langproc *languagedata[] = {
 	&english,
 #ifndef TESTMAKELANG
 	&czech, &danish, &dutch, &finnish, &french, &german, &hungaria,
-	&italian, &norwegia, &polish, &russian, &spanish,
+	&italian, &norwegia, &polish, &russian, &spanish, &catalan,
 #endif
 #endif
 	};

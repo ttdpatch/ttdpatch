@@ -732,7 +732,7 @@ CHANGELOG
 
 
 2.5 beta 6
-- updated Czech, Spanish, French translations
+- updated Czech, Spanish, French translations, added Catalan translation
 - fixed action D global variables getting set as soon as flag is green
 - by steven_h:
   * implemented truck stops
