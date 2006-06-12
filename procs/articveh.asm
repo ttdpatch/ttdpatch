@@ -71,6 +71,8 @@ extern GetVehicleNewPos
 extern UpdateVehicleSpriteBox
 extern UpdateDirectionIfMovedTooFar
 
+extern DrawRVImageInWindow
+
 patchproc articulatedrvs, patcharticulatedvehicles
 
 begincodefragments
@@ -242,6 +244,47 @@ begincodefragments
 
 	codefragment newCompanyVehiclesSummaryPart
 		icall	decrementBHIfRVTrailer
+
+	codefragment oldDrawRVINRVList, 4
+		add     cx, 22
+		add     dx, 6
+
+	codefragment newDrawRVINRVList
+		icall	drawAllTrailersInRVList
+		setfragmentsize 9
+
+	codefragment findDrawRVImageInWindow, 2
+		retn
+		retn
+		push	word [edi+veh.cursprite]
+
+	codefragment oldRVDepotScrXYtoVeh, -14
+		mov	al, 1
+		retn
+		cmp	dl, 24
+
+	codefragment newRVDepotScrXYtoVeh
+		icall	RVDepotScrXYtoVehSkipTrailers
+
+	codefragment oldDrawRVinRVInformation,-15
+		add	cx, 31
+
+	codefragment newDrawRVinRVInformation
+		icall	drawRVWithTrailersInInfoWindow
+		setfragmentsize 15
+
+	codefragment oldSetSizeOfRVInformationWindow
+		mov	ebx, 65017Ch
+
+	codefragment newSetSizeOfRVInformationWindow
+		mov	ebx, 75017Ch
+
+	codefragment oldLocationOfServiceStringInInfoWindow, 4
+		add	cx, 13
+		add	dx, 90
+
+	codefragment newLocationOfServiceStringInInfoWindow
+		add	dx, 106
 endcodefragments
 
 patcharticulatedvehicles:
@@ -358,4 +401,31 @@ patcharticulatedvehicles:
 	patchcode oldAddStationToRVSchedule, newAddStationToRVSchedule, 1, 1
 
 	patchcode oldCompanyVehiclesSummaryPart, newCompanyVehiclesSummaryPart, 1, 1
+
+	patchcode oldDrawRVINRVList, newDrawRVINRVList, 1, 1
+	patchcode oldDrawRVinRVInformation, newDrawRVinRVInformation, 1, 2
+	stringaddress oldSetSizeOfRVInformationWindow, 1, 1
+	add edi, 22
+	mov edi, [edi]
+	add edi, 56
+	mov [edi], byte 0x68			//the size of the second rectangle in the rv information window
+	add edi, 10				//stretched down 16 pixels
+	mov [edi], byte 0x69			//to allow the articulated rvs to be drawn in a line.
+	add edi, 2
+	mov [edi], byte 0x6E
+	add edi, 10
+	mov [edi], byte 0x6F
+	add edi, 2
+	mov [edi], byte 0x74
+	add edi, 10
+	mov [edi], byte 0x69
+	add edi, 2
+	mov [edi], byte 0x74
+	patchcode oldLocationOfServiceStringInInfoWindow, newLocationOfServiceStringInInfoWindow, 1, 2
+	patchcode oldSetSizeOfRVInformationWindow, newSetSizeOfRVInformationWindow, 1, 1
+
+	stringaddress findDrawRVImageInWindow, 1, 1
+	mov	[DrawRVImageInWindow], edi
+
+	patchcode oldRVDepotScrXYtoVeh, newRVDepotScrXYtoVeh, 1, 1
 	retn

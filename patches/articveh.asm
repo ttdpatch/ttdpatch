@@ -15,6 +15,8 @@
 extern newbuyrailvehicle, discard, vehcallback, articulatedvehicle, delveharrayentry, sellroadvehicle
 extern RefreshWindows, LoadUnloadCargo, checkgototype, isrvbus, curplayerctrlkey
 
+uvard DrawRVImageInWindow,1,s
+
 uvarb byte_11258E
 uvarb vaTempLocation1
 
@@ -143,7 +145,7 @@ newbuyroadvehicle:
 	push	ecx
 	mov	cx, word [esi+veh.idx]
 	mov	word [edi+veh.nextunitidx], cx			// initialise to a trailer, set basic params.
-	mov	byte [edi+veh.subclass], 2
+	mov	byte [esi+veh.subclass], 0x02
 	mov	byte [esi+veh.parentmvstat], 0xFF
 	mov	byte [esi+0x6E], 0xFF
 	mov	edi, dword [vehicleToAttachTo]			//grab the parent again
@@ -1048,24 +1050,6 @@ rvdailyprocoverride:
 	retn
 
 global dontLetARVsInNormalRVStops
-#if 0
-dontLetARVsInNormalRVStops:
-	jecxz	.justDoNormal				//this is a depot... do the usual code
-	cmp	word [esi+veh.nextunitidx], 0xFFFF
-	je	.justDoNormal				//does our RV have trailers? check if the station is ok
-	push	edi
-	movzx	edi, word [mousetoolclicklocxy]		//grab the XY of the selected station.
-	cmp	byte [landscape5(di)], 0x53		//shit... we have to find the real XY, not just the truck station.
-	pop	edi
-	jge	.justDoNormal
-	and	ah, 0
-	retn
-.justDoNormal:
-	call	checkgototype
-	retn
-#endif
-
-
 // A bit better code (fragment position has changed!,
 // so it doesn't depend on goto depot)
 // --Oskar
@@ -1113,4 +1097,54 @@ decrementBHIfRVTrailer:
 .notRoadVehicleOrRoadVehicleEngine:
 	add	esi, 80h				//this is the line we covered in the code
 							//incement to the next vehicle in the array.
+	retn
+
+uvarw lastVehicleShortness,1,s
+global drawAllTrailersInRVList
+drawAllTrailersInRVList:
+	add	dx, 6
+	push	edi
+	call	drawRVWithTrailers
+	pop	edi
+	retn
+
+global RVDepotScrXYtoVehSkipTrailers
+RVDepotScrXYtoVehSkipTrailers:
+	add	edi, 80h				//overwritten
+	cmp	byte [edi+veh.subclass], 0x02
+	je	RVDepotScrXYtoVehSkipTrailers		//trailer? add another vehicle.
+	retn
+
+global drawRVWithTrailersInInfoWindow
+drawRVWithTrailersInInfoWindow:
+	push	cx
+	push	dx
+	push	edi
+	call	drawRVWithTrailers
+	pop	edi
+	pop	dx
+	pop	cx
+	add	dx, 14
+	retn
+
+global drawRVWithTrailers
+drawRVWithTrailers:
+	call	[DrawRVImageInWindow]
+	cmp	word [edi+veh.nextunitidx], 0xFFFF
+	je	.noMoreTrailers
+	movzx	edi, word [edi+veh.nextunitidx]
+	shl	di, 7
+	add	edi, [veharrayptr]
+	xchg	esi, edi
+	sub	cx, word [lastVehicleShortness]	//we want to use the _last_ vehicles shortness... not this ones.
+	mov	al, 0x11
+	call	vehcallback
+	imul	ax, 4
+	mov	word [lastVehicleShortness], ax
+.notshortened:
+	add	cx, 0x1C				//What is the standard length for an RV?
+	xchg	edi, esi
+	jmp	drawRVWithTrailers
+.noMoreTrailers:
+	mov	word [lastVehicleShortness], 0
 	retn
