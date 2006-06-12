@@ -294,7 +294,7 @@ patcharticulatedvehicles:
 	stringaddress oldSellRoadVehicle, 2+WINTTDX, 5
 	chainfunction sellRVTrailers, .origfn, 1
 
-	;patchcode oldAddRVScheduleWhenBuilding, newAddRVScheduleWhenBuilding, 2, 4
+	patchcode oldAddRVScheduleWhenBuilding, newAddRVScheduleWhenBuilding, 2, 4
 
 #if WINTTDX
 	stringaddress oldCallRVProcessing, 1, 5

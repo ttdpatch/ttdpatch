@@ -13,7 +13,7 @@
 #include <station.inc>
 
 extern newbuyrailvehicle, discard, vehcallback, articulatedvehicle, delveharrayentry, sellroadvehicle
-extern RefreshWindows, LoadUnloadCargo, checkgototype, isrvbus
+extern RefreshWindows, LoadUnloadCargo, checkgototype, isrvbus, curplayerctrlkey
 
 uvarb byte_11258E
 uvarb vaTempLocation1
@@ -55,12 +55,114 @@ uvard UpdateVehicleSpriteBox
 uvard UpdateDirectionIfMovedTooFar
 uvard oldrvdailyproc
 
+uvarw curDepotLocation,1,s
+uvard vehicleToAttachTo,1,s
+
 global newbuyroadvehicle
 newbuyroadvehicle:
+	push	ecx
+	push	eax
+	shr	ax, 4
+	shl	cx, 4
+	add	cx, ax
+	mov	word [curDepotLocation], cx		//get the current depot location
+	pop	eax					//which is currently x/y split in ax/cx
+	pop	ecx
+
+	cmp	byte [curplayerctrlkey], 0
+	jz .dontCheckForExistingVehicleInDepot
+
+	//is there a 'compatible' vehicle in the depot? What vehicle are we buying?
+	//do i care if you mix passenger and goods?
+	//DO THIS:			loop through vehicle array
+	//				and see if there is an 'rv' with the same xy and stat of 0xFE
+	//				and THEN store the pointer
+
+	push	edi
+	mov	edi, dword [veharrayptr]
+.tryNextVehicle:
+	cmp	byte [edi+veh.class], 11h
+	jnz	short .doLoop
+	cmp	byte [edi+veh.movementstat], 0FEh
+	jnz	short .doLoop
+	push	ebx
+	mov	bx, word [curDepotLocation]
+	cmp	bx, word [edi+veh.XY]
+	pop	ebx
+	jnz	short .doLoop
+	mov	dword [vehicleToAttachTo], edi
+	jmp	short .doneFindingRVInDepot
+.doLoop:
+	add	edi, 80h
+	cmp	edi, dword [veharrayendptr]
+	jb	short .tryNextVehicle
+
+	//ERROR OUT!   --> I think we need a "Please have a vehicle in slot 1 of depot" message.
+	mov	ebx, 0x80000000
+	pop	edi
+	retn
+
+.doneFindingRVInDepot:
+	pop	edi
+
+.dontCheckForExistingVehicleInDepot:
 	mov	byte [buildingroadvehicle], 1
 	call	newbuyrailvehicle			//this proc knows what to do
 							//if [buildingroadvehicle] is set... and it is!
 							//see newtrains.asm
+
+	//ok, the control key was pressed, we need to attach this vehicle to the first one in the depot window.
+	//we do this here, because we need to have had all the new vehicles trailers attached
+	//so that we can set their new 'engineidx'
+
+	//DO THIS:	check for pointers
+	//		then set the trailer of the vehicle (loop to find it).nextunitidx to the new vehicle.
+	//		then set all the engineidxs to the head.
+
+	cmp	byte [curplayerctrlkey], 0
+	jz .dontMakeThisVehicleATrailer
+
+	cmp word [curDepotLocation], -1
+	je .dontMakeThisVehicleATrailer
+	cmp dword [vehicleToAttachTo], -1
+	je .dontMakeThisVehicleATrailer
+
+	cmp	esi, edi					//if not equal then testing cost? (or something)
+	jne	.dontMakeThisVehicleATrailer
+
+	push	edi
+	mov	edi, dword [vehicleToAttachTo]			//grab the parent
+.testNextTrailer:
+	cmp	word [edi+veh.nextunitidx], 0xFFFF		//grab the parents last trailer
+	je	.thisIsTheLastTrailer
+	movzx	edi, word [edi+veh.nextunitidx]
+	shl	di, 7
+	add	edi, [veharrayptr]
+	jmp	.testNextTrailer
+.thisIsTheLastTrailer:						//now set nextunitidx to the new vehicle
+	push	ecx
+	mov	cx, word [esi+veh.idx]
+	mov	word [edi+veh.nextunitidx], cx			// initialise to a trailer, set basic params.
+	mov	byte [edi+veh.subclass], 2
+	mov	byte [esi+veh.parentmvstat], 0xFF
+	mov	byte [esi+0x6E], 0xFF
+	mov	edi, dword [vehicleToAttachTo]			//grab the parent again
+	mov	cx, word [edi+veh.idx]
+.loopSetTrailerEngineIDX:					//loop through the whole lot and reset engineidx
+	mov	word [edi+veh.engineidx], cx
+	cmp	word [edi+veh.nextunitidx], 0xFFFF
+	je	.weAreAllDone
+	movzx	edi, word [edi+veh.nextunitidx]
+	shl	di, 7
+	add	edi, [veharrayptr]
+	jmp	.loopSetTrailerEngineIDX
+.weAreAllDone:
+	pop	ecx
+	pop	edi
+
+.dontMakeThisVehicleATrailer:
+	mov	word [curDepotLocation], -1		//reset variables
+	mov	dword [vehicleToAttachTo], -1
 	mov	byte [buildingroadvehicle], 0
 	retn
 
@@ -964,7 +1066,7 @@ dontLetARVsInNormalRVStops:
 #endif
 
 
-// A bit better code (fragment position has changed!, 
+// A bit better code (fragment position has changed!,
 // so it doesn't depend on goto depot)
 // --Oskar
 // in: edi = station ptr
@@ -989,15 +1091,15 @@ dontLetARVsInNormalRVStops:
 .isbus:
 	cmp cx, 0	// the station has the facility but no tile in the landscape, should never happen, test anyway
 	je .fail
-	
+
 	cmp byte [landscape5(cx)], 0x53
-	jb .done	// no stop type, do normal code 
+	jae .done	// no stop type, do normal code
 .fail:
 	add esp, 4
 	pop esi
 	ret
-	
-	
+
+
 global decrementBHIfRVTrailer
 decrementBHIfRVTrailer:
 	cmp	byte [esi+veh.class], 0x11		//are we a road vehicle?
