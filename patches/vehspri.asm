@@ -359,10 +359,15 @@ proc getsprite1
 	mov [grffeature],al
 
 	movzx eax,byte [esi+veh.vehtype]
+#ifndef NOVEHSPRITE
 	call getnewsprite
 	jc short .badsprite
 
 	add bx,ax
+#else
+	mov bx,0
+	clc
+#endif
 	pop eax
 	_ret
 
@@ -406,15 +411,22 @@ proc getsprite2
 	mov eax,[ebp]	// veh.type
 	xor esi,esi		// no vehicle
 
+#ifndef NOVEHSPRITE
 	call getnewsprite
+#endif
 
 	pop esi
 
 	// now ax=sprite base, bx=new (or old) direction
 
+#ifndef NOVEHSPRITE
 	jc short .badsprite
 
 	add ax,bx
+#else
+	mov ax,0
+	clc
+#endif
 	pop ebx
 	_ret
 
