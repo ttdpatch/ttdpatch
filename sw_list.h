@@ -95,7 +95,7 @@
 	SPCL ('v', "verbose", CFG_VERBOSE, BASIC, &showswitches),
 	YESNO('w', "presignals", CFG_PRESIGNALS, INFST_RAIL_SIGNAL, presignals),
 	RANGE('x', "morevehicles", CFG_MOREVEHICLES, VEH, uselargerarray, 0, 0, FLAGDATA(vehicledatafactor), 1, 40, 1),
-	SPCL ('y', NULL, 0, BASIC, &alwaysrun),
+	SPCL ('y', "alwaysyes", 0, BASIC, &alwaysrun),
 	YESNO('z', "mammothtrains", CFG_MAMMOTHTRAINS, VEH_RAIL, mammothtrains),
 	SPCL ('?', NULL, 0, NONE, NULL),
 
