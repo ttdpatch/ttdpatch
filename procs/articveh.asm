@@ -29,6 +29,7 @@
 #include <ptrvar.inc>
 #include <textdef.inc>
 #include <misc.inc>
+#include <window.inc>
 #include <vehtype.inc>
 
 extern oldbuyroadvehicle, newbuyroadvehicle, oldchoosevehmove
@@ -140,6 +141,14 @@ begincodefragments
 	codefragment newListRVsInDepotWindow
 		icall	skipTrailersInDepotWindow
 		setfragmentsize 8
+
+	codefragment oldFilterRVsListClick, -22
+		retn
+		mov	bx, word [esi+window.id]
+		xor	ax, ax
+
+	codefragment newFilterRVsList
+		icall	RVListSkipTrailers
 
 	codefragment oldAddRVScheduleWhenBuilding, 6
 		mov	ebx, dword [scheduleheapfree]
@@ -401,6 +410,8 @@ patcharticulatedvehicles:
 	patchcode oldAddStationToRVSchedule, newAddStationToRVSchedule, 1, 1
 
 	patchcode oldCompanyVehiclesSummaryPart, newCompanyVehiclesSummaryPart, 1, 1
+
+	patchcode oldFilterRVsListClick, newFilterRVsList, 1+WINTTDX, 3
 
 	patchcode oldDrawRVINRVList, newDrawRVINRVList, 1, 1
 	patchcode oldDrawRVinRVInformation, newDrawRVinRVInformation, 1, 2
