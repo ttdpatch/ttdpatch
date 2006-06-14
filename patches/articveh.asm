@@ -1134,7 +1134,7 @@ drawRVWithTrailersInInfoWindow:
 	pop	edi
 	pop	dx
 	pop	cx
-	add	dx, 14
+	inc	dx;	add	dx, 14			//shift down information text!
 	retn
 
 global drawRVWithTrailers
@@ -1158,3 +1158,34 @@ drawRVWithTrailers:
 .noMoreTrailers:
 	mov	word [lastVehicleShortness], 0
 	retn
+
+global aRVDetailsWinElemList
+aRVDetailsWinElemList:
+		db cWinElemTextBox,cColorSchemeGrey	; bgcolor
+		dw 0,10,0,13,0;TID00C5__		; text
+		db cWinElemTitleBar,cColorSchemeGrey	; bgcolor
+		dw 11,329,0,13,0;TID8802_X_Details_	; text
+		db cWinElemTextBox,cColorSchemeGrey	; bgcolor
+		dw 330,369,0,13,0;TID01AA_Name		; text
+		db cWinElemSpriteBox,cColorSchemeGrey	; bgcolor
+		dw 0,369,14,55,0			; extra
+		db cWinElemTiledBox,cColorSchemeGrey	; bgcolor
+		dw 0,358,56,112				; y2
+		db 1					; xtiles
+		db 4					; ytiles
+		db cWinElemSlider,cColorSchemeGrey	; bgcolor
+		dw 359,369,56,112,0			; extra
+		db cWinElemTextBox,cColorSchemeGrey	; bgcolor
+		dw 0,10,113,118,188h			; extra
+		db cWinElemTextBox,cColorSchemeGrey	; bgcolor
+		dw 0,10,119,124,189h			; extra
+		db cWinElemSpriteBox,cColorSchemeGrey	; bgcolor
+		dw 11,369,113,124,0			; extra
+;		db cWinElemTextBox,cColorSchemeGrey	; bgcolor
+;		dw 0,122,142,153,0;TID013C_Cargo	; text
+;		db cWinElemTextBox,cColorSchemeGrey	; bgcolor
+;		dw 123,245,142,153,0;TID013D_Information; text
+;		db cWinElemTextBox,cColorSchemeGrey	; bgcolor
+;		dw 246,369,142,153,0;TID013E_Capacities	; text
+		db cWinElemLast
+

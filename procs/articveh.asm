@@ -72,7 +72,7 @@ extern GetVehicleNewPos
 extern UpdateVehicleSpriteBox
 extern UpdateDirectionIfMovedTooFar
 
-extern DrawRVImageInWindow
+extern DrawRVImageInWindow, aRVDetailsWinElemList
 
 patchproc articulatedrvs, patcharticulatedvehicles
 
@@ -283,17 +283,17 @@ begincodefragments
 		setfragmentsize 15
 
 	codefragment oldSetSizeOfRVInformationWindow
-		mov	ebx, 65017Ch
+		mov	ebx, 0065017Ch
 
 	codefragment newSetSizeOfRVInformationWindow
-		mov	ebx, 75017Ch
+		mov	ebx, 007D0172h
 
 	codefragment oldLocationOfServiceStringInInfoWindow, 4
 		add	cx, 13
 		add	dx, 90
 
 	codefragment newLocationOfServiceStringInInfoWindow
-		add	dx, 106
+		add	dx, 114
 endcodefragments
 
 patcharticulatedvehicles:
@@ -417,21 +417,33 @@ patcharticulatedvehicles:
 	patchcode oldDrawRVinRVInformation, newDrawRVinRVInformation, 1, 2
 	stringaddress oldSetSizeOfRVInformationWindow, 1, 1
 	add edi, 22
-	mov edi, [edi]
-	add edi, 56
-	mov [edi], byte 0x68			//the size of the second rectangle in the rv information window
-	add edi, 10				//stretched down 16 pixels
-	mov [edi], byte 0x69			//to allow the articulated rvs to be drawn in a line.
-	add edi, 2
-	mov [edi], byte 0x6E
-	add edi, 10
-	mov [edi], byte 0x6F
-	add edi, 2
-	mov [edi], byte 0x74
-	add edi, 10
-	mov [edi], byte 0x69
-	add edi, 2
-	mov [edi], byte 0x74
+	push ecx
+	push ebx
+	mov ecx, [edi]
+	mov [edi], dword aRVDetailsWinElemList	//shift in my element list
+	mov bx, word [ecx+10]
+	mov word [aRVDetailsWinElemList+10], bx
+	mov bx, word [ecx+22]
+	mov word [aRVDetailsWinElemList+22], bx
+	mov bx, word [ecx+34]
+	mov word [aRVDetailsWinElemList+34], bx
+;	add edi, 56
+;	mov [edi], byte 0x68			//the size of the second rectangle in the rv information window
+;	add edi, 10				//stretched down 16 pixels
+;	mov [edi], byte 0x69			//to allow the articulated rvs to be drawn in a line.
+;	add edi, 2
+;	mov [edi], byte 0x6E
+;	add edi, 10
+;	mov [edi], byte 0x6F
+;	add edi, 2
+;	mov [edi], byte 0x74
+;	add edi, 10
+;	mov [edi], byte 0x69
+;	add edi, 2
+;	mov [edi], byte 0x74
+	pop ebx
+	pop ecx
+
 	patchcode oldLocationOfServiceStringInInfoWindow, newLocationOfServiceStringInInfoWindow, 1, 2
 	patchcode oldSetSizeOfRVInformationWindow, newSetSizeOfRVInformationWindow, 1, 1
 
