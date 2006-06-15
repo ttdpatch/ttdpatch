@@ -714,7 +714,7 @@ loadenhanceguisettingsfrombuffer:
 	mov byte [egui_depotalltrash], ah
 	mov ax, [esi+6]
 //	mov byte [egui_depotsize], al // Byte no longer used
-	cmp [depotscalefactor], 0
+	cmp byte [depotscalefactor], 0
 	jne .invalid
 	mov byte [depotscalefactor], al // replacing with the scale factor
 .invalid:
