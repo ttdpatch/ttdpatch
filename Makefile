@@ -195,6 +195,9 @@ ifeq ($(DEFAULTGZIP),1)
 .INTERMEDIATE: ttdprotd.map ttdprotd.exe.map ttdprotd.lst
 endif
 
+# Delete the default suffixes which could cause builtin rules to trigger
+.SUFFIXES:
+
 # ========================================================================
 #            Actual compilation rules for the C sources
 # ========================================================================
