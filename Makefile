@@ -88,7 +88,7 @@ hostwinobjs:=	$(wincsources:%.c=host/%.o)
 #           dependencies are in Makefile.dep, include that
 # =======================================================================
 
-Makefile.dep%:
+Makefile.dep%: .dep-ver
 	${_E} [DEP] $@
 	@touch $@
 	@make -o Makefile.depd -o Makefile.depw -s INCLUDES
