@@ -28,6 +28,7 @@ extern Class6CoastSprites
 extern newgraphicssetsenabled
 extern waterbanksprites
 extern CompanyVehiclesSummary
+extern adddirectoryentrydir,firstnextlongfilename
 
 ext_frag oldrecordlastactionxy
 
@@ -665,6 +666,20 @@ codefragment newcomparefilenames
 	call runindex(comparefilenames)
 #endif
 
+// long filename support
+#if WINTTDX
+codefragment oldadddirectoryentrydir,4
+	mov al, 2
+	push ss
+	pop es
+
+codefragment oldfindfirstnextfile
+	mov al, [ebp-0x140]
+
+codefragment newfindfirstnextfile
+	icall firstnextlongfilename
+#endif
+
 codefragment oldgetsnowyheight
 	cmp dl,[snowline]
 	db 0x76		// jbe ...
@@ -720,6 +735,13 @@ codefragment newcompanyvehiclessummary
 endcodefragments
 
 patchgeneralfixes:
+#if WINTTDX
+	// add long filename support
+	stringaddress oldadddirectoryentrydir
+	storefunctioncall adddirectoryentrydir
+	multipatchcode findfirstnextfile,2
+#endif
+
 #if WINTTDX
 	stringaddress olddemolish6x6,1,1
 	mov byte [edi],0x90		// PUSH BX -> PUSH EBX

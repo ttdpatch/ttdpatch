@@ -1,4 +1,4 @@
-﻿
+
 =-=-= Very urgent =-=-=
 
 - when changing console size, remember current settings
@@ -755,6 +755,7 @@ CHANGELOG
     less code called by tick, bridges use the action 5 coast sprites aswell
   * new routine for the company vehicle summary so it allows more then 255 vehicles
   * fixed clicking train refit/reverse button, refit wrong button gets pressed, reverse button not at all
+  * added hack to generalfixes to show long directory names in WinTTD
 - fixed bug where entering à opens the "Quit game" window
 - stop action D sprite GRM from allocating sprite in main menu GRF status window
 - added categories to all switches (shown in switches.xml output)

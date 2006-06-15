@@ -3557,3 +3557,23 @@ exported calcboxz
 	mov dh,0xFF
 .done:
 	ret
+
+
+#if WINTTDX
+// longer file support
+
+uvarb fullfilename, 260+1 // MaxPath+1
+exported adddirectoryentrydir
+	mov esi, fullfilename
+	mov byte [esi], '\'
+	mov byte [esi+34], 0
+	ret
+exported firstnextlongfilename
+	lea esi, [ebp-0x114]
+	mov edi, fullfilename+1
+	mov ecx, 260/4
+	rep movsd
+	mov al, [ebp-0x140]	// overwritten
+	ret
+#endif
+
