@@ -72,7 +72,7 @@ extern GetVehicleNewPos
 extern UpdateVehicleSpriteBox
 extern UpdateDirectionIfMovedTooFar
 
-extern DrawRVImageInWindow, aRVDetailsWinElemList
+extern DrawRVImageInWindow
 
 patchproc articulatedrvs, patcharticulatedvehicles
 
@@ -286,14 +286,30 @@ begincodefragments
 		mov	ebx, 0065017Ch
 
 	codefragment newSetSizeOfRVInformationWindow
-		mov	ebx, 007D0172h
+		mov	ebx, 0075017Ch
 
 	codefragment oldLocationOfServiceStringInInfoWindow, 4
 		add	cx, 13
 		add	dx, 90
 
 	codefragment newLocationOfServiceStringInInfoWindow
-		add	dx, 114
+		add	dx, 106
+
+	codefragment oldFindRVCapacityForInfoWindow
+		mov	ax, word [edi+veh.capacity]
+		mov	word [textrefstack+2], ax
+
+	codefragment newFindRVCapacityForInfoWindow
+		icall	getTotalCapacityFromTrailers
+		setfragmentsize 10
+
+	codefragment oldFindRVCurrentLoadForInfoWindow
+		mov	ax, word [edi+veh.currentload]
+		mov	bx, 8812h
+
+	codefragment newFindRVCurrentLoadForInfoWindow
+		icall	getCurrentLoadFromTrailers
+		setfragmentsize 8
 endcodefragments
 
 patcharticulatedvehicles:
@@ -417,33 +433,21 @@ patcharticulatedvehicles:
 	patchcode oldDrawRVinRVInformation, newDrawRVinRVInformation, 1, 2
 	stringaddress oldSetSizeOfRVInformationWindow, 1, 1
 	add edi, 22
-	push ecx
-	push ebx
-	mov ecx, [edi]
-	mov [edi], dword aRVDetailsWinElemList	//shift in my element list
-	mov bx, word [ecx+10]
-	mov word [aRVDetailsWinElemList+10], bx
-	mov bx, word [ecx+22]
-	mov word [aRVDetailsWinElemList+22], bx
-	mov bx, word [ecx+34]
-	mov word [aRVDetailsWinElemList+34], bx
-;	add edi, 56
-;	mov [edi], byte 0x68			//the size of the second rectangle in the rv information window
-;	add edi, 10				//stretched down 16 pixels
-;	mov [edi], byte 0x69			//to allow the articulated rvs to be drawn in a line.
-;	add edi, 2
-;	mov [edi], byte 0x6E
-;	add edi, 10
-;	mov [edi], byte 0x6F
-;	add edi, 2
-;	mov [edi], byte 0x74
-;	add edi, 10
-;	mov [edi], byte 0x69
-;	add edi, 2
-;	mov [edi], byte 0x74
-	pop ebx
-	pop ecx
-
+	mov edi, [edi]
+	add edi, 56
+	mov [edi], byte 0x68			//the size of the second rectangle in the rv information window
+	add edi, 10				//stretched down 16 pixels
+	mov [edi], byte 0x69			//to allow the articulated rvs to be drawn in a line.
+	add edi, 2
+	mov [edi], byte 0x6E
+	add edi, 10
+	mov [edi], byte 0x6F
+	add edi, 2
+	mov [edi], byte 0x74
+	add edi, 10
+	mov [edi], byte 0x69
+	add edi, 2
+	mov [edi], byte 0x74
 	patchcode oldLocationOfServiceStringInInfoWindow, newLocationOfServiceStringInInfoWindow, 1, 2
 	patchcode oldSetSizeOfRVInformationWindow, newSetSizeOfRVInformationWindow, 1, 1
 
@@ -451,4 +455,7 @@ patcharticulatedvehicles:
 	mov	[DrawRVImageInWindow], edi
 
 	patchcode oldRVDepotScrXYtoVeh, newRVDepotScrXYtoVeh, 1, 1
+
+	patchcode oldFindRVCapacityForInfoWindow, newFindRVCapacityForInfoWindow, 1+WINTTDX, 3
+	patchcode oldFindRVCurrentLoadForInfoWindow, newFindRVCurrentLoadForInfoWindow, 1, 2
 	retn

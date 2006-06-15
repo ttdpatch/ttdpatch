@@ -436,35 +436,12 @@ RVTrailerProcessing:
 .skipCounter:
 	cmp	word [esi+0x68], 0
 	jnz	.ProcessCrashedRV
-
-	;breakdowns and collisions need to be shifted in from the parent...
-
-	;call	[ChkForRVCollisionWithTrain]
-	;cmp	byte [esi+veh.breakdowncountdown], 0		we don't care for breakdowns... the head will work this out.
-	;jz	short .noBreakDown
-	;cmp	byte [esi+veh.breakdowncountdown], 2
-	;jbe	short .breakDownRV		;if we're 2 or 1, since 0 gets skipped... we're broken
-						;2 == draw smoke, make noise, etc....
-						;1 == just tick down the breakdown timer...
-	;dec	byte [esi+veh.breakdowncountdown]
 	jmp	short .noBreakDown		;otherwise just business as usual... though we have decrmented
 .ProcessCrashedRV:
 	jmp	[ProcessCrashedRV]
-.breakDownRV:
-	;call	[ProcessBrokenDownRV]
-	retn
-
 .noBreakDown:
 	test	word [esi+veh.vehstatus], 2		;2 == stopped... so just quit.
 	jnz	near .justQUIT
-;	call	[ProcessNextRVOrder]			;get next station, if necessary
-;	call	[ProcessLoadUnload]			;process load/unload state
-;	mov	ax, word [esi+veh.currorder]
-;	and	al, 1Fh
-;	cmp	al, 4				;4== _N0_IDEA_ (ie. not on way to station,depot,etc)
-;	jz	short .notOnWayToStationDepotOrNowhere
-;	cmp	al, 3				;3== loading/unloading
-;	jnb	near .justQUIT			;so if we're 3 or above... just quit...
 
 ;.notOnWayToStationDepotOrNowhere:
 	cmp	byte [esi+veh.movementstat], 0FEh
@@ -481,6 +458,12 @@ RVTrailerProcessing:
 	inc	ax
 	cmp	byte [runTrailer], 1
 	je	.makeAMove
+	mov	ax, word [esi+veh.xpos]
+	mov	cx, word [esi+veh.ypos]
+	movzx	bx, byte [esi+veh.direction]
+	call	[SelectRVSpriteByLoad]			//no run? just redraw (esp. for loading states!)
+	call	[SetRoadVehObjectOffsets]
+	call	[RedrawRoadVehicle]
 	retn
 
 .makeAMove:
@@ -527,11 +510,7 @@ RVTrailerProcessing:
 .checkIfWeCanOvertake:
 	call	[RVCheckCollisionWithRV]		;are we up the ass of an RV?
 	jnb	short .noNeedToAttemptOvertake	;no... continue
-	;cmp	byte [esi+0x66], 0
-	;jnz	near .justQUIT
-	;call	[RVCheckOvertake]		;CANCELLED OUT.. conflicts with trams and is unecessary for trailers anyway.
-	;but we'll feed in the flags from the parent anyway.
-	jmp	near .justQUIT
+	retn
 ; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 .noNeedToAttemptOvertake:
@@ -1134,7 +1113,7 @@ drawRVWithTrailersInInfoWindow:
 	pop	edi
 	pop	dx
 	pop	cx
-	inc	dx;	add	dx, 14			//shift down information text!
+	add	dx, 14			//shift down information text!
 	retn
 
 global drawRVWithTrailers
@@ -1159,33 +1138,36 @@ drawRVWithTrailers:
 	mov	word [lastVehicleShortness], 0
 	retn
 
-global aRVDetailsWinElemList
-aRVDetailsWinElemList:
-		db cWinElemTextBox,cColorSchemeGrey	; bgcolor
-		dw 0,10,0,13,0;TID00C5__		; text
-		db cWinElemTitleBar,cColorSchemeGrey	; bgcolor
-		dw 11,329,0,13,0;TID8802_X_Details_	; text
-		db cWinElemTextBox,cColorSchemeGrey	; bgcolor
-		dw 330,369,0,13,0;TID01AA_Name		; text
-		db cWinElemSpriteBox,cColorSchemeGrey	; bgcolor
-		dw 0,369,14,55,0			; extra
-		db cWinElemTiledBox,cColorSchemeGrey	; bgcolor
-		dw 0,358,56,112				; y2
-		db 1					; xtiles
-		db 4					; ytiles
-		db cWinElemSlider,cColorSchemeGrey	; bgcolor
-		dw 359,369,56,112,0			; extra
-		db cWinElemTextBox,cColorSchemeGrey	; bgcolor
-		dw 0,10,113,118,188h			; extra
-		db cWinElemTextBox,cColorSchemeGrey	; bgcolor
-		dw 0,10,119,124,189h			; extra
-		db cWinElemSpriteBox,cColorSchemeGrey	; bgcolor
-		dw 11,369,113,124,0			; extra
-;		db cWinElemTextBox,cColorSchemeGrey	; bgcolor
-;		dw 0,122,142,153,0;TID013C_Cargo	; text
-;		db cWinElemTextBox,cColorSchemeGrey	; bgcolor
-;		dw 123,245,142,153,0;TID013D_Information; text
-;		db cWinElemTextBox,cColorSchemeGrey	; bgcolor
-;		dw 246,369,142,153,0;TID013E_Capacities	; text
-		db cWinElemLast
+global getTotalCapacityFromTrailers
+getTotalCapacityFromTrailers:
+	xor	ax, ax
+	push	edi
+.loopTrailers:
+	add	ax, word [edi+veh.capacity]
+	cmp	word [edi+veh.nextunitidx], 0xFFFF
+	je	.setCapacityValue
+	movzx	edi, word [edi+veh.nextunitidx]
+	shl	di, 7
+	add	edi, [veharrayptr]
+	jmp	short .loopTrailers
+.setCapacityValue:
+	pop	edi
+	mov	word [textrefstack+2], ax
+	retn
 
+global getCurrentLoadFromTrailers
+getCurrentLoadFromTrailers:
+	xor	ax, ax
+	push	edi
+.loopTrailers:
+	add	ax, word [edi+veh.currentload]
+	cmp	word [edi+veh.nextunitidx], 0xFFFF
+	je	.setCurrentLoadValue
+	movzx	edi, word [edi+veh.nextunitidx]
+	shl	di, 7
+	add	edi, [veharrayptr]
+	jmp	short .loopTrailers
+.setCurrentLoadValue:
+	pop	edi
+	mov	bx, 8812h	//TTD_EMPTY
+	retn
