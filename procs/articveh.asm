@@ -29,6 +29,7 @@
 #include <ptrvar.inc>
 #include <textdef.inc>
 #include <misc.inc>
+#include <town.inc>
 #include <window.inc>
 #include <vehtype.inc>
 
@@ -310,6 +311,14 @@ begincodefragments
 	codefragment newFindRVCurrentLoadForInfoWindow
 		icall	getCurrentLoadFromTrailers
 		setfragmentsize 8
+
+	codefragment oldDrawCurrentCargoInfoInRVInfoWindow, 14
+		mov	ax, word [esi+town.citynametype]
+		mov	word [textrefstack+6], ax
+
+	codefragment newDrawCurrentCargoInfoInRVInfoWindow
+		icall	listAdditionalTrailerCargo
+		setfragmentsize 10
 endcodefragments
 
 patcharticulatedvehicles:
@@ -458,4 +467,5 @@ patcharticulatedvehicles:
 
 	patchcode oldFindRVCapacityForInfoWindow, newFindRVCapacityForInfoWindow, 1+WINTTDX, 3
 	patchcode oldFindRVCurrentLoadForInfoWindow, newFindRVCurrentLoadForInfoWindow, 1, 2
+	patchcode oldDrawCurrentCargoInfoInRVInfoWindow, newDrawCurrentCargoInfoInRVInfoWindow, 1+WINTTDX, 4
 	retn

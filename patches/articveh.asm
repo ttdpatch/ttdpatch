@@ -8,12 +8,13 @@
 #include <ptrvar.inc>
 #include <textdef.inc>
 #include <misc.inc>
+#include <imports/gui.inc>
 #include <vehtype.inc>
 #include <window.inc>
 #include <station.inc>
 
 extern newbuyrailvehicle, discard, vehcallback, articulatedvehicle, delveharrayentry, sellroadvehicle
-extern RefreshWindows, LoadUnloadCargo, checkgototype, isrvbus, curplayerctrlkey
+extern RefreshWindows, LoadUnloadCargo, checkgototype, isrvbus, curplayerctrlkey, drawtextfn, currscreenupdateblock
 
 uvard DrawRVImageInWindow,1,s
 
@@ -1170,4 +1171,10 @@ getCurrentLoadFromTrailers:
 .setCurrentLoadValue:
 	pop	edi
 	mov	bx, 8812h	//TTD_EMPTY
+	retn
+
+global listAdditionalTrailerCargo
+listAdditionalTrailerCargo:
+	mov	edi, [currscreenupdateblock]
+	call	[drawtextfn]
 	retn
