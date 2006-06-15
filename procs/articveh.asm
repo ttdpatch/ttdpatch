@@ -312,9 +312,9 @@ begincodefragments
 		icall	getCurrentLoadFromTrailers
 		setfragmentsize 8
 
-	codefragment oldDrawCurrentCargoInfoInRVInfoWindow, 14
-		mov	ax, word [esi+town.citynametype]
-		mov	word [textrefstack+6], ax
+	codefragment oldDrawCurrentCargoInfoInRVInfoWindow, 47
+		mul	byte [edi+veh.cargosource]
+		movzx	esi, ax
 
 	codefragment newDrawCurrentCargoInfoInRVInfoWindow
 		icall	listAdditionalTrailerCargo
@@ -467,5 +467,5 @@ patcharticulatedvehicles:
 
 	patchcode oldFindRVCapacityForInfoWindow, newFindRVCapacityForInfoWindow, 1+WINTTDX, 3
 	patchcode oldFindRVCurrentLoadForInfoWindow, newFindRVCurrentLoadForInfoWindow, 1, 2
-	patchcode oldDrawCurrentCargoInfoInRVInfoWindow, newDrawCurrentCargoInfoInRVInfoWindow, 1+WINTTDX, 4
+	patchcode oldDrawCurrentCargoInfoInRVInfoWindow, newDrawCurrentCargoInfoInRVInfoWindow, 2, 4
 	retn
