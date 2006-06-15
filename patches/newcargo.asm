@@ -12,6 +12,7 @@
 #include <newvehdata.inc>
 #include <bitvars.inc>
 #include <ptrvar.inc>
+#include <proc.inc>
 
 extern DrawGraph,DrawWindowElements,WindowClicked,calcprofitfn,cargoclass
 extern cargoclasscargos,cargoid,curspriteblock,drawtextfn
@@ -988,44 +989,70 @@ setcargobit:
 // inflating all old cargo prices, so we can use the old passenger cost to
 // find out the inflation factor.
 global setcargopricefactors
-setcargopricefactors:
+proc setcargopricefactors
+
+	local multiplier,multiplier_frac
+
+	_enter
 
 // First, calculate the inflation multiplier, since this will be the same for
 // all cargoes being set. The cost is stored as 32 bits of integer part and
 // 16 bits of fraction, and we calculate the multiplier as 32 bits of integer
 // part and 32 bits of fraction.
-// (we can use IDIV because the divisor is positive)
 
 	mov eax,[cargopricefactors]	//integer part of old passenger cost
-	cdq
-	mov edi, 3185			// default base cost of passengers
-	idiv edi			// eax=integer part of multiplier
-	push eax
-	mov eax,[cargopricefactors+4]
-	shl eax,16			//fraction of old passenger cost
+	mov edx,[cargopricefactors+4]	//fraction part of old passenger cost
+	shl edx,16
 
-	// edx still contains the remainder of the previous division,
-	// no need to CDQ here
+// the passenger multiplier is negative, so turn it positive
+	neg edx
+	adc eax,0
+	neg eax
 
-	idiv edi			// eax=fraction part of multiplier
-	push eax
+// save the fraction temporarily, we need edx for the division
+	mov [%$multiplier_frac],edx
+
+// divide by the original multiplier -> integer part of the multiplier
+	xor edx,edx
+	mov edi,3185
+	div edi
+
+// save the integer part, we need eax for the calculation of the fraction
+	mov [%$multiplier],eax
+// edx is the remainder from the previous div, plus we need the fraction part of the original cost
+	mov eax,[%$multiplier_frac]
+
+	div edi
+
+	mov edx,[%$multiplier]
+
+// now eax=fraction part, edx=integer part
+// negate the result, we need it as a negative multiplier
+
+	neg eax
+	adc edx,0
+	neg edx
+
+// save the negative result
+	mov [%$multiplier],edx
+	mov [%$multiplier_frac],eax
+
 .next:
 	lodsd
 // multiply the 32-bit base cost and the 32.32 bit mutliplier to get the
 // cost, but truncate the fraction of the result to 16 bits
 	mov edi,eax
-	imul edi,dword [esp+4]
+	imul edi,dword [%$multiplier]
 	mov [newcargopricefactors+ebx*8], edi
-	imul dword [esp]
+	imul dword [%$multiplier_frac]
 	add [newcargopricefactors+ebx*8], edx
 	shr eax,16
 	mov [newcargopricefactors+ebx*8+4], eax
 	inc ebx
 	loop .next
 
-	add esp,8
 	clc
-	ret
+	_ret
 
 // Set cargo colors in the station list and in the cargo payment window.
 // These two need a handler only to translate color index in the Win verson.
