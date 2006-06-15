@@ -742,25 +742,6 @@ aisellnextwagon:
 .done:
 	ret
 
-	//
-	// called when a rr vehicle is moved inside a depot window
-	// in:	edx->last vehicle in consist
-	//	flags from cmp [edx+veh.subclass],0
-	// out:	cf set if edx->second engine
-	// safe:eax,ebx,ecx,ebp
-global movedcheckiswaggonui
-movedcheckiswaggonui:
-	jz .done		// after a cmp, if zf=1 then cf=0
-
-	testmultiflags multihead
-	jnz .done
-
-	movzx eax,word [edx+veh.vehtype]
-	bt [isengine],eax
-
-.done:
-	ret
-
 	// called when waggons are reordered, attaching veh in edi after veh idx dx
 	// in:	edi=vehicle idx<<7
 	//	 dx=veh idx to be attached after edi

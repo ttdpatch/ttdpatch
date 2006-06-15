@@ -29,6 +29,7 @@ extern newgraphicssetsenabled
 extern waterbanksprites
 extern CompanyVehiclesSummary
 extern adddirectoryentrydir,firstnextlongfilename
+extern drawtrainindepot, drawtrainwagonsindepot
 
 ext_frag oldrecordlastactionxy
 
@@ -732,6 +733,44 @@ codefragment newcompanyvehiclessummary
 	ijmp CompanyVehiclesSummary
 	setfragmentsize 8
 
+codefragment olddrawtrainindepot
+	add cx, 21
+	mov al, 10
+
+codefragment newdrawtrainindepot
+	icall drawtrainindepot
+
+codefragment olddrawtrainwagonsindepot
+	add cx, 50
+	mov al, 9
+
+codefragment newdrawtrainwagonsindepot
+	icall drawtrainwagonsindepot
+
+codefragment olddisplaytrainindepot
+	add cx,0x1d
+	mov di,[edi+veh.nextunitidx]
+
+codefragment newdisplaytrainindepot
+	call runindex(displaytrainindepot)
+	setfragmentsize 8
+
+codefragment oldchoosetrainvehindepot
+	dec al
+	js $+2+0x1a
+
+codefragment newchoosetrainvehindepot
+	jmp runindex(choosetrainvehindepot)
+
+codefragment olddisplaytraininfosprite,-3
+	db 14
+	add dx,6
+	db 0xbf		// mov edi,imm32
+
+codefragment newshowactivetrainveh
+	call runindex(showactivetrainveh)
+	setfragmentsize 9
+
 endcodefragments
 
 patchgeneralfixes:
@@ -1186,6 +1225,17 @@ patchgeneralfixes:
 
 	patchcode companyvehiclessummary
 
+	// Couple of fragments taken from other code to try and keep depot window fixes without dependences
+	patchcode olddrawtrainindepot,newdrawtrainindepot,1,1 // Failsafe from winsize.asm
+	patchcode olddrawtrainwagonsindepot,newdrawtrainwagonsindepot//,1,1
+
+	stringaddress olddisplaytraininfosprite // More complex for patching this
+	add edi, 44
+	storefragment newshowactivetrainveh
+
+	patchcode olddisplaytrainindepot,newdisplaytrainindepot,1,1
+	patchcode oldchoosetrainvehindepot,newchoosetrainvehindepot,1,1
+	mov word [edi+lastediadj-18],0xc38b	// mov eax,ebx instead of mov al,bl
 	ret
 
 // shares some code fragments

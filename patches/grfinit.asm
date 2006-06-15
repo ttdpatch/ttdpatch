@@ -60,6 +60,8 @@ extern updateTramStopSpriteLayout,setelrailstexts,gettextintableptr
 extern gettextandtableptrs,defaultstylename,fixupvehnametexts
 extern origlanguageid
 extern ChangeCoastSpriteTable
+extern grfmodflags
+extern ResizeOpenWindows, depotscalefactor
 
 // New class 0xF (vehtype management) initialization handler
 // does additional things before calling the original function
@@ -943,6 +945,7 @@ preinfoapply:
 .nounicode:
 
 	or dword [languagesettings], byte -1
+	btr dword [grfmodflags], 3 // Clear this flag so that it needs the actual grf to be active (32px depots)
 	ret
 
 var cargowagonspeedlimit, db 0,96,0,96,80,120,96,96,96,96,120,120
@@ -1560,6 +1563,28 @@ postinfoapply:
 
 	call ChangeCoastSpriteTable
 .nochangecoastspritetable:
+	testflags enhancegui
+	jnc .lnoenhancegui
+
+	push bx
+	mov bl, [depotscalefactor]
+	mov bh, 29
+	bt dword [grfmodflags], 3
+	jnc .lnot32
+	add bh, 3
+.lnot32:
+	cmp bh, bl
+	pop bx
+	je .lendofdepots
+
+	// Resize all open depot windows for the new scaling
+	call ResizeOpenWindows
+
+	jmp .lendofdepots
+.lnoenhancegui:
+	// Disable 32px depots completely (no enhancegui active) until I can workout some fragments.
+	btr dword [grfmodflags], 3
+.lendofdepots:
 	ret
 
 // List of vehicles the should be made eternal

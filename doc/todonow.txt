@@ -471,6 +471,8 @@
 - crash while drawing stations
   http://www.tt-forums.net/viewtopic.php?p=451296#451296
 
+- train cargo amount display doesn't show freight factor
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -748,6 +750,8 @@ CHANGELOG
   * fixed TTD bug: vehicles stopped then restarted again retained their old speed
   * fixed displaytownsize breaking newtownnames, causing duplicate names and
     incorrect order
+  * fixed bug: cargo cost multipliers were applied incorrectly,
+    sometimes causing a crash
 - by Oskar:
   * fixed display of coast under higherbridges if canals is off
   * fixed canals/higherbridges coast code, reduced size
@@ -764,4 +768,5 @@ CHANGELOG
 - make callback 36 support train prop 25
 - by Lakie:
   * now flooding diagonally from slopes into the sharp corners as well
+  * implement 32px vehicle separation in train depot (grf var 9E bit 3)
 - support for 64bit cash values
