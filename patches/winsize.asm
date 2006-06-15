@@ -644,8 +644,11 @@ RestoreWindowSize:
 	sub ax, 59
 	xor ebx, ebx
 	mov bl, [depotscalefactor]
-	cmp bl, 26
-	jbe .lbadfactor
+	cmp bl, 29
+	je .lcontinue
+	cmp bl, 32
+	je .lcontinue
+	jmp .lbadfactor
 
 .lcontinue:
 	div bl

@@ -17,6 +17,7 @@ extern isengine
 extern patchflags
 extern getwagonlength
 extern grfmodflags
+extern depotscalefactor
 
 /************************************** Taken From Fixmisc ***************************************/
 
@@ -442,11 +443,7 @@ CalcTrainDepotWidth:
 	mov ax, [esi+window.width]
 	sub ax, 59
 	push bx
-	mov bl, 29
-	bt dword [grfmodflags], 3
-	jnc .lnot32
-	mov bl, 32
-.lnot32:
+	mov bl, [depotscalefactor]
 	div bl
 	xor ah, ah // Remove any remainers, we are only interested in whole units
 	pop bx

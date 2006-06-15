@@ -1576,6 +1576,8 @@ postinfoapply:
 
 	jmp .lendofdepots
 .lnoenhancegui:
+	// Disable 32px depots completely (no enhancegui active) until I can workout some fragments.
+	btr dword [grfmodflags], 3
 .lendofdepots:
 	ret
 
