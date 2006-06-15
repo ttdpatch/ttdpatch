@@ -65,8 +65,12 @@ struc player2
 	.colschemes:	resd 1	// bit mask of COLSCHEME_# flags above
 	.col2:		resb 1	// 2nd company colour
 	.specialcol:	resb 2*COLSCHEME_NUM	// special colours, 1st and 2nd
-	.unused:	resb 1
+	.unused:	resb 3	// unused, may not be zero-initialized
 	.cash:		resd 2	// 64-bit cash amount
 			resb player_size-$
 endstruc
+
+%if player2.cash != 0x2c
+	%error "player2.cash has moved, this is bad"
+%endif
 
