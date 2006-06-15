@@ -652,6 +652,7 @@ RestoreWindowSize:
 
 .lcontinue:
 	div bl
+	xor ah, ah // Removes any faults from devision
 	mov bl, 29
 	bt dword [grfmodflags], 3
 	jnc .not32
