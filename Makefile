@@ -177,7 +177,7 @@ clean:	cleantemp
 	rm -f version{d,w}.h
 
 # also remove Makefile.dep?, listings and bak files
-mrproper: clean
+mrproper: clean remake
 	rm -f Makefile.dep?
 	rm -f *.{d,w,l}lst patches/*.{d,w,l}lst procs/*.{d,w,l}lst
 	rm -f patches/*.ba* procs/*.ba*
