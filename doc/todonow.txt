@@ -769,4 +769,5 @@ CHANGELOG
 - by Lakie:
   * now flooding diagonally from slopes into the sharp corners as well
   * implement 32px vehicle separation in train depot (grf var 9E bit 3)
+  * fixed a TTD bug which allowed tiles under a bridge to flood with a vehicle on them
 - support for 64bit cash values

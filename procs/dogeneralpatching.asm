@@ -68,6 +68,7 @@ extern rvcheckovertake,findFrSpaTownNameFlags,runspectexthandlers
 extern fncheckvehintheway,languageid,origlanguageid
 extern num_powersoften,powersoften_last
 extern initializecargofn
+extern CheckForVehiclesInTheWay
 
 begincodefragments
 
@@ -1393,6 +1394,11 @@ codefragment oldCheckQuitGameKeycode
 	jnz $+2+10
 #endif
 
+codefragment findCheckForVehiclesInTheWay,1
+	ret
+	pusha
+	db 0xC6,5
+
 endcodefragments
 
 ptrvarall industrydatablock
@@ -2141,6 +2147,8 @@ dogeneralpatching:
 
 	pop edx
 
+	stringaddress findCheckForVehiclesInTheWay
+	storeaddress CheckForVehiclesInTheWay // Stores the address of this
 	ret
 
 global newsavename

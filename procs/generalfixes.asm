@@ -30,7 +30,7 @@ extern waterbanksprites
 extern CompanyVehiclesSummary
 extern adddirectoryentrydir,firstnextlongfilename
 extern drawtrainindepot, drawtrainwagonsindepot
-
+extern floodbridgetile
 ext_frag oldrecordlastactionxy
 
 global patchgeneralfixes
@@ -771,6 +771,19 @@ codefragment newshowactivetrainveh
 	call runindex(showactivetrainveh)
 	setfragmentsize 9
 
+codefragment oldfloodbridgetile
+	and dh, 0xC7
+	or dh, 8
+
+codefragment newfloodbridgetile
+	icall floodbridgetile
+	jc fragmentstart+74+7*WINTTDX
+#if WINTTDX
+	setfragmentsize 12
+#else
+	setfragmentsize 10
+#endif
+
 endcodefragments
 
 patchgeneralfixes:
@@ -1002,6 +1015,9 @@ patchgeneralfixes:
 	patchcode oldcrashzeppelin,newcrashzeppelin,1,1
 	patchcode oldwhatvehicleintheway,newwhatvehicleintheway,1,1
 
+// Best applied even if noedgeflood
+	patchcode oldfloodbridgetile, newfloodbridgetile
+
 	mov ebx,[miscmodsflags]
 
 	// make edges of the world flood too
@@ -1021,7 +1037,7 @@ patchgeneralfixes:
 	mov byte [eax-148],0x90
 #endif
 
-	pop eax
+	pop eax	
 
 	xor ebp,ebp
 

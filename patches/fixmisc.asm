@@ -39,7 +39,6 @@ extern spriteblockptr,gettextintableptr,gettextandtableptrs
 extern waterbanksprites
 
 
-
 //
 // Fix the bug that crashes TTD if one tries to play a scenario with running road vehicles
 //
@@ -2637,6 +2636,24 @@ ChangeCoastSpriteTable:
 	popa
 	ret
 
+// Fixes a TTD bug which allowed vehicles under bridge tiles to have the tile behenth flooded
+global floodbridgetile
+floodbridgetile:
+	pusha
+	call [CheckForVehiclesInTheWay]
+	popa
+	jnz .vehicleontile
+	and dh, 0xC7
+	or dh, 8
+	mov [landscape5(di, 1)], dh
+	clc
+	ret
+
+.vehicleontile:
+	stc
+	ret
+
+uvard CheckForVehiclesInTheWay
 
 uvard tempSplittextlinesNumlinesptr,1,s
 uvard SplittextlinesMaxlines,1,s
