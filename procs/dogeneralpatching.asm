@@ -67,7 +67,7 @@ extern addrailfence5,addrailfence6,addrailfence7,addrailfence8
 extern rvcheckovertake,findFrSpaTownNameFlags,runspectexthandlers
 extern fncheckvehintheway,languageid,origlanguageid
 extern num_powersoften,powersoften_last
-
+extern initializecargofn
 
 begincodefragments
 
@@ -1305,6 +1305,10 @@ codefragment findaddcargotostation,-9
 	and cx, 0FFFh
 	add cx, ax
 
+codefragment findinitializecargofn,-21
+	xor edi,edi
+	mov ax,[ebp+edi*2]
+
 codefragment findrvcheckovertake, 5
 	mov     dword [esi+veh.delx], ebx
 	pop     ebx
@@ -1535,6 +1539,7 @@ dogeneralpatching:
 	storefunctionaddress findacceptcargo,1,1,acceptcargofn
 	storeaddress findprofitcalc,1,1,calcprofitfn
 	storeaddress findaddcargotostation,1,1,addcargotostation
+	storeaddress initializecargofn
 
 	storefunctionaddress vehicleToDepotOld, 1, 2, findroadvehicledepot
 

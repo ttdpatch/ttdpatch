@@ -224,6 +224,7 @@ uvard DrawStationImageInSelWindow,1,s
 uvard DrawPlannedStationAcceptsList,1,s
 uvard UpdateStationAcceptList,1,s
 uvard DistributeProducedCargo,1,s
+uvard initializecargofn,1,s
 uvard DrawGraph,1,s
 
 

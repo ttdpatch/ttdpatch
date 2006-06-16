@@ -129,6 +129,7 @@ cheatentry "WHEREAMI",positioncheat,0
 cheatentry "SNOWLINE",snowlinecheat,0
 cheatentry "GOTOXY",gotocheat,0
 cheatentry "TEXTID",textidcheat,0
+cheatentry "RESETCARGO",resetcargocheat,0
 #endif
 endvar
 
@@ -2503,4 +2504,10 @@ facecheat:
 	call skipspaces
 	mov edi,[esp+4]
 	jmp usedcheat.showhex
+
+	extern initializecargofn
+resetcargocheat:
+	call [initializecargofn]
+	clc
+	ret
 
