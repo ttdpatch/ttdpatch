@@ -15,6 +15,7 @@
 
 extern newbuyrailvehicle, discard, vehcallback, articulatedvehicle, delveharrayentry, sellroadvehicle
 extern RefreshWindows, LoadUnloadCargo, checkgototype, isrvbus, curplayerctrlkey, drawtextfn, currscreenupdateblock
+extern newtexthandler, drawstringfn
 
 uvard DrawRVImageInWindow,1,s
 
@@ -1173,8 +1174,95 @@ getCurrentLoadFromTrailers:
 	mov	bx, 8812h	//TTD_EMPTY
 	retn
 
+uvarw	cargosum,32
+uvarb	cargosource,32,s
+uvard	cargomultisource,1,s
+uvarw	cargotextbuffer,128
 global listAdditionalTrailerCargo
 listAdditionalTrailerCargo:
+	;articulated?
+	cmp	word [edi+veh.nextunitidx], 0xFFFF
+	jne	.thisIsArticulated
 	mov	edi, [currscreenupdateblock]
-	call	[drawtextfn]
+	jmp	[drawtextfn]
+
+.thisIsArticulated:
+	int3
+	push	eax
+	push	ebx
+	push	edi
+.loopTrailers:
+	movzx	ebx, byte [edi+veh.cargotype]		//grab the current cargo type
+	movzx	eax, word [edi+veh.currentload]		//grab the current load
+	add	word [cargosum+ebx*2], ax		//add the load to the cargosum array
+	cmp	byte [cargosource+ebx], 0xFF		//check if this load already has a source
+	jne	short .stationAlreadySet
+	movzx	eax, byte [edi+veh.cargosource]
+	mov	[cargosource+ebx], al			//it doesnt, move in the source
+	jmp	short .stationNowSet
+.stationAlreadySet:
+	bts	dword [cargomultisource], ebx		//it does, set the flag to use "and others" string.
+.stationNowSet:
+	cmp	word [edi+veh.nextunitidx], 0xFFFF
+	je	short .noMoreTrailers
+	movzx	edi, word [edi+veh.nextunitidx]		//iterate to next trailer
+	shl	di, 7
+	add	edi, [veharrayptr]
+	jmp	short .loopTrailers
+.noMoreTrailers:					//done.
+	pop	edi
+	pop	ebx
+
+	mov	eax, 0					//eax will be the cargosum index
+	mov	edi, baTempBuffer1			//baTempBuffer1 will store our string
+.loopCargo:
+	cmp	word [cargosum+eax*2], 0		//check if this cargo has a positive value
+	jbe	.tryNextCargo
+	//create string using tmpbuffer or smething
+	//move in cargo values
+	push	ax
+	mov	ax, word [cargosum+eax*2]		//move the cargo into the textrefstring
+	mov	word [textrefstack+2], ax		//to be used by XFromX (8813h)
+	pop	ax
+
+			//do not forget the station name and cargo type... once everything else works!
+
+	;mimick code like @ CS:0014EF63
+	;use cargotypenamesptr
+	;also statictext(special1) for the bx stringcode
+	;and specialtext1 for the ebp address...
+
+	;move in the address of special1 (being my buffer up above) [cargotextbuffer]
+	;from this point forth, move in 0x0081 then WORD(string).
+	;ie. for each item:	0x0081, word(HOW_DO_I_PUT_A_PLAIN_VALUE_IN?) number->ascii?
+	;			0x0081, word(cargotypenamesptr[eax])
+	;			0x0081, ' FROM '		GAH. TRANSLATIONS!
+	;			0x0081, word(sourcelocation)
+	;			0x0081, ' ,'
+
+;	push	ax
+;	push	cx
+;	push	dx
+;	push	edi
+;	mov	ax, bx
+;	call	newtexthandler				//throw this string on vaTempBuffer1
+;	pop	edi
+;	pop	dx
+;	pop	cx
+;	pop	ax
+	mov	word [cargosum+eax*2], 0		//zero the cargo sum once it has been
+							//thrown in the text handler
+.tryNextCargo:
+	inc	eax
+	cmp	eax, 32
+	jb	.loopCargo
+	pop	eax
+
+;	to terminate string: mov	byte ptr [ebp-2], 0
+
+	mov	edi, [currscreenupdateblock]		//area to be drawn to
+	mov	esi, baTempBuffer1			//our newly created string
+	;and then call: DrawTextSplitLines instead
+	;with BP being the width of the lines... 
+	call	[drawstringfn]				//draw it!
 	retn
