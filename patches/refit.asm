@@ -96,7 +96,7 @@ shipsrefittable:
 	cmp [esi+edi],al
 	je .goodcargo	// not refittable
 
-	lea ebp,[edi+0x120000]
+	lea ebp,[edi+0x120000+SHIPBASE]
 	push ebp
 	call getrefitmask
 	pop ebp
