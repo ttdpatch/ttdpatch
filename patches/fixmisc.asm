@@ -2496,10 +2496,10 @@ Class6FloodTile:
 	and dl, 0x0F
 	cmp dl, 0x01
 	jb .badcorners // Must have this corner raised
+
 	jmp .coast
 
 .flat:
-
 	// Special cases for diagonal flooding (allowed) for a FLAT tile
 	mov dh, [landscape4(si, 1)+ebx]
 	mov dl, [landscape4(cx, 1)+ebx]
@@ -2508,17 +2508,20 @@ Class6FloodTile:
 	mov dl, [landscape4(bp, 1)+ebx]
 	and edx, 0x0F0F0F0F
 	cmp edx, 0x00010100
-	je .dbadcorners
+	je near .dbadcorners
 
 	// If any other corners are raised it's a slope
+	push ax // This done to make sure the value of ax is stored
 	mov ax, dx
 	shr edx, 16
 	and ah, 0x0F
-	jnz .coast
+	jnz .lcoast
 	and dl, 0x0F
-	jnz .coast
+	jnz .lcoast
 	and al, 0x0F
-	jnz .coast
+	jnz .lcoast
+	pop ax
+	mov ax, dx
 
 	// Change this for the following checks
 	cmp ah, dh
@@ -2527,10 +2530,106 @@ Class6FloodTile:
 	jnz .dbadcorners
 	cmp ah, dl
 	jnz .dbadcorners
+
+	call checkflatflood // Make sure it's valid
+	jc .dbadcorners
+
 	jmp .plainwater
+
+.lcoast:
+	pop ax
+	call checkdiagonalflood
+	jnc .coast
 
 .dbadcorners:
 	ret
+
+// Next to things return a carry if the flood cannot be done
+// For flat tile flooding there are condictions if BOTH tiles have one of the following condictions
+// a. Tile is water (or coast) and NOT a Canal (L4 6x, L3 00)
+// b. Both eax and ecx must must be have their points as 0
+checkdiagonalflood:
+	pusha
+	mov esi, ebx // for later since ebx gets used
+	add edi, esi
+	mov edx, edi
+	mov dl, bl // First tile
+	xor ebp, ebp
+	mov bx, [landscape3+edx*2] // Is it a canal
+	mov bh, [landscape4(dx)] // Get the tile type
+	and bx, 0xF00F // Only want the next part
+	cmp bx, 0x6000 // Is it just plain water
+	jne .movenexta // No, so don't flood
+	mov bh, [landscape4(ax)+esi]
+	and bh, 0x0F
+	jnz .movenextb
+	jmp .movenextanot
+.movenexta:
+	add ebp, 1
+	jmp .movenextanot
+.movenextb:
+	xor ebp, 0x10
+.movenextanot:
+	mov edx, edi
+	mov dh, bh // second tile
+	mov bx, [landscape3+edx*2] // Is it a canal
+	mov bh, [landscape4(dx)] // Get the tile type
+	and bx, 0xF00F // Only want the next part
+	cmp bx, 0x6000 // Is it just plain water
+	jne .movenextc // No, so don't flood
+	mov bh, [landscape4(cx)+esi]
+	and bh, 0x0F
+	jnz .movenextd
+	jmp .movenextcnot
+.movenextc:
+	add ebp, 1
+	jmp .movenextcnot
+.movenextd:
+	xor ebp, 0x10
+.movenextcnot:
+	cmp ebp, 2 // Carry set if it's equal
+	jae .setcarry
+	clc
+	jmp .nocarry
+.setcarry:
+	stc
+.nocarry:
+	popa
+	ret
+
+// For flat tile flooding there are condictions if BOTH tiles have one of the following condictions
+// a. Tile is water (or coast) and NOT a Canal (L4 6x, L3 00)
+checkflatflood:
+	pusha
+	add edi, ebx
+	mov edx, edi
+	mov dl, bl // First tile
+	xor ebp, ebp
+.looppoint:
+	mov cx, [landscape3+edx*2] // Is it a canal
+	mov ch, [landscape4(dx)] // Get the tile type
+	and cx, 0xF00F // Only want the next part
+	cmp cx, 0x6000 // Is it just plain water
+	jne .movenext // No, so don't flood
+	jmp .movenextnot
+.movenext:
+	add ebp, 1
+.movenextnot:
+	cmp dl, bl
+	mov edx, edi
+	mov dh, bh // second tile
+	je .looppoint
+	cmp ebp, 2 // Carry set if it's equal
+	je .setcarry
+	clc
+	jmp .nocarry
+.setcarry:
+	stc
+.nocarry:
+	popa
+	ret
+
+
 
 // Handles getting the sprites for the coasts, since 8 new types have appeared
 global Class6CoastSprites, newcoastspritebase, newcoastspritenum
