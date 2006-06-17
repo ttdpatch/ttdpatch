@@ -7,7 +7,7 @@
 //-------------------------------------------
 SETNAME("Catalan")
 SETCODE("ca")
-COUNTRYARRAY(countries) = { 65535, 0, 0x03, 0 };
+COUNTRYARRAY(countries) = { 65534, 0, 0x03, 0 };
 SETARRAY(countries);
 	// ??? = Catalan in DOS
 	// and 0x03 is Catalan in Windows
