@@ -777,7 +777,7 @@ codefragment oldfloodbridgetile
 
 codefragment newfloodbridgetile
 	icall floodbridgetile
-	jc fragmentstart+74+7*WINTTDX
+	jc fragmentstart+73+8*WINTTDX
 #if WINTTDX
 	setfragmentsize 12
 #else

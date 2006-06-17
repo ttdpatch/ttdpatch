@@ -2645,7 +2645,7 @@ floodbridgetile:
 	jnz .vehicleontile
 	and dh, 0xC7
 	or dh, 8
-	mov [landscape5(di, 1)], dh
+	mov [landscape5(di)], dh
 	clc
 	ret
 

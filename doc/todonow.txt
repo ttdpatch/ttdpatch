@@ -752,6 +752,7 @@ CHANGELOG
     incorrect order
   * fixed bug: cargo cost multipliers were applied incorrectly,
     sometimes causing a crash
+  * fixed bug: ships sometimes had incorrect default cargoes and refittability
 - by Oskar:
   * fixed display of coast under higherbridges if canals is off
   * fixed canals/higherbridges coast code, reduced size
