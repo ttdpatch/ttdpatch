@@ -1141,38 +1141,100 @@ drawRVWithTrailers:
 	mov	word [lastVehicleShortness], 0
 	retn
 
-global getTotalCapacityFromTrailers
-getTotalCapacityFromTrailers:
-	xor	ax, ax
-	push	edi
-.loopTrailers:
-	add	ax, word [edi+veh.capacity]
+uvard tmpEDI
+global drawTotalCapacityForTrailers
+drawTotalCapacityForTrailers:
+	;articulated?
 	cmp	word [edi+veh.nextunitidx], 0xFFFF
-	je	.setCapacityValue
-	movzx	edi, word [edi+veh.nextunitidx]
-	shl	di, 7
-	add	edi, [veharrayptr]
-	jmp	short .loopTrailers
-.setCapacityValue:
-	pop	edi
-	mov	word [textrefstack+2], ax
-	retn
+	jne	.thisIsArticulated
+	mov	edi, [currscreenupdateblock]
+	jmp	[drawtextfn]
 
-global getCurrentLoadFromTrailers
-getCurrentLoadFromTrailers:
-	xor	ax, ax
+.thisIsArticulated:
+	push	eax
+	push	ecx
+	push	ebx
 	push	edi
 .loopTrailers:
-	add	ax, word [edi+veh.currentload]
+	movzx	ebx, byte [edi+veh.cargotype]		//grab the current cargo type
+	movzx	eax, word [edi+veh.capacity]		//grab the current load
+	add	word [cargosum+ebx*2], ax		//add the load to the cargosum array
 	cmp	word [edi+veh.nextunitidx], 0xFFFF
-	je	.setCurrentLoadValue
-	movzx	edi, word [edi+veh.nextunitidx]
+	je	short .noMoreTrailers
+	movzx	edi, word [edi+veh.nextunitidx]		//iterate to next trailer
 	shl	di, 7
 	add	edi, [veharrayptr]
 	jmp	short .loopTrailers
-.setCurrentLoadValue:
+.noMoreTrailers:					//done.
 	pop	edi
-	mov	bx, 8812h	//TTD_EMPTY
+	pop	ebx
+
+	xor	ecx,ecx				//ecx will be the cargosum index
+	mov	edi, cargotextbuffer
+	mov 	dword [specialtext1], edi
+.loopCargo:
+	cmp	word [cargosum+ecx*2], 0		//check if this cargo has a positive value
+	jbe	near .tryNextCargo
+
+	push	eax
+	movzx	eax, word [cargosum+ecx*2]		//move the cargo into the textrefstring
+	mov	word [textrefstack+2], ax		//to be used by XFromX (8813h)
+	push	ebx
+	mov	ebx, ecx
+	call	movbxcargoamountname2
+	mov	word [textrefstack], bx
+	pop	ebx
+	pop	eax
+
+	push	eax
+	push	esi
+	push	cx
+	push	dx
+	cmp	edi, [specialtext1]
+	jne	.cargoAlreadyListed
+	mov	ax, 0x9012
+	jmp	.addString
+.cargoAlreadyListed:
+	mov	ax, 0x0009
+.addString:
+	mov	dword [tmpEDI], edi
+	call	newtexthandler				//throw this string on specialtext1
+	push	edi
+	mov	edi, [tmpEDI]
+	cmp	edi, [specialtext1]
+	je	.dontResetColour
+	mov	byte [edi], 0x95			//reset the colour to lightblue (it was white as specified in 0009)
+.dontResetColour:
+	pop	edi
+	pop	dx
+	pop	cx
+	pop	esi
+	pop	eax
+
+	mov word [edi], ', '		//add comma
+	add edi, 2
+
+	mov	word [cargosum+ecx*2], 0		//zero the cargo sum once it has been
+							//thrown in the text handler
+.tryNextCargo:
+	inc	ecx
+	cmp	ecx, 32
+	jb	.loopCargo
+
+	pop	ecx
+	pop	eax
+
+	cmp	edi, [specialtext1]
+	jne	.weHaveAString
+	mov	bx, 0x8812
+	jmp	.drawString
+.weHaveAString:
+	mov     byte [edi-2], 0				//need to also remove the colour code
+	mov	bx, statictext(special1)			//our newly created string
+.drawString:
+	mov	bp, 0x150
+	mov	edi, [currscreenupdateblock]			//area to be drawn to
+	call	[drawsplittextfn]				//draw it!
 	retn
 
 uvarw	cargosum,32

@@ -297,21 +297,13 @@ begincodefragments
 		icall	relocateServiceString
 		setfragmentsize 8
 
-	codefragment oldFindRVCapacityForInfoWindow
+	codefragment oldFindRVCapacityForInfoWindow, 14
 		mov	ax, word [edi+veh.capacity]
 		mov	word [textrefstack+2], ax
 
 	codefragment newFindRVCapacityForInfoWindow
-		icall	getTotalCapacityFromTrailers
+		icall	drawTotalCapacityForTrailers
 		setfragmentsize 10
-
-	codefragment oldFindRVCurrentLoadForInfoWindow
-		mov	ax, word [edi+veh.currentload]
-		mov	bx, 8812h
-
-	codefragment newFindRVCurrentLoadForInfoWindow
-		icall	getCurrentLoadFromTrailers
-		setfragmentsize 8
 
 	codefragment oldDrawCurrentCargoInfoInRVInfoWindow, 47
 		mul	byte [edi+veh.cargosource]
@@ -467,6 +459,5 @@ patcharticulatedvehicles:
 	patchcode oldRVDepotScrXYtoVeh, newRVDepotScrXYtoVeh, 1, 1
 
 	patchcode oldFindRVCapacityForInfoWindow, newFindRVCapacityForInfoWindow, 1+WINTTDX, 3
-	patchcode oldFindRVCurrentLoadForInfoWindow, newFindRVCurrentLoadForInfoWindow, 1, 2
 	patchcode oldDrawCurrentCargoInfoInRVInfoWindow, newDrawCurrentCargoInfoInRVInfoWindow, 2, 4
 	retn

@@ -35,7 +35,8 @@ endcodefragments
 
 patchshowcargoamount:
 	patchcode oldshowwagoncap,newshowwagoncap
-	patchcode oldshowrvcap,newshowsinglecap
+//	patchcode oldshowrvcap,newshowsinglecap
+//	this is now done in articulated road vehicles to show multiple cargo types.
 	patchcode oldshowshipcap,newshowsinglecap
 	patchcode oldshowplanecap,newshowdoublecap
 	ret
