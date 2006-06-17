@@ -2559,34 +2559,30 @@ checkdiagonalflood:
 	mov bh, [landscape4(dx)] // Get the tile type
 	and bx, 0xF00F // Only want the next part
 	cmp bx, 0x6000 // Is it just plain water
-	jne .movenexta // No, so don't flood
-	mov bh, [landscape4(ax)+esi]
-	and bh, 0x0F
-	jnz .movenextb
-	jmp .movenextanot
-.movenexta:
+	je .movenexta // Yes, so flood
 	add ebp, 1
-	jmp .movenextanot
-.movenextb:
-	xor ebp, 0x10
-.movenextanot:
+.movenexta:
 	mov edx, edi
 	mov dh, bh // second tile
 	mov bx, [landscape3+edx*2] // Is it a canal
 	mov bh, [landscape4(dx)] // Get the tile type
 	and bx, 0xF00F // Only want the next part
 	cmp bx, 0x6000 // Is it just plain water
-	jne .movenextc // No, so don't flood
+	je .movenextc // No, so don't flood
+	add ebp, 1
+.movenextc:
+	mov bh, [landscape4(ax)+esi]
+	and bh, 0x0F
+	cmp bh, 0x01
+	jb .movenextb
+	xor ebp, 0x10
+.movenextb:
 	mov bh, [landscape4(cx)+esi]
 	and bh, 0x0F
-	jnz .movenextd
-	jmp .movenextcnot
-.movenextc:
-	add ebp, 1
-	jmp .movenextcnot
-.movenextd:
+	cmp bh, 0x01
+	jb .movenextd
 	xor ebp, 0x10
-.movenextcnot:
+.movenextd:
 	cmp ebp, 2 // Carry set if it's equal
 	jae .setcarry
 	clc
