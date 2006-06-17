@@ -471,6 +471,8 @@
 - crash while drawing stations
   http://www.tt-forums.net/viewtopic.php?p=451296#451296
 
+- savegame crashes in tunnel code http://www.tt-forums.net/viewtopic.php?p=455534#455534
+
 - train cargo amount display doesn't show freight factor
 
 ==== Rather urgent =====
