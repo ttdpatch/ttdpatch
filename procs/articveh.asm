@@ -283,11 +283,12 @@ begincodefragments
 		icall	drawRVWithTrailersInInfoWindow
 		setfragmentsize 15
 
-	codefragment oldSetSizeOfRVInformationWindow
-		mov	ebx, 0065017Ch
+	codefragment oldSetSizeOfRVInformationWindow, -5
+		mov	dx, 88h
+		mov	ebp, 6
 
 	codefragment newSetSizeOfRVInformationWindow
-		mov	ebx, 0095017Ch
+		mov	ebx, 0095019Ah
 
 	codefragment oldLocationOfServiceStringInInfoWindow
 		add	cx, 13
