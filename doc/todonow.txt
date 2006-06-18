@@ -738,3 +738,4 @@ CHANGELOG
 2.5 beta 7
 - by Oskar:
   * fixed display of dikes with seelevel canals and cliffs
+  * make enhancetunnels depend on higherbridges to avoid jumping vehicles at tunnels

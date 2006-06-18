@@ -12,6 +12,7 @@ codefragment oldclass9vehenterleavetunneljump, 7
 	jns $+2+0x02
 	neg dl
 	cmp dl, 2
+	db 0x0F	// ja  ...
 
 codefragment newclass9vehenterleavetunneljump, 7
 	icall Class9VehEnterLeaveTunnelJump
