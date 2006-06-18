@@ -702,22 +702,21 @@ getdikemap:
 	.addrel bl,  1,	bh,  1	// 6 +X +Y
 	.addrel bl,  1,	bh, -1	// 7 +X -Y
 	.addrel bl, -1,	bh, -1	// 8 -X -Y
-
-	mov ebx,esi
-	pop esi
+	
+	pop ebx
 
 	xor edi, edi
 .testnext:
-	test esi,esi
+	test ebx,ebx
 	js .outsidemap	// outside of the map is always considered to have water
 	call iswateredtile
 	cmc
 .outsidemap:
 	rcl edi, 1
-	pop esi
-	cmp esi,byte -5
+	pop ebx
+	cmp ebx,byte -5
 	jne .testnext
-	mov esi, ebx
+	mov ebx, esi
 	ret
 
 
@@ -725,45 +724,54 @@ getdikemap:
 // Is tile at esi a water tile?
 // Rules if it's a water tile or not...
 // return stc if it's a water tile otherwise clc
+// in:	esi = reference tile
+// 		ebx = tile to check
 iswateredtile:
-	pusha
-	mov bl,[landscape4(si)]
-	mov bh,[landscape5(si)]
-	shr bl, 4
+	push eax
+	mov al,[landscape4(bx)]
+	mov ah,[landscape5(bx)]
+	shr al, 4
 
-// Show rules	
-	cmp bh, 1
-	je .itcouldbeacliff
-	cmp bl, 6
-	jz .watertile
-.itcouldbeacliff:
-
-
+// Show rules
+	cmp al, 6
+	jnz .testother
+	cmp ah, 1
+	jnz .watertile	// no cliff
+	
+// if we have a cliff and we need to check if our reference tile is above ground
+	mov al, [landscape4(si)]
+	and al, 0xF
+	cmp al, 0
+	je .watertile	// a seelevel reference tile
+	jmp .notwater
+		
+.testother:
 // Station Tiles
-	cmp bl, 5
+	cmp al, 5
 	jnz .notstationwithwater
-	cmp bh, 4Bh
+	cmp ah, 0x4B
 	jb .notstationwithwater
 	jmp .watertile
 .notstationwithwater:
 
 // Bridge & Tunnel Parts:
-	cmp bl, 9
+	cmp al, 9
 	jnz .nobridgepiecewithwater
 	// test if it's a bridge middlepart
-	bt bx, 14   // would be:  bt bh, 6 but thats not supported in x86 
+	bt ax, 14   // would be:  bt ah, 6 but thats not supported in x86 
 	jnc .nobridgepiecewithwater // not a middle part
-	bt bx, 13  // 5
+	bt ax, 13  // 5
 	jc .nobridgepiecewithwater // not a land/water
-	bt bx, 11 // 3
+	bt ax, 11 // 3
 	jnc .nobridgepiecewithwater // not a water tile
 	jmp .watertile
 .nobridgepiecewithwater:
-	popa
+.notwater:
+	pop eax
 	clc
 	ret
 .watertile:
-	popa
+	pop eax
 	stc
 	ret
 ;endp iswateredtile
