@@ -2547,7 +2547,7 @@ Class6FloodTile:
 // Next to things return a carry if the flood cannot be done
 // For flat tile flooding there are condictions if BOTH tiles have one of the following condictions
 // a. Tile is water (or coast) and NOT a Canal (L4 6x, L3 00)
-// b. Both eax and ecx must must be have their points as 0
+// b. If either eax and ecx have their points raised (if both are raised then it should flood
 checkdiagonalflood:
 	pusha
 	mov esi, ebx // for later since ebx gets used
@@ -2571,11 +2571,11 @@ checkdiagonalflood:
 	je .movenextc // No, so don't flood
 	add ebp, 1
 .movenextc:
-	mov bh, [landscape4(ax)+esi]
+	mov bh, [landscape4(ax)+esi] // Check the corners
 	and bh, 0x0F
 	cmp bh, 0x01
 	jb .movenextb
-	xor ebp, 0x10
+	xor ebp, 0x10 // make sure if both are raised it can still flood
 .movenextb:
 	mov bh, [landscape4(cx)+esi]
 	and bh, 0x0F
