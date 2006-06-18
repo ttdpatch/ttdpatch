@@ -1405,9 +1405,13 @@ Class5DrawLand:
 	cmp dh, 52h
 	ja .notwater
 
+	test word [nosplit landscape3+ebx*2], 1 // Check for a canal at sea level because of the next check
+	jnz .seacanal
+
 	cmp dl, 0
 	je .notwater ; actualy it is water, but not canals, but who cares
 
+.seacanal:
       pusha
 	call [oldclass5drawlandfnc]
 	popa

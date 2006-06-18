@@ -78,6 +78,28 @@ ext_frag oldselectgroundforbridge
 
 codefragment_call newselectgroundforbridge,selectgroundforbridge,5
 
+codefragment oldbuildbouy
+	mov byte [landscape2+edi], al
+	mov word [nosplit landscape3+edi*2], 0
+	rol di, 4
+
+codefragment newbuildbouy
+	mov byte [landscape2+edi], al
+	and word [nosplit landscape3+edi*2], 0x0001
+	rol di, 4
+	setfragmentsize 20
+	
+codefragment oldremovebouy
+	mov byte [landscape1+esi], 11h
+	mov byte [landscape2+esi], 0
+	mov word [nosplit landscape3+esi*2], 0
+
+codefragment newremovebouy
+	mov byte [landscape1+esi], 11h
+	mov byte [landscape2+esi], 0
+	and word [nosplit landscape3+esi*2], 0x001
+	setfragmentsize 24
+
 endcodefragments
 
 patchcanals:
@@ -111,6 +133,10 @@ patchcanals:
 	mov ecx, [eax+0x1C]
 	mov [oldclass5drawlandfnc], ecx
 	mov dword [eax+0x1C],addr(Class5DrawLand)
+
+	// patches the bouys
+	patchcode oldbuildbouy, newbuildbouy, 1, 3
+	patchcode oldremovebouy, newremovebouy
 
 	ret
 
