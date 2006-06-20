@@ -321,6 +321,7 @@
 	YESNO(185,"enhancetunnels", CFG_ENHANCETUNNELS, INFST, enhancetunnels),
 	SPCL (186,"saveextradata", 0, NONE, OBSOLETE),
 	BITS (187,"forcegameoptions", CFG_FORCEGAMEOPTIONS, INTERFACE, forcegameoptions, 3, FLAGDATA(forcegameoptionssettings), 0),
+	YESNO(188,"newairports", CFG_NEWAIRPORTS, INFST_STATION, newairports),
 //
 // Here follows the switch order list
 // This list defines the order of switches in the switch table
@@ -474,4 +475,4 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	trams,
 	enhancetunnels,
 	forcegameoptions,
-
+	newairports,

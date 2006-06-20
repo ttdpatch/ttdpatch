@@ -468,6 +468,7 @@ SWITCHTEXT(followvehicle, "Follow vehicle motion in main map", "")
 SWITCHTEXT(trams, "Enable trams on Roads", "")
 SWITCHTEXT(enhancetunnels, "Allows building track on top of tunnel entrances", "")
 SWITCHTEXT(forcegameoptions, "Allows you to force game options","")
+SWITCHTEXT(newairports, "Allows using new airport types","")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -830,6 +831,7 @@ SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) allows the main view to follow a vehicle w
 SETTEXT(CFG_TRAMS, "`%s' (%s) allows trams to be built.")
 SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) allows to build track on top of tunnel entrances")
 SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) allows you to force game options.")
+SETTEXT(CFG_NEWAIRPORTS, "`%s' (%s) allows using new airport types supplied by GRFs")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

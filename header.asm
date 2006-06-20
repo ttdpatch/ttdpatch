@@ -132,7 +132,7 @@ uvard newvehdata, newvehdatastruc_size/4
 varb patchflagsfixedmap
 	times 12 db noflag
 	db keepsmallairports	// 12
-	db noflag
+	db newairports		// 13
 	db morestationtracks	// 14
 	db longerbridges	// 15
 	db improvedloadtimes	// 16

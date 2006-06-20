@@ -133,10 +133,11 @@
 #define newsounds		109	// allow new sound effects
 #define morestats		110	// save some more company statistics
 #define autoreplace		111	// autoreplace old vehicle
+#define newairports		112	// allow new airport types
 
 // NOTE!! If you add a bit here, also add it to patchflagsfixedmap in vars.ah!!
 
-#define lastbitdefaulton	111	// META: last bit defined to be set by -a 
+#define lastbitdefaulton	112	// META: last bit defined to be set by -a 
 
 // add new flags that should be on by default above, flags off by default below
 

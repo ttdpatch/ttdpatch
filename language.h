@@ -487,6 +487,7 @@ enum langtextids {
 	CFG_TRAMS,
 	CFG_ENHANCETUNNELS,
 	CFG_FORCEGAMEOPTIONS,
+	CFG_NEWAIRPORTS,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS
