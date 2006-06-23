@@ -424,6 +424,24 @@ drawtrainwagonsindepot:
 	dec al
 	ret
 
+global drawtrainlist
+drawtrainlist:
+	add dx, 6
+	mov ax, [esi+window.width]
+	sub ax, 33
+	bt dword [grfmodflags], 3 // Fixes a slight offset for 29px list windows
+	jc .lis32
+	sub ax, 2
+.lis32:
+	mov bl, [depotscalefactor]
+	div bl
+	xor ah, ah // Remove any remainers, we are only interested in whole units
+	push cx // This must be 0 or you will get errors
+	xor cx, cx
+	call CalcTrainDepotWidth.lstart // Jump to this part of the subroutine to get the count
+	pop cx
+	ret
+
 /********************************* Replaces the winsize.asm one **********************************/
 // Calculates the number of vehicles which will fit in the depot window.
 // This is for when the depot window changes length. (enchancedgui)
@@ -438,6 +456,7 @@ drawtrainwagonsindepot:
 // Safe:   ?
 //
 // Notes:  Changed to work with Shortened vehicles (.l* labels)
+
 global CalcTrainDepotWidth
 CalcTrainDepotWidth:
 	mov ax, [esi+window.width]

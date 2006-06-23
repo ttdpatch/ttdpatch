@@ -10,7 +10,6 @@ extern RefreshWindowArea,TabClicked,TitleBarClicked,currscreenupdateblock
 extern dfree,dmalloc,errorpopup,fillrectangle,redrawscreen
 extern win_newshistory_constraints,win_newshistory_elements
 extern windowstack,CheckBoxClicked
-extern CalcTrainDepotWidth
 extern grfmodflags
 
 
@@ -1215,6 +1214,7 @@ lastshipvehdrawn:
 ovar shipvehoffset, -2
 	jmp lastvehdrawn.hasword
 
+#if 0
 global drawtrainlist
 drawtrainlist:
 	add dx, 6
@@ -1223,6 +1223,7 @@ drawtrainlist:
 	mov bl, 29
 	div bl
 	ret
+#endif
 
 //Functions to make the RV depot windows resizable:
 global lastdepotcoldrawn
@@ -1359,17 +1360,18 @@ ovar depotcolumn, -1
 	ret
 
 // Replaced by new one in trainwins.asm
-//
-//global CalcTrainDepotWidth
-//CalcTrainDepotWidth:
-//	mov ax, [esi+window.width]
-//	sub ax, 59
-//	push bx
-//	mov bl, 29
-//	div bl
-//	pop bx
-//
-//	ret
+#if 0
+global CalcTrainDepotWidth
+CalcTrainDepotWidth:
+	mov ax, [esi+window.width]
+	sub ax, 59
+	push bx
+	mov bl, 29
+	div bl
+	pop bx
+
+	ret
+#endif
 
 global traindepotwindowhandler
 traindepotwindowhandler:
