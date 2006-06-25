@@ -2556,7 +2556,7 @@ checkdiagonalflood:
 	mov dl, bl // First tile
 	xor ebp, ebp
 	mov bx, [landscape3+edx*2] // Is it a canal
-	mov bh, [landscape4(dx)] // Get the tile type
+	mov bh, [landscape4(dx,1)] // Get the tile type
 	and bx, 0xF00F // Only want the next part
 	cmp bx, 0x6000 // Is it just plain water
 	je .movenexta // Yes, so flood
@@ -2565,19 +2565,19 @@ checkdiagonalflood:
 	mov edx, edi
 	mov dh, bh // second tile
 	mov bx, [landscape3+edx*2] // Is it a canal
-	mov bh, [landscape4(dx)] // Get the tile type
+	mov bh, [landscape4(dx,1)] // Get the tile type
 	and bx, 0xF00F // Only want the next part
 	cmp bx, 0x6000 // Is it just plain water
 	je .movenextc // No, so don't flood
 	add ebp, 1
 .movenextc:
-	mov bh, [landscape4(ax)+esi] // Check the corners
+	mov bh, [landscape4(ax,1)+esi] // Check the corners
 	and bh, 0x0F
 	cmp bh, 0x01
 	jb .movenextb
 	xor ebp, 0x10 // make sure if both are raised it can still flood
 .movenextb:
-	mov bh, [landscape4(cx)+esi]
+	mov bh, [landscape4(cx,1)+esi]
 	and bh, 0x0F
 	cmp bh, 0x01
 	jb .movenextd
@@ -2603,7 +2603,7 @@ checkflatflood:
 	xor ebp, ebp
 .looppoint:
 	mov cx, [landscape3+edx*2] // Is it a canal
-	mov ch, [landscape4(dx)] // Get the tile type
+	mov ch, [landscape4(dx,1)] // Get the tile type
 	and cx, 0xF00F // Only want the next part
 	cmp cx, 0x6000 // Is it just plain water
 	jne .movenext // No, so don't flood
