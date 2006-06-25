@@ -433,13 +433,52 @@ drawtrainlist:
 	jc .lis32
 	sub ax, 2
 .lis32:
-	mov bl, [depotscalefactor]
-	div bl
-	xor ah, ah // Remove any remainers, we are only interested in whole units
-	push cx // This must be 0 or you will get errors
-	xor cx, cx
-	call CalcTrainDepotWidth.lstart // Jump to this part of the subroutine to get the count
+
+	push edi // Backup registers to be used
+	push bx
+	push cx
+	mov bl, 0 // Reset counter to avoid spilage
+	mov cx, 0 // Avoid anything which could cause issues
+
+.lgetlen:
+	push edi // Vehicle shortened by values not stored yet, so use getwagonlength
+	call getwagonlength
+	mov cl, [esp]
+	add esp, 4
+	and cl, 0x7F
+	neg cl
+	add cl, 0x8
+
+	mov ch, cl // store for later
+	shl cl, 2 // Each vehicle can be upto 32px (4*(8-1*shortten))
+	bt dword [grfmodflags], 3 // Done here because shl changes the carry flag
+	jc .lis32a // is 32px mode so this is the final value
+	shl cl, 1 // multipled by 2 to get 8 times the orginal length
+	sub cl, ch // subtract the length to provide 7 times the length
+	shr cl, 1 // devide by 2 to provide the multiple of 3.5
+	adc cl, 1 // Always adds the spacer pixil, adds the carry flag if reminder from above
+.lis32a:
+	mov ch, 0 // don't want an error in the next part
+
+.ldepotlen:
+	sub ax, cx // Get length remaining
+	jb .ldone // If less than 0 then jump to end
+	inc bl
+
+.lgetveh:
+	movzx edi, word [edi+veh.nextunitidx] // Get next vehicle id in consist
+	cmp di, -1
+	je .ldone	// Jump to end if no id
+	shl edi, vehicleshift
+	add edi, [veharrayptr]
+	jmp .lgetlen
+	
+.ldone:
+	mov al, bl // Return number of vehicles
 	pop cx
+	pop bx // Restore Registers
+	pop edi
+
 	ret
 
 /********************************* Replaces the winsize.asm one **********************************/
@@ -506,3 +545,4 @@ CalcTrainDepotWidth:
 	pop edi
 
 	ret
+
