@@ -475,6 +475,8 @@
 
 - train cargo amount display doesn't show freight factor
 
+- rotating tracks in station? http://www.tt-forums.net/viewtopic.php?p=458939#458939 
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -739,7 +741,7 @@ CHANGELOG
 - by Oskar:
   * fixed display of dikes with seelevel canals and cliffs
   * make enhancetunnels depend on higherbridges to avoid jumping vehicles at tunnels
-- updated Polish, Russian and Norwegian translations
+- updated Polish, Russian, Norwegian and Finnish translations
 - by Lakie:
   * fixed canals at sealevel not being saved when building a buoy
   * fixed drawing of buoys on canals
