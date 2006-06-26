@@ -181,7 +181,7 @@ TEXTARRAY(halflines,) =
 	  "-u:  Paranneltu monipelaaja peli",
 	  "-v:  N„yt„ k„ytetyt m„„ritteet",
 	  "-w:  Salli esi-opastimet",
-	  "-y:  Ohita tuntemattoman version kysely",
+	  "-y:  Žl„ kysy tuntematonta versiota",
 	  "-z:  Mammuttijunat (126 vaunua)",
 	  "-2:  Windows 2000/XP tuki",
 	  "-B:  Salli pidemm„t sillat",
@@ -221,7 +221,7 @@ TEXTARRAY(halflines,) =
 	  "-XE: S„hk”istetyt rautatiet",
 	  "-XF: K„yt„ kokeellisia ominaisuuksia",
 	  "-XH: Tallenna+n„yt„ uutis historia",
-	  "-XI: Mahdollista reittipohjainen signalointi",
+	  "-XI: Salli reittipohjaiset opastimet",
 	  "-XL: N„yt„ tuotto ajoneuvo listassa",
  	  "-XO: Jatetut/kopioitavat m„„r„ykset",
 	  "-XP: Uusia lentokoneita",
@@ -238,7 +238,7 @@ TEXTARRAY(halflines,) =
 	  "-Ym: Salli manuaalisen rata-vaihdon",
 	  "-Yn: Uudet asema grafiikat",
 	  "-Ys: Opastimet ajopuolella",
-	  "-Yt: N„ytt„„ enem. asioita kaupungeista",
+	  "-Yt: N„ytt„ enem. asioita kaupungeista",
 	  "-Yw: Nopeampi vaunujen myynti",
 
 	  "-YC: Rakentaminen rannoille",
@@ -444,7 +444,7 @@ SWITCHTEXT(moreanimation, "Salli lis„„ animoituja ruutuja",", %d:n asti")
 SWITCHTEXT(newshistory, "Historia uutisita", "")
 SWITCHTEXT(wagonspeedlimits, "Nopeusrajoitukset junavaunuille", "")
 SWITCHTEXT(pathbasedsignalling, "Aktivoi reittipohjainen signalointi", "")
-SWITCHTEXT(aichoosechances, "Aseta mink„laiset todenn„k”isyydet teko„lyll„ on teh„ mik„kin kuljetusmuoto", "")
+SWITCHTEXT(aichoosechances, "Aseta mitk„ todenn„k”isyydet teko„lyll„ on tehd„ mik„kin kuljetusmuoto", "")
 SWITCHTEXT(custombridgeheads, "Muunneltavat sillan p„„dyt", "")
 SWITCHTEXT(townbuildnoroads, "Kaupungit eiv„t rakenna teit„", "")
 SWITCHTEXT(newcargodistribution, "Paranneltu tuotteiden jaakminen", "")
@@ -462,7 +462,7 @@ SWITCHTEXT(newsounds, "Salli uusien „„nien lis„„minen", "")
 SWITCHTEXT(morestats, "Aktivoi lis„tilastojen ker„„minen", "")
 SWITCHTEXT(onewayroads, "Aktivoi yksisuuntaiset tien Ctrl:in avulla", "")
 SWITCHTEXT(irrstations, "Salli ep„s„„nn”llisten asemien rakentaminen", "")
-SWITCHTEXT(autoreplace, "P„ivit„ ajoneuvvoja kun ne tulevat vanhaksi", "; v„hint„„ %d%% luotettavuutta uudelle mallille")
+SWITCHTEXT(autoreplace, "Vaihda ajoneuvot kun ne tulevat vanhaksi", "; v„hint„„n %d%% luotettavuutta")
 SWITCHTEXT(autoslope, "Salli maaston muokkaaminen without ilman rakennusten poistamista", "")
 SWITCHTEXT(followvehicle, "Seuraa ajoneuvoa p„„kartassa", "")
 SWITCHTEXT(trams, "Aktivoi raitiovaunut", "")
@@ -541,7 +541,7 @@ BIT(factoryexplosion,   "Salli tehtaan r„j„ht„minen")
 BIT(largeufo,           "Salli suuri UFO")
 BIT(smallsubmarine,     "Salli pieni sukellusvene")
 BIT(largesubmarine,     "Salli suuri sukellusvene")
-BIT(coalminesubsidence, "Salli hiilikaivos sortuminen")
+BIT(coalminesubsidence, "Salli hiilikaivoksen sortuminen")
 /***/
 /***/// Description for mousewheel bits
 /***/BITSWITCH(mousewheel)
@@ -678,7 +678,7 @@ SETTEXT(CFG_PRESIGNALS,         "'%s' (%s) sallii asemien k„sittely„ parantavien
 SETTEXT(CFG_MOREVEHICLES,       "'%s' (%s) asettaa kulkuneuvojen yhteenlasketuksi m„„r„ksi arvo*850. Arvov„li %ld..%ld, oletus %ld.")
 SETTEXT(CFG_MAMMOTHTRAINS,      "'%s' (%s) sallii mammuttijunat (enint„„n 126 vaunua).")
 SETTEXT(CFG_FULLLOADANY,        "'%s' (%s) muuttaa junien 'full load'-k„ytt„ytymist„ siten, ett„ juna l„htee asemalta, kun jotakin rahtityyppi„ on t„ysi lasti.")
-SETTEXT(CFG_SELECTGOODS,        "'%s' (%s): tietty„ tavaraa alkaa tulla asemalle vasta, kun sit„ aletaan vied„ sielt„, ja poistuu annetun m„„r„n p„ivien j„lkeen jos palvelu loppuu.  2 tarkoittaa ett„ tavara ei koskaan katoa.  Range: %ld..%ld.  Default: %ld.")
+SETTEXT(CFG_SELECTGOODS,        "'%s' (%s): tietty„ tavaraa alkaa tulla asemalle vasta, kun sit„ aletaan vied„ sielt„, ja poistuu annetun m„„r„n p„ivien j„lkeen jos palvelu loppuu.  2 tarkoittaa ett„ tavara ei koskaan katoa.  Arvov„li: %ld..%ld.  Default: %ld.")
 SETTEXT(CFG_DEBTMAX,            "'%s' (%s) sallii enimm„ism„„r„n lainaamisen/maksamisen, kun 'Ctrl'-nappi on alhaalla.")
 SETTEXT(CFG_OFFICEFOOD,         "'%s' (%s): toimistorakennukset ottavat ruokaa vastaan (trooppiset/arktiset maat).")
 SETTEXT(CFG_ENGINESPERSIST,     "'%s' (%s) pit„„ kulkuneuvotyypit kunnossa niin kauan, kun samaa tyyppi„ k„ytet„„n peliss„.")
@@ -696,7 +696,7 @@ SETTEXT(CFG_PLANECRCTRL, "`%s' (%s) Antaa sinun p„„tt„„ milloin ja miten lentoko
 SETTEXT(CFG_SHOWSPEED, "`%s' (%s) n„ytt„„ jokaisen kulkuneuvon t„m„nhetkisen nopeuden niiden \"status\" ikkunassa.")
 SETTEXT(CFG_AUTORENEW, "`%s' (%s) Uudistaa veturit n„in monta kuukautta ennen kuin ne tulevat todella vanhoiksi.  Arvov„li %ld..%ld.  Oletus %ld.")
 SETTEXT(CFG_CHEATSCOST, "`%s' (%s) tekee kylttihuijauskoodit maksullisiksi.")
-SETTEXT(CFG_EXTPRESIGNALS, "`%s' (%s) antaa vaihtaa \"pre-signal\" tyylej„ (pre- combi- ja exitsingalit) 'Ctrl' napin kanssa.")
+SETTEXT(CFG_EXTPRESIGNALS, "`%s' (%s) antaa vaihtaa \"esi opastin\" tyylej„ (esi- combo- ja poistumis opastimet) 'Ctrl' napin kanssa.")
 SETTEXT(CFG_FORCEREBUILDOVL, "`%s' (%s) pist„„ TTDPatchin tekem„„n uuden TTDLOAD.OVL tai TTDLOADW.OVL joka kerta kun se k„ynnistet„„n.")
 SETTEXT(CFG_DISKMENU, "`%s' (%s) Lis„„ \"lataa\" valinnan disketti menuun, ja lataa peli (tai tallenna peli 'Ctrl' napin kanssa) Scenario Editoriin.")
 SETTEXT(CFG_WIN2K, "`%s' (%s) Tekee TTD'n Windows version of TTD yhteensopivan Windows 2000/XP kanssa.")
@@ -712,7 +712,7 @@ SETTEXT(CFG_DISASTERS, "`%s' (%s) antaa sinun valita mitk„ tapaturmat tapahtuvat
 SETTEXT(CFG_FORCEAUTORENEW, "`%s' (%s) pakottaa  kulkuneuvon huollossa k„ynnin kun on aika automaattiselle kulkuneuvon uudistukselle (katso `autorenew').")
 SETTEXT(CFG_MORENEWS, "`%s' (%s) tuottaa enemm„n viestej„/uutisia useammissa tapahtumissa, katso dokumentaatio tiedostoja jos haluat lis„„ tietoa.")
 SETTEXT(CFG_UNIFIEDMAGLEV, "`%s' (%s) tekee mahdolliseksi ostaa monorail vetureita maglev varikoilla tai toisin p„in.  Mode: 1 - muuta kaikki maglev veturit monorailille; 2 - muuta kaikki monorail veturit magleville; 3 - pid„ erillinen monorail ja maglev.")
-SETTEXT(CFG_BRIDGESPEEDS, "`%s' (%s) muuttaa nopeusrajoitukset tubular monorail and maglev silloilla t„h„n prosenttiin nopeimman veturin sen luokan(monorail, maglev) nopeudesta.  Range %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_BRIDGESPEEDS, "`%s' (%s) muuttaa nopeusrajoitukset tubular monorail and maglev silloilla t„h„n prosenttiin nopeimman veturin sen luokan(monorail, maglev) nopeudesta.  Arvov„li %ld..%ld.  Oletus %ld.")
 SETTEXT(CFG_ETERNALGAME, "`%s' (%s) antaa sinun pelata ikuisesti, p„iv„m„„r„ ei palaudu alkuun vuoden 2070 j„lkeen.")
 SETTEXT(CFG_SHOWFULLDATE, "`%s' (%s) aina n„yt„ kokonainen p„iv„m„„r„, mutta ei ainoastaan kun peli on pys„ytetty.")
 SETTEXT(CFG_NEWTRAINS, "`%s' (%s) antaa sinun muuttaa vetureita ja vaunuja newgrf tiedostojen avulla.")
@@ -764,7 +764,7 @@ SETTEXT(CFG_TGRTOWNSIZEFACTOR, "`%s' (%s) m„„ritt„„ kuinka paljon kaupungin koko
 SETTEXT(CFG_TOWNMINPOPULATIONSNOW, "`%s' (%s) asettaa pienimm„n asukasm„„r„n mihin asti kaupungit lumipeite alueella voivat kasvaa jopa ilman ruokaa.  P„„ll„ jos `towngrowthratemode', `towngrowthlimit' tai `generalfixes' on p„„ll„.  Arvov„li %ld..%ld.  Oletus %ld.")
 SETTEXT(CFG_TOWNMINPOPULATIONDESERT, "`%s' (%s) asettaa pienimm„n asukasm„„r„n mihin asti kaupungit aavikolla voivat kasvaa jopa ilman ruokaa ja vett„.  P„„ll„ jos `towngrowthratemode', `towngrowthlimit' tai `generalfixes' on p„„ll„.  Arvov„li %ld..%ld.  Oletus %ld.")
 SETTEXT(CFG_MORETOWNSTATS, "`%s' (%s) Enemm„n statistiikkoja n„ytet„„n kaupunki informaatio ruudussa.")
-SETTEXT(CFG_BUILDONSLOPES, "`%s' (%s) tekee mahdoliseksi rakentaa kiskoja, teit„ ja asemia m„en/vuoren reunoile, samanlaiselle perustalle kun talot.")
+SETTEXT(CFG_BUILDONSLOPES, "`%s' (%s) tekee mahdoliseksi rakentaa kiskoja, teit„ ja asemia kallistuneelle maalle, samanlaiselle perustalle kun talot.")
 SETTEXT(CFG_BUILDONCOASTS, "`%s' (%s) tekee mahdolliseksi rakentaa rannoille tai joenrannoille ilman ett„ pit„„ k„ytt„„ dynamiitti ty”kalua ensin.")
 SETTEXT(CFG_TRACKTYPECOSTDIFF, "`%s' (%s) joka rata tyyppi maksaa erinlaisen summan rakentaa.")
 SETTEXT(CFG_EXPERIMENTALFEATURES, "`%s' (%s) sallii kokeelliset ominaisuudet.")
