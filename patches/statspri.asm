@@ -32,10 +32,62 @@ extern lookuptranslatedcargo_usebit,gettileterrain
 extern failpropwithgrfconflict,lastextragrm,curextragrm,setspriteerror
 extern generatesoundeffect,redrawtile,stationanimtriggers,callback_extrainfo
 extern miscgrfvar,irrgetrailxysouth,getirrplatformlength
+extern DrawStationImageInSelWindow,MakeTempScrnBlockDesc
 
 // bits in L7:
 %define L7STAT_PBS 1		// is station tile in a PBS block?
 %define L7STAT_BLOCKED 2	// is station tile blocked (can't be entered)?
+
+#if 0
+	// code doesn't work, temp screen description is not intelligent enough 
+	// when temp box doesn't fit into current screenupdatedesc box
+	//	in:	esi=window
+	//		al=tracktype
+	//		ax,cx = position
+	
+global drawstationimageinrailselectwin
+drawstationimageinrailselectwin:
+	push edi
+	// create temp screen description
+	// code doesn't work, 
+	pusha
+	mov esi, edi
+	mov edi, baTempBuffer1
+	mov byte [edi], 0
+	//	DX,BX = X,Y CX,BP = width,height
+	mov dx, ax
+	mov bx, cx
+	mov cx, 50
+	mov bp, 50
+
+//	mov dx, [esi+window.x]
+//	mov bx, [esi+window.y]
+//	mov cx, [esi+window.width]
+//	mov bp, [esi+window.height]
+
+	call [MakeTempScrnBlockDesc]
+	popa 
+	jz .invalid
+	mov edi, baTempBuffer1
+.invalid:
+
+	push cx
+	push dx
+	push esi
+	mov al, [currconstrtooltracktype]
+	call [DrawStationImageInSelWindow]
+	pop esi
+	pop dx
+	pop cx
+	
+	add cx, 68
+	mov bl, 3
+	mov al, [currconstrtooltracktype]
+	call [DrawStationImageInSelWindow] 
+
+	pop edi
+	ret
+#endif
 
 	// get sprite set for display in station construction window
 	//

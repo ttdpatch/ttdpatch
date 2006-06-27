@@ -69,6 +69,7 @@ extern fncheckvehintheway,languageid,origlanguageid
 extern num_powersoften,powersoften_last
 extern initializecargofn
 extern CheckForVehiclesInTheWay
+extern MakeTempScrnBlockDesc
 
 begincodefragments
 
@@ -1399,6 +1400,11 @@ codefragment findCheckForVehiclesInTheWay,1
 	pusha
 	db 0xC6,5
 
+codefragment findMakeTempScrnBlockDesc, 13
+	mov bx, 469
+	mov cx, 358
+	mov bp, 11
+
 endcodefragments
 
 ptrvarall industrydatablock
@@ -1999,6 +2005,8 @@ dogeneralpatching:
 	storeaddress findmakesubsidy,1,1,subsidyfn
 	storeaddress findsearchcollidingvehs,1,1,searchcollidingvehs
 	
+	CALLINT3
+	storefunctionaddress findMakeTempScrnBlockDesc,1,1,MakeTempScrnBlockDesc
 	// find some GUI functions in TTD
 	storefunctionaddress findBringWindowToForeground,1,1,BringWindowToForeground
 	storefunctionaddress findCreateWindow,1,2,CreateWindow

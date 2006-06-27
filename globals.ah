@@ -163,6 +163,8 @@ uvard splittextlines,1,s	// split text into lines of given width by inserting NU
 uvard fillrectangle,1,s
 uvard drawrectangle,1,s		// AX,BX,CX,DX=screen X1,X2,Y1,Y2, EDI->scr. blk. desc., BP=color scheme,SI=flags
 
+uvard MakeTempScrnBlockDesc,1,s	// EDI=descriptor buffer, DX,BX = X,Y, CX,BP = width,height
+
 uvard addsprite,1,s		// add sprite to draw list: EBX=sprite&flags, AX:CX:DL(safe)=X:Y:Z, DI:SI:DH=X:Y:Z extents
 uvard addlinkedsprite,1,s	// add sprite linked to previous sprite
 uvard addrelsprite,1,s		// add sprite relative to previous sprite: EBX=sprite&flags, AX:CX=X:Y pixel offsets
