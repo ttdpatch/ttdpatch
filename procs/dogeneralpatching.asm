@@ -2005,7 +2005,6 @@ dogeneralpatching:
 	storeaddress findmakesubsidy,1,1,subsidyfn
 	storeaddress findsearchcollidingvehs,1,1,searchcollidingvehs
 	
-	CALLINT3
 	storefunctionaddress findMakeTempScrnBlockDesc,1,1,MakeTempScrnBlockDesc
 	// find some GUI functions in TTD
 	storefunctionaddress findBringWindowToForeground,1,1,BringWindowToForeground

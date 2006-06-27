@@ -38,38 +38,28 @@ extern DrawStationImageInSelWindow,MakeTempScrnBlockDesc
 %define L7STAT_PBS 1		// is station tile in a PBS block?
 %define L7STAT_BLOCKED 2	// is station tile blocked (can't be entered)?
 
-#if 0
-	// code doesn't work, temp screen description is not intelligent enough 
-	// when temp box doesn't fit into current screenupdatedesc box
 	//	in:	esi=window
 	//		al=tracktype
 	//		ax,cx = position
-	
-global drawstationimageinrailselectwin
+	global drawstationimageinrailselectwin
 drawstationimageinrailselectwin:
 	push edi
 	// create temp screen description
-	// code doesn't work, 
 	pusha
-	mov esi, edi
 	mov edi, baTempBuffer1
 	mov byte [edi], 0
 	//	DX,BX = X,Y CX,BP = width,height
-	mov dx, ax
-	mov bx, cx
-	mov cx, 50
-	mov bp, 50
-
-//	mov dx, [esi+window.x]
-//	mov bx, [esi+window.y]
-//	mov cx, [esi+window.width]
-//	mov bp, [esi+window.height]
+	mov dx, [esi+window.x]
+	mov bx, [esi+window.y]
+	add dx, 7
+	add bx, 26
+	mov cx, 134 //66
+	mov bp, 48
 
 	call [MakeTempScrnBlockDesc]
 	popa 
 	jz .invalid
 	mov edi, baTempBuffer1
-.invalid:
 
 	push cx
 	push dx
@@ -84,10 +74,9 @@ drawstationimageinrailselectwin:
 	mov bl, 3
 	mov al, [currconstrtooltracktype]
 	call [DrawStationImageInSelWindow] 
-
+.invalid:
 	pop edi
 	ret
-#endif
 
 	// get sprite set for display in station construction window
 	//

@@ -29,7 +29,7 @@ codefragment newdisplaystationorient
 codefragment newgetstationdisplayspritelayout
 	call runindex(getstationdisplayspritelayout)
 	setfragmentsize 7
-#if 0
+
 codefragment olddrawstationimageinrailselectwin, 10
 	add cx, 39
 	add dx, 42
@@ -38,7 +38,6 @@ codefragment olddrawstationimageinrailselectwin, 10
 codefragment newdrawstationimageinrailselectwin
 	icall drawstationimageinrailselectwin
 	setfragmentsize 36
-#endif
 
 endcodefragments
 
@@ -59,7 +58,5 @@ patchstationgraphics:
 	mov dword [getnewstationsprite_noelrails_indirect],addr(drawstationtile)
 
 .notelectrified:
-#if 0
 	patchcode drawstationimageinrailselectwin
-#endif
 	ret
