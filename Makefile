@@ -148,7 +148,6 @@ cleantemp:
 	rm -f *.asp
 	rm -f *.{o,obj,OBJ}
 	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po
-	rm -f ${OTMP}*.*po.d ${OTMP}patches/*.*po.d ${OTMP}procs/*.*po.d
 	rm -f ${OTMP}*.*lst ${OTMP}patches/*.*lst ${OTMP}procs/*.*lst
 	rm -f lang/*.{o,map,exe} lang/language.*
 	rm -f host/*.o host/lang/* host/mkpttxt host/makelang
@@ -183,6 +182,7 @@ clean:	cleantemp
 # also remove Makefile.dep?, listings and bak files
 mrproper: clean remake
 	#rm -f Makefile.dep?
+	rm -f ${OTMP}*.*po.d ${OTMP}patches/*.*po.d ${OTMP}procs/*.*po.d
 	rm -f *.{d,w,l}lst patches/*.{d,w,l}lst procs/*.{d,w,l}lst
 	rm -f patches/*.ba* procs/*.ba*
 
@@ -283,6 +283,10 @@ define A-PO-COMMANDS
 	${_C}$(NASM) -f win32 $@.asp -o $@
 	@rm -f $@.asp
 endef
+define A-D-COMMANDS
+	${_E} [CPP DEP] $@
+	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< -M -MG -MF $@ -MT ${subst .d,,$@}
+endef
 define A-LST-COMMANDS
 	${_E} [CPP/NASM] $@
 	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< | perl perl/lineinfo.pl > $@.asp
@@ -291,13 +295,22 @@ define A-LST-COMMANDS
 endef
 define C-PO-COMMANDS
 	${_E} [CC] $@
-	${_C}$(CC) ${XASMDEF} -c -o $@ $< -Iinc
+	${_C}$(CC) ${XASMDEF} -c -o $@ $< -Iinc -MD -MF $@.d -MT $@
+endef
+define C-D-COMMANDS
+	${_E} [CC DEP] $@
+	${_C}$(CC) ${XASMDEF} -M -MG -MF $@ -MT ${subst .d,,$@} $< -Iinc
 endef
 
 ${OTMP}%.dpo : %.asm
 	${A-PO-COMMANDS}
 ${OTMP}%.wpo : %.asm
 	${A-PO-COMMANDS}
+
+${OTMP}%.dpo.d : %.asm
+	${A-D-COMMANDS}
+${OTMP}%.wpo.d : %.asm
+	${A-D-COMMANDS}
 
 %.dlst : %.asm
 	${A-LST-COMMANDS}
@@ -308,6 +321,11 @@ ${OTMP}%.dpo : %.c
 	${C-PO-COMMANDS}
 ${OTMP}%.wpo : %.c
 	${C-PO-COMMANDS}
+
+${OTMP}%.dpo.d : %.c
+	${C-D-COMMANDS}
+${OTMP}%.wpo.d : %.c
+	${C-D-COMMANDS}
 
 # link all assembly modules into ttdprot?.pe
 ttdprotd.pe ttdprotd.map: $(asmdobjs) reloc.a
