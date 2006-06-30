@@ -279,27 +279,27 @@ host/%.o : %.asm
 # various versions)
 define A-PO-COMMANDS
 	${_E} [CPP/NASM] $@
-	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< -MD -MF $@.d -MT $@ | perl perl/lineinfo.pl > $@.asp
+	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc -I. $< -MD -MF $@.d -MT $@ | perl perl/lineinfo.pl > $@.asp
 	${_C}$(NASM) -f win32 $@.asp -o $@
 	@rm -f $@.asp
 endef
 define A-D-COMMANDS
 	${_E} [CPP DEP] $@
-	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< -M -MG -MF $@ -MT ${subst .d,,$@}
+	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc -I. $< -M -MG -MF $@ -MT ${subst po.d,po,$@}
 endef
 define A-LST-COMMANDS
 	${_E} [CPP/NASM] $@
-	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< | perl perl/lineinfo.pl > $@.asp
+	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc -I. $< | perl perl/lineinfo.pl > $@.asp
 	${_C}$(NASM) -f win32 $@.asp -o /dev/null -l $@
 	@rm -f $@.asp
 endef
 define C-PO-COMMANDS
 	${_E} [CC] $@
-	${_C}$(CC) ${XASMDEF} -c -o $@ $< -Iinc -MD -MF $@.d -MT $@
+	${_C}$(CC) ${XASMDEF} -c -o $@ $< -Iinc -I. -MD -MF $@.d -MT $@
 endef
 define C-D-COMMANDS
 	${_E} [CC DEP] $@
-	${_C}$(CC) ${XASMDEF} -M -MG -MF $@ -MT ${subst .d,,$@} $< -Iinc
+	${_C}$(CC) ${XASMDEF} -M -MG -MF $@ -MT ${subst .d,,$@} $< -Iinc -I.
 endef
 
 ${OTMP}%.dpo : %.asm

@@ -16,9 +16,9 @@ extern startflagdata
 
 
 #if !WINTTDX && !LINTTDX
-#	include "../versiond.h"
+#	include <versiond.h>
 #else
-#	include "../versionw.h"
+#	include <versionw.h>
 #endif
 
 
