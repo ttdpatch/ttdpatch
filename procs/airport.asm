@@ -2,11 +2,13 @@
 #include <frag_mac.inc>
 #include <patchproc.inc>
 #include <station.inc>
+#include <textdef.inc>
+#include <window.inc>
 
 extern variabletofind,variabletowrite
 extern airportstartstatuses,airportlayoutptrs,airportsizes,airportmovementdataptrs
 extern airportspecialflags,airportcallbackflags,aircraftmovement
-extern airportspecialmovements,airportmovementdatasizes
+extern airportspecialmovements,airportmovementdatasizes,airporttypenames
 
 begincodefragments
 
@@ -59,6 +61,44 @@ codefragment oldaircraftyield_newop
 
 codefragment_jmp newaircraftyield_newop,aircraftyield_newop
 
+codefragment findaircraftselectwinelems,-10
+	dw 0x3059
+	db 3,0xe
+
+codefragment olddrawairportselwindow
+	test byte [airporttypeavailmask],1
+
+codefragment newdrawairportselwindow
+	movzx eax, byte [selectedairporttype]
+	mov ax, [airporttypenames+eax*2]
+	mov [textrefstack],ax
+	mov ebx,[esi+window.activebuttons]
+	and bl,0x3f
+	jmp short fragmentstart+92
+
+codefragment oldairportsizetext,2
+	mov bx,0x305b
+
+codefragment newairportsizetext
+	dw ourtext(airporttype)
+
+codefragment oldairportseltypeclick
+	cmp cl,3
+	je near $+6+0x8e
+
+codefragment newairportseltypeclick
+	cmp cl,3
+	jb fragmentstart+27
+	cmp cl,5
+	ja fragmentstart+27
+	ijmp airportseltypeclick
+
+codefragment oldairportsel_eventhandler,3
+	cmp dl,cWinEventClick
+	je near $+6-0x32d
+
+codefragment_call newairportsel_eventhandler,airportsel_eventhandler,6
+
 endcodefragments
 
 ext_frag newvariable,findvariableaccess,oilfieldaccepts
@@ -97,6 +137,8 @@ exported patchnewairports
 	and dword [airportspecialflags],0
 	and dword [airportcallbackflags],0
 	mov dword [airportmovementdatasizes],0x1d1d1d1d
+	mov dword [airporttypenames],0x305a3059
+	mov word [airporttypenames+4],0x306b
 
 	patchcode getnewaircraftop
 	storeaddress findaircraftmovement,1,1,aircraftmovement
@@ -109,4 +151,19 @@ exported patchnewairports
 	storeaddress findaircraftyield,1,1,airportspecialmovements+(8*4)
 
 	multipatchcode oldaircraftyield_newop,newaircraftyield_newop,2
+
+	stringaddress findaircraftselectwinelems,1,1
+	mov word [edi+10],statictext(airportsel_typebutton)
+	mov al,[edi+16]
+	sub al,11
+	mov [edi+4],al
+	inc al
+	mov [edi+14],al
+	mov word [edi+22],0x0225	// downward pointing black triangle
+	mov byte [edi+24],0
+
+	patchcode drawairportselwindow
+	patchcode airportsizetext
+	patchcode airportseltypeclick
+	patchcode airportsel_eventhandler
 	ret

@@ -301,3 +301,5 @@ ttdvar(newgameclimate, 0x9f159)		// B: selected climate for new game
 ttdvar(currconstrtooltracktype,0x9f15a)	// B: current track type for railway construction
 ttdvar(autosavesetting, 0x9ef2C)		// B: autosave setting 0=off, 1=3Months, 2=6Months, 3=12Months
 
+ttdvar(selectedairporttype, 0x9ede2)	// B: currently selected airport type
+ttdvar(airporttypeavailmask, 0x7710b)	// B: bit mask of available old airport types

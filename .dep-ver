@@ -1,2 +1,2 @@
-5
+5b
 increase this number when dependencies change, to force remaking Makefile.dep{d,w}

@@ -289,6 +289,9 @@ defourtext grfstatdebug
 defourtext grfdebughint
 defourtext grfdebugmsg
 
+defourtext airporttype
+defourtext unnamedairporttype
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

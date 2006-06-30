@@ -4,11 +4,13 @@
 #include <grf.inc>
 #include <station.inc>
 #include <veh.inc>
+#include <window.inc>
 
 // Support for new airports supplyed by GRFs
 
 extern curgrfairportlist,curspriteblock
 extern grffeature,curcallback,getnewsprite,callback_extrainfo
+extern GenerateDropDownMenu,invalidatehandle
 
 uvard airportdataidtogameid, NUMAIRPORTS*2
 
@@ -33,6 +35,8 @@ uvarb airportspecialflags, NUMAIRPORTS
 
 uvarb airportcallbackflags, NUMAIRPORTS
 
+uvarw airporttypenames, NUMAIRPORTS
+
 exported clearairportdata
 	pusha
 	xor eax,eax
@@ -52,10 +56,12 @@ exported clearairportdata
 	mov cl,NUMNEWAIRPORTS
 	rep stosd
 
+	mov ax,[airportstartstatuses+1*2]
 	mov edi,airportstartstatuses+NUMOLDAIRPORTS*2
 	mov cl,NUMNEWAIRPORTS
 	rep stosw
 
+	xor eax,eax
 	mov edi,airportmovementdatasizes+NUMOLDAIRPORTS
 	mov cl,NUMNEWAIRPORTS
 	rep stosb
@@ -67,6 +73,11 @@ exported clearairportdata
 	mov edi,airportcallbackflags+NUMOLDAIRPORTS
 	mov cl,NUMNEWAIRPORTS
 	rep stosb
+
+	mov edi,airporttypenames+NUMOLDAIRPORTS*2
+	mov ax,ourtext(unnamedairporttype)
+	mov cl,NUMNEWAIRPORTS
+	rep stosw
 	popa
 	ret
 
@@ -114,10 +125,6 @@ exported setairportlayout
 	mov eax,[airportmovementdataptrs+1*4]
 	mov [airportmovementdataptrs+edx*4],eax
 	mov byte [airportmovementdatasizes+edx],0x1d
-	mov ax,[airportstartstatuses+1*2]
-	mov [airportstartstatuses+edx*2],ax
-	mov byte [airportspecialflags],0
-	mov byte [airportcallbackflags],0
 
 	inc ebx
 	dec ecx
@@ -302,3 +309,63 @@ exported aircraftyield_newop
 	mov [esi+veh.aircraftop],ah
 	mov [callback_extrainfo],ax
 	ret
+
+noglobal uvarb menuairporttypes, 19
+
+exported airportseltypeclick
+	xor ebx,ebx
+	xor ecx,ecx
+	mov dx,-1
+	xor ebp,ebp
+
+.nexttype:
+
+	cmp cl,[selectedairporttype]
+	jne .notselected
+	mov edx,ebp
+.notselected:
+
+	cmp cl,3
+	je .skiptype
+	cmp dword [airportlayoutptrs+ecx*4],0
+	je .skiptype
+
+	mov [menuairporttypes+ebp],cl
+	mov ax,[airporttypenames+ecx*2]
+	mov [tempvar+ebp*2],ax
+	inc ebp
+
+.skiptype:
+	inc ecx
+	cmp ebp,19
+	je .full
+	cmp ecx,NUMAIRPORTS
+	jb .nexttype
+
+.full:
+	mov cl,4
+	mov word [tempvar+ebp*2],-1
+	mov al,[airporttypeavailmask]
+	not al
+	and al,7
+	or bl,al
+	jmp dword [GenerateDropDownMenu]
+
+exported airportsel_eventhandler
+	jz .click
+	cmp dl, cWinEventDropDownItemSelect
+	jz .dropdown
+	ret
+
+.click:
+	sub dword [esp],0x32c
+	ret
+
+.dropdown:
+	add dword [esp],5	// now it points to a ret
+	movzx eax,al
+	mov al,[menuairporttypes+eax]
+	mov [selectedairporttype],al
+	mov al,[esi+window.type]		// redraw the whole window
+	mov bx,[esi+window.id]
+	jmp dword [invalidatehandle]
