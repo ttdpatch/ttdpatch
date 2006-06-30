@@ -300,7 +300,7 @@ define C-A-D-COMMANDS
 	elif [ -e $*.c ]; then \
 		$(CC) ${XASMDEF} -M -MG -MF $@ -MT ${subst .d,,$@} $*.c -Iinc -I.; \
 	else \
-		@echo Don\'t know how to make $@.; exit 1; \
+		echo Don\'t know how to make $@.; exit 1; \
 	fi
 endef
 
