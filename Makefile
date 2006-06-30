@@ -270,9 +270,9 @@ host/%.o : %.asm
 # line numbers
 
 # set different preprocessor defines for each target
-%.dpo %.dlst:	XASMDEF =  $(foreach DEF,$(DOSDEFS) $(ASMOPT),-D$(DEF))
-%.wpo %.wlst:	XASMDEF =  $(foreach DEF,$(WINDEFS) $(ASMOPT),-D$(DEF))
-%.lpo %.llst:	XASMDEF =  $(foreach DEF,$(LINDEFS) $(ASMOPT),-D$(DEF))
+%.dpo %.dlst %.dpo.d:	XASMDEF =  $(foreach DEF,$(DOSDEFS) $(ASMOPT),-D$(DEF))
+%.wpo %.wlst %.wpo.d:	XASMDEF =  $(foreach DEF,$(WINDEFS) $(ASMOPT),-D$(DEF))
+%.lpo %.llst %.lpo.d:	XASMDEF =  $(foreach DEF,$(LINDEFS) $(ASMOPT),-D$(DEF))
 
 # commands for making object and list files from the asm sources
 # (using a define here because we need the same commands for the 
