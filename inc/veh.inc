@@ -85,10 +85,11 @@ struc veh
 				//     rv:10h=overtaking
 			resb 1	// 67h:rv:overtaking counter (0..23h); ??
 			resw 1	// 68h:rv:??
-			resb 1	// 6ah:rv:?? (some kind of counter)
+			resb 1	// 6ah:rv:turn-around counter
 				// So far it's the last entry identified as used by TTD.
 			resb 0x6F-$
-  .prevmovementstat: resb 1 //6Fh: the previous movementstat (used for RV trailers and Plane accel/decel)
+	.prevmovementstat:	// 6Fh:the previous movementstat (used for RV trailers and Plane accel/decel)
+	.parentmvstat	resb 1	//     the next turn for Articulated RVs (so that they follow the leader)
 	.traveltime:	resw 1	// 70h:number of days travelling since last load/unload
 	.refitcycle:	resb 1	// 72h:how often refitted to same cargo
 	.shortened:	resb 1	// 73h:how much shorter is the wagon (+0x80)

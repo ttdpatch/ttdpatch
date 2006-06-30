@@ -321,6 +321,9 @@
 	YESNO(185,"enhancetunnels", CFG_ENHANCETUNNELS, INFST, enhancetunnels),
 	SPCL (186,"saveextradata", 0, NONE, OBSOLETE),
 	BITS (187,"forcegameoptions", CFG_FORCEGAMEOPTIONS, INTERFACE, forcegameoptions, 3, FLAGDATA(forcegameoptionssettings), 0),
+	YESNO(188,"shortrvs", CFG_SHORTRVS, VEH_ROAD, shortrvs),
+	YESNO(189,"articulatedrvs", CFG_ARTICULATEDRVS, VEH_ROAD, articulatedrvs),
+
 //
 // Here follows the switch order list
 // This list defines the order of switches in the switch table
@@ -474,4 +477,6 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	trams,
 	enhancetunnels,
 	forcegameoptions,
+	shortrvs,
+	articulatedrvs,
 

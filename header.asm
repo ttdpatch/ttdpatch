@@ -213,6 +213,8 @@ varb patchflagsfixedmap
 	db followvehicle	// 115
 	db trams		// 116
 	db enhancetunnels	// 117
+	db shortrvs		// 118
+	db articulatedrvs	// 119
 
 
 	times 127-(addr($)-patchflagsfixedmap) db noflag

@@ -29,6 +29,8 @@ extern vehtypetextids
 extern TrainSpeedBuyNewVehicle.lwagon
 extern resetconsistsprites
 
+extern buildingroadvehicle, oldbuyroadvehicle
+
 
 
 
@@ -631,7 +633,7 @@ showvehrefittable:
 
 .gotcount:
 	push ecx
-	
+
 	// try counting the inverse
 	mov eax,[lastrefitmask]
 	not eax
@@ -702,7 +704,7 @@ showvehrefittable:
 	jb .shownext
 
 	mov word [textrefstack+2+10*2],statictext(ellipsis)
-	
+
 .haveall:
 	mov bx,di
 	add bx,ourtext(refittableto)
@@ -951,9 +953,12 @@ proc newbuyrailvehicle
 	and dword [%$veh],0
 
 	movzx edx,bh
+	cmp byte [buildingroadvehicle], 1
+	je .skipcheckengine2check
 	call checknewtrainisengine2
 	jnz .notadditionalhead
 
+.skipcheckengine2check:
 	mov dh,1
 
 .notadditionalhead:
@@ -967,7 +972,13 @@ proc newbuyrailvehicle
 	mov [%$headtype],dh
 
 	push ebp
+	cmp byte [buildingroadvehicle], 1
+	jne .callrailfunc
+	call [oldbuyroadvehicle]
+	jmp .calledfunc
+.callrailfunc:
 	call [oldbuyrailvehicle]
+.calledfunc:
 	pop ebp
 
 	mov [%$veh],edi
@@ -1003,7 +1014,13 @@ proc newbuyrailvehicle
 
 	// do we build an articulated engine?
 	movzx eax,byte [%$vehtype+1]
+//	cmp byte [buildingroadvehicle], 1
+//	jne .testtraincallbackflags
+//	test byte [rvcallbackflags+eax],0x10
+//	jmp .flagstested
+//.testtraincallbackflags:
 	test byte [traincallbackflags+eax],0x10
+//.flagstested:
 	jz .done
 
 	xor esi,esi
@@ -1103,7 +1120,13 @@ proc newbuyrailvehicle
 	mov eax,[%$x]
 	mov ecx,[%$y]
 	push ebp
+	cmp byte [buildingroadvehicle], 1
+	jne .calloldbuyrailvehicle
+	call [oldbuyroadvehicle]
+	jmp .plzcontinue
+.calloldbuyrailvehicle:
 	call [oldbuyrailvehicle]
+.plzcontinue:
 	pop ebp
 	mov esi,edi
 	mov [%$otherveh],edi
@@ -1119,13 +1142,23 @@ proc newbuyrailvehicle
 .addmore:
 	push eax
 	and al,0x7f
+	cmp byte [buildingroadvehicle], 1
+	jne .dontAddRVBase
+	add al, ROADVEHBASE
+.dontAddRVBase:
 	xor ebx,ebx
 	mov bh,al
 	mov bl,9
 	mov eax,[%$x]
 	mov ecx,[%$y]
 	push ebp
+	cmp byte [buildingroadvehicle], 1
+	jne .calloldbuyrailvehicle2
+	call [oldbuyroadvehicle]
+	jmp .plzcontinue2
+.calloldbuyrailvehicle2:
 	call [oldbuyrailvehicle]
+.plzcontinue2:
 	pop ebp
 	pop eax
 
@@ -1135,6 +1168,8 @@ proc newbuyrailvehicle
 	// attach to engine
 	mov byte [edi+veh.currorderidx],0	// in case any left-over was in there
 	mov byte [edi+veh.subclass],2
+	mov byte [edi+veh.parentmvstat],0xFF 	//StevenHoefel: Used for bendy bus movement
+	mov byte [edi+0x6E],0xFF 		//StevenHoefel: Used for bendy bus movement
 	mov edx,[%$veh]
 	mov dx,[edx+veh.idx]
 	mov [edi+veh.engineidx],dx
@@ -1454,5 +1489,19 @@ startstopveh:
 .noresetspeed:
 	test esp,esp	// clear cf and zf
 
+	//For articulated RVs: we need to start the 'trailers'
+	cmp byte [edx+veh.class], 11h //is this an rv?
+	jne .done
+	push edx
+.looptrailers:
+	cmp word [edx+veh.nextunitidx], 0xFFFF //is there a 'trailer' ?
+	je .cleanuppop
+	movzx edx, word [edx+veh.nextunitidx]
+	shl dx, 7
+	add edx, [veharrayptr]
+	xor word [edx+veh.vehstatus], 2
+	jmp .looptrailers
+.cleanuppop:
+	pop edx
 .done:
 	ret

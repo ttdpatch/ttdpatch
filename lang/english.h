@@ -468,6 +468,8 @@ SWITCHTEXT(followvehicle, "Follow vehicle motion in main map", "")
 SWITCHTEXT(trams, "Enable trams on Roads", "")
 SWITCHTEXT(enhancetunnels, "Allows building track on top of tunnel entrances", "")
 SWITCHTEXT(forcegameoptions, "Allows you to force game options","")
+SWITCHTEXT(shortrvs, "Enabled Shortened (or lengthened) RVs", "")
+SWITCHTEXT(articulatedrvs, "Enabled Articulated RVs", "")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -830,6 +832,8 @@ SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) allows the main view to follow a vehicle w
 SETTEXT(CFG_TRAMS, "`%s' (%s) allows trams to be built.")
 SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) allows to build track on top of tunnel entrances")
 SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) allows you to force game options.")
+SETTEXT(CFG_SHORTRVS, "`%s' (%s) enable shortened (or lengthened) RVs")
+SETTEXT(CFG_ARTICULATEDRVS, "`%s' (%s) enable articulated RVs")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

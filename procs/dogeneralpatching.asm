@@ -70,6 +70,7 @@ extern num_powersoften,powersoften_last
 extern initializecargofn
 extern CheckForVehiclesInTheWay
 extern MakeTempScrnBlockDesc
+extern sellroadvehicle
 
 begincodefragments
 
@@ -1405,6 +1406,10 @@ codefragment findMakeTempScrnBlockDesc, 13
 	mov cx, 358
 	mov bp, 11
 
+codefragment findSellRoadVehicle, 4
+	shr     ebx, 5
+	retn
+
 endcodefragments
 
 ptrvarall industrydatablock
@@ -1554,6 +1559,7 @@ dogeneralpatching:
 	storeaddress initializecargofn
 
 	storefunctionaddress vehicleToDepotOld, 1, 2, findroadvehicledepot
+	storeaddress findSellRoadVehicle, 2, 4, sellroadvehicle
 
 	storeaddresspointer findstatusbarnewsitem,1,1,statusbarnewsitem
 	storeaddresspointer brakeindex,1,1,brakespeedtable

@@ -50,6 +50,11 @@ findlisttrains:
 // the same for any other vehicle type (increase ax instead of ah)
 global findlistvehs
 findlistvehs:
+	cmp byte [edi+veh.class], 11h		// |--------
+	jne .skipArticulatedCheck		// | Added in by StevenHoefel.
+	cmp byte [edi+veh.subclass], 0x0	// | Dont inc ax for trailers.
+	jne .notours				// |
+.skipArticulatedCheck:				// |---------
 	cmp bl,[edi+veh.owner]	// overwritten
 	jne .notours		// by the
 	inc ax			// runindex call
@@ -117,6 +122,11 @@ sortloop:
 	movzx ecx,byte [esi+veh.class]
 	call dword [wantvehicle+(ecx-0x10)*4]
 	jnz .loop
+	cmp byte [edi+veh.class], 11h		// |--------
+	jne .skipArticulatedCheck		// | Added in by StevenHoefel.
+	cmp byte [edi+veh.subclass], 0x0	// | Dont inc ax for trailers.
+	jne .loop				// |
+.skipArticulatedCheck:				// |---------
 	mov cl,[esi+veh.owner]
 	cmp cl,[edi+veh.owner]
 	jne .loop
@@ -505,6 +515,12 @@ vehiclevalid:
 	mov ax,[esi+window.id]
 	cmp al,[edi+veh.owner]
 	jnz .exit
+	//-------------hacked in by steven hoefel-------------
+	//check if trailer, skip if trailer. ax is safe to trash
+	mov	ax, [edi+veh.idx]
+	cmp	ax, [edi+veh.engineidx]
+	jnz .exit
+	//-------------------------------------------------
 	mov edi,[edi+veh.veh2ptr]
 	mov edi,[edi+veh2.sortvar]
 .exit:
