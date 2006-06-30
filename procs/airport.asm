@@ -4,6 +4,7 @@
 #include <station.inc>
 #include <textdef.inc>
 #include <window.inc>
+#include <airport.inc>
 
 extern variabletofind,variabletowrite
 extern airportstartstatuses,airportlayoutptrs,airportsizes,airportmovementdataptrs
@@ -70,11 +71,22 @@ codefragment olddrawairportselwindow
 
 codefragment newdrawairportselwindow
 	movzx eax, byte [selectedairporttype]
+	cmp al, NUMOLDAIRPORTS
+	jae .good
+	bt [airporttypeavailmask],eax
+	jc .good
+	mov al,0
+	test byte [airporttypeavailmask],1
+	jnz .good_new
+	mov al,1
+.good_new:
+	mov [selectedairporttype],al
+.good:
 	mov ax, [airporttypenames+eax*2]
 	mov [textrefstack],ax
 	mov ebx,[esi+window.activebuttons]
 	and bl,0x3f
-	jmp short fragmentstart+92
+	setfragmentsize 92, 1
 
 codefragment oldairportsizetext,2
 	mov bx,0x305b
@@ -137,8 +149,9 @@ exported patchnewairports
 	and dword [airportspecialflags],0
 	and dword [airportcallbackflags],0
 	mov dword [airportmovementdatasizes],0x1d1d1d1d
-	mov dword [airporttypenames],0x305a3059
-	mov word [airporttypenames+4],0x306b
+	mov word [airporttypenames],statictext(airportsel_smallairport)
+	mov word [airporttypenames+2],statictext(airportsel_largeairport)
+	mov word [airporttypenames+4],statictext(airportsel_heliport)
 
 	patchcode getnewaircraftop
 	storeaddress findaircraftmovement,1,1,aircraftmovement
@@ -153,12 +166,15 @@ exported patchnewairports
 	multipatchcode oldaircraftyield_newop,newaircraftyield_newop,2
 
 	stringaddress findaircraftselectwinelems,1,1
+	add word [edi+2],10
 	mov word [edi+10],statictext(airportsel_typebutton)
 	mov al,[edi+16]
-	sub al,11
+	sub al,21
 	mov [edi+4],al
 	inc al
 	mov [edi+14],al
+	add al,10
+	mov [edi+16],al
 	mov word [edi+22],0x0225	// downward pointing black triangle
 	mov byte [edi+24],0
 

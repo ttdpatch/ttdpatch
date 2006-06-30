@@ -297,7 +297,7 @@ section .text
 	je .two
 	ja .extspecial
 	cmp al,0x88
-	jnb .store
+	jnb .coloring
 	movzx eax,al
 	mov ebx,[textspechandler]
 	jmp [ebx+(eax-0x7b)*4]
@@ -310,6 +310,10 @@ section .text
 
 .two:
 	inc bl
+
+.coloring:
+	cmp byte [skipcolor],0
+	jne storetextcharacter.skipcolor
 
 .store:
 global storetextcharacter
@@ -326,8 +330,11 @@ storetextcharacter:
 	// copy arguments for codes 01 and 1F
 	movsb
 	jmp .storenext
+.skipcolor:
+	dec byte [skipcolor]
 .resume:
 	jmp [textprocchar]
+
 
 	// this is useful to trap on access to a certain string in memory
 	// and then use this variable to figure out what the text index was
@@ -343,7 +350,7 @@ endvar
 
 // string code 9A handlers
 vard extstringformat
-	dd print64bitcost,print64bitcost
+	dd print64bitcost,print64bitcost,skipnextcolor
 numextstringformat equ ($-extstringformat)/4
 endvar
 
@@ -376,6 +383,11 @@ print64bitcost:
 	extern printcash_64bit
 	jmp printcash_64bit
 
+noglobal uvarb skipcolor
+
+skipnextcolor:
+	inc byte [skipcolor]
+	ret
 
 	// patch text table handlers
 	//
