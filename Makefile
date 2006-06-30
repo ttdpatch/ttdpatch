@@ -88,19 +88,22 @@ hostwinobjs:=	$(wincsources:%.c=host/%.o)
 #           dependencies are in Makefile.dep, include that
 # =======================================================================
 
-Makefile.dep%: .dep-ver
-	${_E} [DEP] $@
-	@touch $@
-	@make -o Makefile.depd -o Makefile.depw -s INCLUDES
-	${_C}$(CPP) -x assembler-with-cpp -Iinc -DMAKEDEP -D${WDEF_$*} -MM $(asmmainsrc) patches/*.asm procs/*.asm ${asmcsources} -I. | perl -pe 's/\.o/.$*po/; s#\w+/\.\./##g; print "${OTMP}" if /^\S/; print "$$1/" if /: (patches|procs)\//' > $@
+#Makefile.dep%: .dep-ver
+#	${_E} [DEP] $@
+#	@touch $@
+#	@make -o Makefile.depd -o Makefile.depw -s INCLUDES
+#	${_C}$(CPP) -x assembler-with-cpp -Iinc -DMAKEDEP -D${WDEF_$*} -MM $(asmmainsrc) patches/*.asm procs/*.asm ${asmcsources} -I. | perl -pe 's/\.o/.$*po/; s#\w+/\.\./##g; print "${OTMP}" if /^\S/; print "$$1/" if /: (patches|procs)\//' > $@
 
 ${MAKEFILELOCAL}:
 	@echo ${MAKEFILELOCAL} did not exist, using defaults. Please edit it if compilation fails.
 	cp ${MAKEFILELOCAL}.sample $@
 
 include Makefile.dep
--include Makefile.depd
--include Makefile.depw
+#-include Makefile.depd
+#-include Makefile.depw
+
+-include ${asmdobjs:.dpo=.dpo.d}
+-include ${asmwobjs:.wpo=.wpo.d}
 
 # =======================================================================
 #           special targets
@@ -145,6 +148,7 @@ cleantemp:
 	rm -f *.asp
 	rm -f *.{o,obj,OBJ}
 	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po
+	rm -f ${OTMP}*.*po.d ${OTMP}patches/*.*po.d ${OTMP}procs/*.*po.d
 	rm -f ${OTMP}*.*lst ${OTMP}patches/*.*lst ${OTMP}procs/*.*lst
 	rm -f lang/*.{o,map,exe} lang/language.*
 	rm -f host/*.o host/lang/* host/mkpttxt host/makelang
@@ -178,7 +182,7 @@ clean:	cleantemp
 
 # also remove Makefile.dep?, listings and bak files
 mrproper: clean remake
-	rm -f Makefile.dep?
+	#rm -f Makefile.dep?
 	rm -f *.{d,w,l}lst patches/*.{d,w,l}lst procs/*.{d,w,l}lst
 	rm -f patches/*.ba* procs/*.ba*
 
@@ -275,7 +279,7 @@ host/%.o : %.asm
 # various versions)
 define A-PO-COMMANDS
 	${_E} [CPP/NASM] $@
-	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< | perl perl/lineinfo.pl > $@.asp
+	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< -MD -MF $@.d -MT $@ | perl perl/lineinfo.pl > $@.asp
 	${_C}$(NASM) -f win32 $@.asp -o $@
 	@rm -f $@.asp
 endef
