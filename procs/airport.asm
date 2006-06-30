@@ -5,6 +5,8 @@
 
 extern variabletofind,variabletowrite
 extern airportstartstatuses,airportlayoutptrs,airportsizes,airportmovementdataptrs
+extern airportspecialflags,airportcallbackflags,aircraftmovement
+extern airportspecialmovements,airportmovementdatasizes
 
 begincodefragments
 
@@ -17,6 +19,45 @@ codefragment findairportsizetable,15
 
 codefragment findairportmovementdata,10
 	movzx eax, byte [ebx+station.airporttype]
+
+codefragment oldgetnewaircraftop,-14
+	movzx ebx, byte [esi+veh.aircraftop]
+
+codefragment_call newgetnewaircraftop,getnewaircraftop,8
+
+codefragment findaircraftmovement,-15
+	movzx edi, byte [esi+veh.movementstat]
+	shl edi,1
+
+codefragment findaircraftexitdepot
+	bts word [ebx+station.airportstat], 7
+	mov word [esi+veh.speed],0
+
+codefragment findaircraftstartload,-6
+	cmp al,2
+	jz $+2+0x4c
+
+codefragment findaircraftland,-4
+	mov byte [esi+veh.ysize],2
+	push eax
+
+codefragment findaircraftenterhangar,-5
+	mov byte [esi+veh.aircraftop],0
+	mov ax,[esi+veh.currorder]
+
+codefragment findaircrafttakeoffeffect,-4
+	mov al,0x0d
+	jmp $+5+0x212
+
+codefragment findaircraftyield,-4
+	mov byte [esi+veh.ysize],0x18
+	mov ax, [esi+veh.currorder]
+
+codefragment oldaircraftyield_newop
+	mov byte [esi+veh.aircraftop],0x12
+	db 0xc6, 0x46, 0x62		// mov byte [esi+veh.movementstat],...
+
+codefragment_jmp newaircraftyield_newop,aircraftyield_newop
 
 endcodefragments
 
@@ -52,4 +93,20 @@ exported patchnewairports
 	xchg esi,[edi]
 	mov edi,airportmovementdataptrs
 	times 4 movsd
+
+	and dword [airportspecialflags],0
+	and dword [airportcallbackflags],0
+	mov dword [airportmovementdatasizes],0x1d1d1d1d
+
+	patchcode getnewaircraftop
+	storeaddress findaircraftmovement,1,1,aircraftmovement
+
+	storeaddress findaircraftexitdepot,1,1,airportspecialmovements+(1*4)
+	storeaddress findaircraftstartload,1,1,airportspecialmovements+(2*4)
+	storeaddress findaircraftland,1,1,airportspecialmovements+(3*4)
+	storeaddress findaircraftenterhangar,1,1,airportspecialmovements+(5*4)
+	storefunctionaddress findaircrafttakeoffeffect,1,1,airportspecialmovements+(6*4)
+	storeaddress findaircraftyield,1,1,airportspecialmovements+(8*4)
+
+	multipatchcode oldaircraftyield_newop,newaircraftyield_newop,2
 	ret

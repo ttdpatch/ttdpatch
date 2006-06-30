@@ -17,6 +17,7 @@
 #include <news.inc>
 #include <house.inc>
 #include <newvehdata.inc>
+#include <airport.inc>
 
 extern LoadWindowSizesFinish,SaveWindowSizesPrepare
 extern actionhandler,activatedefault,animarraysize,calcaccel
@@ -54,6 +55,7 @@ extern vehtypedataconvbackupptr,vehtypedataptr
 extern windowsizesbufferptr
 extern player2array,player2clear,cargoids
 extern disabledoldhouses,savevar40x
+extern clearairportdata,airportdataidtogameid
 
 // Known (defined) extra chunks.
 // The first table defines chunk IDs.
@@ -83,6 +85,7 @@ var knownextrachunkids
 	dw 0x800a	// incoming industry cargo data
 	dw 0x800b	// new cargo type data
 	dw 0x800c	// player 2 array
+	dw 0x800d	// new airport type data
 
 knownextrachunknum equ (addr($)-knownextrachunkids)/2
 
@@ -111,6 +114,7 @@ var knownextrachunkloadfns
 	dd addr(loadinduincargodata)
 	dd addr(loadnewcargotypes)
 	dd addr(loadplayer2array)
+	dd addr(loadnewairporttypes)
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkloadfns)/4
 	%error "Inconsistent number of chunk functions"
@@ -142,6 +146,7 @@ var knownextrachunksavefns
 	dd addr(saveinduincargodata)
 	dd addr(savenewcargotypes)
 	dd addr(saveplayer2array)
+	dd addr(savenewairporttypes)
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunksavefns)/4
 	%error "Inconsistent number of chunk functions"
@@ -175,6 +180,7 @@ var knownextrachunkqueryfns
 	dd addr(canhaveinduincargodata)
 	dd addr(canhavenewcargotypes)
 	dd addr(canhaveplayer2array)
+	dd addr(canhavenewairporttypes)
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkqueryfns)/4
 	%error "Inconsistent number of chunk functions"
@@ -568,6 +574,8 @@ newloadtitleproc:
 	call postloadadjust
 
  	call clearpersistenttexts	// this must be called before extra chunks are loaded
+
+	call clearairportdata
 
 	movzx ecx,word [landscape3+ttdpatchdata.extrachunks]
 
@@ -1985,6 +1993,24 @@ saveplayer2array:
 	call ebp			// save actual array
 	ret
 
+canhavenewairporttypes:
+	testflags newairports
+	ret
+
+loadnewairporttypes:
+	cmp eax,8*NUMAIRPORTS
+	jne badchunk
+	jmp short loadsavenewairporttypes
+
+savenewairporttypes:
+	mov eax,8*NUMAIRPORTS
+	call savechunkheader
+
+loadsavenewairporttypes:
+	xchg ecx,eax
+	mov esi,airportdataidtogameid
+	call ebp
+	ret
 
 //
 // End of extra chunk load/save/query functions
