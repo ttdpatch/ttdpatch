@@ -8,9 +8,9 @@
 # VERSIONBUILD is the build number for the Windows resource file
 REV=${subst E,mod,${SVNREV}}
 SVNREVNUM=${subst E,,${SVNREV}}
-VERSION = 26a1${if ${NOREV},,r${SVNREV}}
-VERSIONSTR = 2.6 alpha 1${if ${NOREV},, r${REV}}
-VERSIONNUM = 26a1${if ${NOREV},,d${SVNREV}}
+VERSION = 26a0${if ${NOREV},,r${SVNREV}}
+VERSIONSTR = 2.6 alpha 0${if ${NOREV},, r${REV}}
+VERSIONNUM = 26a0${if ${NOREV},,d${SVNREV}}
 
 # Important: increase the build number by 10 every time VERSIONNUM changes
 # Limits: VERSIONMAJOR up to 255, MINOR and REVISION up to 15, BUILD up to 65535
