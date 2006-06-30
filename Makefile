@@ -283,10 +283,6 @@ define A-PO-COMMANDS
 	${_C}$(NASM) -f win32 $@.asp -o $@
 	@rm -f $@.asp
 endef
-define A-D-COMMANDS
-	${_E} [CPP DEP] $@
-	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc -I. $< -M -MG -MF $@ -MT ${subst po.d,po,$@}
-endef
 define A-LST-COMMANDS
 	${_E} [CPP/NASM] $@
 	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc -I. $< | perl perl/lineinfo.pl > $@.asp
@@ -297,20 +293,21 @@ define C-PO-COMMANDS
 	${_E} [CC] $@
 	${_C}$(CC) ${XASMDEF} -c -o $@ $< -Iinc -I. -MD -MF $@.d -MT $@
 endef
-define C-D-COMMANDS
-	${_E} [CC DEP] $@
-	${_C}$(CC) ${XASMDEF} -M -MG -MF $@ -MT ${subst .d,,$@} $< -Iinc -I.
+define C-A-D-COMMANDS
+	${_E} [CPP DEP] $@
+	${_C} if [ -e $*.asm ]; then \
+		$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc -I. $*.asm -M -MG -MF $@ -MT ${subst po.d,po,$@}; \
+	elif [ -e $*.c ]; then \
+		$(CC) ${XASMDEF} -M -MG -MF $@ -MT ${subst .d,,$@} $*.c -Iinc -I.; \
+	else \
+		@echo Don\'t know how to make $@.; exit 1; \
+	fi
 endef
 
 ${OTMP}%.dpo : %.asm
 	${A-PO-COMMANDS}
 ${OTMP}%.wpo : %.asm
 	${A-PO-COMMANDS}
-
-${OTMP}%.dpo.d : %.asm
-	${A-D-COMMANDS}
-${OTMP}%.wpo.d : %.asm
-	${A-D-COMMANDS}
 
 %.dlst : %.asm
 	${A-LST-COMMANDS}
@@ -322,10 +319,10 @@ ${OTMP}%.dpo : %.c
 ${OTMP}%.wpo : %.c
 	${C-PO-COMMANDS}
 
-${OTMP}%.dpo.d : %.c
-	${C-D-COMMANDS}
-${OTMP}%.wpo.d : %.c
-	${C-D-COMMANDS}
+${OTMP}%.dpo.d:
+	${C-A-D-COMMANDS}
+${OTMP}%.wpo.d:
+	${C-A-D-COMMANDS}
 
 # link all assembly modules into ttdprot?.pe
 ttdprotd.pe ttdprotd.map: $(asmdobjs) reloc.a
