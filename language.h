@@ -489,6 +489,7 @@ enum langtextids {
 	CFG_FORCEGAMEOPTIONS,
 	CFG_SHORTRVS,
 	CFG_ARTICULATEDRVS,
+	CFG_NEWAIRPORTS,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS

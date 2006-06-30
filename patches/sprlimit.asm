@@ -55,6 +55,7 @@ vard exsfeaturemaxspritesperblock
 	dd EXTBASE_OTHER+ EXTCOUNT_OTHER 	// 10 industries
 	dd EXTBASE_OTHER+ EXTCOUNT_OTHER 	// 11 cargoes
 	dd 0					// 12 sounds
+	dd EXTBASE_OTHER+ EXTCOUNT_OTHER 	// 13 airports
 	checkfeaturesize exsfeaturemaxspritesperblock, 4
 endvar
 
@@ -72,6 +73,7 @@ vard exsfeaturetospritebaseoffsets
 	dd EXTBASE_OTHER	// 10 industries
 	dd EXTBASE_OTHER	// 11 cargoes
 	dd 0			// 12 sounds
+	dd EXTBASE_OTHER	// 13 airports
 	checkfeaturesize exsfeaturetospritebaseoffsets, 4
 endvar
 
@@ -90,6 +92,7 @@ varb exsnumactspritesindex
 	db 0	// 10 industries
 	db 0	// 11 cargoes
 	db -1	// 12 sounds
+	db 0	// 13 airports
 	checkfeaturesize exsnumactspritesindex,1
 endvar
 

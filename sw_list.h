@@ -323,7 +323,7 @@
 	BITS (187,"forcegameoptions", CFG_FORCEGAMEOPTIONS, INTERFACE, forcegameoptions, 3, FLAGDATA(forcegameoptionssettings), 0),
 	YESNO(188,"shortrvs", CFG_SHORTRVS, VEH_ROAD, shortrvs),
 	YESNO(189,"articulatedrvs", CFG_ARTICULATEDRVS, VEH_ROAD, articulatedrvs),
-
+	YESNO(190,"newairports", CFG_NEWAIRPORTS, INFST_STATION, newairports),
 //
 // Here follows the switch order list
 // This list defines the order of switches in the switch table
@@ -479,4 +479,4 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	forcegameoptions,
 	shortrvs,
 	articulatedrvs,
-
+	newairports,

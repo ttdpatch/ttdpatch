@@ -470,6 +470,7 @@ SWITCHTEXT(enhancetunnels, "Allows building track on top of tunnel entrances", "
 SWITCHTEXT(forcegameoptions, "Allows you to force game options","")
 SWITCHTEXT(shortrvs, "Enabled Shortened (or lengthened) RVs", "")
 SWITCHTEXT(articulatedrvs, "Enabled Articulated RVs", "")
+SWITCHTEXT(newairports, "Allows using new airport types","")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -834,6 +835,7 @@ SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) allows to build track on top of tunnel en
 SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) allows you to force game options.")
 SETTEXT(CFG_SHORTRVS, "`%s' (%s) enable shortened (or lengthened) RVs")
 SETTEXT(CFG_ARTICULATEDRVS, "`%s' (%s) enable articulated RVs")
+SETTEXT(CFG_NEWAIRPORTS, "`%s' (%s) allows using new airport types supplied by GRFs")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

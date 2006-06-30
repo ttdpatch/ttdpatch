@@ -14,6 +14,7 @@
 #include <flagdata.inc>
 #include <font.inc>
 #include <bitvars.inc>
+#include <airport.inc>
 
 extern tramtracks,numtramtracks
 extern newonewayarrows,numonewayarrows
@@ -62,6 +63,8 @@ extern numsnowytemptrees,setstatcargotriggers,industilespecflags
 extern ttdpatchversion
 extern stationanimdata,stationanimspeeds
 extern newcoastspritebase, newcoastspritenum
+extern setairportlayout,airportstartstatuses,setairportmovementdata
+extern airportcallbackflags,airportspecialflags,airportaction3
 
 uvarb action1lastfeature
 
@@ -1085,6 +1088,16 @@ grfcalltable action3storeid, dd addr(action3storeid_table.generic)
 	loop .getcargos
 	ret
 
+.getairports:
+	lodsb
+	add eax,[globalidoffset]
+	mov al,[curgrfairportlist+eax]
+	or al,al
+	jz .nextairport
+	mov [airportaction3+eax*4],ebp
+.nextairport:
+	loop .getairports
+	ret
 
 .getcanals:
 	lodsb				// canal feature id
@@ -3187,6 +3200,7 @@ grfcalltable grfresource
 .gethouses:
 .getindustiles:
 .getsounds:
+.getairports:
 .fail:
 	or esi,byte -1		// invalid action D, not just lack of resources
 	stc
@@ -3769,6 +3783,9 @@ defvehdata spclcargodata, F,t,t,t,t,t,w,B,B,B,F,F,F,F,F,d,B,w,B	// 08..1a
 defvehdata specsounddata
 defvehdata spclsounddata, F,F,F				// 08..0A
 
+defvehdata specairportdata
+defvehdata spclairportdata, F,w,F,B,B				// 08..0c
+
 %undef defvehdata
 
 %pop
@@ -3983,23 +4000,24 @@ uvard alwaysminusone,1,s
 var grfresbase, dd GRM_TRAINS,GRM_RVS,GRM_SHIPS,GRM_PLANES
 	dd -1, -1, -1, -1		// stations, canals, bridges houses
 	dd -2, -1,GRM_INDUSTRIES	// sprites, industiles, industries,
-	dd GRM_CARGOS,-1		// cargos, sounds
+	dd GRM_CARGOS,-1,-1		// cargos, sounds, airports
 checkfeaturesize grfresbase, 4
 	// next one starts with 357
 
 	// the following variables need to be close in memory
-var vehbase, db TRAINBASE,ROADVEHBASE,SHIPBASE,AIRCRAFTBASE,0,0,0,0,0,0,0,0,0
+var vehbase, db TRAINBASE,ROADVEHBASE,SHIPBASE,AIRCRAFTBASE,0,0,0,0,0,0,0,0,0,0
 checkfeaturesize vehbase, 1
 
 var vehbnum, db NTRAINTYPES,NROADVEHTYPES,NSHIPTYPES,NAIRCRAFTTYPES
 	db 255,255,NBRIDGES,255		// stations,canals,bridges,houses
 	db 255,255,NINDUSTRIES,32	// generic,industiles,industries,cargos
-	db 0				// sounds
+	db 0,NUMNEWAIRPORTS		// sounds
 checkfeaturesize vehbnum, 1
 
 	// for action 0, where are the regular vehicle specific properies listed
 var specificpropertylist, dd spectraindata,specrvdata,specshipdata,specplanedata,specstationdata, 0, specbridgedata
 			dd spechousedata,specglobaldata,specindustiledata,specindustrydata,speccargodata,specsounddata
+			dd specairportdata
 checkfeaturesize specificpropertylist, 4
 
 	// for action 0, where the data for each vehicle class starts
@@ -4013,11 +4031,12 @@ var specificpropertyofs, db -10,-6,0,0
 	// special vehicle properties stored in newvehdatastruc (or with handler func)
 var specialpropertybase, dd newtrainvehdata,newrvvehdata,newshipvehdata,newplanevehdata
 	dd newstationdata, 0, bridgedata, housedata, globaldata, industiledata, industrydata, cargodata, sounddata
+	dd airportdata
 checkfeaturesize specialpropertybase, 4
 
 	// for those features that need ID translation, put the table here
 var action0transtable, dd 0,0,0,0,curgrfstationlist,0,0,curgrfhouselist,
-		       dd 0, curgrfindustilelist, curgrfindustrylist,0,0
+		       dd 0, curgrfindustilelist, curgrfindustrylist,0,0, curgrfairportlist
 checkfeaturesize action0transtable, 4
 
 	// pointers to the data for each of the special properties
@@ -4136,6 +4155,10 @@ var sounddata
 	dd addr(setsoundvolume),addr(setsoundpriority)			//08..09
 	dd addr(overrideoldsound)					//0A
 
+var airportdata
+	dd setairportlayout,airportstartstatuses,setairportmovementdata	//08..0a
+	dd airportcallbackflags,airportspecialflags			//0b..0c
+
 uvard grfvarreinitstart,0
 
 	// All variables that must be reset when loading graphics again
@@ -4232,7 +4255,7 @@ uvard curgrftownnames,128
 uvard curgrfindustilelist,256/4
 uvard curgrfindustrylist,NINDUSTRIES/4 + 1
 uvard globalidoffset
-
+uvard curgrfairportlist,256/4
 
 uvard grfvarclearsigned,0
 
@@ -4336,7 +4359,7 @@ uvarb cargoid, 32	// list of cargo types for each cargo bit, only valid if bit s
 
 // patchflags bit numbers for each of the newgrf features
 var newgrfflags, db newtrains,newrvs,newships,newplanes,newstations,canals,newbridges,newhouses
-	db anyflagset,newindustries,newindustries,newcargos,newsounds
+	db anyflagset,newindustries,newindustries,newcargos,newsounds,newairports
 	times 0x48-(addr($)-newgrfflags) db noflag
 	db anyflagset	// feature 0x48 is special, for action 4/gen. textIDs
 

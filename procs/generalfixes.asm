@@ -188,6 +188,7 @@ codefragment newinitpaymentrategraph
 	mov word [ebp+graphdata.firstarg],15
 	mov word [ebp+graphdata.argstep],15
 
+glob_frag oilfieldaccepts
 codefragment oilfieldaccepts,11
 	movzx ebp,byte [esi+station.airporttype]
 

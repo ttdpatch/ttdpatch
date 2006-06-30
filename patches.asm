@@ -82,6 +82,7 @@
 	patchproc multihead,unifiedmaglev,newtrains,saveoptdata, patchwaggoncheck	// must include all switches from patchrailvehiclelist
 	patchproc newlineup, patchnewlineup
 	patchproc generalfixes, patchgeneralfixes
+	patchproc newairports, patchnewairports			// must be after patchgeneralfixes
 	patchproc generalfixes,sharedorders, patchsaveschedule
 
 #if WINTTDX

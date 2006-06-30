@@ -33,6 +33,7 @@ extern wagonoverride,getindutiletypeatoffset,getindutilerandombits
 extern getindustilelandslope_industry,hexdigits,int21handler
 extern getotherindustileanimstage,getotherindustileanimstage_industry
 extern getstationanimframe,getnearbystationanimframe,getothertypedistance
+extern airportaction3,getaircraftvehdata,getaircraftdestination
 
 uvard grffeature
 uvard curgrffeature,1,s		// must be signed to indicate "no current feature"
@@ -142,6 +143,10 @@ grfcalltable getaction3, dd addr(getaction3_table.generic)
 .getsounds:
 	ud2
 
+.getairports:
+	mov eax,[airportaction3+eax*4]
+	ret
+
 .invalidfeature:
 	ud2	// another ud2 to distinguish it from the above by different address
 
@@ -180,6 +185,7 @@ grfcalltable getaction3cargo
 .getindustiles:
 .getindustries:
 .getcargos:
+.getairports:
 
 .default:
 	movzx eax,word [ecx+action3info.defcid]
@@ -421,6 +427,7 @@ grfcalltable getaction2spritenum
 
 .gethouses:
 .getindustiles:
+.getairports:
 	//for houses and industry tiles, we return a pointer to the real data
 	// in eax instead of a sprite number
 	lea eax,[ebx+3]
@@ -846,6 +853,7 @@ grfcalltable getrandombits
 .getcargos:
 .norandom:
 .getsounds:
+.getairports:
 	ret
 
 .gethouses:
@@ -891,6 +899,7 @@ grfcalltable getrandomtriggers
 .getcargos:
 .norandom:
 .getsounds:
+.getairports:
 	ret
 
 .gethouses:
@@ -1325,6 +1334,7 @@ grfcalltable getother
 	ret
 
 .getstations:
+.getairports:
 	mov esi,[esi+station.townptr]
 	ret
 
@@ -1632,6 +1642,7 @@ varb featurevarofs
 	db -0x80, -0x80		// industry struc; town struc
 	db 0, 0			// cargos don't have structures
 	db 0, 0			// sounds neither
+	db -0x80+0x10, -0x80	// airports: same as stations
 
 checkfeaturesize featurevarofs, 2
 
@@ -1654,6 +1665,7 @@ vard varavailability
 	dd 0,1<<31,		0,1<<31			// industries, towns
 	dd 0,1<<31,		0,1<<31			// cargos
 	dd 0,1<<31,		0,1<<31			// sounds
+	dd 0,1<<31,		0,1<<31			// airports
 
 checkfeaturesize varavailability, (4*2*2)
 
@@ -1798,6 +1810,19 @@ vard industryparamvarhandler
 %ifndef PREPROCESSONLY
 %assign n_industryparamvarhandler (addr($)-industryparamvarhandler)/4
 %endif
+
+vard airportvarhandler
+	dd getaircraftdestination
+%ifndef PREPROCESSONLY
+%assign n_airportvarhandler (addr($)-airportvarhandler)/4
+%endif
+
+vard airportparamvarhandler
+%ifndef PREPROCESSONLY
+	dd getaircraftvehdata
+%assign n_airportparamvarhandler (addr($)-airportparamvarhandler)/4
+%endif
+
 endvar
 
 vard specialvarhandlertable
@@ -1814,6 +1839,7 @@ vard specialvarhandlertable
 	dd industryvarhandler,townvarhandler
 	dd 0,0
 	dd 0,0
+	dd airportvarhandler,townvarhandler
 
 checkfeaturesize specialvarhandlertable, (4*2)
 
@@ -1835,6 +1861,7 @@ vard specialvars
 	db n_industryvarhandler,n_townvarhandler
 	db 0,0
 	db 0,0
+	db n_airportvarhandler,n_townvarhandler
 %endif
 
 checkfeaturesize specialvars, (1*2)
@@ -1855,6 +1882,7 @@ vard specialparamvarhandlertable
 	dd industryparamvarhandler,townparamvarhandler
 	dd 0,0
 	dd 0,0
+	dd airportparamvarhandler,townparamvarhandler
 
 checkfeaturesize specialparamvarhandlertable, (4*2)
 
@@ -1876,6 +1904,7 @@ varb specialparamvars
 	db n_industryparamvarhandler,n_townparamvarhandler
 	db 0,0
 	db 0,0
+	db n_airportparamvarhandler,n_townparamvarhandler
 %endif
 
 checkfeaturesize specialparamvars, (1*2)
