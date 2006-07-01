@@ -338,13 +338,13 @@ ${OTMP}%.wpo.d:
 
 host/%.o.d:
 	${_E} [HOSTCC DEP] $@
-	${_C}$(HOSTCC) $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null
+	${_C}$(HOSTCC) -E $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null
 %.o.d:
 	${_E} [CC DEP] $@
-	${_C}$(CC) $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null
+	${_C}$(CC) -E $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null
 %.obj.d : %.c
 	${_E} [CC DEP] $@
-	${_C}$(CC) $(CFLAGS) $(foreach DEF,$(DOSDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $< -o /dev/null
+	${_C}$(CC) -E $(CFLAGS) $(foreach DEF,$(DOSDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $< -o /dev/null
 
 # link all assembly modules into ttdprot?.pe
 ttdprotd.pe ttdprotd.map: $(asmdobjs) reloc.a
