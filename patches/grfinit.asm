@@ -584,16 +584,6 @@ initttdpatchdata:
 
 	// also clear various TTDPatch arrays
 	mov edi,[veh2ptr]
-
-	// eax is zero already
-	mov ecx,[newvehicles]
-.nextsortvar:
-	mov [edi+veh2.sortvar],eax
-	sub edi, byte -vehiclesize
-	loop .nextsortvar
-
-.nosortvar:
-	mov edi,[veh2ptr]
 	imul ecx,[newvehicles],byte veh2_size
 	rep stosb	// al is still zero
 
