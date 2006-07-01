@@ -1700,7 +1700,7 @@ vard varavailability
 	dd 0,3<<30,		0,3<<30			// industries, towns
 	dd 0,3<<30,		0,3<<30			// cargos
 	dd 0,3<<30,		0,3<<30			// sounds
-	dd 0,1<<31,		0,1<<31			// airports
+	dd 0,3<<30,		0,3<<30			// airports
 
 checkfeaturesize varavailability, (4*2*2)
 
