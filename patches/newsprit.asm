@@ -1575,8 +1575,9 @@ getspecialvar:
 // safe: ecx
 getspecparamvar:
 	sub eax,0x60
-	cmp al,0x1f
-	je .grfparam
+	cmp al,0x1e
+	je .grffncall
+	ja .grfparam
 
 	mov ah,cl
 	movzx ecx,byte [grffeature]
@@ -1623,6 +1624,40 @@ getspecparamvar:
 	xor eax,eax
 	ret
 
+.grffncall:
+	push ebx
+	mov ebx,[curgrfsprite]
+	push ebx
+	movzx ebx,bx
+	push edx
+	push dword [isother]
+	mov edx,[mostrecentspriteblock]
+	mov eax,[edx+spriteblock.spritelist]
+	mov ebx,[eax+(ebx-1)*4]		// ebx is one too high
+	movzx ebx,word [ebx-4]		// read referenced var.action 2 sprite number
+
+.gotaction2:
+	mov eax,[edx+spriteblock.spritelist]
+	mov ebx,[eax+ebx*4]
+	mov eax,[ebx-8]
+	mov [curgrfsprite],eax
+
+	mov al,[ebx+3]
+	sub al,0x80
+	jb .gotfn			// this'll give us a semi-random value, but it's invalid to do this anyway
+
+	call getrandomorvariational
+	test bh,bh			// got callback result?
+	jns .gotaction2
+
+.gotfn:
+	and ebx,0x7fff
+	mov eax,ebx
+	pop dword [isother]
+	pop edx
+	pop dword [curgrfsprite]
+	pop ebx
+	ret
 
 // The following tables have two entries per feature, the first for the default thing, the second for "the other"
 
@@ -1652,19 +1687,19 @@ endvar
 	// even without a structure; once for 81+x and once for 82+x
 	// (all 60+x must set bit 15, which is special!)
 vard varavailability
-	dd 100001000b,1<<31,	100001000b,1<<31	// veh.vars 43, 48
-	dd 100001000b,1<<31,	100001000b,1<<31	// veh.vars 43, 48
-	dd 100001000b,1<<31,	100001000b,1<<31	// veh.vars 43, 48
-	dd 100001000b,1<<31,	100001000b,1<<31	// veh.vars 43, 48
-	dd 1000b,1<<31,		0,1<<31			// station var 43, towns
-	dd 0,1<<31,		0,1<<31			// canals
-	dd 0,1<<31,		0,1<<31			// bridges
-	dd 0,1<<31,		0,1<<31			// houses, bridges
-	dd 0,1<<31,		0,1<<31			// generic variables
-	dd 0,1<<31,		0,1<<31			// industry tiles, industries
-	dd 0,1<<31,		0,1<<31			// industries, towns
-	dd 0,1<<31,		0,1<<31			// cargos
-	dd 0,1<<31,		0,1<<31			// sounds
+	dd 100001000b,3<<30,	100001000b,3<<30	// veh.vars 43, 48
+	dd 100001000b,3<<30,	100001000b,3<<30	// veh.vars 43, 48
+	dd 100001000b,3<<30,	100001000b,3<<30	// veh.vars 43, 48
+	dd 100001000b,3<<30,	100001000b,3<<30	// veh.vars 43, 48
+	dd 1000b,3<<30,		0,3<<30			// station var 43, towns
+	dd 0,3<<30,		0,3<<30			// canals
+	dd 0,3<<30,		0,3<<30			// bridges
+	dd 0,3<<30,		0,3<<30			// houses, bridges
+	dd 0,3<<30,		0,3<<30			// generic variables
+	dd 0,3<<30,		0,3<<30			// industry tiles, industries
+	dd 0,3<<30,		0,3<<30			// industries, towns
+	dd 0,3<<30,		0,3<<30			// cargos
+	dd 0,3<<30,		0,3<<30			// sounds
 	dd 0,1<<31,		0,1<<31			// airports
 
 checkfeaturesize varavailability, (4*2*2)
