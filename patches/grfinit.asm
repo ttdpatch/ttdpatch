@@ -62,6 +62,7 @@ extern origlanguageid
 extern ChangeCoastSpriteTable
 extern grfmodflags
 extern ResizeOpenWindows, depotscalefactor
+extern clearairportdata
 
 // New class 0xF (vehtype management) initialization handler
 // does additional things before calling the original function
@@ -135,6 +136,8 @@ newvehtypeinit:
 	mov edi,industileoverrides
 	lea ecx,[eax+0xAF]
 	rep stosb
+
+	call clearairportdata
 
 	call infoapply		// and apply newgrf and other modifications
 
@@ -586,6 +589,7 @@ initttdpatchdata:
 	mov ecx,[newvehicles]
 .nextsortvar:
 	mov [edi+veh2.sortvar],eax
+	sub edi, byte -vehiclesize
 	loop .nextsortvar
 
 .nosortvar:
