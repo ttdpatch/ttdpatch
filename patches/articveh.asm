@@ -1058,7 +1058,7 @@ dontLetARVsInNormalRVStops:
 	cmp cx, 0	// the station has the facility but no tile in the landscape, should never happen, test anyway
 	je .fail
 
-	cmp byte [landscape5(cx)], 0x53
+	cmp byte [landscape5(cx,1)], 0x53
 	jae .done	// no stop type, do normal code
 .fail:
 	add esp, 4
