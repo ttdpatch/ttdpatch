@@ -163,6 +163,7 @@ struc veh2
 	.var40x:	resd numvehvar40x	// cache of vehicle variables 40+x for action 2
 	.motion:	resd 1	// motion counter (256 increase = 1 unit of motion)
 	.colormap:	resd 1	// color translation sprite
+	.userbits:	resb 1	// user bits (train prop 25)
 endstruc
 
 #define VEH2_MIXEDPOWERTRAIN 0	// set if train has mix of electric/nonelectric engines
