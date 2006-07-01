@@ -748,3 +748,11 @@ CHANGELOG
   * fixed bug in flooding diagonally
   * prevent flooding diagonally through canals
   * fixed the train list window to use the new train counter
+
+
+2.6 alpha 1
+- by steven_h
+  * new switch "shortrvs on" to allow shorter road vehicles
+  * new switch "articulatedrvs on" to allow articulated road vehicles
+- by Csaba:
+  * initial work on new airports feature (enable with "newairports on")
