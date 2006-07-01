@@ -748,3 +748,4 @@ CHANGELOG
   * fixed bug in flooding diagonally
   * prevent flooding diagonally through canals
   * fixed the train list window to use the new train counter
+- add var 7E to allow procedure calls in var.action 2
