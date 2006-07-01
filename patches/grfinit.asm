@@ -589,6 +589,7 @@ initttdpatchdata:
 	mov ecx,[newvehicles]
 .nextsortvar:
 	mov [edi+veh2.sortvar],eax
+	sub edi, byte -vehiclesize
 	loop .nextsortvar
 
 .nosortvar:
