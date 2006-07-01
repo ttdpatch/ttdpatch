@@ -506,7 +506,8 @@ action2:
 	// - random ID:
 	//   (unused)
 	// - variational ID:
-	//   (unused)
+	//   for regular variables: unused
+	//   for var. 7E: <W:spritenum> (sprite number of referred var.action 2)
 	//
 	// Also all sprite numbers are translated into numbers relative
 	// to the action 1 sprite number.
@@ -701,6 +702,7 @@ newcargoid:
 	ret
 
 .variationalid:
+	lea ecx,[esi-8]
 	xor ebx,ebx
 	inc ebx
 	test al,0xc
@@ -718,10 +720,22 @@ newcargoid:
 
 .nextvar:
 	lodsb			// variable
-	and al,0xe0
-	cmp al,0x60
+	mov ah,al
+	and ah,0xe0
+	cmp ah,0x60
+	mov ah,0
 	jne .noparam
-	inc esi
+	cmp al,0x7e
+	lodsb
+	jne .noparam
+	// var 7E, need to resolve var.action 2 ID
+	movzx eax,al
+	mov ax,[cargoids+2*eax]
+	test eax,eax
+	mov dh,INVSP_INVCID
+	jz .invalid
+	mov [ecx],ax
+
 .noparam:
 	lodsb
 	test al,0xc0
