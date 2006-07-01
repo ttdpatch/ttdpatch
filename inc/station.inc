@@ -82,6 +82,7 @@ struc station2
 	.catchmentbottom:	resw 1				// 62h: southest "-"
 	.acceptedcargos:	resd 1				// 64h: bitmask of accepted cargos
 	.railxysouth:	resw 1				// 68h: for a rail station the south corner if 
+	.airportbusyedges:	resd 2				// 6ah: bitmask of busy edges for new airports
 				resb station_size - $
 endstruc
 

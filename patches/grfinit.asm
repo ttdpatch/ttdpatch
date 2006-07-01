@@ -587,6 +587,13 @@ initttdpatchdata:
 	imul ecx,[newvehicles],byte veh2_size
 	rep stosb	// al is still zero
 
+	mov edi,[veh2ptr]
+	mov ecx,[newvehicles]
+.nextaircraft:
+	mov dword [edi+veh2.curraircraftact],AIRCRAFTACT_UNKNOWN
+	sub edi, byte -vehiclesize
+	loop .nextaircraft
+
 	and word [lastperfcachereset],0		// this will be simply ignored if the corresponding switches aren't set
 	mov byte [savedvehclass],0
 	testflags newhouses

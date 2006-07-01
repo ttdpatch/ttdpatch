@@ -10,7 +10,7 @@
 
 extern curgrfairportlist,curspriteblock
 extern grffeature,curcallback,getnewsprite,callback_extrainfo
-extern GenerateDropDownMenu,invalidatehandle
+extern GenerateDropDownMenu,invalidatehandle,stationarray2ofst
 
 uvard airportdataidtogameid, NUMAIRPORTS*2
 
@@ -36,6 +36,12 @@ uvarb airportspecialflags, NUMAIRPORTS
 uvarb airportcallbackflags, NUMAIRPORTS
 
 uvarw airporttypenames, NUMAIRPORTS
+
+uvard airportmovementnodelistptrs, NUMAIRPORTS
+uvarb airportmovementnodenums, NUMAIRPORTS
+
+uvard airportmovementedgelistptrs, NUMAIRPORTS
+uvarb airportmovementedgenums, NUMAIRPORTS
 
 exported clearairportdata
 	pusha
@@ -71,6 +77,22 @@ exported clearairportdata
 	rep stosb
 
 	mov edi,airportcallbackflags+NUMOLDAIRPORTS
+	mov cl,NUMNEWAIRPORTS
+	rep stosb
+
+	mov edi,airportmovementnodelistptrs+NUMOLDAIRPORTS*4
+	mov cl,NUMNEWAIRPORTS
+	rep stosd
+
+	mov edi,airportmovementnodenums+NUMOLDAIRPORTS
+	mov cl,NUMNEWAIRPORTS
+	rep stosb
+
+	mov edi,airportmovementedgelistptrs+NUMOLDAIRPORTS*4
+	mov cl,NUMNEWAIRPORTS
+	rep stosd
+
+	mov edi,airportmovementedgenums+NUMOLDAIRPORTS
 	mov cl,NUMNEWAIRPORTS
 	rep stosb
 
@@ -136,11 +158,17 @@ exported setairportlayout
 exported setairportmovementdata
 	xor eax,eax
 	lodsb
-	mov [airportmovementdatasizes+ebx],al
-	lea eax,[eax*3]
-	shl eax,1
-	mov [airportmovementdataptrs+ebx*4],esi
+	mov [airportmovementnodenums+ebx],al
+	mov [airportmovementnodelistptrs+ebx*4],esi
+	imul eax, airportmovementnode_size
 	add esi,eax
+
+	lodsb
+	mov [airportmovementedgenums+ebx],al
+	mov [airportmovementedgelistptrs+ebx*4],esi
+	imul eax, airportmovementedge_size
+	add esi, eax
+
 	clc
 	ret
 
@@ -190,30 +218,250 @@ exported getnewaircraftop
 	add ebx,[stationarrayptr]
 
 	movzx eax, byte [ebx+station.airporttype]
-	cmp eax,NUMOLDAIRPORTS
+	cmp dword [airportmovementedgelistptrs+eax*4],1		// set cf iff the pointer is zero
 	jb .exit
 
-	bt dword [airportcallbackflags+eax], 0
-	cmc
-	jc .exit
+	cmp byte [esi+veh.movementstat],0xFF
+	je .nomove
+	cmp byte [esi+veh.aircraftnode],0xFF
+	je .nomove
 
-	mov al,[airportmovementdatasizes+eax]
-	cmp [esi+veh.movementstat],al
-	jae .nomove
+	mov edi,[esi+veh.veh2ptr]
+	add edi, 0+veh2.curraircraftact
 
+	cmp dword [edi],AIRCRAFTACT_UNKNOWN
+	jne .goodaction
+
+	call refreshaircraftaction
+
+.goodaction:
 	push ebx
 	call [aircraftmovement]
 	pop ebx
 	jnc .exit
 
 .nomove:
-	call doaircraftmovementcallbacks
+	call gotonextaircraftedge
+	clc
 
 .exit:
 	ret
 
+refreshaircraftaction:
+	movzx edx,byte [esi+veh.aircraftnode]
+	imul edx, airportmovementnode_size
+	movzx ecx, byte [ebx+station.airporttype]
+	add edx,[airportmovementnodelistptrs+ecx*4]
+
+	mov eax,[edx+airportmovementnode.xpos]
+	mov [edi],eax
+
+	mov byte [edi+4],0
+	test byte [edx+airportmovementnode.flags],AIRNODE_FORCEDIR
+	jz .noforcedir
+
+	or byte [edi+4],0x10
+	mov al,[edx+airportmovementnode.flags]
+	shr al,3
+	and al,7
+	mov [edi+5],al
+
+.noforcedir:
+	movzx edx, byte [esi+veh.movementstat]
+	imul edx, airportmovementedge_size
+	add edx, [airportmovementedgelistptrs+ecx*4]
+
+	movzx eax, byte [edx+airportmovementedge.specaction]
+	mov al, [.specorvals+eax]
+	or [edi+4],al
+
+	mov al, [edx+airportmovementedge.flags]
+	test al,AIREDGE_NOTAXI
+	jz .taxi
+	or byte [edi+4],1
+.taxi:
+	test al,AIREDGE_NOSHARPTURN
+	jz .sharpturns
+	or byte [edi+4],4
+.sharpturns:
+	ret
+
+noglobal varb .specorvals, 0, 0x40, 0x80, 8, 0x20, 0, 2
+
+gotonextaircraftedge:
+	movzx ebp,byte [ebx+station.airporttype]
+	mov dl, [esi+veh.aircraftnode]
+
+	mov ax, [esi+veh.currorder]
+	mov dh,AIREDGE_NOTTOOTHERAIRPORT
+	cmp ah, [esi+veh.targetairport]
+	jne .gotdestination
+	mov dh,AIREDGE_NOTTOTERMINAL
+	and al,0x1f
+	cmp al,1
+	je .gotdestination
+	mov dh,AIREDGE_NOTTOHANGAR
+.gotdestination:
+
+	cmp dl,0xff
+	je .nohangar
+	movzx eax, dl
+	imul eax, airportmovementnode_size
+	add eax, [airportmovementnodelistptrs+ebp*4]
+	mov al, [eax+airportmovementnode.flags]
+
+	test al,AIRNODE_TERMINAL
+	jz .noterminal
+	cmp dh,AIREDGE_NOTTOTERMINAL
+	jne .noterminal
+
+	jmp dword [airportspecialmovements+2*4]
+
+.noterminal:
+	test al,AIRNODE_HANGAR
+	jz .nohangar
+	cmp byte [esi+veh.aircraftop],0
+	jne .enterhangar
+
+	cmp dh, AIREDGE_NOTTOHANGAR
+	jne .nohangar
+
+	mov word [esi+veh.currorder],0
+	ret
+
+.enterhangar:
+	movzx eax, byte [esi+veh.movementstat]
+	cmp eax, 64
+	jae .noresetbit_hangar
+	add ebx,[stationarray2ofst]
+	btr [ebx+station2.airportbusyedges],eax
+
+	mov byte [esi+veh.movementstat],0xFF
+.noresetbit_hangar:
+	mov edi,[esi+veh.veh2ptr]
+	mov dword [edi+veh2.curraircraftact],AIRCRAFTACT_UNKNOWN
+	mov byte [esi+veh.aircraftop],0
+	jmp dword [airportspecialmovements+5*4]
+
+.nohangar:
+
+	mov al,AIREDGE_NOPLANES
+	cmp byte [esi+veh.subclass],0
+	jne .notheli
+	mov al,AIREDGE_NOHELIS
+.notheli:
+	or dh,al
+
+	add ebx,[stationarray2ofst]
+	mov cl,0
+	mov ch,[airportmovementedgenums+ebp]
+	mov edi,[airportmovementedgelistptrs+ebp*4]
+
+.trynextedge:
+	cmp dl, [edi+airportmovementedge.start]
+	jne .notgood
+	test [edi+airportmovementedge.flags],dh
+	jnz .notgood
+	mov eax,[ebx+station2.airportbusyedges]
+	mov ebp,[ebx+station2.airportbusyedges+4]
+	test [edi+airportmovementedge.and_mask],eax
+	jnz .notgood
+	test [edi+airportmovementedge.and_mask+4],ebp
+	jnz .notgood
+	cmp dword [edi+airportmovementedge.or_mask],0
+	jne .haveormask
+	cmp dword [edi+airportmovementedge.or_mask+4],0
+	je .good
+.haveormask:
+	not eax
+	not ebp
+	test [edi+airportmovementedge.or_mask],eax
+	jnz .good
+	test [edi+airportmovementedge.or_mask+4],ebp
+	jnz .good
+.notgood:
+	inc cl
+	add edi,airportmovementedge_size
+	dec ch
+	jz .nonextstate
+	jmp short .trynextedge
+
+.nonextstate:
+	ret
+
+.good:
+	cmp byte [esi+veh.aircraftop],0
+	jne .noexithangar
+	mov byte [esi+veh.aircraftop],3
+	pusha
+	call dword [airportspecialmovements+1*4]
+	popa
+.noexithangar:
+
+	movzx eax, byte [esi+veh.movementstat]
+	cmp eax, 64
+	jae .noresetbit
+	btr [ebx+station2.airportbusyedges],eax
+.noresetbit:
+
+	mov al,[edi+airportmovementedge.end]	
+	mov [esi+veh.aircraftnode],al
+
+	mov [esi+veh.movementstat],cl
+
+	cmp al,0xFF
+	je .nosetbit
+	movzx ecx,cl
+	cmp ecx, 64
+	jae .nosetbit
+	bts [ebx+station2.airportbusyedges],ecx
+.nosetbit:
+
+	cmp al,0xFF
+	jne .notyield
+	jmp dword [airportspecialmovements+4*8]
+.notyield:
+
+	movzx eax, byte [edi+airportmovementedge.specaction]
+	call dword [.speceffectfuncs+eax*4]
+
+	mov edi,[esi+veh.veh2ptr]
+	mov dword [edi+veh2.curraircraftact],AIRCRAFTACT_UNKNOWN
+
+.nothing:
+	ret
+
+noglobal vard .speceffectfuncs
+	dd .nothing, .helitakeoff, .heliland, .nothing, .touchdown, .takeoffeffect, .takeoff
+endvar
+
+.helitakeoff:
+.takeoff:
+	mov byte [esi+veh.xsize],0x18
+	mov byte [esi+veh.ysize],0x18
+	mov byte [esi+veh.aircraftop],0x12
+	ret
+
+.heliland:
+	mov byte [esi+veh.xsize],2
+	mov byte [esi+veh.ysize],2
+	mov byte [esi+veh.aircraftop],3
+	ret
+
+.touchdown:
+	mov al, [esi+veh.movementstat]
+	push eax
+	call dword [airportspecialmovements+3*4]
+	pop eax
+	mov [esi+veh.movementstat],al
+	mov byte [esi+veh.aircraftop],3
+	ret
+
+.takeoffeffect:
+	jmp dword [airportspecialmovements+6*4]
+
 vard airportspecialmovements
-	dd recheckorder			// force re-checking of orders when coming out of depot
+	dd recheckorder			// force re-checking of orders when coming out of hangar
 	dd 0				// exit from hangar, become visible again and such
 	dd 0				// start loading/unloading
 	dd 0				// landing sound effect and chance of crashing
@@ -238,76 +486,29 @@ growaircraftextents:
 	mov byte [esi+veh.ysize],0x18
 	ret
 
-doaircraftmovementcallbacks:
-	mov [currentaircraftptr],esi
-	xchg ebx,esi
-
-	mov byte [grffeature],0xd
-	mov dword [curcallback],0x143
-	movzx eax, byte [esi+station.airporttype]
-	mov edx,eax
-
-	call getnewsprite
-	jc .error
-	mov [callback_extrainfo],al
-	mov [callback_extrainfo+2],ah
-
-	mov eax,edx
-	inc dword [curcallback]
-	call getnewsprite
-	jc .error
-	mov [callback_extrainfo+1],al
-
-	mov eax,edx
-	inc dword [curcallback]
-	call getnewsprite
-	jc .error
-
-	cmp byte [callback_extrainfo+2],0
-	je .nospecial
-
-	pusha
-	movzx eax, byte [callback_extrainfo+2]
-	xchg ebx,esi
-	call [airportspecialmovements+(eax-1)*4]
-	popa
-
-.nospecial:
-	mov [esi+station.airportstat],ax
-	mov ax,[callback_extrainfo]
-	mov [ebx+veh.movementstat],al
-	mov [ebx+veh.aircraftop],ah
-
-	clc
-
-.error:
-	xchg ebx,esi
-	mov dword [curcallback],0
-	mov dword [currentaircraftptr],0
-	ret
-
 exported aircraftyield_newop
 	movzx ebx, byte [esi+veh.targetairport]
 	imul ebx,station_size
 	add ebx,[stationarrayptr]
 
-	mov al,[ebx+station.airporttype]
-	cmp al, NUMOLDAIRPORTS
-	jae .newairport
+	movzx eax,byte [ebx+station.airporttype]
+	cmp dword [airportmovementedgelistptrs+eax*4],0
+	jnz .newairport
 
 	mov ax,0x1212
 	cmp byte [esi+veh.subclass],0
 	jne .gotit
 	mov al,0x14
-	jmp short .gotit
-
-.newairport:
-	mov ax,0xFFFF
 
 .gotit:
 	mov [esi+veh.movementstat],al
 	mov [esi+veh.aircraftop],ah
-	mov [callback_extrainfo],ax
+	ret
+
+.newairport:
+	mov byte [esi+veh.movementstat],0xFF
+	mov byte [esi+veh.aircraftnode],0xFF
+	mov byte [esi+veh.aircraftop],0x12
 	ret
 
 noglobal uvarb menuairporttypes, 19

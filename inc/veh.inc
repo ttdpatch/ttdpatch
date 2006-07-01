@@ -92,7 +92,8 @@ struc veh
 	.parentmvstat	resb 1	//     the next turn for Articulated RVs (so that they follow the leader)
 	.traveltime:	resw 1	// 70h:number of days travelling since last load/unload
 	.refitcycle:	resb 1	// 72h:how often refitted to same cargo
-	.shortened:	resb 1	// 73h:how much shorter is the wagon (+0x80)
+	.shortened:		// 73h:how much shorter is the wagon (+0x80)
+	.aircraftnode:	resb 1	//     current node when on newairports
 	.speedlimit:	resw 1	// 74h:current top speed (b/o bridge, curve etc.), 0 if unlimited
 	.veh2ptr:	resd 1	// 76h:pointer to veh2 entry of this vehicle
 	.random:	resb 1	// 7ah:random bits, changed according to sprite data
@@ -164,8 +165,11 @@ struc veh2
 	.var40x:	resd numvehvar40x	// cache of vehicle variables 40+x for action 2
 	.motion:	resd 1	// motion counter (256 increase = 1 unit of motion)
 	.colormap:	resd 1	// color translation sprite
+	.curraircraftact: resb 6	// raw movement data needed by AircraftMovement
 endstruc
 
 #define VEH2_MIXEDPOWERTRAIN 0	// set if train has mix of electric/nonelectric engines
 #define VEH2_MUSTCHECKTILE 1	// if set, mixed power train just moved onto a new tile
 
+#define AIRCRAFTACT_UNKNOWN 0x80008000	// signals that .curraircraftact isn't valid and needs
+					// to be recalculated

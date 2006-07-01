@@ -28,7 +28,7 @@ codefragment oldgetnewaircraftop,-14
 
 codefragment_call newgetnewaircraftop,getnewaircraftop,8
 
-codefragment findaircraftmovement,-15
+codefragment findaircraftmovement,25
 	movzx edi, byte [esi+veh.movementstat]
 	shl edi,1
 
