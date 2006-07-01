@@ -1,6 +1,12 @@
 
 ; definitions of ourtext text IDs
 
+; hack to ignore file contents when included by C preprocessor, and to ignore
+; this hack when parsed by nasm
+%if 0
+#ifndef MAKEDEP_HACK
+%endif
+
 %macro defourtext 1.nolist
 	%assign ourtext_%1 ourtext_base+ourtext_num
 	%assign ourtext_num ourtext_num+1
@@ -295,4 +301,8 @@ defourtext unnamedairporttype
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
+
+%if 0
+#endif
+%endif
 

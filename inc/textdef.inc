@@ -9,9 +9,11 @@
 %include "inc/ourtext.inc"
 
 // mild hack to get the dependencies right
-#ifdef MAKEDEP
+// (actual include has to happen in nasm, but we need to tell the
+// C preprocessor that we're including it for the dependency file)
+#define MAKEDEP_HACK
 #include <inc/ourtext.inc>
-#endif
+#undef MAKEDEP_HACK
 
 //
 // statictext(): custom texts that are language-independent

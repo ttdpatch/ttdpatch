@@ -68,13 +68,12 @@ asmcsources:=	$(wildcard patches/*.c) $(wildcard procs/*.c)
 csources:=	ttdpatch.c error.c grep.c switches.c loadlng.c checkexe.c auxfiles.c
 doscsources:=	$(csources) dos.c
 wincsources:=	$(csources) windows.c codepage.c
-versiondatad:=	versions/111933d7.ver  versions/111939c7.ver  versions/111946c6.ver versions/111933f4.ver  versions/111945d7.ver
-versiondataw:=	versions/20110016.ver  versions/20110024.ver  versions/20110044.ver versions/20110018.ver  versions/20110042.ver
+makelangsrcs:=	makelang.c switches.c codepage.c
 
 langhsources:=	$(wildcard lang/*.h)
 langobjs:=	$(langhsources:%.h=%.o)
 hostlangobjs:=	$(langhsources:%.h=host/%.o)
-makelangobjs:=	makelang.o switches.o codepage.o texts.o
+makelangobjs:=	${makelangsrcs:%.c=%.o} texts.o
 
 asmdobjs:=	$(asmsources:%.asm=${OTMP}%.dpo) $(asmcsources:%.c=${OTMP}%.dpo)
 asmwobjs:=	$(asmsources:%.asm=${OTMP}%.wpo) $(asmcsources:%.c=${OTMP}%.wpo)
@@ -85,25 +84,39 @@ winobjs:=	$(wincsources:%.c=%.o) ttdpatchw.res libz.a
 hostwinobjs:=	$(wincsources:%.c=host/%.o)
 
 # =======================================================================
-#           dependencies are in Makefile.dep, include that
+#       include dependency files (they're generated automatically)
 # =======================================================================
-
-#Makefile.dep%: .dep-ver
-#	${_E} [DEP] $@
-#	@touch $@
-#	@make -o Makefile.depd -o Makefile.depw -s INCLUDES
-#	${_C}$(CPP) -x assembler-with-cpp -Iinc -DMAKEDEP -D${WDEF_$*} -MM $(asmmainsrc) patches/*.asm procs/*.asm ${asmcsources} -I. | perl -pe 's/\.o/.$*po/; s#\w+/\.\./##g; print "${OTMP}" if /^\S/; print "$$1/" if /: (patches|procs)\//' > $@
 
 ${MAKEFILELOCAL}:
 	@echo ${MAKEFILELOCAL} did not exist, using defaults. Please edit it if compilation fails.
 	cp ${MAKEFILELOCAL}.sample $@
 
-include Makefile.dep
-#-include Makefile.depd
-#-include Makefile.depw
-
 -include ${asmdobjs:.dpo=.dpo.d}
 -include ${asmwobjs:.wpo=.wpo.d}
+-include ${doscsources:%.c=%.obj.d}
+-include ${wincsources:%.c=%.o.d}
+-include ${makelangsrcs:%.c=%.o.d}
+ifneq (${HOSTPATH},)
+-include ${wincsources:%.c=host/%.o.d}
+-include ${makelangsrcs:%.c=host/%.o.d}
+endif
+
+# =======================================================================
+#        explicit dependencies
+# =======================================================================
+
+# versionX.h is generated below
+versiond.h: version.def .rev
+versionw.h: version.def .rev
+
+texts.lst texts.o host/texts.o texts_f.o texts.asp: texts.asm texts.inc inc/ourtext.inc
+
+ttdpatchw.res:	ttdpatchw.rc versionw.h
+
+# Language compiler files
+lang/%.o host/lang/%.o: lang/%.h
+$(langobjs): proclang.c types.h error.h common.h language.h
+$(hostlangobjs): proclang.c types.h error.h common.h language.h
 
 # =======================================================================
 #           special targets
@@ -181,15 +194,10 @@ clean:	cleantemp
 
 # also remove Makefile.dep?, listings and bak files
 mrproper: clean remake
-	#rm -f Makefile.dep?
 	rm -f ${OTMP}*.*po.d ${OTMP}patches/*.*po.d ${OTMP}procs/*.*po.d
+	rm -f *.o.d *.obj.d host/*.o.d
 	rm -f *.{d,w,l}lst patches/*.{d,w,l}lst procs/*.{d,w,l}lst
 	rm -f patches/*.ba* procs/*.ba*
-
-# files that need to be created to check include dependencies
-.PHONY: INCLUDES
-#INCLUDES:	patches/texts.h versiond.h versionw.h
-INCLUDES:	versiond.h versionw.h
 
 # if a command fails, delete its output
 .DELETE_ON_ERROR:
@@ -224,11 +232,11 @@ endif
 
 %.o : %.c
 	${_E} [CC] $@
-	${_C}$(CC) -c -o $@ $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) $<
+	${_C}$(CC) -c -o $@ $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -MMD -MF $@.d -MT $@ $<
 
 host/%.o : %.c
 	${_E} [HOSTCC] $@
-	${_C}$(HOSTCC) -c -o $@ $(HOSTCFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) $<
+	${_C}$(HOSTCC) -c -o $@ $(HOSTCFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -MMD -MF $@.d -MT $@ $<
 
 # make pre-compiled C file
 %.E : %.c
@@ -319,10 +327,24 @@ ${OTMP}%.dpo : %.c
 ${OTMP}%.wpo : %.c
 	${C-PO-COMMANDS}
 
+# Dependency file generation
+# these rules have no dependency themselves so they're only invoked
+# if the file is missing, since the regular compilation rules recreate the
+# .d files anyway (except for DOS .obj.d files)
 ${OTMP}%.dpo.d:
 	${C-A-D-COMMANDS}
 ${OTMP}%.wpo.d:
 	${C-A-D-COMMANDS}
+
+host/%.o.d:
+	${_E} [HOSTCC DEP] $@
+	${_C}$(HOSTCC) $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null
+%.o.d:
+	${_E} [CC DEP] $@
+	${_C}$(CC) $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null
+%.obj.d : %.c
+	${_E} [CC DEP] $@
+	${_C}$(CC) $(CFLAGS) $(foreach DEF,$(DOSDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $< -o /dev/null
 
 # link all assembly modules into ttdprot?.pe
 ttdprotd.pe ttdprotd.map: $(asmdobjs) reloc.a
