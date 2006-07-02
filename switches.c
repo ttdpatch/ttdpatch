@@ -133,8 +133,10 @@ void copyflagdata(void)
 
 #include "bitnames.h"
 
+#ifndef _MAKEDEP
 #if BITSWITCHNUM != BITSWITCHNUM_DEF
 #error "BITSWITCHNUM is incorrect in language.h"
+#endif
 #endif
 
 #define OBSOLETE ((void*)-1L)
