@@ -415,6 +415,7 @@ inforeset:
 	call initttdpatchdata
 	call undogentextnames
 	call restorebridgespriteinfo
+	call setwagonmaxage
 	popa
 	ret
 
@@ -940,6 +941,22 @@ preinfoapply:
 	or dword [languagesettings], byte -1
 	btr dword [grfmodflags], 3 // Clear this flag so that it needs the actual grf to be active (32px depots)
 	ret
+
+// set default wagons to have a max age of FF (available forever)
+setwagonmaxage:
+	mov esi,[vehtypedataptr]
+	xor ecx,ecx
+.setnext:
+	bt [isengine],ecx
+	jc .nextveh
+	mov byte [esi+vehtypeinfo.basedurphase2],0xff
+.nextveh:
+	add esi,0+vehtypeinfo_size
+	inc cl
+	jnz .setnext
+	ret
+	
+	
 
 var cargowagonspeedlimit, db 0,96,0,96,80,120,96,96,96,96,120,120
 

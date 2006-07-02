@@ -89,7 +89,7 @@ reusecodefragment oldadjustenginereliab,oldmonthlyengineloop,17
 
 codefragment newadjustenginereliab
 	bt [isengine],cx
-	jb $+2+26
+	jmp $+2+26	// was jb
 	jmp $+2+37
 
 codefragment oldairankcheck,5

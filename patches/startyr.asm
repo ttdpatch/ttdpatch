@@ -116,7 +116,7 @@ expirevehtype:
 	xchg eax,esi
 	call getvehtypeidx
 	popa
-	jnc .done
+//	jnc .done
 	and word [esi],byte 0		// make unavailable
 .done:
 	ret
