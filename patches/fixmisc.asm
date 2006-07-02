@@ -3275,6 +3275,25 @@ vehexpireearly:
 	pop eax
 	ret
 
+// Set durphase2
+// in:	esi->vehtypeinfo
+//	edi->vehtype
+//	ax=base amount for durphase2
+//	bx=durphase2 in years
+// out:	ax=durphase2 in months
+exported setdurphase2
+	cmp bl,0xff
+	je .forever
+
+	imul bx,12	// overwritten code
+	add ax,bx
+	sub ax,0x60
+	ret
+
+.forever:
+	mov ax,10000	// anything > (2050-1920)*12 is safe
+	ret
+
 
 // Automatically adjust width of drop-down menu's to fit the longest text.
 global calcdropdownmenuwidth

@@ -1423,6 +1423,11 @@ vard vehclassspecptr, trainpower_ptr, rvspeed_ptr, shipsprite_ptr, planesprite_p
 
 global dogeneralpatching
 dogeneralpatching:
+	imul eax,[newvehicles],byte veh2_size
+	push eax
+	call malloccrit
+	pop dword [veh2ptr]
+	// don't init here yet, it'll mess up searching...
 
 	// this variable is sometimes not initialized properly
 	// it should be the current mouse cursor, but sometimes the
@@ -2092,12 +2097,6 @@ dogeneralpatching:
 	storeaddress oldcopyoldorder,1,1,copyvehordersfn
 
 	multipatchcode oldshowvehstat,newshowvehstat,4
-
-	imul eax,[newvehicles],byte veh2_size
-	push eax
-	call malloccrit
-	pop dword [veh2ptr]
-	// don't init here yet, it'll mess up searching...
 
 	patchcode cleartile
 

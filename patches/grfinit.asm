@@ -952,6 +952,7 @@ preinfoapply:
 
 // set default wagons to have a max age of FF (available forever)
 setwagonmaxage:
+	call initisengine
 	mov esi,[vehtypedataptr]
 	xor ecx,ecx
 .setnext:
