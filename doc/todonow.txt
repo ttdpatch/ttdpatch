@@ -750,3 +750,4 @@ CHANGELOG
   * fixed the train list window to use the new train counter
 - add var 7E to allow procedure calls in var.action 2
 - fixed crash in train grfs using var 42
+- AI player's vehicles no longer count for persistentengines
