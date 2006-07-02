@@ -749,6 +749,7 @@ char *dchartostr(int ch)
   if (firstchar(ch) < 128) {
   dcharstr[0] = firstchar(ch);
   dcharstr[1] = secondchar(ch);
+  dcharstr[2] = 0;
   } else {
 	snprintf(dcharstr, sizeof(dcharstr)-1, "\\%d", firstchar(ch));
   }

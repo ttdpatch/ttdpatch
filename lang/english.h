@@ -251,6 +251,24 @@ TEXTARRAY(halflines,) =
 	  "-YP: Planes fly at the indicated speed",
 	  "-YS: Semaphore signals before 1975",
 
+	  "-Zc: Enable new cargo types",
+	  "-Zd: New station cargo distribution",
+	  "-Ze: Allow rails on rail tunnel",
+	  "-Zf: Allow main view to follow vehicle",
+	  "-Zi: Enable new industries",
+	  "-Zj: Enable shorter road vehicles",
+	  "-Zo: Enable building one-way roads",
+	  "-Zu: Enable articulated road vehicles",
+
+	  "-ZA: Enable new airports",
+	  "-ZC: Enable AI transport type chances",
+	  "-ZI: Enable irregular stations",
+	  "-ZM: Collect more company statistics",
+	  "-ZO: Allow landscaping under objects",
+	  "-ZR: Prevent towns from building roads",
+	  "-ZS: Enable new sound effects",
+	  "-ZT: Allow buildings tramways",
+
 	  NULL
 	};
 SETARRAY(halflines);
@@ -263,6 +281,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-x #:    Extend the vehicle array to 850*#. Read the documentation!\n"
 	  "-mc #:   New mountain or curve handling, respectively\n"
 	  "-trpb #: Increase number of trains, road vehicles, planes or ships, resp.\n"
+	  "-A #:    Enable autoreplace for vehicles with given minimum reliability\n"
 	  "-M #:    Allow multi-headed trains, set speed increase in percent.\n"
 	  "-U #:    Enable the new locomotion-like gui. 1 for new gui without ctrl.\n"
 	  "-Xa #:   Automatically renew vehicles # months after end of their life span\n"
@@ -293,6 +312,15 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-YR #:   Override map refresh frequency to # ticks\n"
 	  "-YT #:   Set town growth rate algorithm\n"
 	  "-YW #:   Set maximum allowed window count\n"
+	  "-Za #:   Enable more animation (sets number of animated tiles)\n"
+	  "-Zb #:   Set probability for town road branches\n"
+	  "-Zg #:   Force initial game options\n"
+	  "-Zh #, -Zw #: Set screen resolution height and width\n"
+	  "-Zn #:   Set network timeout in seconds\n"
+	  "-Zx #, -Zy #, -Zz #: Set chance for AI to build rail/road/air route\n"
+	  "-Zp #, -Zr #, -Zs #, -Zt #: Warn about lost aircraft, road vehicles, ships and\n"
+	  "         trains after this many days\n"
+	  "-ZF #:   Enable certain game features in the Toyland climate\n"
 	  "\n"
 	  "-C cfg-file:  Read this configuration file instead of ttdpatch.cfg\n"
 	  "-W cfg-file:  Creates a configuration file with the current configuration\n"

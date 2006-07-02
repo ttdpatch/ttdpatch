@@ -558,7 +558,7 @@ void errorcheck(void)
   int inorder[lastbitdefaultoff+1];
 
   // these switches are not in the -h display, remove them from the list
-  const char *notlisted = "hVX2";
+  const char *notlisted = "hV";
 
   printf("Error checking");
   memset(cmdchars, -1, sizeof(cmdchars));
@@ -612,17 +612,23 @@ void errorcheck(void)
 
   while (line) {
 	if (line[0] == '-') {
-		const char *orgline = line;
-		line++;
+		const char *orgline = ++line;
 
 		while ( (line[0] != ' ') && ((ind = getswitchid(&line)) >= 0) ) {
 			if (!cmdchars[ind])
-				fprintf(stderr, "%s: duplicate switch entry: %s\n",
+				fprintf(stderr, "%s: duplicate switch entry: -%12.12s\n",
 					langname, orgline);
 			if (cmdchars[ind] < 0)
-				fprintf(stderr, "%s: switch entry for nonexistent switch: %6.6s\n",
+				fprintf(stderr, "%s: switch entry for nonexistent switch: -%12.12s\n",
 					langname, orgline);
 			cmdchars[ind] = 0;
+			if (line[0] == ' ') {
+				line += strcspn(line, "\n-:");
+				if (line[0] != '-' || line[-1] != ' ')
+					break;
+				line++;
+			}
+			orgline = line;
 		}
 	}
 

@@ -85,7 +85,7 @@
 	YESNO('l', "largestations", CFG_LARGESTATIONS, INFST_STATION, morestationtracks),
 	RANGE('m', "mountains", CFG_MOUNTAINS, VEH, usenewmountain, 3, 1, &mcparam[1], 0, 0x3333, 0x0120),
 	YESNO('n', "nonstop", CFG_NONSTOP, VEH_ORDERS, usenewnonstop),
-	SPCL ('o', "reducedsave", 0, NONE, OBSOLETE),
+	     //o
 	RANGE('p', "planes", CFG_PLANES, VEH, increaseplanecount, 0, 0, FLAGDATA(newvehcount[2]), 1, 240, 240),
 	YESNO('q', "loadtime", CFG_LOADTIME, INFST_STATION, improvedloadtimes),
 	RANGE('r', "roadvehs", CFG_ROADVEHS, VEH, increaservcount, 0, 0, FLAGDATA(newvehcount[1]), 1, 240, 240),
@@ -102,9 +102,7 @@
 
 		// uppercase
 
-	//RANGE('A', "aiboost", CFG_AIBOOST, aibooster, 0, 0, FLAGDATA(aiboostfactor), 0, 255, 0),
-	//RANGE('A', "aiboost", CFG_AIBOOST, aibooster, 0, 0, FLAGDATA(aiboostfactor), 0, 4, 0),
-	SPCL ('A', "aiboost", 0, NONE, OBSOLETE),
+	RANGE('A',"autoreplace", CFG_AUTOREPLACE, VEH, autoreplace, 0, 0, FLAGDATA(replaceminreliab), 1, 100, 80),
 	YESNO('B', "longbridges", CFG_LONGBRIDGES, INFST_BRIDGE, longerbridges),
 	SPCL ('C', "include", 0, NONE, NULL),
 	YESNO('D', "extradynamite", CFG_DYNAMITE, HOUSESTOWNS, morethingsremovable),
@@ -125,11 +123,11 @@
 	YESNO('S', "newships", CFG_NEWSHIPS, VEH, newships),
 	YESNO('T', "newtrains", CFG_NEWTRAINS, VEH, newtrains),
 	BITS ('U', "locomotiongui", CFG_LOCOMOTIONGUI, INTERFACE, locomotiongui, 0, FLAGDATA(locomotionguibits), 1),
-	SPCL ('V', "writeverfile", 0, NONE, OBSOLETE),
+	     //V
 	SPCL ('W', "writecfg", 0, NONE, NULL),
 	     //X reserved for extended switches, see below
 	     //Y reserved for extended switches, see below
-	SPCL ('Z', "lowmemory", 0, NONE, OBSOLETE),
+	     //Z reserved for extended switches, see below
 
 	YESNO('2', "win2k", CFG_WIN2K, BASIC, win2k),
 
@@ -176,7 +174,7 @@
 	BITS ('D',"disasters", CFG_DISASTERS, DIFFICULTY, maskdisasters, 0, FLAGDATA(disastermask), 255),
 	YESNO('E',"electrifiedrailway", CFG_ELECTRIFIEDRAIL, INFST_RAIL, electrifiedrail),
 	BITS ('F',"experimentalfeatures", CFG_EXPERIMENTALFEATURES, BASIC, experimentalfeatures, 1, FLAGDATA(expswitches), 0xFFFF & ~4),
-	SPCL ('G',"loadallgraphics", 0, NONE, OBSOLETE),
+	     //G
 	YESNO('H',"newshistory", CFG_NEWSHISTORY, INTERFACE_NEWS, newshistory),
 	BITS ('I',"pathbasedsignalling", CFG_PATHBASEDSIGNALLING, INFST_RAIL_SIGNAL, pathbasedsignalling, 0, FLAGDATA(pbssettings), 11),
 	     //J
@@ -240,8 +238,7 @@
 	YESNO('F',"fifoloading", CFG_FIFOLOADING, INFST_STATION, fifoloading),
 	YESNO('G',"enhancegui", CFG_ENHANCEGUI, INTERFACE, enhancegui),
 	YESNO('H',"morehotkeys", CFG_MOREHOTKEYS, INTERFACE, morehotkeys),
-	// YESNO('I',"moreindustriesperclimate", CFG_MOREINDUSTRIESPERCLIMATE, moreindustriesperclimate),
-	SPCL ('I',"moreindustriesperclimate", 0, NONE, OBSOLETE),
+	     //I
 	     //J
 	     //K
 	RANGE('L',"wagonspeedlimits", CFG_WAGONSPEEDLIMITS, VEH_RAIL, wagonspeedlimits, 0, 0, FLAGDATA(wagonspeedlimitempty), 0, 255, 20),
@@ -259,6 +256,69 @@
 	     //X
 	     //Y
 	     //Z
+
+
+		// Z-extended, lowercase
+
+	##maketwochars('Z',ch)##
+
+	RANGE('a',"moreanimation", CFG_MOREANIMATION, INTERFACE, moreanimation, 0, 3, FLAGDATA(animarraysize), 256, 65535, 4096),
+	RANGE('b',"townroadbranchprob",CFG_TOWNROADBRANCHPROB,HOUSESTOWNS, townroadbranchprob, 0, 1, FLAGDATA(branchprobab), 0, 0xffff, 0x5555),
+	YESNO('c',"newcargos", CFG_NEWCARGOS, INDUSTRIESCARGO, newcargos),
+	YESNO('d',"newcargodistribution", CFG_NEWCARGODISTRIBUTION, INDUSTRIESCARGO, newcargodistribution),
+	YESNO('e',"enhancetunnels", CFG_ENHANCETUNNELS, INFST, enhancetunnels),
+	YESNO('f',"followvehicle", CFG_FOLLOWVEHICLE, INTERFACE_VEH, followvehicle),
+	BITS ('g',"forcegameoptions", CFG_FORCEGAMEOPTIONS, INTERFACE, forcegameoptions, 3, FLAGDATA(forcegameoptionssettings), 0),
+	RANGE('h',"resolutionheight", CFG_RESOLUTIONHEIGHT, BASIC, resolutionheight, 0, 1, FLAGDATA(resheight), 480, 2048, 600),
+	YESNO('i',"newindustries", CFG_NEWINDUSTRIES, INDUSTRIESCARGO, newindustries),
+	YESNO('j',"shortrvs", CFG_SHORTRVS, VEH_ROAD, shortrvs),
+	     //k
+	     //l
+	     //m
+	RANGE('n',"networktimeout", CFG_NETWORKTIMEOUT, BASIC, disconnectontimeout, 0, 0, FLAGDATA(networktimeout), 2, 240, 10),
+	YESNO('o',"onewayroads", CFG_ONEWAYROADS, INFST_ROADS, onewayroads),
+	RANGE('p',"lostaircraft", CFG_AIRCRAFTLOSTTIME, VEH_ORDERS, lostaircraft, 0, 1, FLAGDATA(aircraftlosttime), 5, 1000, 90),
+	     //q
+	RANGE('r',"lostrvs", CFG_RVLOSTTIME, VEH_ORDERS, lostrvs, 0, 1, FLAGDATA(rvlosttime), 5, 1000, 150),
+	RANGE('s',"lostships", CFG_SHIPLOSTTIME, VEH_ORDERS, lostships, 0, 1, FLAGDATA(shiplosttime), 5, 1000, 400),
+	RANGE('t',"losttrains", CFG_TRAINLOSTTIME, VEH_ORDERS, losttrains, 0, 1, FLAGDATA(trainlosttime), 5, 1000, 150),
+	YESNO('u',"articulatedrvs", CFG_ARTICULATEDRVS, VEH_ROAD, articulatedrvs),
+	RANGE('w',"resolutionwidth", CFG_RESOLUTIONWIDTH, BASIC, resolutionwidth, 0, 1, FLAGDATA(reswidth), 640, 2048, 800),
+	RANGE('x',"aibuildrailchance", CFG_AIBUILDRAILCHANCE, DIFFICULTY, noswitch, 0, 1, FLAGDATA(aibuildrailchance), 0, 65535, 30246),
+	RANGE('y',"aibuildrvchance", CFG_AIBUILDRVCHANCE, DIFFICULTY, noswitch, 0, 1, FLAGDATA(aibuildrvchance), 0, 65535, 20164),
+	RANGE('z',"aibuildairchance", CFG_AIBUILDAIRCHANCE, DIFFICULTY, noswitch, 0, 1, FLAGDATA(aibuildairchance), 0, 65535, 5041),
+
+
+
+
+		// Z-extended, uppercase
+	YESNO('A',"newairports", CFG_NEWAIRPORTS, INFST_STATION, newairports),
+	     //B
+	YESNO('C',"aichoosechances", CFG_AICHOOSECHANCES, DIFFICULTY, aichoosechances),
+	     //D
+	     //E
+	BITS ('F',"toylandfeatures", CFG_TOYLANDFEATURES, TERRAIN, moretoylandfeatures, 0, FLAGDATA(toylandfeatures), 1),
+	     //G
+	     //H
+	YESNO('I',"irregularstations", CFG_IRRSTATIONS, INFST_STATION, irrstations),
+	     //J
+	     //K
+	     //L
+	YESNO('M',"morestatistics", CFG_MORESTATS, INTERFACE, morestats),
+	     //N
+	RANGE('O',"autoslope", CFG_AUTOSLOPE, TERRAIN, autoslope, 0, 1, FLAGDATA(autoslopevalue), 1, 3, 1),
+	     //P
+	     //Q
+	YESNO('R',"townbuildnoroads", CFG_TOWNBUILDNOROADS, HOUSESTOWNS, townbuildnoroads),
+	BITS ('S',"newsounds", CFG_NEWSOUNDS, BASIC, newsounds, 0, FLAGDATA(newsoundsettings), 1),
+	YESNO('T',"trams", CFG_TRAMS, INFST_ROADS, trams),
+	     //U
+	     //V
+	     //W
+	     //X
+	     //Y
+	     //Z
+
 
 
 		// cfg-only (no command line switch)
@@ -291,39 +351,8 @@
 	RANGE(152,"tgrtownsizefactor", CFG_TGRTOWNSIZEFACTOR, HOUSESTOWNS, noswitch, 0, 0, FLAGDATA(tgrtownsizefactor), 0, 255, 63),
 	RANGE(153,"townminpopulationsnow", CFG_TOWNMINPOPULATIONSNOW, HOUSESTOWNS, noswitch, 0, 0, FLAGDATA(townminpopulationsnow), 0, 255, 90),
 	RANGE(156,"townminpopulationdesert", CFG_TOWNMINPOPULATIONDESERT, HOUSESTOWNS, noswitch, 0, 0, FLAGDATA(townminpopulationdesert), 0, 255, 60),
-	SPCL (157,"cusmultiplier", 0, NONE, OBSOLETE),
-	RANGE(158,"losttrains", CFG_TRAINLOSTTIME, VEH_ORDERS, losttrains, 0, 1, FLAGDATA(trainlosttime), 5, 1000, 150),
-	RANGE(159,"lostrvs", CFG_RVLOSTTIME, VEH_ORDERS, lostrvs, 0, 1, FLAGDATA(rvlosttime), 5, 1000, 150),
-	RANGE(160,"lostships", CFG_SHIPLOSTTIME, VEH_ORDERS, lostships, 0, 1, FLAGDATA(shiplosttime), 5, 1000, 400),
-	RANGE(161,"lostaircraft", CFG_AIRCRAFTLOSTTIME, VEH_ORDERS, lostaircraft, 0, 1, FLAGDATA(aircraftlosttime), 5, 1000, 90),
-	RANGE(162,"networktimeout", CFG_NETWORKTIMEOUT, BASIC, disconnectontimeout, 0, 0, FLAGDATA(networktimeout), 2, 240, 10),
-	BITS (163,"toylandfeatures", CFG_TOYLANDFEATURES, TERRAIN, moretoylandfeatures, 0, FLAGDATA(toylandfeatures), 1),
-	RANGE(164,"moreanimation", CFG_MOREANIMATION, INTERFACE, moreanimation, 0, 3, FLAGDATA(animarraysize), 256, 65535, 4096),
-	YESNO(165,"townbuildnoroads", CFG_TOWNBUILDNOROADS, HOUSESTOWNS, townbuildnoroads),
-	YESNO(166,"aichoosechances", CFG_AICHOOSECHANCES, DIFFICULTY, aichoosechances),
-	RANGE(167,"aibuildrailchance", CFG_AIBUILDRAILCHANCE, DIFFICULTY, noswitch, 0, 1, FLAGDATA(aibuildrailchance), 0, 65535, 30246),
-	RANGE(168,"aibuildrvchance", CFG_AIBUILDRVCHANCE, DIFFICULTY, noswitch, 0, 1, FLAGDATA(aibuildrvchance), 0, 65535, 20164),
-	RANGE(169,"aibuildairchance", CFG_AIBUILDAIRCHANCE, DIFFICULTY, noswitch, 0, 1, FLAGDATA(aibuildairchance), 0, 65535, 5041),
-	YESNO(170,"newcargodistribution", CFG_NEWCARGODISTRIBUTION, INDUSTRIESCARGO, newcargodistribution),
-	RANGE(171,"resolutionwidth", CFG_RESOLUTIONWIDTH, BASIC, resolutionwidth, 0, 1, FLAGDATA(reswidth), 640, 2048, 800),
-	RANGE(172,"resolutionheight", CFG_RESOLUTIONHEIGHT, BASIC, resolutionheight, 0, 1, FLAGDATA(resheight), 480, 2048, 600),
-	YESNO(173,"newindustries", CFG_NEWINDUSTRIES, INDUSTRIESCARGO, newindustries),
-	RANGE(175,"townroadbranchprob",CFG_TOWNROADBRANCHPROB,HOUSESTOWNS, townroadbranchprob, 0, 1, FLAGDATA(branchprobab), 0, 0xffff, 0x5555),
-	YESNO(176,"newcargos", CFG_NEWCARGOS, INDUSTRIESCARGO, newcargos),
-	YESNO(177,"onewayroads", CFG_ONEWAYROADS, INFST_ROADS, onewayroads),
-	BITS (178,"newsounds", CFG_NEWSOUNDS, BASIC, newsounds, 0, FLAGDATA(newsoundsettings), 1),
-	YESNO(179,"irregularstations", CFG_IRRSTATIONS, INFST_STATION, irrstations),
-	YESNO(180,"morestatistics", CFG_MORESTATS, INTERFACE, morestats),
-	RANGE(181,"autoreplace", CFG_AUTOREPLACE, VEH, autoreplace, 0, 0, FLAGDATA(replaceminreliab), 1, 100, 80),
-	RANGE(182,"autoslope", CFG_AUTOSLOPE, TERRAIN, autoslope, 0, 1, FLAGDATA(autoslopevalue), 1, 3, 1),
-	YESNO(183,"followvehicle", CFG_FOLLOWVEHICLE, INTERFACE_VEH, followvehicle),
-	YESNO(184,"trams", CFG_TRAMS, INFST_ROADS, trams),
-	YESNO(185,"enhancetunnels", CFG_ENHANCETUNNELS, INFST, enhancetunnels),
-	SPCL (186,"saveextradata", 0, NONE, OBSOLETE),
-	BITS (187,"forcegameoptions", CFG_FORCEGAMEOPTIONS, INTERFACE, forcegameoptions, 3, FLAGDATA(forcegameoptionssettings), 0),
-	YESNO(188,"shortrvs", CFG_SHORTRVS, VEH_ROAD, shortrvs),
-	YESNO(189,"articulatedrvs", CFG_ARTICULATEDRVS, VEH_ROAD, articulatedrvs),
-	YESNO(190,"newairports", CFG_NEWAIRPORTS, INFST_STATION, newairports),
+
+
 //
 // Here follows the switch order list
 // This list defines the order of switches in the switch table

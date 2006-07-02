@@ -742,6 +742,7 @@ CHANGELOG
   * new switch "articulatedrvs on" to allow articulated road vehicles
 - by Csaba:
   * initial work on new airports feature (enable with "newairports on")
+- added -Z extended command line switches for all but town growth switches
 
 
 2.5 beta 7
