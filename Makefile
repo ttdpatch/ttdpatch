@@ -188,7 +188,7 @@ clean:	cleantemp
 	rm -f reloc.a
 	rm -f *.{res,RES}
 	rm -f langerr.h
-	rm -f sw_lists.h
+	rm -f sw_lists.h pprocd.h pprocw.h bitnames.h
 	rm -f inc/ourtexts.h
 	rm -f version{d,w}.h
 
