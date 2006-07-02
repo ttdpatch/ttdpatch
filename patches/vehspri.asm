@@ -1220,12 +1220,14 @@ setvehcallbacks:
 
 .checkcallback:
 	movzx eax,byte [ebx+callbackinfo.bit]
-	cmp al,0xff
-	je .done
+	cmp al,0xfe
+	je .alwayson
+	ja .done
 
 	bt ecx,eax
 	jnc .nextcallback
 
+.alwayson:
 	mov al,[ebx+callbackinfo.arg]
 	mov [miscgrfvar],al
 	mov al,[ebx+callbackinfo.num]
@@ -1826,7 +1828,7 @@ var cachedvehcallbacks			// lists of callbacks that must be
 varb traincachedcallbacks
 	cachedcallback 0,0x10,0,veh2.viseffect,trainviseffect
 	cachedcallback 2,0x12,0,veh2.loadamount,loadamount
-	cachedcallback 0xff,0x36,0x25,veh2.userbits,trainuserbits
+	cachedcallback 0xfe,0x36,0x25,veh2.userbits,trainuserbits
 	db 0xff
 
 varb rvcachedcallbacks
