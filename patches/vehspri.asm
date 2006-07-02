@@ -767,6 +767,7 @@ exported resetvehsprite
 
 	call setveh2cache
 	call setvehcallbacks
+	call setveh2cache	// redo because callbacks may change variable values
 
 	// find the right sprite number
 
@@ -1193,6 +1194,7 @@ global dailyvehproc.oldrail,dailyvehproc.oldrv,dailyvehproc.oldships,dailyvehpro
 struc callbackinfo	// for lists of cached callbacks
 	.bit:	resb 1	// bit in vehicle properties, must be first byte here
 	.num:	resb 1	// number in action 2
+	.arg:	resb 1	// argument, stored in miscgrfvar
 	.ofs:	resb 1	// offset into veh2 struct for cache
 	.defvar:resd 1	// pointer to variable with vehtype defaults (0x80000000 if none)
 endstruc
@@ -1218,12 +1220,16 @@ setvehcallbacks:
 
 .checkcallback:
 	movzx eax,byte [ebx+callbackinfo.bit]
-	cmp al,0xff
-	je .done
+	cmp al,0xfe
+	je .alwayson
+	ja .done
 
 	bt ecx,eax
 	jnc .nextcallback
 
+.alwayson:
+	mov al,[ebx+callbackinfo.arg]
+	mov [miscgrfvar],al
 	mov al,[ebx+callbackinfo.num]
 	call vehcallback
 	jnc .ok
@@ -1242,6 +1248,7 @@ setvehcallbacks:
 	jmp .nextcallback
 
 .done:
+	mov byte [miscgrfvar],0
 	ret
 
 
@@ -1259,6 +1266,7 @@ consistcallbacks:
 	add esi,[veharrayptr]
 	call setveh2cache
 	call setvehcallbacks
+	call setveh2cache	// redo because callbacks may change variable values
 	movzx esi,word [esi+veh.nextunitidx]
 	cmp si,byte -1
 	jne .nextveh
@@ -1415,13 +1423,8 @@ getconsistcargo:
 	or al,[cargoclass+ecx*2]	// discards higher 8 bits, sadly
 
 .nocargo:
-	push eax
-	movzx eax,byte [esi+veh.vehtype]
-	mov cl,[trainuserbits+eax]
-	mov ah,0x25
-	call GetCallBack36
-	mov dl,al
-	pop eax
+	mov edx,[esi+veh.veh2ptr]
+	movzx edx,byte [edx+veh2.userbits]
 	shl edx,24
 	or eax,edx
 
@@ -1806,44 +1809,40 @@ uvarb defvehsprites,256
 uvard curcallback
 uvard callbackflags,256/4
 
-#if 0	// now in veh2 struct
-uvard trainpowercacheptr
-uvard loadamountcacheptr
-
-var validvehcallbacks, db 15,4,4,4	// valid callback bits for the four classes
-#endif
-
 var cachedvehcallbacks			// lists of callbacks that must be
 	dd traincachedcallbacks		// reset when loading game or moving
 	dd rvcachedcallbacks		// vehicle in depot
 	dd shipcachedcallbacks
 	dd planecachedcallbacks
 
-%macro cachedcallback 4.nolist	// params: bit,number,cacheptr
+%macro cachedcallback 5.nolist	// params: bit,number,arg,offset,defvar
 	istruc callbackinfo
 		at callbackinfo.bit, db %1
 		at callbackinfo.num, db %2
-		at callbackinfo.ofs, db %3
-		at callbackinfo.defvar, dd %4
+		at callbackinfo.arg, db %3
+		at callbackinfo.ofs, db %4
+		at callbackinfo.defvar, dd %5
 	iend
 %endmacro
 
-var traincachedcallbacks
-	cachedcallback 0,0x10,veh2.viseffect,trainviseffect
-	cachedcallback 2,0x12,veh2.loadamount,loadamount
+varb traincachedcallbacks
+	cachedcallback 0,0x10,0,veh2.viseffect,trainviseffect
+	cachedcallback 2,0x12,0,veh2.loadamount,loadamount
+	cachedcallback 0xfe,0x36,0x25,veh2.userbits,trainuserbits
 	db 0xff
 
-var rvcachedcallbacks
-	cachedcallback 2,0x12,veh2.loadamount,loadamount
+varb rvcachedcallbacks
+	cachedcallback 2,0x12,0,veh2.loadamount,loadamount
 	db 0xff
 
-var shipcachedcallbacks
-	cachedcallback 2,0x12,veh2.loadamount,loadamount
+varb shipcachedcallbacks
+	cachedcallback 2,0x12,0,veh2.loadamount,loadamount
 	db 0xff
 
-var planecachedcallbacks
-	cachedcallback 2,0x12,veh2.loadamount,loadamount
+varb planecachedcallbacks
+	cachedcallback 2,0x12,0,veh2.loadamount,loadamount
 	db 0xff
+endvar
 
 global oldshiprefitlist,oldplanerefitlist
 oldshiprefitlist equ 0x1FFEFFF6	// TTD default for all refittable ship types
