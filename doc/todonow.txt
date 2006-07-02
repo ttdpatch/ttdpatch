@@ -318,8 +318,6 @@
 
 - revisit George's crash, http://www.tt-forums.net/viewtopic.php?p=374512#374512
 
-- retirement of wagons broken?
-
 - PBS crash, train activates wrong PBS signal
   http://www.tt-forums.net/viewtopic.php?p=375985#375985
 
@@ -751,3 +749,4 @@ CHANGELOG
 - add var 7E to allow procedure calls in var.action 2
 - fixed crash in train grfs using var 42
 - AI player's vehicles no longer count for persistentengines
+- allow wagons to expire
