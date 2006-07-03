@@ -739,7 +739,7 @@ CHANGELOG
 - by Oskar:
   * fixed display of dikes with seelevel canals and cliffs
   * make enhancetunnels depend on higherbridges to avoid jumping vehicles at tunnels
-- updated Polish, Russian, Norwegian, Finnish and Danish translations
+- updated Polish, Russian, Norwegian, Finnish, Danish, Spanish and Catalan translations
 - by Lakie:
   * fixed canals at sealevel not being saved when building a buoy
   * fixed drawing of buoys on canals
