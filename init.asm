@@ -48,6 +48,8 @@ extern user32hnd,vehsorttable,heapstart,heapptr
 extern oldveharraysize,varheap,Sleep
 extern initourtextptr,initnoregist
 extern hexdwords
+// For GUARDS:
+extern __varlist_start, __varlist_end
 
 ext_frag oldfixcommandaddr
 
@@ -300,6 +302,18 @@ initialize:
 #endif
 
 .notagain:
+
+#if MAKEGUARD
+	CALLINT3
+	mov edi, dword __varlist_start
+	.nextguard:
+	mov eax, dword [edi]
+	mov dword [eax-8], 'TTDP'
+	mov dword [eax-4], 'ATCH'
+	add edi, 4
+	cmp edi, dword __varlist_end
+	jb .nextguard
+#endif
 
 #if !WINTTDX && !LINTTDX
 
