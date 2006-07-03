@@ -592,7 +592,7 @@ initttdpatchdata:
 	mov ecx,[newvehicles]
 .nextaircraft:
 	mov dword [edi+veh2.curraircraftact],AIRCRAFTACT_UNKNOWN
-	sub edi, byte -vehiclesize
+	add edi, veh2_size
 	loop .nextaircraft
 
 	and word [lastperfcachereset],0		// this will be simply ignored if the corresponding switches aren't set
