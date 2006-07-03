@@ -69,6 +69,7 @@ csources:=	ttdpatch.c error.c grep.c switches.c loadlng.c checkexe.c auxfiles.c
 doscsources:=	$(csources) dos.c
 wincsources:=	$(csources) windows.c codepage.c
 makelangsrcs:=	makelang.c switches.c codepage.c
+mkpttxtsrcs:=	mkpttxt.c
 
 langhsources:=	$(wildcard lang/*.h)
 langobjs:=	$(langhsources:%.h=%.o)
@@ -96,9 +97,11 @@ ${MAKEFILELOCAL}:
 -include ${doscsources:%.c=%.obj.d}
 -include ${wincsources:%.c=%.o.d}
 -include ${makelangsrcs:%.c=%.o.d}
+-include ${mkpttxtsrcs:%.c=%.o.d}
 ifneq (${HOSTPATH},)
 -include ${wincsources:%.c=host/%.o.d}
 -include ${makelangsrcs:%.c=host/%.o.d}
+-include ${mkpttxtsrcs:%.c=host/%.o.d}
 endif
 
 # =======================================================================
