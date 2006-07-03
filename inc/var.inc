@@ -42,6 +42,10 @@
 		%push VAR
 		%xdefine %$VAR_START __File__:__Line__
 	%endif
+	#if MAKEVARLIST
+	[section .varlist]
+	dd %1
+	#endif
 	[section .datab]
 	GLOBALVAR %1
 	%if %0>1
@@ -56,6 +60,10 @@
 		%push VAR
 		%xdefine %$VAR_START __File__:__Line__
 	%endif
+	#if MAKEVARLIST
+	[section .varlist]
+	dd %1
+	#endif
 	[section .dataw]
 	GLOBALVAR %1
 	align 2
@@ -71,6 +79,10 @@
 		%push VAR
 		%xdefine %$VAR_START __File__:__Line__
 	%endif
+	#if MAKEVARLIST
+	[section .varlist]
+	dd %1
+	#endif
 	[section .datad]
 	GLOBALVAR %1
 	align 4
@@ -116,6 +128,10 @@
 %define sectname_4s .sbss
 %macro sdef 3.nolist		; params bss-type, varname, varnum
 	%define %%sectname sectname_%1
+	#if MAKEVARLIST
+	[section .varlist]
+	dd %2
+	#endif
 	[section %%sectname]
 	GLOBALVAR %2
 	%2: %3

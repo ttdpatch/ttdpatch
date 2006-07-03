@@ -65,6 +65,7 @@ section .datad align=4
 section .indrct align=4		// holds list of indirect call/jmp pointers
 section .pproc align=1		// holds list of patchproc definitions
 section .relocv align=4		// holds order of ptrvar definitions
+section .varlist align=4
 
 // default section
 section .text align=4

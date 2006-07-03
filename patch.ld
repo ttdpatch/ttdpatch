@@ -45,6 +45,11 @@ SECTIONS
 	/* and the .text and .data of the remaining files */
 	*/*.*po(.text)
 
+	. = ALIGN(4);
+	__varlist_start = .;
+	*(.varlist)
+	__varlist_end = .;
+
 	*(.datad)
 	*(.dataw)
 	*(.datab)
