@@ -83,6 +83,8 @@ dosobjs:=	$(doscsources:%.c=%.obj)
 win:	ttdprotw.bin
 winobjs:=	$(wincsources:%.c=%.o) ttdpatchw.res libz.a
 hostwinobjs:=	$(wincsources:%.c=host/%.o)
+mkpttxtobjs:=	$(mkpttxtsrcs:%.c=%.o)
+hostmkpttxtobjs:=$(mkpttxtsrcs:%.c=host/%.o)
 
 # =======================================================================
 #       include dependency files (they're generated automatically)
@@ -468,8 +470,8 @@ lang/%:		makelang.c lang/%.o switches.o codepage.o texts.o
 	${_C}$(CC) -o $@ $(CFLAGS) $(LDOPT) $(foreach DEF,$(WINDEFS),-D$(DEF)) -DSINGLELANG=${patsubst lang/%,%,$@} $^ -L. -lz
 
 mkpttxt.o host/mkpttxt.o:       mkpttxt.c # patches/texts.h
-mkpttxt${EXEW}:  mkpttxt.o texts.o
-host/mkpttxt${HOSTEXE}:  host/mkpttxt.o host/texts.o
+mkpttxt${EXEW}:  ${mkpttxtobjs} texts.o
+host/mkpttxt${HOSTEXE}:  ${hostmkpttxtobjs} host/texts.o
 
 # ----------------------------------------------------------------------
 #               Resource file for Windows version
