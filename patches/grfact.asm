@@ -65,7 +65,7 @@ extern stationanimdata,stationanimspeeds
 extern newcoastspritebase, newcoastspritenum
 extern setairportlayout,airportstarthangarnodes,setairportmovementdata
 extern airportcallbackflags,airportspecialflags,airportaction3
-extern airportweight
+extern airportweight,airporttypenames
 
 uvarb action1lastfeature
 
@@ -3799,7 +3799,7 @@ defvehdata specsounddata
 defvehdata spclsounddata, F,F,F				// 08..0A
 
 defvehdata specairportdata
-defvehdata spclairportdata, F,F,B,B,B,B				// 08..0d
+defvehdata spclairportdata, F,F,B,B,B,B,t			// 08..0d
 
 %undef defvehdata
 
@@ -4173,7 +4173,7 @@ var sounddata
 var airportdata
 	dd setairportlayout,setairportmovementdata			//08..09
 	dd airportstarthangarnodes,airportcallbackflags			//0a..0b
-	dd airportspecialflags,airportweight				//0c..0d
+	dd airportspecialflags,airportweight,airporttypenames		//0c..0e
 
 uvard grfvarreinitstart,0
 
