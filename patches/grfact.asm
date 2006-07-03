@@ -63,8 +63,9 @@ extern numsnowytemptrees,setstatcargotriggers,industilespecflags
 extern ttdpatchversion
 extern stationanimdata,stationanimspeeds
 extern newcoastspritebase, newcoastspritenum
-extern setairportlayout,airportstartstatuses,setairportmovementdata
+extern setairportlayout,airportstarthangarnodes,setairportmovementdata
 extern airportcallbackflags,airportspecialflags,airportaction3
+extern airportweight
 
 uvarb action1lastfeature
 
@@ -3798,7 +3799,7 @@ defvehdata specsounddata
 defvehdata spclsounddata, F,F,F				// 08..0A
 
 defvehdata specairportdata
-defvehdata spclairportdata, F,w,F,B,B				// 08..0c
+defvehdata spclairportdata, F,F,B,B,B,B				// 08..0d
 
 %undef defvehdata
 
@@ -4170,8 +4171,9 @@ var sounddata
 	dd addr(overrideoldsound)					//0A
 
 var airportdata
-	dd setairportlayout,airportstartstatuses,setairportmovementdata	//08..0a
-	dd airportcallbackflags,airportspecialflags			//0b..0c
+	dd setairportlayout,setairportmovementdata			//08..09
+	dd airportstarthangarnodes,airportcallbackflags			//0a..0b
+	dd airportspecialflags,airportweight				//0c..0d
 
 uvard grfvarreinitstart,0
 

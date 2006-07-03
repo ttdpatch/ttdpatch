@@ -11,6 +11,7 @@
 extern curgrfairportlist,curspriteblock
 extern grffeature,curcallback,getnewsprite,callback_extrainfo
 extern GenerateDropDownMenu,invalidatehandle,stationarray2ofst
+extern aircraftbboxtable,orgsetsprite
 
 uvard airportdataidtogameid, NUMAIRPORTS*2
 
@@ -29,8 +30,6 @@ uvard airportmovementdataptrs, NUMAIRPORTS
 
 uvarb airportmovementdatasizes, NUMAIRPORTS
 
-uvarw airportstartstatuses, NUMAIRPORTS
-
 uvarb airportspecialflags, NUMAIRPORTS
 
 uvarb airportcallbackflags, NUMAIRPORTS
@@ -42,6 +41,14 @@ uvarb airportmovementnodenums, NUMAIRPORTS
 
 uvard airportmovementedgelistptrs, NUMAIRPORTS
 uvarb airportmovementedgenums, NUMAIRPORTS
+
+uvarb airportstarthangarnodes, NUMAIRPORTS
+
+// how much airports "weigh" - i.e. how many of the allowed points they use up
+varb airportweight
+	db 2,3,1,0
+	times NUMNEWAIRPORTS db 3
+endvar
 
 exported clearairportdata
 	pusha
@@ -61,11 +68,6 @@ exported clearairportdata
 	mov edi,airportmovementdataptrs+NUMOLDAIRPORTS*4
 	mov cl,NUMNEWAIRPORTS
 	rep stosd
-
-	mov ax,[airportstartstatuses+1*2]
-	mov edi,airportstartstatuses+NUMOLDAIRPORTS*2
-	mov cl,NUMNEWAIRPORTS
-	rep stosw
 
 	xor eax,eax
 	mov edi,airportmovementdatasizes+NUMOLDAIRPORTS
@@ -100,6 +102,16 @@ exported clearairportdata
 	mov ax,ourtext(unnamedairporttype)
 	mov cl,NUMNEWAIRPORTS
 	rep stosw
+
+	mov edi,airportstarthangarnodes+NUMOLDAIRPORTS
+	mov al,-1
+	mov cl,NUMNEWAIRPORTS
+	rep stosb
+
+	mov edi,airportweight+NUMOLDAIRPORTS
+	mov al,3
+	mov cl,NUMNEWAIRPORTS
+	rep stosb
 	popa
 	ret
 
@@ -238,9 +250,28 @@ exported getnewaircraftop
 	push ebx
 	call [aircraftmovement]
 	pop ebx
-	jnc .exit
+	jc .movedone
+
+	movzx edi,word [esi+veh.nextunitidx]
+	shl edi,vehicleshift
+	add edi,[veharrayptr]
+
+	mov ax,0x202
+	cmp byte [esi+veh.xsize],0x10
+	jae .shadow
+
+	mov al,byte [esi+veh.direction]
+	and eax,byte 3
+	mov eax,[aircraftbboxtable+eax*2]
+	mov [esi+veh.xsize],ax
+
+.shadow:
+	mov [edi+veh.xsize],ax
+	clc
+	ret
 
 .nomove:
+.movedone:
 	call gotonextaircraftedge
 	clc
 
@@ -315,6 +346,7 @@ gotonextaircraftedge:
 	cmp dh,AIREDGE_NOTTOTERMINAL
 	jne .noterminal
 
+	call .refreshsprite
 	jmp dword [airportspecialmovements+2*4]
 
 .noterminal:
@@ -408,6 +440,10 @@ gotonextaircraftedge:
 	mov [esi+veh.aircraftnode],al
 
 	mov [esi+veh.movementstat],cl
+	mov ch,cl
+	dec ch
+	mov [esi+veh.prevmovementstat],ch	// trick planebreakdownspeed in planemot.asm
+						// to re-check speed
 
 	cmp al,0xFF
 	je .nosetbit
@@ -416,6 +452,8 @@ gotonextaircraftedge:
 	jae .nosetbit
 	bts [ebx+station2.airportbusyedges],ecx
 .nosetbit:
+
+	call .refreshsprite
 
 	cmp al,0xFF
 	jne .notyield
@@ -429,6 +467,14 @@ gotonextaircraftedge:
 	mov dword [edi+veh2.curraircraftact],AIRCRAFTACT_UNKNOWN
 
 .nothing:
+	ret
+
+.refreshsprite:
+	pusha
+	mov eax,0x13
+	movzx ebx,byte [esi+veh.direction]
+	call [orgsetsprite+3*4]
+	popa
 	ret
 
 noglobal vard .speceffectfuncs
@@ -570,3 +616,106 @@ exported airportsel_eventhandler
 	mov al,[esi+window.type]		// redraw the whole window
 	mov bx,[esi+window.id]
 	jmp dword [invalidatehandle]
+
+exported newaircraftorder
+	movzx ebx, byte [esi+veh.targetairport]
+	imul ebx, station_size
+	add ebx, [stationarrayptr]
+
+	movzx edi, byte [ebx+station.airporttype]
+	cmp dword [airportmovementedgelistptrs+edi*4],0
+	jne .newairport
+
+	cmp byte [esi+veh.aircraftop],0x12
+	je .interrupt
+
+.nointerrupt:
+	ret
+
+.newairport:
+	movzx ecx,byte [esi+veh.movementstat]
+	cmp cl,0xFF
+	je .nointerrupt
+
+	imul edx, ecx,airportmovementedge_size
+	add edx, [airportmovementedgelistptrs+edi*4]
+	test byte [edx+airportmovementedge.flags],AIREDGE_INTERRUPTIBLE
+	jz .nointerrupt
+
+	cmp ecx, 64
+	jae .noreset
+	add ebx, [stationarray2ofst]
+	btr [ebx+station2.airportbusyedges],ecx
+.noreset:
+.interrupt:
+
+	mov [esi+veh.targetairport],ah
+	jmp aircraftyield_newop
+
+exported stopaircraft_isinflight
+	push edi
+
+	movzx edi, byte [edx+veh.targetairport]
+	imul edi, station_size
+	add edi, [stationarrayptr]
+	movzx edi, byte [edi+station.airporttype]
+	mov edi, [airportmovementedgelistptrs+edi*4]
+	test edi,edi
+	jnz .newairport
+
+	cmp byte [edx+veh.aircraftop],4
+	jb .gotflags
+	cmp byte [edx+veh.movementstat],0xd
+.gotflags:
+	pop edi
+	ret
+
+.newairport:
+	cmp byte [edx+veh.aircraftop],0x12
+	je .gotflags		// if it's equal, cf must be clear
+
+	push ecx
+	movzx ecx, byte [edx+veh.movementstat]
+	imul ecx, airportmovementedge_size
+
+	cmp byte [edi+ecx+airportmovementedge.specaction],1
+// cf is set only if specop was 0
+	pop ecx
+	pop edi
+	ret
+
+exported buynewaircraft
+	mov al,[landscape2+ebp]
+
+	movzx edx,al
+	imul edx, station_size
+	add edx, [stationarrayptr]
+	movzx edx, byte [edx+station.airporttype]
+	mov dl, [airportstarthangarnodes+edx]
+
+	cmp dl,0xFF
+	je .leavealone
+
+	mov [esi+veh.aircraftnode],dl
+	mov byte [esi+veh.movementstat],0xFF
+
+.leavealone:
+	mov edx, [esi+veh.veh2ptr]
+	mov dword [edx+veh2.curraircraftact],AIRCRAFTACT_UNKNOWN
+	ret
+
+exported initairportstate
+	mov ebp,esi
+	add ebp,[stationarray2ofst]
+	and dword [ebp+station2.airportbusyedges],0
+	and dword [ebp+station2.airportbusyedges+4],0
+	cmp al,3
+	jae .zerostate
+	mov ax,[.startstates+eax*2]
+	ret
+
+.zerostate:
+	xor eax,eax
+	ret
+
+noglobal varw .startstates, 4, 0x100, 0x40

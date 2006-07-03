@@ -294,9 +294,6 @@ uvard bridgespritetables,1,s		// Bridge Sprite Tables
 
 uvarw newmaglevbridgespeeds,4,z	// new max. speeds on two highest-speed monorail and maglev bridge types
 
-// how much airports "weigh" - i.e. how many of the allowed points they use up
-varb airportweight, 2,3,1,0
-
 //	align 4
 //
 //uvarw newplatformarray, 8*2, s

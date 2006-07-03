@@ -4,8 +4,11 @@
 
 #include <std.inc>
 #include <veh.inc>
+#include <station.inc>
+#include <flags.inc>
+#include <airport.inc>
 
-extern GetCallBack36
+extern GetCallBack36,airportmovementedgelistptrs,patchflags
 
 //
 // called when plane moves
@@ -118,18 +121,31 @@ planebreakdownspeed:
 global isplaneinflight
 isplaneinflight:
 	push eax
+	push edi
 	test byte [esi+veh.vehstatus],$80
 	jnz .notinflight
 	// in flight only if veh.aircraftop is 7..9 or >= 13
 	mov al,[esi+veh.aircraftop]
+	cmp al,18	// 18:always in flight
+	je .inflight
+	testflags newairports
+	jnc .nonewcheck
+
+	movzx edi, byte [esi+veh.targetairport]
+	imul edi, station_size
+	add edi, [stationarrayptr]
+	movzx edi, byte [edi+station.airporttype]
+	mov edi, [airportmovementedgelistptrs+edi*4]
+	test edi,edi
+	jnz .newairport
+
+.nonewcheck:
 	cmp al,7
 	jb .notinflight
 	cmp al,10
 	jb .onrunway
 	cmp al,13
 	jb .notinflight
-	cmp al,18	// 18:always in flight
-	je .inflight
 
 .onrunway:
 	mov al,[esi+veh.movementstat]
@@ -152,10 +168,23 @@ isplaneinflight:
 
 .notinflight:
 	clc
+	pop edi
 	pop eax
 	ret
 
 .inflight:
 	stc
+	pop edi
+	pop eax
+	ret
+
+.newairport:
+	movzx eax,byte [esi+veh.movementstat]
+	imul eax, airportmovementedge_size
+
+	cmp byte [edi+eax+airportmovementedge.specaction],1
+// cf is set only if specop was 0
+	cmc
+	pop edi
 	pop eax
 	ret

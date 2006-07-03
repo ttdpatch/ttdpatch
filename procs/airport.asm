@@ -7,14 +7,17 @@
 #include <airport.inc>
 
 extern variabletofind,variabletowrite
-extern airportstartstatuses,airportlayoutptrs,airportsizes,airportmovementdataptrs
+extern airportlayoutptrs,airportsizes,airportmovementdataptrs
 extern airportspecialflags,airportcallbackflags,aircraftmovement
 extern airportspecialmovements,airportmovementdatasizes,airporttypenames
+extern airportstarthangarnodes
 
 begincodefragments
 
-codefragment findinitialstatestableptr,10
+codefragment oldinitairportstate,6
 	mov [esi+station.airporttype],al
+
+codefragment_call newinitairportstate, initairportstate, 8
 
 codefragment findairportsizetable,15
 	mov di, [esi+station.airportXY]
@@ -60,7 +63,7 @@ codefragment oldaircraftyield_newop
 	mov byte [esi+veh.aircraftop],0x12
 	db 0xc6, 0x46, 0x62		// mov byte [esi+veh.movementstat],...
 
-codefragment_jmp newaircraftyield_newop,aircraftyield_newop
+codefragment_jmp newaircraftyield_newop,aircraftyield_newop,5
 
 codefragment findaircraftselectwinelems,-10
 	dw 0x3059
@@ -111,21 +114,43 @@ codefragment oldairportsel_eventhandler,3
 
 codefragment_call newairportsel_eventhandler,airportsel_eventhandler,6
 
+codefragment oldnewaircraftorder
+	cmp byte [esi+veh.aircraftop],0x12
+	jne $+2+7
+
+codefragment_call newnewaircraftorder,newaircraftorder,13
+
+codefragment oldstopaircraft_isinflight
+	cmp byte [edx+veh.aircraftop],4
+	jb $+2+0x15
+
+codefragment_call newstopaircraft_isinflight,stopaircraft_isinflight,10
+
+codefragment oldstoprotor
+	mov al, [edi+veh.aircraftop]
+	cmp al, 1
+
+codefragment newstoprotor
+	mov al, [edi+veh.currorder]
+	and al, 0x1f
+	cmp al, 3
+	setfragmentsize 9
+	db 0x75			// ja -> jne
+
+codefragment oldbuynewaircraft
+	mov al, [landscape2+ebp]
+	mov [esi+veh.targetairport],al
+
+codefragment_call newbuynewaircraft,buynewaircraft,6
+
 endcodefragments
 
 ext_frag newvariable,findvariableaccess,oilfieldaccepts
 
 exported patchnewairports
-	stringaddress findinitialstatestableptr
-	mov esi,airportstartstatuses
-	xchg esi,[edi]
-	push edi
-	mov edi,airportstartstatuses
-	movsd
-	movsw
-	pop edi
+	patchcode initairportstate
 	mov esi,airportlayoutptrs
-	xchg esi,[edi+37]
+	xchg esi,[edi+lastediadj+41]
 	mov edi,airportlayoutptrs
 	times 3 movsd
 
@@ -152,6 +177,7 @@ exported patchnewairports
 	mov word [airporttypenames],statictext(airportsel_smallairport)
 	mov word [airporttypenames+2],statictext(airportsel_largeairport)
 	mov word [airporttypenames+4],statictext(airportsel_heliport)
+	or dword [airportstarthangarnodes],byte -1
 
 	patchcode getnewaircraftop
 	storeaddress findaircraftmovement,1,1,aircraftmovement
@@ -182,4 +208,9 @@ exported patchnewairports
 	patchcode airportsizetext
 	patchcode airportseltypeclick
 	patchcode airportsel_eventhandler
+
+	patchcode newaircraftorder
+	patchcode stopaircraft_isinflight
+	patchcode stoprotor
+	patchcode buynewaircraft
 	ret

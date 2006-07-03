@@ -580,34 +580,22 @@ arriveatdepot:
 	ret 4
 
 .byorder:
-	movzx eax,ah
-
 	// is this the right depot?
 	cmp byte [esi+veh.class],0x13
 	je .airport
 
+	movzx eax,ah
 	imul eax,byte depot_size
 	mov ax,[depotarray+eax+depot.XY]
-	jmp short .gotloc
-
-.airport:
-	mov ah,station_size
-	mul ah
-	add eax,[stationarrayptr]
-	cmp byte [eax+station.airporttype],1
-	mov ax,[eax+station.airportXY]
-	je .large
-
-	add al,3	// hangar is at X+3 for small airport
-	jmp short .gotloc
-
-.large:
-	add al,5	// and X+5 for large
-
-.gotloc:
 	sub ax,[esi+veh.XY]
 	jnz .done
+	jmp short .goodloc
 
+.airport:
+	cmp ah,[esi+veh.targetairport]
+	jne .done
+
+.goodloc:
 	testmultiflags losttrains,lostrvs,lostships,lostaircraft
 	jz .noreset
 	and word [esi+veh.traveltime],0

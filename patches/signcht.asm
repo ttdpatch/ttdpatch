@@ -26,7 +26,7 @@ extern newspritedata,newspritenum,newvehtypeinit,ophandler,patchflags
 extern planttreearea,redrawscreen,redrawtile,resetnewsprites
 extern resetpathsignalling,setmainviewxy,specialerrtext1,specialerrtext2
 extern stationarray2ofst,subsidyfn,traincost,treenum,treestart,vehtypedataptr
-extern yeartodate,trackcheat
+extern yeartodate,trackcheat,isplaneinflight
 
 
 %assign cheattext "CHT:"	// gives "CHT:" in little endian
@@ -748,8 +748,8 @@ stopallcheat:
 	ja .next
 	jne .stopit
 
-	cmp byte [esi+veh.movementstat],13	// can't stop aircraft in flight
-	jae .next
+	call isplaneinflight	// can't stop aircraft in flight
+	jc .next
 
 .stopit:
 	cmp dword [esi+veh.scheduleptr],byte -1
