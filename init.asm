@@ -305,14 +305,15 @@ initialize:
 
 #if MAKEGUARD
 	CALLINT3
-	mov edi, dword __varlist_start
+	mov esi, dword __varlist_start
 	.nextguard:
-	mov eax, dword [edi]
+	cmp esi, dword __varlist_end
+	jae .guardend
+	lodsd
 	mov dword [eax-8], 'TTDP'
 	mov dword [eax-4], 'ATCH'
-	add edi, 4
-	cmp edi, dword __varlist_end
-	jb .nextguard
+	jmp .nextguard
+	.guardend:
 #endif
 
 #if !WINTTDX && !LINTTDX

@@ -51,7 +51,7 @@ uvard curstationcargo
 // out:	eax->action 3
 // 	on error eax=0
 
-grfcalltable getaction3, dd addr(getaction3_table.generic)
+grfcalltable getaction3, dd addr(getaction3.generic)
 
 .generic:
 	mov eax,[genericids+(eax-0x100)*4]

@@ -1067,7 +1067,7 @@ setvehcargomap:
 //	esi->action 3 id list
 // out:	esi->action 3 num-cid
 // safe:eax ebx ecx edx
-grfcalltable action3storeid, dd addr(action3storeid_table.generic)
+grfcalltable action3storeid, dd addr(action3storeid.generic)
 
 .gethouses:
 	lodsb

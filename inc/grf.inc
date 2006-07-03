@@ -52,12 +52,9 @@ endstruc
 %endmacro
 
 %macro grfcalltable 1-2+.nolist	// params: name[,databeforedefinition...]
-
-	[section .datad]
-	align 4
+	vard %1_before_table
 		%2 ;
-	vard %1
-	%1_table:
+	%1:
 		dd addr(.gettrains),addr(.getrvs),addr(.getships),addr(.getplanes)
 		dd addr(.getstations),addr(.getcanals),addr(.getbridges),addr(.gethouses)
 		dd addr(.getgeneric),addr(.getindustiles),addr(.getindustries),addr(.getcargos),addr(.getsounds)
