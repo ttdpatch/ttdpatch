@@ -150,7 +150,6 @@
 %macro sdef 3.nolist		; params bss-type, varname, varnum
 	%define %%sectname sectname_%1
 	#if MAKEGUARD
-	%error %2 SKIPGUARD
 	%ifndef SKIPGUARD
 	[section .varlist]
 	dd %2
