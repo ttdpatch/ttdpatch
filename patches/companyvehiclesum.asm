@@ -43,6 +43,9 @@ exported CompanyVehiclesSummary
 	jmp .advanceptr
 .road:
 	// add code for articulate road vehicles here!
+	// ok!
+	cmp byte [esi+veh.subclass], 0x00
+	jne .advanceptr
 	add ebx, 0x10000
 	jmp .advanceptr
 .train:
