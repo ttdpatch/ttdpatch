@@ -302,7 +302,6 @@ initialize:
 #endif
 
 #if MAKEGUARD
-	CALLINT3
 	mov esi, dword __varlist_start
 	.nextguard:
 	cmp esi, dword __varlist_end
@@ -1024,6 +1023,7 @@ proc applypatches
 	push esi
 	xor edi,edi
 	call eax
+	CHECKMEM
 	pop esi
 	pop ebp
 

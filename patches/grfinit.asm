@@ -994,6 +994,7 @@ postinfoapply:
 	jne .nottitle
 	mov byte [grfstat_titleclimate],-1
 .nottitle:
+	CHECKMEM
 
 	mov al,[temp_snowline]
 	mov [snowline],al
@@ -1604,6 +1605,7 @@ postinfoapply:
 	// Disable 32px depots completely (no enhancegui active) until I can workout some fragments.
 	btr dword [grfmodflags], 3
 .lendofdepots:
+	CHECKMEM
 	ret
 
 // List of vehicles the should be made eternal

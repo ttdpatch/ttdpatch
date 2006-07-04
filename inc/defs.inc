@@ -128,3 +128,11 @@ extern overflowhandler,realoverflowreturn
 	%1:
 %endmacro
 
+#if MAKEGUARD
+%macro CHECKMEM 0.nolist 
+	extern checkmemoryconsistency
+	call checkmemoryconsistency
+%endmacro
+#else
+%define CHECKMEM ;
+#endif
