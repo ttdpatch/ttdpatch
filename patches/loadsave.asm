@@ -222,10 +222,12 @@ uvarw loadremovedsfxs	// ... and this many pseudo-/special vehicles
 %assign LOADED_X2_NEWCARGOTYPES		0x20
 %assign LOADED_X2_PLAYER2		0x40
 
+%define SKIPGUARD 1			// the variables get cleaned by a dword.. 
 uvarb extrachunksloaded1		// a combination of LOADED_X1_*
 uvarb extrachunksloaded2		// a combination of LOADED_X2_*
 uvarb extrachunksloaded3		// a combination of LOADED_X3_*
 uvarb extrachunksloaded4		// a combination of LOADED_X4_*
+%undef SKIPGUARD
 
 uvard l6switches
 

@@ -77,9 +77,11 @@ uvarb industileoverrides,0xAF
 // Three accepted cargoes for the tile. The high byte contains
 // the amount, the low byte the type
 // these three must remain next to each other, in this order
+%define SKIPGUARD 1
 uvarw industileaccepts1,256
 uvarw industileaccepts2,256
 uvarw industileaccepts3,256
+%undef SKIPGUARD
 
 // land shape flags, see IDA DB for meaning of bits
 // except bit 5, that means "allowed on both land and water"
