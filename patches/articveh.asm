@@ -461,12 +461,27 @@ RVTrailerProcessing:
 	inc	ax
 	cmp	byte [runTrailer], 1
 	je	.makeAMove
+	push	esi
+	push	ebx
+	movzx	esi, word [esi+veh.engineidx]
+	shl	si, 7
+	add	esi, dword [veharrayptr]
+	mov	bl, byte [esi+veh.currorder]
+	and	bl, 0Fh
+	cmp	bl, 03h
+	pop	ebx
+	pop	esi
+	je	.updateLoadingStateGFX
+	retn
+.updateLoadingStateGFX:
+	pushad
 	mov	ax, word [esi+veh.xpos]
 	mov	cx, word [esi+veh.ypos]
 	movzx	bx, byte [esi+veh.direction]
 	call	[SelectRVSpriteByLoad]			//no run? just redraw (esp. for loading states!)
 	call	[SetRoadVehObjectOffsets]
 	call	[RedrawRoadVehicle]
+	popad
 	retn
 
 .makeAMove:
@@ -918,7 +933,7 @@ RVTrailerProcessing:
 	jb	short .zeroSpeedAndReturn
 	mov	dl, byte [landscape4(di,1)]			;landscape 4
 	and	dl, 0F0h
-	cmp	dl, 90h				;IS THIS A STATION?
+	cmp	dl, 90h				;IS THIS A tunnel/bridge?
 	jnz	short .notJustRoad
 	test	byte [landscape5(di,1)], 0F0h		;IS THIS LEVEL CROSSING OR DEPOT?
 	jnz	short .notJustRoad
