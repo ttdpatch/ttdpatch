@@ -17,7 +17,7 @@ extern storeutf8char
 extern failpropwithgrfconflict,lastextragrm,curextragrm
 extern restorevehnametexts
 
-uvard ourtext_ptr, ourtext(last)-ourtext(base)
+uvard ourtext_ptr, ourtext(last)-ourtext(base)+1	// +1 otherwise last overwrites the following uvard in memory
 
 uvarb textprocesstodisplay		// set to 1 if the text will be displayed, so the text. ref. stack can be modified
 svarb textrecursionlevel		// -1 = primary call, 0+ = recursive

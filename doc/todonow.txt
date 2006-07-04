@@ -747,7 +747,7 @@ CHANGELOG
 - by Oskar:
   * fixed display of dikes with seelevel canals and cliffs
   * make enhancetunnels depend on higherbridges to avoid jumping vehicles at tunnels
-- updated Polish, Russian, Norwegian, Finnish and Danish translations
+- updated Polish, Russian, Norwegian, Finnish, Danish, Spanish and Catalan translations
 - by Lakie:
   * fixed canals at sealevel not being saved when building a buoy
   * fixed drawing of buoys on canals
@@ -758,3 +758,5 @@ CHANGELOG
 - fixed crash in train grfs using var 42
 - AI player's vehicles no longer count for persistentengines
 - allow wagons to expire
+- allow action D variables to be set during initialization as well (in
+  addition to activation)

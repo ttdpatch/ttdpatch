@@ -2745,8 +2745,10 @@ setparam:
 
 .globalvar:
 	extern procall_type
-	cmp dword [procall_type],PROCALL_ACTIVATE
-	jne .done	// skip writing to global variables unless doing activation
+	cmp dword [procall_type],PROCALL_ACTIVATE	// skip writing to global
+	je .ok						// variables unless doing
+	cmp dword [procall_type],PROCALL_INITIALIZE	// activation or initialization
+	jne .done
 
 .ok:
 	test byte [esi],0x80
