@@ -249,12 +249,6 @@ begincodefragments
 		icall	dontLetARVsInNormalRVStops
 		setfragmentsize 8
 
-	codefragment oldCompanyVehiclesSummaryPart, 6
-		add	ebx, 10000h
-
-	codefragment newCompanyVehiclesSummaryPart
-		icall	decrementBHIfRVTrailer
-
 	codefragment oldDrawRVINRVList, 4
 		add     cx, 22
 		add     dx, 6
@@ -335,17 +329,6 @@ patcharticulatedvehicles:
 	patchcode oldSetMovementStat2, newSetMovementStat2, 1, 1
 	patchcode oldSetMovementStat3, newSetMovementStat3, 1, 1
 
-;#if WINTTDX
-;	stringaddress oldRVCollisionCheck2, 1, 3
-;	mov	edi, [edi]
-;	mov	dword [rvCollisionCurrVehicle], edi
-;	patchcode oldRVCollisionCheck3, startTrailerInDepot, 1, 3
-;	storeaddress oldRVCollisionCheck, 1, 3, JumpOutOfRVRVCollision, 6
-;	stringaddress oldRVCollisionCheck, 1, 3
-;	mov	edi, [edi+2]
-;	mov	dword [rvCollisionFoundVehicle], edi
-;	patchcode oldRVCollisionCheck, newRVCollisionCheck, 1, 3
-;#else
 	stringaddress oldRVCollisionCheck2, 2-WINTTDX, 3
 	mov	edi, [edi]
 	mov	dword [rvCollisionCurrVehicle], edi
@@ -355,7 +338,6 @@ patcharticulatedvehicles:
 	mov	edi, [edi+2]
 	mov	dword [rvCollisionFoundVehicle], edi
 	patchcode oldRVCollisionCheck, newRVCollisionCheck, 2-WINTTDX, 3
-;#endif
 
 	patchcode oldRVCollisionTimeout, newRVCollisionTimeout, 1, 1
 
@@ -427,8 +409,6 @@ patcharticulatedvehicles:
 
 	//NOTE!: this code overwrites the 'call' to gotodepo.asm:294
 	patchcode oldAddStationToRVSchedule, newAddStationToRVSchedule, 1, 1
-
-	patchcode oldCompanyVehiclesSummaryPart, newCompanyVehiclesSummaryPart, 1, 1
 
 	patchcode oldFilterRVsListClick, newFilterRVsList, 1+WINTTDX, 3
 

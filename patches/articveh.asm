@@ -1080,22 +1080,6 @@ dontLetARVsInNormalRVStops:
 	pop esi
 	ret
 
-
-global decrementBHIfRVTrailer
-decrementBHIfRVTrailer:
-	cmp	byte [esi+veh.class], 0x11		//are we a road vehicle?
-	jne	.notRoadVehicleOrRoadVehicleEngine
-	push	ax
-	mov	ax, word [esi+veh.engineidx]		//are we the engine?
-	cmp	ax, word [esi+veh.idx]			//if yes, then dont decrement
-	pop	ax
-	je	.notRoadVehicleOrRoadVehicleEngine
-	dec	bh					//we are a trailer, remove from vehicle count.
-.notRoadVehicleOrRoadVehicleEngine:
-	add	esi, 80h				//this is the line we covered in the code
-							//incement to the next vehicle in the array.
-	retn
-
 global RVListSkipTrailers
 RVListSkipTrailers:
 	add	edi, 80h

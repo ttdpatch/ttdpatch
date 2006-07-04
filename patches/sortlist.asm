@@ -50,14 +50,17 @@ findlisttrains:
 // the same for any other vehicle type (increase ax instead of ah)
 global findlistvehs
 findlistvehs:
+	cmp bl,[edi+veh.owner]	// overwritten
+	jne .notours		// by the
+
 	cmp byte [edi+veh.class], 11h		// |--------
 	jne .skipArticulatedCheck		// | Added in by StevenHoefel.
 	cmp byte [edi+veh.subclass], 0x0	// | Dont inc ax for trailers.
-	jne .notours				// |
-.skipArticulatedCheck:				// |---------
-	cmp bl,[edi+veh.owner]	// overwritten
-	jne .notours		// by the
+	je .skipArticulatedCheck		// |
+
 	inc ax			// runindex call
+
+.skipArticulatedCheck:				// |---------
 	cmp byte [esi+0x32],0
 	jne .nosort
 	call sortloop
@@ -122,9 +125,9 @@ sortloop:
 	movzx ecx,byte [esi+veh.class]
 	call dword [wantvehicle+(ecx-0x10)*4]
 	jnz .loop
-	cmp byte [edi+veh.class], 11h		// |--------
+	cmp byte [esi+veh.class], 11h		// |--------
 	jne .skipArticulatedCheck		// | Added in by StevenHoefel.
-	cmp byte [edi+veh.subclass], 0x0	// | Dont inc ax for trailers.
+	cmp byte [esi+veh.subclass], 0x0	// | Dont inc ax for trailers.
 	jne .loop				// |
 .skipArticulatedCheck:				// |---------
 	mov cl,[esi+veh.owner]
