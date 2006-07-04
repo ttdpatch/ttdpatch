@@ -159,15 +159,18 @@ patchnewstations:
 	patchcode oldsetupstationstruct,newsetupstationstruct,2,3
 	patchcode oldsetuprailwaystation,newsetuprailwaystation,1,1
 	patchcode oldbadstationintransportzone,newbadstationintransportzone,1,1
-#if WINTTDX
-	patchcode oldupdatestationwindowpart1,newupdatestationwindow,1,1
-	patchcode oldupdatestationwindowpart2,newcargoinstation,1,1
-	//one of the instances is invalidated, but not overwritten by the new load/unload code
-#else
+
 	patchcode oldupdatestationwindowpart1,newcargoinstation,1,1
-	//one of the instances is invalidated, but not overwritten by the new load/unload code
 	patchcode oldupdatestationwindowpart2,newupdatestationwindow,1,1
-#endif
+;#if WINTTDX
+;	patchcode oldupdatestationwindowpart1,newupdatestationwindow,1,1
+;	patchcode oldupdatestationwindowpart2,newcargoinstation,1,1
+;	//one of the instances is invalidated, but not overwritten by the new load/unload code
+;#else
+;	patchcode oldupdatestationwindowpart1,newcargoinstation,1,1
+;	//one of the instances is invalidated, but not overwritten by the new load/unload code
+;	patchcode oldupdatestationwindowpart2,newupdatestationwindow,1,1
+;#endif
 	patchcode oldstationquery,newstationquery
 	patchcode oldaibuildrailstation,newaibuildrailstation
 	patchcode oldaipickconstructionobject,newaipickconstructionobject,1,4
