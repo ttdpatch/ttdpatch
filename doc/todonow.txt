@@ -750,3 +750,5 @@ CHANGELOG
 - fixed crash in train grfs using var 42
 - AI player's vehicles no longer count for persistentengines
 - allow wagons to expire
+- allow action D variables to be set during initialization as well (in
+  addition to activation)
