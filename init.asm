@@ -301,8 +301,6 @@ initialize:
 	call dorelocations	// only do this once
 #endif
 
-.notagain:
-
 #if MAKEGUARD
 	CALLINT3
 	mov esi, dword __varlist_start
@@ -315,6 +313,8 @@ initialize:
 	jmp .nextguard
 	.guardend:
 #endif
+
+.notagain:
 
 #if !WINTTDX && !LINTTDX
 
