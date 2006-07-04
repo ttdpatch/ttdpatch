@@ -4178,6 +4178,7 @@ var airportdata
 	dd airportspecialflags,airportweight,airporttypenames		//0c..0e
 
 uvard grfvarreinitstart,0
+%define SKIPGUARD 1
 
 	// All variables that must be reset when loading graphics again
 	// are in this block.  They must all use uvard.
@@ -4284,6 +4285,7 @@ uvard laststationid
 
 	// ----------------------------
 
+%undef SKIPGUARD
 uvard grfvarclearend,0
 
 global numgrfvarreinitgrm
