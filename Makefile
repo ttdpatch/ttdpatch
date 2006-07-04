@@ -293,13 +293,13 @@ host/%.o : %.asm
 define A-PO-COMMANDS
 	${_E} [CPP/NASM] $@
 	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc -I. $< -MD -MF $@.d -MT $@ | perl perl/lineinfo.pl > $@.asp
-	${_C}$(NASM) -f win32 $@.asp -o $@
+	${_C}$(NASM) -f win32 $(NASMDEF) $@.asp -o $@
 	@rm -f $@.asp
 endef
 define A-LST-COMMANDS
 	${_E} [CPP/NASM] $@
 	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc -I. $< | perl perl/lineinfo.pl > $@.asp
-	${_C}$(NASM) -f win32 $@.asp -o /dev/null -l $@
+	${_C}$(NASM) -f win32 $(NASMDEF) $@.asp -o /dev/null -l $@
 	@rm -f $@.asp
 endef
 define C-PO-COMMANDS
