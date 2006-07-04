@@ -4285,8 +4285,8 @@ uvard laststationid
 
 	// ----------------------------
 
-%undef SKIPGUARD
 uvard grfvarclearend,0
+%undef SKIPGUARD
 
 global numgrfvarreinitgrm
 numgrfvarreinitgrm equ (grfvarreinitend-grfvarreinitgrmstart)/4
