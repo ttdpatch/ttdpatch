@@ -52,14 +52,13 @@ global findlistvehs
 findlistvehs:
 	cmp bl,[edi+veh.owner]	// overwritten
 	jne .notours		// by the
+	inc ax			// runindex call
 
 	cmp byte [edi+veh.class], 11h		// |--------
 	jne .skipArticulatedCheck		// | Added in by StevenHoefel.
 	cmp byte [edi+veh.subclass], 0x0	// | Dont inc ax for trailers.
 	je .skipArticulatedCheck		// |
-
-	inc ax			// runindex call
-
+	dec ax					// | decrement one, we dont want to count this vehicle
 .skipArticulatedCheck:				// |---------
 	cmp byte [esi+0x32],0
 	jne .nosort
