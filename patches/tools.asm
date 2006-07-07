@@ -29,7 +29,10 @@ extern searchcollidingvehs,specialtext1,station2clear,station2init
 extern stationarray2ptr,tmpbuffer1,ttdpatchactions,ttdtexthandler
 extern varheap,exitcleanup,player2clear,player2array,newvehdata
 extern cargobits,cargoid,maxtextwidth,gettextwidthunicode,hasaction12
-
+#if MAKEGUARD
+extern guardalloc, guardallocchangesize
+global lastmallocofs
+#endif
 
 #define __no_extern_vars__ 1
 #include <win32.inc>
@@ -232,7 +235,9 @@ malloc:
 	mov eax,[esp+0x24]
 	add eax,byte 3
 	and eax,byte ~3
-
+#if MAKEGUARD
+	call guardallocchangesize
+#endif
 	mov esi,[heapptr]
 
 .trynext:
@@ -253,6 +258,9 @@ malloc:
 	mov [lastmallocofs],eax
 
 .return:
+#if MAKEGUARD
+	call guardalloc
+#endif
 	mov [esp+0x24],eax
 
 	popa
