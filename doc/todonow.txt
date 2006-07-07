@@ -741,7 +741,8 @@ CHANGELOG
 - by Csaba:
   * initial work on new airports feature (enable with "newairports on")
 - added -Z extended command line switches for all but town growth switches
-
+- by Oskar:
+  * (devel) added memory guard system to find memory overflows (GUARD=1)
 
 2.5 beta 7
 - by Oskar:

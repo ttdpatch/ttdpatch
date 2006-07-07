@@ -38,6 +38,9 @@ FORCE:
 # this is a space-separated list without the command line switches 
 # like -d; those will be added later because they differ
 EXTRADEFS = DEBUG=$(DEBUG) 
+ifdef GUARD
+	EXTRADEFS += MAKEGUARD=1
+endif
 
 ifeq ($(NOREV),1)
 	EXTRADEFS += RELEASE=1
