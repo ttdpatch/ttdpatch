@@ -243,7 +243,7 @@ handlewindowdrag:
 .donevertmatch:
 
 .continue:
-	add edi, 34h
+	add edi, window_size
 	jmp .nextwindow
 .lastwindow:
 	mov ax, [nx]

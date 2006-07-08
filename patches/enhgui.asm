@@ -929,7 +929,7 @@ updateraildepotsize:
 	mov [esi+0x0C], eax	// overwrite window width and height
 	
 .nextwindow:
-	add esi, 34h
+	add esi, 0+window_size
 	jmp short .nextloop
 .donedepotwindows:
 	popa
