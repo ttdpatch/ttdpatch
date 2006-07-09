@@ -43,31 +43,32 @@ endcodefragments
 
 patchmoreanimation:
 	mov eax,[animarraysize]
-	mov ebp,eax
 	shl eax,1
 	push eax
 	call malloccrit
 	pop ebx
 	mov [newanimarray],ebx
-	add eax,ebx
+	lea ebp,[eax+ebx]
 	stringaddress findanimlist1,1,1
 	mov [edi-4],ebx
-	mov [edi+0x32+7*WINTTDX],eax
+	mov [edi+0x32+7*WINTTDX],ebp
 	stringaddress findanimlist2,1,1
 	mov [edi+11],ebx
-	mov [edi+16],ebp
+	mov eax,[animarraysize]
+	mov [edi+16],eax
 	stringaddress findanimlist3,1,1
 	mov [edi-4],ebx
-	mov [edi+0x12],eax
+	mov [edi+0x12],ebp
 	stringaddress findanimlist4,1,1
 	mov [edi-4],ebx
-	mov [edi+0x12],eax
+	mov [edi+0x12],ebp
 	stringaddress findanimlist5,1,1
 	mov [edi-4],ebx
-	mov [edi+4],bp
-	mov [edi+34],bp
+	mov eax,[animarraysize]
+	mov [edi+4],ax
+	mov [edi+34],ax
 	stringaddress findanimlist6,1,1
-	dec eax
-	dec eax
-	mov [edi-6],eax
+	dec ebp
+	dec ebp
+	mov [edi-6],ebp
 	ret
