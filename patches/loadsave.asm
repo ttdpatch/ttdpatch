@@ -685,9 +685,9 @@ newloadtitleproc:
 	call adjustscheduleptrs
 #endif
 
-	mov edx,loadremovedvehs
-	and dword [edx],byte 0
-	and word [byte edx+loadremovedsfxs-loadremovedvehs], byte 0
+	and word [loadremovedvehs],0
+	and word [loadremovedcons],0
+	and word [loadremovedsfxs],0
 
 	imul ecx,ecx,oldvehicles
 	mov esi,dayprocnextveh
@@ -997,7 +997,6 @@ newloadtitleproc:
 //
 // in:	eax->veharray
 //	ecx->vehicle within consist
-//	edx->loadremovedvehs
 // uses:esi
 global deleteconsist
 deleteconsist:
@@ -1012,14 +1011,14 @@ deleteconsist:
 
 	cmp byte [esi+veh.class],0x14
 	jae short .delspec
-	inc word [byte edx+loadremovedcons-loadremovedvehs]
+	inc word [loadremovedcons]
 
 .delloop:
-	inc word [edx]
+	inc word [loadremovedvehs]
 	jmp short .delschedule
 
 .delspec:
-	inc word [byte edx+loadremovedsfxs-loadremovedvehs]
+	inc word [loadremovedsfxs]
 
 .delschedule:
 	cmp dword [esi+veh.scheduleptr],byte -1
@@ -2281,6 +2280,8 @@ ovar endofloadtarget,-4
 	mov [esi],eax			// store the original vehicle array multiplier
 	mov eax,[loadremovedvehs]
 	mov [esi+2],eax
+	mov eax,[loadremovedcons]
+	mov [esi+4],eax
 	mov eax,[loadremovedsfxs]
 	mov [esi+6],eax			// upper word irrelevant
 
