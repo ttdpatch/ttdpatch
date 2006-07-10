@@ -158,6 +158,16 @@ checkgotostation:
 	ret
 
 .planeorstation:
+// allow hangars only for planes - we can get here with other vehicle types as well
+// if the station has other parts besides the airport
+	push ebx
+	movzx ebx,word [esi+window.id]	// get the current vehicle from the window data
+	shl ebx,vehicleshift
+	add ebx,[veharrayptr]
+	cmp byte [ebx+veh.class],0x13
+	pop ebx
+	jne .nodepot
+
 	cmp ah,0x41
 	je short .hangar
 

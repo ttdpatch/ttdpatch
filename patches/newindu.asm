@@ -68,7 +68,7 @@ struc industilegameid
 endstruc
 
 // index of the last valid entry of the above array
-uvarb lastindustiledataid
+uvard lastindustiledataid	// it seems to be aswell be loaded/saved as dword (Oskar)
 
 // this array contains 0 for non-overridden old types and
 // the corresponding new type for overridden ones
