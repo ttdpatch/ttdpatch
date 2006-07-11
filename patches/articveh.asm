@@ -739,8 +739,8 @@ RVTrailerProcessing:
 	push	bx
 	call	[LimitTurnToFortyFiveDegrees]
 	pop	bx
-	call	[RVCheckCollisionWithRV]
-	jb	.justQUIT
+;	call	[RVCheckCollisionWithRV]
+;	jb	.justQUIT
 	call	[VehEnterLeaveTile]
 	push	esi
 	mov	esi, dword [ParentIDX]
@@ -897,8 +897,8 @@ RVTrailerProcessing:
 	push	bx
 	call	[LimitTurnToFortyFiveDegrees]
 	pop	bx
-	call	[RVCheckCollisionWithRV]
-	jb	.justQUIT
+;	call	[RVCheckCollisionWithRV]
+;	jb	.justQUIT
 	call	[VehEnterLeaveTile]
 	or	ebp, ebp
 	js	short .zeroSpeedAndReturn
