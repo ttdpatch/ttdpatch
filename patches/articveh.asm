@@ -378,6 +378,8 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 	jmp	.continueRunningTrailers
 .setTrailerFlag:
 	mov	byte [runTrailer], 1
+	cmp	word [esi+veh.speed], 0
+	je	near .justQuit
 .continueRunningTrailers:
 	cmp	word [esi+veh.nextunitidx], 0xFFFF	;trailers? continue.
 	je	.justQuit
@@ -452,13 +454,13 @@ RVTrailerProcessing:
 	call	[IncrementRVMovementFrac]			;process vehicle tick, if overflow then make movement
 	;jb	short .makeAMove				;needs to be called... but we don't want it governing whether or not
 								;this process runs!
-	mov	ax, word [esi+veh.maxspeed]
-	inc	ax
-	inc	ax
-	inc	ax						;play catch up
-	inc	ax
-	inc	ax
-	inc	ax
+;	mov	ax, word [esi+veh.maxspeed]
+;	inc	ax
+;	inc	ax
+;	inc	ax						;play catch up
+;	inc	ax
+;	inc	ax
+;	inc	ax
 	cmp	byte [runTrailer], 1
 	je	.makeAMove
 	push	esi
@@ -534,11 +536,11 @@ RVTrailerProcessing:
 .noNeedToAttemptOvertake:
 	mov	dh, byte [esi+veh.direction]
 	cmp	dl, dh				;We're turning, LimitTurnToFortyFiveDegrees has changed the dir.
-	jz	short .noTurnRequired
+	jz	short .JustMoveIntoNextTile
 	mov	byte [esi+veh.direction], dl	;shift in new direction
 	mov	dl, dh
 	cmp	dl, bl
-	jz	short .noTurnRequired
+	jz	short .JustMoveIntoNextTile
 	mov	ax, word [esi+veh.xpos]
 	mov	cx, word [esi+veh.ypos]
 	movzx	bx, byte [esi+veh.direction]
@@ -546,120 +548,120 @@ RVTrailerProcessing:
 	call	[SetRoadVehObjectOffsets]
 	jmp	[RedrawRoadVehicle]
 ; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-
-.noTurnRequired:
-	movzx	ebx, byte [esi+veh.movementstat]
-	sub	bl, 20h
-	jb	near .JustMoveIntoNextTile				;this is not a station!
-	add	bl, byte [roadtrafficside]
-	push	ecx
-	mov	ecx, dword [byte_112552]
-	mov	bl, [ecx+ebx]				;the ends of the tiles? or maybe the ends of the stations.
-	pop	ecx
-	cmp	bl, byte [esi+0x63]				;this is the px into the current tile 0x0-0xF
-	jnz	near .JustMoveIntoNextTile
-	movzx	ebp, word [esi+veh.XY]				;ugh.. from here is station code... nasty
-	mov	bl, [landscape2+ebp]
-	mov	byte [vaTempLocation1], bl
-	mov	bx, word [esi+veh.currorder]
-	and	bl, 1Fh
-	cmp	bl, 4
-	jz	near .loc_165C37
-	cmp	bl, 2
-	jz	near .loc_165C37
-	mov	bp, word [esi+veh.XY]
-	mov	edx, [station.busstop]
-	mov	al, byte [landscape5(bp,1)]
-	cmp	al, 43h
-	jb	short .loc_165BBB
-	cmp	al, 47h
-	jnb	short .loc_165BBB
-	mov	dl, [station.truckstop]
-
-.loc_165BBB:
-	movzx	ebp, byte [vaTempLocation1]
-	imul	bp, 8Eh
-	add	ebp, [stationarrayptr]
-	and	byte [edx+ebp], 7Fh ;not 80h
-	mov	al, byte [vaTempLocation1]
-	mov	byte [esi+veh.laststation], al
-	call	[GenerateFirstRVArrivesMessage]
-	mov	ax, word [esi+veh.currorder]
-	mov	word [esi+veh.currorder], 3
-	mov	dl, al
-	and	dl, 1Fh
-	cmp	dl, 1
-	jnz	short .loc_165C08
-	cmp	ah, byte [vaTempLocation1]
-	jnz	short .loc_165C08
-	or	word [esi+veh.currorder], 80h
-	and	ax, 60h
-	or	word [esi+veh.currorder], ax
-
-.loc_165C08:
-	mov	byte [currentexpensetype], expenses_rvincome
-	call	LoadUnloadCargo		; in: esi->vehicle		USE THE REDEFINED ONE, THEREFORE no brackets!
-					; out: al=flags (see below)
-	or	al, al
-	jz	short .loc_165C29
-	movzx	bx, byte [esi+veh.owner]
-	mov	al, 0x0A ;cWinTypeRVList
-	call	[RefreshWindows]	; AL = window type
-					; AH = element idx (only if AL:7 set)
-					; BX = window ID (only if AL:6 clear)
-	call	[RedrawRoadVehicle]
-
-.loc_165C29:
-	mov	bx, word [esi+veh.idx]
-	mov	ax, 0x48D ;cWinTypeVehicle or cWinElemRel or cWinElem4
-	call	[RefreshWindows]	; AL = window type
-					; AH = element idx (only if AL:7 set)
-					; BX = window ID (only if AL:6 clear)
-	retn
+;
+;.noTurnRequired:
+;	movzx	ebx, byte [esi+veh.movementstat]
+;	sub	bl, 20h
+;	jmp	near .JustMoveIntoNextTile				;this is not a station!
+;	add	bl, byte [roadtrafficside]
+;	push	ecx
+;	mov	ecx, dword [byte_112552]
+;	mov	bl, [ecx+ebx]				;the ends of the tiles? or maybe the ends of the stations.
+;	pop	ecx
+;	cmp	bl, byte [esi+0x63]				;this is the px into the current tile 0x0-0xF
+;	jnz	near .JustMoveIntoNextTile
+;	movzx	ebp, word [esi+veh.XY]				;ugh.. from here is station code... nasty
+;	mov	bl, [landscape2+ebp]
+;	mov	byte [vaTempLocation1], bl
+;	mov	bx, word [esi+veh.currorder]
+;	and	bl, 1Fh
+;	cmp	bl, 4
+;	jz	near .loc_165C37
+;	cmp	bl, 2
+;	jz	near .loc_165C37
+;	mov	bp, word [esi+veh.XY]
+;	mov	edx, [station.busstop]
+;	mov	al, byte [landscape5(bp,1)]
+;	cmp	al, 43h
+;	jb	short .loc_165BBB
+;	cmp	al, 47h
+;	jnb	short .loc_165BBB
+;	mov	dl, [station.truckstop]
+;
+;.loc_165BBB:
+;	movzx	ebp, byte [vaTempLocation1]
+;	imul	bp, 8Eh
+;	add	ebp, [stationarrayptr]
+;	and	byte [edx+ebp], 7Fh ;not 80h
+;	mov	al, byte [vaTempLocation1]
+;	mov	byte [esi+veh.laststation], al
+;	call	[GenerateFirstRVArrivesMessage]
+;	mov	ax, word [esi+veh.currorder]
+;	mov	word [esi+veh.currorder], 3
+;	mov	dl, al
+;	and	dl, 1Fh
+;	cmp	dl, 1
+;	jnz	short .loc_165C08
+;	cmp	ah, byte [vaTempLocation1]
+;	jnz	short .loc_165C08
+;	or	word [esi+veh.currorder], 80h
+;	and	ax, 60h
+;	or	word [esi+veh.currorder], ax
+;
+;.loc_165C08:
+;	mov	byte [currentexpensetype], expenses_rvincome
+;	call	LoadUnloadCargo		; in: esi->vehicle		USE THE REDEFINED ONE, THEREFORE no brackets!
+;					; out: al=flags (see below)
+;	or	al, al
+;	jz	short .loc_165C29
+;	movzx	bx, byte [esi+veh.owner]
+;	mov	al, 0x0A ;cWinTypeRVList
+;	call	[RefreshWindows]	; AL = window type
+;					; AH = element idx (only if AL:7 set)
+;					; BX = window ID (only if AL:6 clear)
+;	call	[RedrawRoadVehicle]
+;
+;.loc_165C29:
+;	mov	bx, word [esi+veh.idx]
+;	mov	ax, 0x48D ;cWinTypeVehicle or cWinElemRel or cWinElem4
+;	call	[RefreshWindows]	; AL = window type
+;					; AH = element idx (only if AL:7 set)
+;					; BX = window ID (only if AL:6 clear)
+;	retn
 ; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-
-.loc_165C37:
-	retn				//ADDED TO STOP TRAILERS FROM DOING STATIONS.
-	push	ax
-	mov	bp, word [esi+veh.XY]
-	mov	ebx, [station.busstop]
-	mov	al, byte [landscape5(bp,1)]
-	cmp	al, 43h
-	jb	short .loc_165C51
-	cmp	al, 47h
-	jnb	short .loc_165C51
-	mov	bl, [station.truckstop]
-
-.loc_165C51:
-	movzx	ebp, byte [vaTempLocation1]
-	imul	bp, 8Eh
-	add	ebp, [stationarrayptr]
-	mov	ax, word [esi+veh.currorder]
-	and	al, 1Fh
-	cmp	al, 2
-	jz	short .loc_165C7A
-	test	byte [ebx+ebp], 80h
-	jz	short .loc_165C7A
-	pop	ax
-	jmp	.zeroSpeedAndReturn
+;
+;.loc_165C37:
+;	retn				//ADDED TO STOP TRAILERS FROM DOING STATIONS.
+;	push	ax
+;	mov	bp, word [esi+veh.XY]
+;	mov	ebx, [station.busstop]
+;	mov	al, byte [landscape5(bp,1)]
+;	cmp	al, 43h
+;	jb	short .loc_165C51
+;	cmp	al, 47h
+;	jnb	short .loc_165C51
+;	mov	bl, [station.truckstop]
+;
+;.loc_165C51:
+;	movzx	ebp, byte [vaTempLocation1]
+;	imul	bp, 8Eh
+;	add	ebp, [stationarrayptr]
+;	mov	ax, word [esi+veh.currorder]
+;	and	al, 1Fh
+;	cmp	al, 2
+;	jz	short .loc_165C7A
+;	test	byte [ebx+ebp], 80h
+;	jz	short .loc_165C7A
+;	pop	ax
+;	jmp	.zeroSpeedAndReturn
 ; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-
-.loc_165C7A:
-	or	byte [ebx+ebp], 80h
-	mov	ax, word [esi+veh.currorder]
-	and	al, 1Fh
-	cmp	al, 2
-	jz	short .loc_165C8E
-	mov	word [esi+veh.currorder], 0
-
-.loc_165C8E:
+;
+;.loc_165C7A:
+;	or	byte [ebx+ebp], 80h
+;	mov	ax, word [esi+veh.currorder]
+;	and	al, 1Fh
+;	cmp	al, 2
+;	jz	short .loc_165C8E
+;	mov	word [esi+veh.currorder], 0
+;
+;.loc_165C8E:
 ;	call	RVStartSound
-	mov	bx, word [esi+veh.idx]
-	mov	ax, 0x48D ;cWinTypeVehicle or cWinElemRel or cWinElem4
-	call	[RefreshWindows]		; AL = window type
-					; AH = element idx (only if AL:7 set)
-					; BX = window ID (only if AL:6 clear)
-	pop	ax
+;	mov	bx, word [esi+veh.idx]
+;	mov	ax, 0x48D ;cWinTypeVehicle or cWinElemRel or cWinElem4
+;	call	[RefreshWindows]		; AL = window type
+;					; AH = element idx (only if AL:7 set)
+;					; BX = window ID (only if AL:6 clear)
+;	pop	ax
 
 .JustMoveIntoNextTile:
 	mov	bp, word [esi+veh.XY]
@@ -929,8 +931,8 @@ RVTrailerProcessing:
 						;         EBX = current XY index
 						;         ZF set if BX=DI
 	mov	dl, byte [esi+veh.direction]
-	call	[RVCheckCollisionWithRV]		;check if there is a vehicle 'in front' of us.
-	jb	short .zeroSpeedAndReturn
+;	call	[RVCheckCollisionWithRV]		;check if there is a vehicle 'in front' of us.
+;	jb	short .zeroSpeedAndReturn
 	mov	dl, byte [landscape4(di,1)]			;landscape 4
 	and	dl, 0F0h
 	cmp	dl, 90h				;IS THIS A tunnel/bridge?
