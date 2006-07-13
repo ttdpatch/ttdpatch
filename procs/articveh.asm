@@ -307,6 +307,13 @@ begincodefragments
 	codefragment newDrawCurrentCargoInfoInRVInfoWindow
 		icall	listAdditionalTrailerCargo
 		setfragmentsize 10
+
+	codefragment oldCheckCollisionSameDirection, 4
+		movzx	ebp, byte [esi+veh.direction]
+
+	codefragment newCheckCollisionSameDirection
+		nop
+		setfragmentsize 5
 endcodefragments
 
 patcharticulatedvehicles:
@@ -441,4 +448,9 @@ patcharticulatedvehicles:
 
 	patchcode oldFindRVCapacityForInfoWindow, newFindRVCapacityForInfoWindow, 1+WINTTDX, 3
 	patchcode oldDrawCurrentCargoInfoInRVInfoWindow, newDrawCurrentCargoInfoInRVInfoWindow, 2, 4
+
+	//this next line cancels the cmp/jnz which tests if the directions of the two vehicles
+	//trying to collide aren't travelling in the same direction (and then skips the collision).
+	//this is fine if there aren't trailers, but since they now exist, we now need this check.
+	patchcode oldCheckCollisionSameDirection, newCheckCollisionSameDirection, 2-WINTTDX, 2
 	retn
