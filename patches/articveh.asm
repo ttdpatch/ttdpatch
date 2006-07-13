@@ -64,6 +64,9 @@ uvard oldrvdailyproc
 uvarw curDepotLocation,1,s
 uvard vehicleToAttachTo,1,s
 
+uvard cacheFoundVehicle, 1, s
+uvard movingVehicle, 1, s
+
 global newbuyroadvehicle
 newbuyroadvehicle:
 	push	ecx
@@ -92,7 +95,7 @@ newbuyroadvehicle:
 	cmp	byte [edi+veh.movementstat], 0FEh
 	jnz	short .doLoop
 	push	ebx
-	mov	bx, word [curDepotLocation]
+	movzx	ebx, word [curDepotLocation]
 	cmp	bx, word [edi+veh.XY]
 	pop	ebx
 	jnz	short .doLoop
@@ -239,7 +242,7 @@ checkIfTrailerAndCancelCollision:
 	jne	.zeroCollisionOnOtherVehicle
 	mov	ax, word [esi+veh.idx]
 	cmp	ax, word [edi+veh.idx]			//does this trailer come before me?
-	jle	.moveInCollision
+	jge	.moveInCollision
 .zeroCollisionOnOtherVehicle:
 	mov	eax, dword [rvCollisionFoundVehicle]
 	mov	dword [eax], 0x0			//cancel any collision!
@@ -1347,19 +1350,41 @@ relocateServiceString:
 	add	dx, 138
 	retn
 
-uvard	previousESI, 1, s
+global changePtrToParentVehicleIfTrailer
+changePtrToParentVehicleIfTrailer:
+	mov	edi, dword [rvCollisionFoundVehicle]		//overwritten
+	mov	edi, [edi]
+	cmp	byte [esi+veh.subclass], 0x00
+	jne	.dontAdjustPtr					//it's a trailer, don't change anything
+	cmp	word [esi+veh.nextunitidx], 0xFFFF
+	jne	.dontAdjustPtr					//it's a trailer, don't change anything
+	cmp	byte [edi+veh.subclass], 0x00
+	je	.dontAdjustPtr					//it's trying to overtake an engine, don't adjust
+	movzx	edi, word [edi+veh.engineidx]			//trying to overtake trailer, shift in parent.
+	shl	di, 7
+	add	edi, [veharrayptr]
+.dontAdjustPtr:
+	retn
+
 global cancelBlockIfArticulated
 cancelBlockIfArticulated:
-	int3
 	push	edi
-	mov	edi, dword [rvCollisionFoundVehicle]
+	mov	edi, dword [rvCollisionFoundVehicle]		//overwritten
 	mov	dword [edi], 0
-	mov	dword [previousESI], esi
 	pop	edi
 	call	[searchcollidingvehs]
 	push	edi
+	mov	edi, dword [movingVehicle]
+	mov	edi, [edi]
+	cmp	byte [edi+veh.subclass], 0
+	jne	.dontTouchTrailer
+	cmp	word [edi+veh.nextunitidx], 0xFFFF
+	jne	.dontTouchTrailer
+	pop	edi
+	push	edi
 	push	esi
-	mov	esi, dword [previousESI]
+	mov	esi, dword [cacheFoundVehicle]
+	mov	esi, [esi]
 	movzx	esi, word [esi+veh.engineidx]
 	mov	edi, dword [rvCollisionFoundVehicle]
 	mov	edi, [edi]
@@ -1367,9 +1392,11 @@ cancelBlockIfArticulated:
 	jle	.dontZeroFoundVehicle
 	cmp	si, word [edi+veh.engineidx]
 	jne	.dontZeroFoundVehicle
+	mov	edi, dword [rvCollisionFoundVehicle]
 	mov	dword [edi], 0
 .dontZeroFoundVehicle:
 	pop	esi
+.dontTouchTrailer:
 	pop	edi
 	retn
 
@@ -1380,12 +1407,15 @@ cancelBlockIfArticulated:
 global compareCollisionDirection
 compareCollisionDirection:
 	int3
-	movzx	ebp, byte [esi+veh.direction]	//overwritten
+	push	esi
+	mov	esi, dword [rvCollisionCurrVehicle]
+	mov	esi, [esi]
+	movzx	ebp, byte [edi+veh.direction]	//overwritten
 	cmp	byte [edi+veh.subclass], 0
-	jg	.thisIsATrailer	//trailers should just blindly follow.
+	jne	.thisIsATrailer	//trailers should just blindly follow.
 	push	ebx
 	cmp	bp, bx
-	je	.collide	//directions equal, collide
+	je	.checkMovementStat	//directions equal, collide
 	sub	bx, 2
 	cmp	bx, 0
 	jge	.dontIncrease
@@ -1404,14 +1434,19 @@ compareCollisionDirection:
 	xor	bx, bx
 	cmp	bx, 1
 	pop	ebx
-	retn			//return with 0 vs 1 cmp
+	jmp	.finalise
+.checkMovementStat:
+	movzx	ebx, byte [esi+veh.movementstat]
+	cmp	[edi+veh.movementstat], bl
+	jne	.dontCollide
 .collide:
-	cmp	bx, bp
 	xor	bx, bx
 	cmp	bx, 0		//return with 0 vs 0 cmp (collide)
 	pop	ebx
-	retn
+	jmp	.finalise
 .thisIsATrailer:
 	cmp	bx, bp		//the rest of the usual code.
+.finalise:
+	pop	esi
 	retn
 	//ttd next calls: jnz .collide!

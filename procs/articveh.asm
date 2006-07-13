@@ -46,6 +46,8 @@ extern sellRVTrailers, sellRVTrailers.origfn, delveharrayentry
 extern updateTrailerPosAfterRVProc, updateTrailerPosAfterRVProc.origfn
 extern rvdailyprocoverride, oldrvdailyproc
 extern dontLetARVsInNormalRVStops, decrementBHIfRVTrailer
+extern changePtrToParentVehicleIfTrailer
+extern rvcheckovertake, cacheFoundVehicle, movingVehicle
 
 extern	RedrawRoadVehicle
 extern	SetRoadVehObjectOffsets
@@ -308,12 +310,22 @@ begincodefragments
 		icall	listAdditionalTrailerCargo
 		setfragmentsize 10
 
+	codefragment oldMoveInTmpVehPtrForOvertake
+		icall	changePtrToParentVehicleIfTrailer
+
 	codefragment oldCheckCollisionSameDirection
 		movzx	ebp, byte [esi+veh.direction]
 
 	codefragment newCheckCollisionSameDirection
 		icall compareCollisionDirection
 		setfragmentsize 7
+
+	codefragment oldCheckIfVehicleToOvertakeIsBlocked, 21
+		test eax, 3F3F0000h
+ 
+	codefragment newCheckIfVehicleToOvertakeIsBlocked
+		icall cancelBlockIfArticulated
+		setfragmentsize 15
 endcodefragments
 
 patcharticulatedvehicles:
@@ -448,6 +460,19 @@ patcharticulatedvehicles:
 
 	patchcode oldFindRVCapacityForInfoWindow, newFindRVCapacityForInfoWindow, 1+WINTTDX, 3
 	patchcode oldDrawCurrentCargoInfoInRVInfoWindow, newDrawCurrentCargoInfoInRVInfoWindow, 2, 4
+
+	xor	ecx, ecx
+	mov	edi, dword [rvcheckovertake]
+	push	edi
+	mov	edi, [edi+8]
+	mov	dword [cacheFoundVehicle], edi
+	pop	edi
+	push	edi
+	mov	edi, [edi+14]
+	mov	dword [movingVehicle], edi
+	pop	edi
+	storefragment oldMoveInTmpVehPtrForOvertake
+	patchcode oldCheckIfVehicleToOvertakeIsBlocked, newCheckIfVehicleToOvertakeIsBlocked, 1, 1
 
 	//this next line cancels the cmp/jnz which tests if the directions of the two vehicles
 	//trying to collide aren't travelling in the same direction (and then skips the collision).

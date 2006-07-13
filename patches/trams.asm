@@ -600,17 +600,17 @@ updateTramStopSpriteLayout:
 
 global stopTramOvertaking
 stopTramOvertaking:
-	cmp	dword [tramVehPtr], 0FFFFFFFFh
-	je	.dontLetTramsOvertake
-	push	esi
+;	cmp	dword [tramVehPtr], 0FFFFFFFFh
+;	je	.dontLetTramsOvertake
+;	push	esi
 	push	edx
-	mov	esi, [tramVehPtr]
+;	mov	esi, [tramVehPtr]
 	movzx	edx, byte [esi+veh.vehtype]
 	test	byte [vehmiscflags+edx], VEHMISCFLAG_RVISTRAM
 	pop	edx
-	pop	esi
+;	pop	esi
 	jnz	.dontLetTramsOvertake
-	call	[rvcheckovertake]
+	jmp	[rvcheckovertake]
 .dontLetTramsOvertake:
 	retn
 
