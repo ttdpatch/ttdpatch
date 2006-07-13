@@ -17,6 +17,7 @@
 extern newbuyrailvehicle, discard, vehcallback, articulatedvehicle, delveharrayentry, sellroadvehicle
 extern RefreshWindows, LoadUnloadCargo, checkgototype, isrvbus, curplayerctrlkey, drawtextfn, currscreenupdateblock
 extern newtexthandler, drawsplittextfn, movbxcargoamountname2
+extern searchcollidingvehs
 
 uvard DrawRVImageInWindow,1,s
 
@@ -1345,3 +1346,72 @@ relocateServiceString:
 	add	cx, 13
 	add	dx, 138
 	retn
+
+uvard	previousESI, 1, s
+global cancelBlockIfArticulated
+cancelBlockIfArticulated:
+	int3
+	push	edi
+	mov	edi, dword [rvCollisionFoundVehicle]
+	mov	dword [edi], 0
+	mov	dword [previousESI], esi
+	pop	edi
+	call	[searchcollidingvehs]
+	push	edi
+	push	esi
+	mov	esi, dword [previousESI]
+	movzx	esi, word [esi+veh.engineidx]
+	mov	edi, dword [rvCollisionFoundVehicle]
+	mov	edi, [edi]
+	cmp	edi, 0
+	jle	.dontZeroFoundVehicle
+	cmp	si, word [edi+veh.engineidx]
+	jne	.dontZeroFoundVehicle
+	mov	dword [edi], 0
+.dontZeroFoundVehicle:
+	pop	esi
+	pop	edi
+	retn
+
+//bx = direction of current vehicle
+//esi = ptr to the vehicle we're trying to collide into
+//edi = current vehicle
+//we want to check that the 
+global compareCollisionDirection
+compareCollisionDirection:
+	int3
+	movzx	ebp, byte [esi+veh.direction]	//overwritten
+	cmp	byte [edi+veh.subclass], 0
+	jg	.thisIsATrailer	//trailers should just blindly follow.
+	push	ebx
+	cmp	bp, bx
+	je	.collide	//directions equal, collide
+	sub	bx, 2
+	cmp	bx, 0
+	jge	.dontIncrease
+	add	bx, 8
+.dontIncrease:
+	cmp	bp, bx
+	je	.collide	//perpendicular, collide.
+	add	bx, 4
+	cmp	bx, 7
+	jle	.dontDecrease
+	sub	bx, 8
+.dontDecrease:
+	cmp	bp, bx
+	je	.collide	//perpendicular (180 degrees opposite), collide.
+.dontCollide:
+	xor	bx, bx
+	cmp	bx, 1
+	pop	ebx
+	retn			//return with 0 vs 1 cmp
+.collide:
+	cmp	bx, bp
+	xor	bx, bx
+	cmp	bx, 0		//return with 0 vs 0 cmp (collide)
+	pop	ebx
+	retn
+.thisIsATrailer:
+	cmp	bx, bp		//the rest of the usual code.
+	retn
+	//ttd next calls: jnz .collide!

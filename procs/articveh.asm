@@ -308,12 +308,12 @@ begincodefragments
 		icall	listAdditionalTrailerCargo
 		setfragmentsize 10
 
-	codefragment oldCheckCollisionSameDirection, 4
+	codefragment oldCheckCollisionSameDirection
 		movzx	ebp, byte [esi+veh.direction]
 
 	codefragment newCheckCollisionSameDirection
-		nop
-		setfragmentsize 5
+		icall compareCollisionDirection
+		setfragmentsize 7
 endcodefragments
 
 patcharticulatedvehicles:
