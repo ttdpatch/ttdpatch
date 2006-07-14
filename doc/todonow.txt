@@ -752,3 +752,8 @@ CHANGELOG
 - allow wagons to expire
 - allow action D variables to be set during initialization as well (in
   addition to activation)
+- by Csaba:
+  * fixed memory overwrite in moreanimation code
+  * fixed hangars being possible to add to schedules for types other than 
+    aircraft
+- fixed incorrect station display if >4095 cargo units
