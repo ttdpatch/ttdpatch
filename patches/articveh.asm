@@ -382,8 +382,8 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 	jmp	.continueRunningTrailers
 .setTrailerFlag:
 	mov	byte [runTrailer], 1
-	cmp	word [esi+veh.speed], 0
-	je	near .justQuit
+	cmp	word [esi+veh.speed], 10
+	jle	near .justQuit
 .continueRunningTrailers:
 	cmp	word [esi+veh.nextunitidx], 0xFFFF	;trailers? continue.
 	je	.justQuit
@@ -563,7 +563,7 @@ RVTrailerProcessing:
 ;	mov	bl, [ecx+ebx]				;the ends of the tiles? or maybe the ends of the stations.
 ;	pop	ecx
 ;	cmp	bl, byte [esi+0x63]				;this is the px into the current tile 0x0-0xF
-;	jnz	near .JustMoveIntoNextTile
+;	jmp	near .JustMoveIntoNextTile
 ;	movzx	ebp, word [esi+veh.XY]				;ugh.. from here is station code... nasty
 ;	mov	bl, [landscape2+ebp]
 ;	mov	byte [vaTempLocation1], bl
