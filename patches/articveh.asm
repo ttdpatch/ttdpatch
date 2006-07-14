@@ -242,7 +242,7 @@ checkIfTrailerAndCancelCollision:
 	jne	.zeroCollisionOnOtherVehicle
 	mov	ax, word [esi+veh.idx]
 	cmp	ax, word [edi+veh.idx]			//does this trailer come before me?
-	jge	.moveInCollision
+	jle	.moveInCollision
 .zeroCollisionOnOtherVehicle:
 	mov	eax, dword [rvCollisionFoundVehicle]
 	mov	dword [eax], 0x0			//cancel any collision!
