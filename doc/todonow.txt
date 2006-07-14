@@ -743,6 +743,8 @@ CHANGELOG
 - added -Z extended command line switches for all but town growth switches
 - by Oskar:
   * (devel) added memory guard system to find memory overflows (GUARD=1)
+- by Lakie:
+  * add Support for irregular airports using blank tiles
 
 2.5 beta 7
 - by Oskar:
