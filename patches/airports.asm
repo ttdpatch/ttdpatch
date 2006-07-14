@@ -719,3 +719,196 @@ exported initairportstate
 	ret
 
 noglobal varw .startstates, 4, 0x100, 0x40
+
+// Tries to change the way the airport highlight area is done
+uvarb AirportWindow
+
+// Activates and deactivates the code below
+global AirportHighligtDeactivate
+AirportHighligtDeactivate:
+	cmp ebx, 2724
+	push eax
+	mov al, 0
+	jne .notpointer
+	add al, 1
+.notpointer:
+	mov byte [AirportWindow], al
+	pop eax
+
+	cmp al, 4	
+	jnz .same
+	mov al, 0
+	ret
+
+.same:
+	add dword [esp], 0x9
+	ret
+
+// Input:	ax = x
+//		cx = y
+// Output:	(nothing, just different backto point)
+extern landscapemarkerorigx, landscapemarkerorigy
+global CheckAirportTile
+CheckAirportTile:
+	// Is it Airport highlighting
+	cmp byte [AirportWindow], 0x1
+	je .Airport
+	ret
+
+.Airport:
+	push ecx // Store the registors
+	push eax
+
+	sub ax, [landscapemarkerorigx] // Remove the tiles before the interested area
+	sub cx, [landscapemarkerorigy]
+
+	cmp ax, [highlightareainnerxsize] // should not be higher or equal to maxium size
+	jae .notvalid			  // Negitives count as higher so they will get excluded
+	cmp cx, [highlightareainnerysize]
+	jae .notvalid
+
+	shr ax, 4 // Make these usable in 8 bit form
+	shr cx, 4
+
+	push edx
+	movzx edx, byte [selectedairporttype] // Get the selected Airport type
+	mov bx, [airportsizes+edx*2] // Get the airport size
+	mul bh // Multiply ax by the number of tiles in a row
+	add ax, cx // Add the two together
+
+	movzx ecx, ax // Use this as an offset
+	mov ebx, [airportlayoutptrs+edx*4] // Get the offset for the layout
+	pop edx
+	mov bl, [ebx+ecx] // Get the sprite layout for the tile being tested
+	pop eax // Restore the registors
+	pop ecx
+
+	cmp bl, 0x0 // If it is 0 then do not highlight
+	jne .highlight
+
+	pop ebx // Temparly here until a better solution can be found
+	pop ebx
+
+.highlight:
+	ret
+
+.notvalid:
+	pop eax // Restore the registors
+	pop ecx
+	ret
+
+// Used to check if the tile should be skipped when checking to see if airport constructable
+// Input:	edi - Tile Y,X
+//		dx - Current count (Y, X)
+// Output:	?
+extern CheckForVehiclesInTheWay
+global CreateAirportCheck
+CreateAirportCheck:
+	pusha // Preserve these registors
+
+	sub dl, 0x01 // Remove the extra tile from the counter
+	movzx ax, dl // Move these for full registors for later
+	movzx dx, dh
+	neg dx // Slight offset error
+
+	movzx ebx, byte [selectedairporttype] // Get the selected Airport type
+	mov cx, [airportsizes+ebx*2] // Get the airport size
+	imul ch // Multiple the x by the number of y
+	movzx cx, cl // Must move this into a bigger value to stop errors on the next steps
+	add dx, cx
+	add ax, dx // Add the together for an offset
+
+	movzx eax, ax // Change it to be used as an offset
+	mov ebx, [airportlayoutptrs+ebx*4] // Get the offset for the layout
+	mov bl, [ebx+eax] // Get the sprite layout for the tile being tested
+
+	cmp bl, 0x0 // Is this tile layout 0
+	popa // Restore Registors
+	je .skiptile // Skip the tile
+
+	call [CheckForVehiclesInTheWay] // Check if the tile is occupied
+	jnz .vehicleontile // If theres a vehicle on the tile, it will invalid
+
+	ret // Valid so continue
+
+// Jumps back to different code lines
+.skiptile: // Jumps to the loop to next tile code
+	add dword [esp], 0x4C
+	ret
+
+.vehicleontile: // Jumps to the invalid tile present so can't build
+	add dword [esp], 0x67
+	ret
+
+// Used to stop construction on a certain tile (if tile layout is 00) 1,6
+// Input:	[ebp] - planned tile type
+// Output:	?
+global CreateAirportTiles
+CreateAirportTiles:
+	cmp byte [ebp], 0x0 // Should this tile be made?
+	je .skiptile
+
+	mov al, [landscape4(di, 1)] // original code
+	and al, 0x0F
+	or al, 0x50
+	ret
+
+.skiptile:
+	add dword [esp], 0x59+6*WINTTDX
+	ret
+
+// Used to stop removal of non airport tiles
+// Input:	edi - tile
+// Output:	?
+global RemoveAirportCheck
+RemoveAirportCheck:
+	rol cx, 8 // Original code
+	mov di, cx
+	rol cx, 8
+	or di, ax
+	ror di, 4
+
+	push ecx
+	push edi
+	and edi, 0xFFFF // Only the last word is usable for offsets
+	mov ch, [landscape4(di, 1)] // Get Tile Class
+	and ch, 0xF0 // Only want the Class part
+	cmp ch, 0x50 // Is this a Class5 Tile
+	jne .skiptile // Not a Class5 Tile so don't remove
+	mov cl, [landscape5(di, 1)] // Get the type of Class5 tile
+	cmp cl, 0x8 // Low bound of Airport Tile Types
+	jb .skiptile // Tile class is a Rail station tile
+	cmp cl, 0x42 // High bound of Airport Tile Types
+	ja .skiptile
+	pop edi
+
+// Calculates the cost, for selling Irregular Airport Layouts (does it tile by tile)
+	mov ecx, [costs+0xD8] // Get the cost per tile
+	add [esp+0x0C], ecx // increase the total cost (using stack because it's pop'ed out at the end of the sub)
+	pop ecx
+
+	ret // Return to original function
+
+.skiptile: // Skips the removal and checking of the tile
+	pop edi
+	pop ecx
+	add dword [esp], 0x2D
+	ret
+
+// Used to store the tempary station cost location
+uvard TempStationCost 
+
+// Calculates the cost, for buying Irregular Airport Layouts (does it tile by tile)
+global CalcAirportBuyCost
+CalcAirportBuyCost:
+	pusha
+	mov edi, [TempStationCost] // Get the place to store the values
+	add [edi], ebx
+	cmp ebx, 0x80000000
+	pushf
+	mov ecx, [costs+0x42] // Get the cost value
+	add [edi], ecx // Add the cost of the tile
+	popf
+	popa
+	ret
+

@@ -11,6 +11,10 @@ extern airportlayoutptrs,airportsizes,airportmovementdataptrs
 extern airportspecialflags,airportcallbackflags,aircraftmovement
 extern airportspecialmovements,airportmovementdatasizes,airporttypenames
 extern airportstarthangarnodes
+extern CheckForVehiclesInTheWay, CreateAirportCheck
+extern CreateAirportTiles, RemoveAirportCheck
+extern AirportHighligtDeactivate, CalcAirportBuyCost
+extern TempStationCost
 
 begincodefragments
 
@@ -143,6 +147,82 @@ codefragment oldbuynewaircraft
 
 codefragment_call newbuynewaircraft,buynewaircraft,6
 
+codefragment oldcreateairportcheck,-5
+	db 0x75, 0x75
+	push bx
+	push dx
+	push di
+
+codefragment newcreateairportcheck
+	icall CreateAirportCheck
+	setfragmentsize 7
+
+codefragment oldcreateairporttile
+	mov al, [landscape4(di, 1)]
+	and al, 0x0F
+	or al, 0x50
+
+codefragment newcreateairporttile
+	icall CreateAirportTiles
+	setfragmentsize 8+2*WINTTDX
+
+codefragment oldremoveairportcheck, 4
+	push ax
+	push dx
+	rol cx, 8
+	mov di, cx
+	rol cx, 8
+	or di, ax
+	ror di, 4
+
+codefragment newremoveairportcheck
+	icall RemoveAirportCheck
+	setfragmentsize 18
+
+codefragment olddeactivehighlight
+	cmp al, 4
+	db 0x75, 0x0B
+	mov al, 0
+
+codefragment newdeactivehighlight
+	icall AirportHighligtDeactivate
+	setfragmentsize 6
+
+codefragment findtempstationcost, 17
+	imul edi, [costs+0x42]
+	push esi
+	movzx esi, dh
+	imul edi, esi
+	pop esi
+
+codefragment oldcalcstationcosts, -3
+	imul edi, [costs+0x42]
+	push esi
+	movzx esi, dh
+	imul edi, esi
+	pop esi
+
+codefragment newcalcstationcosts
+	setfragmentsize 24
+
+codefragment oldcalcstationcleartile
+	add [dword 0], ebx
+	cmp ebx, 0x80000000
+noglobal ovar oldcalcstationcleartile.ptr, -10
+
+codefragment newcalcstationcleartile
+	icall CalcAirportBuyCost
+	setfragmentsize 12
+
+codefragment oldcalcstationremove
+	movzx eax, dl
+	mul dh
+	imul eax, [costs+0xD8]
+
+codefragment newcalcstationremove
+	mov eax, 0x00000000
+	setfragmentsize 12
+
 endcodefragments
 
 ext_frag newvariable,findvariableaccess,oilfieldaccepts
@@ -213,4 +293,23 @@ exported patchnewairports
 	patchcode stopaircraft_isinflight
 	patchcode stoprotor
 	patchcode buynewaircraft
+
+	// Patches the Create Airport Subroutine for Irregular Airport Layouts
+	patchcode oldcreateairportcheck, newcreateairportcheck, 2, 2
+	patchcode oldcreateairporttile, newcreateairporttile, 1, 6
+
+	// Patches the Remove Airport Subroutine for Irregular Airport Layouts
+	patchcode oldremoveairportcheck, newremoveairportcheck, 2, 5
+
+	// Patches the Hightlight Area Subroutine for Irregular Airport Layouts
+	patchcode olddeactivehighlight, newdeactivehighlight
+
+	// Tries to fix the costs to work with Irregular Airport Layouts
+	stringaddress findtempstationcost // Get the Tempary Station Cost for future use
+	mov edi, [edi] // Due to the way stringaddress only fetches where it was found
+	mov [TempStationCost], edi
+	mov dword [oldcalcstationcleartile.ptr], edi
+	patchcode oldcalcstationcosts, newcalcstationcosts // Clear the old function, to stop double charging
+	patchcode oldcalcstationcleartile, newcalcstationcleartile, 2, 4
+	patchcode oldcalcstationremove, newcalcstationremove// Clear old remove code function and eax to 0x0
 	ret
