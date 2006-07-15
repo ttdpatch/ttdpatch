@@ -118,6 +118,8 @@ exported clearairportdata
 	mov al,3
 	mov cl,NUMNEWAIRPORTS
 	rep stosb
+
+	mov byte [selectedairporttype], 0x0 // Reset the selected airport to stop errors
 	popa
 	ret
 
@@ -812,16 +814,15 @@ global CreateAirportCheck
 CreateAirportCheck:
 	pusha // Preserve these registors
 
-	sub dl, 0x01 // Remove the extra tile from the counter
-	movzx ax, dl // Move these for full registors for later
-	movzx dx, dh
-	neg dx // Slight offset error
-
+	sub dx, 0x0101 // Remove the extra tile from the counters
+	neg dx // Due to the layouts being the other way round
 	movzx ebx, byte [selectedairporttype] // Get the selected Airport type
 	mov cx, [airportsizes+ebx*2] // Get the airport size
-	imul ch // Multiple the x by the number of y
+	add dx, cx // Fix the values to be possitive
+	movzx ax, dl // Move these for full registors for later
+	movzx dx, dh
+	imul cl // Multiple the x by the number of y
 	movzx cx, cl // Must move this into a bigger value to stop errors on the next steps
-	add dx, cx
 	add ax, dx // Add the together for an offset
 
 	movzx eax, ax // Change it to be used as an offset
@@ -843,7 +844,7 @@ CreateAirportCheck:
 	ret
 
 .vehicleontile: // Jumps to the invalid tile present so can't build
-	add dword [esp], 0x67
+	add dword [esp], 0x76
 	ret
 
 // Used to stop construction on a certain tile (if tile layout is 00) 1,6
@@ -907,14 +908,14 @@ uvard TempStationCost
 // Calculates the cost, for buying Irregular Airport Layouts (does it tile by tile)
 global CalcAirportBuyCost
 CalcAirportBuyCost:
-	pusha
+	push edi
+	push ecx
 	mov edi, [TempStationCost] // Get the place to store the values
 	add [edi], ebx
-	cmp ebx, 0x80000000
-	pushf
 	mov ecx, [costs+0x42] // Get the cost value
 	add [edi], ecx // Add the cost of the tile
-	popf
-	popa
+	pop ecx
+	pop edi
+	cmp ebx, 0x80000000
 	ret
 
