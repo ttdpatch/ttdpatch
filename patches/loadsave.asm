@@ -55,7 +55,7 @@ extern vehtypedataconvbackupptr,vehtypedataptr
 extern windowsizesbufferptr
 extern player2array,player2clear,cargoids
 extern disabledoldhouses,savevar40x
-extern clearairportdata,airportdataidtogameid
+extern clearairportdataids,airportdataidtogameid
 
 // Known (defined) extra chunks.
 // The first table defines chunk IDs.
@@ -221,6 +221,7 @@ uvarw loadremovedsfxs	// ... and this many pseudo-/special vehicles
 %assign LOADED_X2_INDUINCARGO		0x10
 %assign LOADED_X2_NEWCARGOTYPES		0x20
 %assign LOADED_X2_PLAYER2		0x40
+%assign LOADED_X2_NEWAIRPORTLIST	0x80
 
 %define SKIPGUARD 1			// the variables get cleaned by a dword.. 
 uvarb extrachunksloaded1		// a combination of LOADED_X1_*
@@ -576,8 +577,6 @@ newloadtitleproc:
 	call postloadadjust
 
  	call clearpersistenttexts	// this must be called before extra chunks are loaded
-
-	call clearairportdata
 
 	movzx ecx,word [landscape3+ttdpatchdata.extrachunks]
 
@@ -964,6 +963,15 @@ newloadtitleproc:
 	bts [orighumanplayers],eax
 .enhmulti_done:
 #endif
+
+	testflags newairports
+	jnc .nonewairports
+	test byte [extrachunksloaded2],LOADED_X2_NEWAIRPORTLIST
+	jnz .haveairportdataids
+
+	call clearairportdataids
+.haveairportdataids:
+.nonewairports:
 	
 	// looks like it's all. Whew!
 
@@ -2011,6 +2019,7 @@ loadsavenewairporttypes:
 	xchg ecx,eax
 	mov esi,airportdataidtogameid
 	call ebp
+	or byte [extrachunksloaded2],LOADED_X2_NEWAIRPORTLIST
 	ret
 
 //

@@ -29,6 +29,7 @@ extern searchcollidingvehs,specialtext1,station2clear,station2init
 extern stationarray2ptr,tmpbuffer1,ttdpatchactions,ttdtexthandler
 extern varheap,exitcleanup,player2clear,player2array,newvehdata
 extern cargobits,cargoid,maxtextwidth,gettextwidthunicode,hasaction12
+extern clearairportdataids
 #if MAKEGUARD
 extern guardalloc, guardallocchangesize
 global lastmallocofs
@@ -872,6 +873,11 @@ initializeveharray:
 	jnc .nohousecountreset
 	call recalchousecounts
 .nohousecountreset:
+
+	testflags newairports
+	jnc .nonewairports
+	call clearairportdataids
+.nonewairports:
 
 	popa
 	ret

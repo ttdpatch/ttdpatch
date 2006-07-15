@@ -137,8 +137,6 @@ newvehtypeinit:
 	lea ecx,[eax+0xAF]
 	rep stosb
 
-	call clearairportdata
-
 	call infoapply		// and apply newgrf and other modifications
 
 	pop es
@@ -948,6 +946,11 @@ preinfoapply:
 
 	or dword [languagesettings], byte -1
 	btr dword [grfmodflags], 3 // Clear this flag so that it needs the actual grf to be active (32px depots)
+
+	testflags newairports
+	jnc .noclearairportdata
+	call clearairportdata
+.noclearairportdata:
 	ret
 
 // set default wagons to have a max age of FF (available forever)

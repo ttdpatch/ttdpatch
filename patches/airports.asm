@@ -50,15 +50,21 @@ varb airportweight
 	times NUMNEWAIRPORTS db 3
 endvar
 
-exported clearairportdata
+exported clearairportdataids
 	pusha
 	xor eax,eax
 	mov edi,airportdataidtogameid+NUMOLDAIRPORTS*8
 	mov ecx,NUMNEWAIRPORTS*2
 	rep stosd
+	popa
+	ret
+
+exported clearairportdata
+	pusha
+	xor eax,eax
 
 	mov edi,airportsizes+NUMOLDAIRPORTS*2
-	mov cl,NUMNEWAIRPORTS
+	mov ecx,NUMNEWAIRPORTS
 	rep stosw
 
 	mov edi,airportlayoutptrs+NUMOLDAIRPORTS*4
