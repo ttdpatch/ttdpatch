@@ -814,7 +814,6 @@ global CreateAirportCheck
 CreateAirportCheck:
 	pusha // Preserve these registors
 
-	sub dx, 0x0101 // Remove the extra tile from the counters
 	neg dx // Due to the layouts being the other way round
 	movzx ebx, byte [selectedairporttype] // Get the selected Airport type
 	mov cx, [airportsizes+ebx*2] // Get the airport size
