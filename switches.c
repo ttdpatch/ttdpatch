@@ -1614,9 +1614,18 @@ int dumpxmlswitches(void)
 		fprintf(f, "\t<bool name=\"%s\"", switches[i].cfgcmd);
 
 	fprintf(f, " cmdline=\"%s\"", cmdswitchstr(switches[i].cmdline, ""));
-	fprintf(f, " defstate=\"%s\"",
-		(switches[i].bit >= 0) &&
-		(switches[i].bit <= lastbitdefaulton) ? "on" : "off" );
+	if (switches[i].cmdline == 155)			// special case for cdpath
+		fprintf(f, " defstate=\"\"");
+	else if (switches[i].cmdline == maketwochars('X', 'n'))		// special case for newgrfcfg
+#if WINTTDX
+		fprintf(f, " defstate=\"newgrfw.cfg\"");
+#else
+		fprintf(f, " defstate=\"newgrf.cfg\"");
+#endif
+	else
+		fprintf(f, " defstate=\"%s\"",
+			(switches[i].bit >= 0) &&
+			(switches[i].bit <= lastbitdefaulton) ? "on" : "off" );
 	fprintf(f, " categorynum=\"%d\"", switches[i].category);
 	fprintf(f, " category=\"%s\"", category_names[switches[i].category]);
 	fputs(" desc=\"", f);

@@ -240,6 +240,11 @@ grfcalltable getaction3cargo
 	and ebx,[stationcargowaitingmask]
 	jz .nextstationcargo
 
+	cmp ebx,0x0fff
+	jbe .gotcargo
+
+	mov ebx,0x0fff
+
 .gotcargo:
 	mov [curstationcargo],ebx
 	mov ax,[ecx+action3info.cargo+eax*2]
