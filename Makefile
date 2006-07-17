@@ -346,7 +346,7 @@ ${OTMP}%.wpo.d:
 
 host/%.o.d:
 	${_E} [HOSTCC DEP] $@
-	${_C}$(HOSTCC) -c $(CFLAGS) -D_MAKEDEP $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null
+	${_C}$(HOSTCC) -c $(HOSTCFLAGS) -D_MAKEDEP $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null
 %.o.d:
 	${_E} [CC DEP] $@
 	${_C}$(CC) -c $(CFLAGS) -D_MAKEDEP $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null
