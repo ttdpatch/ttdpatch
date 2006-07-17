@@ -755,7 +755,6 @@ AirportHighligtDeactivate:
 // Input:	ax = x
 //		cx = y
 // Output:	(nothing, just different backto point)
-extern landscapemarkerorigx, landscapemarkerorigy
 global CheckAirportTile
 CheckAirportTile:
 	// Is it Airport highlighting

@@ -158,7 +158,11 @@ codefragment newcreateairportcheck
 	setfragmentsize 7
 
 codefragment oldcreateairporttile
-	mov al, [landscape4(di, 1)]
+#if WINTTDX
+	mov al, [landscape4(di,1)]
+#else
+	db 0x67,0x64,0x8a,0x05	// same as above but specific prefix order
+#endif
 	and al, 0x0F
 	or al, 0x50
 
