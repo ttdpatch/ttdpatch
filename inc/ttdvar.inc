@@ -178,8 +178,9 @@ ttdvar(newsitemparam,0x778ea)		// W: used by the news message function
 ttdvar(customtxtptr,0x7793c)		// P: pointer to area where custom strings are stored
 ttdvar(ttdsystriggers,0x7f9c4)		// W: trigger TTD functions: bit 1="Quit" window, bit 2=autosave, bit 3=pause
 ttdvar(curmousecursor,0x771b0)		// D:sprite data for current mouse cursor
-ttdvar(curmousetooltype,0x771c0)		// B: current mouse tool type
-ttdvar(curmousetoolwintype,0x771c1)		// B: current mouse tool window type
+ttdvar(curmousetooltype,0x771c0)	// B: current mouse tool type
+ttdvar(curmousetoolwintype,0x771c1)	// B: current mouse tool window type
+ttdvar(mousecursorspritedata,0x9f17a)	// B/B/W: first 4 bytes of sprite info
 ttdvar(selectedtool,0x771cc)		// W: current tool
 ttdvar(mousetoolclicklocfinex,0x771ca)	// B: fine x location of mouse click
 ttdvar(mouseflags,0x771be)		// W: bit 0: mouse installed, bit 1: view drag mode, bit 2: landsacpe markers area, bit 3: dot landscape markers, bit 4: red landscape marker

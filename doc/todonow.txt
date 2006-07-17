@@ -757,3 +757,4 @@ CHANGELOG
   * fixed hangars being possible to add to schedules for types other than 
     aircraft
 - fixed incorrect station display if >4095 cargo units
+- fixed crash if mouse cursor sprite is larger than 6400 pixels

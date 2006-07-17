@@ -2626,6 +2626,32 @@ checkflatflood:
 	ret
 
 
+// Fix mouse cursor sprite data overflowing the buffer: limit y size
+//
+// in:	eax=first 4 bytes of sprite info (YYYYXXCC)
+// out:	--- (set mousecursorspritedata)
+// safe:eax
+exported setmousecursorspritedata
+	push ebx
+	mov [mousecursorspritedata],eax
+	movzx ebx,ah
+	shr eax,16
+	add ebx,8
+	imul eax,ebx
+	cmp eax,80*80	// size of mouse cursor sprite buffer
+	jb .ok
+	
+	// too big, reduce y size
+	mov ax,80*80
+	push dx
+	xor dx,dx
+	div bx
+	pop dx
+	mov [mousecursorspritedata+2],ax
+.ok:
+	pop ebx
+	ret
+
 
 // Handles getting the sprites for the coasts, since 8 new types have appeared
 global Class6CoastSprites, newcoastspritebase, newcoastspritenum

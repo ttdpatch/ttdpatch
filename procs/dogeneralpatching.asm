@@ -634,6 +634,13 @@ codefragment newdisplay1steng_noplayer
 	call runindex(display1stengine_noplayer)
 	setfragmentsize 17
 
+#if WINTTDX
+codefragment oldsetmousecursorspritedata
+	mov [mousecursorspritedata],eax
+
+codefragment_call newsetmousecursorspritedata,setmousecursorspritedata,5
+#endif
+
 codefragment olddecidesmoke
 	bt word [esi+veh.vehstatus],4
 
@@ -1855,6 +1862,11 @@ dogeneralpatching:
 	// (above codes finds showing the second one)
 	patchcode olddisplay1steng,newdisplay1steng,1,2
 	patchcode olddisplay1steng,newdisplay1steng_noplayer,1,0
+
+#if WINTTDX
+	// prevent mouse cursor sprite from overflowing buffer
+	patchcode setmousecursorspritedata
+#endif
 
 	call infosave
 
