@@ -979,7 +979,7 @@ setvehcargomap:
 	push edi
 	cmp ecx,1
 	sbb edi,edi
-	or edi,edx	// now edi=feature or ebx=-1 if n-vid=0
+	or edi,edx	// now edi=feature or edi=-1 if n-vid=0
 	mov ebx,[ebp+action3info.spriteblock]
 	cmp dword [ebx+spriteblock.grfid],byte -1
 	cmc
