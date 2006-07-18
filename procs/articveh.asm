@@ -284,7 +284,7 @@ begincodefragments
 		mov	ebp, 6
 
 	codefragment newSetSizeOfRVInformationWindow
-		mov	ebx, 0095019Ah
+		mov	ebx, 0095017Ch
 
 	codefragment oldLocationOfServiceStringInInfoWindow
 		add	cx, 13
@@ -312,13 +312,6 @@ begincodefragments
 
 	codefragment oldMoveInTmpVehPtrForOvertake
 		icall	changePtrToParentVehicleIfTrailer
-
-	codefragment oldCheckCollisionSameDirection
-		movzx	ebp, byte [esi+veh.direction]
-
-	codefragment newCheckCollisionSameDirection
-		icall compareCollisionDirection
-		setfragmentsize 7
 
 	codefragment oldCheckIfVehicleToOvertakeIsBlocked, 21
 		test eax, 3F3F0000h
@@ -474,9 +467,4 @@ patcharticulatedvehicles:
 	storefragment oldMoveInTmpVehPtrForOvertake
 	patchcode oldCheckIfVehicleToOvertakeIsBlocked, newCheckIfVehicleToOvertakeIsBlocked, 1, 1
 
-	//this next line cancels the cmp/jnz which tests if the directions of the two vehicles
-	//trying to collide aren't travelling in the same direction (and then skips the collision).
-	//this is fine if there aren't trailers, but since they now exist, we now need this check.
-	//commented out... causing locking on corners
-//	patchcode oldCheckCollisionSameDirection, newCheckCollisionSameDirection, 2-WINTTDX, 2
 	retn

@@ -1108,8 +1108,8 @@ drawAllTrailersInRVList:
 global RVDepotScrXYtoVehSkipTrailers
 RVDepotScrXYtoVehSkipTrailers:
 	add	edi, 80h				//overwritten
-	cmp	byte [edi+veh.subclass], 0x02
-	je	RVDepotScrXYtoVehSkipTrailers		//trailer? add another vehicle.
+	cmp	byte [edi+veh.subclass], 0x00
+	jne	RVDepotScrXYtoVehSkipTrailers		//trailer? add another vehicle.
 	retn
 
 global drawRVWithTrailersInInfoWindow
@@ -1399,54 +1399,3 @@ cancelBlockIfArticulated:
 .dontTouchTrailer:
 	pop	edi
 	retn
-
-//bx = direction of current vehicle
-//esi = ptr to the vehicle we're trying to collide into
-//edi = current vehicle
-//we want to check that the 
-global compareCollisionDirection
-compareCollisionDirection:
-	int3
-	push	esi
-	mov	esi, dword [rvCollisionCurrVehicle]
-	mov	esi, [esi]
-	movzx	ebp, byte [edi+veh.direction]	//overwritten
-	cmp	byte [edi+veh.subclass], 0
-	jne	.thisIsATrailer	//trailers should just blindly follow.
-	push	ebx
-	cmp	bp, bx
-	je	.checkMovementStat	//directions equal, collide
-	sub	bx, 2
-	cmp	bx, 0
-	jge	.dontIncrease
-	add	bx, 8
-.dontIncrease:
-	cmp	bp, bx
-	je	.collide	//perpendicular, collide.
-	add	bx, 4
-	cmp	bx, 7
-	jle	.dontDecrease
-	sub	bx, 8
-.dontDecrease:
-	cmp	bp, bx
-	je	.collide	//perpendicular (180 degrees opposite), collide.
-.dontCollide:
-	xor	bx, bx
-	cmp	bx, 1
-	pop	ebx
-	jmp	.finalise
-.checkMovementStat:
-	movzx	ebx, byte [esi+veh.movementstat]
-	cmp	[edi+veh.movementstat], bl
-	jne	.dontCollide
-.collide:
-	xor	bx, bx
-	cmp	bx, 0		//return with 0 vs 0 cmp (collide)
-	pop	ebx
-	jmp	.finalise
-.thisIsATrailer:
-	cmp	bx, bp		//the rest of the usual code.
-.finalise:
-	pop	esi
-	retn
-	//ttd next calls: jnz .collide!
