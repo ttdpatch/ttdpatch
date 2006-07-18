@@ -884,7 +884,7 @@ RVTrailerProcessing:
 	bt	bx, dx
 	jb	near .zeroSpeedAndReturn
 	and	edx, 0FFh
-	add	bl, byte [roadtrafficside]
+	add	dl, byte [roadtrafficside]
 	push	ecx
 	mov	ecx, dword [off_111D62]
 	mov	ebx, [ecx+edx*4]
