@@ -256,6 +256,24 @@ TEXTARRAY(halflines,) =
 	  "-YP: Avions volen a velocitat real",
 	  "-YS: Sem…fors abans de 1975",
 
+          "-Zc: Permet nous tipus de c…rrega",
+	  "-Zd: Nova distribuci¢ de c…rrega",
+	  "-Ze: Permet vies a la boca de t£nels",
+	  "-Zf: Permet seguir un veh¡cle",
+	  "-Zi: Permet noves ind£stries",
+	  "-Zj: Permet vehicles m‚s curts",
+	  "-Zo: Permet carreteres d'un sol sentit",
+	  "-Zu: Permet vehicles articulats",
+	  
+	  "-ZA: Permet nous aeroports",
+	  "-ZC: Activa opcions de transport d'IA",
+	  "-ZI: Permet estacions irregulars",
+	  "-ZM: Mostra m‚s estad¡stiques",
+	  "-ZO: Permet terraplenar sota objectes",
+	  "-ZR: Prev‚ que les ciutats asfaltin",
+	  "-ZS: Permet nous efectes sonors",
+	  "-ZT: Permet construir tramvies",
+	
 	  NULL
 	};
 SETARRAY(halflines);
@@ -299,6 +317,14 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-YT #:   Estableix l'algoritme de creixament de les ciutats\n"
 	  "-YW #:   Estableix el m…xim n£mero de finestres permeses\n"
 	  "              doble via, en dies\n"
+	  "-Za #:   Activa m‚s animacions (estableix el n£mero de rajoles animades)\n"
+	  "-Zb #:   Estableix la provabilitat per a que una ciutat construeixi carreteres\n"
+	  "-Zg #:   For‡a les opcions inicials\n"
+	  "-Zh #, -Zw #: Estableix l'amplada i l'al‡ada de la resoluci¢\n"
+	  "-Zn #:   Estableix el temps d'espera en xarxa en segons\n"
+	  "-Zx #, -Zy #, -Zz #: Estableix el mode en que IA construeix vies/carreteres/rutes aŠries\n"
+	  "-Zp #, -Zr #, -Zs #, -Zt #: Avisa sobre aviones, vehicles, barcos i trens despr‚s d'aquests dies\n"
+	  "-ZF #:   Permet certes funcionalitats en el clima Toyland\n"
 	  "\n"
 	  "-C cfg-file:  Llegeixi aquest arxiu de configuraci¢ en lloc de ttdpatch.cfg\n"
 	  "-W cfg-file:  Crea un arxiu de configuraci¢ amb la configuraci¢ actual\n"
@@ -474,6 +500,9 @@ SWITCHTEXT(followvehicle, "Seguir el moviment del vehicle en el mapa principal",
 SWITCHTEXT(trams, "Permet tramvies en carreteres", "")
 SWITCHTEXT(enhancetunnels, "Permet construir vies de tren sobre la boca del t£nel", "")
 SWITCHTEXT(forcegameoptions, "Li permet a vostŠ for‡ar opcions del joc","")
+SWITCHTEXT(shortrvs, "Permet vehicles de carretera m‚s curts (o m‚s llargs)", "")
+SWITCHTEXT(articulatedrvs, "Permet vehicles de carretera articulats", "")
+SWITCHTEXT(newairports, "Permet l'£s de nous tipus d'aeroports","")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -537,6 +566,7 @@ BITSWITCH(experimentalfeatures)
 BIT(slowcrossing, "els trens redueixen la marxa abans dels passos a nivell")
 BIT(cooperative,  "joc cooperatiu, molt limitat")
 BIT(mandatorygrm, "fer la gerŠncia de recursos de GRF obligat•ria per als arxius .grf")
+BIT(incvehconsist, "permet m‚s de 255 trens per companyia (molt experimental)")
 
 // Description for maskdisasters bits
 BITSWITCH(maskdisasters)
@@ -837,6 +867,9 @@ SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) permet la vista principal de seguir a un v
 SETTEXT(CFG_TRAMS, "`%s' (%s) permet la construcci¢ de tramvies.")
 SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) permet construir un tram de via sobre l'entrada dels t£nels")
 SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) li permet a vostŠ for‡ar opcions del joc.")
+SETTEXT(CFG_SHORTRVS, "`%s' (%s) activa vehicles de carretera curts (o llargs)")
+SETTEXT(CFG_ARTICULATEDRVS, "`%s' (%s) permet vehicles de carretera articulats")
+SETTEXT(CFG_NEWAIRPORTS, "`%s' (%s) permet usar els nous tipus d'aeroports amb GRFs")
 
 
 
