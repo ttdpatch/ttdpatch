@@ -215,6 +215,7 @@ varb patchflagsfixedmap
 	db enhancetunnels	// 117
 	db shortrvs		// 118
 	db articulatedrvs	// 119
+	db newairports		// 120
 
 
 	times 127-(addr($)-patchflagsfixedmap) db noflag
