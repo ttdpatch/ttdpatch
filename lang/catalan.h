@@ -188,6 +188,7 @@ TEXTARRAY(halflines,) =
 	  "     desconeguda",
 	  "-z:  Trens Mamut (126 vagons)",
 
+	  "-A:  Autorenovaci¢ de vehicles.",
 	  "-B:  Permet ponts m‚s llargs",
 	  "-D:  Dinamita destrueix m‚s objectes",
 	  "-E:  Moure missatges d'error",  
@@ -236,7 +237,7 @@ TEXTARRAY(halflines,) =
 	  "-XZ: Versi¢ de poca mem•ria (3.5MB)",
 
 	  "-Ya: Rank. tolera m‚s l'edat de veh.",
-	  "-Yb: Construir m‚s objectes sobre plat.",
+	  "-Yb: Constr. objectes sobre plataforma",
 	  "-Yc: Cada tipus de via amb dif. valor ",
 	  "-Yd: Nous ponts",
 	  "-Yg: Velocitat del joc canviable",

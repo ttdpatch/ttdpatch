@@ -196,6 +196,7 @@ TEXTARRAY(halflines,) =
 	  "     desconocida",
 	  "-z:  Trenes Mamut (126 vagones)",
 
+	  "-A:  Autorenovaci¢n de veh¡culos.",
 	  "-B:  Permite puentes m s largos",
 	  "-D:  Dinamita destruye m s objetos",
 	  "-E:  Mover mensajes de error",  
@@ -266,19 +267,19 @@ TEXTARRAY(halflines,) =
 
 	  "-Zc: Permite nuevos tipos de carga",
 	  "-Zd: Nueva distribuci¢n de carga",
-	  "-Ze: Permite v¡as en la boca de t£neles",
+	  "-Ze: Permite v¡as en bocas de t£neles",
 	  "-Zf: Permite seguir un veh¡culo",
 	  "-Zi: Permite nuevas industrias",
 	  "-Zj: Permite vehiculos m s cortos",
-	  "-Zo: Permite carreteras de un solo sentido",
+	  "-Zo: Carreteras de un solo sentido",
 	  "-Zu: Permite vehiculos articulados",
 
 	  "-ZA: Permite nuevos aeropuertos",
-	  "-ZC: Activa opciones de transportes de IA",
+	  "-ZC: Activa pref. de transporte de IA",
 	  "-ZI: Permite estaciones irregulares",
 	  "-ZM: Muestra m s estad¡sticas",
 	  "-ZO: Permite rellenar bajo objetos",
-	  "-ZR: Previene que las ciudades asfalten",
+	  "-ZR: Previene que ciudades asfalten",
 	  "-ZS: Permite nuevos efectos sonoros",
 	  "-ZT: Permite construir tramvias",
 																					  
