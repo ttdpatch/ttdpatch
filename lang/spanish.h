@@ -113,7 +113,7 @@ SETTEXT(LANG_VERSIONUNCONFIRMED, "No se pudo determinar la versi¢n del programa.
 SETTEXT(LANG_PROGANDVER, "El nombre del programa es %s\nLa versi¢n exacta es %s\n")
 
 // More than three numbers in the version string (not #.#.#)
-SETTEXT(LANG_TOOMANYNUMBERS, "La version tiene demasiados n£meros!\n")
+SETTEXT(LANG_TOOMANYNUMBERS, "La versi¢n tiene demasiados n£meros!\n")
 
 // .EXE is not TTD
 SETTEXT(LANG_WRONGPROGRAM, "Este no es Transport Tycoon Deluxe.\n")
@@ -529,7 +529,7 @@ BIT(jetsoff,      "accidentes de reactores en aeropuertos peque¤os desactivados"
 // Description for miscmods bits
 BITSWITCH(miscmods)
 BIT(nobuildonbanks,        "las ciudades no contruyen en vados")
-BIT(servintonlyhuman,      "la configuraci¢n del interval de servicio no se aplica a los jugadores IA")
+BIT(servintonlyhuman,      "la configuraci¢n del int‚rvalo de servicio no se aplica a los jugadores IA")
 BIT(noroadtakeover,        "las ciudades no reclaman las carreteras en el editor de escenarios")
 BIT(gradualloadbywagon,    "la carga gradual se carga vagon por vagon")
 BIT(dontfixlitres,         "no cambiar los litros para que 1000 l sea una tonelada, en vez de 100 l")
@@ -541,17 +541,17 @@ BIT(nodefaultoldtracktype, "no usar el anterior tipo de vias por defecto")
 BIT(usevehnnumbernotname,  "no modifica las noticias para usar los nombres de veh¡culos")
 BIT(norescalecompanygraph, "no reescalar los gr ficos de las compa¤ias cuando estas sean deseleccionadas")
 BIT(noyearlyfinances,      "no mostrar las finanzas anuales en el 1ero de Enero")
-BIT(notimegiveaway,        "no intente dar tiempos de ejecuci¢n hacia fuera para tener toda la pot‚ncia")
+BIT(notimegiveaway,        "no intente dar tiempos de ejecuci¢n hacia fuera para tener toda la potencia")
 BIT(nodesynchwarning,      "no avisar cuando las partidas multijugador se desincronicen")
 BIT(noworldedgeflooding,   "evita que la esquina del mapa se inunde")
 BIT(doshowintro,           "mostrar la introducci¢n del juego (no se saltar )")
 BIT(nonewspritesorter,     "no usar el nuevo algoritmo de ordenaci¢n de punteros")
 BIT(nodiagonalflooding,    "deshabilita inundaciones en diagonal y costas en la esquina")
-BIT(noenhancedcomp,        "no mejorar el algoritmo de compresion de guardar partidas")
+BIT(noenhancedcomp,        "no mejorar el algoritmo de compresi¢n de guardar partidas")
 BIT(breakdownatsignal,     "no fijar que los trenes se estropeen cuando esperan en un sem foro en rojo")
 BIT(smallspritelimit,      "no incrementar el l¡mite de punteros")
 BIT(displaytownsize,       "mostrar el tama¤o de la poblaci¢n en el nombre de la misma")
-BIT(noextendstationrange,  "no incrementar la dist ncia m xima permitida entre el r¢tulo de la estaci¢n y la industria para que la mercancia sea mandada")
+BIT(noextendstationrange,  "no incrementar la distancia m xima permitida entre el r¢tulo de la estaci¢n y la industria para que la mercancia sea mandada")
 BIT(nooldvehiclenews,      "no generar avisos cuando los veh¡culos est‚n quedando viejos")
 BIT(dontfixpaymentgraph,   "no fijar el eje de las X en la ventana de tarifas de pago de las mercancias")
 BIT(loaduntilgreen,        "mantener cargando en la estaci¢n hasta que el sem foro de salida est‚ verde")
@@ -563,7 +563,7 @@ BIT(dontchangesnow,        "no cambiar como la altitud es calculada para las nev
 BITSWITCH(morebuildoptions)
 BIT(ctunnel,         "permite el cruce de t£neles")
 BIT(oilrefinery,     "permite la refiner¡a donde sea")
-BIT(moreindustries,  "permite mas de una industria del mismo tipo")
+BIT(moreindustries,  "permite m s de una industria del mismo tipo")
 BIT(removeobjects,   "permite eliminar estatuas, faros y repetidores")
 BIT(removeindustry,  "permite demoler industrias")
 BIT(closeindustries, "permite a industrias similares estar de lado")
@@ -658,7 +658,7 @@ SETTEXT(LANG_CFGFILENOTFOUND, "No se encontr¢ archivo cfg %s. Ignorado.\n")
 SETTEXT(LANG_CFGFILENOTWRITABLE, "No se pudo abrir %s para escritura.\n")
 
 // A non-comment line is longer than 32 chars, rest ignored.
-SETTEXT(LANG_CFGLINETOOLONG, "Arvertencia! L¡nea de conficuraci¢n es m s larga de 32 caract, truncada.\n")
+SETTEXT(LANG_CFGLINETOOLONG, "Advertencia! L¡nea de conficuraci¢n m s larga de 32 caract, truncada.\n")
 
 // Shown if an obsolete switch is used. First option is %s which is the
 // config name, second one is %s which is the command line char
@@ -927,7 +927,7 @@ SETTEXT(LANG_INTERNALERROR, "*** Error interno de TTDPatch #%d ***\n")
 SETTEXT(LANG_REGISTRYERROR, "TTD no est  correctamente instalado (error de registro %d)\n")
 
 // Trying no-registry file
-SETTEXT(LANG_TRYINGNOREGIST, "Prueba informaci¢n no registrada des de %s\n")
+SETTEXT(LANG_TRYINGNOREGIST, "Prueba informaci¢n no registrada desde %s\n")
 
 // no-registry file failed
 SETTEXT(LANG_NOREGISTFAILED, "Informaci¢n no registrada no disponible.\n")
@@ -954,7 +954,7 @@ SETTEXT(LANG_RUNERROR, "No se pudo ejecutar %s: %s\n")
 SETTEXT(LANG_CRPROCESSFAIL, "Proceso de creaci¢n fallado")
 
 // Interprocess communication error: TTDPatchW seems to be already running
-SETTEXT(LANG_IPCEXISTS, "Otra inst ncia de TTDPatch est  corriendo ya!\n")
+SETTEXT(LANG_IPCEXISTS, "Otra instancia de TTDPatch est  corriendo ya!\n")
 
 // Failed to convert language strings to Unicode
 SETTEXT(LANG_STRINGCONVFAIL, "Error al preparar los datos de TTDPatch!\n")
