@@ -747,3 +747,6 @@ CHANGELOG
   * add Support for irregular airports using blank tiles
 
 2.5 beta 8
+- fixed UTF-8 characters 7B..7F having zero width
+- ignore action 3 and action A if GRFID is FFFFFFFF and given ID/sprite
+  already has a definition/replacement

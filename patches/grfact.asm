@@ -980,12 +980,18 @@ setvehcargomap:
 	mov ecx,eax
 	and ecx,0x7f
 
+	push edi
 	cmp ecx,1
-	sbb ebx,ebx
-	or ebx,edx	// now ebx=feature or ebx=-1 if n-vid=0
+	sbb edi,edi
+	or edi,edx	// now edi=feature or edi=-1 if n-vid=0
+	mov ebx,[ebp+action3info.spriteblock]
+	cmp dword [ebx+spriteblock.grfid],byte -1
+	cmc
+	sbb ebx,ebx	// now ebx=-1 if GRFID was FFFFFFFF or 0 if not
 	push ebp
-	call [action3storeid+ebx*4]
+	call [action3storeid+edi*4]
 	pop ebp
+	pop edi
 
 	// resolve cargo ids
 	push edi
@@ -1061,6 +1067,7 @@ setvehcargomap:
 // store pointer to action 3 data for each ID define
 //
 // in:	eax=n-id unmodified (bit 7 set for livery override)
+//	ebx=0 if GRFID != FFFFFFFF, ebx=-1 if GRFID=FFFFFFFF
 //	ecx=n-id & 7F
 //	edx=feature
 //	ebp->action3info struct (pointer value to store)
@@ -1073,7 +1080,10 @@ grfcalltable action3storeid, dd addr(action3storeid.generic)
 	lodsb
 	add eax,[globalidoffset]
 	mov al,[curgrfhouselist+eax]
+	test ebx,[extrahousegraphdataarr+eax*4]
+	jnz .skiphouse
 	mov [extrahousegraphdataarr+eax*4], ebp
+.skiphouse:
 	loop .gethouses
 	ret
 
@@ -1081,7 +1091,10 @@ grfcalltable action3storeid, dd addr(action3storeid.generic)
 	lodsb
 	add eax,[globalidoffset]
 	mov al,[curgrfindustilelist+eax]
+	test ebx,[extraindustilegraphdataarr+eax*4]
+	jnz .skipindustile
 	mov [extraindustilegraphdataarr+eax*4], ebp
+.skipindustile:
 	loop .getindustiles
 	ret
 
@@ -1091,6 +1104,8 @@ grfcalltable action3storeid, dd addr(action3storeid.generic)
 	mov al,[curgrfindustrylist+eax]
 	or al,al
 	jz .nextindustry
+	test ebx,[industryaction3+(eax-1)*4]
+	jnz .nextindustry
 	mov [industryaction3+(eax-1)*4], ebp
 .nextindustry:
 	loop .getindustries
@@ -1099,7 +1114,10 @@ grfcalltable action3storeid, dd addr(action3storeid.generic)
 .getcargos:
 	lodsb
 	add eax,[globalidoffset]
+	test ebx,[cargoaction3+eax*4]
+	jnz .skipcargo
 	mov [cargoaction3+eax*4], ebp
+.skipcargo:
 	loop .getcargos
 	ret
 
@@ -1117,7 +1135,10 @@ grfcalltable action3storeid, dd addr(action3storeid.generic)
 .getcanals:
 	lodsb				// canal feature id
 	add eax,[globalidoffset]
+	test ebx,[canalfeatureids+eax*4]
+	jnz .skipcanal
 	mov [canalfeatureids+eax*4],ebp	// pointer to this action data
+.skipcanal:
 	loop .getcanals
 	ret
 
@@ -1126,7 +1147,7 @@ grfcalltable action3storeid, dd addr(action3storeid.generic)
 	add eax,[globalidoffset]
 	movzx ebx,byte [curgrfstationlist+eax]
 	test ebx,ebx
-	jz .getstations			// ignore stations not defined yet
+	jz .nextstation			// ignore stations not defined yet
 
 	// now eax=setid, ebx=gameid (for terminology see statspri.asm)
 
@@ -1156,6 +1177,7 @@ grfcalltable action3storeid, dd addr(action3storeid.generic)
 	jnc .searchnext
 	pop esi
 	pop ebp
+.nextstation:
 	loop .getstations
 	ret
 
@@ -1219,7 +1241,10 @@ grfcalltable action3storeid, dd addr(action3storeid.generic)
 .nextvid:
 	lodsb
 	add eax,[globalidoffset]
+	test ebx,[edx+4*eax]
+	jnz .skipveh
 	mov [edx+4*eax],ebp
+.skipveh:
 	loop .nextvid
 	ret
 
@@ -2499,11 +2524,24 @@ replacettdsprite:
 	mov ebp,edi
 .replnext:
 	pusha
+	cmp dword [edx+spriteblock.grfid],byte -1
+	jne .notdefgrf
+
+	// GRFID is FFFFFFFF, only override sprite if it's not a patch sprite
+	extern newspritenum,newspritedata
+	imul edi,[newspritenum],19
+	add edi,[newspritedata]
+	cmp byte [edi+eax],0	// was it immutable (i.e. one of ours)?
+	jne .skipsprite
+
+.notdefgrf:
 	mov edi,[edx+spriteblock.spritelist]
 	mov esi,[edi+ebp*4]
 	mov edi,[esi-4]		// sprite size
 	xchg eax,edi
 	call overridesprite
+
+.skipsprite:
 	popa
 	inc edi
 	inc eax

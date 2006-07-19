@@ -2011,8 +2011,11 @@ dogeneralpatching:
 	storeaddress findplanttree,1,3,treeplantfn
 
 	stringaddress skipnonprintingchars,1,1
+	mov byte [edi-6],0x60
 	mov byte [edi],0x7b
+	mov byte [edi+0x68],0x40
 	mov byte [edi+0x6f],0x5b
+	mov byte [edi+0xd7],0x20
 	mov byte [edi+0xde],0x3b
 	add edi,byte -0x60
 	mov [setcharwidthtablefn],edi
