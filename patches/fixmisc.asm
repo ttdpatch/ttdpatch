@@ -992,10 +992,11 @@ dodeductvehruncost:
 //	edx->player struc
 //	flags from subtraction
 // out:	--
-// safe:edx
+// safe:---
 global doaddexpenses
 doaddexpenses:
 	push eax
+	push edx
 
 	mov eax,ebx
 	mov ebx,edx
@@ -1061,6 +1062,7 @@ doaddexpenses:
 
 .done:
 	mov ebx,eax	// restore cost
+	pop edx
 	pop eax
 	ret
 
