@@ -668,7 +668,7 @@ RVTrailerProcessing:
 ;	pop	ax
 
 .JustMoveIntoNextTile:
-	mov	bp, word [esi+veh.XY]
+	movzx	ebp, word [esi+veh.XY]
 	call	[VehEnterLeaveTile]
 	or	ebp, ebp
 	js	near .zeroSpeedAndReturn
@@ -690,7 +690,7 @@ RVTrailerProcessing:
 .CallPathfinderForNewTile:
 	and	edx, 3
 	mov	byte [byte_11258E], dl			;seems to be a temp location for dl... which is the new movement stat?
-	mov	di, word [esi+veh.XY]
+	movzx	edi, word [esi+veh.XY]
 
 	push	ebx
 	mov	ebx, dword [word_11257A]
@@ -721,7 +721,7 @@ RVTrailerProcessing:
 	and	al, 7
 	cmp	al, 6
 	jb	short .dontMoveInXY
-	mov	di, word [esi+veh.XY]
+	movzx	edi, word [esi+veh.XY]
 
 .dontMoveInXY:
 	and	edx, 0FFh
@@ -753,7 +753,7 @@ RVTrailerProcessing:
 	cmp	byte [esi+0x6A], 0
 	pop	esi
 	je	.somewhere
-	mov	bp, word [ParentXY]
+	movzx	ebp, word [ParentXY]
 .somewhere:
 	or	ebp, ebp				;we can't move into the next tile
 	js	near .checkForTunnelOrTryAgain
@@ -861,7 +861,7 @@ RVTrailerProcessing:
 
 .Process2ndTurnInUTurn:					;seems to be called only when we're doing a UTURN
 	and	edx, 3
-	mov	di, word [esi+veh.XY]
+	movzx	edi, word [esi+veh.XY]
 	push	di
 	call	[RoadVehiclePathFinder]
 	pop	di
@@ -971,7 +971,7 @@ RVTrailerProcessing:
 
 .inDepot:
 	mov	word [esi+veh.speed], 0			;exit depot
-	mov	di, word [esi+veh.XY]
+	movzx	edi, word [esi+veh.XY]
 	mov	bl, byte [landscape5(di,1)]
 	and	ebx, 3
 	mov	dl, byte [unk_1125DB+ebx]		;Direction to leave depot
