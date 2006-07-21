@@ -10,7 +10,7 @@
 #include <ptrvar.inc>
 
 extern getaiselectioncallback,isengine,patchflags
-extern railenginetypenames,tracktypes
+extern railenginetypenames,railwagontypenames,tracktypes
 extern vehsorttable
 
 
@@ -413,7 +413,9 @@ getrailvehclassname:
 	bt [isengine],eax
 	movzx eax,byte [vehtypearray+ebx+vehtype.enginetraintype]
 	jc .engine
-	add eax,3
+	mov bx,[railwagontypenames+eax*2]
+	ret
+
 .engine:
 	mov bx,[railenginetypenames+eax*2]
 	ret
