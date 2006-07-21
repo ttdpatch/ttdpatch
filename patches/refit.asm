@@ -1124,6 +1124,7 @@ setnewcargo:
 	lea eax,[currefitlist+eax*refitinfo_size]
 	mov [currefitinfoptr],eax
 
+.loopNextVehicle:
 	movzx eax,byte [edx+veh.vehtype]
 	test byte [callbackflags+eax],8
 	jz .nocapacallback
@@ -1162,6 +1163,14 @@ setnewcargo:
 	mov esi,edx
 	call consistcallbacks
 
+	cmp word [edx+veh.nextunitidx], 0xFFFF
+	je .noMoreTrailers
+	movzx edx, word [edx+veh.nextunitidx]
+	shl edx, 7
+	add edx, [veharrayptr]
+	jmp .loopNextVehicle
+
+.noMoreTrailers:
 	// redraw depot window
 	mov al,0x12
 	mov bx,[edx+veh.XY]
