@@ -416,9 +416,6 @@
 
 - in coop mode, AI still buys out other companies and takes up loan
 
-- higherbridges over track on foundation displays no foundation, and
-  track at wrong altitude and/or slope -> fixed by steven_h ?
-
 - enhtunnels ignore coop? also crash if loading game while train in tunnel
   of other company
 
@@ -451,12 +448,6 @@
 
 - bus acceleration problem? http://www.tt-forums.net/viewtopic.php?p=440474#440474
 
-- combine blue graphics + canals into single grf
-  * elrails/trkfound/nsignals/canals?/gui/dualcc/oneway/trams
-  * parameter for trkfound from Szappy?
-  * add basetunnels? with grf parameter to enable it?
-  * add glyphs for 7B..7F (maybe others?) from glyphs.grf on server
-
 - add LRV V4 to patch graphics http://george.zernebok.net/newgrf/downloads.html#dlv4
 
 - change ttdpatch.txt to wiki manual
@@ -470,8 +461,6 @@
   http://www.tt-forums.net/viewtopic.php?p=451296#451296
 
 - savegame crashes in tunnel code http://www.tt-forums.net/viewtopic.php?p=455534#455534
-
-- train cargo amount display doesn't show freight factor
 
 - rotating tracks in station? http://www.tt-forums.net/viewtopic.php?p=458939#458939 
 
