@@ -824,7 +824,7 @@ SETTEXT(CFG_FREIGHTTRAINS, "`%s' (%s) multiplies the cargo carried by cargo trai
 SETTEXT(CFG_GAMESPEED, "`%s' (%s) Makes the gamespeed changeable. This requires the hotkeys patch. Press 'q' to speed up the game by a factor 2 (to a max of 8x speed) and 'w' to slow it down.  Parameter is the initial setting.  Range %ld..%ld.  Default %ld.")
 SETTEXT(CFG_HIGHERBRIDGES, "`%s' (%s) allows building of higher bridges.")
 SETTEXT(CFG_NEWGRFCFG, "`%s' (%s) chooses the configuration file for new graphics sets.")
-SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s) enables using the mouse wheel in the Windows version. 0 means original zooming with wheel (center stays), 1 means OpenTTD-style zooming (point under mouse cursor stays if possible). Add 2 to enable 'safe' zooming (two rollings trigger zoom). Add 4 for legacy wheel support (needed for some drivers and Win95). Range %ld..%ld. Default %ld.")
+SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s) enables using the mouse wheel in the Windows version. 0 means original zooming with wheel (center stays), 1 means OpenTTD-style zooming (point under mouse cursor stays if possible). Add 2 to enable 'safe' zooming (two rollings trigger zoom). Add 4 for legacy wheel support (needed for some drivers and Win95).  Bitcoded value.")
 SETTEXT(CFG_MOREWINDOWS, "`%s' (%s) allows more windows to be open on the screen. TTD's default is 10, but 3 slots are always occupied (main toolbar, main view, status bar), so the actual maximum count is 7. Drop-down menus and news messages count as windows as well. Range %ld..%ld. Default %ld.")
 SETTEXT(CFG_ENHANCEDDIFFICULTYSETTINGS, "'%s' (%s) makes it possible to select 'none' for the number of industries in the difficulty settings.")
 SETTEXT(CFG_NEWBRIDGES, "`%s' (%s) enables new graphics for bridges.")

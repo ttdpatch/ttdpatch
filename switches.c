@@ -143,17 +143,17 @@ void copyflagdata(void)
 
 int radix[4] = { 0, 8, 10, 16 };
 
-#define YESNO(ch, txt, comment, cat, sw) \
-	{ ch, txt, comment, sw,  0, 0, CAT_ ## cat, {-1, -1, -1}, 0, NULL, -1 }
+#define YESNO(ch, txt, comment, cat, manpage, sw) \
+	{ ch, txt, comment, manpage, sw,  0, 0, CAT_ ## cat, {-1, -1, -1}, 0, NULL, -1 }
 
-#define SPCL(ch, txt, comment, cat, var) \
-	{ ch, txt, comment, -1,  0, 2, CAT_ ## cat, {-1, -1, -1}, 0, var, -1 }
+#define SPCL(ch, txt, comment, cat, manpage, var) \
+	{ ch, txt, comment, manpage, -1,  0, 2, CAT_ ## cat, {-1, -1, -1}, 0, var, -1 }
 
-#define RANGE(ch, txt, comment, cat, sw, radix, varsize, var, low, high, default) \
-	{ ch, txt, comment, sw, radix, varsize, CAT_ ## cat, {low, high, default}, 0, var, -1 }
+#define RANGE(ch, txt, comment, cat, manpage, sw, radix, varsize, var, low, high, default) \
+	{ ch, txt, comment, manpage, sw, radix, varsize, CAT_ ## cat, {low, high, default}, 0, var, -1 }
 
-#define BITS(ch, txt, comment, cat, sw, varsize, var, default) \
-	{ ch, txt, comment, sw, 0, varsize, CAT_ ## cat, {0, 0x7fffffff, default}, 0, var, BITSWITCH_ ## sw }
+#define BITS(ch, txt, comment, cat, manpage, sw, varsize, var, default) \
+	{ ch, txt, comment, manpage, sw, 0, varsize, CAT_ ## cat, {0, 0x7fffffff, default}, 0, var, BITSWITCH_ ## sw }
 
 
 #define noswitch -2
@@ -1486,30 +1486,37 @@ void showtheswitches(const struct consoleinfo *const pcon)
 }
 
 // When adding things here, also add them to categories in switches.h
-const char *category_names[] = {
-	"BASIC",
-	"VEH",
-	"VEH_RAIL",
-	"VEH_ROAD",
-	"VEH_AIR",
-	"VEH_ORDERS",
-	"TERRAIN",
-	"INFST",
-	"INFST_BRIDGE",
-	"INFST_RAIL",
-	"INFST_RAIL_SIGNAL",
-	"INFST_ROADS",
-	"INFST_STATION",
-	"HOUSESTOWNS",
-	"INDUSTRIESCARGO",
-	"FINANCEECONOMY",
-	"DIFFICULTY",
-	"INTERFACE",
-	"INTERFACE_NEWS",
-	"INTERFACE_VEH",
-	"INTERFACE_WINDOW",
+struct st_categoryinfo {
+	categories parent;
+	const char *desc;
+	int numsubcategories;
+};
+typedef struct st_categoryinfo categoryinfo;
 
-	"NONE",
+categoryinfo category_info[] = {
+	{ CAT_NONE, "Basic" },
+	{ CAT_NONE, "Vehicles" },
+	{ CAT_VEH, "Rail" },
+	{ CAT_VEH, "Road" },
+	{ CAT_VEH, "Aircraft" },
+	{ CAT_VEH, "Orders" },
+	{ CAT_NONE, "Terrain" },
+	{ CAT_NONE, "Infrastructure" },
+	{ CAT_INFST, "Bridges" },
+	{ CAT_INFST, "Railways" },
+	{ CAT_INFST_RAIL, "Signalling" },
+	{ CAT_INFST, "Roads" },
+	{ CAT_INFST, "Stations" },
+	{ CAT_NONE, "Houses/Towns" },
+	{ CAT_NONE, "Industries/Cargo" },
+	{ CAT_NONE, "Finance/Economy" },
+	{ CAT_NONE, "Difficulty" },
+	{ CAT_NONE, "Interface" },
+	{ CAT_INTERFACE, "News messages" },
+	{ CAT_INTERFACE, "Vehicles" },
+	{ CAT_INTERFACE, "Windows" },
+
+	{ CAT_NONE, NULL },
 };
 
 /*
@@ -1544,7 +1551,13 @@ void putxmlstr(FILE *f, const char *str)
   }
 }
 
-void printbits(FILE *f, switchinfo* s)
+const char *tabs(int num)
+{
+  static const char _tabs[] = "\t\t\t\t\t\t\t\t\t";
+  return _tabs + sizeof(_tabs) - 1 - num;
+}
+
+void printbits(FILE *f, switchinfo* s, int depth)
 {
   int i;
   const char **names;
@@ -1553,16 +1566,93 @@ void printbits(FILE *f, switchinfo* s)
 
   for (i=0; names[i]; i++) {
 	if (!names[i]) continue;
-	fprintf(f, "\t\t<bit num=\"%d\" name=\"%s\" desc=\"", i, names[i]);
+	fprintf(f, "%s<bit num=\"%d\" name=\"%s\" desc=\"", tabs(depth), i, names[i]);
 	putxmlstr(f, langstr(bitswitchdesc[s->bitswitchid][i]));
 	fputs("\"/>\n", f);
   }
 }
 
-int dumpxmlswitches(void)
+void dumpxmlcategoryswitches(FILE *f, categories cat, int depth)
+{
+  int i, isbitswitch;
+
+  for (i=0; switches[i].cmdline; i++) {
+	if (!switches[i].comment) continue;
+	if (cat != CAT_NONE && switches[i].category != cat) continue;
+
+	isbitswitch = 0;
+
+	fputs(tabs(depth), f);
+	if ( (switches[i].bit == -1) && (switches[i].var == NULL) )
+		fprintf(f, "<special name=\"%s\"", switches[i].cfgcmd);
+	else if ( (switches[i].range[0] != -1) ||
+	     (switches[i].range[1] != -1) ) { 	// ranged (value)
+	   if (switches[i].bitswitchid >= 0) {
+		isbitswitch = 1;
+		fprintf(f, "<bitswitch name=\"%s\" default=\"%ld\"",
+			switches[i].cfgcmd, switches[i].range[2]);
+	   } else if (switches[i].radix == 3)
+		fprintf(f, "<range name=\"%s\" min=\"%lx\" max=\"%lx\" default=\"%lx\"",
+			switches[i].cfgcmd,
+			switches[i].range[0], switches[i].range[1], switches[i].range[2]);
+	   else
+		fprintf(f, "<range name=\"%s\" min=\"%ld\" max=\"%ld\" default=\"%ld\"",
+			switches[i].cfgcmd,
+			switches[i].range[0], switches[i].range[1], switches[i].range[2]);
+	} else
+		fprintf(f, "<bool name=\"%s\"", switches[i].cfgcmd);
+
+	fprintf(f, " cmdline=\"%s\"", cmdswitchstr(switches[i].cmdline, ""));
+	if (switches[i].cmdline == 155)			// special case for cdpath
+		fprintf(f, " defstate=\"\"");
+	else if (switches[i].cmdline == maketwochars('X', 'n'))		// special case for newgrfcfg
+#if WINTTDX
+		fprintf(f, " defstate=\"newgrfw.cfg\"");
+#else
+		fprintf(f, " defstate=\"newgrf.cfg\"");
+#endif
+	else
+		fprintf(f, " defstate=\"%s\"",
+			(switches[i].bit >= 0) &&
+			(switches[i].bit <= lastbitdefaulton) ? "on" : "off" );
+	if (switches[i].manpage)
+		fprintf(f, " manpage=\"%s\"", switches[i].manpage);
+	fputs(" desc=\"", f);
+	putxmlstr(f, langcfg(switches[i].comment));
+	if (isbitswitch) {
+		fputs("\">\n", f);
+		printbits(f, &switches[i], depth + 1);
+		fprintf(f, "%s</bitswitch>\n", tabs(depth));
+	} else
+		fputs("\"/>\n", f);
+  }
+}
+
+int dumpxmlcategory(FILE *f, categories cat, int depth)
+{
+  fprintf(f, "%s<category desc=\"%s\">\n",
+	tabs(depth), category_info[cat].desc);
+
+  dumpxmlcategoryswitches(f, cat, depth + 1);
+
+  if (category_info[cat].numsubcategories) {
+	categories subcat = cat + 1, numsub = category_info[cat].numsubcategories;
+	subcat = cat + 1;
+	while (numsub > 0) {
+		categories havesub = dumpxmlcategory(f, subcat, depth + 1);
+		numsub -= havesub;
+		subcat += havesub;
+	}
+  }
+
+  fprintf(f, "%s</category>\n", tabs(depth));
+  return 1 + category_info[cat].numsubcategories;
+}
+
+int dumpxmlswitches(int type)
 {
   FILE *f;
-  int i, isbitswitch;
+  int i;
 #if WINTTDX
   int isonum, oldacp;
 #endif
@@ -1583,60 +1673,25 @@ int dumpxmlswitches(void)
   fprintf(f, "<?xml version=\"1.0\" encoding=\"%s\"?>\n", linfo->dosencoding);
 #endif
 
+  for (i=CAT_FIRST; i<CAT_LAST; i++) {
+	categories parent = category_info[i].parent;
+	while (parent != CAT_NONE) {
+		category_info[parent].numsubcategories++;
+		parent = category_info[parent].parent;
+	}
+  }
+
   fprintf(f, "<switches version=\"%s\" ID=\"%08lX\">\n", TTDPATCHVERSION,
 	((long)TTDPATCHVERSIONMAJOR<<24)+
 	((long)TTDPATCHVERSIONMINOR<<20)+
 	((long)TTDPATCHVERSIONREVISION<<16)+
 	 (long)TTDPATCHVERSIONBUILD);
 
-  for (i=0; switches[i].cmdline; i++) {
-	if (!switches[i].comment) continue;
+  if (type == -2)
+	for (i=CAT_FIRST; i<CAT_LAST; i+=dumpxmlcategory(f, i, 1));
+  else
+	dumpxmlcategoryswitches(f, CAT_NONE, 1);
 
-	isbitswitch = 0;
-
-	if ( (switches[i].bit == -1) && (switches[i].var == NULL) )
-		fprintf(f, "\t<special name=\"%s\"", switches[i].cfgcmd);
-	else if ( (switches[i].range[0] != -1) ||
-	     (switches[i].range[1] != -1) ) { 	// ranged (value)
-	   if (switches[i].bitswitchid >= 0) {
-		isbitswitch = 1;
-		fprintf(f, "\t<bitswitch name=\"%s\" default=\"%ld\"",
-			switches[i].cfgcmd, switches[i].range[2]);
-	   } else if (switches[i].radix == 3)
-		fprintf(f, "\t<range name=\"%s\" min=\"%lx\" max=\"%lx\" default=\"%lx\"",
-			switches[i].cfgcmd,
-			switches[i].range[0], switches[i].range[1], switches[i].range[2]);
-	   else
-		fprintf(f, "\t<range name=\"%s\" min=\"%ld\" max=\"%ld\" default=\"%ld\"",
-			switches[i].cfgcmd,
-			switches[i].range[0], switches[i].range[1], switches[i].range[2]);
-	} else
-		fprintf(f, "\t<bool name=\"%s\"", switches[i].cfgcmd);
-
-	fprintf(f, " cmdline=\"%s\"", cmdswitchstr(switches[i].cmdline, ""));
-	if (switches[i].cmdline == 155)			// special case for cdpath
-		fprintf(f, " defstate=\"\"");
-	else if (switches[i].cmdline == maketwochars('X', 'n'))		// special case for newgrfcfg
-#if WINTTDX
-		fprintf(f, " defstate=\"newgrfw.cfg\"");
-#else
-		fprintf(f, " defstate=\"newgrf.cfg\"");
-#endif
-	else
-		fprintf(f, " defstate=\"%s\"",
-			(switches[i].bit >= 0) &&
-			(switches[i].bit <= lastbitdefaulton) ? "on" : "off" );
-	fprintf(f, " categorynum=\"%d\"", switches[i].category);
-	fprintf(f, " category=\"%s\"", category_names[switches[i].category]);
-	fputs(" desc=\"", f);
-	putxmlstr(f, langcfg(switches[i].comment));
-	if (isbitswitch) {
-		fputs("\">\n", f);
-		printbits(f, &switches[i]);
-		fputs("\t</bitswitch>\n", f);
-	} else
-		fputs("\"/>\n", f);
-  }
   fputs("</switches>\n", f);
   fclose(f);
 #if WINTTDX
@@ -1653,7 +1708,7 @@ int dumpswitches(int type)
   int i;
 
   if (type < 0) {
-	return dumpxmlswitches();
+	return dumpxmlswitches(type);
   }
 
   f = fopen("swtchlst.txt", "wt");
@@ -1732,7 +1787,10 @@ void check_debug_switches(int *const argc, const char *const **const argv)
 					// FALLTHROUGH
 				case '+': sw++;
 			}
-			*swdesc->flag = val;
+			if (*swdesc->flag * val > 0)
+				*swdesc->flag += val;
+			else
+				*swdesc->flag = val;
 			break;
 		}
 		sw++;
