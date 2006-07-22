@@ -279,9 +279,9 @@
 	YESNO('o',"onewayroads", CFG_ONEWAYROADS, INFST_ROADS, "OneWayRoads", onewayroads),
 	RANGE('p',"lostaircraft", CFG_AIRCRAFTLOSTTIME, VEH_ORDERS, "LostVehicles", lostaircraft, 0, 1, FLAGDATA(aircraftlosttime), 5, 1000, 90),
 	     //q
-	RANGE('r',"losttrains", CFG_TRAINLOSTTIME, VEH_ORDERS, "LostVehicles", losttrains, 0, 1, FLAGDATA(trainlosttime), 5, 1000, 150),
-	RANGE('s',"lostrvs", CFG_RVLOSTTIME, VEH_ORDERS, "LostVehicles", lostrvs, 0, 1, FLAGDATA(rvlosttime), 5, 1000, 150),
-	RANGE('t',"lostships", CFG_SHIPLOSTTIME, VEH_ORDERS, "LostVehicles", lostships, 0, 1, FLAGDATA(shiplosttime), 5, 1000, 400),
+	RANGE('r',"lostrvs", CFG_RVLOSTTIME, VEH_ORDERS, "LostVehicles", lostrvs, 0, 1, FLAGDATA(rvlosttime), 5, 1000, 150),
+	RANGE('s',"lostships", CFG_SHIPLOSTTIME, VEH_ORDERS, "LostVehicles", lostships, 0, 1, FLAGDATA(shiplosttime), 5, 1000, 400),
+	RANGE('t',"losttrains", CFG_TRAINLOSTTIME, VEH_ORDERS, "LostVehicles", losttrains, 0, 1, FLAGDATA(trainlosttime), 5, 1000, 150),
 	YESNO('u',"articulatedrvs", CFG_ARTICULATEDRVS, VEH_ROAD, "NewVehicleGraphics", articulatedrvs),
 	RANGE('w',"resolutionwidth", CFG_RESOLUTIONWIDTH, BASIC, "Resolution", resolutionwidth, 0, 1, FLAGDATA(reswidth), 640, 2048, 800),
 	RANGE('x',"aibuildrailchance", CFG_AIBUILDRAILCHANCE, DIFFICULTY, "AIConstructionChances", noswitch, 0, 1, FLAGDATA(aibuildrailchance), 0, 65535, 30246),
