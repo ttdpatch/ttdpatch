@@ -729,3 +729,5 @@ CHANGELOG
 - ignore action 3 and action A if GRFID is FFFFFFFF and given ID/sprite
   already has a definition/replacement
 - fixed broken vehicle windows or crashes when buying vehicles
+- allow specifying debug switches multiple times to increase value
+- debug switch S-S- (S=-2) will print switches.xml with category tree

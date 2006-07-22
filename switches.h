@@ -45,12 +45,15 @@ enum en_categories {
 	CAT_NONE,
 };
 typedef enum en_categories categories;
+#define CAT_FIRST CAT_BASIC
+#define CAT_LAST  CAT_NONE
 
 	// this defines the bits to be set by the switches.
 typedef struct {
 	int cmdline;		// the command line switch for this
 	const char *cfgcmd;	// the configuration file command
 	int comment;		// the comment written by -W
+	const char *manpage;	// the name of the manual page describing the switch
 	int bit:9;		// the bit to be set.  -1 for special handling, -2 if none
 	unsigned radix:4;	// 0=auto, 1=force octal, 2=force dec, 3=force hex; +4=invert
 	unsigned varsize:3;	// 0=u8  1=u16  2=s16  3=s32  4=s8
