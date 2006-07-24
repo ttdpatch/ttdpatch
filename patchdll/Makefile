@@ -2,7 +2,7 @@
 # default target
 all:    ttdpatch.dll
 
-OBJECTFILES = patchsnd.o noregist.o
+OBJECTFILES = patchsnd.o noregist.o asyncmpclient.o
 
 # use WINCC setting from toplevel Makefile
 MAKEFILELOCAL=../Makefile.local
@@ -14,7 +14,7 @@ CXX = $(TARGETPREF)g++
 AS = $(TARGETPREF)as
 
 CFLAGS = -g -Os -mno-cygwin -Wall ${CFLAGS-DLL}
-LDOPTS = -Wl,--subsystem,windows,-s -ldsound -mno-cygwin ${LDOPTS-DLL}
+LDOPTS = -Wl,--subsystem,windows,-s -ldsound -lwsock32 -mno-cygwin ${LDOPTS-DLL}
 #LDOPTS = -Wl,--subsystem,console
 LDOPTS += -lshlwapi
 DLLOPTS = $(LDOPTS) -Wl,--enable-auto-image-base,-e,_DllMain@12
