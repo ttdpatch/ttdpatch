@@ -117,6 +117,10 @@ cheatentry "FACE",facecheat,0
 //cheatentry "ENGINE",enginecheat
 //          12345678901234 (max length of name)
 
+#ifndef RELEASE
+cheatentry "GRFDEBUG",grfdebugcheat,0
+#endif
+
 #if 1 && DEBUG
 cheatentry "LANDINFO",landinfocheat,0
 cheatentry "LANDD", landdispcheat,0
@@ -1844,6 +1848,61 @@ writehexbyte:
 	mov byte [edi+ebx+2]," "
 	add ebx,3
 	ret
+
+#ifndef RELEASE
+grfdebugcheat:
+	extern grfdebug_feature,grfdebug_id,grfdebug_callback,grfdebug_active
+	xor eax,eax
+	xchg eax,[grfdebug_active]
+	call getnumber
+	cmp edx,1
+	je .active
+
+	test eax,eax
+	jz .done
+
+	mov bx,ax
+	mov ax,0x3e00
+	CALLINT21
+
+.done:
+	ret
+
+.active:
+	test eax,eax
+	jnz .isopen
+
+	noglobal varb .grfdebugfile, "grfdebug.log",0
+	mov ah,0x3c
+	xor ecx,ecx
+	mov edx,.grfdebugfile
+	CALLINT21
+	jnc .isopen
+
+	noglobal varb .cantopen, 0x98,"failed to create grfdebug.log",0
+	mov dword [specialerrtext1],.cantopen
+	mov bx,statictext(specialerr1)
+	mov dx,-1
+	xor ax,ax
+	xor cx,cx
+	call dword [errorpopup]
+	stc
+	ret
+
+.isopen:
+	mov [grfdebug_active],ax
+
+	call getnumber
+	mov [grfdebug_feature],edx
+
+	call getnumber
+	mov [grfdebug_id],edx
+
+	call getnumber
+	mov [grfdebug_callback],edx
+	clc
+	ret
+#endif
 
 //Shows values of the landscape arrays in the sign text,
 //maybe helps finding out more info about landscape arrays.

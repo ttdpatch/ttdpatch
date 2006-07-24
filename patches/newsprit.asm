@@ -11,6 +11,7 @@
 #include <industry.inc>
 #include <ptrvar.inc>
 #include <house.inc>
+#include <proc.inc>
 
 extern acttriggers,cachevehvar40x,canalfeatureids,cargoaction3,curcallback
 extern curgrffile,curgrfsprite,curstationtile,curtriggers,ecxcargooffset
@@ -42,6 +43,14 @@ uvard mostrecentspriteblock
 uvarb mostrecentgrfversion
 
 uvard curstationcargo
+
+#ifndef RELEASE
+uvard grfdebug_feature
+uvard grfdebug_id
+uvard grfdebug_callback
+uvard grfdebug_active
+uvarb grfdebug_current
+#endif
 
 
 // find action 3 and spriteblock for each feature
@@ -480,6 +489,38 @@ getnewsprite:
 	push ebx
 	mov [curgrfid],eax
 
+#ifndef RELEASE
+	cmp dword [grfdebug_active],0
+	je .nodebug
+
+	mov cl,[grfdebug_feature]
+	cmp cl,-1
+	je .gotfeature
+	cmp cl,[grffeature]
+	jne .nodebug
+.gotfeature:
+	mov cl,[grfdebug_id]
+	cmp cl,-1
+	je .gotid
+	cmp cl,al
+	jne .nodebug
+.gotid:
+	mov ecx,[grfdebug_callback]
+	cmp ecx,byte -1
+	je .gotcb
+	cmp ecx,[curcallback]
+	jne .nodebug
+
+.gotcb:
+	mov byte [grfdebug_current],1
+	mov ecx,[curcallback-2]		// set ecx(16:23)=callback
+	mov cl,[grffeature]
+	mov ch,al
+	param_call grfdebug_output, dword "GET ",ecx,0
+
+.nodebug:
+#endif
+
 #if MEASUREVAR40X
 	or ecx,byte -1
 	mov [tscvar],ecx
@@ -494,7 +535,7 @@ getnewsprite:
 	or edx,ecx
 	call [getaction3+edx*4]
 	test eax,eax
-	jle .baddata
+	jle near .baddata
 
 		// get spriteblock
 .chain:
@@ -546,6 +587,15 @@ getnewsprite:
 	// we reach a real cargo ID
 	//
 .gotaction2:
+#ifndef RELEASE
+	cmp byte [grfdebug_current],0
+	je .nosprdebug
+
+	param_call grfdebug_output, dword "ACT2",ebx,0
+
+.nosprdebug:
+#endif
+
 	mov eax,[edx+spriteblock.spritelist]
 	mov ebx,[eax+ebx*4]
 	mov eax,[ebx-8]
@@ -560,6 +610,15 @@ getnewsprite:
 	jns .gotaction2
 
 .callbackresult:
+#ifndef RELEASE
+	cmp byte [grfdebug_current],0
+	je .noresdebug
+
+	param_call grfdebug_output, dword "RSLT",ebx,0
+
+.noresdebug:
+#endif
+
 	cmp byte [curcallback],0	// was it really a callback?
 	je .baddata
 
@@ -623,6 +682,18 @@ getnewsprite:
 	mov ecx,[grffeature]
 	or dword [tscvar],byte -1
 	call checktsc
+	popf
+#endif
+#ifndef RELEASE
+	pushf
+	cmp byte [grfdebug_current],0
+	je .nooutdebug
+
+	mov byte [grfdebug_current],0
+	movzx ecx,ax
+	param_call grfdebug_output, dword "SPRT",ecx,0
+
+.nooutdebug:
 	popf
 #endif
 
@@ -802,10 +873,21 @@ getrandom:	// random cargo ID
 .nottriggeredyet:
 	mov eax,[grffeature]
 	call [getrandombits+eax*4]
+#ifndef RELEASE
+	mov edx,eax
+#endif
 	shr eax,cl
 	movzx eax,al
 	and al,[ebx+6]
 .gotrandom:
+#ifndef RELEASE
+	cmp byte [grfdebug_current],0
+	je .nornddebug
+
+	param_call grfdebug_output, dword "RND ",edx,eax
+
+.nornddebug:
+#endif
 	movzx ebx,word [ebx+7+eax*2]
 	pop edx
 	pop esi
@@ -995,6 +1077,10 @@ getvariationalvariable:
 %endmacro
 
 %macro make_var_adjust 1
+#ifndef RELEASE
+	push ebp
+	mov ebp,eax
+#endif
 	auto_size {and al,[ebx+2]}, {and ax,[ebx+2]}, {and eax,[ebx+2]}
 	auto_size {add ebx,3}, {add ebx,4}, {add ebx,6}
 
@@ -1021,6 +1107,15 @@ getvariationalvariable:
 	auto_size {mov al,ah}, {mov ax,cx}, {mov eax,ecx}	// get remainder
 
 %%gotvaladjust:
+#ifndef RELEASE
+	cmp byte [grfdebug_current],0
+	je %%novaldebug
+
+	param_call grfdebug_output, dword "VAR ",ebp,eax
+
+%%novaldebug:
+	pop ebp
+#endif
 %endmacro
 
 %macro makevaract2handler 1
@@ -1653,6 +1748,40 @@ getspecparamvar:
 	pop dword [curgrfsprite]
 	pop ebx
 	ret
+
+#ifndef RELEASE
+proc grfdebug_output
+	arg text,val1,val2
+
+	noglobal varb .output, "XXXX ######## ########",13,10,0
+
+	_enter
+	pusha
+
+	mov eax,[%$text]
+	mov [.output],eax
+	mov eax,[%$val1]
+	lea edi,[.output+5]
+	extern hexnibbles
+	mov cl,8
+	call hexnibbles
+	mov eax,[%$val2]
+	inc edi
+	mov cl,8
+	call hexnibbles
+
+	mov ah,0x40
+	mov bx,[grfdebug_active]
+	mov ecx,24
+	mov edx,.output
+	CALLINT21
+
+	popa
+	_ret
+endproc
+#endif
+
+
 
 // The following tables have two entries per feature, the first for the default thing, the second for "the other"
 

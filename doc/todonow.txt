@@ -731,3 +731,4 @@ CHANGELOG
 - fixed broken vehicle windows or crashes when buying vehicles
 - allow specifying debug switches multiple times to increase value
 - debug switch S-S- (S=-2) will print switches.xml with category tree
+- implement grf debugger sign cheat
