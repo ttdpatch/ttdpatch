@@ -1822,33 +1822,6 @@ semaphorecheat:
 	mov [edi+1+ecx*2],al
 	jmp .nextloop
 
-#if 1 && DEBUG
-
-writehexbyte:
-	mov al,dl
-
-	mov ah,dl
-	shr al,4
-	and ah,0xf
-	cmp ah,0xa
-	jae .letter1
-	add ah,"0"
-	jmp short .secondnum
-.letter1:
-	add ah,"A"-10
-.secondnum:
-	cmp al,0xa
-	jae .letter2
-	add al,"0"
-	jmp short .end
-.letter2:
-	add al,"A"-10
-.end:
-	mov [edi+ebx],ax
-	mov byte [edi+ebx+2]," "
-	add ebx,3
-	ret
-
 #ifndef RELEASE
 grfdebugcheat:
 	extern grfdebug_feature,grfdebug_id,grfdebug_callback,grfdebug_active
@@ -1903,6 +1876,33 @@ grfdebugcheat:
 	clc
 	ret
 #endif
+
+#if 1 && DEBUG
+
+writehexbyte:
+	mov al,dl
+
+	mov ah,dl
+	shr al,4
+	and ah,0xf
+	cmp ah,0xa
+	jae .letter1
+	add ah,"0"
+	jmp short .secondnum
+.letter1:
+	add ah,"A"-10
+.secondnum:
+	cmp al,0xa
+	jae .letter2
+	add al,"0"
+	jmp short .end
+.letter2:
+	add al,"A"-10
+.end:
+	mov [edi+ebx],ax
+	mov byte [edi+ebx+2]," "
+	add ebx,3
+	ret
 
 //Shows values of the landscape arrays in the sign text,
 //maybe helps finding out more info about landscape arrays.
