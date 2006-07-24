@@ -614,13 +614,13 @@ stopTramOvertaking:
 .dontLetTramsOvertake:
 	retn
 
-uvarb	lastselection,1,s
+uvarb	lastroadmenuselection
 global createRoadConstructionWindow
 createRoadConstructionWindow:
 
 	cmp	al, 0FFh
 	jne	.dontShiftInLastValue
-	mov	al, byte [lastselection]
+	mov	al, byte [lastroadmenuselection]
 .dontShiftInLastValue:
 	cmp	al, 1
 	jne	near .moveInZero
@@ -652,7 +652,7 @@ createRoadConstructionWindow:
 	pop	edi
 	pop	eax
 .movedInData:
-	mov	byte [lastselection], al
+	mov	byte [lastroadmenuselection], al
 	mov	eax, 356 + (22 << 16)
 	mov	ebx, 284 + (36 << 16)
 	mov	cx, 3h
@@ -2036,4 +2036,12 @@ global resetL3DataToo
 resetL3DataToo:
 	mov	byte [landscape2 + esi], 0
 	and	word [landscape3 + esi * 2], ~1111b
+	retn
+
+global updateRoadMenuSelection
+updateRoadMenuSelection:
+	push	eax
+	movzx	ax, byte [lastroadmenuselection]
+	mov	word [esi+window.data+2], ax
+	pop	eax
 	retn

@@ -186,6 +186,11 @@ begincodefragments
 		push	ecx
 		setfragmentsize 19
 
+	reusecodefragment oldroadmenuselection, oldroadmenudropdown, 47
+
+	codefragment newroadmenuselection
+		icall	updateRoadMenuSelection
+
 	codefragment newsetroadmenunum
 		pop ecx
 		mov [esi+0x2a],cx
@@ -535,6 +540,7 @@ patchtrams:
 
 	patchcode oldCreateRoadConsWindow,newCreateRoadConsWindow,1,1
 
+	patchcode oldroadmenuselection, newroadmenuselection, 1, 1
 	stringaddress oldroadmenudropdown,1,1
 	mov eax,[edi+3]
 	mov [roadmenuelemlisty2],eax
