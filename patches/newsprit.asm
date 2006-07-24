@@ -489,6 +489,20 @@ getnewsprite:
 	push ebx
 	mov [curgrfid],eax
 
+#if MEASUREVAR40X
+	or ecx,byte -1
+	mov [tscvar],ecx
+	call checktsc
+#endif
+
+	mov cl,0
+	cmp cl,ah
+	mov ecx,[grffeature]
+	sbb edx,edx	// -1 for generic (-> ignore feature), 0 for regular
+	mov [curgrffeature],ecx
+	or edx,ecx
+	call [getaction3+edx*4]
+
 #ifndef RELEASE
 	cmp dword [grfdebug_active],0
 	je .nodebug
@@ -516,24 +530,20 @@ getnewsprite:
 	mov ecx,[curcallback-2]		// set ecx(16:23)=callback
 	mov cl,[grffeature]
 	mov ch,al
-	param_call grfdebug_output, dword "GET ",ecx,0
+	or edx,byte -1
+	test eax,eax
+	jle .noact3
+	mov edx,[eax+action3info.spriteblock]
+	mov edx,[edx+spriteblock.grfid]
+	xchg dl,dh
+	rol edx,16
+	xchg dl,dh
+.noact3:
+	param_call grfdebug_output, dword "GET ",ecx,edx
 
 .nodebug:
 #endif
 
-#if MEASUREVAR40X
-	or ecx,byte -1
-	mov [tscvar],ecx
-	call checktsc
-#endif
-
-	mov cl,0
-	cmp cl,ah
-	mov ecx,[grffeature]
-	sbb edx,edx	// -1 for generic (-> ignore feature), 0 for regular
-	mov [curgrffeature],ecx
-	or edx,ecx
-	call [getaction3+edx*4]
 	test eax,eax
 	jle near .baddata
 
