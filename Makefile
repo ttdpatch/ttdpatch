@@ -89,6 +89,16 @@ hostwinobjs:=	$(wincsources:%.c=host/%.o)
 mkpttxtobjs:=	$(mkpttxtsrcs:%.c=%.o)
 hostmkpttxtobjs:=$(mkpttxtsrcs:%.c=host/%.o)
 
+ifdef NODOS
+	asmdobjs:=
+	dosobjs:=
+endif
+ifdef NOWIN
+	asmwobjs:=
+	winobjs:=
+endif
+
+
 # =======================================================================
 #       include dependency files (they're generated automatically)
 # =======================================================================
@@ -146,6 +156,19 @@ dos:	ttdprotd.lst${GZIPPED} ttdpatch.exe
 win:	ttdprotw.lst${GZIPPED} ttdpatchw.exe
 lin:	ttdprotl.lst${GZIPPED} ttdprotl.bin
 all:	alld allw
+
+ifdef NODOS
+dos: abort
+abort:
+	@echo Invalid target with NODOS
+	@exit 1
+endif
+ifdef NOWIN
+win: abort
+abort:
+	@echo Invalid target with NOWIN
+	@exit 1
+endif
 
 .PHONY: test testd testw
 
