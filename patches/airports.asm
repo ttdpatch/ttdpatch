@@ -819,7 +819,7 @@ CreateAirportCheck:
 	add dx, cx // Fix the values to be possitive
 	movzx ax, dl // Move these for full registors for later
 	movzx dx, dh
-	imul cl // Multiple the x by the number of y
+	imul ch // Multiple the x by the number of y
 	movzx cx, cl // Must move this into a bigger value to stop errors on the next steps
 	add ax, dx // Add the together for an offset
 
