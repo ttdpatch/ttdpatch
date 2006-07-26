@@ -121,8 +121,9 @@ cheatentry "FACE",facecheat,0
 cheatentry "GRFDEBUG",grfdebugcheat,0
 #endif
 
+cheatentry "LANDINFO",landinfocheat,0 // No longer a DEBUG sign cheat
+
 #if 1 && DEBUG
-cheatentry "LANDINFO",landinfocheat,0
 cheatentry "LANDD", landdispcheat,0
 //cheatentry "SETSET", morestationsetset,0	// doesn't work anymore
 cheatentry "SOUND", soundeffectcheat,0	// play a certain sound effect for testing
@@ -1934,6 +1935,14 @@ landinfocheat:
 	mov dl,[edx+esi]
 	call writehexbyte
 .no_l6:
+
+	mov edx, landscape7
+	or edx, edx
+	jz .no_l7
+	mov dl, [edx+esi]
+	call writehexbyte
+.no_l7:
+
 	mov byte [edi+ebx],0
 	clc
 	ret
