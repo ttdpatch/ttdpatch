@@ -1878,33 +1878,6 @@ grfdebugcheat:
 	ret
 #endif
 
-#if 1 && DEBUG
-
-writehexbyte:
-	mov al,dl
-
-	mov ah,dl
-	shr al,4
-	and ah,0xf
-	cmp ah,0xa
-	jae .letter1
-	add ah,"0"
-	jmp short .secondnum
-.letter1:
-	add ah,"A"-10
-.secondnum:
-	cmp al,0xa
-	jae .letter2
-	add al,"0"
-	jmp short .end
-.letter2:
-	add al,"A"-10
-.end:
-	mov [edi+ebx],ax
-	mov byte [edi+ebx+2]," "
-	add ebx,3
-	ret
-
 //Shows values of the landscape arrays in the sign text,
 //maybe helps finding out more info about landscape arrays.
 //Without allowing identical signs, this cheat gives you a lot of headache
@@ -1945,6 +1918,33 @@ landinfocheat:
 
 	mov byte [edi+ebx],0
 	clc
+	ret
+
+#if 1 && DEBUG
+
+writehexbyte:
+	mov al,dl
+
+	mov ah,dl
+	shr al,4
+	and ah,0xf
+	cmp ah,0xa
+	jae .letter1
+	add ah,"0"
+	jmp short .secondnum
+.letter1:
+	add ah,"A"-10
+.secondnum:
+	cmp al,0xa
+	jae .letter2
+	add al,"0"
+	jmp short .end
+.letter2:
+	add al,"A"-10
+.end:
+	mov [edi+ebx],ax
+	mov byte [edi+ebx+2]," "
+	add ebx,3
 	ret
 
 var landdisp, db 94h, "LAND:  "
