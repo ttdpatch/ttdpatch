@@ -1886,6 +1886,19 @@ landinfocheat:
 	call skipspaces
 	mov edi,[esp+4]
 	call getsignxy
+
+	push edi // Makes the need Red Box
+	push ebx
+	mov edi, landdispl
+	mov ebx, 0
+
+	mov dx, si // Adds The XY of the Tile to the Sign
+	xchg dh, dl
+	call writehexbyte
+	dec ebx
+	xchg dh,dl
+	call writehexbyte
+
 	mov dl,[esi+landscape1]
 	call writehexbyte
 	mov dl,[esi+landscape2]
@@ -1909,18 +1922,28 @@ landinfocheat:
 	call writehexbyte
 .no_l6:
 
-	mov edx, landscape7
+	mov edx, landscape7 // Adds L7 information to the sign
 	or edx, edx
 	jz .no_l7
 	mov dl, [edx+esi]
 	call writehexbyte
 .no_l7:
 
-	mov byte [edi+ebx],0
+//	mov byte [edi+ebx],0
+//
+	mov dword [specialerrtext1],landdisp // Copied from below to make a red box
+	mov bx, statictext(specialerr1)
+	mov dx, -1
+	xor ax, ax
+	xor cx, cx
+	push ebp
+	call dword [errorpopup]
+	pop ebp
+	pop ebx
+	pop edi
+
 	clc
 	ret
-
-#if 1 && DEBUG
 
 writehexbyte:
 	mov al,dl
@@ -1949,6 +1972,8 @@ writehexbyte:
 
 var landdisp, db 94h, "LAND:  "
 var landdispl, times 36 db 0
+
+#if 1 && DEBUG
 
 landdispcheat:
 	call skipspaces
