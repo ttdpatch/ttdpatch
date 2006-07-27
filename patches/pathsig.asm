@@ -2479,7 +2479,13 @@ chktrainleavedepot:
 	jz .notY
 	mov byte [esi+veh.movementstat],2
 .notY:
+	mov byte [onlycheckpath],1
 	call forcemarksignalpath.havepbs
+	jc .cantreserve
+	mov byte [onlycheckpath],0
+	call forcemarksignalpath.havepbs
+
+.cantreserve:
 	sbb al,al
 	mov byte [esi+veh.movementstat],0x80	// restore to original value
 
