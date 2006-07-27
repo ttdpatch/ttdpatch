@@ -38,7 +38,8 @@ __declspec(dllexport) NetObj* ASClientConnect(char* ipaddressorhostname)
 	if (!pNetObj) return NULL;
 	pNetObj->error = 0;
 	pNetObj->outbufferlen = 0;
-	pNetObj->inbufferlen = 0;
+	/* pNetObj->inbufferlen = 0; */
+	pNetObj->inpackagelen = 0;
 	
 	pNetObj->socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (pNetObj->socket == INVALID_SOCKET) {
@@ -116,8 +117,67 @@ __declspec(dllexport) int ASClientSendDone(NetObj* netobj, int size, char* buffe
 	return 0;
 }
 
-__declspec(dllexport) int ASClientReceive()
+__declspec(dllexport) int ASClientReceive(NetObj* netobj, int buffersize, char* buffer)
 {
+	int recvret;
+	int bufferpos = 0;
 	
+	if (netobj->inpackagelen < buffersize) {
+		/* quite bad it seems host want more then data then it should */
+		return -1;
+	}
+	while (bufferpos < buffersize) {
+		recvret=recv(netobj->socket, buffer+bufferpos, buffersize-bufferpos, 0);
+		if (recvret == SOCKET_ERROR) {
+			netobj->error = WSAGetLastError();
+			return -1;
+		}
+		if (recvret == 0) {
+			/* The server left us */
+			return -2;
+		}
+		bufferpos += recvret;
+	}
+	netobj->inpackagelen -= bufferpos; 
+	if (netobj->inpackagelen < 1) return 0;	/* no more data to read */
+	return netobj->inpackagelen;	/* return the remaining bytes */
+}
+
+
+__declspec(dllexport) int ASClientHasNewData(NetObj* netobj)
+{
+	TIMEVAL timeout; 
+	fd_set fdSetRead;
+	int selectret;
+	int recvret;
+	char buffer[sizeof(int)*2];	/* waste some bytes to not get a buffer overflow */
+	int bufferpos = 0;
+	/* first check if we have still data in an old package buffer, that would be a wrong use of API */
+	if (netobj->inpackagelen > 0) return -1;
+
+    timeout.tv_sec = 0; 
+	timeout.tv_usec = 0;
+	selectret = select(0,&fdSetRead,NULL,NULL,&timeout);
+	if (selectret == SOCKET_ERROR) {
+		netobj->error = WSAGetLastError();
+		return -1;
+	}
+	if (selectret == 1) {
+		/* we seem to have a new data package, get it's size */
+		while (bufferpos < sizeof(int)) {
+			recvret=recv(netobj->socket, buffer+bufferpos, sizeof(int) - bufferpos, 0);
+			if (recvret == SOCKET_ERROR) {
+				netobj->error = WSAGetLastError();
+				return -1;
+			}
+			if (recvret == 0) {
+				/* The server left us */
+				return -2;
+			}
+			bufferpos += recvret;
+		}
+		netobj->inpackagelen = (int)buffer[0];
+		return 1;
+	}
 	return 0;
 }
