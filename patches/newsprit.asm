@@ -35,6 +35,7 @@ extern getindustilelandslope_industry,hexdigits,int21handler
 extern getotherindustileanimstage,getotherindustileanimstage_industry
 extern getstationanimframe,getnearbystationanimframe,getothertypedistance
 extern airportaction3,getaircraftvehdata,getaircraftdestination
+extern substindustile,substindustries
 
 uvard grffeature
 uvard curgrffeature,1,s		// must be signed to indicate "no current feature"
@@ -58,15 +59,18 @@ uvarb grfdebug_current
 //
 // in:	eax=vehicle (etc.) ID
 // out:	eax->action 3
+//	edx=ID in grf file (for translated ones)
 // 	on error eax=0
 
 grfcalltable getaction3, dd addr(getaction3.generic)
 
 .generic:
+	mov edx,eax
 	mov eax,[genericids+(eax-0x100)*4]
 	ret
 
 .gettrains:
+	mov edx,eax
 	cmp byte [wagonoverride+eax],1
 	jb .nooverride
 
@@ -94,6 +98,7 @@ grfcalltable getaction3, dd addr(getaction3.generic)
 	ret
 
 .getplanes:
+	mov edx,eax
 	cmp byte [wagonoverride+eax],1
 	jb .nooverride
 
@@ -116,35 +121,43 @@ grfcalltable getaction3, dd addr(getaction3.generic)
 .nooverride:
 .getrvs:
 .getships:
+	mov edx,eax
 	mov eax,[vehids+eax*4]
 	ret
 
 .gethouses:
+	movzx edx,byte [substbuilding+eax]
 	mov eax,[extrahousegraphdataarr+eax*4] //8+housegraphdata.act3]
 	ret
 	
 .getindustiles:
+	movzx edx,byte [substindustile+eax]
 	mov eax,[extraindustilegraphdataarr+eax*4]
 	ret
 
 .getcanals:
+	mov edx,eax
 	mov eax,[canalfeatureids+eax*4]
 	ret
 
 .getbridges:
+	mov edx,eax
 	xor eax,eax	// no data
 	ret
 
 .getstations:
+	movzx edx,byte [stsetids+eax*stsetid_size+stsetid.setid]
 	or dword [curstationcargo],byte -1
 	mov eax,[stsetids+eax*stsetid_size+stsetid.act3info]
 	ret
 
 .getindustries:
+	movzx edx,byte [substindustries+eax]
 	mov eax,[industryaction3+eax*4]
 	ret
 
 .getcargos:
+	mov edx,eax
 	mov eax,[cargoaction3+eax*4]
 	ret
 
@@ -523,7 +536,7 @@ getnewsprite:
 	mov cl,[grfdebug_id]
 	cmp cl,-1
 	je .gotid
-	cmp cl,al
+	cmp cl,dl
 	jne .nodebug
 .gotid:
 	mov ecx,[grfdebug_callback]
@@ -536,7 +549,7 @@ getnewsprite:
 	mov byte [grfdebug_current],1
 	mov ecx,[curcallback-2]		// set ecx(16:23)=callback
 	mov cl,[grffeature]
-	mov ch,al
+	mov ch,dl
 	or edx,byte -1
 	test eax,eax
 	jle .noact3

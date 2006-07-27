@@ -121,8 +121,9 @@ cheatentry "FACE",facecheat,0
 cheatentry "GRFDEBUG",grfdebugcheat,0
 #endif
 
+cheatentry "LANDINFO",landinfocheat,0 // No longer a DEBUG sign cheat
+
 #if 1 && DEBUG
-cheatentry "LANDINFO",landinfocheat,0
 cheatentry "LANDD", landdispcheat,0
 //cheatentry "SETSET", morestationsetset,0	// doesn't work anymore
 cheatentry "SOUND", soundeffectcheat,0	// play a certain sound effect for testing
@@ -1877,7 +1878,72 @@ grfdebugcheat:
 	ret
 #endif
 
-#if 1 && DEBUG
+//Shows values of the landscape arrays in the sign text,
+//maybe helps finding out more info about landscape arrays.
+//Without allowing identical signs, this cheat gives you a lot of headache
+//when you try to query two or more identical tiles.
+landinfocheat:
+	call skipspaces
+	mov edi,[esp+4]
+	call getsignxy
+
+	push edi // Makes the need Red Box
+	push ebx
+	mov edi, landdispl
+	mov ebx, 0
+
+	mov dx, si // Adds The XY of the Tile to the Sign
+	xchg dh, dl
+	call writehexbyte
+	dec ebx
+	xchg dh,dl
+	call writehexbyte
+
+	mov dl,[esi+landscape1]
+	call writehexbyte
+	mov dl,[esi+landscape2]
+	call writehexbyte
+	mov edx,[esi*2+landscape3]
+	xchg dh,dl
+	call writehexbyte
+	dec ebx
+	xchg dh,dl
+	call writehexbyte
+	mov dl,[landscape4(si,1)]
+	call writehexbyte
+	mov dl,[landscape5(si,1)]
+	call writehexbyte
+
+	mov edx,landscape6
+	or edx,edx
+	jz .no_l6
+
+	mov dl,[edx+esi]
+	call writehexbyte
+.no_l6:
+
+	mov edx, landscape7 // Adds L7 information to the sign
+	or edx, edx
+	jz .no_l7
+	mov dl, [edx+esi]
+	call writehexbyte
+.no_l7:
+
+//	mov byte [edi+ebx],0
+//
+	mov dword [specialerrtext1],landdisp // Copied from below to make a red box
+	mov bx, statictext(specialerr1)
+	mov dx, -1
+	xor ax, ax
+	xor cx, cx
+	push ebp
+	call dword [errorpopup]
+	pop ebp
+	pop ebx
+	pop edi
+
+	clc
+	ret
 
 writehexbyte:
 	mov al,dl
@@ -1904,42 +1970,10 @@ writehexbyte:
 	add ebx,3
 	ret
 
-//Shows values of the landscape arrays in the sign text,
-//maybe helps finding out more info about landscape arrays.
-//Without allowing identical signs, this cheat gives you a lot of headache
-//when you try to query two or more identical tiles.
-landinfocheat:
-	call skipspaces
-	mov edi,[esp+4]
-	call getsignxy
-	mov dl,[esi+landscape1]
-	call writehexbyte
-	mov dl,[esi+landscape2]
-	call writehexbyte
-	mov edx,[esi*2+landscape3]
-	xchg dh,dl
-	call writehexbyte
-	dec ebx
-	xchg dh,dl
-	call writehexbyte
-	mov dl,[landscape4(si,1)]
-	call writehexbyte
-	mov dl,[landscape5(si,1)]
-	call writehexbyte
-
-	mov edx,landscape6
-	or edx,edx
-	jz .no_l6
-
-	mov dl,[edx+esi]
-	call writehexbyte
-.no_l6:
-	mov byte [edi+ebx],0
-	clc
-	ret
-
 var landdisp, db 94h, "LAND:  "
 var landdispl, times 36 db 0
+
+#if 1 && DEBUG
 
 landdispcheat:
 	call skipspaces
