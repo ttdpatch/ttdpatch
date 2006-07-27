@@ -862,8 +862,21 @@ CreateAirportTiles:
 	add dword [esp], 0x59+6*WINTTDX
 	ret
 
+// Used to store the station number
+uvarb AirportStatNum
+
+// Get the Station Number
+global FetchAirportStationNumber
+FetchAirportStationNumber:
+	push eax
+	mov al, [landscape2+esi]
+	mov byte [AirportStatNum], al
+	movzx esi, al
+	pop eax
+	ret
+
 // Used to stop removal of non airport tiles
-// Input:	edi - tile
+// Input:	edi - Tile
 // Output:	?
 global RemoveAirportCheck
 RemoveAirportCheck:
@@ -880,6 +893,9 @@ RemoveAirportCheck:
 	and ch, 0xF0 // Only want the Class part
 	cmp ch, 0x50 // Is this a Class5 Tile
 	jne .skiptile // Not a Class5 Tile so don't remove
+	mov cl, [landscape2+edi] // Get the tile's station id
+	cmp cl, [AirportStatNum] // Is the station id the same
+	jne .skiptile // Not the same station so skip
 	mov cl, [landscape5(di, 1)] // Get the type of Class5 tile
 	cmp cl, 0x8 // Low bound of Airport Tile Types
 	jb .skiptile // Tile class is a Rail station tile

@@ -14,7 +14,7 @@ extern airportstarthangarnodes
 extern CheckForVehiclesInTheWay, CreateAirportCheck
 extern CreateAirportTiles, RemoveAirportCheck
 extern AirportHighligtDeactivate, CalcAirportBuyCost
-extern TempStationCost
+extern TempStationCost, FetchAirportStationNumber
 
 begincodefragments
 
@@ -227,6 +227,15 @@ codefragment newcalcstationremove
 	mov eax, 0x00000000
 	setfragmentsize 12
 
+codefragment oldfetchstationnumber, 4
+	ror si, 4
+	movzx esi, byte [landscape2+esi]
+	imul si, 0x8E
+
+codefragment newfetchstationnumber
+	icall FetchAirportStationNumber
+	setfragmentsize 7
+
 endcodefragments
 
 ext_frag newvariable,findvariableaccess,oilfieldaccepts
@@ -315,5 +324,6 @@ exported patchnewairports
 	mov dword [oldcalcstationcleartile.ptr], edi
 	patchcode oldcalcstationcosts, newcalcstationcosts // Clear the old function, to stop double charging
 	patchcode oldcalcstationcleartile, newcalcstationcleartile, 2, 4
+	patchcode oldfetchstationnumber, newfetchstationnumber, 2, 5 // Used to fetch the station id for later
 	patchcode oldcalcstationremove, newcalcstationremove// Clear old remove code function and eax to 0x0
 	ret
