@@ -464,6 +464,9 @@
 
 - rotating tracks in station? http://www.tt-forums.net/viewtopic.php?p=458939#458939 
 
+- track reserving/unreserving not working properly for depots
+  http://www.tt-forums.net/viewtopic.php?t=26441
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -732,3 +735,5 @@ CHANGELOG
 - allow specifying debug switches multiple times to increase value
 - debug switch S-S- (S=-2) will print switches.xml with category tree
 - implement grf debugger sign cheat
+- by Lakie:
+  * make Landinfo cheat available outside of debug compiles
