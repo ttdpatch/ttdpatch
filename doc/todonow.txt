@@ -267,8 +267,6 @@
 - make Cht: tracks, renew, clearpresig, nounload, semaphores, etc. also affect
   subsidiaries
 
-- lomo station gui highlight bug: http://www.tt-forums.net/viewtopic.php?p=355109#355109
-
 - livery changes in 2070: http://www.tt-forums.net/viewtopic.php?p=355121#355121
 
 - irr station acceptance broken? http://www.tt-forums.net/viewtopic.php?p=355370#355370
@@ -340,8 +338,6 @@
 - autoreplace getting confused; pb_brmini.grf and http://www.tt-forums.net/viewtopic.php?p=385426#385426
   ID 05 is the "EE Type 1", ID 0D is the "Sulzer Type 2"
   some consist vars not getting set? http://www.tt-forums.net/viewtopic.php?p=387369#387369
-
-- make tram depots respect transparent buildings settings
 
 - custom 2cc gui tab sprites with sprite limit extender
 
