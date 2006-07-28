@@ -1505,6 +1505,7 @@ categoryinfo category_info[] = {
 	{ CAT_INFST, "Roads" },
 	{ CAT_INFST, "Stations" },
 	{ CAT_NONE, "Houses/Towns" },
+	{ CAT_HOUSESTOWNS, "Town growth rate" },
 	{ CAT_NONE, "Industries/Cargo" },
 	{ CAT_NONE, "Finance/Economy" },
 	{ CAT_NONE, "Difficulty" },
@@ -1670,6 +1671,11 @@ int dumpxmlswitches(int type)
   fprintf(f, "<?xml version=\"1.0\" encoding=\"%s\"?>\n", linfo->dosencoding);
 #endif
 
+#if DEBUG
+  if (sizeof(category_info)/sizeof(category_info[0]) != CAT_NONE + 1)
+    error("Missing category_info entry: %d instead of %d\n",
+	sizeof(category_info)/sizeof(category_info[0]), CAT_NONE + 1);
+#endif
   for (i=CAT_FIRST; i<CAT_LAST; i++) {
 	categories parent = category_info[i].parent;
 	while (parent != CAT_NONE) {
