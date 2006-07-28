@@ -464,9 +464,6 @@
 
 - rotating tracks in station? http://www.tt-forums.net/viewtopic.php?p=458939#458939 
 
-- track reserving/unreserving not working properly for depots
-  http://www.tt-forums.net/viewtopic.php?t=26441
-
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -748,3 +745,7 @@ CHANGELOG
 - implement grf debugger sign cheat
 - by Lakie:
   * make Landinfo cheat available outside of debug compiles
+- fixed trains trying to leave a PBS depot reserving the depot tile
+  even if they can't find a path
+- fixed GRM conflict not actually deactivating conflicting file
+- show conflicting resource for vehicle GRM
