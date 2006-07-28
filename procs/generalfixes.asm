@@ -785,6 +785,16 @@ codefragment newfloodbridgetile
 	setfragmentsize 10
 #endif
 
+codefragment oldDrawRoadDepot, -7
+	pop	edi
+	pop	cx
+	pop	ax
+	add	edi, 8
+codefragment newDrawRoadDepot
+	icall	drawTramOrRoadDepot
+	setfragmentsize 7
+
+
 endcodefragments
 
 patchgeneralfixes:
@@ -1253,6 +1263,12 @@ patchgeneralfixes:
 	patchcode olddisplaytrainindepot,newdisplaytrainindepot,1,1
 	patchcode oldchoosetrainvehindepot,newchoosetrainvehindepot,1,1
 	mov word [edi+lastediadj-18],0xc38b	// mov eax,ebx instead of mov al,bl
+#if WINTTDX
+	patchcode oldDrawRoadDepot, newDrawRoadDepot, 1, 4
+#else
+	patchcode oldDrawRoadDepot, newDrawRoadDepot, 3, 4
+#endif
+
 	ret
 
 // shares some code fragments

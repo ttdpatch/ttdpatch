@@ -730,6 +730,9 @@ CHANGELOG
   * (devel) added memory guard system to find memory overflows (GUARD=1)
 - by Lakie:
   * add Support for irregular airports using blank tiles
+- by DaleStan
+  * add the depots-obey-transparency fix to generalfixes
+  * add a miscmods bit to disable the depots-obey-transparency fix
 
 2.5 beta 8
 - fixed UTF-8 characters 7B..7F having zero width

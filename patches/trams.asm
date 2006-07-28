@@ -18,6 +18,7 @@
 #include <textdef.inc>
 #include <misc.inc>
 #include <vehtype.inc>
+#include <bitvars.inc>
 
 extern	RefreshWindows,  gettileinfo, gettileinfoshort, addsprite, addgroundsprite
 extern	newvehdata, invalidatetile, demolishroadflag, checkroadremovalconditions
@@ -31,6 +32,8 @@ extern paStationbusstop1, paStationbusstop2, paStationtruckstop1, paStationtruck
 extern bridgedrawrailunder, displayfoundation
 
 extern addrailfence1,addrailfence2,addrailfence3,addrailfence4,addrailfence5,addrailfence6,addrailfence7,addrailfence8
+
+extern miscmodsflags
 
 uvard	tramVehPtr,1,s
 uvard	RVMovementArrayPtr
@@ -823,6 +826,8 @@ drawTramOrRoadDepot:
 	mov     dh, 14h
 .finishDrawing:
 	test	byte [displayoptions], 10h
+	jne	.notTransparent
+	test	byte [miscmodsflags+3], MISCMODS_NOTRANSPARENTDEPOTS>>24
 	jne	.notTransparent
 	and	ebx, 3FFFh
 	or	ebx, 3224000h

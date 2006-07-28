@@ -545,6 +545,7 @@ BIT(loaduntilgreen,        "keep loading at station until exit signal is green")
 BIT(dontshowaltitude,      "Don't show altitude in tile info window")
 BIT(nogrfidsinscreenshots, "Don't show active grfids in screenshots")
 BIT(dontchangesnow,        "Don't change how height is calculated for snowiness")
+BIT(notransparentdepots,   "Don't make road and tram depots transparent in transparent-buildings mode")
 
 // Description for morebuildoptions bits
 BITSWITCH(morebuildoptions)
