@@ -2481,8 +2481,8 @@ chktrainleavedepot:
 .notY:
 	mov byte [onlycheckpath],1
 	call forcemarksignalpath.havepbs
-	jc .cantreserve
 	mov byte [onlycheckpath],0
+	jc .cantreserve
 	call forcemarksignalpath.havepbs
 
 .cantreserve:
