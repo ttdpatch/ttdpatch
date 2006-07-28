@@ -2857,7 +2857,11 @@ setparam:
 	cmp byte [procallsprites_replaygrm],1
 	jne .dogrm
 
-	// not in reserve pass, just return most recent result
+	// not in reserve pass, just return most recent result if no conflict
+	mov edx,[curspriteblock]
+	test byte [edx+spriteblock.flags],2
+	jnz .conflict
+
 	mov eax,[esi-13]
 	cmp eax,byte -1
 	je .noresult
@@ -2865,15 +2869,21 @@ setparam:
 .noresult:
 	ret
 
+.conflict:
+	or edi,byte -1
+	ret
+
 .dogrm:
 	or dword [esi-13],byte -1
+	push ebp
+	push esi
 	jmp [.specialaction+eax*4]
 
-	align 4
-.specialaction:
+noglobal vard .specialaction
 	dd addr(.reserve),addr(.allocate),addr(.check),addr(.mark)
 	dd addr(.allocnofail),addr(.checknofail),addr(.getonly)
 .numspecialactions equ ($-.specialaction)/4
+endvar
 
 	// here we have
 	// eax=operation
@@ -2891,31 +2901,38 @@ setparam:
 
 .reserve:
 	mov al,GRFRESGET+GRFRESMARK	// find and mark unused entries
-	push ebp
-	push esi
 	call [grfresource+ebx*4]
+	jc .failgrm
+	jnz .badres
 	pop esi
 	pop ebp
-	jc .badres
 	mov [ebp],edx
 	mov [esi-13],edx
 	ret
+
+.failgrm:
+	pop esi
+	pop ebp
+	mov dh,INVSP_INVRESOURCE
+	jmp newcargoid.invalid
 
 .mark:
 	mov edx,[ebp]
 	mov al,GRFRESMARK
 	call [grfresource+ebx*4]	// mark given entries
-	jc .badres
+	jc .failgrm
+	jnz .badres
+	pop esi
+	pop ebp
 	ret
 
 .allocate:
 	mov al,GRFRESGET		// find unused entries 
-	push ebp
-	push esi
 	call [grfresource+ebx*4]
+	jc .failgrm
+	jnz .badres
 	pop esi
 	pop ebp
-	jc .badres
 	mov [ebp],edx
 	mov [esi-13],edx
 	ret
@@ -2924,27 +2941,27 @@ setparam:
 	mov edx,[ebp]
 	mov al,GRFRESCHECK		// check given entries
 	call [grfresource+ebx*4]
-	jnc .resok
+	jc .failgrm
+	jz .resok
 .badres:
-	mov dh,INVSP_INVRESOURCE
-	test esi,esi
-	jle newcargoid.invalid
-
+	mov ebp,[curspriteblock]
+	or byte [ebp+spriteblock.flags],2
+	mov [ebp+spriteblock.errparam],esi
+	mov [ebp+spriteblock.errparam+4],dx
+	mov [ebp+spriteblock.errparam+6],di
 	or edi,byte -1
-	mov edx,[curspriteblock]
-	or byte [edx+spriteblock.flags],2
-	mov [edx+spriteblock.errparam],esi
 .resok:
+	pop esi
+	pop ebp
 	ret
 
 .allocnofail:
 	mov al,GRFRESGET+GRFRESNOFAIL		// find unused entries 
-	push ebp
-	push esi
 	call [grfresource+ebx*4]
+	jc .failgrm
 	pop esi
 	pop ebp
-	jnc .gotres
+	jz .gotres
 	or edx,byte -1
 .gotres:
 	mov [ebp],edx
@@ -2954,10 +2971,11 @@ setparam:
 .checknofail:
 	mov edx,[ebp]
 	mov al,GRFRESCHECK+GRFRESNOFAIL		// check given entries
-	push esi
 	call [grfresource+ebx*4]
+	jc .failgrm
 	pop esi
-	jnc .checkok
+	pop ebp
+	jz .checkok
 	mov [ebp],edx
 	mov [esi-13],edx
 .checkok:
@@ -2966,9 +2984,10 @@ setparam:
 .getonly:
 	mov edx,[ebp]
 	mov al,GRFRESREAD
-	push esi
 	call [grfresource+ebx*4]
+	jc .failgrm
 	pop esi
+	pop ebp
 	mov [ebp],edx
 	mov [esi-13],edx
 	ret
@@ -3138,9 +3157,10 @@ var actiondop
 //	ecx=number of resource entries
 // in/out:
 //	edx=resource value (in for CHECK and MARK, out for GET, maybe both!)
-// out:	CF=1 resource not available
+// out:	CF=1 invalid resource
+//	CF=0,ZF=0 resource not available (conflicting resource in edx)
 //		for CHECK also esi->spriteblock of conflicting grf
-//	CF=0 resource available
+//	CF=0,ZF=1 resource available
 // safe:eax ebx ecx ebp esi
 
 grfcalltable grfresource
@@ -3158,7 +3178,7 @@ grfcalltable grfresource
 .bitsearch:
 	mov ebx,[grfresbase+ebx*4]
 	cmp ecx,0x7f
-	ja .fail	// more wouldn't work at the moment
+	ja near .fail	// more wouldn't work at the moment
 
 	mov esi,ebx
 	xchg ah,cl	// now esi=base ID, ecx=total IDs, ah=number we want
@@ -3174,6 +3194,7 @@ grfcalltable grfresource
 	jz .checknextidrange
 
 	mov edx,[grfresources+esi*4]
+	test al,0
 	ret
 
 .checknextidrange:
@@ -3188,7 +3209,9 @@ grfcalltable grfresource
 
 	// found no large enough available range
 	pop eax
-	stc
+	mov edx,esi
+	mov esi,[grfresources+esi*4]
+	test esp,esp
 	ret
 
 .vehidnotavail:		// vehicle in range was not available
@@ -3204,8 +3227,9 @@ grfcalltable grfresource
 	dec esi
 
 .failwithptr:
+	mov edx,esi
 	mov esi,[grfresources+esi*4]
-	stc
+	test esp,esp
 	ret
 
 .gotidrange:
@@ -3222,6 +3246,7 @@ grfcalltable grfresource
 	mov [grfresources+esi*4],eax
 	inc esi
 	loop .marknextvehid
+	test al,0
 	ret
 
 .getindustries:
@@ -3242,7 +3267,6 @@ grfcalltable grfresource
 .getindustiles:
 .getsounds:
 .fail:
-	or esi,byte -1		// invalid action D, not just lack of resources
 	stc
 	ret
 
@@ -3268,12 +3292,13 @@ grfcalltable grfresource
 	mov [curextragrm+GRM_EXTRA_SPRITES*4],esi
 
 .done:
-	clc
+	test al,0
 	ret
 
 .failsprites:
+	mov edx,GRM_EXTRA_SPRITES
 	mov esi,[lastextragrm+GRM_EXTRA_SPRITES*4]	// return whatever grf last allocated sprites as source of conflict
-	stc
+	test esp,esp
 	ret
 
 

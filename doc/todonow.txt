@@ -736,3 +736,5 @@ CHANGELOG
   * make Landinfo cheat available outside of debug compiles
 - fixed trains trying to leave a PBS depot reserving the depot tile
   even if they can't find a path
+- fixed GRM conflict not actually deactivating conflicting file
+- show conflicting resource for vehicle GRM
