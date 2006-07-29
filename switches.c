@@ -1613,6 +1613,10 @@ void dumpxmlcategoryswitches(FILE *f, categories cat, int depth)
 		fprintf(f, " defstate=\"%s\"",
 			(switches[i].bit >= 0) &&
 			(switches[i].bit <= lastbitdefaulton) ? "on" : "off" );
+	if ( (switches[i].bit == usenewcurves) || (switches[i].bit == usenewmountain) )
+		fputs(" validdigits=\"0123\"", f);
+	else if (switches[i].bit == moresteam)
+		fputs(" validdigits=\"012345\"", f);
 	if (switches[i].manpage)
 		fprintf(f, " manpage=\"%s\"", switches[i].manpage);
 	fputs(" desc=\"", f);
