@@ -490,6 +490,7 @@ enum langtextids {
 	CFG_SHORTRVS,
 	CFG_ARTICULATEDRVS,
 	CFG_NEWAIRPORTS,
+	CFG_NEWROUTES,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS

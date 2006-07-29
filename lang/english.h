@@ -264,6 +264,7 @@ TEXTARRAY(halflines,) =
 	  "-ZC: Enable AI transport type chances",
 	  "-ZI: Enable irregular stations",
 	  "-ZM: Collect more company statistics",
+	  "-ZN: Enables newRoutes",
 	  "-ZO: Allow landscaping under objects",
 	  "-ZR: Prevent towns from building roads",
 	  "-ZS: Enable new sound effects",
@@ -499,6 +500,7 @@ SWITCHTEXT(forcegameoptions, "Allows you to force game options","")
 SWITCHTEXT(shortrvs, "Enabled Shortened (or lengthened) RVs", "")
 SWITCHTEXT(articulatedrvs, "Enabled Articulated RVs", "")
 SWITCHTEXT(newairports, "Allows using new airport types","")
+SWITCHTEXT(newroutes, "Allows the changing of Rails and Roads through grf files", "")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -865,6 +867,7 @@ SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) allows you to force game options.")
 SETTEXT(CFG_SHORTRVS, "`%s' (%s) enable shortened (or lengthened) RVs")
 SETTEXT(CFG_ARTICULATEDRVS, "`%s' (%s) enable articulated RVs")
 SETTEXT(CFG_NEWAIRPORTS, "`%s' (%s) allows using new airport types supplied by GRFs")
+SETTEXT(CFG_NEWROUTES, "`%s' (%s) allows the changing of rails and roads though GRF files")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

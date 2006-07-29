@@ -1914,23 +1914,34 @@ landinfocheat:
 	mov dl,[landscape5(si,1)]
 	call writehexbyte
 
+	// Please note that if a landscape isn't loaded it has a value of 0x80000000, not 0x0
 	mov edx,landscape6
-	or edx,edx
-	jz .no_l6
-
+	cmp edx, 0x80000000
+	je .no_l8
 	mov dl,[edx+esi]
 	call writehexbyte
-.no_l6:
 
+.no_l6:
 	mov edx, landscape7 // Adds L7 information to the sign
-	or edx, edx
-	jz .no_l7
+	cmp edx, 0x80000000
+	je .no_l8
 	mov dl, [edx+esi]
 	call writehexbyte
-.no_l7:
 
-//	mov byte [edi+ebx],0
-//
+.no_l7:
+	mov edx, landscape8 // Adds L8 information to the sign
+	cmp edx, 0x80000000
+	je .no_l8
+	mov dx, [edx+esi*2]
+	xchg dh, dl
+	call writehexbyte
+	dec ebx
+	xchg dh,dl
+	call writehexbyte
+
+.no_l8:
+	mov byte [edi+ebx],0
+
 	mov dword [specialerrtext1],landdisp // Copied from below to make a red box
 	mov bx, statictext(specialerr1)
 	mov dx, -1

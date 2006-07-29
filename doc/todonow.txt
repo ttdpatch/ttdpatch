@@ -730,6 +730,10 @@ CHANGELOG
   * (devel) added memory guard system to find memory overflows (GUARD=1)
 - by Lakie:
   * add Support for irregular airports using blank tiles
+  * added a Landscape 8 which is a word in size.
+  * new switch "newroutes" which currently only loads Landscape8 Array
+  * updated cht:landinfo to give the value of Landscape 8
+  * fixed the changes to the airport selection gui not respecting the switch 'keepsmallairports'
 - by DaleStan
   * add the depots-obey-transparency fix to generalfixes
   * add a miscmods bit to disable the depots-obey-transparency fix
@@ -744,6 +748,7 @@ CHANGELOG
 - implement grf debugger sign cheat
 - by Lakie:
   * make Landinfo cheat available outside of debug compiles
+  * fixed a crash in cht:landinfo which happens if a Landscape isn't enabled
 - fixed trains trying to leave a PBS depot reserving the depot tile
   even if they can't find a path
 - fixed GRM conflict not actually deactivating conflicting file

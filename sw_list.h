@@ -227,7 +227,6 @@
 	     //y
 	     //z
 
-
 		// Y-extended, uppercase
 
 	RANGE('A',"abandonedroads", CFG_ABANDONEDROADS, INFST_ROADS, "AbandonedRoads", abandonedroads, 0, 0, FLAGDATA(abanroadmode), 0, 2, 0),
@@ -303,7 +302,7 @@
 	     //K
 	     //L
 	YESNO('M',"morestatistics", CFG_MORESTATS, INTERFACE, "MoreStatistics", morestats),
-	     //N
+	YESNO('N', "newroutes", CFG_NEWROUTES, INFST, "newRoutes", newroutes),
 	RANGE('O',"autoslope", CFG_AUTOSLOPE, TERRAIN, "AutoSlope", autoslope, 0, 1, FLAGDATA(autoslopevalue), 1, 3, 1),
 	     //P
 	     //Q
@@ -506,3 +505,5 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	shortrvs,
 	articulatedrvs,
 	newairports,
+	newroutes,
+

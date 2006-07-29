@@ -56,6 +56,7 @@ extern windowsizesbufferptr
 extern player2array,player2clear,cargoids
 extern disabledoldhouses,savevar40x
 extern clearairportdataids,airportdataidtogameid
+extern landscape8_ptr, landscape8clear, landscape8init
 
 // Known (defined) extra chunks.
 // The first table defines chunk IDs.
@@ -86,6 +87,7 @@ var knownextrachunkids
 	dw 0x800b	// new cargo type data
 	dw 0x800c	// player 2 array
 	dw 0x800d	// new airport type data
+	dw 0x800e	// Landscape8 Array
 
 knownextrachunknum equ (addr($)-knownextrachunkids)/2
 
@@ -115,6 +117,7 @@ var knownextrachunkloadfns
 	dd addr(loadnewcargotypes)
 	dd addr(loadplayer2array)
 	dd addr(loadnewairporttypes)
+	dd addr(loadlandscape8array)
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkloadfns)/4
 	%error "Inconsistent number of chunk functions"
@@ -147,6 +150,7 @@ var knownextrachunksavefns
 	dd addr(savenewcargotypes)
 	dd addr(saveplayer2array)
 	dd addr(savenewairporttypes)
+	dd addr(savelandscape8array)
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunksavefns)/4
 	%error "Inconsistent number of chunk functions"
@@ -181,6 +185,7 @@ var knownextrachunkqueryfns
 	dd addr(canhavenewcargotypes)
 	dd addr(canhaveplayer2array)
 	dd addr(canhavenewairporttypes)
+	dd addr(canhavelandscape8array)
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkqueryfns)/4
 	%error "Inconsistent number of chunk functions"
@@ -223,6 +228,8 @@ uvarw loadremovedsfxs	// ... and this many pseudo-/special vehicles
 %assign LOADED_X2_PLAYER2		0x40
 %assign LOADED_X2_NEWAIRPORTLIST	0x80
 
+%assign LOADED_X3_L8ARRAY		0x1
+
 %define SKIPGUARD 1			// the variables get cleaned by a dword.. 
 uvarb extrachunksloaded1		// a combination of LOADED_X1_*
 uvarb extrachunksloaded2		// a combination of LOADED_X2_*
@@ -233,6 +240,8 @@ uvarb extrachunksloaded4		// a combination of LOADED_X4_*
 uvard l6switches
 
 uvard l7switches
+
+uvard l8switches
 
 uvard station2switches
 
@@ -972,7 +981,17 @@ newloadtitleproc:
 	call clearairportdataids
 .haveairportdataids:
 .nonewairports:
-	
+
+	// check landscape8 array
+	cmp dword [landscape8_ptr],0
+	jle .no_l8
+	test byte [extrachunksloaded4],LOADED_X3_L8ARRAY
+	jnz .l8_ok
+	call landscape8clear
+.l8_ok:
+	call landscape8init
+.no_l8:
+
 	// looks like it's all. Whew!
 
 	// now initialize the newgrfs.  this needs to run after loading
@@ -1635,7 +1654,6 @@ saveanimtiles:
 	mov esi, [newanimarray]
 	jmp ebp
 		
-
 // Query, load and save functions for the newshistory array
 canhavenewshistory:
 	mov eax,[newshistoryptr]
@@ -2486,3 +2504,39 @@ adjaivehicleptrssave:
 
 .done:
 	ret
+
+
+// Query, load and save functions for the landscape8 array
+canhavelandscape8array:
+	mov eax, landscape8
+	shl eax, 1
+	cmc
+	ret
+
+loadlandscape8array:
+	cmp eax, 0x20000+4
+	jne badchunk
+	call loadsavelandscape8array
+	ret
+
+savelandscape8array:
+	mov eax, 0x20000+4
+	call savechunkheader
+	xor ecx, ecx
+// Patches which use this should go in here
+
+	mov [l8switches], ecx
+
+loadsavelandscape8array:
+	xor ecx, ecx
+	mov cl, 4
+	sub eax, ecx
+	push eax
+	mov esi, l8switches
+	call ebp
+	pop ecx
+	mov esi, landscape8
+	call ebp
+
+	ret
+

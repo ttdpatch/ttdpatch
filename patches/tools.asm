@@ -29,7 +29,7 @@ extern searchcollidingvehs,specialtext1,station2clear,station2init
 extern stationarray2ptr,tmpbuffer1,ttdpatchactions,ttdtexthandler
 extern varheap,exitcleanup,player2clear,player2array,newvehdata
 extern cargobits,cargoid,maxtextwidth,gettextwidthunicode,hasaction12
-extern clearairportdataids
+extern clearairportdataids, landscape8_ptr, landscape8clear,landscape8init
 #if MAKEGUARD
 extern guardalloc, guardallocchangesize
 global lastmallocofs
@@ -878,6 +878,12 @@ initializeveharray:
 	jnc .nonewairports
 	call clearairportdataids
 .nonewairports:
+
+	cmp dword [landscape8_ptr],0
+	jle .no_l8
+	call landscape8clear	// new game -> init landscape8 if present
+	call landscape8init
+.no_l8:
 
 	popa
 	ret

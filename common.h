@@ -171,10 +171,11 @@
 #define forcegameoptions	217	// forces certain gam setting and overwrites the climate selector defaults
 #define shortrvs		218	// allow shortened RVs
 #define articulatedrvs		219	// allow articulated RVs
+#define newroutes		220	// Enable newRoutes
 
 // NOTE!! If you add a bit here, also add it to patchflagsfixedmap in vars.ah!!
 
-#define lastbitdefaultoff	219	// META: last bit defined not to be set by -a unless DEBUG
+#define lastbitdefaultoff	220	// META: last bit defined not to be set by -a unless DEBUG
 
 // so far unused flags, simply to remember what names I've used already
 // the numbers of these can be changed as desired

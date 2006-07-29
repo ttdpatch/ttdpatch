@@ -5,13 +5,14 @@
 #include <station.inc>
 #include <veh.inc>
 #include <window.inc>
+#include <flags.inc>
 
 // Support for new airports supplyed by GRFs
 
 extern curgrfairportlist,curspriteblock
 extern grffeature,curcallback,getnewsprite,callback_extrainfo
 extern GenerateDropDownMenu,invalidatehandle,stationarray2ofst
-extern aircraftbboxtable,orgsetsprite
+extern aircraftbboxtable,orgsetsprite, patchflags
 
 uvard airportdataidtogameid, NUMAIRPORTS*2
 
@@ -582,9 +583,17 @@ exported airportseltypeclick
 
 	cmp cl,3
 	je .skiptype
+
+	cmp cl, 0			// Makes the GUI respect the 'keepsmallairport' switch
+	jne .notsmallairport
+	testmultiflags keepsmallairports
+	jz .smallairport
+.notsmallairport:
+
 	cmp dword [airportlayoutptrs+ecx*4],0
 	je .skiptype
 
+.smallairport:
 	mov [menuairporttypes+ebp],cl
 	mov ax,[airporttypenames+ecx*2]
 	mov [tempvar+ebp*2],ax
