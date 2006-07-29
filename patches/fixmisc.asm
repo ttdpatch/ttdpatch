@@ -3025,7 +3025,7 @@ cleartile:
 	mov ebx,landscape8
 	test ebx,ebx
 	jle .nol8
-	mov byte [nosplit ebx+esi*2],0
+	mov word [nosplit ebx+esi*2],0
 .nol8:
 	ret
 
