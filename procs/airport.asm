@@ -15,6 +15,7 @@ extern CheckForVehiclesInTheWay, CreateAirportCheck
 extern CreateAirportTiles, RemoveAirportCheck
 extern AirportHighligtDeactivate, CalcAirportBuyCost
 extern TempStationCost, FetchAirportStationNumber
+extern drawairportselwindow
 
 begincodefragments
 
@@ -77,22 +78,7 @@ codefragment olddrawairportselwindow
 	test byte [airporttypeavailmask],1
 
 codefragment newdrawairportselwindow
-	movzx eax, byte [selectedairporttype]
-	cmp al, NUMOLDAIRPORTS
-	jae .good
-	bt [airporttypeavailmask],eax
-	jc .good
-	mov al,0
-	test byte [airporttypeavailmask],1
-	jnz .good_new
-	mov al,1
-.good_new:
-	mov [selectedairporttype],al
-.good:
-	mov ax, [airporttypenames+eax*2]
-	mov [textrefstack],ax
-	mov ebx,[esi+window.activebuttons]
-	and bl,0x3f
+	icall drawairportselwindow
 	setfragmentsize 92, 1
 
 codefragment oldairportsizetext,2

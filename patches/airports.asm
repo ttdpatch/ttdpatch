@@ -583,17 +583,8 @@ exported airportseltypeclick
 
 	cmp cl,3
 	je .skiptype
-
-	cmp cl, 0			// Makes the GUI respect the 'keepsmallairport' switch
-	jne .notsmallairport
-	testmultiflags keepsmallairports
-	jz .smallairport
-.notsmallairport:
-
 	cmp dword [airportlayoutptrs+ecx*4],0
 	je .skiptype
-
-.smallairport:
 	mov [menuairporttypes+ebp],cl
 	mov ax,[airporttypenames+ecx*2]
 	mov [tempvar+ebp*2],ax
@@ -612,8 +603,35 @@ exported airportseltypeclick
 	mov al,[airporttypeavailmask]
 	not al
 	and al,7
+	testmultiflags keepsmallairports
+	jz .nokeepsmallairports
+	and al, 0x6 // Small airport always avalible
+.nokeepsmallairports:
 	or bl,al
 	jmp dword [GenerateDropDownMenu]
+
+// Fix the problem of it not accounting for 'keepsmallairports'
+global drawairportselwindow
+drawairportselwindow:
+	movzx eax, byte [selectedairporttype]
+	cmp al, NUMOLDAIRPORTS
+	jae .good
+	bt [airporttypeavailmask],eax
+	jc .good
+	mov al,0
+	testmultiflags keepsmallairports
+	jnz .good
+	test byte [airporttypeavailmask],1
+	jnz .good_new
+	mov al,1
+.good_new:
+	mov [selectedairporttype],al
+.good:
+	mov ax, [airporttypenames+eax*2]
+	mov [textrefstack],ax
+	mov ebx,[esi+window.activebuttons]
+	and bl,0x3f
+	ret
 
 exported airportsel_eventhandler
 	jz .click
