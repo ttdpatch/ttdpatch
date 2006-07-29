@@ -735,6 +735,7 @@ CHANGELOG
 - implement grf debugger sign cheat
 - by Lakie:
   * make Landinfo cheat available outside of debug compiles
+  * fixed a crash in cht:landinfo which happens if a Landscape isn't enabled
 - fixed trains trying to leave a PBS depot reserving the depot tile
   even if they can't find a path
 - fixed GRM conflict not actually deactivating conflicting file
