@@ -3022,6 +3022,11 @@ cleartile:
 	jle .nol7
 	mov byte [ebx+esi],0
 .nol7:
+	mov ebx,landscape8
+	test ebx,ebx
+	jle .nol8
+	mov byte [nosplit ebx+esi*2],0
+.nol8:
 	ret
 
 // a small tweak in the RLE encoding code to allow saving some disk space
