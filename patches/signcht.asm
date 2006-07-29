@@ -1916,15 +1916,15 @@ landinfocheat:
 
 	// Please note that if a landscape isn't loaded it has a value of 0x80000000, not 0x0
 	mov edx,landscape6
-	cmp edx, 0x80000000
-	je .no_l8
+	test edx,edx
+	jle .no_l6
 	mov dl,[edx+esi]
 	call writehexbyte
 
 .no_l6:
 	mov edx, landscape7 // Adds L7 information to the sign
-	cmp edx, 0x80000000
-	je .no_l8
+	test edx,edx
+	jle .no_l7
 	mov dl, [edx+esi]
 	call writehexbyte
 
