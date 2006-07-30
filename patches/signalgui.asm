@@ -180,6 +180,9 @@ win_signalgui_timer:
 win_signalgui_sectick:
 	dec word [win_signalgui_sectoclose]
 	js .closewindow
+	mov al,[esi]
+	mov bx,[esi+window.id]
+	call [invalidatehandle]
 	ret
 .closewindow:
 	jmp [DestroyWindow]
@@ -231,8 +234,10 @@ win_signalgui_drawsignal:
 	// undo default sprite xyrel
 	add cx, 2
 	add dx, 22
-	
-	mov ebx, 0x4fb+12
+
+	movzx ebx,byte [win_signalgui_sectoclose]
+	and ebx,1
+	add ebx, 0x4fb+12
 	and eax, [numsiggraphics]
 	jz .nopresignal
 	lea ebx,[ebx-0x4fb+eax*8-16]
