@@ -61,15 +61,14 @@ db cWinElemLast
 endvar
 
 struc signalguidata
-	.xy:	resw 1	// 00: xy of tile to change
+	.life:	resb 1	// 00: seconds left before closing
+	.unused:resb 1	// 01: unused
 	.x:	resw 1	// 02: x of tile to change
 	.y:	resw 1	// 04: y of tile to change
 	.piece:	resb 1	// 06: track piece bit to change
 	.type:	resb 1	// 07: signal type (pre/pbs/semaphore) to change
 endstruc
 
-
-uvarw win_signalgui_sectoclose
 
 // in:	ax, cx = location
 //		edi = xy
@@ -140,7 +139,7 @@ exported win_signalgui_create
 	push esi
 	movzx edi, di
 	mov esi, dword [win_signalgui_winptr]
-	mov word [esi+window.data+signalguidata.xy], di
+	mov byte [esi+window.data+signalguidata.life], win_signalgui_timeout
 	mov word [esi+window.data+signalguidata.x], ax
 	mov word [esi+window.data+signalguidata.y], cx
 	mov byte [esi+window.data+signalguidata.piece], dl
@@ -152,7 +151,6 @@ exported win_signalgui_create
 .nopbstoggle:
 	and dl, 11110b
 	mov byte [esi+window.data+signalguidata.type], dl
-	mov word [win_signalgui_sectoclose], win_signalgui_timeout
 	pop esi
 	
 	mov ebx, 0
@@ -186,7 +184,7 @@ win_signalgui_timer:
 	ret
 	
 win_signalgui_sectick:
-	dec word [win_signalgui_sectoclose]
+	dec byte [esi+window.data+signalguidata.life]
 	js .closewindow
 	mov al,[esi]
 	mov bx,[esi+window.id]
@@ -243,7 +241,7 @@ win_signalgui_drawsignal:
 	add cx, 2
 	add dx, 22
 
-	movzx ebx,byte [win_signalgui_sectoclose]
+	movzx ebx,byte [esi+window.data+signalguidata.life]
 	and ebx,1
 	add ebx, 0x4fb+12
 	and eax, [numsiggraphics]
@@ -310,8 +308,6 @@ win_signalgui_clickhandler:
 	
 .onsignalbutton:
 	pusha
-	movzx edi, word [esi+window.data+signalguidata.xy]
-
 	mov word [operrormsg1],0x1010	//CantBuildSignalsHere
 	
 	and ecx, 0x0F
@@ -352,7 +348,7 @@ win_signalgui_pressit:
 ;	mov ah, cl
 ;	call dword [invalidatehandle]
 	call dword [RefreshWindowArea]
-	mov word [win_signalgui_sectoclose], win_signalgui_timeout
+	mov byte [esi+window.data+signalguidata.life], win_signalgui_timeout
 	ret
 	
 	
