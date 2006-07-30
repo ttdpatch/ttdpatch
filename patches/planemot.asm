@@ -80,6 +80,10 @@ planebreakdownspeed:
 	movzx ecx, word [esi+veh.maxspeed]
 	lea ecx,[ecx*5]
 	shr ecx,3
+	cmp cx,10
+	jae .ok
+	mov cx,10
+.ok:
 	cmp cx, [esi+veh.speedlimit]
 	jae .finishBreakDown
 	mov [esi+veh.speedlimit], cx

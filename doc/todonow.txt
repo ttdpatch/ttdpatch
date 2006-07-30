@@ -744,3 +744,5 @@ CHANGELOG
 - in German DOS TTD, <tab> is now used by default to toggle the bulldozer
 - show patch version in GRF Status debug file
 - fixed hang when building road bridge adjacent to rail tunnel with trams on
+- make sure broken down aircraft are no slower than 80 mph to prevent them
+  from getting stuck
