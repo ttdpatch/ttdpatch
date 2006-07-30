@@ -60,6 +60,14 @@ dw 11+win_signalgui_signalboxwidth*3, 11+win_signalgui_signalboxwidth*4-1, win_s
 db cWinElemLast
 endvar
 
+struc signalguidata
+	.xy:	resw 1	// 00: xy of tile to change
+	.x:	resw 1	// 02: x of tile to change
+	.y:	resw 1	// 04: y of tile to change
+	.piece:	resb 1	// 06: track piece bit to change
+	.type:	resb 1	// 07: signal type (pre/pbs/semaphore) to change
+endstruc
+
 
 uvarw win_signalgui_sectoclose
 
@@ -132,10 +140,10 @@ exported win_signalgui_create
 	push esi
 	movzx edi, di
 	mov esi, dword [win_signalgui_winptr]
-	mov word [esi+window.data], di
-	mov word [esi+window.data+2], ax
-	mov word [esi+window.data+4], cx
-	mov byte [esi+window.data+6], dl
+	mov word [esi+window.data+signalguidata.xy], di
+	mov word [esi+window.data+signalguidata.x], ax
+	mov word [esi+window.data+signalguidata.y], cx
+	mov byte [esi+window.data+signalguidata.piece], dl
 	
 	mov dl, byte [landscape3+1+edi*2]
 	test byte [landscape6+edi], 8
@@ -143,7 +151,7 @@ exported win_signalgui_create
 	or dx, 16
 .nopbstoggle:
 	and dl, 11110b
-	mov byte [esi+window.data+7], dl
+	mov byte [esi+window.data+signalguidata.type], dl
 	mov word [win_signalgui_sectoclose], win_signalgui_timeout
 	pop esi
 	
@@ -195,7 +203,7 @@ win_signalgui_redraw:
 	add dx, win_signalgui_signaly
 	
 	mov eax, 0
-	test byte [esi+window.data+7], 8
+	test byte [esi+window.data+signalguidata.type], 8
 	jz .nosemp
 	add eax, 8
 .nosemp:
@@ -273,9 +281,9 @@ win_signalgui_clickhandler:
 	
 .semptoggleclick:
 	pusha
-	mov ax, word [esi+window.data+2]
-	mov cx, word [esi+window.data+4]
-	mov dl, byte [esi+window.data+6]
+	mov ax, word [esi+window.data+signalguidata.x]
+	mov cx, word [esi+window.data+signalguidata.y]
+	mov dl, byte [esi+window.data+signalguidata.piece]
 
 	mov bh, 101000b
 	mov bl, 3 //  cA_DOIT or cA_NOBLDOVER
@@ -284,7 +292,7 @@ win_signalgui_clickhandler:
 	popa
 	je .semptogglefailed
 	
-	xor byte [esi+window.data+7], 8
+	xor byte [esi+window.data+signalguidata.type], 8
 	
 	push eax
 	push esi
@@ -302,16 +310,16 @@ win_signalgui_clickhandler:
 	
 .onsignalbutton:
 	pusha
-	movzx edi, word [esi+window.data]
+	movzx edi, word [esi+window.data+signalguidata.xy]
 
 	mov word [operrormsg1],0x1010	//CantBuildSignalsHere
 	
 	and ecx, 0x0F
 	mov bh, byte [signalgui_signalbits+ecx]
 	
-	mov ax, word [esi+window.data+2]
-	mov cx, word [esi+window.data+4]
-	mov dl, byte [esi+window.data+6]
+	mov ax, word [esi+window.data+signalguidata.x]
+	mov cx, word [esi+window.data+signalguidata.y]
+	mov dl, byte [esi+window.data+signalguidata.piece]
 	
 ;	mov esi, 0x060008				//CreateAlterSignals
 ;	call [actionhandler]
