@@ -1129,7 +1129,7 @@ modifysignals:
 	jne .altersignalsbygui
 	
 	cmp byte [curplayerctrlkey],1
-	jz short .isctrl
+	jz near .isctrl
 
 .regularsig:
 	and [edi],bh
@@ -1166,8 +1166,13 @@ ovar semaphoredate, -2
 	mov bl, [altersignalsbygui_flags]
 	test bl, 8
 	jz .nosemaphoretoggle
-	xor al,8	
+	xor al, 8
 .nosemaphoretoggle:
+	test bl, 32
+	jz .noonlysemp
+	mov [landscape3+edi*2+1], al
+	jmp .notpbs
+.noonlysemp:
 	and byte [landscape6+edi], ~8
 	test bl, 16
 	jz .nopbstoggle

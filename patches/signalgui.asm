@@ -13,6 +13,9 @@ extern drawspritefn
 extern presignalspritebase, numsiggraphics
 extern resheight, reswidth
 extern actionhandler, AlterSignalsByGUI_actionnum, ctrlkeystate
+extern RefreshWindowArea
+
+%assign win_signalgui_timeout 5
 
 %assign win_signalgui_id 110
 
@@ -126,12 +129,21 @@ exported win_signalgui_create
 	popa
 	
 	push esi
+	movzx edi, di
 	mov esi, dword [win_signalgui_winptr]
 	mov word [esi+window.data], di
 	mov word [esi+window.data+2], ax
 	mov word [esi+window.data+4], cx
 	mov byte [esi+window.data+6], dl
-	mov word [win_signalgui_sectoclose], 5
+	
+	mov dl, byte [landscape3+1+edi*2]
+	test byte [landscape6+edi], 8
+	jz .nopbstoggle
+	or dx, 16
+.nopbstoggle:
+	and dl, 11110b
+	mov byte [esi+window.data+7], dl
+	mov word [win_signalgui_sectoclose], win_signalgui_timeout
 	pop esi
 	
 	mov ebx, 0
@@ -145,13 +157,23 @@ win_signalgui_winhandler:
 	jz near win_signalgui_redraw
 	cmp dl, cWinEventClick
 	jz near win_signalgui_clickhandler
-;	cmp dl, cWinEventTimer
-;	jz win_signalgui_timer
+	cmp dl, cWinEventTimer
+	jz win_signalgui_timer
 	cmp dl, cWinEventSecTick
 	jz win_signalgui_sectick
 	ret
 	
 win_signalgui_timer:
+	mov ah, 2
+	btr dword [esi+window.activebuttons], 2
+	jb .switch
+	ret
+
+.switch:
+	mov al,[esi]
+	mov bx,[esi+window.id]
+	or al, 80h
+	call dword [invalidatehandle]
 	ret
 	
 win_signalgui_sectick:
@@ -167,32 +189,37 @@ win_signalgui_redraw:
 	add cx, win_signalgui_signalx
 	mov dx, [esi+window.y]
 	add dx, win_signalgui_signaly
-
-	push ecx
+	
 	mov eax, 0
+	test byte [esi+window.data+7], 8
+	jz .nosemp
+	add eax, 8
+.nosemp:
+	
+	push ecx
 	call win_signalgui_drawsignal
 	add cx, win_signalgui_signalboxwidth
-	mov eax, 2
+	add eax, 2
 	call win_signalgui_drawsignal
 	add cx, win_signalgui_signalboxwidth
-	mov eax, 4
+	add eax, 2
 	call win_signalgui_drawsignal
 	add cx, win_signalgui_signalboxwidth
-	mov eax, 6
+	add eax, 2
 	call win_signalgui_drawsignal
 	pop ecx
 	
 	add dx, win_signalgui_signalboxheight
-	mov eax, 16
+	add eax, 16-6
 	call win_signalgui_drawsignal
 	add cx, win_signalgui_signalboxwidth
-	mov eax, 16+2
+	add eax, 2
 	call win_signalgui_drawsignal
 	add cx, win_signalgui_signalboxwidth
-	mov eax, 16+4
+	add eax, 2
 	call win_signalgui_drawsignal
 	add cx, win_signalgui_signalboxwidth
-	mov eax, 16+6
+	add eax, 2
 	call win_signalgui_drawsignal
 	ret
 	
@@ -227,15 +254,31 @@ win_signalgui_clickhandler:
 	jne .nottilebar
 	jmp dword [WindowTitleBarClicked]
 .nottilebar:
+	cmp cl, 2
+	je .semptoggleclick
 	cmp cl, 4
 	jnb .signalclick
 	ret
 .signalclick:
 	sub cl, 4
 	cmp cl, 8
-	jb .onbutton
+	jb near .onsignalbutton
 	ret
-.onbutton:
+	
+.semptoggleclick:
+	pusha
+	mov ax, word [esi+window.data+2]
+	mov cx, word [esi+window.data+4]
+	mov dl, byte [esi+window.data+6]
+	xor byte [esi+window.data+7], 8
+	
+	mov bh, 101000b
+	mov bl, 3 //  cA_DOIT or cA_NOBLDOVER
+	dopatchaction AlterSignalsByGUI
+	popa
+	jmp win_signalgui_pressit
+	
+.onsignalbutton:
 	pusha
 	movzx edi, word [esi+window.data]
 
@@ -256,6 +299,20 @@ win_signalgui_clickhandler:
 	jmp [DestroyWindow]
 	ret
 
+win_signalgui_pressit:
+	movzx ecx, cl
+	bts dword [esi+window.activebuttons], ecx
+	or byte [esi+window.flags], 7
+;	mov al,[esi]
+;	mov bx,[esi+window.id]
+;	or al, 80h
+;	mov ah, cl
+;	call dword [invalidatehandle]
+	call dword [RefreshWindowArea]
+	mov word [win_signalgui_sectoclose], win_signalgui_timeout
+	ret
+	
+	
 varb signalgui_signalbits
 db 000b
 db 010b
