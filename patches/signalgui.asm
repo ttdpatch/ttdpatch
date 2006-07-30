@@ -30,13 +30,13 @@ extern generatesoundeffect
 %assign win_signalgui_signalboxheightX2 win_signalgui_signalboxheight*2
 
 varb win_signalgui_elements
-db cWinElemTextBox,cColorSchemeGrey
+db cWinElemTextBox,cColorSchemeDarkGreen
 dw 0, 10, 0, 13, 0x00C5
-db cWinElemSpriteBox,cColorSchemeGrey
+db cWinElemSpriteBox,cColorSchemeDarkGreen
 dw 0, 10, 14, win_signalgui_height-1, 0
-db cWinElemSpriteBox,cColorSchemeGrey
+db cWinElemSpriteBox,cColorSchemeDarkGreen
 dw 11+win_signalgui_signalboxwidth*4, 11+win_signalgui_signalboxwidth*4+10, 0, 13, 0
-db cWinElemSpriteBox,cColorSchemeGrey
+db cWinElemSpriteBox,cColorSchemeDarkGreen
 dw 11+win_signalgui_signalboxwidth*4, 11+win_signalgui_signalboxwidth*4+10, 14, win_signalgui_height-1, 0
 
 ;db cWinElemSpriteBox,cColorSchemeDarkGreen
