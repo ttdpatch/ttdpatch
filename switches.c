@@ -1676,9 +1676,17 @@ int dumpxmlswitches(int type)
 #endif
 
 #if DEBUG
+  // Watcom warns that this is unreachable code if the list is ok,
+  // so we turn off this message
+  #if defined(__WATCOMC__) 
+    #pragma disable_message (201)
+  #endif
   if (sizeof(category_info)/sizeof(category_info[0]) != CAT_NONE + 1)
     error("Missing category_info entry: %d instead of %d\n",
 	sizeof(category_info)/sizeof(category_info[0]), CAT_NONE + 1);
+  #if defined(__WATCOMC__) 
+    #pragma enable_message (201)
+  #endif
 #endif
   for (i=CAT_FIRST; i<CAT_LAST; i++) {
 	categories parent = category_info[i].parent;
