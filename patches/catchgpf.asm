@@ -830,6 +830,7 @@ var gpffno,	db "###.TXT",0
 var gpftext,	db "TTD V"
 var gpfttdv,	db      "######## Crash Log by"
 var ttdpatchversion, db			     " TTDPatch ",TTDPATCHVERSION,13,10,13,10
+var ttdpatchversion_end
 
 		db "Exception "
 #if WINTTDX
