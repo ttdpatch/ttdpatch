@@ -1320,6 +1320,8 @@ drawNormalSlopeAndAddTrams:
 .checkfortunnel:
 	test	byte [landscape5(di)], 80h
 	jnz	.playitagainsam
+	test	byte [landscape5(di)], 12
+	jz	.playitagainsam				// not road tunnel
 	call	gettunnelotherendmystyle		//get the other end preserving everything else BUT EDI
 	jmp	.playitagainsam
 
