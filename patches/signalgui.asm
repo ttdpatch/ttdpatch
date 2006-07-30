@@ -1,0 +1,286 @@
+// New signal gui (should replace the ctrl madness)
+// by eis_os
+
+#include <std.inc>
+#include <misc.inc>
+#include <textdef.inc>
+#include <human.inc>
+#include <window.inc>
+#include <imports/gui.inc>
+#include <ptrvar.inc>
+
+extern drawspritefn
+extern presignalspritebase, numsiggraphics
+extern resheight, reswidth
+extern actionhandler, AlterSignalsByGUI_actionnum, ctrlkeystate
+
+%assign win_signalgui_id 110
+
+%assign win_signalgui_signalx 17
+%assign win_signalgui_signaly 1
+%assign win_signalgui_signalboxwidth 17
+%assign win_signalgui_signalboxheight 28
+
+%assign win_signalgui_width 11+11+win_signalgui_signalboxwidth*4
+%assign win_signalgui_height win_signalgui_signalboxheight*2
+%assign win_signalgui_signalboxheightX2 win_signalgui_signalboxheight*2
+
+varb win_signalgui_elements
+db cWinElemTextBox,cColorSchemeGrey
+dw 0, 10, 0, 13, 0x00C5
+db cWinElemSpriteBox,cColorSchemeGrey
+dw 0, 10, 14, win_signalgui_height-1, 0
+db cWinElemSpriteBox,cColorSchemeGrey
+dw 11+win_signalgui_signalboxwidth*4, 11+win_signalgui_signalboxwidth*4+10, 0, 13, 0
+db cWinElemSpriteBox,cColorSchemeGrey
+dw 11+win_signalgui_signalboxwidth*4, 11+win_signalgui_signalboxwidth*4+10, 14, win_signalgui_height-1, 0
+
+;db cWinElemSpriteBox,cColorSchemeDarkGreen
+;dw 11, win_signalgui_width-1, 0, win_signalgui_height-1, 0
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw 11+win_signalgui_signalboxwidth*0, 11+win_signalgui_signalboxwidth*1-1, 0, win_signalgui_signalboxheight-1, 0
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw 11+win_signalgui_signalboxwidth*1, 11+win_signalgui_signalboxwidth*2-1, 0, win_signalgui_signalboxheight-1, 0
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw 11+win_signalgui_signalboxwidth*2, 11+win_signalgui_signalboxwidth*3-1, 0, win_signalgui_signalboxheight-1, 0
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw 11+win_signalgui_signalboxwidth*3, 11+win_signalgui_signalboxwidth*4-1, 0, win_signalgui_signalboxheight-1, 0
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw 11+win_signalgui_signalboxwidth*0, 11+win_signalgui_signalboxwidth*1-1, win_signalgui_signalboxheight, win_signalgui_signalboxheightX2-1, 0
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw 11+win_signalgui_signalboxwidth*1, 11+win_signalgui_signalboxwidth*2-1, win_signalgui_signalboxheight, win_signalgui_signalboxheightX2-1, 0
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw 11+win_signalgui_signalboxwidth*2, 11+win_signalgui_signalboxwidth*3-1, win_signalgui_signalboxheight, win_signalgui_signalboxheightX2-1, 0
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw 11+win_signalgui_signalboxwidth*3, 11+win_signalgui_signalboxwidth*4-1, win_signalgui_signalboxheight, win_signalgui_signalboxheightX2-1, 0
+db cWinElemLast
+endvar
+
+
+uvarw win_signalgui_sectoclose
+
+// in:	ax, cx = location
+//		edi = xy
+//		dl = trackpiece to change
+// safe: dh
+
+uvard win_signalgui_winptr	// to lazy to build a stack frame
+exported win_signalgui_create
+	mov word [operrormsg1],0x1010	// overwritten
+	
+	push byte CTRL_ANY + CTRL_MP
+	call ctrlkeystate
+	jnz .dooldcode
+	
+	mov dh,[landscape4(di,1)]
+	and dh,0xF0
+	cmp dh,0x10
+	jne .dooldcode
+	
+	test byte [landscape5(di,1)], 0xC0
+	jz .track
+	js .depot
+	jmp short .signalpresent
+	
+.track:
+.depot:
+.dooldcode:
+	ret
+	
+	
+.signalpresent:	
+	pusha
+	mov cl, 0x2A
+	mov dx, win_signalgui_id // window.id
+	call [FindWindow]
+	test esi,esi
+	jz .noold
+	call [DestroyWindow]
+.noold:
+	//mov eax, (640-win_signalgui_width)/2 + (((480-win_signalgui_height)/2) << 16) // x, y
+	movzx eax, word [mousecursorscry]
+	mov bx, word [resheight]
+	sub bx, win_signalgui_height+26
+	cmp ax, bx
+	jb .yok
+	mov ax, bx
+.yok:
+	shl eax, 16
+	mov ax, word [mousecursorscrx]
+	mov bx, [reswidth]
+	sub bx, win_signalgui_width
+	cmp ax, bx
+	jb .xok
+	mov ax, bx
+.xok:
+		
+	mov ebx, win_signalgui_width + (win_signalgui_height << 16) // width , height
+
+	mov cx, 0x2A			// window type
+	mov dx, -1				// -1 = direct handler
+	mov ebp, addr(win_signalgui_winhandler)
+	call dword [CreateWindow]
+	mov dword [esi+window.elemlistptr], addr(win_signalgui_elements)
+	mov word [esi+window.id], win_signalgui_id // window.id
+	mov dword [win_signalgui_winptr], esi
+	popa
+	
+	push esi
+	mov esi, dword [win_signalgui_winptr]
+	mov word [esi+window.data], di
+	mov word [esi+window.data+2], ax
+	mov word [esi+window.data+4], cx
+	mov byte [esi+window.data+6], dl
+	mov word [win_signalgui_sectoclose], 5
+	pop esi
+	
+	mov ebx, 0
+	add esp, 4		// unwind the stack, need to be changed to do jc after the icall in fragment, but ohh well it works
+	ret
+
+win_signalgui_winhandler:
+	mov bx, cx
+	mov esi, edi
+	cmp dl, cWinEventRedraw
+	jz near win_signalgui_redraw
+	cmp dl, cWinEventClick
+	jz near win_signalgui_clickhandler
+;	cmp dl, cWinEventTimer
+;	jz win_signalgui_timer
+	cmp dl, cWinEventSecTick
+	jz win_signalgui_sectick
+	ret
+	
+win_signalgui_timer:
+	ret
+	
+win_signalgui_sectick:
+	dec word [win_signalgui_sectoclose]
+	js .closewindow
+	ret
+.closewindow:
+	jmp [DestroyWindow]
+	
+win_signalgui_redraw:
+	call dword [DrawWindowElements]	
+	mov cx, [esi+window.x]
+	add cx, win_signalgui_signalx
+	mov dx, [esi+window.y]
+	add dx, win_signalgui_signaly
+
+	push ecx
+	mov eax, 0
+	call win_signalgui_drawsignal
+	add cx, win_signalgui_signalboxwidth
+	mov eax, 2
+	call win_signalgui_drawsignal
+	add cx, win_signalgui_signalboxwidth
+	mov eax, 4
+	call win_signalgui_drawsignal
+	add cx, win_signalgui_signalboxwidth
+	mov eax, 6
+	call win_signalgui_drawsignal
+	pop ecx
+	
+	add dx, win_signalgui_signalboxheight
+	mov eax, 16
+	call win_signalgui_drawsignal
+	add cx, win_signalgui_signalboxwidth
+	mov eax, 16+2
+	call win_signalgui_drawsignal
+	add cx, win_signalgui_signalboxwidth
+	mov eax, 16+4
+	call win_signalgui_drawsignal
+	add cx, win_signalgui_signalboxwidth
+	mov eax, 16+6
+	call win_signalgui_drawsignal
+	ret
+	
+	
+// in eax = 0=plain, 2=pre, 4=exit, 6=combo, +8=semaphore, +16=PBS
+win_signalgui_drawsignal:
+	pusha
+	// undo default sprite xyrel
+	add cx, 2
+	add dx, 22
+	
+	mov ebx, 0x4fb+12
+	and eax, [numsiggraphics]
+	jz .nopresignal
+	lea ebx,[ebx-0x4fb+eax*8-16]
+	add ebx,[presignalspritebase]
+.nopresignal:
+	call [drawspritefn]
+	popa
+	ret
+
+win_signalgui_clickhandler:
+	call dword [WindowClicked]
+	jns .click
+	ret
+.click:
+	cmp cl, 0
+	jne .notdestroy
+	jmp [DestroyWindow]
+.notdestroy:
+	cmp cl, 1
+	jne .nottilebar
+	jmp dword [WindowTitleBarClicked]
+.nottilebar:
+	cmp cl, 4
+	jnb .signalclick
+	ret
+.signalclick:
+	sub cl, 4
+	cmp cl, 8
+	jb .onbutton
+	ret
+.onbutton:
+	pusha
+	movzx edi, word [esi+window.data]
+
+	mov word [operrormsg1],0x1010	//CantBuildSignalsHere
+	
+	and ecx, 0x0F
+	mov bh, byte [signalgui_signalbits+ecx]
+	
+	mov ax, word [esi+window.data+2]
+	mov cx, word [esi+window.data+4]
+	mov dl, byte [esi+window.data+6]
+	
+;	mov esi, 0x060008				//CreateAlterSignals
+;	call [actionhandler]
+	mov bl, 3 //  cA_DOIT or cA_NOBLDOVER
+	dopatchaction AlterSignalsByGUI
+	popa
+	jmp [DestroyWindow]
+	ret
+
+varb signalgui_signalbits
+db 000b
+db 010b
+db 100b
+db 110b
+db 10000b
+db 10010b 
+db 10100b
+db 10110b
+endvar
+
+
+//IN: ax,cx=x,y
+//    bl=actionflags
+//    bh=pre+exit bits,semaphore toggle bit!+pbs bit
+//    dl=trackpiece
+global altersignalsbygui_flags
+uvarb altersignalsbygui_flags
+
+exported AlterSignalsByGUI
+	or bh, 0x80
+	mov byte [altersignalsbygui_flags], bh
+	mov esi, 0x060000
+	mov ebp, [ophandler+1*8]
+	call [ebp+0x10]
+	mov byte [altersignalsbygui_flags], 0
+	ret
+

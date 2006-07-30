@@ -731,6 +731,7 @@ CHANGELOG
 - added -Z extended command line switches for all but town growth switches
 - by Oskar:
   * (devel) added memory guard system to find memory overflows (GUARD=1)
+  * added new signal gui popup window (experimentalfeatures.signalgui) for changeing presignal/pbs status
 - by Lakie:
   * add Support for irregular airports using blank tiles
   * added a Landscape 8 which is a word in size.

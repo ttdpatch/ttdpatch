@@ -94,6 +94,7 @@ defbit EXP_SLOWCROSSING,	0 // trains slow down before crossings
 defbit EXP_COOPERATIVE,		1 // cooperative play, very limited
 defbit EXP_MANDATORYGRM,	2 // make GRF Resource Management mandatory for .grf files
 defbit EXP_INCVEHCONSIST,	3 // allows more then 255 train consists...
+defbit EXP_SIGNALGUI,		4 // use a new gui to change signal state...
 enddefbits
 //defbit EXP_PATHBASEDSIGNALLING,	1 // make it possible for trains with non-interfering paths to enter the same signal block
 

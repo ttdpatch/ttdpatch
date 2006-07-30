@@ -10,7 +10,7 @@
 extern actionhandler,checkpathsigblock,curplayerctrlkey,currrmsignalcost
 extern patchflags
 extern pbssettings
-
+extern altersignalsbygui_flags
 
 	align 4
 var signalchangeopptr, dd -1	// Index to signal change operation. 0=set green, 1=set red
@@ -1125,6 +1125,9 @@ modifysignals:
 	testmultiflags extpresignals
 	jz .regularsig
 
+	cmp byte [altersignalsbygui_flags], 0
+	jne .altersignalsbygui
+	
 	cmp byte [curplayerctrlkey],1
 	jz short .isctrl
 
@@ -1155,7 +1158,28 @@ ovar semaphoredate, -2
 .noinvert:
 	mov [edi],al
 	jmp .done
-
+	
+.altersignalsbygui:
+	// we want to switch signal type by gui
+	mov edi,[esp+4]
+	mov al, [landscape3+edi*2+1]
+	mov bl, [altersignalsbygui_flags]
+	test bl, 8
+	jz .nosemaphoretoggle
+	xor al,8	
+.nosemaphoretoggle:
+	and byte [landscape6+edi], ~8
+	test bl, 16
+	jz .nopbstoggle
+	or byte [landscape6+edi],8
+.nopbstoggle: 	
+	and bl, 110b
+	and al, ~110b
+	or al, bl
+	or al, 0x81
+	mov [landscape3+edi*2+1], al
+	jmp .notpbs
+	
 .isctrl:
 	// we want to switch normal=>pre=>exit=>combined=>normal
 
