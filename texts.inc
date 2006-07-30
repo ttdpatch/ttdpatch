@@ -1169,7 +1169,7 @@ def textsprite, db 0x98,"Sprite",0
 def airporttype, db 0x98, "Airport Type",0
 def unnamedairporttype, db "(Unnamed type)",0
 
-def hotkeylistdos, db "xqwe!",0x22,"-$t%1234567890",0xdf,1eh,5ch,0
+def hotkeylistdos, db "xqwe!",0x22,"-$t%1234567890",0xdf,27h,09h,5ch,0
 def hotkeylistwin, db "xqwe!",0x22,"§$t%1234567890-=~]",0
 
 def last

@@ -350,11 +350,11 @@ patchwindowsizer:
 	mov al, [edi+5]
 	mov [roadvehoffset], al
 	storefragment newlastroadvehdrawn
-	stringaddress oldlast4vehdrawn,3,4
+	stringaddress oldlast4vehdrawn,1+2*WINTTDX,4
 	mov ax, [edi+5]
 	mov [shipvehoffset], ax
 	storefragment newlastshipvehdrawn
-	stringaddress oldlast4vehdrawn,2,3
+	stringaddress oldlast4vehdrawn,3-WINTTDX,3
 	mov ax, [edi+5]
 	mov [airvehoffset], ax
 	storefragment newlastairvehdrawn

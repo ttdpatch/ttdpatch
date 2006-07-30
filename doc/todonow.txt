@@ -310,8 +310,6 @@
 - PBS pathfinding problems,
   http://www.tt-forums.net/viewtopic.php?p=374039#374039
 
-- nsignals has miscoded realsprite, get new from MB site
-
 - when removing irrstation tiles, check that ends are not on holes
 
 - revisit George's crash, http://www.tt-forums.net/viewtopic.php?p=374512#374512
@@ -759,3 +757,8 @@ CHANGELOG
 - fixed GRM conflict not actually deactivating conflicting file
 - show conflicting resource for vehicle GRM
 - move town growth switches to their own category
+- fixed ship and aircraft lists not changing the number of displayed
+  items when changing window size in DOS
+- in German DOS TTD, <tab> is now used by default to toggle the bulldozer
+- show patch version in GRF Status debug file
+- fixed hang when building road bridge adjacent to rail tunnel with trams on

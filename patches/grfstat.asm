@@ -1042,6 +1042,15 @@ grfstatuscreatedebug:
 	jc near .done
 	mov [grfstatusdebugfilehandle],ax
 
+	extern ttdpatchversion,ttdpatchversion_end
+	mov esi,grfstatusdebugtextcom
+	call grfstatuscreatedebugstrout
+	mov al,0
+	xchg al,[ttdpatchversion_end]
+	mov esi,ttdpatchversion
+	call grfstatuscreatedebugstrout
+	mov [ttdpatchversion_end],al
+
 	mov ebp,[spriteblockptr]
 	mov ebp,[ebp+spriteblock.next]
 	

@@ -1914,7 +1914,7 @@ landinfocheat:
 	mov dl,[landscape5(si,1)]
 	call writehexbyte
 
-	// Please note that if a landscape isn't loaded it has a value of 0x80000000, not 0x0
+	// Please note that if a landscape isn't loaded it has a value of 0x80000000 or 0x0
 	mov edx,landscape6
 	test edx,edx
 	jle .no_l6
