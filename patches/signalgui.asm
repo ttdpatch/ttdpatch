@@ -15,6 +15,7 @@ extern resheight, reswidth
 extern actionhandler, AlterSignalsByGUI_actionnum, ctrlkeystate
 extern RefreshWindowArea
 extern generatesoundeffect
+extern buildautosignals
 
 %assign win_signalgui_timeout 5
 
@@ -174,6 +175,9 @@ win_signalgui_timer:
 	mov ah, 2
 	btr dword [esi+window.activebuttons], 2
 	jb .switch
+	mov ah,3
+	btr dword [esi+window.activebuttons], 3
+	jb .switch
 	ret
 
 .switch:
@@ -268,6 +272,8 @@ win_signalgui_clickhandler:
 .nottilebar:
 	cmp cl, 2
 	je .semptoggleclick
+	cmp cl, 3
+	je .autosignalclick
 	cmp cl, 4
 	jnb .signalclick
 	ret
@@ -281,7 +287,7 @@ win_signalgui_clickhandler:
 	pusha
 	mov ax, word [esi+window.data+signalguidata.x]
 	mov cx, word [esi+window.data+signalguidata.y]
-	mov dl, byte [esi+window.data+signalguidata.piece]
+	movzx edx, byte [esi+window.data+signalguidata.piece]
 
 	mov bh, 101000b
 	mov bl, 3 //  cA_DOIT or cA_NOBLDOVER
@@ -291,7 +297,8 @@ win_signalgui_clickhandler:
 	je .semptogglefailed
 	
 	xor byte [esi+window.data+signalguidata.type], 8
-	
+
+.playsound:
 	push eax
 	push esi
 	mov esi, -1
@@ -305,7 +312,21 @@ win_signalgui_clickhandler:
 	
 .semptogglefailed:
 	jmp win_signalgui_pressit
-	
+
+.autosignalclick:
+	pusha
+	mov ax, word [esi+window.data+signalguidata.x]
+	mov cx, word [esi+window.data+signalguidata.y]
+	mov dl, byte [esi+window.data+signalguidata.piece]
+	mov dh, 1
+
+	mov bl, 3 //  cA_DOIT or cA_NOBLDOVER
+	dopatchaction AlterSignalsByGUI
+	cmp ebx, 0x80000000
+	popa
+	je .semptogglefailed
+	jmp .playsound
+
 .onsignalbutton:
 	pusha
 	mov word [operrormsg1],0x1010	//CantBuildSignalsHere
@@ -315,7 +336,7 @@ win_signalgui_clickhandler:
 	
 	mov ax, word [esi+window.data+signalguidata.x]
 	mov cx, word [esi+window.data+signalguidata.y]
-	mov dl, byte [esi+window.data+signalguidata.piece]
+	movzx edx, byte [esi+window.data+signalguidata.piece]
 	
 ;	mov esi, 0x060008				//CreateAlterSignals
 ;	call [actionhandler]
@@ -364,14 +385,18 @@ db 10110b
 endvar
 
 
-//IN: ax,cx=x,y
-//    bl=actionflags
-//    bh=pre+exit bits,semaphore toggle bit!+pbs bit
-//    dl=trackpiece
+//IN:	ax,cx=x,y
+//	bl=actionflags
+//	bh=pre+exit bits,semaphore toggle bit!+pbs bit
+//	dl=trackpiece
+// 	dh=action type; 0=set signal type, 1=build autosignals
 global altersignalsbygui_flags
 uvarb altersignalsbygui_flags
 
 exported AlterSignalsByGUI
+	cmp dh,1
+	je buildautosignals
+
 	or bh, 0x80
 	mov byte [altersignalsbygui_flags], bh
 	mov esi, 0x060000
