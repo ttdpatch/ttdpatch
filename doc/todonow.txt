@@ -739,3 +739,5 @@ CHANGELOG
 - fixed GRM conflict not actually deactivating conflicting file
 - show conflicting resource for vehicle GRM
 - move town growth switches to their own category
+- fixed ship and aircraft lists not changing the number of displayed
+  items when changing window size in DOS
