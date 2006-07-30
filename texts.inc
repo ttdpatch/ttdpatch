@@ -1160,7 +1160,7 @@ def grfhelpercaption, db 0x94,"GRF Author Helper",0
 def grfhelper_displxrelyrel, db 0x94,"Sprite: ",0x7E," xrel: ",0x7C," yrel: ",0x7C,0
 def textsprite, db 0x98,"Sprite",0
 
-def hotkeylistdos, db "xqwe!",0x22,"-$t%1234567890",0xdf,1eh,5ch,0
+def hotkeylistdos, db "xqwe!",0x22,"-$t%1234567890",0xdf,27h,09h,5ch,0
 def hotkeylistwin, db "xqwe!",0x22,"§$t%1234567890-=~]",0
 
 def last

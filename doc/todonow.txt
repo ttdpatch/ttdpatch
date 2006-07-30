@@ -741,3 +741,4 @@ CHANGELOG
 - move town growth switches to their own category
 - fixed ship and aircraft lists not changing the number of displayed
   items when changing window size in DOS
+- in German DOS TTD, <tab> is now used by default to toggle the bulldozer
