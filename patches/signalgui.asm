@@ -14,6 +14,7 @@ extern presignalspritebase, numsiggraphics
 extern resheight, reswidth
 extern actionhandler, AlterSignalsByGUI_actionnum, ctrlkeystate
 extern RefreshWindowArea
+extern generatesoundeffect
 
 %assign win_signalgui_timeout 5
 
@@ -270,12 +271,28 @@ win_signalgui_clickhandler:
 	mov ax, word [esi+window.data+2]
 	mov cx, word [esi+window.data+4]
 	mov dl, byte [esi+window.data+6]
-	xor byte [esi+window.data+7], 8
-	
+
 	mov bh, 101000b
 	mov bl, 3 //  cA_DOIT or cA_NOBLDOVER
 	dopatchaction AlterSignalsByGUI
+	cmp ebx, 0x80000000
 	popa
+	je .semptogglefailed
+	
+	xor byte [esi+window.data+7], 8
+	
+	push eax
+	push esi
+	mov esi, -1
+	push ebx
+	mov bx, ax
+	mov eax, 0x1E
+	call [generatesoundeffect]
+	pop ebx
+	pop esi
+	pop eax
+	
+.semptogglefailed:
 	jmp win_signalgui_pressit
 	
 .onsignalbutton:
@@ -295,8 +312,21 @@ win_signalgui_clickhandler:
 ;	call [actionhandler]
 	mov bl, 3 //  cA_DOIT or cA_NOBLDOVER
 	dopatchaction AlterSignalsByGUI
+	cmp ebx, 0x80000000
 	popa
+	je .signalalterfailed
+	push eax
+	push esi
+	mov esi, -1
+	push ebx
+	mov bx, ax
+	mov eax, 0x1E
+	call [generatesoundeffect]
+	pop ebx
+	pop esi
+	pop eax
 	jmp [DestroyWindow]
+.signalalterfailed:
 	ret
 
 win_signalgui_pressit:
