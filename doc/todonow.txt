@@ -741,6 +741,7 @@ CHANGELOG
 - by DaleStan
   * add the depots-obey-transparency fix to generalfixes
   * add a miscmods bit to disable the depots-obey-transparency fix
+- added autosignals to new signal gui, build two-way signals every 3/4 tiles
 
 2.5 beta 8
 - fixed UTF-8 characters 7B..7F having zero width
@@ -763,4 +764,5 @@ CHANGELOG
 - in German DOS TTD, <tab> is now used by default to toggle the bulldozer
 - show patch version in GRF Status debug file
 - fixed hang when building road bridge adjacent to rail tunnel with trams on
-- added autosignals to new signal gui, build two-way signals every 3/4 tiles
+- make sure broken down aircraft are no slower than 80 mph to prevent them
+  from getting stuck

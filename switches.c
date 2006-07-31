@@ -1705,10 +1705,7 @@ int dumpxmlswitches(int type)
 	((long)TTDPATCHVERSIONREVISION<<16)+
 	 (long)TTDPATCHVERSIONBUILD);
 
-  if (type == -2)
-	for (i=CAT_FIRST; i<CAT_LAST; i+=dumpxmlcategory(f, i, 1));
-  else
-	dumpxmlcategoryswitches(f, CAT_NONE, 1);
+  for (i=CAT_FIRST; i<CAT_LAST; i+=dumpxmlcategory(f, i, 1));
 
   fputs("</switches>\n", f);
   fclose(f);
