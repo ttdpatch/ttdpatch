@@ -9,6 +9,7 @@
 //	cx=tile Y
 //	dl=track piece
 //	dh=1
+//	edx(16:23)=separation
 // out:	ebx=cost
 // safe:as in action handler
 exported buildautosignals
@@ -90,17 +91,20 @@ exported buildautosignals
 // in:	esi=cost so far
 //	 dl=track piece
 //	 dh=signal direction, 0=forward, 16=backwards, 32=two-way
+//	edx(16:23)=separation
 //	edi=XY
 //	ebp=direction
 // out:	esi=cost
 autosignals:
+	mov ecx,edx
+	shr ecx,8	// now ch=separation
 	jmp short .havebits
 
 	extern sigbitsonpiece,dirfrompiece,getnextdirandtile,piececonnections
-	extern actionhandler,autosignalsep
+	extern actionhandler
 
 .nexttile:
-	cmp cl,[autosignalsep]
+	cmp cl,ch
 	jb .nothere
 
 	// build signals on this tile

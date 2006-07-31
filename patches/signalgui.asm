@@ -16,6 +16,7 @@ extern actionhandler, AlterSignalsByGUI_actionnum, ctrlkeystate
 extern RefreshWindowArea
 extern generatesoundeffect
 extern buildautosignals
+extern autosignalsep
 
 %assign win_signalgui_timeout 5
 
@@ -318,6 +319,7 @@ win_signalgui_clickhandler:
 	pusha
 	mov ax, word [esi+window.data+signalguidata.x]
 	mov cx, word [esi+window.data+signalguidata.y]
+	mov edx,[autosignalsep-2]	// set edx(16:23)=separation
 	mov dl, byte [esi+window.data+signalguidata.piece]
 	mov dh, 1
 
