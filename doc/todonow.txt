@@ -513,9 +513,6 @@
 
 - town stats with growth mode 2: maybe show growth rate if debugging?
 
-- elrails: for crossings/connections between elrail and reg. rail don't
-  show pylons and wire for track pieces that go to reg. rail
-
 - lowering/raising land removes exclusive land use signs?
 
 - in town, show "Population: 600 (snow)" or "Population: 600 (desert)"
@@ -741,6 +738,8 @@ CHANGELOG
 - by DaleStan
   * add the depots-obey-transparency fix to generalfixes
   * add a miscmods bit to disable the depots-obey-transparency fix
+  * elrails: for crossings/connections between elrail and reg. rail don't
+    show pylons and wire for track pieces that go to reg. rail
 - added autosignals to new signal gui, build two-way signals every 3/4 tiles
 
 2.5 beta 8

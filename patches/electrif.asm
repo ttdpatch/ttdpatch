@@ -1731,6 +1731,8 @@ drawpylons:
 	test bl,0x40
 	jnz .haveexitmap
 
+	call checkadjacenttiles
+	mov bl,dh
 	call makerailexitcount
 
 	shr bh,2		// bh is A?B?C?D? where A..D are set if > 1 track piece
@@ -1879,6 +1881,8 @@ displaywires:
 	movzx ebx,word [catenaryspritebase]
 	or bh,bh
 	js displaywires_return
+	
+	call checkadjacenttiles
 
 	add dl,wireheight
 	movzx edi,di
@@ -1968,6 +1972,155 @@ displaywires:
 	ret
 ; endp displaywires
 
+
+varb tileoffset
+	dw -257,255,257,-256
+//	esi is never reset, so this table is cumulative.
+//	Note that edi runs 3->0, therefore the cumulative change to esi is
+//	dw -1,256,1,-256
+//	A tunnel in these tiles with the direction ecx faces the tile at the original esi
+endvar
+varb trackmask
+	db 100101b,101010b,011001b,010110b
+	db 100101b,101010b // These two bytes are so I don't have to do modulo 4 arithemetic
+endvar
+
+// Check adjacent tiles for electrification
+// In:	DH from gettileinfo
+//	ESI set to XY index
+// Out:	DH reduced to paths connected to electrified rail
+// Preserves: everything else
+// DH is never returned 0. If no electrified connections are found, DH is returned unchanged.
+
+checkadjacenttiles:
+	pusha
+
+	xor bx,bx
+//bl: bit set: track is connected to at least one elect tile
+//bh: bit set: track is unconnected or connected to two elect tiles (Draw wire/pylon)
+	and dh,0x3F
+	mov ecx,3 // Our counter. The low bit is often used as a X/Y direction indicator.
+
+.removewireloop:
+	add si,[tileoffset+ecx*2]
+	test dh,[trackmask+ecx]
+	jz near .nexttile
+
+	mov al,[landscape4(si)]
+	mov ah,[landscape5(si)]
+	shr al,4
+	cmp al,1
+	jne .maybecrossing
+	test ah,0x80
+	jnz .depot
+.checkconnections:
+	test ah,[trackmask+ecx+2]
+	jnz near .gettracktype
+.unconnected:
+	or bh,[trackmask+ecx]
+	jmp .nexttile
+
+.depot:
+	xor ah,2
+	and ah,3
+	jmp .tunnel
+
+.maybecrossing:
+	cmp al,2
+	jne .maybestation
+	test ah,0x10
+	jz .unconnected
+	xor ah,cl
+	test ah,1
+	jnz .unconnected
+	mov al,[landscape3+1+2*esi]
+	jmp .checktracktype
+
+.maybestation:
+// Assuming the "track type" for non-railway stations will never be non-zero
+	cmp al,5
+	jne .maybebridgeortunnel
+	xor ah,cl
+	test ah,1
+	jz .gettracktype
+	jmp short .unconnected
+
+.maybebridgeortunnel:
+// Assuming that the "track type" for roads will never be non-zero, except in .bridgeend
+	cmp al,9
+	jne .unconnected
+	test ah, 0x80
+	jnz .bridge
+.maybeenhtunnel:
+	mov al,[landscape7+esi]
+	test al,0x80
+	jz .tunnel
+	xor ah,cl
+	test ah,1
+	jnz .checktracktype
+.tunnel:
+	cmp ah,cl;
+	je .gettracktype
+	jmp short .unconnected
+
+.bridge:
+	test ah,0x40
+	jz .bridgeend
+.bridgemiddle:
+	test ah,0x20
+	jnz .gettracktype 
+.maybemybridge:
+	mov edi,[esp+4]
+// Check to see if the original tile is a bridgehead going the same direction
+// as the tile at the current esi
+	mov al,[landscape4(di)]
+	shr al,4
+	cmp al,9
+	jne .unconnected
+	mov ah,[landscape5(di)]
+	mov al,ah
+	and ah,0xC0
+	cmp ah,0x80
+	jne .unconnected
+	xor al,cl
+	test al,1
+	jnz .unconnected
+	mov al,[landscape3+edi*2]
+	jmp short .checktracktype
+
+.bridgeend:
+	test ah,2
+	jnz .unconnected
+	mov ax,[landscape3+esi*2]
+	shr ax,4
+	jmp .checkconnections
+
+.gettracktype:
+	mov al,[landscape3+esi*2]
+.checktracktype:
+	and al,0xF
+	cmp al,1
+	jne .nexttile
+	mov ah,[trackmask+ecx]
+	mov al,ah
+	and al,bl// If bit is set in both ah and bl
+	or bh,al // Set it in bh (Draw this wire/pylon)
+	or bl,ah // If bit is set in either ah or bl, set it in bl (possibly draw this wire/pylon)
+.nexttile:
+	dec ecx
+	jns .removewireloop
+
+.removedone:
+	and bh,dh
+	or bh,bh
+	jz .return
+	mov [esp+5*4+1], bh // write new value for dh (track bitmask) to the stack
+	// pusha pushes in this order: eax, ecx, edx, ebx, esp, ebp, esi, edi
+	// Therefore, skip five dword registers and the dl byte.
+.return:
+	popa // and pop the possibly modified value
+	ret
+; endp checkadjacenttiles
 
 // Display railway catenary sprites
 // in:	AX,CX = landscape coordinates of the north corner
