@@ -942,7 +942,7 @@ void commandline(int argc, const char *const *argv)
 
 	} else for (p=1; s[p]; p++) {
 		switchchar = s[p];
-		if ( (switchchar == 'X') || (switchchar == 'Y') ) {
+		if ( (switchchar == 'X') || (switchchar == 'Y') || (switchchar == 'Z') ) {
 			p++;
 			if (!s[p])
 				error(langtext[LANG_UNKNOWNSWITCH], s[0], dchartostr(switchchar));
