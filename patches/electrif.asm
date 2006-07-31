@@ -2042,7 +2042,7 @@ checkadjacenttiles:
 	jne .maybebridgeortunnel
 	xor ah,cl
 	test ah,1
-	jz .gettracktype
+	jz near .gettracktype
 	jmp short .unconnected
 
 .maybebridgeortunnel:
@@ -2052,6 +2052,8 @@ checkadjacenttiles:
 	test ah, 0x80
 	jnz .bridge
 .maybeenhtunnel:
+	testflags enhancetunnels 
+	jnc .tunnel
 	mov al,[landscape7+esi]
 	test al,0x80
 	jz .tunnel
