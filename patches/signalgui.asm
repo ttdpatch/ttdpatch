@@ -258,6 +258,7 @@ win_signalgui_drawsignal:
 	ret
 
 win_signalgui_clickhandler:
+	mov byte [esi+window.data+signalguidata.life], win_signalgui_timeout
 	call dword [WindowClicked]
 	jns .click
 	ret
@@ -370,7 +371,6 @@ win_signalgui_pressit:
 ;	mov ah, cl
 ;	call dword [invalidatehandle]
 	call dword [RefreshWindowArea]
-	mov byte [esi+window.data+signalguidata.life], win_signalgui_timeout
 	ret
 	
 	
