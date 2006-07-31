@@ -2059,7 +2059,7 @@ checkadjacenttiles:
 	jz .tunnel
 	xor ah,cl
 	test ah,1
-	jnz .checktracktype
+	jnz near .checktracktype
 	xor ah,cl
 .tunnel:
 	cmp ah,cl;
@@ -2094,9 +2094,16 @@ checkadjacenttiles:
 .bridgeend:
 	test ah,2
 	jnz .unconnected
+	mov dl,ah
 	mov ax,[landscape3+esi*2]
 	shr ax,4
-	jmp .checkconnections
+	test al,0x3F
+	jnz .checkconnections
+//Sloped bridgeheads do not have custombridgehead bits, so generate the trackmask manually.
+	mov ah,dl
+	and ah,1
+	inc ah// X==0,Y==1 -> X==01b,Y==10b
+	jmp .checkconnections	
 
 .gettracktype:
 	mov al,[landscape3+esi*2]
