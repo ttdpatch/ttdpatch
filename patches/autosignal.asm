@@ -119,7 +119,7 @@ autosignals:
 	mov [esp+0x1c],ebx	// eax after popa
 	popa
 	cmp eax,0x80000000
-	je near .done
+	je .nothere
 
 	lea esi,[esi+eax*2]
 	or esi,1
@@ -149,6 +149,9 @@ autosignals:
 
 	mov al,[landscape4(di)]
 	and al,0xf0
+	cmp al,0x20
+	je .crossing
+
 	cmp al,0x10
 	jne .done
 
@@ -188,6 +191,19 @@ autosignals:
 
 .straight:
 	jmp .nexttile
+
+.crossing:
+	mov al,[landscape5(di)]
+	mov dl,al
+	and al,0xf0
+	cmp al,0x10
+	jne .done	// not a level crossing
+
+	bt edx,3
+	mov dl,2
+	sbb dl,0	// now dl=track piece (1 or 2)
+	and dl,[piececonnections+ebp]
+	jnz .nexttile
 
 .done:
 	ret
