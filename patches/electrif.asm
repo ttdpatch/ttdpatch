@@ -2060,6 +2060,7 @@ checkadjacenttiles:
 	xor ah,cl
 	test ah,1
 	jnz .checktracktype
+	xor ah,cl
 .tunnel:
 	cmp ah,cl;
 	je .gettracktype
