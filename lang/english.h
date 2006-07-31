@@ -322,6 +322,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-Zp #, -Zr #, -Zs #, -Zt #: Warn about lost aircraft, road vehicles, ships and\n"
 	  "         trains after this many days\n"
 	  "-ZF #:   Enable certain game features in the Toyland climate\n"
+	  "-ZL #:   Set separation of signals placed by the autosignal tool\n"
 	  "\n"
 	  "-C cfg-file:  Read this configuration file instead of ttdpatch.cfg\n"
 	  "-W cfg-file:  Creates a configuration file with the current configuration\n"
@@ -869,6 +870,7 @@ SETTEXT(CFG_SHORTRVS, "`%s' (%s) enable shortened (or lengthened) RVs")
 SETTEXT(CFG_ARTICULATEDRVS, "`%s' (%s) enable articulated RVs")
 SETTEXT(CFG_NEWAIRPORTS, "`%s' (%s) allows using new airport types supplied by GRFs")
 SETTEXT(CFG_NEWROUTES, "`%s' (%s) allows the changing of rails and roads though GRF files")
+SETTEXT(CFG_AUTOSIGDISTANCE, "`%s' (%s) sets the separation of signals placed by the autosignal tool.  The / and \\ directions count as 4, the others as 3, so a value of 12 places signals every 3 resp. 4 tiles.  Range 4..255, default 12.")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

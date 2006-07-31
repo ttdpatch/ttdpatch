@@ -741,6 +741,8 @@ CHANGELOG
   * elrails: for crossings/connections between elrail and reg. rail don't
     show pylons and wire for track pieces that go to reg. rail
 - added autosignals to new signal gui, build two-way signals every 3/4 tiles
+  (use `autosignaldistance n' or -ZL to set desired signal separation)
+
 
 2.5 beta 8
 - fixed UTF-8 characters 7B..7F having zero width

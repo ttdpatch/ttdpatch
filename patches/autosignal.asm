@@ -97,10 +97,10 @@ autosignals:
 	jmp short .havebits
 
 	extern sigbitsonpiece,dirfrompiece,getnextdirandtile,piececonnections
-	extern actionhandler
+	extern actionhandler,autosignalsep
 
 .nexttile:
-	cmp cl,3*4
+	cmp cl,[autosignalsep]
 	jb .nothere
 
 	// build signals on this tile
