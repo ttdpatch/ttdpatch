@@ -442,7 +442,7 @@ checksignal:
 	//	ebp=old direction
 	// out:	 di=next tile XY
 	//	ebp=new direction
-getnextdirandtile:
+exported getnextdirandtile
 	test dl,0x3c	// hor/ver direction?
 	jz .keepdir	// no, go straight
 

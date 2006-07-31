@@ -763,3 +763,4 @@ CHANGELOG
 - in German DOS TTD, <tab> is now used by default to toggle the bulldozer
 - show patch version in GRF Status debug file
 - fixed hang when building road bridge adjacent to rail tunnel with trams on
+- added autosignals to new signal gui, build two-way signals every 3/4 tiles

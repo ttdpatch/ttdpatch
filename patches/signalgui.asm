@@ -325,7 +325,7 @@ win_signalgui_clickhandler:
 	cmp ebx, 0x80000000
 	popa
 	je .semptogglefailed
-	jmp .playsound
+	jmp .playsoundandclose
 
 .onsignalbutton:
 	pusha
@@ -345,6 +345,7 @@ win_signalgui_clickhandler:
 	cmp ebx, 0x80000000
 	popa
 	je .signalalterfailed
+.playsoundandclose:
 	push eax
 	push esi
 	mov esi, -1
