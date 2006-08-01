@@ -22,43 +22,48 @@ extern autosignalsep
 
 %assign win_signalgui_id 110
 
-%assign win_signalgui_signalx 17
-%assign win_signalgui_signaly 1
-%assign win_signalgui_signalboxwidth 17
+%assign win_signalgui_signalx 7
+%assign win_signalgui_signaly 15
+%assign win_signalgui_signalboxwidth 20
 %assign win_signalgui_signalboxheight 28
 
-%assign win_signalgui_width 11+11+win_signalgui_signalboxwidth*4
-%assign win_signalgui_height win_signalgui_signalboxheight*2
+%assign win_signalgui_width win_signalgui_signalboxwidth*5
+%assign win_signalgui_height 14+win_signalgui_signalboxheight*2
 %assign win_signalgui_signalboxheightX2 win_signalgui_signalboxheight*2
 
 varb win_signalgui_elements
 db cWinElemTextBox,cColorSchemeDarkGreen
 dw 0, 10, 0, 13, 0x00C5
 db cWinElemSpriteBox,cColorSchemeDarkGreen
-dw 0, 10, 14, win_signalgui_height-1, 0
+dw 11, win_signalgui_width-1, 0, 13, 0
+; --- signalbuttons
 db cWinElemSpriteBox,cColorSchemeDarkGreen
-dw 11+win_signalgui_signalboxwidth*4, 11+win_signalgui_signalboxwidth*4+10, 0, 13, 0
+dw win_signalgui_signalboxwidth*0, win_signalgui_signalboxwidth*1-1, 14, 14+win_signalgui_signalboxheight-1, 0
 db cWinElemSpriteBox,cColorSchemeDarkGreen
-dw 11+win_signalgui_signalboxwidth*4, 11+win_signalgui_signalboxwidth*4+10, 14, win_signalgui_height-1, 0
+dw win_signalgui_signalboxwidth*1, win_signalgui_signalboxwidth*2-1, 14, 14+win_signalgui_signalboxheight-1, 0
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw win_signalgui_signalboxwidth*2, win_signalgui_signalboxwidth*3-1, 14, 14+win_signalgui_signalboxheight-1, 0
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw win_signalgui_signalboxwidth*3, win_signalgui_signalboxwidth*4-1, 14, 14+win_signalgui_signalboxheight-1, 0
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw win_signalgui_signalboxwidth*0, win_signalgui_signalboxwidth*1-1, 14+win_signalgui_signalboxheight, 14+win_signalgui_signalboxheightX2-1, 0
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw win_signalgui_signalboxwidth*1, win_signalgui_signalboxwidth*2-1, 14+win_signalgui_signalboxheight, 14+win_signalgui_signalboxheightX2-1, 0
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw win_signalgui_signalboxwidth*2, win_signalgui_signalboxwidth*3-1, 14+win_signalgui_signalboxheight, 14+win_signalgui_signalboxheightX2-1, 0
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw win_signalgui_signalboxwidth*3, win_signalgui_signalboxwidth*4-1, 14+win_signalgui_signalboxheight, 14+win_signalgui_signalboxheightX2-1, 0
+; --- semaphore
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw win_signalgui_signalboxwidth*4, win_signalgui_signalboxwidth*5-1, 14, 14+win_signalgui_signalboxheight-1, 715
+; ---  autosignal
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw win_signalgui_signalboxwidth*4, win_signalgui_signalboxwidth*5-1, 14+win_signalgui_signalboxheight, 14+win_signalgui_signalboxheightX2-1-7, 0
 
-;db cWinElemSpriteBox,cColorSchemeDarkGreen
-;dw 11, win_signalgui_width-1, 0, win_signalgui_height-1, 0
-db cWinElemSpriteBox,cColorSchemeDarkGreen
-dw 11+win_signalgui_signalboxwidth*0, 11+win_signalgui_signalboxwidth*1-1, 0, win_signalgui_signalboxheight-1, 0
-db cWinElemSpriteBox,cColorSchemeDarkGreen
-dw 11+win_signalgui_signalboxwidth*1, 11+win_signalgui_signalboxwidth*2-1, 0, win_signalgui_signalboxheight-1, 0
-db cWinElemSpriteBox,cColorSchemeDarkGreen
-dw 11+win_signalgui_signalboxwidth*2, 11+win_signalgui_signalboxwidth*3-1, 0, win_signalgui_signalboxheight-1, 0
-db cWinElemSpriteBox,cColorSchemeDarkGreen
-dw 11+win_signalgui_signalboxwidth*3, 11+win_signalgui_signalboxwidth*4-1, 0, win_signalgui_signalboxheight-1, 0
-db cWinElemSpriteBox,cColorSchemeDarkGreen
-dw 11+win_signalgui_signalboxwidth*0, 11+win_signalgui_signalboxwidth*1-1, win_signalgui_signalboxheight, win_signalgui_signalboxheightX2-1, 0
-db cWinElemSpriteBox,cColorSchemeDarkGreen
-dw 11+win_signalgui_signalboxwidth*1, 11+win_signalgui_signalboxwidth*2-1, win_signalgui_signalboxheight, win_signalgui_signalboxheightX2-1, 0
-db cWinElemSpriteBox,cColorSchemeDarkGreen
-dw 11+win_signalgui_signalboxwidth*2, 11+win_signalgui_signalboxwidth*3-1, win_signalgui_signalboxheight, win_signalgui_signalboxheightX2-1, 0
-db cWinElemSpriteBox,cColorSchemeDarkGreen
-dw 11+win_signalgui_signalboxwidth*3, 11+win_signalgui_signalboxwidth*4-1, win_signalgui_signalboxheight, win_signalgui_signalboxheightX2-1, 0
+db cWinElemTextBox,cColorSchemeDarkGreen
+dw win_signalgui_signalboxwidth*4,win_signalgui_signalboxwidth*5-1-win_signalgui_signalboxwidth/2, 14+win_signalgui_signalboxheightX2-1-6, 14+win_signalgui_signalboxheightX2-1, 0x0188
+db cWinElemTextBox,cColorSchemeDarkGreen
+dw win_signalgui_signalboxwidth*4+win_signalgui_signalboxwidth/2, win_signalgui_signalboxwidth*5-1, 14+win_signalgui_signalboxheightX2-1-6, 14+win_signalgui_signalboxheightX2-1, 0x0189
 db cWinElemLast
 endvar
 
@@ -176,6 +181,8 @@ win_signalgui_winhandler:
 	ret
 	
 win_signalgui_timer:
+	mov dword [esi+window.activebuttons], 0
+#if 0
 	mov ah, 2
 	btr dword [esi+window.activebuttons], 2
 	jb .switch
@@ -183,11 +190,12 @@ win_signalgui_timer:
 	btr dword [esi+window.activebuttons], 3
 	jb .switch
 	ret
+#endif
 
 .switch:
 	mov al,[esi]
 	mov bx,[esi+window.id]
-	or al, 80h
+	//or al, 80h
 	call dword [invalidatehandle]
 	ret
 	
@@ -225,10 +233,17 @@ win_signalgui_redraw:
 	add cx, win_signalgui_signalboxwidth
 	add eax, 2
 	call win_signalgui_drawsignal
+	
+	// display semaphore toggle button 
+	add cx, win_signalgui_signalboxwidth
+	sub eax, 6
+	xor eax, 8
+	call win_signalgui_drawsignal
+	xor eax, 8
 	pop ecx
 	
 	add dx, win_signalgui_signalboxheight
-	add eax, 16-6
+	add eax, 16 //-6
 	call win_signalgui_drawsignal
 	add cx, win_signalgui_signalboxwidth
 	add eax, 2
@@ -249,9 +264,7 @@ win_signalgui_drawsignal:
 	add cx, 2
 	add dx, 22
 
-	movzx ebx,byte [esi+window.data+signalguidata.life]
-	and ebx,1
-	add ebx, 0x4fb+12
+	mov ebx, 0x4fb+12
 	and eax, [numsiggraphics]
 	jz .nopresignal
 	lea ebx,[ebx-0x4fb+eax*8-16]
@@ -275,48 +288,16 @@ win_signalgui_clickhandler:
 	jne .nottilebar
 	jmp dword [WindowTitleBarClicked]
 .nottilebar:
-	cmp cl, 2
-	je .semptoggleclick
-	cmp cl, 3
+	cmp cl, 11
 	je .autosignalclick
-	cmp cl, 4
+	cmp cl, 2
 	jnb .signalclick
 	ret
 .signalclick:
-	sub cl, 4
-	cmp cl, 8
+	sub cl, 2
+	cmp cl, 9
 	jb near .onsignalbutton
 	ret
-	
-.semptoggleclick:
-	pusha
-	mov ax, word [esi+window.data+signalguidata.x]
-	mov cx, word [esi+window.data+signalguidata.y]
-	movzx edx, byte [esi+window.data+signalguidata.piece]
-
-	mov bh, 101000b
-	mov bl, 3 //  cA_DOIT or cA_NOBLDOVER
-	dopatchaction AlterSignalsByGUI
-	cmp ebx, 0x80000000
-	popa
-	je .semptogglefailed
-	
-	xor byte [esi+window.data+signalguidata.type], 8
-
-.playsound:
-	push eax
-	push esi
-	mov esi, -1
-	push ebx
-	mov bx, ax
-	mov eax, 0x1E
-	call [generatesoundeffect]
-	pop ebx
-	pop esi
-	pop eax
-	
-.semptogglefailed:
-	jmp win_signalgui_pressit
 
 .autosignalclick:
 	pusha
@@ -330,7 +311,7 @@ win_signalgui_clickhandler:
 	dopatchaction AlterSignalsByGUI
 	cmp ebx, 0x80000000
 	popa
-	je .semptogglefailed
+	je near win_signalgui_pressit
 	jmp .playsoundandclose
 
 .onsignalbutton:
@@ -343,9 +324,7 @@ win_signalgui_clickhandler:
 	mov ax, word [esi+window.data+signalguidata.x]
 	mov cx, word [esi+window.data+signalguidata.y]
 	movzx edx, byte [esi+window.data+signalguidata.piece]
-	
-;	mov esi, 0x060008				//CreateAlterSignals
-;	call [actionhandler]
+
 	mov bl, 3 //  cA_DOIT or cA_NOBLDOVER
 	dopatchaction AlterSignalsByGUI
 	cmp ebx, 0x80000000
@@ -364,18 +343,16 @@ win_signalgui_clickhandler:
 	pop eax
 	jmp [DestroyWindow]
 .signalalterfailed:
-	ret
+	add cl, 2
 
 win_signalgui_pressit:
 	movzx ecx, cl
 	bts dword [esi+window.activebuttons], ecx
 	or byte [esi+window.flags], 7
-;	mov al,[esi]
-;	mov bx,[esi+window.id]
-;	or al, 80h
-;	mov ah, cl
-;	call dword [invalidatehandle]
-	call dword [RefreshWindowArea]
+	mov al,[esi]
+	mov bx,[esi+window.id]
+	call [invalidatehandle]
+	mov byte [esi+window.data+signalguidata.life], win_signalgui_timeout
 	ret
 	
 	
@@ -388,6 +365,7 @@ db 10000b
 db 10010b 
 db 10100b
 db 10110b
+db 101000b	// special: toggle only semaphore!
 endvar
 
 
