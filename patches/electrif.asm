@@ -527,6 +527,7 @@ uvard badpylondirs	// bit mask of pylon directions that cause glitches
 // out:	EBX = map of exits from this tile (bits:0=NW,1=NE,2=SW,3=SE)
 // preserves: everything else
 makerailexitmap:
+	call checkadjacenttiles
 	xor ebx,ebx
 	test dh,010110b
 	jz .not0
@@ -761,7 +762,7 @@ dontwantpyloninthisdirection:
 	call [gettileinfo]
 	cmp bl,0x10/2
 	jne .mightbebridge
-
+	
 	cmp dh,0xc3
 	ja .donenz
 
@@ -1093,7 +1094,7 @@ geteffectivetracklayout:
 	je near .isbridgeortunnel
 
 	cmp bl,0x50
-	je .isstation
+	je near .isstation
 
 .notracks:
 	test esi,esi
@@ -1133,7 +1134,11 @@ geteffectivetracklayout:
 
 .checkrailtype:
 	test byte [landscape3+esi*2],1	// electrified?
-	jnz .hastracks
+	jz .wrongtracks
+	xchg bh,dh
+	call checkadjacenttiles
+	xchg bh,dh
+	jmp .hastracks
 
 .wrongtracks:
 	mov bh,0xff
@@ -1159,7 +1164,7 @@ geteffectivetracklayout:
 	xor bh,1
 	inc bh
 	jmp .hastracks
-
+	
 .isstation:
 	test di,di
 	jnz .wrongtracks
@@ -1994,11 +1999,14 @@ endvar
 
 checkadjacenttiles:
 	pusha
+	
+	test dh,0x80
+	jnz near .return  // drawing on bridge
 
 	xor bx,bx
 //bl: bit set: track is connected to at least one elect tile
 //bh: bit set: track is unconnected or connected to two elect tiles (Draw wire/pylon)
-	and dh,0x3F
+
 	mov ecx,3 // Our counter. The low bit is often used as a X/Y direction indicator.
 
 .removewireloop:
@@ -2096,8 +2104,8 @@ checkadjacenttiles:
 	jnz .unconnected
 	mov dl,ah
 	mov ax,[landscape3+esi*2]
-	shr ax,4
-	test al,0x3F
+	shl ax,4
+	test ah,0x3F
 	jnz .checkconnections
 //Sloped bridgeheads do not have custombridgehead bits, so generate the trackmask manually.
 	mov ah,dl
