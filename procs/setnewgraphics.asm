@@ -40,6 +40,14 @@ patchsetnewgraphics:
 
 	call resolvesprites
 
+	// do we have the base graphics loaded?
+	extern grfmodflags,forceloadbasegrf
+	test byte [grfmodflags+3],0x80
+	jnz .havebasegraphics
+
+	call forceloadbasegrf
+
+.havebasegraphics:
 	// use the memory where the sprite info used to be as a new heap block
 	// (inserted at the beginning for simplicity)
 	mov esi,spritedata

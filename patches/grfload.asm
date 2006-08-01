@@ -43,9 +43,9 @@ var defnewgrfcfg_end
 
 varb basegrfname
 #if WINTTDX
-	db "ttdpbasew.grf",0
+	db "newgrf/ttdpbasew.grf",0
 #else
-	db "ttdpbase.grf",0
+	db "newgrf/ttdpbase.grf",0
 #endif
 endvar
 %define BASEGRF_VERCODE 0xBD25
@@ -406,6 +406,7 @@ endproc initializegraphics
 #define PRESPRITESIZE 8
 
 // in:	edx=pointer to filename
+// out:	esi=number of sprites loaded (0 or less if failed)
 proc readgrffile
 	local sprite,spriteptr,len,numsprites,filename,numparam,paramofs,pseudo,curptr
 	local fileoffset
@@ -417,11 +418,10 @@ proc readgrffile
 	mov [curgrffile],edx
 	mov [%$paramofs],edi
 	call dword [openfilefn]
+	mov esi,0		// clear esi without disturbing flags
 	jc near .fail		// file open failed
 
 	mov [tempspritefilehandle],bx
-
-	xor esi,esi
 
 	mov [curfileblocksize],si	//0
 
@@ -790,12 +790,35 @@ resolvesprites:
 	call procallsprites
 	mov eax,PROCALL_INITIALIZE
 	call procallsprites
+	popa
+	ret
+
+	// no base graphics loaded, try adding file to the list or else complain
+exported forceloadbasegrf
+	pusha
+
+	mov edx,basegrfname
+	call readgrffile
+
+	cmp esi,1
+	jge .notloaded
+
+	// need to to the LOADED and INITIALIZE stages for this file only
+	mov edx,[curspriteblock]
+	xchg edx,[spriteblockptr]
+	push edx
+	call resolvesprites
+	pop esi
+	xchg esi,[spriteblockptr]
 
 	test byte [grfmodflags+3],0x80
-	jnz .done
+	jz .notvalid
+	jmp short .done
 
-	// no base graphics loaded, complain
+.notloaded:
 	call makespriteblock
+.notvalid:
+	and dword [spriteerror],0		// this error overrides all others
 	mov dword [esi+spriteblock.filenameptr],basegrfname
 	mov ax,ourtext(filenotfound)
 	call setspriteerror
@@ -803,6 +826,7 @@ resolvesprites:
 .done:
 	popa
 	ret
+
 
 // set all grf files to "will be (in)active
 global setwillbeactive
