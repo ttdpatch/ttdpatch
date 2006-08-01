@@ -746,3 +746,4 @@ CHANGELOG
 - fixed hang when building road bridge adjacent to rail tunnel with trams on
 - make sure broken down aircraft are no slower than 80 mph to prevent them
   from getting stuck
+- check that ttdpbase(w).grf is loaded and is the right version

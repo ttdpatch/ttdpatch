@@ -41,6 +41,16 @@ var defnewgrfcfg
 #endif
 var defnewgrfcfg_end
 
+varb basegrfname
+#if WINTTDX
+	db "ttdpbasew.grf",0
+#else
+	db "ttdpbase.grf",0
+#endif
+endvar
+%define BASEGRF_VERCODE 0xBD25
+%define BASEGRF_VERNUM 1
+
 
 uvard dummyspriteblock
 
@@ -781,6 +791,15 @@ resolvesprites:
 	mov eax,PROCALL_INITIALIZE
 	call procallsprites
 
+	test byte [grfmodflags+3],0x80
+	jnz .done
+
+	// no base graphics loaded, complain
+	call makespriteblock
+	mov dword [esi+spriteblock.filenameptr],basegrfname
+	mov ax,ourtext(filenotfound)
+	call setspriteerror
+
 .done:
 	popa
 	ret
@@ -821,7 +840,7 @@ procallsprites:
 	mov edx,[spriteblockptr]
 
 	test edx,edx
-	jle .done
+	jle near .done
 
 	mov edi,grfvarreinitalwaysstart
 	mov ecx,numgrfvarreinitalways
@@ -851,13 +870,22 @@ procallsprites:
 	mov ecx,GRM_EXTRA_NUM
 	rep movsd
 
+	mov edi,[grfmodflags]
+	push edi
 	call procgrffile
-
-	cmp dword [edx+spriteblock.grfid],0
-	jne .nextblock
+	pop edi
 
 	cmp byte [edx+spriteblock.active],0x80	// had other errors?
 	je .nextblock
+
+	xor edi,[grfmodflags]	// if bit 31 has changed, grf claims to
+	jns .notbasegrf		// be our base grf, validate that
+
+	call checkbasegrf
+
+.notbasegrf:
+	cmp dword [edx+spriteblock.grfid],0
+	jne .nextblock
 
 	mov eax,[spritehandlertable]
 	cmp dword [eax+spritegrfidcheckofs],byte -1
@@ -881,6 +909,27 @@ procallsprites:
 
 extern PROCALL_HANDLERS
 vard procall_handlers, PROCALL_HANDLERS
+
+
+extern grfmodflags
+checkbasegrf:
+	cmp dword [edx+spriteblock.grfid],byte -1
+	jne .notvalid
+	cmp byte [edx+spriteblock.numparam],4
+	jb .notvalid
+	mov edi,[edx+spriteblock.paramptr]
+	cmp word [edi+4*4+2],BASEGRF_VERCODE
+	jne .notvalid
+	cmp word [edi+4*4],BASEGRF_VERNUM
+	jae .done
+
+.notvalid:
+	and dword [spriteerror],0		// this error overrides all others
+	mov ax,ourtext(wronggrfversion)
+	call setspriteerror
+	and byte [grfmodflags+3],~0x80		// clear bit, grf was not right
+.done:
+	ret
 
 
 global procgrffile
