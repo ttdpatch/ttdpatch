@@ -50,7 +50,12 @@ exported buildautosignals
 
 .twoway:
 	shl dh,4
+	btr edx,31
 
+	test byte [landscape3+edi*2+1],8
+	jz .notsemap
+	bts edx,31
+.notsemap:
 	xor esi,esi
 	push edi
 	push edx
@@ -127,6 +132,13 @@ autosignals:
 	test bl,1
 	jz .havebits
 
+	and byte [landscape3+edi*2+1],~8
+	test edx,edx
+	jns .notsemap
+
+	or byte [landscape3+edi*2+1],8
+
+.notsemap:
 	cmp dh,32
 	je .havebits
 
