@@ -147,7 +147,10 @@ exported win_signalgui_create
 	mov byte [esi+window.data+signalguidata.piece], dl
 	
 	mov dl, byte [landscape3+1+edi*2]
-	test byte [landscape6+edi], 8
+	mov ebx,landscape6
+	test ebx,ebx
+	jle .nopbstoggle
+	test byte [ebx+edi], 8
 	jz .nopbstoggle
 	or dx, 16
 .nopbstoggle:
