@@ -29,6 +29,7 @@ extern searchcollidingvehs,specialtext1,station2clear,station2init
 extern stationarray2ptr,tmpbuffer1,ttdpatchactions,ttdtexthandler
 extern varheap,exitcleanup,player2clear,player2array,newvehdata
 extern cargobits,cargoid,maxtextwidth,gettextwidthunicode,hasaction12
+extern currtownname,currtownnametitle
 
 
 #define __no_extern_vars__ 1
@@ -864,6 +865,9 @@ initializeveharray:
 	jnc .nohousecountreset
 	call recalchousecounts
 .nohousecountreset:
+
+	mov eax,[currtownnametitle]
+	mov [currtownname],eax
 
 	popa
 	ret
