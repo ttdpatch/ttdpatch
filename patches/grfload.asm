@@ -820,6 +820,7 @@ exported forceloadbasegrf
 
 	// need to to the LOADED and INITIALIZE stages for this file only
 	mov edx,[curspriteblock]
+	or byte [edx+spriteblock.flags],1<<4
 	xchg edx,[spriteblockptr]
 	push edx
 	call resolvesprites
@@ -835,6 +836,7 @@ exported forceloadbasegrf
 .notloaded:
 	call makespriteblock
 	mov ax,ourtext(filenotfound)
+	or byte [esi+spriteblock.flags],1<<4
 .notvalid:
 	mov edx,esi
 	and dword [spriteerror],0		// this error overrides all others

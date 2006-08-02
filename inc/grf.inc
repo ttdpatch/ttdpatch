@@ -37,6 +37,7 @@ struc spriteblock
 				// bit 1: off because of resource conflict
 				// bit 2: did reserve extra action A sprites
 				// bit 3: needs to import sounds from other GRF
+				// bit 4: loaded automatically (not in newgrf(w).cfg)
 endstruc
 
 %macro checkfeaturesize 2.nolist
