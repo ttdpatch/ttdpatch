@@ -41,6 +41,16 @@ var defnewgrfcfg
 #endif
 var defnewgrfcfg_end
 
+varb basegrfname
+#if WINTTDX
+	db "newgrf/ttdpbasew.grf",0
+#else
+	db "newgrf/ttdpbase.grf",0
+#endif
+endvar
+%define BASEGRF_VERCODE 0xBD25
+%define BASEGRF_VERNUM 1
+
 
 uvard dummyspriteblock
 
@@ -395,7 +405,10 @@ endproc initializegraphics
 
 #define PRESPRITESIZE 8
 
-// in:	edx=pointer to filename
+// in:	eax=number of parameters
+//	edx=pointer to filename
+//	edi->parameter data (0 if none)
+// out:	esi=number of sprites loaded (0 or less if failed)
 proc readgrffile
 	local sprite,spriteptr,len,numsprites,filename,numparam,paramofs,pseudo,curptr
 	local fileoffset
@@ -407,11 +420,10 @@ proc readgrffile
 	mov [curgrffile],edx
 	mov [%$paramofs],edi
 	call dword [openfilefn]
+	mov esi,0		// clear esi without disturbing flags
 	jc near .fail		// file open failed
 
 	mov [tempspritefilehandle],bx
-
-	xor esi,esi
 
 	mov [curfileblocksize],si	//0
 
@@ -780,10 +792,74 @@ resolvesprites:
 	call procallsprites
 	mov eax,PROCALL_INITIALIZE
 	call procallsprites
-
-.done:
 	popa
 	ret
+
+	// no base graphics loaded, try adding file to the list or else complain
+exported forceloadbasegrf
+	pusha
+
+	// see if we can open the file
+	mov ax,0x3d40
+	mov edx,basegrfname
+	CALLINT21
+	jc .notloaded
+
+	// close it again
+	mov bx,ax
+	mov ah,0x3e
+	CALLINT21
+
+	xor eax,eax
+	mov edx,basegrfname
+	xor edi,edi
+	call readgrffile
+
+	cmp esi,1
+	jl .notloaded
+
+	// need to to the LOADED and INITIALIZE stages for this file only
+	mov edx,[curspriteblock]
+	xchg edx,[spriteblockptr]
+	push edx
+	call resolvesprites
+	pop esi
+	xchg esi,[spriteblockptr]
+	mov edx,esi
+
+	test byte [grfmodflags+3],0x80
+	jnz .done
+	mov ax,ourtext(wronggrfversion)
+	jmp short .notvalid
+
+.notloaded:
+	call makespriteblock
+	mov ax,ourtext(filenotfound)
+.notvalid:
+	mov edx,esi
+	and dword [spriteerror],0		// this error overrides all others
+	mov dword [esi+spriteblock.filenameptr],basegrfname
+	call setspriteerror
+
+.done:
+	// move to beginning of list
+	mov eax,edx				// eax=edx=base grf
+	mov ebx,[spriteblockptr]
+	xchg eax,[ebx+spriteblock.next]		// now eax=original first link
+	xchg eax,[edx+spriteblock.next]		// store as base grf's next, get original next
+	mov ebx,edx
+.next:						// then find end of chain
+	cmp [ebx+spriteblock.next],edx
+	je .found
+	mov ebx,[ebx+spriteblock.next]
+	test ebx,ebx
+	jg .next
+	ud2					// this can't happen
+.found:
+	mov [ebx+spriteblock.next],eax		// store base grf's original next at end of chain
+	popa
+	ret
+
 
 // set all grf files to "will be (in)active
 global setwillbeactive
@@ -821,7 +897,7 @@ procallsprites:
 	mov edx,[spriteblockptr]
 
 	test edx,edx
-	jle .done
+	jle near .done
 
 	mov edi,grfvarreinitalwaysstart
 	mov ecx,numgrfvarreinitalways
@@ -851,13 +927,22 @@ procallsprites:
 	mov ecx,GRM_EXTRA_NUM
 	rep movsd
 
+	mov edi,[grfmodflags]
+	push edi
 	call procgrffile
-
-	cmp dword [edx+spriteblock.grfid],0
-	jne .nextblock
+	pop edi
 
 	cmp byte [edx+spriteblock.active],0x80	// had other errors?
 	je .nextblock
+
+	xor edi,[grfmodflags]	// if bit 31 has changed, grf claims to
+	jns .notbasegrf		// be our base grf, validate that
+
+	call checkbasegrf
+
+.notbasegrf:
+	cmp dword [edx+spriteblock.grfid],0
+	jne .nextblock
 
 	mov eax,[spritehandlertable]
 	cmp dword [eax+spritegrfidcheckofs],byte -1
@@ -881,6 +966,27 @@ procallsprites:
 
 extern PROCALL_HANDLERS
 vard procall_handlers, PROCALL_HANDLERS
+
+
+extern grfmodflags
+checkbasegrf:
+	cmp dword [edx+spriteblock.grfid],byte -1
+	jne .notvalid
+	cmp byte [edx+spriteblock.numparam],4
+	jb .notvalid
+	mov edi,[edx+spriteblock.paramptr]
+	cmp word [edi+4*4+2],BASEGRF_VERCODE
+	jne .notvalid
+	cmp word [edi+4*4],BASEGRF_VERNUM
+	jae .done
+
+.notvalid:
+	and dword [spriteerror],0		// this error overrides all others
+	mov ax,ourtext(wronggrfversion)
+	call setspriteerror
+	and byte [grfmodflags+3],~0x80		// clear bit, grf was not right
+.done:
+	ret
 
 
 global procgrffile
