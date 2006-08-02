@@ -825,6 +825,7 @@ exported forceloadbasegrf
 	call resolvesprites
 	pop esi
 	xchg esi,[spriteblockptr]
+	mov edx,esi
 
 	test byte [grfmodflags+3],0x80
 	jnz .done
@@ -835,11 +836,27 @@ exported forceloadbasegrf
 	call makespriteblock
 	mov ax,ourtext(filenotfound)
 .notvalid:
+	mov edx,esi
 	and dword [spriteerror],0		// this error overrides all others
 	mov dword [esi+spriteblock.filenameptr],basegrfname
 	call setspriteerror
 
 .done:
+	// move to beginning of list
+	mov eax,edx				// eax=edx=base grf
+	mov ebx,[spriteblockptr]
+	xchg eax,[ebx+spriteblock.next]		// now eax=original first link
+	xchg eax,[edx+spriteblock.next]		// store as base grf's next, get original next
+	mov ebx,edx
+.next:						// then find end of chain
+	cmp [ebx+spriteblock.next],edx
+	je .found
+	mov ebx,[ebx+spriteblock.next]
+	test ebx,ebx
+	jg .next
+	ud2					// this can't happen
+.found:
+	mov [ebx+spriteblock.next],eax		// store base grf's original next at end of chain
 	popa
 	ret
 
