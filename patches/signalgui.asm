@@ -127,7 +127,6 @@ exported win_signalgui_create
 	mov ax, word [mousecursorscrx]
 	mov bx, [reswidth]
 	sub bx, win_signalgui_width
-UD2
 	cmp ax, bx
 	jb .xok
 	mov ax, bx
