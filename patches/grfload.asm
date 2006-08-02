@@ -405,7 +405,9 @@ endproc initializegraphics
 
 #define PRESPRITESIZE 8
 
-// in:	edx=pointer to filename
+// in:	eax=number of parameters
+//	edx=pointer to filename
+//	edi->parameter data (0 if none)
 // out:	esi=number of sprites loaded (0 or less if failed)
 proc readgrffile
 	local sprite,spriteptr,len,numsprites,filename,numparam,paramofs,pseudo,curptr
@@ -797,11 +799,24 @@ resolvesprites:
 exported forceloadbasegrf
 	pusha
 
+	// see if we can open the file
+	mov ax,0x3d40
 	mov edx,basegrfname
+	CALLINT21
+	jc .notloaded
+
+	// close it again
+	mov bx,ax
+	mov ah,0x3e
+	CALLINT21
+
+	xor eax,eax
+	mov edx,basegrfname
+	xor edi,edi
 	call readgrffile
 
 	cmp esi,1
-	jge .notloaded
+	jl .notloaded
 
 	// need to to the LOADED and INITIALIZE stages for this file only
 	mov edx,[curspriteblock]
@@ -812,15 +827,16 @@ exported forceloadbasegrf
 	xchg esi,[spriteblockptr]
 
 	test byte [grfmodflags+3],0x80
-	jz .notvalid
-	jmp short .done
+	jnz .done
+	mov ax,ourtext(wronggrfversion)
+	jmp short .notvalid
 
 .notloaded:
 	call makespriteblock
+	mov ax,ourtext(filenotfound)
 .notvalid:
 	and dword [spriteerror],0		// this error overrides all others
 	mov dword [esi+spriteblock.filenameptr],basegrfname
-	mov ax,ourtext(filenotfound)
 	call setspriteerror
 
 .done:
