@@ -747,3 +747,4 @@ CHANGELOG
 - make sure broken down aircraft are no slower than 80 mph to prevent them
   from getting stuck
 - check that ttdpbase(w).grf is loaded and is the right version
+- fix problem if followvehicle is active while loading a game

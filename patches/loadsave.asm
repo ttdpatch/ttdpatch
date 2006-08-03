@@ -954,6 +954,8 @@ newloadtitleproc:
 	bts [orighumanplayers],eax
 .enhmulti_done:
 #endif
+
+	call updategamedata
 	
 	// looks like it's all. Whew!
 
@@ -981,6 +983,14 @@ newloadtitleproc:
 	or al,1				// indicate success (CF=ZF=0)
 	ret
 ; endp newloadproc
+
+
+// Called after loading a savegame/scenario or after generating a random game
+//
+exported updategamedata
+	extern followvehicleidx
+	or dword [followvehicleidx],byte -1	// reset followvehicle
+	ret
 
 
 // Delete an entire consist from the vehicle array
