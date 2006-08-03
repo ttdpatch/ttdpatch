@@ -34,6 +34,7 @@ extern clearairportdataids, landscape8_ptr, landscape8clear,landscape8init
 extern guardalloc, guardallocchangesize
 global lastmallocofs
 #endif
+extern currtownname,currtownnametitle
 
 #define __no_extern_vars__ 1
 #include <win32.inc>
@@ -884,6 +885,9 @@ initializeveharray:
 	call landscape8clear	// new game -> init landscape8 if present
 	call landscape8init
 .no_l8:
+
+	mov eax,[currtownnametitle]
+	mov [currtownname],eax
 
 	popa
 	ret

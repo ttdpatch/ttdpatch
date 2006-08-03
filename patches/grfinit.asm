@@ -94,7 +94,7 @@ newvehtypeinit:
 					// but not for Cht: ResetVehicles
 	test ah,ah
 	jnz .dontresetgraphics
-    mov byte [editTramMode], 0h
+	mov byte [editTramMode], 0h
 	mov al,[grfstat_titleclimate]
 	cmp al,[climate]
 	je .usegrflist
@@ -137,6 +137,13 @@ newvehtypeinit:
 	lea ecx,[eax+0xAF]
 	rep stosb
 
+	cmp byte [activatedefault],0
+	jne .notnewgame2
+
+	extern updategamedata
+	call updategamedata
+
+.notnewgame2:
 	call infoapply		// and apply newgrf and other modifications
 
 	pop es

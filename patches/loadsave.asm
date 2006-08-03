@@ -992,6 +992,8 @@ newloadtitleproc:
 	call landscape8init
 .no_l8:
 
+	call updategamedata
+	
 	// looks like it's all. Whew!
 
 	// now initialize the newgrfs.  this needs to run after loading
@@ -1018,6 +1020,14 @@ newloadtitleproc:
 	or al,1				// indicate success (CF=ZF=0)
 	ret
 ; endp newloadproc
+
+
+// Called after loading a savegame/scenario or after generating a random game
+//
+exported updategamedata
+	extern followvehicleidx
+	or dword [followvehicleidx],byte -1	// reset followvehicle
+	ret
 
 
 // Delete an entire consist from the vehicle array
