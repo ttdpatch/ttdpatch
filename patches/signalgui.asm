@@ -161,12 +161,30 @@ exported win_signalgui_create
 .nopbstoggle:
 	and dl, 11110b
 	mov byte [esi+window.data+signalguidata.type], dl
+	call win_signalgui_setdisabledbuttons
+	
 	pop esi
 	
 	mov ebx, 0
 	add esp, 4		// unwind the stack, need to be changed to do jc after the icall in fragment, but ohh well it works
 	ret
 
+
+win_signalgui_setdisabledbuttons:
+	push edx
+	movzx edx, byte [esi+window.data+signalguidata.type]
+	and dl, 10110b
+	shr dx, 1
+	btr dx, 3
+	jnc .notpbs
+	add dl, 4
+.notpbs:
+	add dl, 2
+	bts dword [esi+window.disabledbuttons], edx
+	pop edx
+	ret
+	
+	
 win_signalgui_winhandler:
 	mov bx, cx
 	mov esi, edi
@@ -193,6 +211,7 @@ win_signalgui_timer:
 #endif
 
 .switch:
+	call win_signalgui_setdisabledbuttons
 	mov al,[esi]
 	mov bx,[esi+window.id]
 	//or al, 80h
