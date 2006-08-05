@@ -501,7 +501,7 @@ u32 langinfo_readingamestrings(langinfo *linfo, u32 exesize, char *target, u32 t
 	fread(&i, 4, 1, f);
 	if (i !=  (MAGIC ^ 0x12345678)) {
 		if (targetsize)
-			warning(langtext[LANG_CUSTOMTXTWRONGVER], external_text_file);
+			warning(langtext[LANG_CUSTOMTXTINVALID], external_text_file);
 		datsize--;
 	}
   }

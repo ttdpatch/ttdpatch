@@ -511,17 +511,6 @@ enum langtextids {
 	// Obsolete strings here, so that they don't causes error messages
 	// when present anyway
 
-	CFG_CUSMULTIPLIER,
-	LANG_CODESTOREDAT,
-	LANG_PROTECTEDTOOLARGE,		// Protected mode code exceeds 32kb
-	LANG_NOTTDPATCHGRF,		// Messages about the graphics file ttdpatch.grf
-	LANG_ERRORCREATING,
-	LANG_TOSTARTTTD,
-	LANG_NOFILEFOUND,		// (Windows) neither does GameGFX.exe
-	CFG_AIBOOST,	
-	CFG_MOREINDUSTRIESPERCLIMATE,
-	LANG_CUSTOMTXTWRONGVER,
-
 	LANG_REALLYLASTSTRING		// Must be the last, used below to determine how many entries we need
 
 };

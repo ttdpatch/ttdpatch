@@ -159,10 +159,6 @@ SETTEXT(LANG_LOADCUSTOMTEXTS, "Загрузка встроенных текстовых сообщений.\n")
 // ttdpttxt.dat is not in a valid format
 SETTEXT(LANG_CUSTOMTXTINVALID, "Чтение %s: Неверный формат файла.\n")
 
-SETTEXT(LANG_CUSTOMTXTWRONGVER,
-        "%s должен быть пересоздан для этой версии TTDPatch.\n"
-        "Пожалуйста, скачайте последнюю версию программы mkpttxt.exe и запустите ее.\n")
-
 // -----------------------------------------------
 //  COMMAND LINE HELP (-h)
 // -----------------------------------------------
