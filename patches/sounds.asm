@@ -443,7 +443,7 @@ initsounddriver:
 	mov byte [StereoEnabled],1
 	mov dword [mixbuffer], addr(mixstereosoundtobuffer)
 	mov dword [maxsamplelen], SOUNDBUFSIZE/2/2
-	mov dword [mixbuffer_upsample], addr(mixstereosoundtobuffer_upsample)
+	mov dword [mixbuffer.upsample], addr(mixstereosoundtobuffer_upsample)
 	mov dword [maxsamplelen_upsample], SOUNDBUFSIZE/2/4
 
 #if 0
@@ -460,7 +460,7 @@ initsounddriver:
 	mov byte [SixteenBitEnabled],1
 	mov dword [mixbuffer], addr(mix16bitsoundtobuffer)
 	mov dword [maxsamplelen], SOUNDBUFSIZE/2/4
-	mov dword [mixbuffer_upsample], addr(mix16bitsoundtobuffer_upsample)
+	mov dword [mixbuffer.upsample], addr(mix16bitsoundtobuffer_upsample)
 	mov dword [maxsamplelen_upsample], SOUNDBUFSIZE/2/8
 
 .no16bit:
@@ -535,8 +535,11 @@ endproc
 
 // some parts of the playback need to be changed for stereo playback and auto-init DMA
 // instead of conditional jumps, we do indirect calls to addresses stored here
-vard mixbuffer, addr(mixmonosoundtobuffer)
-vard mixbuffer_upsample, addr(mixmonosoundtobuffer_upsample)
+vard mixbuffer
+		dd addr(mixmonosoundtobuffer)
+.upsample:	dd addr(mixmonosoundtobuffer_upsample)
+endvar
+
 vard needrefill, addr(checkaudiopending)
 vard postsound, addr(postnormalsound)
 
