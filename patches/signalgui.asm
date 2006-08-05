@@ -273,17 +273,39 @@ win_signalgui_redraw:
 	add cx, win_signalgui_signalboxwidth
 	add eax, 2
 	call win_signalgui_drawsignal
+
+	mov eax,1
+	add cx, win_signalgui_signalboxwidth-5
+	sub dx,1
+	call win_signalgui_drawsignal
+	add cx,5
+	sub dx,3
+	call win_signalgui_drawsignal
+	add cx,5
+	sub dx,3
+	call win_signalgui_drawsignal
+
+	movzx eax,byte [autosignalsep]
+	mov [textrefstack],eax
+	mov bx,statictext(whitedword)
+	sub cx,3
+	add dx,11
+	call [drawcenteredtextfn]
 	ret
 	
 	
 // in eax = 0=plain, 2=pre, 4=exit, 6=combo, +8=semaphore, +16=PBS
+//	+1 = diagonal view
 win_signalgui_drawsignal:
 	pusha
 	// undo default sprite xyrel
 	add cx, 2
 	add dx, 22
 
-	mov ebx, 0x4fb+12
+	btr eax,0
+	sbb ebx,ebx
+	and ebx,byte -12	// now ebx=-12 for diagonal view, 0 for normal
+	add ebx, 0x4fb+12
 	and eax, [numsiggraphics]
 	jz .nopresignal
 	lea ebx,[ebx-0x4fb+eax*8-16]
@@ -309,6 +331,10 @@ win_signalgui_clickhandler:
 .nottilebar:
 	cmp cl, 11
 	je .autosignalclick
+	cmp cl,12
+	je .autosignalup
+	cmp cl,13
+	je .autosignaldown
 	cmp cl, 2
 	jnb .signalclick
 	ret
@@ -317,6 +343,19 @@ win_signalgui_clickhandler:
 	cmp cl, 9
 	jb near .onsignalbutton
 	ret
+
+.autosignalup:
+	cmp byte [autosignalsep],255
+	jae .press
+	inc byte [autosignalsep]
+	jmp short .press
+
+.autosignaldown:
+	cmp byte [autosignalsep],0
+	je .press
+	dec byte [autosignalsep]
+.press:
+	jmp win_signalgui_pressit
 
 .autosignalclick:
 	pusha
