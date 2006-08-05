@@ -301,7 +301,7 @@
 	YESNO('I',"irregularstations", CFG_IRRSTATIONS, INFST_STATION, "IrregularStations", irrstations),
 	     //J
 	     //K
-	RANGE('L',"autosignaldistance", CFG_AUTOSIGDISTANCE, INFST_RAIL_SIGNAL, "Signalling", noswitch, 0, 0, FLAGDATA(autosignalsep), 3, 255, 12),
+	RANGE('L',"autosignaldistance", CFG_AUTOSIGDISTANCE, INFST_RAIL_SIGNAL, "Signalling", noswitch, 0, 0, FLAGDATA(autosignalsep), 0, 255, 6),
 	YESNO('M',"morestatistics", CFG_MORESTATS, INTERFACE, "MoreStatistics", morestats),
 	YESNO('N', "newroutes", CFG_NEWROUTES, INFST, "newRoutes", newroutes),
 	RANGE('O',"autoslope", CFG_AUTOSLOPE, TERRAIN, "AutoSlope", autoslope, 0, 1, FLAGDATA(autoslopevalue), 1, 3, 1),

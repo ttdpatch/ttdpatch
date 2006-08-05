@@ -150,11 +150,13 @@ autosignals:
 
 .havebits:
 	mov cl,0
+	jmp .getnexttile
 
 .nothere:
 	cmp dl,4
-	adc cl,3	// add 3 for pieces 4 8 10 20 and 4 for pieces 1 2
+	adc cl,1	// add 1 for pieces 4 8 10 20 and 2 for pieces 1 2
 
+.getnexttile:
 	// go to following tile
 	extern tiledeltas
 	add di,[tiledeltas+ebp]
