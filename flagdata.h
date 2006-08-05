@@ -114,7 +114,6 @@ defbyte(planespeedfactor)	// factor for planespeed switch
 defbyte(pbssettings)		// bit settings for PBS
 defbyte(newsoundsettings)	// bit settings for newsounds
 defbyte(replaceminreliab)	// minimum reliability for autoreplace
-defbyte(autosignalsep)		// autosignal separation
 
 
 #define flags_ubyte_end replaceage

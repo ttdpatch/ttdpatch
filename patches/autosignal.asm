@@ -2,6 +2,8 @@
 
 #include <std.inc>
 
+varb autosignalsep,6
+
 // called from patch action handler for signal gui
 //
 // in:	ax=tile X
