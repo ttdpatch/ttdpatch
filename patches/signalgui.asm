@@ -106,17 +106,27 @@ exported win_signalgui_create
 	ret
 	
 	
-.signalpresent:	
+.signalpresent:
 	pusha
+	push ecx
 	mov cl, 0x2A
 	mov dx, win_signalgui_id // window.id
 	call [FindWindow]
+	pop ecx
 	test esi,esi
 	jz .noold
+	cmp word [esi+window.data+signalguidata.x], ax
+	jne .differentlocation
+	cmp word [esi+window.data+signalguidata.y], cx
+	jne .differentlocation
+	popa
+	jmp .dooldcode
+.differentlocation:
 	call [DestroyWindow]
 .noold:
 	//mov eax, (640-win_signalgui_width)/2 + (((480-win_signalgui_height)/2) << 16) // x, y
 	movzx eax, word [mousecursorscry]
+	add eax, 1
 	mov bx, word [resheight]
 	sub bx, win_signalgui_height+26
 	cmp ax, bx
@@ -125,6 +135,7 @@ exported win_signalgui_create
 .yok:
 	shl eax, 16
 	mov ax, word [mousecursorscrx]
+	add ax, 1
 	mov bx, [reswidth]
 	sub bx, win_signalgui_width
 	cmp ax, bx
