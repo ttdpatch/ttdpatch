@@ -529,17 +529,17 @@ ttdprotd${EXED} ttdprotd${EXED}.map:	$(dosobjs)
 	@echo $^ 			>> $(DRSP)
 	@echo zlib_bc$(MODEL).lib	>> $(DRSP)
 	@echo exec_bc$(MODEL).lib	>> $(DRSP)
-	${_C}$(LDD) -m$(MODEL) -e$@	@$(URSP)
+	${_C}$(LDD) -m$(MODEL) -ettdprotd${EXED}	@$(URSP)
 else
 # for OpenWatcom wlink, files need to be comma-separated, so we'll use sed to s/ /,/
 ttdprotd${EXED} ttdprotd${EXED}.map:	$(dosobjs)
 	${_E} [LDD] $@
-	${_C}$(LDD) ${LDFLAGSD} name $@ file `echo $^|sed "s/ /,/g"` lib zlib_ow$(MODEL).lib,exec_ow$(MODEL).lib
+	${_C}$(LDD) ${LDFLAGSD} name ttdprotd${EXED} file `echo $^|sed "s/ /,/g"` lib zlib_ow$(MODEL).lib,exec_ow$(MODEL).lib
 endif
 
 ttdprotw${EXEW} ttdprotw${EXEW}.map:	$(winobjs)
 	${_E} [LD] $@
-	${_C}$(LD) -o $@ $^ $(LDFLAGS)
+	${_C}$(LD) -o ttdprotw${EXEW} $^ $(LDFLAGS)
 
 # compress it, and link the language data to it too
 ttdpatch.exe:	ttdprotd${EXED} language.dat

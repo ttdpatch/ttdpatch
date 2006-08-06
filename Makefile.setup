@@ -59,7 +59,7 @@ LD-OWC = wlink
 STRIP-OWC = wstrip -q
  
 CFLAGS-OWC = -3 -zp1 -e7 -wx -wcd=202 -zq -bt=DOS -nt=_MYTEXT -hc -zt=4096
-LDFLAGS-OWC = option quiet debug watcom system dos option map=$@.map
+LDFLAGS-OWC = option quiet debug watcom system dos option map=$(@:%.map=%).map
 ifeq ($(DEBUG),1)
 CFLAGS-OWC += -d3 -od
 else
