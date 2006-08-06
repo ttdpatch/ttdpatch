@@ -429,9 +429,10 @@ endvar
 
 //IN:	ax,cx=x,y
 //	bl=actionflags
-//	bh=pre+exit bits,semaphore toggle bit!+pbs bit
+//	bh=pre+exit bits,semaphore toggle bit!+pbs bit+only semaphore bit
 //	dl=trackpiece
 // 	dh=action type; 0=set signal type, 1=build autosignals
+//	build autosignals: edx(16:23)=separation
 global altersignalsbygui_flags
 uvarb altersignalsbygui_flags
 
@@ -444,6 +445,15 @@ exported AlterSignalsByGUI
 	mov esi, 0x060000
 	mov ebp, [ophandler+1*8]
 	call [ebp+0x10]
+	cmp ebx, 0x80000000
+	je .failedornotneeded
+	test byte [altersignalsbygui_flags], 101000b
+	jz .failedornotneeded
+	jpo .failedornotneeded
+	cmp ebx, 0
+	jne .failedornotneeded
+	mov ebx, [signalremovecost]
+.failedornotneeded:
 	mov byte [altersignalsbygui_flags], 0
 	ret
 
