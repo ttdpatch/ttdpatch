@@ -200,7 +200,7 @@ proc calcpowerandspeed
 	shl esi,byte vehicleshift
 	add esi,[veharrayptr]
 
-	cmp byte [esi+veh.currorderidx],0xfd	// articulated (can be all but first vehicle)
+	cmp byte [esi+veh.artictype],0xfd	// articulated (can be all but first vehicle)
 	jb .nextvehicle
 	je .reversed
 	jmp .getnextveh
@@ -211,7 +211,7 @@ proc calcpowerandspeed
 	je .nextvehicle		// was the last articulated piece = the real engine
 	shl ecx,7
 	add ecx,[veharrayptr]
-	cmp byte [ecx+veh.currorderidx],0xfd
+	cmp byte [ecx+veh.artictype],0xfd
 	jb .nextvehicle		// same
 	mov esi,ecx
 	jmp .reversed
@@ -340,7 +340,7 @@ calcvehweight:
 .nocargo:
 	cmp byte [esi+veh.subclass],0
 	je .notartic
-	cmp byte [esi+veh.currorderidx],0xfe
+	cmp byte [esi+veh.artictype],0xfe
 	jb .notartic
 	ret
 
@@ -532,9 +532,7 @@ uvarb forceextrahead
 	//
 global attachwaggon
 attachwaggon:
-	// for wagons, currorderidx is ff for articulated engine parts
-	// and fd/fe for articulated second head engine parts
-	cmp byte [edi+veh.currorderidx],0xfd
+	cmp byte [edi+veh.artictype],0xfd
 	ja .done
 	cmc
 	je .done
@@ -592,7 +590,7 @@ detachfromsoldengine:
 	mov di,[eax+veh.idx]
 	mov dx,[eax+veh.nextunitidx]
 
-	cmp byte [eax+veh.currorderidx],0xfd
+	cmp byte [eax+veh.artictype],0xfd
 	je .newartichead	// counts as engine even if it isn't one
 	jb .notarticpiece
 
@@ -617,7 +615,7 @@ detachfromsoldengine:
 	add ecx,[veharrayptr]
 	movzx esi,byte [ecx+veh.vehtype]
 
-	cmp byte [eax+veh.currorderidx],0xfd
+	cmp byte [eax+veh.artictype],0xfd
 	je .rightengine
 
 	cmp si,[eax+veh.vehtype]
@@ -704,14 +702,14 @@ selliswagon:
 	sbb al,al
 	jnc .cantsellarticdualhead
 
-	cmp byte [edx+veh.currorderidx],0xfd
+	cmp byte [edx+veh.artictype],0xfd
 	je .done			// is second head of articulated engine
 
 .cantsellarticdualhead:
 	cmp byte [edx+veh.subclass],4
 	je .done	// can always sell first wagon on a row, no matter what (as safety net)
 
-	cmp byte [edx+veh.currorderidx],0xf0
+	cmp byte [edx+veh.artictype],0xf0
 	cmc
 	jc .done			// is engine -> can't sell
 
@@ -763,9 +761,9 @@ movedcheckiswaggon:
 	add eax,[veharrayptr]
 
 	// are we trying to attach after articulated dual head piece?
-	cmp byte [eax+veh.currorderidx],0xfd
+	cmp byte [eax+veh.artictype],0xfd
 	jb .trynext	// no, not part of an articulated engine
-	cmp byte [eax+veh.currorderidx],0xfe
+	cmp byte [eax+veh.artictype],0xfe
 	ja .trynext	// no, not a dual head piece
 
 	// attach after vehicle before it instead
@@ -789,7 +787,7 @@ movedcheckiswaggon:
 	shl eax,7
 	add eax,[veharrayptr]
 
-	cmp byte [eax+veh.currorderidx],0xff
+	cmp byte [eax+veh.artictype],0xff
 	jb .notarticulated
 
 	mov dx,[eax+veh.idx]
@@ -798,7 +796,7 @@ movedcheckiswaggon:
 	// nor can the current vehicle (in edi) be moved if it is part
 	// of an articulated engine
 .notarticulated:
-	cmp byte [edi+veh.currorderidx],0xfd
+	cmp byte [edi+veh.artictype],0xfd
 	jb .stillnotartic
 
 	// try moving the first engine piece instead
@@ -810,7 +808,7 @@ movedcheckiswaggon:
 	shl eax,7
 	add eax,[veharrayptr]
 
-	cmp byte [eax+veh.currorderidx],0xfe
+	cmp byte [eax+veh.artictype],0xfe
 	jae .cantmovethis
 
 	mov edi,eax
@@ -841,7 +839,7 @@ movedcheckiswaggon:
 	je .done
 	shl ebx,7
 	add ebx,[veharrayptr]
-	cmp byte [ebx+veh.currorderidx],0xfe
+	cmp byte [ebx+veh.artictype],0xfe
 	jae .next
 .done:
 	pop ebx
@@ -889,7 +887,7 @@ movedcheckiswaggon:
 	je .simple
 	shl esi,7
 	add esi,[veharrayptr]
-	cmp byte [esi+veh.currorderidx],0xfe
+	cmp byte [esi+veh.artictype],0xfe
 	jb .simple
 
 	call reversearticulatedloco
@@ -969,7 +967,7 @@ proc trainmaintcost
 	je .notwagon
 
 	// articulated engine pieces don't cause extra running costs
-	cmp byte [esi+veh.currorderidx],0xfe
+	cmp byte [esi+veh.artictype],0xfe
 	jae .notengine
 
 .notwagon:

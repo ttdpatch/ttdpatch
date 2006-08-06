@@ -1133,7 +1133,7 @@ proc newbuyrailvehicle
 	je .done
 
 	// attach to engine
-	mov byte [edi+veh.currorderidx],0	// in case any left-over was in there
+	mov byte [edi+veh.artictype],0	// in case any left-over was in there
 	mov byte [edi+veh.subclass],2
 	mov edx,[%$veh]
 	mov dx,[edx+veh.idx]
@@ -1208,7 +1208,7 @@ global nextfirstwagon
 nextfirstwagon:
 	shl eax,7
 	add eax,[veharrayptr]
-	cmp byte [eax+veh.currorderidx],0xfe
+	cmp byte [eax+veh.artictype],0xfe
 	jb .done
 
 	mov ax,[eax+veh.nextunitidx]
@@ -1251,7 +1251,7 @@ reversearticulatedloco:
 	mov esi,eax
 	shl esi,7
 	add esi,[veharrayptr]
-	cmp byte [esi+veh.currorderidx],0xfe
+	cmp byte [esi+veh.artictype],0xfe
 	jb .storedall
 	movzx eax,word [esi+veh.nextunitidx]
 	cmp ax,byte -1
@@ -1300,9 +1300,9 @@ reversearticulatedloco:
 	shl edi,7
 	add edi,[veharrayptr]
 .gotnothingbefore:
-	mov al,[edi+veh.currorderidx]
-	xchg al,[esi+veh.currorderidx]
-	mov [edi+veh.currorderidx],al
+	mov al,[edi+veh.artictype]
+	xchg al,[esi+veh.artictype]
+	mov [edi+veh.artictype],al
 
 	mov al,[edi+veh.subclass]
 	xchg al,[esi+veh.subclass]
@@ -1368,7 +1368,7 @@ showtraindetailssprite:
 	je .lastone
 	shl ebx,7
 	add ebx,[veharrayptr]
-	cmp byte [ebx+veh.currorderidx],0xfe
+	cmp byte [ebx+veh.artictype],0xfe
 	jae .nextone
 
 .lastone:
@@ -1383,7 +1383,7 @@ global findtraindetailveh
 findtraindetailveh:
 	cmp byte [edi+veh.subclass],2
 	jb .gotit
-	cmp byte [edi+veh.currorderidx],0xfe
+	cmp byte [edi+veh.artictype],0xfe
 .gotit:
 	jnc .returnsf
 
@@ -1407,7 +1407,7 @@ global counttrainslots
 counttrainslots:
 	cmp byte [edi+veh.subclass],2
 	jb .gotit
-	cmp byte [edi+veh.currorderidx],0xfe
+	cmp byte [edi+veh.artictype],0xfe
 .gotit:
 	adc cl,0
 	mov di,[edi+veh.nextunitidx]
