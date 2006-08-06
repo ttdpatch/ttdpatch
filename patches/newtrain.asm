@@ -1491,7 +1491,7 @@ startstopveh:
 
 	//For articulated RVs: we need to start the 'trailers'
 	cmp byte [edx+veh.class], 11h //is this an rv?
-	jne .done
+	jne .ok
 	push edx
 .looptrailers:
 	cmp word [edx+veh.nextunitidx], 0xFFFF //is there a 'trailer' ?
@@ -1503,5 +1503,7 @@ startstopveh:
 	jmp .looptrailers
 .cleanuppop:
 	pop edx
+.ok:
+	clc
 .done:
 	ret
