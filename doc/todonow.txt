@@ -749,3 +749,4 @@ CHANGELOG
 - check that ttdpbase(w).grf is loaded and is the right version
 - fix problem if followvehicle is active while loading a game
 - fix AI companies being sold off not clearing all their tiles
+- fixed problem building tram stops when newstations is off
