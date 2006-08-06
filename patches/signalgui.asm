@@ -68,12 +68,12 @@ db cWinElemLast
 endvar
 
 struc signalguidata
-	.life:	resb 1	// 00: seconds left before closing
-	.unused:resb 1	// 01: unused
+	.xy resw 1	// 00: xy of tile to change
 	.x:	resw 1	// 02: x of tile to change
 	.y:	resw 1	// 04: y of tile to change
-	.piece:	resb 1	// 06: track piece bit to change
-	.type:	resb 1	// 07: signal type (pre/pbs/semaphore) to change
+	.life:	resb 1	// 06: seconds left before closing
+	.piece:	resb 1	// 07: track piece bit to change
+	.type:	resb 1	// 08: signal type (pre/pbs/semaphore) to change
 endstruc
 
 
@@ -119,6 +119,7 @@ exported win_signalgui_create
 	jne .differentlocation
 	cmp word [esi+window.data+signalguidata.y], cx
 	jne .differentlocation
+	or byte [esi+window.flags], 7	// this allows the signalwindow recognize signal changes :)
 	popa
 	jmp .dooldcode
 .differentlocation:
@@ -157,10 +158,13 @@ exported win_signalgui_create
 	push esi
 	movzx edi, di
 	mov esi, dword [win_signalgui_winptr]
-	mov byte [esi+window.data+signalguidata.life], win_signalgui_timeout
+	
+	mov word [esi+window.data+signalguidata.xy], di
 	mov word [esi+window.data+signalguidata.x], ax
 	mov word [esi+window.data+signalguidata.y], cx
+	mov byte [esi+window.data+signalguidata.life], win_signalgui_timeout
 	mov byte [esi+window.data+signalguidata.piece], dl
+	
 	
 	mov dl, byte [landscape3+1+edi*2]
 	mov ebx,landscape6
@@ -173,7 +177,7 @@ exported win_signalgui_create
 	and dl, 11110b
 	mov byte [esi+window.data+signalguidata.type], dl
 	call win_signalgui_setdisabledbuttons
-	
+	or byte [esi+window.flags], 7
 	pop esi
 	
 	mov ebx, 0
@@ -181,6 +185,43 @@ exported win_signalgui_create
 	ret
 
 
+win_signalgui_refreshtilestatus:
+	push edx
+	push edi
+	movzx edi, word [esi+window.data+signalguidata.xy]
+	mov dh,[landscape4(di,1)]
+	and dh,0xF0
+	cmp dh,0x10
+	jne .suicide
+	
+	test byte [landscape5(di,1)], 0xC0
+	jz .suicide
+	js .suicide
+	//signal present
+	
+	mov dl, byte [landscape3+1+edi*2]
+	mov ebx,landscape6
+	test ebx,ebx
+	jle .nopbstoggle
+	test byte [ebx+edi], 8
+	jz .nopbstoggle
+	or dx, 16
+.nopbstoggle:
+	pop edi
+	cmp byte [esi+window.data+signalguidata.type], dl
+	je .nochange
+	mov byte [esi+window.data+signalguidata.type], dl
+	call win_signalgui_setdisabledbuttons
+.nochange:
+	pop edx
+	clc
+	ret
+.suicide:
+	pop edi
+	pop edx
+	stc
+	ret
+	
 win_signalgui_setdisabledbuttons:
 	push edx
 	movzx edx, byte [esi+window.data+signalguidata.type]
@@ -191,6 +232,7 @@ win_signalgui_setdisabledbuttons:
 	add dl, 4
 .notpbs:
 	add dl, 2
+	mov word [esi+window.disabledbuttons], 0
 	bts dword [esi+window.disabledbuttons], edx
 	pop edx
 	ret
@@ -211,22 +253,14 @@ win_signalgui_winhandler:
 	
 win_signalgui_timer:
 	mov dword [esi+window.activebuttons], 0
-#if 0
-	mov ah, 2
-	btr dword [esi+window.activebuttons], 2
-	jb .switch
-	mov ah,3
-	btr dword [esi+window.activebuttons], 3
-	jb .switch
-	ret
-#endif
-
-.switch:
-	call win_signalgui_setdisabledbuttons
+	call win_signalgui_refreshtilestatus
+	jnc .nosuicide
+	jmp [DestroyWindow]
+.nosuicide:	
 	mov al,[esi]
 	mov bx,[esi+window.id]
-	//or al, 80h
 	call dword [invalidatehandle]
+	or byte [esi+window.flags], 7 
 	ret
 	
 win_signalgui_sectick:
