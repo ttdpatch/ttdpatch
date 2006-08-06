@@ -313,15 +313,10 @@ endproc calcpowerandspeed
 extern TrainTEGeneric.lebx
 global calcvehweight
 calcvehweight:
-	xor eax,eax
-	cmp byte [esi+veh.subclass],0
-	je .notartic
-	cmp byte [esi+veh.currorderidx],0xfe
-	jb .notartic
-	ret
-
-.notartic:
 	movzx eax,word [esi+veh.currentload]
+	test eax,eax
+	jz .nocargo
+
 	movzx ebx,byte [esi+veh.cargotype]
 	bt [isfreightmult],ebx
 	jnc .notfreight
@@ -342,6 +337,14 @@ calcvehweight:
 	imul eax,ebx
 	shr eax,4
 
+.nocargo:
+	cmp byte [esi+veh.subclass],0
+	je .notartic
+	cmp byte [esi+veh.currorderidx],0xfe
+	jb .notartic
+	ret
+
+.notartic:
 	movzx ebx,byte [esi+veh.vehtype]
 
 	test byte [esi+veh.modflags],1<<MOD_POWERED

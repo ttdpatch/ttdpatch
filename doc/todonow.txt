@@ -751,3 +751,4 @@ CHANGELOG
 - fix AI companies being sold off not clearing all their tiles
 - fixed problem building tram stops when newstations is off
 - fix tunnels in cooperative play with enhancetunnels on
+- fix cargo in all but first vehicle of articulated wagons having no weight
