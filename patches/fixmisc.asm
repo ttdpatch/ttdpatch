@@ -1108,6 +1108,17 @@ companyvalue:
 .done:
 	ret
 
+// When deleting a company, set its cash amount to be spent clearing tiles
+//
+// in:	esi->company
+// out:	set cash
+// safe:esi
+exported deletecompany
+	mov dword [esi+player.cash],100000000
+	mov dword [esi+player2ofs+player2.cash],100000000
+	and dword [esi+player2ofs+player2.cash+4],0
+	ret
+
 // fill textrefstack for the profit display in the vehicle list window
 // in: edi -> vehicle
 //	???

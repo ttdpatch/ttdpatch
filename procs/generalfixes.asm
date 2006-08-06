@@ -337,6 +337,13 @@ codefragment newshowstatuscash
 	mov bx,statictext(disp64bitcash_white)
 	setfragmentsize 12
 
+codefragment olddeletecompany
+	mov dword [esi+player.cash],100000000
+
+codefragment newdeletecompany
+	icall deletecompany
+	setfragmentsize 7
+
 codefragment oldstartnewcompany
 	mov [esi+player.tracktypes],cl
 
@@ -971,6 +978,7 @@ patchgeneralfixes:
 	patchcode showcompanynet
 	patchcode showstatuscash
 	patchcode startnewcompany
+	patchcode deletecompany
 
 	patchcode oldgeneratezeppelin,newgeneratezeppelin,1,1,,{test word [miscmodsflags],MISCMODS_NOZEPPELINONLARGEAP},nz
 	multipatchcode oldcheckzeppelincrasharea1,newcheckzeppelincrasharea,2
