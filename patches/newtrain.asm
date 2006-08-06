@@ -1375,6 +1375,48 @@ showtraindetailssprite:
 	jmp $+0x1000
 ovar fnshowtrainsprites,-4
 
+// find the X position for displaying the train window info text after the sprite
+//
+// in:	esi->window
+//	edi->vehicle
+//	cx=X
+//	dx=Y
+// out:	cx=X
+//	dx=Y
+// safe:eax bx ebp
+exported displaytraininfotext
+	mov eax,edi
+	xor bx,bx
+	cmp byte [eax+veh.artictype],0xfe
+	jae .done
+
+	add dx,2
+	xor ebp,ebp
+.next:
+	push eax
+	call getwagonlength
+	pop ebp
+	and ebp,0x7f
+	shl ebp,2
+	extern depotscalefactor
+	add bx,[depotscalefactor]
+	sub bx,bp
+
+	movzx eax,word [eax+veh.nextunitidx]
+	cmp ax,byte -1
+	je .done
+	shl eax,7
+	add eax,[veharrayptr]
+	cmp byte [eax+veh.artictype],0xfe
+	jae .next
+.done:
+	cmp bx,[depotscalefactor]
+	jae .ok
+	mov bx,[depotscalefactor]
+.ok:
+	lea cx,[ecx+ebx+8]
+	ret
+
 // find the vehicle to display in the train details window
 // in:	edi->vehicle
 // out:	sign flag if display vehicle

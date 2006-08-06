@@ -54,11 +54,12 @@ codefragment newcounttrainslots
 	call runindex(counttrainslots)
 
 codefragment olddisplaytraininfotext
-	db 30
+	add cx,30
 	add dx,2
 
 codefragment newdisplaytraininfotext
-	db 38
+	icall displaytraininfotext
+	setfragmentsize 8
 
 //codefragment oldchoosetrainvehindepot // ledit
 //	dec al
