@@ -2,6 +2,7 @@
 #include <frag_mac.inc>
 #include <ptrvar.inc>
 #include <player.inc>
+#include <window.inc>
 
 extern dailyvehproc,dailyvehproc.oldrail,drawsplittextfn,drawtextfn
 extern fnshowtrainsprites,movetrainvehicle,newbuyrailvehicle
@@ -27,24 +28,16 @@ codefragment newdisplaytraininfosprite
 	call runindex(displaytraininfosprite)
 	setfragmentsize 8
 
-//codefragment newshowactivetrainveh // ledit
-//	call runindex(showactivetrainveh)
-//	setfragmentsize 9
-
 codefragment oldshowtraindetailssprite,1
 	push edi
 	mov al,1
-
-codefragment newshowtraindetailssprite
-	call runindex(showtraindetailssprite)
-	setfragmentsize 7
 
 codefragment oldfindtraindetailveh
 	dec al
 	jns $+2+0x58
 
 codefragment newfindtraindetailveh
-	call runindex(findtraindetailveh)
+	ijmp drawtraininforows
 
 codefragment oldcounttrainslots
 	mov di,[edi+veh.nextunitidx]
@@ -53,20 +46,9 @@ codefragment oldcounttrainslots
 codefragment newcounttrainslots
 	call runindex(counttrainslots)
 
-codefragment olddisplaytraininfotext
-	add cx,30
-	add dx,2
-
-codefragment newdisplaytraininfotext
-	icall displaytraininfotext
-	setfragmentsize 8
-
-//codefragment oldchoosetrainvehindepot // ledit
-//	dec al
-//	js $+2+0x1a
-
-//codefragment newchoosetrainvehindepot
-//	jmp runindex(choosetrainvehindepot)
+codefragment findshowtraininforow
+	mov ax,[esi+window.data]
+	cmp ax,9
 
 codefragment oldtrainleavedepot,-7
 	jne $+2+0x3e
@@ -195,14 +177,12 @@ patchnewtrains:
 
 	stringaddress oldshowtraindetailssprite
 	copyrelative fnshowtrainsprites,3
-	storefragment newshowtraindetailssprite
 
 	patchcode oldfindtraindetailveh,newfindtraindetailveh
 	patchcode oldcounttrainslots,newcounttrainslots
-
-	patchcode olddisplaytraininfotext,newdisplaytraininfotext,1,1
-//	patchcode oldchoosetrainvehindepot,newchoosetrainvehindepot,1,1
-//	mov word [edi+lastediadj-18],0xc38b	// mov eax,ebx instead of mov al,bl
+	extern showtraininforow
+	storeaddress showtraininforow
+	mov byte [edi+35],0xc3
 
 	stringaddress oldtrainleavedepot,1,1
 	mov eax,[edi+3]
