@@ -54,12 +54,16 @@ findlistvehs:
 	jne .notours		// by the
 	inc ax			// runindex call
 
-;	cmp byte [edi+veh.class], 11h		// |--------
-;	jne .skipArticulatedCheck		// | Added in by StevenHoefel.
-;	cmp byte [edi+veh.subclass], 0x0	// | Dont inc ax for trailers.
-;	je .skipArticulatedCheck		// |
-;	dec ax					// | decrement one, we dont want to count this vehicle
-;.skipArticulatedCheck:				// |---------
+	cmp byte [edi+veh.class], 11h		// |--------
+	jne .skipArticulatedCheck		// | Added in by StevenHoefel.
+	push eax
+	movzx eax, word [edi+veh.idx]
+	cmp ax, word [edi+veh.engineidx]
+	pop eax				// | Dont inc ax for trailers.
+	je .skipArticulatedCheck		// |
+	dec ax					// | decrement one, we dont want to count this vehicle
+	jmp .notours
+.skipArticulatedCheck:				// |---------
 	cmp byte [esi+0x32],0
 	jne .nosort
 	call sortloop
@@ -124,11 +128,6 @@ sortloop:
 	movzx ecx,byte [esi+veh.class]
 	call dword [wantvehicle+(ecx-0x10)*4]
 	jnz .loop
-;	cmp byte [esi+veh.class], 11h		// |--------
-;	jne .skipArticulatedCheck		// | Added in by StevenHoefel.
-;	cmp byte [esi+veh.subclass], 0x0	// | Dont inc ax for trailers.
-;	jne .loop				// |
-;.skipArticulatedCheck:				// |---------
 	mov cl,[esi+veh.owner]
 	cmp cl,[edi+veh.owner]
 	jne .loop
@@ -376,6 +375,12 @@ realtrain:
 
 realrv:
 	cmp byte [edi+veh.class],0x11
+	jne .exit
+	push eax
+	movzx eax, word [edi+veh.idx]
+	cmp ax, word [edi+veh.engineidx]
+	pop eax
+.exit:
 	ret
 
 realship:
@@ -517,11 +522,6 @@ vehiclevalid:
 	mov ax,[esi+window.id]
 	cmp al,[edi+veh.owner]
 	jnz .exit
-;	//-------------hacked in by steven hoefel-------------
-;	//check if trailer, skip if trailer.
-;	cmp	byte [edi+veh.subclass], 0x0
-;	jne	.exit
-;	//-------------------------------------------------
 	mov edi,[edi+veh.veh2ptr]
 	mov edi,[edi+veh2.sortvar]
 .exit:

@@ -1086,16 +1086,6 @@ dontLetARVsInNormalRVStops:
 	pop esi
 	ret
 
-global RVListSkipTrailers
-RVListSkipTrailers:
-	add	edi, 80h
-	cmp	edi, [veharrayendptr]
-	jae	.thisIsTheEnd
-	cmp	byte [edi+veh.subclass], 0x00
-	jne	RVListSkipTrailers
-.thisIsTheEnd:
-	retn
-
 uvarw lastVehicleShortness,1,s
 global drawAllTrailersInRVList
 drawAllTrailersInRVList:

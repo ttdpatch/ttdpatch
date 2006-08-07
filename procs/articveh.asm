@@ -145,14 +145,6 @@ begincodefragments
 		icall	skipTrailersInDepotWindow
 		setfragmentsize 8
 
-	codefragment oldFilterRVsListClick, -22
-		retn
-		mov	bx, word [esi+window.id]
-		xor	ax, ax
-
-	codefragment newFilterRVsList
-		icall	RVListSkipTrailers
-
 	codefragment oldAddRVScheduleWhenBuilding, 6
 		mov	ebx, dword [scheduleheapfree]
 		add	dword [scheduleheapfree], 2
@@ -421,8 +413,6 @@ patcharticulatedvehicles:
 
 	//NOTE!: this code overwrites the 'call' to gotodepo.asm:294
 	patchcode oldAddStationToRVSchedule, newAddStationToRVSchedule, 1, 1
-
-;	patchcode oldFilterRVsListClick, newFilterRVsList, 1+WINTTDX, 3
 
 	patchcode oldDrawRVINRVList, newDrawRVINRVList, 1, 1
 	patchcode oldDrawRVinRVInformation, newDrawRVinRVInformation, 1, 2

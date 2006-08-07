@@ -613,6 +613,8 @@ stopTramOvertaking:
 	pop	edx
 ;	pop	esi
 	jnz	.dontLetTramsOvertake
+	cmp	word [esi+veh.nextunitidx], 0xFFFF
+	jne	.dontLetTramsOvertake
 	jmp	[rvcheckovertake]
 .dontLetTramsOvertake:
 	retn
