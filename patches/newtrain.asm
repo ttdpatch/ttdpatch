@@ -453,7 +453,9 @@ showlocoinfo:
 	mov eax,[textstackcopy+0x0e]
 	mov [edi+4],eax
 
-	shr eax,16		// capacity
+	call getarticcapacities
+	movzx eax,word [articrows+articrow.capacity]
+	mov [edi+6],ax
 	call checkrefittable
 	mov [edi+8],ax
 
@@ -549,13 +551,20 @@ showwagoninfo:
 	jne .isok
 	mov ax,0x8838	// "n/a"
 .isok:
+	mov [ebp+8],ax
+	mov bl,[esp]
+	call getarticcapacities
+	mov ax,[articrows+articrow.capacity]
+	mov [ebp+10],ax
+
 	mov bx,ourtext(wagoninfo)
 
-	mov [ebp+8],ax
 	add edi,[cargounitweightsptr]
-	mov al,[edi]
+	movzx ax,byte [edi]
 	sub edi,[cargounitweightsptr]
-	mul byte [ebp+10]
+	push edx
+	mul word [ebp+10]
+	pop edx
 	shr ax,4
 	add ax,[ebp+4]
 	mov [ebp+6],ax
@@ -1417,6 +1426,7 @@ adjustrowxpos:
 
 uvard showtraininforow
 
+uvarb articinfotype
 uvarb articrowcnt
 uvarb articrownum
 uvard articrownext
@@ -1429,7 +1439,7 @@ struc articrow	// must match exactly how it is in veh struct
 	.source:	resb 1
 	.unused:	resb 2	// to round size out to 8
 endstruc
-uvarb articrows,articrowmax*articrow_size
+uvarb articrows,articrowmax*articrow_size+1
 
 // display the rows in the train info window
 //
@@ -1441,8 +1451,12 @@ uvarb articrows,articrowmax*articrow_size
 // safe:all?
 exported drawtraininforows
 	mov byte [articrowcnt],0
+	mov al,[esi+window.data]
+	sub al,9
+	mov [articinfotype],al
+
 	push edi
-	call countarticrows
+	call countarticargos
 	mov [articrownext],edi
 	pop edi
 
@@ -1509,7 +1523,7 @@ exported drawtraininforows
 	je .done
 
 	push eax
-	call countarticrows
+	call countarticargos
 	pop eax
 	xchg edi,[articrownext]
 	jmp .showrow
@@ -1522,10 +1536,11 @@ exported drawtraininforows
 //
 // in:	esi->window
 //	edi->vehicle
+//	[articinfotype]=0/1/2 for amount/info/capacity
 // out:	edi->next vehicle after artic
 //	also sets articrow* variables
 // uses:eax
-countarticrows:
+countarticargos:
 	push ecx
 
 	mov byte [articrowcnt],0
@@ -1534,43 +1549,21 @@ countarticrows:
 	mov word [articrows+articrow.capacity],0
 
 .getnext:
-	cmp byte [esi+window.data],10
+	cmp byte [articinfotype],1	// for info only show one row each
 	je near .next
 
 	cmp word [edi+veh.capacity],0
 	je near .next
 
+	mov eax,[edi+veh.currentload-2]	// set eax(16:31)=current load
 	mov al,[edi+veh.cargotype]
 	mov ah,[edi+veh.cargosource]
-	xor ecx,ecx
-.checknext:
-	cmp byte [articrows+ecx*articrow_size+articrow.type],-1
-	je .new
-	cmp [articrows+ecx*articrow_size+articrow.type+ecx],al
-	jne .notthis
-	cmp byte [esi+window.data],9	// for capacity don't consider source
-	jne .gotit
-	cmp word [edi+veh.currentload],0	// and neither if we're not actually adding cargo
-	je .gotit
-	cmp [articrows+ecx*articrow_size+articrow.source+ecx],ah
-	je .gotit
-.notthis:
-	inc ecx
-	cmp ecx,articrowmax
-	jb .checknext
-	jmp short .next
-.new:
-	mov byte [articrows+(ecx+1)*articrow_size+articrow.type],-1
-	mov [articrows+ecx*articrow_size+articrow.type],al
-	mov [articrows+ecx*articrow_size+articrow.source],ah
-	mov word [articrows+ecx*articrow_size+articrow.capacity],0
-	mov word [articrows+ecx*articrow_size+articrow.load],0
-	inc byte [articrowcnt]
+	call getarticrow
+	jc .next
 
-.gotit:
 	mov ax,[edi+veh.capacity]
 	add [articrows+ecx*articrow_size+articrow.capacity],ax
-	mov ax,[edi+veh.currentload]
+	shr eax,16
 	add [articrows+ecx*articrow_size+articrow.load],ax
 
 .next:
@@ -1588,6 +1581,91 @@ countarticrows:
 	adc byte [articrowcnt],0	// make it at least 1
 	ret
 
+// same as above but for vehicle type
+//
+// in:	bl=vehtype
+// out:	sets articrow* variables
+// uses:---
+getarticcapacities:
+	pusha
+
+	mov byte [articrowcnt],0
+	mov byte [articrownum],0
+	mov byte [articrows+articrow.type],-1
+	mov word [articrows+articrow.capacity],0
+	mov byte [articinfotype],2
+
+	movzx esi,bl
+	jmp short .first
+
+.getnext:
+	xor esi,esi
+	mov ah,0x16
+	mov al,bl
+	inc dword [articulatedvehicle]
+	call vehtypecallback
+	jc .done
+	cmp al,0xff
+	je .done
+
+	mov esi,eax
+
+.first:
+	movzx eax,byte [traincargosize+esi]
+	shl eax,16
+	jz .getnext
+
+	mov al,[traincargotype+esi]
+	call getarticrow
+	jc .getnext
+
+	shr eax,16
+	add [articrows+ecx*articrow_size+articrow.capacity],ax
+	jmp .getnext
+
+.done:
+	and dword [articulatedvehicle],0
+	popa
+	ret
+
+// find row for artic cargo
+// in:	eax(16:31)=cargo amount
+//	ah=cargo source
+//	al=cargo type
+// out:	ecx=index into cargorows for matching row
+//	CF=1 if no more room
+// uses:---
+getarticrow:
+	xor ecx,ecx
+.checknext:
+	cmp byte [articrows+ecx*articrow_size+articrow.type],-1
+	je .new
+	cmp [articrows+ecx*articrow_size+articrow.type+ecx],al
+	jne .notthis
+	cmp byte [articinfotype],0	// for capacity don't consider source
+	jne .gotit
+	cmp eax,0x10000			// and neither if we're not actually adding cargo
+	jb .gotit
+	cmp [articrows+ecx*articrow_size+articrow.source+ecx],ah
+	je .gotit
+.notthis:
+	inc ecx
+	cmp ecx,articrowmax
+	jb .checknext
+	stc
+	ret
+.new:
+	mov byte [articrows+(ecx+1)*articrow_size+articrow.type],-1
+	mov [articrows+ecx*articrow_size+articrow.type],al
+	mov [articrows+ecx*articrow_size+articrow.source],ah
+	mov word [articrows+ecx*articrow_size+articrow.capacity],0
+	mov word [articrows+ecx*articrow_size+articrow.load],0
+	inc byte [articrowcnt]
+
+.gotit:
+	clc
+	ret
+
 // count number of slots to show in train details window
 // in:	edi->vehicle
 //	cl=current count
@@ -1596,7 +1674,10 @@ countarticrows:
 // safe:eax
 global counttrainslots
 counttrainslots:
-	call countarticrows
+	mov al,[esi+window.data]
+	sub al,9
+	mov [articinfotype],al
+	call countarticargos
 	add cl,[articrowcnt]
 	cmp edi,0xffff
 	je .done
