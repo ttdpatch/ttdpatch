@@ -251,6 +251,7 @@ freighttrains_limitcargo:
 	mov cx,[ebx+veh2.fullweight]
 	add [esi+veh.currentload],ax
 	call calcvehweight
+	mov ebx,[esi+veh.veh2ptr]
 	mov [ebx+veh2.fullweight],ax
 	xchg esi,edi
 	movzx eax, word [esi+veh.maxspeed]
