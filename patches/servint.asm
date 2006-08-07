@@ -524,7 +524,7 @@ proc dorenewconsist
 	je .buynew
 	shl eax,7
 	add eax,[veharrayptr]
-	cmp byte [eax+veh.currorderidx],0xfd
+	cmp byte [eax+veh.artictype],0xfd
 	mov esi,eax
 	jae .deltrainveh
 	mov ax,[eax+veh.idx]
@@ -586,7 +586,7 @@ proc dorenewconsist
 	je .articdone
 	shl eax,7
 	add eax,[veharrayptr]
-	cmp byte [eax+veh.currorderidx],0xfd
+	cmp byte [eax+veh.artictype],0xfd
 	jnb .nextartic
 .articdone:
 	pop eax

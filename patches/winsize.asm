@@ -20,7 +20,7 @@ uvarw guispritebase,1,s
 var numguisprites, dd 3+12
 
 var depotscalefactor
-	db 0
+	dw 29
 
 global drawresizebox
 drawresizebox:

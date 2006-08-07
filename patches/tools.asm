@@ -666,7 +666,7 @@ detachveh:
 
 	shl edi,7
 	add edi,[veharrayptr]
-	cmp byte [edi+veh.currorderidx],0xff
+	cmp byte [edi+veh.artictype],0xff
 	je .nextartic
 
 .gotit:
@@ -714,7 +714,7 @@ insertveh:
 
 	shl edx,7
 	add edx,[veharrayptr]
-	cmp byte [edx+veh.currorderidx],0xfe
+	cmp byte [edx+veh.artictype],0xfe
 	jae .next
 
 .gotit:
@@ -729,7 +729,7 @@ insertveh:
 
 	shl eax,7
 	add eax,[veharrayptr]
-	cmp byte [eax+veh.currorderidx],0xfe
+	cmp byte [eax+veh.artictype],0xfe
 	jae .next2
 
 .gotit2:

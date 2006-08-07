@@ -1103,7 +1103,9 @@ vehtickproc:
 	call [generatesoundeffect]
 
 .nomotion:
-	test byte [edi+veh.cycle],15
+	mov al,[animcounter]
+	add al,[edi+veh.idx]	// randomize it a little for different vehicles
+	test al,15
 	jnz .nocyclesound
 
 	cmp word [edi+veh.loadtime],1

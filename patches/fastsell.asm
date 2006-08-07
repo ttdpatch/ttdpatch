@@ -139,7 +139,7 @@ sellwagon:
 	movzx esi,cx
 	shl esi,vehicleshift
 	add esi,eax
-	cmp byte [esi+veh.currorderidx],0xfe
+	cmp byte [esi+veh.artictype],0xfe
 	jb .notarticulated
 
 	test bl,2
@@ -156,7 +156,7 @@ sellwagon:
 	test bl,2
 	jnz .doneusecx	// we have all articulated pieces
 
-	cmp byte [esi+veh.currorderidx],0xf0
+	cmp byte [esi+veh.artictype],0xf0
 	ja .engine
 
 	mov cx,[esi+veh.vehtype]
@@ -204,7 +204,7 @@ sellwagon:
 	jmp short .reallydone
 
 .normalsell:
-	cmp byte [edx+veh.currorderidx],0xfd
+	cmp byte [edx+veh.artictype],0xfd
 	je .isarticengine
 
 	mov al,bl
@@ -213,7 +213,7 @@ sellwagon:
 	je .reallydone
 	shl ebx,7
 	add ebx,[veharrayptr]
-	cmp byte [ebx+veh.currorderidx],0xfe
+	cmp byte [ebx+veh.artictype],0xfe
 	jb .reallydone
 
 	// it's an articulated engine multihead, sell all pieces

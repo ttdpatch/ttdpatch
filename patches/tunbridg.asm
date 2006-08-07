@@ -72,9 +72,9 @@ exported enhancetunneltestrailwaytype
 	pop eax
 	jne .ok		// only check track type and owner for engine
 
-	test byte [expswitches],EXP_COOPERATIVE
-	jz .noownertest
 .ownertest:
+	test byte [expswitches],EXP_COOPERATIVE
+	jnz .noownertest
 	cmp ah, [landscape1+ebx]
 	jnz .wrong
 .noownertest:

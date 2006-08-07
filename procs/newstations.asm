@@ -4,7 +4,7 @@
 #include <station.inc>
 #include <patchproc.inc>
 
-patchproc newstations, patchnewstations
+patchproc newstations,trams, patchnewstations
 
 extern checktrainenterstationtile,checktrainenterstationtile.oldfn
 extern createrailwaystation,createrailwaystation.oldfn

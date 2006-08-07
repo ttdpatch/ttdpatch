@@ -55,7 +55,7 @@
 	patchproc manualconvert, patchmanuconv		// must be before patchbridgeheads
 	patchproc custombridgeheads, patchbridgeheads	// must be before patchpathbasedsignalling
 
-	patchproc newstations, patchbusstopmovement	// must be before patchpathbasedsignalling
+	patchproc newstations,trams, patchbusstopmovement	// must be before patchpathbasedsignalling
 
 	patchproc pathbasedsignalling, patchpathbasedsignalling	// must be before signal changing code
 	patchproc presignals,extpresignals,locomotiongui, patchsignals
@@ -154,7 +154,7 @@
 	patchproc electrifiedrail, patchelectrifiedrail		// must be after patchunifiedmaglev
 	patchproc locomotiongui, patchlocomotiongui		// must be before patchstationgraphics
 	patchproc electrifiedrail,newstations, patchstationgraphics	// must be before patchsetnewgraphics
-	patchproc newstations, patchbusstop		// need stuff set via patchstationgraphics!
+	patchproc newstations,trams, patchbusstop		// need stuff set via patchstationgraphics!
 
 		// all patch bits that use overrideembeddedsprite must be listed below
 	patchproc generalfixes,canmodifygraphics,morecurrencies,enhancegui,enhancetunnels, patchsetspritecache	// must be after patchmovespriteinfo
