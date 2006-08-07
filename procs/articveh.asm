@@ -422,7 +422,7 @@ patcharticulatedvehicles:
 	//NOTE!: this code overwrites the 'call' to gotodepo.asm:294
 	patchcode oldAddStationToRVSchedule, newAddStationToRVSchedule, 1, 1
 
-	patchcode oldFilterRVsListClick, newFilterRVsList, 1+WINTTDX, 3
+;	patchcode oldFilterRVsListClick, newFilterRVsList, 1+WINTTDX, 3
 
 	patchcode oldDrawRVINRVList, newDrawRVINRVList, 1, 1
 	patchcode oldDrawRVinRVInformation, newDrawRVinRVInformation, 1, 2
