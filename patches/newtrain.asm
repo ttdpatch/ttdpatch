@@ -1609,6 +1609,7 @@ getarticcapacities:
 	je .done
 
 	mov esi,eax
+	and esi,0x7f
 
 .first:
 	movzx eax,byte [traincargosize+esi]
