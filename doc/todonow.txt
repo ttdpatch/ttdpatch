@@ -53,8 +53,6 @@
 
 - change msg if messageboxw not avail to show error loc or something
 
-- make overload stop work without fullloadany; also adjust it in some way?
-
 - flag for "station is really depot"
 
 - newstations flags to build fences for +x/+y and -x/-y sides
@@ -92,9 +90,6 @@
 - reset vehicles should also reset track types available, and large airport?
   or maybe the latter should be taken care of by cht: year
 
-- fix additional pillar heights for higher bridges, they check the height of
-  the wrong corner
-
 - add AI airport selection
 
 - grftrans can't translate new station names
@@ -106,17 +101,10 @@
 
 - morecurrencies overwrites default curr selection (not GBP in BE version)
 
-- fix sprite sorter problems on bridge with elrails
-  -> requires changing sprite coordinates and requires elrails.grf with
-     different offsets
-  -> also ships under bridges (see alpha discussion thread)
-
 - provide support for long train vehicles composed of two vehicles?  maybe
   emulate bogeys like Locomotion has them
 
 - tie heliport&large airport intro dates to first heli and jet?
-
-- allow AI to build paper routes in temperate (tries to deliver to town)
 
 - remove set name from grf stat status box; add sprite&mem info?
 
@@ -144,8 +132,6 @@
 
 - allow resizing train info windows (number of wagons shown)
 
-- show loading speed in wagon info (and other vehicle types too?)
-
 - no loading states for planes?
 
 - faster loading/unloading at bus stops
@@ -168,11 +154,7 @@
 
 - problem selling part of articulated loco with Ctrl (doesn't sell whole veh)
 
-- support artic vehs with capacity in additional vehicles
-
 - don't split artic vehs over multiple lines in depot
-
-- make the sep of wagons in depot equal to sep in main view
 
 - crash when building higher bridge, http://www.tt-forums.net/viewtopic.php?p=265905#265905
 
@@ -185,8 +167,6 @@
 - in grf status window in scen ed, add state "do not save", make this default
 
 - crash with newstations 0.4, see http://www.tt-forums.net/viewtopic.php?p=278809#278809
-
-- Oracle reports duplicate town names when using custom town name set
 
 - save is-in-PBS-block for station, and also prop 15 (in tileproc, 256 ticks=3.5 days)
 
@@ -320,9 +300,6 @@
 - PBS crash, train out of depot
   http://www.tt-forums.net/viewtopic.php?p=379123#379123
 
-- XXX fixed crash when newcargodistribution was on but newcargos was off
-  http://www.tt-forums.net/viewtopic.php?p=378684#378684
-
 - station var 41 not counting right:
   http://www.tt-forums.net/viewtopic.php?p=381568#381568
 
@@ -361,10 +338,6 @@
 
 - when non-GRM grf tries to overwrite GRM-reserved ID, show error
   if user overrides (ctrl-click on flag?), still show warning
-
-- version info broken in DOS
-  http://www.tt-forums.net/viewtopic.php?p=397963#397963 and email
-  also http://www.tt-forums.net/viewtopic.php?p=400168#400168
 
 - when changing 2nd cc, sprites in veh window get offsets (?)
 
@@ -405,13 +378,6 @@
 
 - PBS pathfinding against one-way signal
   http://www.tt-forums.net/viewtopic.php?p=412075#412075
-
-- 16-tick check broken for anything that moves more than once per tick
-
-- in coop mode, AI still buys out other companies and takes up loan
-
-- enhtunnels ignore coop? also crash if loading game while train in tunnel
-  of other company
 
 - store station prop 15 in newvehdatastruc
 
@@ -729,7 +695,7 @@ CHANGELOG
   already has a definition/replacement
 - fixed broken vehicle windows or crashes when buying vehicles
 - allow specifying debug switches multiple times to increase value
-- debug switch S-S- (S=-2) will print switches.xml with category tree
+- change switches.xml to have category tree
 - implement grf debugger sign cheat
 - by Lakie:
   * make Landinfo cheat available outside of debug compiles
