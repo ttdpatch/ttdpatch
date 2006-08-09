@@ -1417,6 +1417,9 @@ codefragment findSellRoadVehicle, 4
 	shr     ebx, 5
 	retn
 
+codefragment findrandomindtypetables,-4
+	mov edi,randomindustrytypes
+
 endcodefragments
 
 ptrvarall industrydatablock
@@ -1726,6 +1729,27 @@ dogeneralpatching:
 	pop dword [industrydatabackupptr]
 
 .nonewindus:
+
+	// This code also needs to run before initializegraphics, otherwise the newindustries
+	// save code would save the old incorrect values
+
+	stringaddress findrandomindtypetables,1,1
+	testflags generalfixes
+	test byte [miscmodsflags],MISCMODS_DONTFIXTROPICBANKS
+	jnz .tropicbanksdone
+	mov edi,[edi]
+	mov edi,[edi+2*4]
+	mov cl,32		// (ECX was 0 after stringaddress)
+	mov al,0xc		// search for industry type: temperate-climate bank
+
+.tropicbanksloop:
+	repne scasb
+	jne .tropicbanksdone
+	mov byte [edi-1],0x10	// replacement industry type: arctic/tropical-climate bank
+	jecxz .tropicbanksdone
+	jmp .tropicbanksloop
+
+.tropicbanksdone:
 
 	stringaddress findgraphicsroutines,1,1
 

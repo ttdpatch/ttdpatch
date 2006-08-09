@@ -1464,6 +1464,7 @@ uvard showtraininforow
 uvarb articinfotype
 uvarb articrowcnt
 uvarb articrownum
+uvarb articrowlen
 uvard articrownext
 
 %define articrowmax 8
@@ -1626,6 +1627,7 @@ getarticcapacities:
 
 	mov byte [articrowcnt],0
 	mov byte [articrownum],0
+	mov byte [articrowlen],0
 	mov byte [articrows+articrow.type],-1
 	mov word [articrows+articrow.capacity],0
 	mov byte [articinfotype],2
@@ -1647,6 +1649,9 @@ getarticcapacities:
 	and esi,0x7f
 
 .first:
+	mov al,8
+	sub al,[trainvehlength+esi]
+	add [articrowlen],al
 	movzx eax,byte [traincargosize+esi]
 	shl eax,16
 	jz .getnext

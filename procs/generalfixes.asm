@@ -105,9 +105,6 @@ codefragment newtownraiselowermaxcost
 	call runindex(townraiselowermaxcost)
 	setfragmentsize 8
 
-codefragment findrandomindtypetables,-4
-	mov edi,randomindustrytypes
-
 codefragment oldgeneratezeppelin,6
 	cmp byte [edi+station.airporttype],1
 
@@ -828,22 +825,6 @@ patchgeneralfixes:
 	mov ebx,[miscmodsflags]
 	patchcode oldamountinlitres,newamountinlitres,1,1,,{test bl,MISCMODS_DONTFIXLITRES},z
 	patchcode oldtownraiselowermaxcost,newtownraiselowermaxcost,1,1,,{test bl,MISCMODS_OLDTOWNTERRMODLIMIT},z
-	stringaddress findrandomindtypetables,1,1
-	test bl,MISCMODS_DONTFIXTROPICBANKS
-	jnz .tropicbanksdone
-	mov edi,[edi]
-	mov edi,[edi+2*4]
-	mov cl,32		// (ECX was 0 after stringaddress)
-	mov al,0xc		// search for industry type: temperate-climate bank
-
-.tropicbanksloop:
-	repne scasb
-	jne .tropicbanksdone
-	mov byte [edi-1],0x10	// replacement industry type: arctic/tropical-climate bank
-	jecxz .tropicbanksdone
-	jmp .tropicbanksloop
-
-.tropicbanksdone:
 	test bl,MISCMODS_DONTFIXHOUSESPRITES
 	jnz .shopsspritesdone
 	mov eax,[housespritetable]
