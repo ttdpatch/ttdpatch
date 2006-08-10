@@ -1646,13 +1646,15 @@ getarticrow:
 .checknext:
 	cmp byte [articrows+ecx*articrow_size+articrow.type],-1
 	je .new
-	cmp [articrows+ecx*articrow_size+articrow.type+ecx],al
+	cmp [articrows+ecx*articrow_size+articrow.type],al
 	jne .notthis
 	cmp byte [articinfotype],0	// for capacity don't consider source
 	jne .gotit
 	cmp eax,0x10000			// and neither if we're not actually adding cargo
 	jb .gotit
-	cmp [articrows+ecx*articrow_size+articrow.source+ecx],ah
+	cmp word [articrows+ecx*articrow_size+articrow.load],0	// nor if there's no actual cargo
+	je .newsource
+	cmp [articrows+ecx*articrow_size+articrow.source],ah
 	je .gotit
 .notthis:
 	inc ecx
@@ -1663,10 +1665,12 @@ getarticrow:
 .new:
 	mov byte [articrows+(ecx+1)*articrow_size+articrow.type],-1
 	mov [articrows+ecx*articrow_size+articrow.type],al
-	mov [articrows+ecx*articrow_size+articrow.source],ah
 	mov word [articrows+ecx*articrow_size+articrow.capacity],0
 	mov word [articrows+ecx*articrow_size+articrow.load],0
 	inc byte [articrowcnt]
+
+.newsource:
+	mov [articrows+ecx*articrow_size+articrow.source],ah
 
 .gotit:
 	clc
