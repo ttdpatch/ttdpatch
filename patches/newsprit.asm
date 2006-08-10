@@ -212,6 +212,7 @@ grfcalltable getaction3cargo
 	movzx eax,word [ecx+action3info.nodefcargoid]
 	test eax,eax		// if cargo type FE defined, prevent the default from being used
 	je .default
+	mov [curstationcargo],ebx	// if we get here, ebx is zero
 	ret
 
 .getstations:
