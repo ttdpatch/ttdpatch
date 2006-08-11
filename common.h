@@ -135,7 +135,7 @@
 #define autoreplace		111	// autoreplace old vehicle
 #define newairports		112	// allow new airport types
 
-// NOTE!! If you add a bit here, also add it to patchflagsfixedmap in vars.ah!!
+// NOTE!! If you add a bit here, also add it to patchflagsfixedmap in header.asm!!
 
 #define lastbitdefaulton	112	// META: last bit defined to be set by -a 
 
@@ -173,7 +173,7 @@
 #define articulatedrvs		219	// allow articulated RVs
 #define newroutes		220	// Enable newRoutes
 
-// NOTE!! If you add a bit here, also add it to patchflagsfixedmap in vars.ah!!
+// NOTE!! If you add a bit here, also add it to patchflagsfixedmap in header.asm!!
 
 #define lastbitdefaultoff	220	// META: last bit defined not to be set by -a unless DEBUG
 
