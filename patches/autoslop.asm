@@ -22,7 +22,6 @@ var cornerchecktile1, db 3,0,1,2
 
 var cornerchecktile2, db 1,2,3,0
 
-var numbertobit, db 1b, 10b, 100b, 1000b, 10000b, 100000b, 1000000b, 10000000b
 //  3 
 //  /\
 //a/  \d
