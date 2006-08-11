@@ -465,7 +465,7 @@ patchdll.bin:	patchdll.asm patchdll/ttdpatch.dll
 
 patchdll/ttdpatch.dll: $(wildcard patchdll/*.h) $(wildcard patchdll/*.c*)
 	${_E} [MAKE] $@
-	${_C} make -C patchdll
+	${_C} ${MAKE} -C patchdll
 
 # ---------------------------------------------------------------------
 #               Language data
