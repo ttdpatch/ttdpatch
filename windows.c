@@ -535,7 +535,7 @@ int runttd(const char *program, char *options, langinfo **info)
   check_patchdll();
   fixregistry();
 
-  cmdlength = strlen(options) + strlen(program) + 1;
+  cmdlength = strlen(options) + 1 + strlen(program) + 1;
   commandline = (char*) malloc(cmdlength);
   if (!commandline)
 	error(langtext[LANG_NOTENOUGHMEM], "commandline", cmdlength/1024+1);
@@ -543,7 +543,7 @@ int runttd(const char *program, char *options, langinfo **info)
   strcpy(commandline, program);
   if (strlen(options)) {
 	strcat(commandline, " ");
-	strcat(commandline, ttdoptions);
+	strcat(commandline, options);
   }
 
   printf(langtext[LANG_RUNTTDLOAD], commandline, "", "");
