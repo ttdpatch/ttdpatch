@@ -1913,8 +1913,11 @@ canremovehouse:
 	gethouseid edx,edi
 	cmp edx,128				// old houses can't be protected
 	jb .allow
+	test byte [housecallbackflags2+edx-128],4	// is the protection callback enabled?
+	jnz .callback
 	test byte [houseextraflags+edx-128],2	// is it protected?
 	jz .allow
+.deny_for_nonplayer:
 	call isrealhumanplayer			// humans can remove even protected houses
 	jz .allow
 	cmp byte [curplayer],0x10		// allow in scenario editor as well
@@ -1929,6 +1932,22 @@ canremovehouse:
 .allow:
 	ret
 
+.callback:
+	push eax
+	lea eax,[edx-128]
+	xchg edi,esi
+	mov byte [grffeature],7
+	mov dword [curcallback],0x143
+	call getnewsprite
+	mov dword [curcallback],0
+	mov edx,eax
+	xchg edi,esi
+	pop eax
+	jc .allow
+	test edx,edx
+	jz .allow
+	jmp short .deny_for_nonplayer
+	
 // Called in the class 3 animation handler
 // The old code checks landscape2 in a special way, but
 // we need the real (word) ID instead.
