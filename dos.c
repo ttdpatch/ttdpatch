@@ -513,7 +513,9 @@ int runttd(const char *program, char *options, langinfo **linfo)
     (void)_heapmin();	// BCC complains if return code not used
     #endif
 
-    if (willswap)	{	// we need to swap out to make enough memory
+    if (debug_flags.norunttd) {
+	warning(lang_runerror, program, "DEBUG SWITCH");
+    } else if (willswap) {	// we need to swap out to make enough memory
 	result = do_exec((char *)program, options, 0x17, 0xffff, NULL);
 	if (result > 0x100) {
 		char reason[8];

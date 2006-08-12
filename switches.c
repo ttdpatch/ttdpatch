@@ -1780,6 +1780,7 @@ static const struct debug_switch_struct {
 	{ 'R', &debug_flags.relocofsfile },	// R+ load reloc ofs from reloc.bin file
 	{ 'P', &debug_flags.patchdllfile },	// P+ do not touch ttdpatch.dll
 	{ 'n', &debug_flags.noregistry },	// n+ always use registry.ini, n- never use registry.ini
+	{ 'r', &debug_flags.norunttd },		// r+ don't actually run TTD
 	{ 0, NULL }
 };
 

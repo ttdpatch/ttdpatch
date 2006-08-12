@@ -434,6 +434,8 @@
 - fix north corner of irrstation bug
   http://www.tt-forums.net/viewtopic.php?t=26702
 
+- PBS unreserve bug, http://www.tt-forums.net/viewtopic.php?p=478344#478344
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -699,3 +701,4 @@ CHANGELOG
   * bug fixed: turning newindustries on reintroduced the "temperate banks 
     on tropic" TTD bug
 - fixed cargo type FE not working in action 3
+- debug switch 'r' to not run TTDLOAD(W).OVL directly
