@@ -321,6 +321,7 @@
 
 		// cfg-only (no command line switch)
 	##ch##
+	SPCL (154,"debugswitches", 0, BASIC, "DebugSwitches", NULL),
 	SPCL (155,"cdpath", CFG_CDPATH, BASIC, "RunningIt", NULL),
 	RANGE(128,"towngrowthratemin", CFG_TOWNGROWTHRATEMIN, HOUSESTOWNS_GROWTH, "NewTownGrowthSwitches", noswitch, 0, 0, FLAGDATA(townmingrowthrate), 0, 255, 20),
 	RANGE(129,"towngrowthratemax", CFG_TOWNGROWTHRATEMAX, HOUSESTOWNS_GROWTH, "NewTownGrowthSwitches", noswitch, 0, 1, FLAGDATA(townmaxgrowthrate), 10, 4800, 600),

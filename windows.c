@@ -637,7 +637,9 @@ int runttd(const char *program, char *options, langinfo **info)
 
   // Now create the child process
 
-  if (!CreateProcessA(NULL,
+  if (debug_flags.norunttd) {
+	error(langtext[LANG_RUNERROR], program, "DEBUG SWITCH");
+  } else if (!CreateProcessA(NULL,
 		commandline,	// command line
 		NULL,		// process security attributes
 		NULL,		// primary thread security attributes

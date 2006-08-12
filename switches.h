@@ -127,7 +127,8 @@ ISEXTERN struct {
 		protcodefile,	// load protected mode code from ttdprot?.bin instead of the exe
 		relocofsfile,	// load reloc ofs from reloc.bin file
 		patchdllfile,	// does nothing, but needed to make auxfiles.c happy
-		noregistry;	// use noregistry hack
+		noregistry,	// use noregistry hack
+		norunttd;	// don't actually execute TTD
 } debug_flags;
 
 void check_debug_switches(int *const argc, const char *const **const argv);

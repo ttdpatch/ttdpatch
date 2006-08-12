@@ -348,6 +348,7 @@ void allswitches(int reallyall, int swon)
 
 }
 
+static void parse_debug_switches(const char *sw);
 
 static int setreallyspecial(int switchid, int swon, const char *cfgpar, int onlycheck)
 {
@@ -371,6 +372,11 @@ static int setreallyspecial(int switchid, int swon, const char *cfgpar, int only
 	case 'W':
 		if (!onlycheck)
 			writecfgfile(cfgpar);
+		parused = 1;
+		break;
+	case 154:	// debug switches
+		if (!onlycheck)
+			parse_debug_switches(cfgpar);
 		parused = 1;
 		break;
 	case 155:	// CD Path
@@ -1786,6 +1792,7 @@ static const struct debug_switch_struct {
 	{ 'R', &debug_flags.relocofsfile },	// R+ load reloc ofs from reloc.bin file
 	{ 'P', &debug_flags.patchdllfile },	// P+ do not touch ttdpatch.dll
 	{ 'n', &debug_flags.noregistry },	// n+ always use registry.ini, n- never use registry.ini
+	{ 'r', &debug_flags.norunttd },		// r+ don't actually run TTD
 	{ 0, NULL }
 };
 
@@ -1796,6 +1803,17 @@ void check_debug_switches(int *const argc, const char *const **const argv)
 	(*argc)--;
 	(*argv)++;
 
+	parse_debug_switches(sw);
+
+	if (debug_flags.runcmdline > 0) {
+		(*argc)--;
+		(*argv)++;
+	}
+  }
+}
+
+static void parse_debug_switches(const char *sw)
+{
 	while (*sw) {
 		const struct debug_switch_struct *swdesc;
 		for (swdesc = debug_switches; swdesc->c; swdesc++) if (swdesc->c == *sw) {
@@ -1813,10 +1831,4 @@ void check_debug_switches(int *const argc, const char *const **const argv)
 		}
 		sw++;
 	}
-
-	if (debug_flags.runcmdline > 0) {
-		(*argc)--;
-		(*argv)++;
-	}
-  }
 }
