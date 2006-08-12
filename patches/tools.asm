@@ -329,7 +329,7 @@ malloc:
 
 .reserve:
 	cmp ecx,1
-	jbe .next
+	jbe .fail
 
 	// find end of heap chain to append this chunk to
 	mov eax,[heapptr]
