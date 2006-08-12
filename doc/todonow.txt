@@ -702,3 +702,6 @@ CHANGELOG
     on tropic" TTD bug
 - fixed cargo type FE not working in action 3
 - debug switch 'r' to not run TTDLOAD(W).OVL directly
+- fixed crash when running out of memory
+- fixed crash while processing action 1/5 blocks with pseudo-sprites shorter
+  than 8 bytes
