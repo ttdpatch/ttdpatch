@@ -346,6 +346,7 @@ void allswitches(int reallyall, int swon)
 
 }
 
+static void parse_debug_switches(const char *sw);
 
 int setreallyspecial(int switchid, int swon, const char *cfgpar, int onlycheck)
 {
@@ -369,6 +370,11 @@ int setreallyspecial(int switchid, int swon, const char *cfgpar, int onlycheck)
 	case 'W':
 		if (!onlycheck)
 			writecfgfile(cfgpar);
+		parused = 1;
+		break;
+	case 154:	// debug switches
+		if (!onlycheck)
+			parse_debug_switches(cfgpar);
 		parused = 1;
 		break;
 	case 155:	// CD Path
@@ -1791,6 +1797,17 @@ void check_debug_switches(int *const argc, const char *const **const argv)
 	(*argc)--;
 	(*argv)++;
 
+	parse_debug_switches(sw);
+
+	if (debug_flags.runcmdline > 0) {
+		(*argc)--;
+		(*argv)++;
+	}
+  }
+}
+
+static void parse_debug_switches(const char *sw)
+{
 	while (*sw) {
 		const struct debug_switch_struct *swdesc;
 		for (swdesc = debug_switches; swdesc->c; swdesc++) if (swdesc->c == *sw) {
@@ -1808,10 +1825,4 @@ void check_debug_switches(int *const argc, const char *const **const argv)
 		}
 		sw++;
 	}
-
-	if (debug_flags.runcmdline > 0) {
-		(*argc)--;
-		(*argv)++;
-	}
-  }
 }
