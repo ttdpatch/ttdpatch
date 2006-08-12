@@ -26,8 +26,6 @@ const s32 filesizeshr = 8;
 
 extern char *patchedfilename;
 
-extern pversioninfo versions[];
-
 static const char *ttd_winexenames[] = {
 	"GAMEGFX.EXE",
 	NULL,
@@ -437,11 +435,6 @@ static void check_patchdll(void)
   fwrite(buf, 1, size, f);
   fclose(f);
   free(buf);
-}
-
-
-void prepare_exec()
-{
 }
 
 

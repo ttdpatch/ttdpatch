@@ -10,8 +10,6 @@
 
 //#define DEBUG
 
-#define _IS_GREP_CPP
-
 #include <stdlib.h>
 #include "grep.h"
 

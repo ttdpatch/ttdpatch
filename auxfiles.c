@@ -45,7 +45,6 @@ static attachment_t attachments[AUX_NUM] = {
 	{ &debug_flags.patchdllfile, "ttdpatch.dll", PATCHDLL, 1 },
 };
 
-static char *langcode = attachments[AUX_PROTCODE].code;
 
 static int auxopen(int auxnum);
 
