@@ -713,6 +713,7 @@ CHANGELOG
     show pylons and wire for track pieces that go to reg. rail
 - added autosignals to new signal gui, build two-way signals every 3/4 tiles
   (use `autosignaldistance n' or -ZL to set desired signal separation)
+- by Tron: (devel) make C functions and variables static where possible
 
 
 2.5 beta 9

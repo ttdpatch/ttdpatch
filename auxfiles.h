@@ -33,9 +33,6 @@
 
 int findattachment(int auxnum, u32 *ofs, FILE **f);
 
-int auxopen(int auxnum);
-int auxclose(int auxnum);
-
 void auxcloseall(void);
 
 void setexename(char *cmdline);

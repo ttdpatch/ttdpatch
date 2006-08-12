@@ -203,6 +203,10 @@ void langinfo_freebuf(langinfo *linfo)
 }
 
 
+static char *langinfo_nextstring(langinfo *linfo, s16 code);
+static void langinfo_emptystring(langinfo *linfo, s16 code);
+
+
 // load the compressed data and uncompress it
 void langinfo_loadcurlangdata(langinfo *linfo)
 {
@@ -255,7 +259,7 @@ void langinfo_loadcurlangdata(langinfo *linfo)
 }
 
 // process the next string in the uncompressed stream
-void langinfo_procnextstring(langinfo *linfo, s16 code, char **str, s16 *len)
+static void langinfo_procnextstring(langinfo *linfo, s16 code, char **str, s16 *len)
 {
   char L, H;
   s16 dcode;
@@ -301,7 +305,7 @@ void langinfo_procnextstring(langinfo *linfo, s16 code, char **str, s16 *len)
 }
 
 // return the location of the next string in the uncompressed buffer,
-char *langinfo_nextstring(langinfo *linfo, s16 code)
+static char *langinfo_nextstring(langinfo *linfo, s16 code)
 {
   char *str;
   s16 len;
@@ -313,7 +317,7 @@ char *langinfo_nextstring(langinfo *linfo, s16 code)
 // note this also discards that string!  But you can't get the length
 // reliably with the nextstring() function, strlen it won't be valid
 // until the next string is read.
-s16 langinfo_nextstringlength(langinfo *linfo, s16 code)
+static s16 langinfo_nextstringlength(langinfo *linfo, s16 code)
 {
   s16 len;
   langinfo_procnextstring(linfo, code, NULL, &len);
@@ -321,14 +325,14 @@ s16 langinfo_nextstringlength(langinfo *linfo, s16 code)
 }
 
 // skip an empty string, both checking the code and that it is an empty string
-void langinfo_emptystring(langinfo *linfo, s16 code)
+static void langinfo_emptystring(langinfo *linfo, s16 code)
 {
   if (langinfo_nextstringlength(linfo, code) > 0)
 	error("Got a non-empty string but wasn't expecting one for %d\n", code);
 }
 
 // read the size of the following array
-s16 langinfo_arraysize(langinfo *linfo)
+static s16 langinfo_arraysize(langinfo *linfo)
 {
   s16 size = ( *((s16*) (linfo->ucbuf+linfo->ucptr) ) );
   linfo->ucptr += sizeof(size);
@@ -337,7 +341,7 @@ s16 langinfo_arraysize(langinfo *linfo)
 
 // read a variable size array, terminated by a NULL entry.
 // "array" is a pointer to an array of strings, therefore ***
-void langinfo_readarray(langinfo *linfo, const char ***array, int *cursize, s16 firstcode, s16 secondcode)
+static void langinfo_readarray(langinfo *linfo, const char ***array, int *cursize, s16 firstcode, s16 secondcode)
 {
   int i;
 
@@ -370,7 +374,7 @@ void langinfo_readarray(langinfo *linfo, const char ***array, int *cursize, s16 
 }
 
 // read an fixed size array
-void langinfo_readfixedarray(langinfo *linfo, const char **array, int cursize, s16 firstcode, s16 secondcode)
+static void langinfo_readfixedarray(langinfo *linfo, const char **array, int cursize, s16 firstcode, s16 secondcode)
 {
   int i;
 

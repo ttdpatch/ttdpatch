@@ -103,12 +103,10 @@ typedef struct {
 ISEXTERN pparamset flags;
 extern int showswitches;
 extern int writeverfile;
-extern u16 startyear;
 
 extern char ttdoptions[128+1024*WINTTDX];
 ISEXTERN int alwaysrun;
 
-extern int cfgfilespecified;
 ISEXTERN char tempstr[17];
 
 // Flags used for debugging. 0=default, -1=no, 1=yes
@@ -183,7 +181,6 @@ int dumpswitches(int type);
 #define secondchar(x) ((x) >> 8)
 #define maketwochars(c1, c2) ((c1) | ((c2) << 8))
 char *dchartostr(int ch);
-const char *cmdswitchstr(int ch, const char *defstr);
 
 
 #undef ISEXTERN

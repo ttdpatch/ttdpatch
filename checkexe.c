@@ -133,10 +133,10 @@ size_t getncustomsystexts(void) {
 
 extern char *patchedfilename;
 
-FILE *f;
-int iswriting;
+static FILE *f;
+static int iswriting;
 
-void openexe(const char *exenames[])
+static void openexe(const char *exenames[])
 {
   int i;
   const char *s = NULL;	// to make gcc happy
@@ -231,7 +231,7 @@ int ensureval(u32 pos, int size, u32 value)
   return 0;
 }
 
-u32 exeinfo(u32 *newexeid)
+static u32 exeinfo(u32 *newexeid)
 {
   u32 newexepos;
 
@@ -286,7 +286,7 @@ int setseglen(u32 seglenpos, u32 min, u32 max, u32 newlen, u32 altlen)
   return 0;
 }
 
-void versiontotext(s32 version, s32 filesize, int shorttype, char *dest)
+static void versiontotext(s32 version, s32 filesize, int shorttype, char *dest)
 {
   if (shorttype)
 	sprintf(dest, "%1d%03d%04X",
@@ -307,7 +307,7 @@ void versioninfototext(pversioninfo version, int shorttype, char *dest)
   versiontotext(version->h.version, version->h.filesize, shorttype, dest);
 }
 
-void checkexeversion(void)
+static void checkexeversion(void)
 {
   u32 pos, oldpos;
   char b, *s, *vername, *prog, vertext[128];

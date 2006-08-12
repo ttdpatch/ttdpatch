@@ -28,7 +28,7 @@ extern char *patchedfilename;
 
 extern pversioninfo versions[];
 
-const char *ttd_winexenames[] = {
+static const char *ttd_winexenames[] = {
 	"GAMEGFX.EXE",
 	NULL,
 	NULL };
@@ -45,7 +45,7 @@ t_RegCloseKey *_RegCloseKey = RegCloseKey;
 typedef LONG WINAPI t_RegOpenKey(HKEY key, LPCSTR subkey, PHKEY result);
 t_RegOpenKey *_RegOpenKey = RegOpenKey;
 
-const char *def_noregistry =
+static const char *def_noregistry =
 	"[HKLM_Software_FISH_Technology_Group_Transport_Tycoon_Deluxe]\n"
 	"DisplayModeNumber=D1\n"
 	"ForceDIBSection=D1\n"
@@ -60,7 +60,7 @@ const char *def_noregistry =
 	"UpdateMode=D1\n";
 
 
-void sysfnerror(const char *fnname, DWORD error)
+static void sysfnerror(const char *fnname, DWORD error)
 {
   LPVOID msgbuf;
   DWORD n = FormatMessageA(
@@ -217,7 +217,7 @@ void checkpatch(void)
   loadingamestrings(flen);
 }
 
-int trynoregistry()
+static int trynoregistry(void)
 {
   // functions in noregist.c
   t_RegQueryValueEx *fake_RegQueryValueEx;
@@ -269,7 +269,7 @@ int trynoregistry()
 
 // fix the HDPath in the registry, to not end in NULL
 // and to be a 8.3 pathname and to end with a backslash
-void fixregistry(void)
+static void fixregistry(void)
 {
   HKEY hkey;
   int modified;
@@ -368,7 +368,7 @@ void fixregistry(void)
 
 }
 
-u32 getdllstamp(FILE *f, u32 baseofs)
+static u32 getdllstamp(FILE *f, u32 baseofs)
 {
   u32 newexepos, stamp;
   char b[4] = {0, 0, 0, 0};
@@ -392,7 +392,7 @@ u32 getdllstamp(FILE *f, u32 baseofs)
 }
 
 // extract ttdpatch.dll if it doesn't exist
-void check_patchdll()
+static void check_patchdll(void)
 {
   const char *filename = "ttdpatch.dll";
   u32 ofs, size, oldstamp = 0, newstamp = 1;
@@ -449,7 +449,7 @@ static size_t ncustomsystexts, *customsystextlen;
 static u32 *customsystextoffset;
 static WCHAR **customsystextw;
 
-unsigned long preparesystexts(void) {
+static unsigned long preparesystexts(void) {
   size_t n;
   unsigned long totalcustomsystextlen = 0;
 
@@ -493,7 +493,7 @@ unsigned long preparesystexts(void) {
 }
 
 
-void chkipcerror(
+static void chkipcerror(
 		HANDLE h,
 		const char *fnname,
 		const char *program,
@@ -822,7 +822,7 @@ void addgrffiles(FILE *f)
 
 #define MAX_SAVE_CONSOLE_TITLE	1024
 
-void iconproc(UINT msg, HICON bigin, HICON smallin, HICON *bigout, HICON *smallout)
+static void iconproc(UINT msg, HICON bigin, HICON smallin, HICON *bigout, HICON *smallout)
 {
   HICON smallico, bigico;
   static HWND hConsole;
@@ -864,9 +864,10 @@ void iconproc(UINT msg, HICON bigin, HICON smallin, HICON *bigout, HICON *smallo
   if (smallout) *smallout = smallico;
 }
 
-HICON oldbigicon, oldsmallicon;
+static HICON oldbigicon;
+static HICON oldsmallicon;
 
-void restoreicon(void)
+static void restoreicon(void)
 {
   iconproc(WM_SETICON, oldbigicon, oldsmallicon, 0, 0);
 }

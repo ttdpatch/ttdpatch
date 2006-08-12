@@ -27,8 +27,8 @@ typedef struct {
 	FILE *f;
 } attachment_t;
 
-char *exename;
-FILE *exefile;
+static char *exename;
+static FILE *exefile;
 
 #if WINTTDX
 	#define PROTCODEFILE "ttdprotw.bin"
@@ -46,6 +46,8 @@ static attachment_t attachments[AUX_NUM] = {
 };
 
 static char *langcode = attachments[AUX_PROTCODE].code;
+
+static int auxopen(int auxnum);
 
 
 int findattachment(int auxnum, u32 *ofs, FILE **f)
@@ -100,7 +102,7 @@ void setexename(char *cmdline) {
   fclose(f);
 }
 
-int auxopen(int auxnum)
+static int auxopen(int auxnum)
 {
   const char *filename;
   int type;
@@ -121,7 +123,7 @@ int auxopen(int auxnum)
   return type;
 }
 
-int auxclose(int auxnum)
+static int auxclose(int auxnum)
 {
   int ret = 1;
   int i, from, to;

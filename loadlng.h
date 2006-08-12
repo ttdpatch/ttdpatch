@@ -50,13 +50,6 @@ typedef struct {
 	#define langinfo_exename(linfo) ((linfo)->exefilename)
 
 	void langinfo_loadcurlangdata(langinfo *);
-	s16 langinfo_arraysize(langinfo *);
-	void langinfo_readarray(langinfo *, const char ***array, int *arraysize, s16 firstcode, s16 secondcode);
-	void langinfo_readfixedarray(langinfo *, const char **array, int arraysize, s16 firstcode, s16 secondcode);
-	void langinfo_procnextstring(langinfo *, s16 code, char **str, s16 *len);
-	char *langinfo_nextstring(langinfo *, s16 code);
-	s16 langinfo_nextstringlength(langinfo *, s16 code);
-	void langinfo_emptystring(langinfo *, s16 code);
 	void langinfo_processlangdata(langinfo *);
 	u32 langinfo_readingamestrings(langinfo *linfo, u32 exesize, char *target, u32 targetsize, char *langid);
 #endif
