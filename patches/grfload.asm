@@ -571,6 +571,7 @@ proc readgrffile
 endproc // readgrffile
 
 #ifdef DEBUGSPRITESTORE
+#include <win32.inc>
 proc log_spritestore
 	arg num,len,addr
 
@@ -598,6 +599,8 @@ log_sprite:
 	cmp dword [.hnd],0
 	jne .gothnd
 
+	extern hexdwords,hexwords
+
 	push 0			// hTemplateFile
 	push 128		// dwFlagsandAttributes = FILE_ATTRIBUTE_NORMAL
 	push 2			// dwCreationDisposition = CREATE_ALWAYS
@@ -621,6 +624,7 @@ log_sprite:
 	or ecx,byte -1
 	repne scasb
 	neg ecx
+	dec ecx
 	dec ecx
 
 	push 0
@@ -653,18 +657,18 @@ log_sprite:
 	popa
 	_ret 0
 
-var .filename, db "spriteio.log",0
-uvard .hnd
-uvard .written
+noglobal varb .filename, "spriteio.log",0
+noglobal uvard .hnd
+noglobal uvard .written
 
-var .text
+noglobal varb .text
 	db ": "
-var .type
-	db "####ing sprite "
-var .sprite, db		  "#### size "
-var .size, db 			    "#### at "
-var .addr, db				    "########",13,10
-var .end
+.type:	db "####ing sprite "
+.sprite:db		  "#### size "
+.size:	db 			    "#### at "
+.addr:	db				    "########",13,10
+.end:
+endvar
 endproc
 #endif
 

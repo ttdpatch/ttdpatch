@@ -748,7 +748,7 @@ hexbytes:
 ; endp hexbytes 
 
 	// print ebx word values from ds:esi, advancing esi by four each time
-hexwords:
+exported hexwords
 	mov cl,2
 	call checkbounds
 .nextword:
