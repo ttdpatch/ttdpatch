@@ -14,7 +14,7 @@ codefragment oldistargetstation,
 	db 0x66,0x3b,0x3d	// cmp di,[oldplatformarray]
 
 codefragment newistargetstation
-	icall istargetstation
+	icall isroutetarget
 	jmp fragmentstart+18
 
 codefragment oldstoretargetstation,-53-9*WINTTDX	// ,9
@@ -28,8 +28,6 @@ codefragment newstoretargetstation
 	mov dh,0xff		// invalid station index
 	jne .notstation
 	mov dh,[esi+veh.currorder+1]
-// FIXME	mov word [ebx-0xa4],0	// change [CurTraceRouteTarget] too
-				// so we don't find the north xy tile
 .notstation:
 	mov [ebx],dh		// store target station index (FF if not station)
 	mov byte [ebx+1],0	// make sure word at [ebx] is not a valid destination
@@ -40,7 +38,9 @@ endcodefragments
 
 patchstationtarget:
 	patchcode istargetstation
-	mov word [edi+lastediadj-6],0x1d8b	// cmp di, -> mov bx
+	mov word [edi+lastediadj-15],0x1d8b	// cmp di, -> mov bx
+	mov word [edi+lastediadj-9],0x368d	// 2-byte nop
+	mov word [edi+lastediadj-6],0x058b	// cmp di, -> mov ax
 	patchcode oldstoretargetstation,newstoretargetstation,1,2
 	mov word [edi+lastediadj-7],0x368d	// 2-byte nop
 	mov byte [edi+lastediadj-5],0xbb	// mov word [] -> mov ebx,

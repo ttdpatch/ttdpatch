@@ -277,9 +277,6 @@
 
 - action 1/2/3 feature type check doesn't work for var/random action 2?
 
-- irr station pathfinding still looking for north tile first:
-  http://www.tt-forums.net/viewtopic.php?p=372921#372921
-
 - add RPN to action D and adv.var.action 2
 
 - train can't reverse:
@@ -428,9 +425,6 @@
   need states: in flight, in holding pattern, early approach, late approach,
   braking, taxiing: after landing, before takeoff, other, in hangar, on pad,
   accelerating for take off, ascent
-
-- fix north corner of irrstation bug
-  http://www.tt-forums.net/viewtopic.php?t=26702
 
 ==== Rather urgent =====
 
@@ -703,3 +697,4 @@ CHANGELOG
   than 8 bytes
 - fixed bug reserving several pieces on a tile when train fails to reverse
 - fix base graphics not getting loaded unless another .grf was loaded as well
+- fix pathfinding issues with irregular station if north tile not part of station
