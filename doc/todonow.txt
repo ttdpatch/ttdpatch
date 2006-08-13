@@ -705,3 +705,4 @@ CHANGELOG
 - fixed crash when running out of memory
 - fixed crash while processing action 1/5 blocks with pseudo-sprites shorter
   than 8 bytes
+- fixed bug reserving several pieces on a tile when train fails to reverse
