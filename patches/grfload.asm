@@ -102,6 +102,7 @@ proc initializegraphics
 
 	// process newgrf(w).cfg
 	call processnewgrf
+	testflags canmodifygraphics,bts
 
 .none:
 
@@ -562,7 +563,6 @@ proc readgrffile
 	jl .fail
 
 	add [totalnewsprites],esi
-	testflags canmodifygraphics,bts
 
 .fail:
 	and dword [curgrffile],0

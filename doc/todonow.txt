@@ -429,12 +429,8 @@
   braking, taxiing: after landing, before takeoff, other, in hangar, on pad,
   accelerating for take off, ascent
 
-- patch doesn't complain about missing base graphics without newgrf(w).cfg
-
 - fix north corner of irrstation bug
   http://www.tt-forums.net/viewtopic.php?t=26702
-
-- PBS unreserve bug, http://www.tt-forums.net/viewtopic.php?p=478344#478344
 
 ==== Rather urgent =====
 
@@ -706,3 +702,4 @@ CHANGELOG
 - fixed crash while processing action 1/5 blocks with pseudo-sprites shorter
   than 8 bytes
 - fixed bug reserving several pieces on a tile when train fails to reverse
+- fix base graphics not getting loaded unless another .grf was loaded as well
