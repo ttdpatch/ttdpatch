@@ -1495,16 +1495,25 @@ exported drawtraininforows
 	call adjustrowxpos
 	add edx,2
 
+	push dword [edi+veh.cargotype]
+	push dword [edi+veh.cargotype+4]
+
 	mov al,[esi+window.data]
 	cmp al,10
 	je .showinfo
 
 	// show aggregate cargo information
 	movzx eax,byte [articrownum]
-	lea edi,[articrows+eax*articrow_size-veh.cargotype]
+	mov ebx,[articrows+eax*articrow_size]
+	mov [edi+veh.cargotype],ebx
+	mov ebx,[articrows+eax*articrow_size+4]
+	mov [edi+veh.cargotype+4],bx
 
 .showinfo:
 	call [showtraininforow]
+
+	pop dword [edi+veh.cargotype+4]
+	pop dword [edi+veh.cargotype]
 
 	pop esi
 	pop edi
