@@ -102,6 +102,7 @@ proc initializegraphics
 
 	// process newgrf(w).cfg
 	call processnewgrf
+	testflags canmodifygraphics,bts
 
 .none:
 
@@ -562,7 +563,6 @@ proc readgrffile
 	jl .fail
 
 	add [totalnewsprites],esi
-	testflags canmodifygraphics,bts
 
 .fail:
 	and dword [curgrffile],0
@@ -1499,6 +1499,9 @@ setspriteinfo:
 	call log_spriteread
 #endif
 
+	test ecx,ecx
+	js .pseudo
+
 	xor eax,eax
 	lodsb			// skip sprite type (compression code)
 	lodsb
@@ -1516,6 +1519,7 @@ setspriteinfo:
 
 	lodsw
 	mov [ebx+edi*2],ax	// set y offset
+.pseudo:
 	ret
 
 

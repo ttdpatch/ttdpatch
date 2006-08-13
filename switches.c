@@ -421,6 +421,7 @@ static int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int s
   if (swon < 0) {	// not yet determined
 	swon = 1;	// switch given, implies default "on"
 	if (cfgpar &&
+	    (switches[switchid].cmdline != 154) &&	// ignore debug switches
 	    (switches[switchid].cmdline != 155) &&	// ignore CDPath
 	    (switches[switchid].cmdline != 'W') &&	// and -W / writecfg
 	    (switches[switchid].cmdline != maketwochars('X','n')) &&	// and -Xn / newgrfcfg

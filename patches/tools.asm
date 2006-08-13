@@ -337,6 +337,8 @@ malloc:
 	jmp short .trynext
 
 .reserve:
+	cmp ecx,1
+	jbe .fail
 
 	// find end of heap chain to append this chunk to
 	mov eax,[heapptr]

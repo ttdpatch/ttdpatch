@@ -1603,7 +1603,7 @@ clearpathtile:
 	and bl,0x3f
 
 .clearbit:
-	test [edi+ebp],bl
+	and bl,[edi+ebp]
 	jz .donenz
 
 	mov [curcleartileptr],edi

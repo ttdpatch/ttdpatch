@@ -389,12 +389,22 @@ readplatformarray:
 
 	// called when checking whether current tile is the train route target
 	//
-	// in:	bl=station idx
+	// in:	al=station index, FF if target isn't station
+	//	bx=target tile (north corner of station if station)
 	//	edi=tile index to check
 	// out:	ZF set if is target, clear if not
 	// safe:ax bx
-global istargetstation
-istargetstation:
+exported isroutetarget
+	cmp al,0xff
+	jne .station
+
+	cmp di,bx
+	ret
+
+	// for station don't check target tile, it might not be part of the
+	// station (for irregular stations)
+.station:
+	mov bl,al
 	mov al,[landscape4(di,1)]
 	and al,0xf0
 	cmp al,0x50
