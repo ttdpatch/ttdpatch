@@ -724,3 +724,4 @@ CHANGELOG
 - fixed bug reserving several pieces on a tile when train fails to reverse
 - fix base graphics not getting loaded unless another .grf was loaded as well
 - fix pathfinding issues with irregular station if north tile not part of station
+- fix missing cargo type suffix in train info window
