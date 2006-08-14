@@ -149,9 +149,7 @@ BeginResizeWindow:
 
 	pusha
 	mov eax, [mousecursorscrx]
-	mov [sizewindowprevx], ax
-	shr eax, 16
-	mov [sizewindowprevy], ax
+	mov [sizewindowprevx], eax
 	mov eax, [esi+window.width]
 	mov [realwinsize], eax
 	call [BringWindowToForeground]
@@ -179,8 +177,9 @@ BeginResizeWindow:
 	popa
 	ret
 
-uvarw sizewindowprevx
-uvarw sizewindowprevy
+uvarw sizewindowprev, 2
+sizewindowprevx equ sizewindowprev
+sizewindowprevy equ sizewindowprev+2
 uvard realwinsize
 
 global procwindowdragmode
