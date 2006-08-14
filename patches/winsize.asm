@@ -149,7 +149,9 @@ BeginResizeWindow:
 
 	pusha
 	mov eax, [mousecursorscrx]
-	mov [sizewindowprevx], eax
+	mov [sizewindowprevx], ax
+	shr eax, 16
+	mov [sizewindowprevy], ax
 	mov eax, [esi+window.width]
 	mov [realwinsize], eax
 	call [BringWindowToForeground]
