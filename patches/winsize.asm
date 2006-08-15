@@ -1,9 +1,9 @@
-
 #include <std.inc>
+#include <flags.inc>
 #include <proc.inc>
-#include <window.inc>
-#include <textdef.inc>
 #include <ptrvar.inc>
+#include <textdef.inc>
+#include <window.inc>
 
 extern BringWindowToForeground,CreateTooltip,DestroyWindow,FindWindow
 extern RefreshWindowArea,TabClicked,TitleBarClicked,currscreenupdateblock
@@ -311,6 +311,7 @@ procwindowdragmode:
 //    AX,BX=new width&height of window
 uvarw tmpdx
 uvarw tmpdy
+
 ResizeWindowElements:
 	push esi
 	push edi
@@ -332,6 +333,9 @@ ResizeWindowElements:
 	
 //same as above, only esi is a pointer to the first windowelement, and ax,bx are size changes instead of absolute sizes
 ResizeWindowElementsDelta:
+	cmp edi, newdepotwindowconstraints
+	je near ResizeWindowElementsDeltax
+
 	push ax
 	push bx
 	add ax, [tmpdx]
@@ -354,7 +358,7 @@ ResizeWindowElementsDelta:
 	sar dx, 1
 	pop bx
 	pop ax
-	
+
 .loop:
 	cmp byte [esi+windowbox.type], cWinElemLast
 	je .done
@@ -391,11 +395,137 @@ ResizeWindowElementsDelta:
 	jz .noy2s
 	add [esi+windowbox.y2], dx
 .noy2s:
-	
+
 	add esi, windowbox_size
 	inc edi
 	jmp .loop
 .done:
+	ret
+
+uvarw tmpthird1
+uvarw tmpthird2
+uvarb tmpgood1
+ResizeWindowElementsDeltax:
+	push ebp
+	push eax
+	push ebx
+	add ax, [tmpdx]
+	add bx, [tmpdy]
+	mov word [tmpdx], 0
+	test ax, 1
+	jz .correctdx
+	mov word [tmpdx], 1
+.correctdx:
+	mov word [tmpdy], 0
+	test bx, 1
+	jz .correctdy
+	mov word [tmpdy], 1
+.correctdy:	
+	mov cx, ax
+	and cx, 0xfffe
+	sar cx, 1
+	mov dx, bx
+	and dx, 0xfffe
+	sar dx, 1
+	pop ebx
+	pop eax
+
+	push eax
+	push ebx
+	push ecx
+	push edx
+	mov byte [tmpgood1], 0
+	test ax, ax
+	jl .notgood
+	inc byte [tmpgood1]
+	jmp .gooda
+.notgood:
+	neg ax
+.gooda:
+	xor dx, dx
+	cwde
+	mov bx, 3
+	idiv bx
+	mov cx, ax
+	cmp byte [tmpgood1], 1
+	je .good
+	neg cx
+.good:
+	mov word [tmpthird1], cx
+	shr dx, 4
+	adc ax, ax
+	cmp byte [tmpgood1], 1
+	je .goods
+	neg ax
+.goods:
+	mov word [tmpthird2], ax
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
+
+.loop:
+	cmp byte [esi+windowbox.type], cWinElemLast
+	je near .done
+
+	test word [edi], 1
+	jz .nox1
+	add [esi+windowbox.x1], ax
+.nox1:
+	test word [edi], 2
+	jz .nox2
+	add [esi+windowbox.x2], ax
+.nox2:
+	test word [edi], 4
+	jz .noy1
+	add [esi+windowbox.y1], bx
+.noy1:
+	test word [edi], 8
+	jz .noy2
+	add [esi+windowbox.y2], bx
+.noy2:
+	test word [edi], 10h
+	jz .nox1s
+	add [esi+windowbox.x1], cx
+.nox1s:
+	test word [edi], 20h
+	jz .nox2s
+	add [esi+windowbox.x2], cx
+.nox2s:
+	test word [edi], 40h
+	jz .noy1s
+	add [esi+windowbox.y1], dx
+.noy1s:
+	test word [edi], 80h
+	jz .noy2s
+	add [esi+windowbox.y2], dx
+.noy2s:
+	test word [edi], 100h
+	jz .lnox1
+	mov bp, [tmpthird1]
+	add [esi+windowbox.x1], bp
+.lnox1:
+	test word [edi], 200h
+	jz .lnox2
+	mov bp, [tmpthird1]
+	add [esi+windowbox.x2], bp
+.lnox2:
+	test word [edi], 400h
+	jz .lnox1s
+	mov bp, [tmpthird2]
+	add [esi+windowbox.x1], bp
+.lnox1s:
+	test word [edi], 800h
+	jz .lnox2s
+	mov bp, [tmpthird2]
+	add [esi+windowbox.x2], bp
+.lnox2s:
+
+	add esi, windowbox_size
+	add edi, 2
+	jmp near .loop
+.done:
+	pop ebp
 	ret
 
 //IN: esi=window, edi=pointer to size constraints, ax,cx=new width and height of window
@@ -501,8 +631,16 @@ FindWindowData:
 .raildepot:
 	bt dword [grfmodflags], 3
 	jnc .loop
+extern patchflags
+testmultiflags clonetrain
+	jz .noclonetrain
+	mov dword [tmpAddress+2], newdepotwindowconstraints
+	mov dword [tmpAddress+6], newtraindepotwindowsizes32
+	jmp .isclonetrain
+.noclonetrain:
 	mov dword [tmpAddress+2], depotwindowconstraints
 	mov dword [tmpAddress+6], traindepotwindowsizes32
+.isclonetrain:
 	mov edi, tmpAddress
 	jmp .found
 
@@ -1060,6 +1198,11 @@ var depotwindowconstraints
 	db 00000000b, 00000010b, 00001010b
 	db 00001011b, 00001011b, 00101100b
 	db 00011110b, 00001111b, 0
+var newdepotwindowconstraints
+	dw 0000000000000000b, 00000000000000010b, 0000000000001010b // Close Button, Title, Tile Box
+	dw 0000000000001011b, 00000000000001011b, 0000001000001100b // Sell Button, Scroll Bar, New Vehicle
+	dw 0000010000001110b, 0000100100001100b, 0000000000001111b // Location, Clone Train, Resize
+	dw 0 // End
 var rvdepotwindowsizes
 	dw 315-3*56, 2048//X
 	db 56, 2
@@ -1090,6 +1233,20 @@ var traindepotwindowsizes
 	dw 26
 var traindepotwindowsizes32
 	dw 379-6*32, 2048//X
+	db 32, -1 
+	dw 59
+	dw 110-4*14, 2048//Y
+	db 14 ,2
+	dw 26
+var newtraindepotwindowsizes // These are longer so that the words don't clip
+	dw 349-4*29, 2048//X
+	db 29, -1 
+	dw 1
+	dw 110-4*14, 2048//Y
+	db 14 ,2
+	dw 26
+var newtraindepotwindowsizes32
+	dw 379-4*32, 2048//X
 	db 32, -1 
 	dw 59
 	dw 110-4*14, 2048//Y

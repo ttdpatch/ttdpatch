@@ -217,6 +217,7 @@ varb patchflagsfixedmap
 	db articulatedrvs	// 119
 	// note, newairports it at 13, don't add it here
 	db newroutes		// 120
+	db clonetrain		// 121
 
 
 	times 127-(addr($)-patchflagsfixedmap) db noflag

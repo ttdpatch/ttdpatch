@@ -11,6 +11,7 @@ extern variabletofind,variabletowrite,vehlistwinsizesptr,windowsizesbufferptr
 extern winelemdrawptrs,drawresizebox,DrawWinElemCheckBox
 
 #include <window.inc>
+#include <textdef.inc>
 
 ext_frag findvariableaccess,newvariable
 
@@ -405,6 +406,12 @@ patchwindowsizer:
 	call .patchdepotwindow
 
 	//and the train-depot, but this one is a bit more complicated
+extern patchflags
+testmultiflags clonetrain
+	jz .noclonetrain
+	ret
+
+.noclonetrain:
 	mov word [greywinelemx1], 11
 	mov word [greywinelemx2], 348
 	stringaddress findgreywinelemlist
@@ -417,6 +424,7 @@ patchwindowsizer:
 	mov ecx, 7*12+1
 	rep movsb
 	pop esi
+
 	push edx
 	mov bl, 7
 	mov ax, 338
@@ -426,10 +434,12 @@ patchwindowsizer:
 	call .addsizer
 	pop edx
 	sub word [esi+6*12+windowbox.x2], 11
-	mov [variabletowrite], esi
 	pop edi
+
+	mov [variabletowrite], esi
 	mov [variabletofind], edi
 	patchcode findvariableaccess,newvariable,1,1
+
 	mov byte [negdepotsize],-6
 	stringaddress oldlastdepotrowdrawn,1,1
 	mov al, [edi+5]
@@ -438,6 +448,32 @@ patchwindowsizer:
 	patchcode oldlasttraindepotrowdrawn,newlasttraindepotrowdrawn,1,1
 //	patchcode olddrawtrainindepot,newdrawtrainindepot,1,1
 //	patchcode olddrawtrainwagonsindepot,newdrawtrainwagonsindepot,1,1
+	patchcode oldtraindepotclick,newtraindepotclick,1,1
+	patchcode oldtraindepotwindowhandler,newtraindepotwindowhandler,1,1
+
+	ret
+
+global patchwindowsizer.addforclonetrain
+
+.addforclonetrain:
+	push edx
+	mov bl, 8
+	mov ax, 338
+	mov cx, 98
+extern newDepotWinElemList, newdepotwindowconstraints, newtraindepotwindowsizes
+	mov esi, [newDepotWinElemList]
+	mov edi, newdepotwindowconstraints // Special versions of these for clone trains on
+	mov edx, newtraindepotwindowsizes
+	call .addsizer
+	pop edx
+	sub word [esi+6*12+windowbox.x2], 11
+
+	mov byte [negdepotsize],-6
+	stringaddress oldlastdepotrowdrawn,1,1
+	mov al, [edi+5]
+	mov [depotjmpoffset], al
+	storefragment newlastdepotrowdrawn
+	patchcode oldlasttraindepotrowdrawn,newlasttraindepotrowdrawn,1,1
 	patchcode oldtraindepotclick,newtraindepotclick,1,1
 	patchcode oldtraindepotwindowhandler,newtraindepotwindowhandler,1,1
 
@@ -509,6 +545,7 @@ patchwindowsizer:
 	patchcode olddepotwindowxytoveh_calcoffset,newdepotwindowxytoveh_calcoffset,1,1
 	patchcode oldcalcdepottotalitems,newcalcdepottotalitems,1,1
 	ret
+
 //IN: bl==index of last window element
 //    esi==windowelemlistptr
 //    ax,cx==x,y of sizer

@@ -293,7 +293,7 @@
 	YESNO('A',"newairports", CFG_NEWAIRPORTS, INFST_STATION, "NewAirports", newairports),
 	     //B
 	YESNO('C',"aichoosechances", CFG_AICHOOSECHANCES, DIFFICULTY, "AIConstructionChances", aichoosechances),
-	     //D
+	YESNO('D', "clonetrain", CFG_CLONETRAIN, VEH_RAIL, "CloneTrain", clonetrain),
 	     //E
 	BITS ('F',"toylandfeatures", CFG_TOYLANDFEATURES, TERRAIN, "ToylandFeatures", moretoylandfeatures, 0, FLAGDATA(toylandfeatures), 1),
 	     //G
@@ -508,4 +508,5 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	articulatedrvs,
 	newairports,
 	newroutes,
+	clonetrain,
 

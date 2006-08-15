@@ -298,6 +298,9 @@ defourtext grfdebugmsg
 defourtext airporttype
 defourtext unnamedairporttype
 
+defourtext txtclonedepotbutton
+defourtext txtclonetooltip
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

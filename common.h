@@ -134,10 +134,11 @@
 #define morestats		110	// save some more company statistics
 #define autoreplace		111	// autoreplace old vehicle
 #define newairports		112	// allow new airport types
+#define clonetrain		113	// enables the ablity to clone a train
 
 // NOTE!! If you add a bit here, also add it to patchflagsfixedmap in header.asm!!
 
-#define lastbitdefaulton	112	// META: last bit defined to be set by -a 
+#define lastbitdefaulton	113	// META: last bit defined to be set by -a 
 
 // add new flags that should be on by default above, flags off by default below
 

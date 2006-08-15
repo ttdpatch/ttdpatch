@@ -492,6 +492,7 @@ enum langtextids {
 	CFG_NEWAIRPORTS,
 	CFG_NEWROUTES,
 	CFG_AUTOSIGDISTANCE,
+	CFG_CLONETRAIN,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS

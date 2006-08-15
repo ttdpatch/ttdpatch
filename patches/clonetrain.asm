@@ -4,6 +4,9 @@
 // Created By Lakie
 // Auguest 2006
 
+#include <std.inc>
+#include <textdef.inc>
+
 /*
 
 	-= Basic Idea =-
@@ -32,3 +35,39 @@
 * Might be a pain to do and take a while
 
 */
+
+// Stores the location of the new depotwindow elementlist
+uvard newDepotWinElemList
+
+// Stores the location of the old depot tooltips
+uvard CloneDepotToolTips
+
+// Handles the right click code for the depot window (to prevent crash)
+global CloneDepotRightClick
+CloneDepotRightClick:
+	cmp cl, 7
+	je .isclonetrain
+	push edi
+	mov edi, [CloneDepotToolTips]
+	mov ax, [edi+ebx*2]
+	pop edi
+	ret
+
+.isclonetrain:
+	mov ax, ourtext(txtclonetooltip)
+	ret
+
+// Handles the normal click for the depot window
+global CloneDepotClick
+CloneDepotClick:
+	cmp cl, 7
+	je .isclonetrain
+	cmp cl, 2
+	jne .bad
+	add dword [esp], 0x1B4+3
+.bad:
+	ret
+
+.isclonetrain:
+	ret
+

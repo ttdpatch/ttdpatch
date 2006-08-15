@@ -262,6 +262,7 @@ TEXTARRAY(halflines,) =
 
 	  "-ZA: Enable new airports",
 	  "-ZC: Enable AI transport type chances",
+	  "-ZD: Ebnalbes the cloning of trains",
 	  "-ZI: Enable irregular stations",
 	  "-ZM: Collect more company statistics",
 	  "-ZN: Enables newRoutes",
@@ -501,6 +502,7 @@ SWITCHTEXT(shortrvs, "Enabled Shortened (or lengthened) RVs", "")
 SWITCHTEXT(articulatedrvs, "Enabled Articulated RVs", "")
 SWITCHTEXT(newairports, "Allows using new airport types","")
 SWITCHTEXT(newroutes, "Allows the changing of Rails and Roads through grf files", "")
+SWITCHTEXT(clonetrain, "Allows the cloning of a train through the depot window.", "")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -870,6 +872,7 @@ SETTEXT(CFG_ARTICULATEDRVS, "`%s' (%s) enable articulated RVs")
 SETTEXT(CFG_NEWAIRPORTS, "`%s' (%s) allows using new airport types supplied by GRFs")
 SETTEXT(CFG_NEWROUTES, "`%s' (%s) allows the changing of rails and roads though GRF files")
 SETTEXT(CFG_AUTOSIGDISTANCE, "`%s' (%s) sets the separation of signals placed by the autosignal tool.  The / and \\ directions count as 4, the others as 3, so a value of 12 places signals every 3 resp. 4 tiles.  Range 4..255, default 12.")
+SETTEXT(CFG_CLONETRAIN, "`%s' (%s) allows the cloning of a train through the depot window.")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')
