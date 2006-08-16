@@ -166,8 +166,18 @@ SwapDockWinPurchaseLandIco:
 	ret
 ;endp SwapDockWinPurchaseLandIco;
 
+extern grfmodflags
 global Class6PeriodicProc
 Class6PeriodicProc:
+	testmultiflags newsounds
+	jz .nonewsounds
+	test byte [grfmodflags],0x10
+	jz .nonewsounds
+
+	extern AmbientSound
+	call AmbientSound
+
+.nonewsounds:
 	test word [landscape3 + 2*ebx], 1
 	jz .oldfunction
 	ret

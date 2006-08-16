@@ -709,6 +709,7 @@ CHANGELOG
   * (devel) make C functions and variables static where possible
   * (devel) remove some dead code
   * (devel) fix buffer overrun and use correct variables
+- added generic feature 0C (newsounds) callback for new ambient sounds
 
 
 

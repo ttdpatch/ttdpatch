@@ -1,9 +1,12 @@
+
 #include <defs.inc>
+#include <ptrvar.inc>
 #include <frag_mac.inc>
 #include <win32.inc>
 #include <patchproc.inc>
 
 patchproc newsounds, patchnewsounds
+patchproc newsounds,canals, patchperiodicprocs
 
 extern SampleCatDataPtr,SampleCatLoadedOK,generatesound.zoomvolume,malloccrit
 extern playorigsound,PlayCustomSound
@@ -75,6 +78,38 @@ codefragment newuninstallsound
 
 
 endcodefragments
+
+extern patchflags
+extern oldclass0periodicproc,Class0PeriodicProc
+extern oldclass4periodicproc,Class4PeriodicProc
+extern oldclass6periodicproc,Class6PeriodicProc
+patchperiodicprocs:
+	// new water tile periodic proc, used by both canals and newsounds
+	mov eax,[opclass(6)]
+	mov ecx,Class6PeriodicProc
+	xchg ecx,[eax+0x20]
+	mov [oldclass6periodicproc],ecx
+
+	// rest of the new procs only with newsounds enabled
+	testmultiflags newsounds
+	jz .nonewsounds
+
+	// bare land
+	mov eax,[opclass(0)]
+	mov ecx,Class0PeriodicProc
+	xchg ecx,[eax+0x20]
+	mov [oldclass0periodicproc],ecx
+
+	// trees
+	mov eax,[opclass(4)]
+	mov ecx,Class4PeriodicProc
+	xchg ecx,[eax+0x20]
+	mov [oldclass4periodicproc],ecx
+
+.nonewsounds:
+	xor ecx,ecx
+	ret
+
 
 patchnewsounds:
 	stringaddress oldgeneratesound,1,1

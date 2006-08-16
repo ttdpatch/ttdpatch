@@ -8,7 +8,6 @@ patchproc canals, patchcanals
 patchproc canals, higherbridges, patchcanalshigherbridges
 
 extern oldclass6maphandler,Class6RouteMapHandler,Class6VehEnterLeave
-extern oldclass6periodicproc,Class6PeriodicProc,Class6PeriodicProc
 extern oldclass6drawlandfnc,Class6DrawLand,selectgroundforbridge
 extern dockwinpurchaselandico,newgraphicssetsenabled,oldclass9drawlandfnc
 extern oldclass5drawlandfnc,Class5DrawLand,actionmakewater_actionnum
@@ -112,10 +111,6 @@ patchcanals:
 	mov dword [eax+0x24],addr(Class6RouteMapHandler)
 
 	mov dword [eax+0x28],addr(Class6VehEnterLeave)
-
-	mov ecx, [eax+0x20]
-	mov [oldclass6periodicproc], ecx
-	mov dword [eax+0x20],addr(Class6PeriodicProc)
 
 	mov ecx, [eax+0x1C]
 	mov [oldclass6drawlandfnc], ecx
