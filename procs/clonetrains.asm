@@ -12,9 +12,7 @@ extern newDepotWinElemList, CloneDepotToolTips
 extern CloneDepotClick, CloneDepotRightClick
 extern patchwindowsizer.addforclonetrain
 extern CloneDepotDisableElements, CloneDepotWindowHandler
-extern CloneTrainBuyRailVehicle, CloneTrainAttachVehicle
-extern newbuyrailvehicle, CloneDepotVehicleClick
-extern CloneTrainOpenTrainWindow
+extern CloneDepotVehicleClick, CloneTrainOpenTrainWindow
 
 ext_frag findvariableaccess,newvariable
 
@@ -150,18 +148,6 @@ patchclonetrain:
 	patchcode olddepotrightclick, newdepotrightclick
 	patchcode olddepotleftclick, newdepotleftclick
 	patchcode olddisableaibuttons, newdisableaibuttons
-
-	stringaddress findoldbuyvehicle
-	mov dword [CloneTrainBuyRailVehicle], edi
-
-testmultiflags newtrains
-	jz .nonewtrain
-	mov dword [CloneTrainBuyRailVehicle], newbuyrailvehicle
-.nonewtrain:
-
-	stringaddress findattachvehicle
-	mov dword [CloneTrainAttachVehicle], edi
-
 	patchcode olddepotclickedtrain, newdepotclickedtrain
 
 	stringaddress findopentrainwindow

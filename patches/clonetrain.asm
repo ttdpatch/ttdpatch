@@ -16,9 +16,8 @@
 #include <window.inc>
 
 extern setmousetool, patchflags, findvehontile, errorpopup, actionhandler, addexpenses
+extern RefreshWindowArea, forceextrahead, isengine, trainplanerefitcost, newvehdata
 extern traindepotwindowhandler.resizewindow, CloneTrainBuild_actionnum
-extern RefreshWindowArea
-extern isengine, trainplanerefitcost, newvehdata
 
 /*
 
@@ -270,11 +269,6 @@ CloneTrainMain:
 uvard CloneTrainCost // Stores the total cost of cloning
 uvarw CloneTrainLastIdx // Stores the last created unit id
 
-// Offsets to subroutines (so I can call them directly)
-uvard CloneTrainBuyRailVehicle // <-- used to buy a new rail vehicle (changes based off newtrains)
-uvard CloneTrainAttachVehicle // <-- used to attach vehicles to other vehicles
-// [addexpenses] <-- use to alter the companies expenses
-
 // Handles the actual operation of cloning the consist
 // Input:	esi = Depot Window Pointer
 //		edi = Vehicle Engine Pointer
@@ -307,7 +301,10 @@ exported CloneTrainBuild
 	movzx ebx, word [esi+veh.vehtype]
 	shl bx, 8
 	mov bl, 1
-	call [CloneTrainBuyRailVehicle]
+	mov esi, 0x80
+	push ebp
+	call [actionhandler]
+	pop ebp
 	pop esi
 
 	cmp word [CloneTrainLastIdx], 0 // No last vehicle so cannot attach (ie. if train engine)
@@ -320,7 +317,10 @@ exported CloneTrainBuild
 	movzx edi, word [edi+veh.idx]
 	mov dx, [CloneTrainLastIdx]
 	mov bl, 1
-	call [CloneTrainAttachVehicle]
+	mov esi, 0x90080
+	push ebp
+	call [actionhandler]
+	pop ebp
 	pop edi
 	pop esi
 	pop ecx
@@ -389,7 +389,10 @@ CloneTrainCalcOnly:
 	shl bx, 8
 	mov bl, 0
 	push esi
-	call [CloneTrainBuyRailVehicle]
+	mov esi, 0x80
+	push ebp
+	call [actionhandler]
+	pop ebp
 	pop esi
 
 	cmp ebx, 1<<31 // Fail or add costs
@@ -444,8 +447,6 @@ CloneTrainCalcOnly:
 	ret
 
 .done:
-	mov si, [esi+veh.engineidx]
-	mov word [CloneTrainLastIdx], si
 	mov ebx, [trainplanerefitcost] // Refit cost
 	sar ebx, 7 // Correct the end value for refits
 	add ebx, [CloneTrainCost]
