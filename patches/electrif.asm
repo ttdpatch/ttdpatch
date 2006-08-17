@@ -2127,13 +2127,15 @@ extern grfmodflags
 // In: track type in the low 2 bits of the specified location
 //	"reg" macro checks a register, "mem" macro checks a byte in memory
 //	With a trailing 'h' the high nibble of the specified location is checked.
+//	Generated name is trackhascatenary_<first_param>[h]
 // Out: ZF = 1 if no catenaries
 //	ZF = 0 if catenaries
 // Safe: All
 // All el-rails track-type checks use one of these functions.
 
-%macro catenarycheck_reg 2-3	// params: trailing namepart, location to check
+%macro catenarycheck 2-3	// params: trailing namepart (with 'h'), location to check
 				// trailing 0 to check high nibble instead
+				// Internal version. Use one of the next four instead.
 trackhascatenary_%1:
 	test byte [grfmodflags], 0x20
 	jnz .bothtypes
@@ -2144,21 +2146,24 @@ trackhascatenary_%1:
 	ret
 %endmacro
 
-%macro catenarycheck_regh 2
-	catenarycheck_reg %1h, %2, 0
+%macro catenarycheck_reg 1	//param: register to check
+	catenarycheck %1, %1
 %endmacro
-%macro catenarycheck_mem 2
-	catenarycheck_reg %1, byte [%2]
+%macro catenarycheck_regh 1	//param: register to check
+	catenarycheck %1h, %1, 0
 %endmacro
-%macro catenarycheck_memh 2
-	catenarycheck_regh %1, byte [%2]
+%macro catenarycheck_mem 2	//params: name, byte to check
+	catenarycheck %1, byte [%2]
+%endmacro
+%macro catenarycheck_memh 2	//params: name (sans 'h'), byte to check
+	catenarycheck %1h, byte [%2], 0
 %endmacro
 
-catenarycheck_reg al, eax
-catenarycheck_reg bl, ebx
-catenarycheck_regh dh, dh
-catenarycheck_reg bp, ebp
-catenarycheck_reg si, esi
+catenarycheck_reg al
+catenarycheck_reg bl
+catenarycheck_regh dh
+catenarycheck_reg bp
+catenarycheck_reg si
 catenarycheck_mem L3, landscape3+esi*2
 catenarycheck_memh L3, landscape3+esi*2
 catenarycheck_mem L3p, landscape3+1+esi*2
