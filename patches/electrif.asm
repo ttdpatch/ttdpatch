@@ -2157,7 +2157,7 @@ trackhascatenary_%1:
 catenarycheck_reg al, eax
 catenarycheck_reg bl, ebx
 catenarycheck_regh dh, dh
-catenarycheck_reg bp, ebx
+catenarycheck_reg bp, ebp
 catenarycheck_reg si, esi
 catenarycheck_mem L3, landscape3+esi*2
 catenarycheck_memh L3, landscape3+esi*2
