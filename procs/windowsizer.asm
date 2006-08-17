@@ -406,12 +406,41 @@ patchwindowsizer:
 	call .patchdepotwindow
 
 	//and the train-depot, but this one is a bit more complicated
+	push edx
+	mov bl, 7
+	mov ax, 338
+	mov cx, 98
+
+extern newDepotWinElemList, newdepotwindowconstraints, newtraindepotwindowsizes
+	mov esi, [newDepotWinElemList]
+
 extern patchflags
 testmultiflags clonetrain
 	jz .noclonetrain
-	ret
+	mov edi, newdepotwindowconstraints // Special versions of these for clone trains on
+	mov edx, newtraindepotwindowsizes
+	add bl, 1
+	jmp .isclonetrain
 
 .noclonetrain:
+	mov edi, depotwindowconstraints // Special versions of these for clone trains on
+	mov edx, traindepotwindowsizes
+
+.isclonetrain:
+	call .addsizer
+	pop edx
+	sub word [esi+6*12+windowbox.x2], 11
+
+	mov byte [negdepotsize],-6
+	stringaddress oldlastdepotrowdrawn,1,1
+	mov al, [edi+5]
+	mov [depotjmpoffset], al
+	storefragment newlastdepotrowdrawn
+	patchcode oldlasttraindepotrowdrawn,newlasttraindepotrowdrawn,1,1
+	patchcode oldtraindepotclick,newtraindepotclick,1,1
+	ret
+
+#if 0
 	mov word [greywinelemx1], 11
 	mov word [greywinelemx2], 348
 	stringaddress findgreywinelemlist
@@ -449,9 +478,10 @@ testmultiflags clonetrain
 //	patchcode olddrawtrainindepot,newdrawtrainindepot,1,1
 //	patchcode olddrawtrainwagonsindepot,newdrawtrainwagonsindepot,1,1
 	patchcode oldtraindepotclick,newtraindepotclick,1,1
-	patchcode oldtraindepotwindowhandler,newtraindepotwindowhandler,1,1
+//	patchcode oldtraindepotwindowhandler,newtraindepotwindowhandler,1,1
 
 	ret
+
 
 global patchwindowsizer.addforclonetrain
 
@@ -475,9 +505,9 @@ extern newDepotWinElemList, newdepotwindowconstraints, newtraindepotwindowsizes
 	storefragment newlastdepotrowdrawn
 	patchcode oldlasttraindepotrowdrawn,newlasttraindepotrowdrawn,1,1
 	patchcode oldtraindepotclick,newtraindepotclick,1,1
-	patchcode oldtraindepotwindowhandler,newtraindepotwindowhandler,1,1
 
 	ret
+#endif
 
 .patchdepotwindow:
 	mov al, [depottotalsizex]

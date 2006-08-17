@@ -161,9 +161,11 @@
 	patchproc canmodifygraphics, patchtranslation		// must be before patchsetnewgraphics
 	patchproc canmodifygraphics, patchsetnewgraphics	// must be after patchsetspritecache
 	patchprocandor canmodifygraphics,NOTBIT(MISCMODS_SMALLSPRITELIMIT),, patchextendedspritelimit
-	patchproc enhancegui, patchwindowsizer
 	patchprocandor newshistory,enhancegui,, patchnewshistory	// must be before patchmorewindows
 
+	patchproc enhancegui, clonetrain, patchmovedepotdata
+	patchproc clonetrain, patchclonetrain // Must be patched before winsizer
+	patchproc enhancegui, patchwindowsizer
 
 	// NOTE:
 	// If you were going to put your patchproc here, just put it in

@@ -300,6 +300,13 @@ defourtext unnamedairporttype
 
 defourtext txtclonedepotbutton
 defourtext txtclonetooltip
+defourtext txtcloneerrortop
+defourtext txtclonebadcash
+defourtext txtcloneerror1
+defourtext txtcloneerror2
+defourtext txtcloneerror3
+defourtext txtcloneerror4
+defourtext txtcloneerrortmp
 
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 

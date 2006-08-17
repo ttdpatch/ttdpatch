@@ -1531,7 +1531,7 @@ CalcTrainDepotWidth:
 	ret
 #endif
 
-global traindepotwindowhandler
+global traindepotwindowhandler, traindepotwindowhandler.resizewindow
 traindepotwindowhandler:
 	mov bx, cx
 	mov esi, edi

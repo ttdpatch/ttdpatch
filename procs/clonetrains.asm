@@ -11,10 +11,12 @@ extern variabletofind, variabletowrite
 extern newDepotWinElemList, CloneDepotToolTips
 extern CloneDepotClick, CloneDepotRightClick
 extern patchwindowsizer.addforclonetrain
+extern CloneDepotDisableElements, CloneDepotWindowHandler
+extern CloneTrainBuyRailVehicle, CloneTrainAttachVehicle
+extern newbuyrailvehicle, CloneDepotVehicleClick
+extern CloneTrainOpenTrainWindow
 
 ext_frag findvariableaccess,newvariable
-
-patchproc clonetrain, patchclonetrain
 
 begincodefragments
 
@@ -46,9 +48,56 @@ codefragment newdepotleftclick
 	icall CloneDepotClick
 	setfragmentsize 9
 
+codefragment olddisableaibuttons
+	db 0x74, 0x04
+	or dword [esi+window.disabledbuttons], 0x28
+	mov ax, [esi+window.id]
+
+codefragment newdisableaibuttons
+	icall CloneDepotDisableElements
+	setfragmentsize 6
+
+codefragment oldtraindepotwindowhandler
+	mov bx, cx
+	mov esi, edi
+	cmp dl, cWinEventRedraw
+	db 0x74, 0xF1	// jz ...
+	cmp dl, cWinEventClick
+	db 0x0F, 0x84, 0xB1	// jz near ...
+
+codefragment newtraindepotwindowhandler
+	icall CloneDepotWindowHandler
+	setfragmentsize 8
+
+codefragment findoldbuyvehicle, -7
+	mov edx, ebx
+	shr edx, 8
+
+codefragment findattachvehicle, -7
+	push ax
+	push cx
+	movzx edi, di
+	shl edi, 7
+
+codefragment olddepotclickedtrain
+	cmp al, 1
+	db 0x74, 0x67
+	cmp al, -1
+	db 0x0F, 0x84, 0x8A, 0x00, 0x00, 0x00
+
+codefragment newdepotclickedtrain
+	icall CloneDepotVehicleClick
+
+codefragment findopentrainwindow, -4
+	pop esi
+	ret
+	mov edx, edi
+	db 0x66, 0xC7, 0x46, 0x22, 0xFF, 0xFF
+
 endcodefragments
 
-patchclonetrain:
+global patchmovedepotdata
+patchmovedepotdata:
 	mov word [depotwinelemx1], 11
 	mov word [depotwinelemx2], 348
 	stringaddress finddepotwinelemlist
@@ -56,12 +105,20 @@ patchclonetrain:
 	push edi
 	mov esi, edi
 
-	mov ecx, 7*12+1 + 1*12
+	mov ecx, 7*12+1 // Default size
+
+testmultiflags clonetrain
+	jz .noclonetrain
+	add ecx, 1*12 // Clone Button
+
+.noclonetrain:
+
 testmultiflags enhancegui
 	jz .noenhancegui
-	add ecx, 2*12
+	add ecx, 2*12 // Normal
 
 .noenhancegui:
+
 	push ecx
 	call malloccrit
 	pop edi
@@ -72,16 +129,17 @@ testmultiflags enhancegui
 	pop esi
 	pop edi
 
-	call .addclonebutton
-
 	mov [variabletofind], edi
 	mov [variabletowrite], esi
 	mov dword [newDepotWinElemList], esi
-
 	patchcode findvariableaccess, newvariable, 1, 1
+	patchcode oldtraindepotwindowhandler, newtraindepotwindowhandler
+	ret
 
-	// Add the Window sizer
-	call patchwindowsizer.addforclonetrain
+global patchclonetrain
+patchclonetrain:
+	mov esi, [newDepotWinElemList]
+	call .addclonebutton
 
 	// Now hook some misc bits of code
 	stringaddress findoldtextstrings
@@ -91,6 +149,24 @@ testmultiflags enhancegui
 
 	patchcode olddepotrightclick, newdepotrightclick
 	patchcode olddepotleftclick, newdepotleftclick
+	patchcode olddisableaibuttons, newdisableaibuttons
+
+	stringaddress findoldbuyvehicle
+	mov dword [CloneTrainBuyRailVehicle], edi
+
+	stringaddress findattachvehicle
+	mov dword [CloneTrainAttachVehicle], edi
+
+	patchcode olddepotclickedtrain, newdepotclickedtrain
+
+	stringaddress findopentrainwindow
+	mov edi, [edi]
+	mov dword [CloneTrainOpenTrainWindow], edi
+
+testmultiflags newtrains
+	jz .nonewtrain
+	mov dword [CloneTrainAttachVehicle], newbuyrailvehicle
+.nonewtrain:
 
 	ret
 

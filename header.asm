@@ -123,6 +123,7 @@ startpatchactions			// this is a macro, not a label...
 	patchaction builddiagtrackspan
 	patchaction fundprospecting_newindu
 	patchaction AlterSignalsByGUI
+	patchaction CloneTrainBuild
 
 uvard newvehdata, newvehdatastruc_size/4
 
