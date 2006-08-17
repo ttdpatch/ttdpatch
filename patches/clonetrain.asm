@@ -185,7 +185,7 @@ CloneDepotActiveMouseTool:
 	push esi
 	bts dword [esi+window.activebuttons], 7 // Active the bit (Button)
 
-	mov dx, [esi+window.id]
+	mov dx, [esi+window.id] // Settings for the Mouse Tool
 	mov ah, 0x12
 	mov al, 1
 
@@ -224,10 +224,10 @@ CloneTrainMain:
 
 .foundvehicle:
 	push edi
-	movzx edi, word [esi+window.id]
+	movzx edi, word [esi+window.id] // Get the x, y for the action to take place
 	mov bh, [esi+window.company]
 
-	rol di, 4
+	rol di, 4 // Store the x, y in the ax, cx registors
 	mov ax, di
 	mov cx, di
 	rol cx, 8
@@ -237,21 +237,23 @@ CloneTrainMain:
 
 	push esi
 	mov bl, 1
-	mov word [operrormsg1], ourtext(txtcloneerrortop)
-	dopatchaction CloneTrainBuild
-	cmp ebx, 1<<31
+	mov word [operrormsg1], ourtext(txtcloneerrortop) // Header for error messages
+	dopatchaction CloneTrainBuild // Clone the consist
+	cmp ebx, 1<<31 // Skip opening of the vehicle window (would crash otherwise)
 	je .failed
 
-	mov edi, esi
-	mov esi, [esp]
+	push edi // Get the created consist id and open the train window for it
+	movzx edi, word [CloneTrainLastIdx]
+	shl edi, 7
+	add edi, [veharrayptr]
 	call dword [CloneTrainOpenTrainWindow]
-
+	pop edi
 
 .failed:
-	pop esi
+	pop esi // What ever the out come, reset the mouse tool
 	push ecx
 	push esi
-	mov ebx, 0 // Now reset the mouse tool
+	mov ebx, 0
 	mov al,  0
 	call [setmousetool]
 	pop esi
@@ -280,18 +282,77 @@ uvard CloneTrainAttachVehicle // <-- used to attach vehicles to other vehicles
 //		esi = New consist Vehicle Engine Pointer
 //		edi = Old consist Vehicle Engine Pointer
 exported CloneTrainBuild
-	push edi
+	push edi // Store the orginal vehicle consist's vehicle pointer
 	xchg esi, edi
 
 	test bl, 1
-	jz CloneTrainCalcOnly
+	jz near CloneTrainCalcOnly
 
-	lea edi, [edi] // Blank for now
+	mov word [CloneTrainLastIdx], 0 // Blank this otherwise the attach loop will fail
+	jmp .loop
 
-	xchg edi, esi
+// Atric's are special so you need to move to the next artic piece in the train being created
+.artic:
+	movzx edi, word [edi+veh.nextunitidx]
+	shl edi, 7
+	add edi, [veharrayptr]
+	jmp .refit
+
+.loop:
+	cmp byte [esi+veh.artictype], 0xFD // Is this an artic vehicle?
+	jae .artic
+
+	push esi // Create the new train / train consist (if artic)
+	mov dx, -1
+	movzx ebx, word [esi+veh.vehtype]
+	shl bx, 8
+	mov bl, 1
+	call [CloneTrainBuyRailVehicle]
+	pop esi
+
+	cmp word [CloneTrainLastIdx], 0 // No last vehicle so cannot attach (ie. if train engine)
+	je .refit
+
+	push eax // Attach this vehicle to the last build vehicle
+	push ecx
+	push esi
+	push edi
+	movzx edi, word [edi+veh.idx]
+	mov dx, [CloneTrainLastIdx]
+	mov bl, 1
+	call [CloneTrainAttachVehicle]
+	pop edi
+	pop esi
+	pop ecx
+	pop eax
+
+.refit:
+	mov dl, [esi+veh.cargotype] // Copy all the refit settings to make the vehicle the same refits
+	mov byte [edi+veh.cargotype], dl
+	mov dx, [esi+veh.capacity] // Copy the vehicle capacity as a word
+	mov word [edi+veh.capacity], dx
+	mov dl, [esi+veh.refitcycle] // This is important for refit graphics etc
+	mov byte [edi+veh.refitcycle], dl
+
+	push edi // Store the id for the next loop cycle (for the attach part mainly)
+	movzx edi, word [edi+veh.idx]
+	mov word [CloneTrainLastIdx], di
+	pop edi
+
+	movzx esi, word [esi+veh.nextunitidx] // Move to the next vehicle in the consist to be copied
+	cmp si, byte -1
+	je .done
+	shl esi, 7
+	add esi, [veharrayptr]
+	jmp .loop
+
+.done:
+	movzx edi, word [edi+veh.engineidx] // Get and store the engine head's id for the next subroutine
+	mov [CloneTrainLastIdx], di
 	pop edi
 	ret
 
+// Calculate the cost of the cloning
 CloneTrainCalcOnly:
 	mov dword [CloneTrainCost], 0 // Set this to 0 for now
 	mov dword [trainplanerefitcost], 0
@@ -342,8 +403,6 @@ CloneTrainCalcOnly:
 	push eax
 	xor ax, ax
 	movzx ebx, word [esi+veh.vehtype]
-	cmp word [esi+veh.capacity], 0
-	je .nocapacity // no cargo so skip all this
 
 	mov dl, [traincargotype+ebx] // Check if the cargo type is the same
 	cmp byte [esi+veh.cargotype], dl
@@ -385,14 +444,11 @@ CloneTrainCalcOnly:
 	ret
 
 .done:
+	mov si, [esi+veh.engineidx]
+	mov word [CloneTrainLastIdx], si
 	mov ebx, [trainplanerefitcost] // Refit cost
 	sar ebx, 7 // Correct the end value for refits
 	add ebx, [CloneTrainCost]
 	pop edi
-
-// Hehe, for now this will stop people complaining
-	mov word [operrormsg2], ourtext(txtcloneerrortmp) // Not Wrote yet
-	mov ebx, 1<<31
-
 	ret
 

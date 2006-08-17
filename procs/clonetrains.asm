@@ -154,20 +154,20 @@ patchclonetrain:
 	stringaddress findoldbuyvehicle
 	mov dword [CloneTrainBuyRailVehicle], edi
 
+testmultiflags newtrains
+	jz .nonewtrain
+	mov dword [CloneTrainBuyRailVehicle], newbuyrailvehicle
+.nonewtrain:
+
 	stringaddress findattachvehicle
 	mov dword [CloneTrainAttachVehicle], edi
 
 	patchcode olddepotclickedtrain, newdepotclickedtrain
 
 	stringaddress findopentrainwindow
-	mov edi, [edi]
+	add edi, [edi]
+	add edi, 5
 	mov dword [CloneTrainOpenTrainWindow], edi
-
-testmultiflags newtrains
-	jz .nonewtrain
-	mov dword [CloneTrainAttachVehicle], newbuyrailvehicle
-.nonewtrain:
-
 	ret
 
 .addclonebutton:
