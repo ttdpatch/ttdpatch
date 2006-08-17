@@ -57,8 +57,6 @@
 
 - newstations flags to build fences for +x/+y and -x/-y sides
 
-- grf option to turn on catenary for third set (japanese set -> shinkansen)
-
 - change realistic curves to use constant drag force instead
   e.g. each curve = 25 kN, but how to handle single loco & short trains?
 
@@ -703,6 +701,7 @@ CHANGELOG
   * add a miscmods bit to disable the depots-obey-transparency fix
   * elrails: for crossings/connections between elrail and reg. rail don't
     show pylons and wire for track pieces that go to reg. rail
+  * elrails: Allow grfs turn on catenary above the third rail type.
 - added autosignals to new signal gui, build two-way signals every 3/4 tiles
   (use `autosignaldistance n' or -ZL to set desired signal separation)
 - by Tron:
