@@ -23,27 +23,29 @@ extern currentexpensetype, FindWindow, newvehdata, forcenoextrahead
 /*
 
 	-= Basic Idea =-
-* Add a button to the train depot gui
-* Button makes the mouse cursor change
-* Click on a tile
-* Check for vehicle
-* Get vehicle engine id
-* Check that the engine to clone is the players controlled company
-* Check that avilable funds are enough to pay for the train consist (bl=0)
-* If failed (edx=80000000), quit with error message
-* If passed create the wagons for the vechile
-* Then Create the engine finish the consist
-* Attach the wagons in the order they were made
-* End (whilest giving the player the train window) and charging the player
+* Click on a depot button "Clone Train"
+* Set the Mouse Tool to the Clone Train tool
+* Click on a train (in a depot or on the map)
+* Get the train vehicle array pointer (And window pointer if from another depot)
+* Run the action Handler with bl=1, (bl=0, then bl=1)
+  > Check Loop
+    * Check the consist to be cloned is owned by the player
+    * Check that each vehicle type is available
+    * Check that the vehicle can be built
+    * If a vehicle can be built store it's cost
+    * Check if the vehicle needs to be charged for a refit (change in cargotype)
+    * If all ok, calculate the final amount of money required for the cloning of the consist
+  > Creation Loop
+    * Create the rail vehicle (only 1 vehicle at a time (articutated vehicles count as one vehicle)
+    * Refit the vehicle (and it's artic parts if it has anyway)
+    * Attach the constructed vehicle to the last constructed vehicle (Not for the first engine of course)
+    * Once done set the type of expenses to put this clone under (New Vehicles)
+* If successful, open the train window for the new created consist
+* Reset the Mouse Tool, so that no consists get cloned by acciedent
 
-	-= Possible Problems =-
-* Artutated Vehicles since they can be multiple parts
-* Trying to store the new vehicle ids so that they may be attached in the same order
-* Refitting Vehicles to have the same cargo types
-
-	-= Possiblities =-
-* Maybe adding the ablity to add it to shared orders (if clicked with ctrl key)?
-* Maybe copy the same misc bits so that the graphics and cargo etc. are exactly the same
+	-= To Do =-
+* Copy orders from the cloned train (use sharedorders instead if available)
+* Add a some code for a customizable cursor
 
 	-= Comments =-
 * Might be a pain to do and take a while

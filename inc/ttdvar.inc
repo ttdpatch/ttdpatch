@@ -180,7 +180,7 @@ ttdvar(ttdsystriggers,0x7f9c4)		// W: trigger TTD functions: bit 1="Quit" window
 ttdvar(curmousecursor,0x771b0)		// D:sprite data for current mouse cursor
 ttdvar(curmousetooltype,0x771c0)	// B: current mouse tool type
 ttdvar(curmousetoolwintype,0x771c1)	// B: current mouse tool window type
-ttdvar(curmousetoolwinid, 0x771c2)	// W: current mouse tool window type
+ttdvar(curmousetoolwinid, 0x771c2)	// W: current mouse tool window id
 
 ttdvar(mousecursorspritedata,0x9f17a)	// B/B/W: first 4 bytes of sprite info
 ttdvar(selectedtool,0x771cc)		// W: current tool
