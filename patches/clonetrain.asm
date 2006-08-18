@@ -15,9 +15,10 @@
 #include <vehtype.inc>
 #include <window.inc>
 
-extern setmousetool, patchflags, findvehontile, errorpopup, actionhandler, addexpenses
-extern RefreshWindowArea, forceextrahead, isengine, trainplanerefitcost, newvehdata
-extern traindepotwindowhandler.resizewindow, CloneTrainBuild_actionnum, forcenoextrahead
+extern setmousetool, patchflags, findvehontile, errorpopup, actionhandler
+extern RefreshWindowArea, forceextrahead, isengine, trainplanerefitcost
+extern traindepotwindowhandler.resizewindow, CloneTrainBuild_actionnum
+extern currentexpensetype, FindWindow, newvehdata, forcenoextrahead
 
 /*
 
@@ -156,6 +157,12 @@ CloneDepotVehicleClick:
 	shl edi, 7
 	add edi, [veharrayptr]
 
+	push edi
+	movzx edx, word [curmousetoolwinid]
+	mov cl, 0x12
+	pop edi
+	call [FindWindow]
+
 	add dword [esp], 0x65 // Jumps to a ret after doing the clone subroutine
 	jmp CloneTrainMain.foundvehicle
 
@@ -167,6 +174,26 @@ CloneDepotVehicleClick:
 
 .nexttype:
 	cmp al, -1
+	ret
+
+/*
+
+	Misc fixes to the buyRailVehicle subroutine
+
+*/
+
+// Fixes the buyhead check so that it can be bypassed
+global CloneTrainBuySecondHead
+CloneTrainBuySecondHead:
+	cmp byte [forcenoextrahead], 1
+	jae .bypass
+
+	test byte [numheads+ebx], 1
+	ret
+
+.bypass:
+	sar dword [edi+veh.value], 1
+	cmp bl, bl
 	ret
 
 /*
@@ -296,21 +323,12 @@ exported CloneTrainBuild
 	cmp byte [esi+veh.artictype], 0xFD // Is this an artic vehicle?
 	jae .artic
 
-	cmp word [CloneTrainLastIdx], 0xFFFF
+	cmp word [CloneTrainLastIdx], 0xFFFF // Is it the first vehicle
 	je .firstvehicle
-
-	movzx ebx, byte [esi+veh.vehtype]
-	cmp byte [numheads+ebx], 1
-	jae .multipleheads
-
-	mov byte [forceextrahead], 1
-
-	jmp .firstvehicle
-
-.multipleheads:
-	mov byte [forcenoextrahead], 1
+	mov byte [forceextrahead], 1 // Makes the engine a additional head
 
 .firstvehicle:
+	mov byte [forcenoextrahead], 1 // Only really applies to the first vehicle
 
 	push esi // Create the new train / train consist (if artic)
 	mov dx, -1
@@ -320,18 +338,15 @@ exported CloneTrainBuild
 	mov esi, 0x80
 	push ebp
 	call [actionhandler]
+	mov byte [forcenoextrahead], 0 // Reset these for next time
+	mov byte [forceextrahead], 0
 	pop ebp
 	pop esi
 
-	cmp byte [edi+veh.class],0x10
+	cmp byte [edi+veh.subclass], 4	// Make a multihead unit attachable
 	jne .goodvehicle
-	cmp byte [edi+veh.subclass], 4	// multiheads were put on a separate row
-	jne .goodvehicle
-	mov byte [edi+veh.subclass], 2 // Make it attachable
+	mov byte [edi+veh.subclass], 2
 .goodvehicle:
-
-	mov byte [forcenoextrahead], 0 // Reset these for next time
-	mov byte [forceextrahead], 0
 
 	cmp word [CloneTrainLastIdx], 0xFFFF // No last vehicle so cannot attach (ie. if train engine)
 	je .refit
@@ -375,7 +390,7 @@ exported CloneTrainBuild
 .done:
 	movzx edi, word [edi+veh.engineidx] // Get and store the engine head's id for the next subroutine
 	mov [CloneTrainLastIdx], di
-	mov byte [forcenoextrahead], 0
+	mov byte [currentexpensetype], expenses_newvehs
 	pop edi
 	ret
 
@@ -396,7 +411,7 @@ CloneTrainCalcOnly:
 
 .loop:
 	cmp byte [esi+veh.artictype], 0xFD // Artic vehicles are already bought with there head
-	jae .artic
+	jae near .artic
 
 	push ebx
 	movzx bx, bh
@@ -410,6 +425,13 @@ CloneTrainCalcOnly:
 
 	mov word [operrormsg2], ourtext(txtcloneerror4) // Unknown issue with copying
 
+	cmp word [CloneTrainLastIdx], 0xFFFF // Is it the first vehicle
+	je .firstvehicle
+	mov byte [forceextrahead], 1 // Makes the engine a additional head
+
+.firstvehicle:
+	mov byte [forcenoextrahead], 1 // Only really applies to the first vehicle
+
 	push ebx
 	mov dx, -1 // Contruct the vehicle (not for real though)
 	movzx ebx, word [esi+veh.vehtype]
@@ -419,6 +441,8 @@ CloneTrainCalcOnly:
 	mov esi, 0x80
 	push ebp
 	call [actionhandler]
+	mov byte [forcenoextrahead], 0 // Reset these for next time
+	mov byte [forceextrahead], 0
 	pop ebp
 	pop esi
 

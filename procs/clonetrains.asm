@@ -13,6 +13,7 @@ extern CloneDepotClick, CloneDepotRightClick
 extern patchwindowsizer.addforclonetrain
 extern CloneDepotDisableElements, CloneDepotWindowHandler
 extern CloneDepotVehicleClick, CloneTrainOpenTrainWindow
+extern CloneTrainBuySecondHead
 
 ext_frag findvariableaccess,newvariable
 
@@ -82,6 +83,14 @@ codefragment findopentrainwindow, -4
 	mov edx, edi
 	db 0x66, 0xC7, 0x46, 0x22, 0xFF, 0xFF
 
+codefragment oldbuysecondhead,5
+	pop edi
+	movzx ebx, word [edi+veh.vehtype]
+
+codefragment newbuysecondhead
+	icall CloneTrainBuySecondHead
+	setfragmentsize 6+1*WINTTDX
+
 endcodefragments
 
 global patchmovedepotdata
@@ -144,6 +153,8 @@ patchclonetrain:
 	add edi, [edi]
 	add edi, 5
 	mov dword [CloneTrainOpenTrainWindow], edi
+
+	patchcode oldbuysecondhead, newbuysecondhead
 	ret
 
 .addclonebutton:
