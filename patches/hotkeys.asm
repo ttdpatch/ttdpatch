@@ -12,6 +12,9 @@
 extern FindWindow,errorpopup,hexdigits,patchflags,redrawscreen,setgamespeed
 extern setgamespeed.set,specialerrtext1
 extern texthandler,saTramConstrWindowElemList
+extern saRoadConstrWindowElemList, saDockConstrWindowElemList, saAirportConstrWindowElemList
+extern saScenEdRoadConstrWindowElemList, pLandscapeGenWindowHandler, saLandscapeGenWinElemList
+//extern saPlantTreesWinElemList
 
 
 
@@ -264,3 +267,96 @@ rvtoolselect:
 .notroad:
 	ret
 
+// Tables for mapping the return from toolselect to toolbar control indexes.
+// In most cases (except for scenEdLandMap), these are index+1, and the call
+// table is positioned to have a dummy 0 entry.
+// keys :   1  2  3  4  5  6  7  8  9  0  -  =  `  \  <eol>
+varb dockToolMap
+	db  1, 2, 3, 0, 4, 5, 6, 2, 1, 3, 0, 0, 0, 7
+varb airportToolMap
+	db  1, 0, 0, 0, 2, 3, 4, 0, 1, 0, 0, 0, 0, 5
+varb scenEdRoadToolMap
+	db  1, 2, 0, 0, 3, 4, 5, 0, 0, 0, 9,10,11,12
+varb scenEdLandMap
+	db  5, 7,12, 4, 5,11, 3, 6,10, 0, 0, 0, 0, 0
+endvar
+
+global othertoolselect
+othertoolselect:
+	push eax
+	call toolselect
+	mov cl,3
+	xor dx,dx
+	jmp short .continue
+// If toolselect fails, it will return here.
+	jmp .ret
+.continue:
+	call [FindWindow]
+	jz .maybeScenRoad
+	mov edi, [esi+window.elemlistptr]
+
+
+	cmp edi, [saDockConstrWindowElemList]
+	jne .maybeairport
+
+	mov al,[dockToolMap+eax]
+	test eax,eax
+	jz near .ret
+	call [eax*4+edi+83h]
+	jmp short .ret
+	
+.maybeairport:
+	cmp edi, [saAirportConstrWindowElemList]
+	jne .maybetrees
+	
+	mov al,[airportToolMap+eax]
+	test eax,eax
+	jz .ret
+	call [eax*4+ebx+67h]
+	jmp short .ret
+
+.maybetrees:
+/*
+	TODO:	Make tree planting window work?
+		Must find the window's handler first, though
+	
+	cmp edi, [saPlantTreesWinElemList]
+	jne .maybeScenRoad
+	mov ebx, [saPlantTreesWinElemList]
+	call [eax*4+ebx+???]
+	jmp short .ret
+*/
+
+.maybeScenRoad:
+	mov cl,3Ch
+	call [FindWindow]
+	jz .maybeScenLand
+	mov edi, [esi+window.elemlistptr]
+	cmp edi, [saScenEdRoadConstrWindowElemList]
+	jne .maybetrees
+	mov al,[scenEdRoadToolMap+eax]
+	test eax,eax
+	jz .ret
+	mov ebx, [saRoadConstrWindowElemList]
+	call [eax*4+ebx+0C9h]
+	jmp short .ret
+
+.maybeScenLand:
+	mov cl,38h
+	call [FindWindow]
+	jz .ret
+	mov edi, [esi+window.elemlistptr]
+	cmp edi, [saLandscapeGenWinElemList]
+	jne .ret
+	mov cl,[scenEdLandMap+eax]
+	jcxz .ret
+	call [pLandscapeGenWindowHandler]
+	
+	// TODO: Redraw the screen after using controls 6 or 7
+	
+.ret:
+	pop eax
+//These two instructions were pulled from TTD code to make space for the icall.
+	xor ebx,ebx
+	cmp al,1Bh
+	ret

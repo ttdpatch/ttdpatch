@@ -6,8 +6,6 @@
 - fix large ships tip not being drawn properly; check ship motion and
   redrawing of the main window; should have the size calculation there
 
-- make hotkeys work for ship and aircraft tools too (and maybe others?)
-
 - make planting more than one tree in a square affect city ratings, but
   perhaps not as much
 
@@ -550,6 +548,9 @@
 
 - in orders menu, make skip change to "skip to" when an order is selected
 
+- redraw screen after processing key [2]/[8] in the scenario editor's Land
+  generation window
+
 =====  Not so urgent  =====
 
 - if vehicle rename fails, don't close edit window
@@ -702,6 +703,8 @@ CHANGELOG
   * elrails: for crossings/connections between elrail and reg. rail don't
     show pylons and wire for track pieces that go to reg. rail
   * elrails: Allow grfs turn on catenary above the third rail type.
+  * make hotkeys work for ship and aircraft tools, and for road and land
+    tools in the scenario editor.
 - added autosignals to new signal gui, build two-way signals every 3/4 tiles
   (use `autosignaldistance n' or -ZL to set desired signal separation)
 - by Tron:

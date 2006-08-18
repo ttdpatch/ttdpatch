@@ -35,18 +35,76 @@ codefragment newrvtoolselect
 	jne fragmentstart+0x18c-0x178
 	setfragmentsize 13
 
+codefragment oldothertoolsets,-3
+	jnz $+2+0xD
+	mov ebx,0
+
+codefragment newothertoolsets
+	nop
+	icall othertoolselect
+	jnz $+2+9
+	setfragmentsize 10
+
+codefragment RoadConstrWindowElemList,-14
+	dw 11,283
+	
+codefragment DockConstrWindowElemList,-14
+	dw 11,153
+
+codefragment AirportConstrWindowElemList,-14
+	dw 11,129
+
+codefragment ScenEdRoadConstrWindowElemList,-14
+	dw 11,195
+	
+codefragment LandscapeGenWinElemList,-14
+	dw 11,165
+
+/*
+codefragment PlantTreesWinElemList,-14
+	dw 11,142
+*/
+
+codefragment LandscapeGenWindowHandler
+	cmp cl,6
+	jz near $+6+0x2d2
+
 endcodefragments
+
+uvard saRoadConstrWindowElemList
+uvard saDockConstrWindowElemList
+uvard saAirportConstrWindowElemList
+uvard saScenEdRoadConstrWindowElemList
+uvard saLandscapeGenWinElemList
+//uvard saPlantTreesWinElemList
+uvard pLandscapeGenWindowHandler
 
 patchmorehotkeys:
 	patchcode oldhotkeycenter,newhotkeycenter,1,1
 
 	mov byte [edi+lastediadj+19],0
 	mov byte [edi+lastediadj+23],0
-	mov byte [edi+lastediadj+52],0x90
+	//mov byte [edi+lastediadj+52],0x90  now patched by othertoolsets
 
 	patchcode railtoolselect
+	patchcode othertoolsets
 	mov ebx,maxtoolnum
 	mov byte [ebx],2	// 2 tools selectable for road vehicles
 	patchcode rvtoolselect
+	stringaddress RoadConstrWindowElemList
+	mov [saRoadConstrWindowElemList],edi
+	stringaddress DockConstrWindowElemList
+	mov [saDockConstrWindowElemList],edi
+	stringaddress AirportConstrWindowElemList
+	mov [saAirportConstrWindowElemList],edi
+	stringaddress ScenEdRoadConstrWindowElemList
+	mov [saScenEdRoadConstrWindowElemList],edi
+	stringaddress LandscapeGenWinElemList
+	mov [saLandscapeGenWinElemList],edi
+	//stringaddress PlantTreesWinElemList
+	//mov [saPlantTreesWinElemList],edi
+	stringaddress LandscapeGenWindowHandler
+	mov [pLandscapeGenWindowHandler],edi
+	
 	ret
 
