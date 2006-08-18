@@ -67,16 +67,6 @@ codefragment newtraindepotwindowhandler
 	icall CloneDepotWindowHandler
 	setfragmentsize 8
 
-codefragment findoldbuyvehicle, -7
-	mov edx, ebx
-	shr edx, 8
-
-codefragment findattachvehicle, -7
-	push ax
-	push cx
-	movzx edi, di
-	shl edi, 7
-
 codefragment olddepotclickedtrain
 	cmp al, 1
 	db 0x74, 0x67

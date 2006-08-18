@@ -17,7 +17,7 @@
 
 extern setmousetool, patchflags, findvehontile, errorpopup, actionhandler, addexpenses
 extern RefreshWindowArea, forceextrahead, isengine, trainplanerefitcost, newvehdata
-extern traindepotwindowhandler.resizewindow, CloneTrainBuild_actionnum
+extern traindepotwindowhandler.resizewindow, CloneTrainBuild_actionnum, forcenoextrahead
 
 /*
 
@@ -282,7 +282,7 @@ exported CloneTrainBuild
 	test bl, 1
 	jz near CloneTrainCalcOnly
 
-	mov word [CloneTrainLastIdx], 0 // Blank this otherwise the attach loop will fail
+	mov word [CloneTrainLastIdx], 0xFFFF // Blank this otherwise the attach loop will fail
 	jmp .loop
 
 // Atric's are special so you need to move to the next artic piece in the train being created
@@ -296,6 +296,22 @@ exported CloneTrainBuild
 	cmp byte [esi+veh.artictype], 0xFD // Is this an artic vehicle?
 	jae .artic
 
+	cmp word [CloneTrainLastIdx], 0xFFFF
+	je .firstvehicle
+
+	movzx ebx, byte [esi+veh.vehtype]
+	cmp byte [numheads+ebx], 1
+	jae .multipleheads
+
+	mov byte [forceextrahead], 1
+
+	jmp .firstvehicle
+
+.multipleheads:
+	mov byte [forcenoextrahead], 1
+
+.firstvehicle:
+
 	push esi // Create the new train / train consist (if artic)
 	mov dx, -1
 	movzx ebx, word [esi+veh.vehtype]
@@ -307,7 +323,17 @@ exported CloneTrainBuild
 	pop ebp
 	pop esi
 
-	cmp word [CloneTrainLastIdx], 0 // No last vehicle so cannot attach (ie. if train engine)
+	cmp byte [edi+veh.class],0x10
+	jne .goodvehicle
+	cmp byte [edi+veh.subclass], 4	// multiheads were put on a separate row
+	jne .goodvehicle
+	mov byte [edi+veh.subclass], 2 // Make it attachable
+.goodvehicle:
+
+	mov byte [forcenoextrahead], 0 // Reset these for next time
+	mov byte [forceextrahead], 0
+
+	cmp word [CloneTrainLastIdx], 0xFFFF // No last vehicle so cannot attach (ie. if train engine)
 	je .refit
 
 	push eax // Attach this vehicle to the last build vehicle
@@ -349,6 +375,7 @@ exported CloneTrainBuild
 .done:
 	movzx edi, word [edi+veh.engineidx] // Get and store the engine head's id for the next subroutine
 	mov [CloneTrainLastIdx], di
+	mov byte [forcenoextrahead], 0
 	pop edi
 	ret
 

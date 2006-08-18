@@ -1071,6 +1071,12 @@ void commandline(int argc, const char *const *argv)
 //    if (!getf(electrifiedrail)) {
 //	clearf(enhancetunnels);
 //    }
+
+    if (getf(clonetrain)) {
+	setf1(multihead);
+	setf1(newtrains);
+    } 
+
   }
 
   copyflagdata();

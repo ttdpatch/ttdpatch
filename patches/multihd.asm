@@ -519,6 +519,7 @@ checknewtrainisengine:
 	ret
 
 uvarb forceextrahead
+uvarb forcenoextrahead
 ; endp checknewtrainisengine
 
 	// called when attaching a waggon
