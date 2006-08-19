@@ -263,6 +263,15 @@ CloneTrainMain:
 	and cx, 0x0FF0
 	pop edi
 
+	// Reset the Ctrl key status to stop bugs in the cloning code
+extern keypresstable
+#if WINTTDX
+	mov byte [keypresstable+KEY_Ctrl], 1
+#else
+	mov byte [keypresstable+KEY_RCtrl], 1
+	mov byte [keypresstable+KEY_LCtrl], 1
+#endif
+
 	push esi
 	mov bl, 1
 	mov word [operrormsg1], ourtext(txtcloneerrortop) // Header for error messages
@@ -376,6 +385,9 @@ exported CloneTrainBuild
 	mov word [edi+veh.capacity], dx
 	mov dl, [esi+veh.refitcycle] // This is important for refit graphics etc
 	mov byte [edi+veh.refitcycle], dl
+
+	mov dl, [esi+veh.spritetype] // Copy the direction of the cloned unit to make sure it's the same
+	mov byte [edi+veh.spritetype], dl
 
 	push edi // Store the id for the next loop cycle (for the attach part mainly)
 	movzx edi, word [edi+veh.idx]
