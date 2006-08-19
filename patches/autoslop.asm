@@ -22,13 +22,13 @@ var cornerchecktile1, db 3,0,1,2
 
 var cornerchecktile2, db 1,2,3,0
 
-//  3 
-//  /\
-//a/  \d
-//0    2
-//b\  /c
-//  \/ 
-//   1
+/*  3 
+    /\
+  a/  \d
+  0    2
+  b\  /c
+    \/ 
+     1  */
 var railgetol5, db 10110b, 11001b, 101010b, 100101b, 10110b
 var roadedgetol5, db 1b, 10b, 100b, 1000b, 1b
 var roadconvertdepottobit, db 1000b, 100b, 10b, 1b, 1000b, 100b, 10b, 1b
