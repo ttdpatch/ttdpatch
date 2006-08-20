@@ -321,9 +321,6 @@
 - problem unreserving tracks on custom bridge heads
   http://www.tt-forums.net/viewtopic.php?p=395362#395362
 
-- writing bit switches with all bits off turns off switch too
-  http://www.tt-forums.net/viewtopic.php?p=395391#395391
-
 - crash with higherbridges
   http://www.tt-forums.net/viewtopic.php?p=395527#395527
 
@@ -728,3 +725,5 @@ CHANGELOG
 - fix base graphics not getting loaded unless another .grf was loaded as well
 - fix pathfinding issues with irregular station if north tile not part of station
 - fix missing cargo type suffix in train info window
+- by DaleStan:
+  * Fix bitswitches with all bits set off being read as if the switch was off.

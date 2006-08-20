@@ -497,7 +497,7 @@ static int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int s
 
 		if (switches[switchid].bitswitchid >= 0 && cfgsub && swon >= 0) {
 			setswitchbit(switchid, cfgsub, swon);
-			swon |= getf(switches[switchid].bit);
+			swon = 1; // Setting switch.bit always sets switch on
 		} else
 			setswitchvar(switchid, parvalue);
 	}
