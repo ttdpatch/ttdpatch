@@ -18,7 +18,7 @@
 extern setmousetool, patchflags, findvehontile, errorpopup, actionhandler
 extern RefreshWindowArea, forceextrahead, isengine, trainplanerefitcost
 extern traindepotwindowhandler.resizewindow, CloneTrainBuild_actionnum
-extern currentexpensetype, FindWindow, newvehdata, forcenoextrahead
+extern FindWindow, newvehdata, forcenoextrahead
 
 /*
 
@@ -264,7 +264,6 @@ CloneTrainMain:
 	pop edi
 
 	// Reset the Ctrl key status to stop bugs in the cloning code
-extern keypresstable
 #if WINTTDX
 	mov byte [keypresstable+KEY_Ctrl], 1
 #else
