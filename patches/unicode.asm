@@ -274,7 +274,7 @@ exported drawstringunicode
 	cmp eax,88h
 	jae near .getnewcol
 	cmp eax,20h
-	jb .special
+	jb near .special
 
 .drawchar:
 	mov bx,[edi+scrnblockdesc.x]
@@ -287,12 +287,16 @@ exported drawstringunicode
 	cmp bx,[edi+scrnblockdesc.x]
 
 	// get char info without affecting flags
-	movzx ebx,word [currentfont]
-	lea ebx,[ebx*2]			// double ebx without affecting flags
-	movzx ebx,bh			// now ebx=0/1/3 for normal/small/large
-	mov ebx,[fonttableofs+ebx*4]	// now ebx=0/256/512 for normal/small/large
-	mov bl,ah
-	mov ebx,[fonttables+ebx*4]
+	mov ebx,ecx
+	movzx ecx,word [currentfont]
+	lea ecx,[ecx*2]			// double ebx without affecting flags
+	movzx ecx,ch			// now ebx=0/1/3 for normal/small/large
+	mov ecx,[fonttableofs+ecx*4]	// now ebx=0/256/512 for normal/small/large
+	mov cl,ah
+	mov ecx,[fonttables+ecx*4]
+	jecxz .badtable			// skip bad chars without affecting flags
+	xchg ebx,ecx
+.getfontinfo:
 	movzx eax,al
 	mov ebx,[ebx+eax*fontinfo_size]	// now ebx=fontinfo
 
@@ -320,6 +324,11 @@ exported drawstringunicode
 .skipcharwidth:
 	add ecx,eax
 	jmp .nextchar
+
+.badtable:
+	mov ebx,[fonttableofs]
+	mov al,'?'
+	jmp .getfontinfo
 
 .special:
 	cmp al,13
@@ -844,6 +853,13 @@ exported setwindowtitle
 // in:	ax=text ID or eax=-1 to omit the texthandler call
 //	edi->buffer to hold text
 // uses:all
+
+noglobal vard codepages
+	dd 65001	// input: UTF-8
+	dd 0		// output: ACP
+endvar
+noglobal vard mb_len, 256
+
 proc texthandler_ACP
 	slocal unicode,word,256
 	local buffer
@@ -866,7 +882,7 @@ proc texthandler_ACP
 	push byte -1		// cbMultiByte
 	push dword [%$buffer]	// lpMultiByteStr
 	push 0			// dwFlags
-	push dword 65001	// CodePage = CP_UTF8
+	push dword [codepages]	// CodePage (default CP_UTF8)
 	call [MultiByteToWideChar]
 	test eax,eax
 	jz .fail	// most likely CP_UTF8 not available (win95), so keep buffer as is
@@ -875,12 +891,12 @@ proc texthandler_ACP
 	lea esi,[%$unicode]
 	push 0			// lpUsedDefaultChar
 	push 0			// lpDefaultChar
-	push 256		// cbMultiByte
+	push dword [mb_len]	// cbMultiByte
 	push dword [%$buffer]	// lpMultiByteStr
 	push byte -1		// cchWideChar
 	push esi		// lpWideCharStr
 	push 0			// dwFlags
-	push 0			// CodePage = CP_ACP
+	push dword [codepages+4]// CodePage (default CP_ACP)
 	call [WideCharToMultiByte]
 .fail:
 	_ret
@@ -923,3 +939,26 @@ proc buildcompanyname
 	_ret
 endproc
 
+#if WINTTDX
+// convert ACP filename to UTF-8
+// in:	esi->filename
+// out:	esi->filename
+// safe:?
+exported convertfilenameunicode
+	pusha
+	mov ebx,codepages
+	mov ecx,[ebx]
+	xchg ecx,[ebx+4]
+	mov [ebx],ecx
+	mov dword [ebx+mb_len-codepages],32
+	or eax,byte -1
+	mov edi,esi
+	call texthandler_ACP
+	mov ebx,codepages
+	mov ecx,[ebx]
+	xchg ecx,[ebx+4]
+	mov [ebx],ecx
+	mov dword [ebx+mb_len-codepages],256
+	popa
+	ret
+#endif
