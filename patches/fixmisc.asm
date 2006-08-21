@@ -3509,12 +3509,14 @@ exported calcboxz
 
 #if WINTTDX
 // longer file support
-
+extern convertfilenameunicode,hasaction12
 uvarb fullfilename, 260+1 // MaxPath+1
 exported adddirectoryentrydir
 	mov esi, fullfilename
 	mov byte [esi], '\'
 	mov byte [esi+34], 0
+	cmp byte [hasaction12],0
+	jne convertfilenameunicode
 	ret
 exported firstnextlongfilename
 	lea esi, [ebp-0x114]
