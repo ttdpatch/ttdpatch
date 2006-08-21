@@ -158,8 +158,7 @@ nmamfreememory:
 exported getlandscapedata
 	push esi
 	and esi, 0xFFFF
-	mov eax, dword [nma_xyptrs]
-	mov esi, dword [eax*4+esi]
+	mov esi, dword [nma_xyptrs+esi*4]
 	
 .start:
 	mov ax, word [esi+nmadata.altitude]
@@ -188,10 +187,10 @@ exported getlandscapedata
 //		ebx = data
 // uses: eax
 nma_addentry:
+	push eax
 	push esi
 	and esi, 0xFFFF
-	mov eax, dword [nma_xyptrs]
-	mov esi, dword [eax*4+esi]
+	mov esi, dword [nma_xyptrs+esi*4]
 .start:
 	mov ax, word [esi+nmadata.altitude]
 	cmp ax, 0x0
@@ -205,33 +204,71 @@ nma_addentry:
 	
 .noemptyslotfound:
 	// in esi on 0xFFFF marker
-	push edi
-	mov eax, nmadata_size
-	call nmamallocmemory
-	
-	mov edi, [nmadataptr]
-	add edi, [nmausedmemory]
-	sub edi, nmadata_size
-	mov ecx, nmadata_size
-	call nma_memmoverelative
+	call nma_addslot
 	
 	mov word [esi+nmadata.altitude], dx
 	mov word [esi+nmadata.data], bx
 	
-	pop edi
+	mov esi, [esp] // get esi from stack!
+	and esi, 0xFFFF
+	lea esi, [nma_xyptrs+esi*4]
+	mov edi, nma_xyptrs+MAPSIZE*4
+.fixxynext:
+	add esi, 4
+	add dword [esi], nmadata_size
+	cmp esi, edi
+	jne .fixxynext
+	
 	pop esi
+	pop eax
 	ret
-
 .foundemptyslot:
 	mov word [esi+nmadata.altitude], dx
 	mov word [esi+nmadata.data], bx
 	pop esi
+	pop eax
 	ret
 	
 //	in	esi = tile index
 // 		dx:	0..3 = altitude of info
 //			4..15 = feature
 nma_removeentry:
+	push eax
+	push esi
+	and esi, 0xFFFF
+	mov esi, dword [nma_xyptrs+esi*4]
+.start:
+	mov ax, word [esi+nmadata.altitude]
+	cmp ax, 0xFFFF
+	je .fail
+	cmp ax, dx
+	je .found
+	
+.next:
+	add esi, nmadata_size
+	jmp .start
+	
+.found:
+	call nma_remslot
+	mov esi, [esp] // get esi from stack!
+	and esi, 0xFFFF
+	lea esi, [nma_xyptrs+esi*4]
+	mov edi, nma_xyptrs+MAPSIZE*4
+.fixxynext:
+	add esi, 4
+	sub dword [esi], nmadata_size
+	cmp esi, edi
+	jne .fixxynext
+	
+	pop esi
+	pop eax
+	clc
+	ret
+.fail:
+	pop esi
+	pop eax
+	stc
+	ret
 	
 	ret
 
@@ -245,8 +282,60 @@ nma_removeentrys:
 nma_removeallentrys:
 	
 	ret
+
 	
+// in:	esi = pointer where to add an entry (dword aligned)
+nma_addslot:
+	push eax
+	push ebx
+	push esi
+	push ecx
+	mov eax, nmadata_size
+	call nmamallocmemory
 	
+	mov ecx, [nmadataptr]
+	add ecx, [nmausedmemory]
+	sub ecx, esi
+	shr ecx, 2
+	
+	mov eax, [esi]
+.next:
+	xchg ebx, eax
+	add esi, 4
+	mov eax, [esi]
+	mov [esi], ebx
+	dec ecx
+	jnz .next
+	pop ecx
+	pop esi
+	pop ebx
+	pop eax
+	ret
+
+// in:	esi = pointer where to remove an entry (dword aligned)
+nma_remslot:
+	push eax
+	push ecx
+	push esi
+	push edi
+	mov eax, nmadata_size
+	call nmamallocmemory
+	
+	mov ecx, [nmadataptr]
+	add ecx, [nmausedmemory]
+	sub ecx, esi
+	
+	lea edi, [esi+4]
+	xchg esi, edi
+	rep movsd
+	
+	pop edi
+	pop esi
+	pop ecx
+	pop eax
+	ret
+	
+
 // in:	esi = pointer		// dword aligned
 //		edi = end pointer
 //		ecx = direction +/-	//multiply of 4 if > 3
