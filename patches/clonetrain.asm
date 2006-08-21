@@ -187,10 +187,13 @@ CloneDepotVehicleClick:
 // Fixes the buyhead check so that it can be bypassed
 global CloneTrainBuySecondHead
 CloneTrainBuySecondHead:
+	test byte [numheads+ebx], 1
+	jnz .multipleheads
+	ret
+
+.multipleheads:
 	cmp byte [forcenoextrahead], 1
 	jae .bypass
-
-	test byte [numheads+ebx], 1
 	ret
 
 .bypass:
@@ -401,9 +404,13 @@ exported CloneTrainBuild
 	jmp .loop
 
 .done:
+	mov esi, [esp] // Get the orginal id of the train being cloned (engine)
 	movzx edi, word [edi+veh.engineidx] // Get and store the engine head's id for the next subroutine
 	mov [CloneTrainLastIdx], di
-	mov byte [currentexpensetype], expenses_newvehs
+
+	// Add new order sharing / copying here
+
+	mov byte [currentexpensetype], expenses_newvehs // Change the enxpense type to charge as
 	pop edi
 	ret
 
