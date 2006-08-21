@@ -18,7 +18,8 @@
 extern setmousetool, patchflags, findvehontile, errorpopup, actionhandler
 extern RefreshWindowArea, forceextrahead, isengine, trainplanerefitcost
 extern traindepotwindowhandler.resizewindow, CloneTrainBuild_actionnum
-extern FindWindow, newvehdata, forcenoextrahead
+extern FindWindow, newvehdata, forcenoextrahead, shareorders_actionnum
+extern copyvehordersfn
 
 /*
 
@@ -408,8 +409,35 @@ exported CloneTrainBuild
 	movzx edi, word [edi+veh.engineidx] // Get and store the engine head's id for the next subroutine
 	mov [CloneTrainLastIdx], di
 
-	// Add new order sharing / copying here
+	cmp word [esi+veh.currorder], 0 // If it has no orders then don't copy or share orders
+	je .donesharingorders
 
+testmultiflags sharedorders // Shared orders isn't a dependancy so this needs to be handled differently
+	jz .nosharedorders
+
+	push eax // Protect the location for this actionhandler
+	push ecx
+	xchg esi, edi // Swap the registors so the right train pointer is inplace
+	mov edx, esi // Clone Train should be in edx not esi since that gets changed
+	xor eax, eax // No location for shareorders
+	xor ecx, ecx
+	xor ebx, ebx
+	inc bl // Actually do the action
+	shl edx, 7 // make the pointers actually just offsets (so the array can be added to them)
+	sub edi,[veharrayptr]
+	dopatchaction shareorders
+	pop ecx
+	pop eax
+	jmp .donesharingorders
+
+.nosharedorders:
+	xchg edi, esi // Change these round so they in the right places
+	shl esi, 7 // Make the cloned (created) train pointer correct to the vehicle array
+	add esi, [veharrayptr]
+	mov edi, [edi+veh.scheduleptr] // Get the sheculde pointer of the train being cloned
+	call [copyvehordersfn] // Copy the orders to the new train
+
+.donesharingorders:
 	mov byte [currentexpensetype], expenses_newvehs // Change the enxpense type to charge as
 	pop edi
 	ret
