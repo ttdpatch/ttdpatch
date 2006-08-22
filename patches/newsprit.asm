@@ -1693,6 +1693,7 @@ getspecialvar:
 // get special parametrized variable for variational sprites
 //
 // in:	eax=special variable
+//	ebx->var.action 2 variable data (i.e. the bytes <var=60+eax> <param=cl>)
 //	cl=parameter
 //	esi->struct
 // out:	eax=variable content
@@ -1758,7 +1759,9 @@ getspecparamvar:
 	mov edx,[mostrecentspriteblock]
 	mov eax,[edx+spriteblock.spritelist]
 	mov ebx,[eax+(ebx-1)*4]		// ebx is one too high
-	movzx ebx,word [ebx-4]		// read referenced var.action 2 sprite number
+	mov ebx,[ebx-4]			// read offset to var.action 2 copy with resolved procedure sprite numbers
+	add ebx,[esp+8]
+	movzx ebx,word [ebx]
 
 .gotaction2:
 	mov eax,[edx+spriteblock.spritelist]
