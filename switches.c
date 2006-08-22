@@ -1702,7 +1702,7 @@ static int dumpxmlswitches(int type)
   #endif
   if (sizeof(category_info)/sizeof(category_info[0]) != CAT_NONE + 1)
     error("Missing category_info entry: %d instead of %d\n",
-	sizeof(category_info)/sizeof(category_info[0]), CAT_NONE + 1);
+	(int) (sizeof(category_info)/sizeof(category_info[0])), CAT_NONE + 1);
   #if defined(__WATCOMC__) 
     #pragma enable_message (201)
   #endif
