@@ -451,11 +451,15 @@ CloneTrainCalcOnly:
 	cmp bh, [esi+veh.owner]
 	jne near .fail
 
+	mov word [operrormsg2], ourtext(txtcloneerror4) // Baad vehicle class
+	cmp [esi+veh.class], 0x10
+	jne near .fail
+
 	mov word [operrormsg2], ourtext(txtcloneerror3) // No Engine head
 	cmp byte [esi+veh.subclass], 0
 	jne near .fail
 
-	mov word [operrormsg2], ourtext(txtcloneerror4) // Unknown issue with copying
+	mov word [operrormsg2], ourtext(txtcloneerror5) // Unknown issue with copying
 
 .loop:
 	cmp byte [esi+veh.artictype], 0xFD // Artic vehicles are already bought with there head
@@ -471,7 +475,7 @@ CloneTrainCalcOnly:
 	jnc near .failebx
 	pop ebx
 
-	mov word [operrormsg2], ourtext(txtcloneerror4) // Unknown issue with copying
+	mov word [operrormsg2], ourtext(txtcloneerror5) // Unknown issue with copying
 
 	cmp word [CloneTrainLastIdx], 0xFFFF // Is it the first vehicle
 	je .firstvehicle

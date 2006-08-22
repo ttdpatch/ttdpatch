@@ -306,6 +306,7 @@ defourtext txtcloneerror1
 defourtext txtcloneerror2
 defourtext txtcloneerror3
 defourtext txtcloneerror4
+defourtext txtcloneerror5
 
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 

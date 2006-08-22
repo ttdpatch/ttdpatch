@@ -410,7 +410,9 @@ def txtcloneerrortop, db 0x94, "Cannot clone train consist", 0
 def txtcloneerror1, db 0x94, "Not a company train", 0
 def txtcloneerror2, db 0x94, "Vehicle in consist is not available anymore", 0
 def txtcloneerror3, db 0x94, "No engine head at the start of the consist", 0
-def txtcloneerror4, db 0x94, "Unknown reason", 0
+def txtcloneerror4, db 0x94, "Not a Rail Vehicle", 0
+def txtcloneerror5, db 0x94, "Unknown reason", 0
+
 
 def last
 
@@ -802,7 +804,8 @@ def txtcloneerrortop, db 0x94, "Cannot clone train consist", 0
 def txtcloneerror1, db 0x94, "Not a company train", 0
 def txtcloneerror2, db 0x94, "Vehicle in consist is not available anymore", 0
 def txtcloneerror3, db 0x94, "No engine head at the start of the consist", 0
-def txtcloneerror4, db 0x94, "Unknown reason", 0
+def txtcloneerror4, db 0x94, "Not a Rail Vehicle", 0
+def txtcloneerror5, db 0x94, "Unknown reason", 0
 
 def last
 
@@ -1194,7 +1197,8 @@ def txtcloneerrortop, db 0x94, "Cannot clone train consist", 0
 def txtcloneerror1, db 0x94, "Not a company train", 0
 def txtcloneerror2, db 0x94, "Vehicle in consist is not available anymore", 0
 def txtcloneerror3, db 0x94, "No engine head at the start of the consist", 0
-def txtcloneerror4, db 0x94, "Unknown reason", 0
+def txtcloneerror4, db 0x94, "Not a Rail Vehicle", 0
+def txtcloneerror5, db 0x94, "Unknown reason", 0
 
 def last
 
@@ -1585,7 +1589,8 @@ def txtcloneerrortop, db 0x94, "Cannot clone train consist", 0
 def txtcloneerror1, db 0x94, "Not a company train", 0
 def txtcloneerror2, db 0x94, "Vehicle in consist is not available anymore", 0
 def txtcloneerror3, db 0x94, "No engine head at the start of the consist", 0
-def txtcloneerror4, db 0x94, "Unknown reason", 0
+def txtcloneerror4, db 0x94, "Not a Rail Vehicle", 0
+def txtcloneerror5, db 0x94, "Unknown reason", 0
 
 def last
 
@@ -1976,6 +1981,7 @@ def txtcloneerrortop, db 0x94, "Cannot clone train consist", 0
 def txtcloneerror1, db 0x94, "Not a company train", 0
 def txtcloneerror2, db 0x94, "Vehicle in consist is not available anymore", 0
 def txtcloneerror3, db 0x94, "No engine head at the start of the consist", 0
-def txtcloneerror4, db 0x94, "Unknown reason", 0
+def txtcloneerror4, db 0x94, "Not a Rail Vehicle", 0
+def txtcloneerror5, db 0x94, "Unknown reason", 0
 
 def last
