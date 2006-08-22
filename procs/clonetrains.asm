@@ -89,7 +89,7 @@ codefragment oldbuysecondhead,5
 
 codefragment newbuysecondhead
 	icall CloneTrainBuySecondHead
-	setfragmentsize 6+1*WINTTDX
+	setfragmentsize 7
 
 endcodefragments
 
