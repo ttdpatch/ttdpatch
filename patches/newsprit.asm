@@ -1760,8 +1760,8 @@ getspecparamvar:
 	mov eax,[edx+spriteblock.spritelist]
 	mov ebx,[eax+(ebx-1)*4]		// ebx is one too high
 	mov ebx,[ebx-4]			// read offset to var.action 2 copy with resolved procedure sprite numbers
-	add ebx,[esp+8]
-	movzx ebx,word [ebx]
+	add ebx,[esp+12]
+	movzx ebx,word [ebx-1]
 
 .gotaction2:
 	mov eax,[edx+spriteblock.spritelist]

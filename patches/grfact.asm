@@ -510,7 +510,7 @@ action2:
 	// - random ID:
 	//   (unused)
 	// - variational ID:
-	//   offset to modified copy of sprite data
+	//   offset to allocated buffer as long as sprite data or -1
 	//
 	// Also all sprite numbers are translated into numbers relative
 	// to the action 1 sprite number.
@@ -705,15 +705,8 @@ newcargoid:
 	ret
 
 .variationalid:
-	lea ecx,[ebp+4]
-	sub ecx,esi	// now ecx=length of sprite data
-	push ecx
-	call malloc
-	pop ecx
-	mov ebx,ecx
-	sub ebx,esi
 	lea ecx,[esi-8]
-	mov [ecx],ebx
+	or dword [ecx],byte -1
 	xor ebx,ebx
 	inc ebx
 	test al,0xc
@@ -747,6 +740,19 @@ newcargoid:
 	jz .invalid
 
 	mov edx,[ecx]
+	test edx,edx
+	jg .havebuffer
+
+	lea edx,[ebp-4]
+	sub edx,ecx	// now edx=length of sprite data
+	push edx
+	call malloc
+	pop edx
+	sub edx,ecx
+	sub edx,4	// now edx=offset from start of sprite data
+	mov [ecx],edx
+
+.havebuffer:
 	mov [esi+edx-2],ax
 
 .noparam:
