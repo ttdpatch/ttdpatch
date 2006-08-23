@@ -289,8 +289,6 @@ defourtext statistics_tooltip
 defourtext conflict_itself
 defourtext conflict_preexist
 
-; CRC 28b34087 (check to make sure that the order above is unchanged)
-
 defourtext grfstatdebug
 defourtext grfdebughint
 defourtext grfdebugmsg
@@ -302,12 +300,13 @@ defourtext txtclonedepotbutton
 defourtext txtclonetooltip
 defourtext txtcloneerrortop
 defourtext txtclonebadcash
-defourtext txtcloneerror1
-defourtext txtcloneerror2
-defourtext txtcloneerror3
-defourtext txtcloneerror4
-defourtext txtcloneerror5
-defourtext txtcloneerror6
+defourtext txtcloneerror_company
+defourtext txtcloneerror_unavail
+defourtext txtcloneerror_nothead
+defourtext txtcloneerror_notrail
+defourtext txtcloneerror_unknown
+
+; CRC 7f60b407 (check to make sure that the order above is unchanged)
 
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 

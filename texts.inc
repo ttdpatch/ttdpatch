@@ -407,12 +407,11 @@ def hotkeylistwin, db "xqwe!@#$t%1234567890-=`",5ch,0
 def txtclonedepotbutton, db 0x98, "Clone Train", 0
 def txtclonetooltip, db 0x98, "Allows you to clone a train", 0
 def txtcloneerrortop, db 0x94, "Cannot clone train consist", 0
-def txtcloneerror1, db 0x94, "Not a company train", 0
-def txtcloneerror2, db 0x94, "Vehicle in consist is not available anymore", 0
-def txtcloneerror3, db 0x94, "No engine head at the start of the consist", 0
-def txtcloneerror4, db 0x94, "Not a rail vehicle", 0
-def txtcloneerror5, db 0x94, "Unknown reason", 0
-def txtcloneerror6, db 0x94, "Incompatible Rail types", 0
+def txtcloneerror_company, db 0x94, "Not a company train", 0
+def txtcloneerror_unavail, db 0x94, "Vehicle in consist is not available anymore", 0
+def txtcloneerror_nothead, db 0x94, "No engine head at the start of the consist", 0
+def txtcloneerror_notrail, db 0x94, "Not a rail vehicle", 0
+def txtcloneerror_unknown, db 0x94, "Unknown reason", 0
 
 def last
 
@@ -801,12 +800,11 @@ def hotkeylistwin, db "xqwe!",22h,0xa3,"$t%1234567890-=~",5ch,0
 def txtclonedepotbutton, db 0x98, "Clone Train", 0
 def txtclonetooltip, db 0x98, "Allows you to clone a train", 0
 def txtcloneerrortop, db 0x94, "Cannot clone train consist", 0
-def txtcloneerror1, db 0x94, "Not a company train", 0
-def txtcloneerror2, db 0x94, "Vehicle in consist is not available anymore", 0
-def txtcloneerror3, db 0x94, "No engine head at the start of the consist", 0
-def txtcloneerror4, db 0x94, "Not a rail vehicle", 0
-def txtcloneerror5, db 0x94, "Unknown reason", 0
-def txtcloneerror6, db 0x94, "Incompatible Rail types", 0
+def txtcloneerror_company, db 0x94, "Not a company train", 0
+def txtcloneerror_unavail, db 0x94, "Vehicle in consist is not available anymore", 0
+def txtcloneerror_nothead, db 0x94, "No engine head at the start of the consist", 0
+def txtcloneerror_notrail, db 0x94, "Not a rail vehicle", 0
+def txtcloneerror_unknown, db 0x94, "Unknown reason", 0
 
 def last
 
@@ -1195,12 +1193,11 @@ def hotkeylistwin, db "xqwe!",0x22,"§$t%1234567890-=~]",0
 def txtclonedepotbutton, db 0x98, "Clone Train", 0
 def txtclonetooltip, db 0x98, "Allows you to clone a train", 0
 def txtcloneerrortop, db 0x94, "Cannot clone train consist", 0
-def txtcloneerror1, db 0x94, "Not a company train", 0
-def txtcloneerror2, db 0x94, "Vehicle in consist is not available anymore", 0
-def txtcloneerror3, db 0x94, "No engine head at the start of the consist", 0
-def txtcloneerror4, db 0x94, "Not a rail vehicle", 0
-def txtcloneerror5, db 0x94, "Unknown reason", 0
-def txtcloneerror6, db 0x94, "Incompatible Rail types", 0
+def txtcloneerror_company, db 0x94, "Not a company train", 0
+def txtcloneerror_unavail, db 0x94, "Vehicle in consist is not available anymore", 0
+def txtcloneerror_nothead, db 0x94, "No engine head at the start of the consist", 0
+def txtcloneerror_notrail, db 0x94, "Not a rail vehicle", 0
+def txtcloneerror_unknown, db 0x94, "Unknown reason", 0
 
 def last
 
@@ -1588,12 +1585,11 @@ def hotkeylistwin, db "xqwe1234t5&",0xE9,0x22,"'(-",0xE8,"_",0xE7,")=$",0xB2,"*"
 def txtclonedepotbutton, db 0x98, "Clone Train", 0
 def txtclonetooltip, db 0x98, "Allows you to clone a train", 0
 def txtcloneerrortop, db 0x94, "Cannot clone train consist", 0
-def txtcloneerror1, db 0x94, "Not a company train", 0
-def txtcloneerror2, db 0x94, "Vehicle in consist is not available anymore", 0
-def txtcloneerror3, db 0x94, "No engine head at the start of the consist", 0
-def txtcloneerror4, db 0x94, "Not a rail vehicle", 0
-def txtcloneerror5, db 0x94, "Unknown reason", 0
-def txtcloneerror6, db 0x94, "Incompatible Rail types", 0
+def txtcloneerror_company, db 0x94, "Not a company train", 0
+def txtcloneerror_unavail, db 0x94, "Vehicle in consist is not available anymore", 0
+def txtcloneerror_nothead, db 0x94, "No engine head at the start of the consist", 0
+def txtcloneerror_notrail, db 0x94, "Not a rail vehicle", 0
+def txtcloneerror_unknown, db 0x94, "Unknown reason", 0
 
 def last
 
@@ -1981,11 +1977,10 @@ def hotkeylistwin, db "xqwe!",0x22,0xb7,"$t%1234567890'",0xa1,0xba,0xe7,0
 def txtclonedepotbutton, db 0x98, "Clone Train", 0
 def txtclonetooltip, db 0x98, "Allows you to clone a train", 0
 def txtcloneerrortop, db 0x94, "Cannot clone train consist", 0
-def txtcloneerror1, db 0x94, "Not a company train", 0
-def txtcloneerror2, db 0x94, "Vehicle in consist is not available anymore", 0
-def txtcloneerror3, db 0x94, "No engine head at the start of the consist", 0
-def txtcloneerror4, db 0x94, "Not a rail vehicle", 0
-def txtcloneerror5, db 0x94, "Unknown reason", 0
-def txtcloneerror6, db 0x94, "Incompatible Rail types", 0
+def txtcloneerror_company, db 0x94, "Not a company train", 0
+def txtcloneerror_unavail, db 0x94, "Vehicle in consist is not available anymore", 0
+def txtcloneerror_nothead, db 0x94, "No engine head at the start of the consist", 0
+def txtcloneerror_notrail, db 0x94, "Not a rail vehicle", 0
+def txtcloneerror_unknown, db 0x94, "Unknown reason", 0
 
 def last

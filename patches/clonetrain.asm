@@ -452,21 +452,21 @@ CloneTrainCalcOnly:
 	mov dword [CloneTrainCost], 0 // Set this to 0 for now
 	mov dword [trainplanerefitcost], 0
 
-	mov word [operrormsg2], ourtext(txtcloneerror1) // Bad vehicle owner
+	mov word [operrormsg2], ourtext(txtcloneerror_company) // Bad vehicle owner
 	cmp bh, [esi+veh.owner]
 	jne near .fail
 
-	mov word [operrormsg2], ourtext(txtcloneerror4) // Baad vehicle class
+	mov word [operrormsg2], ourtext(txtcloneerror_notrail) // Bad vehicle class
 	cmp byte [esi+veh.class], 0x10
 	jne near .fail
 
-	mov word [operrormsg2], ourtext(txtcloneerror3) // No Engine head
+	mov word [operrormsg2], ourtext(txtcloneerror_nothead) // No Engine head
 	cmp byte [esi+veh.subclass], 0
 	jne near .fail
 
 	// This code will need to be updated for newRoutes compatiblity
 	push ebx
-	mov word [operrormsg2], ourtext(txtcloneerror6) // Not a compatible rail type
+	mov word [operrormsg2], ourtext(wrongrailtype) // Not a compatible rail type
 	movzx ebx, word [esi+veh.vehtype] // Move to the vehtypeinfo array
 	imul ebx, vehtypeinfo_size
 	add ebx, [vehtypedataptr]
@@ -488,7 +488,7 @@ testmultiflags electrifiedrail // Special code for the the different types
 
 .continue:
 	pop ebx
-	mov word [operrormsg2], ourtext(txtcloneerror5) // Unknown issue with copying
+	mov word [operrormsg2], ourtext(txtcloneerror_unknown) // Unknown issue with copying
 
 .loop:
 	cmp byte [esi+veh.artictype], 0xFD // Artic vehicles are already bought with there head
@@ -496,7 +496,7 @@ testmultiflags electrifiedrail // Special code for the the different types
 
 	push ebx
 	movzx bx, bh
-	mov word [operrormsg2], ourtext(txtcloneerror2) // Vehicle not avilable anymore
+	mov word [operrormsg2], ourtext(txtcloneerror_unavail) // Vehicle not avilable anymore
 	movzx edx, word [esi+veh.vehtype]
 	imul edx, vehtype_size
 	add edx, vehtypearray
@@ -504,7 +504,7 @@ testmultiflags electrifiedrail // Special code for the the different types
 	jnc near .failebx
 	pop ebx
 
-	mov word [operrormsg2], ourtext(txtcloneerror4) // Unknown issue with copying
+	mov word [operrormsg2], ourtext(txtcloneerror_unknown) // Unknown issue with copying
 
 	cmp word [CloneTrainLastIdx], 0xFFFF // Is it the first vehicle
 	je .firstvehicle
