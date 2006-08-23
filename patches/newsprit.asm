@@ -646,9 +646,13 @@ getnewsprite:
 	cmp byte [curcallback],0	// was it really a callback?
 	je .baddata
 
+	btr ebx,16			// calculated callback results always use new-style
+	jc .alwaysnewstyle
+
 	add bh,1
 	adc bh,-1			// map ff -> 00 (old style result)
 
+.alwaysnewstyle:
 	// got valid callback result
 	xchg eax,ebx
 	pop ebx
@@ -832,7 +836,7 @@ badaction2var:
 //
 // in:	al=type-80
 //	ebx=current sprite data
-// out:	ebx=new sprite number
+// out:	ebx=new sprite number; bit 16 set for calculated callback results
 // safe:eax ecx edx
 getrandomorvariational:
 	push esi
@@ -1221,6 +1225,7 @@ getvariationalvariable:
 .callback:
 	movzx ebx,ax
 	or bh,0x80
+	bts ebx,16
 	jmp .gotvalue
 
 %endmacro
