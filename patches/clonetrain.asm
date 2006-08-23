@@ -19,7 +19,7 @@ extern setmousetool, patchflags, findvehontile, errorpopup, actionhandler
 extern RefreshWindowArea, forceextrahead, isengine, trainplanerefitcost
 extern traindepotwindowhandler.resizewindow, CloneTrainBuild_actionnum
 extern FindWindow, newvehdata, forcenoextrahead, shareorders_actionnum
-extern copyvehordersfn
+extern copyvehordersfn, vehtypedataptr
 
 /*
 
@@ -265,6 +265,11 @@ CloneTrainMain:
 	rol cx, 8
 	and ax, 0x0FF0
 	and cx, 0x0FF0
+
+	ror di, 4
+	mov dx, [nosplit landscape3+edi*2]
+	shl dx, 8
+	and dh, 0x0F
 	pop edi
 
 	// Reset the Ctrl key status to stop bugs in the cloning code
@@ -452,13 +457,37 @@ CloneTrainCalcOnly:
 	jne near .fail
 
 	mov word [operrormsg2], ourtext(txtcloneerror4) // Baad vehicle class
-	cmp [esi+veh.class], 0x10
+	cmp byte [esi+veh.class], 0x10
 	jne near .fail
 
 	mov word [operrormsg2], ourtext(txtcloneerror3) // No Engine head
 	cmp byte [esi+veh.subclass], 0
 	jne near .fail
 
+	// This code will need to be updated for newRoutes compatiblity
+	push ebx
+	mov word [operrormsg2], ourtext(txtcloneerror6) // Not a compatible rail type
+	movzx ebx, word [esi+veh.vehtype] // Move to the vehtypeinfo array
+	imul ebx, vehtypeinfo_size
+	add ebx, [vehtypedataptr]
+testmultiflags electrifiedrail // Special code for the the different types
+	jz .notelectrified
+
+	cmp dh, 2 // Maglev and mono rail will both be 2, so run old version
+	je .notelectrified
+	cmp byte [ebx+vehtypeinfo.traintype], dh // With electrified depots, you can build both 1 and 0 types
+	jb .continue
+
+.notelectrified:
+	cmp byte [ebx+vehtypeinfo.traintype], dh // Default type, does the type match?
+	je .continue
+	pop ebx // These must be restored otherwise TTDpatch will crash
+	pop edi
+	mov ebx, 1<<31
+	ret
+
+.continue:
+	pop ebx
 	mov word [operrormsg2], ourtext(txtcloneerror5) // Unknown issue with copying
 
 .loop:
@@ -475,7 +504,7 @@ CloneTrainCalcOnly:
 	jnc near .failebx
 	pop ebx
 
-	mov word [operrormsg2], ourtext(txtcloneerror5) // Unknown issue with copying
+	mov word [operrormsg2], ourtext(txtcloneerror4) // Unknown issue with copying
 
 	cmp word [CloneTrainLastIdx], 0xFFFF // Is it the first vehicle
 	je .firstvehicle
