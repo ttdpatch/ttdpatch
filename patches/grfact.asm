@@ -2623,7 +2623,7 @@ checkgrferrormsg:
 	cmp al,0xff
 	je .isvalid
 
-	cmp al,3
+	cmp al,5
 	mov al,INVSP_INVERRMSG
 	ja checknewgraphicsblock.invalid
 
@@ -2762,6 +2762,7 @@ formatspriteerror:
 .grferrortypes:
 	dw statictext(grfnotice),ourtext(grfwarning)
 	dw ourtext(grferror),ourtext(grferror)
+	dw ourtext(grfbefore),ourtext(grfafter)
 
 
 	// *** action C handler ***
