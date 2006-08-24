@@ -3591,7 +3591,7 @@ action11:
 initgrfsounds:
 	cmp dword [edx+spriteblock.soundinfo],0
 	je .first
-	mov dl,INVSP_MULTIACT11
+	mov dh,INVSP_MULTIACT11
 .bad:
 	jmp newcargoid.invalid
 
@@ -3772,10 +3772,10 @@ loadcharset:
 	ret
 
 .toomany:
-	mov dl,INVSP_BLOCKTOOLARGE
+	mov dh,INVSP_BLOCKTOOLARGE
 	jmp short .bad
 .badfont:
-	mov dl,INVSP_BADFONT
+	mov dh,INVSP_BADFONT
 .bad:
 	pop eax
 	jnb newcargoid.invalid
