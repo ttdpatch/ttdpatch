@@ -146,6 +146,8 @@ def grfinvalidparam, db 94h, "Invalid parameter for ", 80h, ": parameter ", 80h,
 def grfconflict, db 94h,"GRF conflict with ", 80h,0x94, " (resource ", 0x7c, " at sprite ", 0x7c, ")", 0
 def conflict_itself, db "itself", 0
 def conflict_preexist, db "existing definitions", 0
+def grfbefore, db 94h,"File ", 22h,80h,22h," must be loaded before ",80h,".",0
+def grfafter, db 94h,"File ", 22h,80h,22h," must be loaded after ",80h,".",0
 
 def grfstatcaption, db 0x94,"GRF Status", 0
 def grfstatapply, db 0x98,"Apply", 0
@@ -540,6 +542,8 @@ def grfinvalidparam, db 94h, "Invalid parameter for ", 80h, ": parameter ", 80h,
 def grfconflict, db 94h,"GRF conflict with ", 80h,0x94, " (resource ", 0x7c, " at sprite ", 0x7c, ")", 0
 def conflict_itself, db "itself", 0
 def conflict_preexist, db "existing definitions", 0
+def grfbefore, db 94h,"File ", 22h,80h,22h," must be loaded before ",80h,".",0
+def grfafter, db 94h,"File ", 22h,80h,22h," must be loaded after ",80h,".",0
 
 def grfstatcaption, db 0x94,"GRF Status", 0
 def grfstatapply, db 0x98,"Apply", 0
@@ -932,6 +936,8 @@ def grfinvalidparam, db 94h, "Ungültiger Parameter für ", 80h, ": Parameter ", 8
 def grfconflict, db 94h,"GRF-Konflikt mit ", 80h,0x94, " (Ressource ", 0x7c, " in Sprite ", 0x7c, ")", 0
 def conflict_itself, db "sich selbst", 0
 def conflict_preexist, db "gespeicherten Einstellungen", 0
+def grfbefore, db 94h,"File ", 22h,80h,22h," must be loaded before ",80h,".",0
+def grfafter, db 94h,"File ", 22h,80h,22h," must be loaded after ",80h,".",0
 
 def grfstatcaption, db 0x94,"GRF Status", 0
 def grfstatapply, db 0x98,"Anwenden", 0
@@ -1324,6 +1330,8 @@ def grfinvalidparam, db 94h, "Parametres invalides pour ", 80h, ": parametre ", 
 def grfconflict, db 94h,"Conflit de GRF avec ", 80h,0x94, " (ressource ", 0x7c, " au sprite ", 0x7c, ")", 0
 def conflict_itself, db "lui même", 0
 def conflict_preexist, db "definitions existantes", 0
+def grfbefore, db 94h,"File ", 22h,80h,22h," must be loaded before ",80h,".",0
+def grfafter, db 94h,"File ", 22h,80h,22h," must be loaded after ",80h,".",0
 
 def grfstatcaption, db 0x94,"Status GRF", 0
 def grfstatapply, db 0x98,"Appliquer", 0
@@ -1716,6 +1724,8 @@ def grfinvalidparam, db 94h, "Parámetro inválido para ", 80h, ": parámetro ", 80
 def grfconflict, db 94h,"conflicto GRF con ", 80h,0x94, " (recurso ", 0x7c, " al puntero ", 0x7c, ")", 0
 def conflict_itself, db "consigo mismo", 0
 def conflict_preexist, db "definiciones existentes", 0
+def grfbefore, db 94h,"File ", 22h,80h,22h," must be loaded before ",80h,".",0
+def grfafter, db 94h,"File ", 22h,80h,22h," must be loaded after ",80h,".",0
 
 def grfstatcaption, db 0x94,"Estado GRF", 0
 def grfstatapply, db 0x98,"Aplica", 0

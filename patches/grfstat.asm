@@ -856,6 +856,15 @@ win_grfstat_geterrorinfo:
 	mov word [textrefstack],statictext(special1)
 	mov ebx,[eax+spriteblock.errparam]
 	mov [textrefstack+4],ebx
+	cmp dx,ourtext(grfbefore)
+	je .beforeafter
+	cmp dx,ourtext(grfafter)
+	jne .notbeforeafter
+
+.beforeafter:	// for before/after messages, error param is a string pointer
+	mov word [textrefstack+2],statictext(special2)
+	mov [specialtext2],ebx
+.notbeforeafter:
 	mov ebx,edx
 	ret
 .actionberror:

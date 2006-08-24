@@ -308,6 +308,9 @@ defourtext txtcloneerror_unknown
 
 ; CRC 7f60b407 (check to make sure that the order above is unchanged)
 
+defourtext grfbefore
+defourtext grfafter
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

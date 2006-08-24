@@ -1983,15 +1983,21 @@ applynewvehnames:
 	mov ah,0x80
 	call gettexttableptr
 	lea ebx,[eax+ebx*4]
-	jmp short .gotit
+	jmp short processtextdata.gotit
 
 .generaltext:
 	lodsw
 	cmp ah,0xc0
-	jb .notpatchtext
+	jb processtextdata.notpatchtext
 
 	// it's a patch text, which means text IDs might not be
 	// contiguous in the table, so only process one at a time
+
+	// process action 4/13 text data
+	// in:	eax=first text ID
+	//	ecx=count
+	//	esi->text data
+processtextdata:
 	mov ebp,eax
 
 .nextgeneraltext:
@@ -3788,6 +3794,50 @@ skipcharset:
 	ret
 
 
+	// *** action 13 handler ***
+action13:
+	nop
+
+definegrftranslation:
+	lodsd
+	call findgrfid
+	jc .ignore
+
+	mov al,[ebx+spriteblock.active]
+	test al,1
+	jz .ignore
+
+	test al,2
+	jnz .tooearly
+
+	xor eax,eax
+	lodsb
+	mov ecx,eax
+
+	lodsw
+	cmp ax,0xd000
+	jb .badid
+	cmp ax,0xdfff
+	ja .badid
+
+	xchg ebx,[curspriteblock]	// process the referred GRF's specific strings
+	push ebx
+	call processtextdata
+	pop dword [curspriteblock]
+
+.ignore:
+	ret
+
+.badid:
+	mov dh,INVSP_BADID
+	jmp newcargoid.invalid
+.tooearly:
+	mov eax,ourtext(grfafter)
+	mov ebx,[ebx+spriteblock.nameptr]
+	call setspriteerror
+	or edi,byte -1
+	ret
+
 
 //
 // Action 0 property info
@@ -3907,7 +3957,7 @@ uvarb grfstage
 
 // Actions for which we don't need to check that the GRFID is valid
 // so far that's actions 6-9, B-E and 10
-spriteactnogrfid equ 10111101111000000b
+spriteactnogrfid equ 00010111101111000000b
 
 	// pointers to the actions specified in the first byte of
 	// the pseudo sprite data
@@ -3942,6 +3992,7 @@ var spriteinitializeaction
 	dd 0				//10: define label
 	dd addr(initgrfsounds)		//11: define sounds
 	dd skipcharset			//12: define glyphs
+	dd 0				//13: translate grf texts
 
 numspriteactions equ (addr($)-spriteinitializeaction)/4
 spritegrfidcheckofs equ numspriteactions*4
@@ -3969,6 +4020,7 @@ var spriteactivateaction
 	dd 0				//10: define label
 	dd addr(skipgrfsounds)		//11: define sounds
 	dd loadcharset			//12: define glyphs
+	dd definegrftranslation		//13: translate grf texts
 
 	dd spriteactnogrfid
 
@@ -3995,6 +4047,7 @@ var spritetestactaction
 	dd 0				//10: define label
 	dd addr(skipgrfsounds)		//11: define sounds
 	dd skipcharset			//12: define glyphs
+	dd 0				//13: translate grf texts
 
 	dd spriteactnogrfid
 
@@ -4021,6 +4074,7 @@ var spritesloadedaction
 	dd 0				//10: define label
 	dd addr(skipgrfsounds)		//11: define sounds
 	dd skipcharset			//12: define glyphs
+	dd 0				//13: translate grf texts
 
 	dd -1				// never check for valid GRFID
 
@@ -4047,6 +4101,7 @@ var spritereserveaction
 	dd 0				//10: define label
 	dd addr(skipgrfsounds)		//11: define sounds
 	dd skipcharset			//12: define glyphs
+	dd 0				//13: translate grf texts
 
 	dd -1				// never check for valid GRFID
 

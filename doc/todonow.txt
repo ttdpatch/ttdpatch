@@ -710,6 +710,7 @@ CHANGELOG
   * (devel) fix buffer overrun and use correct variables
 - added generic feature 0C (newsounds) callback for new ambient sounds
 - allow unlimited var.action 2 procedure calls in one var.action 2
+- implement action 13 to allow translating D000/DC00 texts of another grf
 
 
 

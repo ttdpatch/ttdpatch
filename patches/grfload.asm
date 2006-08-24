@@ -703,6 +703,7 @@ makespriteblock:
 //
 // in:	eax(0:15)=error text
 //	eax(16:31)=error parameter (currently only used by "invalid sprite" message)
+//	ebx->error parameter (for grfbefore/grfafter message)
 //	edi->first byte in sprite generating error
 // out:	eax->spriteblock
 //
@@ -734,6 +735,15 @@ settempspriteerror:
 	mov [edx+spriteblock.errparam+2],ax
 	pop eax
 
+	cmp ax,ourtext(grfbefore)
+	je .beforeafter
+	cmp ax,ourtext(grfafter)
+	jne .notbeforeafter
+
+.beforeafter:
+	mov [edx+spriteblock.errparam],ebx
+
+.notbeforeafter:
 	push ax
 	cmp dword [spriteerror],0
 	jne .alreadyhaveerror

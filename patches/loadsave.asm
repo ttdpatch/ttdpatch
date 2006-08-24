@@ -46,7 +46,7 @@ extern newvehdata,oldhuman1,oldveharraysize,oldvehicles
 extern orighumanplayers,patchflags,persistentgrftextlist,realplayernum
 extern recalchousecounts,recalctownpopulations,resetnewsprites,savechunkfn
 extern setbasecostmult,setbasecostmultdefault,setrvweightandpower
-extern setvehiclearraysize,specialerrtext1,specificpropertybase
+extern setvehiclearraysize,specialerrtext1,specialerrtext2,specificpropertybase
 extern specvehdatalength
 extern spriteerror,spriteerrorparam,spriteerrortype,startflagdata
 extern station2clear,station2init,stationarray2ptr,stationidgrfmap
@@ -2382,8 +2382,18 @@ grferror:	// error while loading graphics
 	mov eax,[spriteerrorparam]
 	mov [textrefstack+4],eax
 
-	mov bx,ourtext(grfloaderror)
 	mov dx,[operrormsg2]
+	cmp dx,ourtext(grfbefore)
+	je .beforeafter
+	cmp dx,ourtext(grfafter)
+	jne .notbeforeafter
+
+.beforeafter:	// for before/after message, errparam is a string pointer
+	mov word [textrefstack+2],statictext(special2)
+	mov [specialerrtext2],eax
+
+.notbeforeafter:
+	mov bx,ourtext(grfloaderror)
 
 .showmsg:
 	mov [specialerrtext1],esi
