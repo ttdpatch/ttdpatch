@@ -1,8 +1,18 @@
 #include <std.inc>
 #include <win32.inc>
+#include <map.inc>
+
+// API: 
+//	in	esi = tile index
+// 		dx:	0..3 = altitude of info
+//			0..4 = all bits set, ground tile
+//			5..15 = feature
+// nma_findentry	// out: eax data
+// nma_addentry		// in: ebx data, uses eax
+// nma_removeentry  
+//
 
 #if 0
-%define MAPSIZE 256*256
 %define MAXSLOTFORMAP MAPSIZE*(32)
 
 uvard nma_xyptrs, MAPSIZE, z
@@ -12,8 +22,8 @@ uvard nmareversedmemory
 uvard nmausedmemory
 
 struc nmadata
-	.altitude:	// 0..3 bits
-	.typeid: resw 1	
+	.altitude:	// 0..4 bits
+	.typeid: resw 1	// 5..15 = feature
 	.data: resw 1
 endstruc
 
@@ -61,7 +71,17 @@ exported newmaparrayinit
 	clc
 	ret
 
+	// Called if newmaparray is enabled but it wasn't present in the savegame
+exported nmaclear
+	jmp nmareset
+
+exported nmaloadgame
+	call nmafindlandscapeptrs
+	ret
+	
 nmareset:
+	mov eax, [nmausedmemory]
+	call nmamfreememory
 	mov eax, MAPSIZE
 	call nmamallocmemory
 	mov edi, [nmadataptr]
@@ -73,7 +93,7 @@ nmareset:
 	jnz .loop
 	ret
 
-	
+// Update the Landscape XY Pointers, usefully for init and loading games.
 // uses: eax, ecx, esi, edi
 nmafindlandscapeptrs:
 	pusha
@@ -113,13 +133,14 @@ nmamallocmemory:
 	jz .nomoremem
 	
 	popa
+	clc
 	ret
 #endif	
 .nomoremem:
 	popa
-	ud2
+	stc
 	ret
-	
+
 	//	eax = size to remove at the end
 nmamfreememory:
 	pusha
@@ -141,21 +162,22 @@ nmamfreememory:
 	test eax,eax
 	jz .error
 	popa
+	clc
 	ret
 #endif
 
 .error:
 	popa
-	UD2
+	stc
 	ret
 	
 	
 //	in	esi = tile index
-// 		dx:	0..3 = altitude of info
-//			4..15 = feature
+// 		dx:	0..4 = altitude of info
+//			5..15 = feature
 //	carry if nothing could be found
 // out: eax = data
-exported getlandscapedata
+exported nma_findentry
 	push esi
 	and esi, 0xFFFF
 	mov esi, dword [nma_xyptrs+esi*4]
@@ -182,11 +204,11 @@ exported getlandscapedata
 	ret
 	
 //	in:	esi = tile index
-// 		dx:	0..3 = altitude of info
-//			4..15 = feature
+// 		dx:	0..4 = altitude of info
+//			5..15 = feature
 //		ebx = data
 // uses: eax
-nma_addentry:
+exported nma_addentry
 	push eax
 	push esi
 	and esi, 0xFFFF
@@ -205,7 +227,7 @@ nma_addentry:
 .noemptyslotfound:
 	// in esi on 0xFFFF marker
 	call nma_addslot
-	
+	jc .fail
 	mov word [esi+nmadata.altitude], dx
 	mov word [esi+nmadata.data], bx
 	
@@ -225,14 +247,16 @@ nma_addentry:
 .foundemptyslot:
 	mov word [esi+nmadata.altitude], dx
 	mov word [esi+nmadata.data], bx
+	clc
+.fail:
 	pop esi
 	pop eax
 	ret
 	
 //	in	esi = tile index
-// 		dx:	0..3 = altitude of info
-//			4..15 = feature
-nma_removeentry:
+// 		dx:	0..4 = altitude of info
+//			5..15 = feature
+exported nma_removeentry
 	push eax
 	push esi
 	and esi, 0xFFFF
@@ -250,6 +274,7 @@ nma_removeentry:
 	
 .found:
 	call nma_remslot
+	jc .fail
 	mov esi, [esp] // get esi from stack!
 	and esi, 0xFFFF
 	lea esi, [nma_xyptrs+esi*4]
@@ -269,11 +294,9 @@ nma_removeentry:
 	pop eax
 	stc
 	ret
-	
-	ret
 
 //	in	esi = tile index
-// 		dx:	0..3 = altitude of info
+// 		dx:	0..4 = altitude of info
 nma_removeentrys:
 	
 	ret
@@ -292,7 +315,7 @@ nma_addslot:
 	push ecx
 	mov eax, nmadata_size
 	call nmamallocmemory
-	
+	jc .notok
 	mov ecx, [nmadataptr]
 	add ecx, [nmausedmemory]
 	sub ecx, esi
@@ -306,6 +329,8 @@ nma_addslot:
 	mov [esi], ebx
 	dec ecx
 	jnz .next
+	clc
+.notok:
 	pop ecx
 	pop esi
 	pop ebx
@@ -319,8 +344,8 @@ nma_remslot:
 	push esi
 	push edi
 	mov eax, nmadata_size
-	call nmamallocmemory
-	
+	call nmamfreememory
+	jc .notok
 	mov ecx, [nmadataptr]
 	add ecx, [nmausedmemory]
 	sub ecx, esi
@@ -328,14 +353,16 @@ nma_remslot:
 	lea edi, [esi+4]
 	xchg esi, edi
 	rep movsd
-	
+	clc
+.notok:
 	pop edi
 	pop esi
 	pop ecx
 	pop eax
 	ret
-	
 
+	
+#if 0
 // in:	esi = pointer		// dword aligned
 //		edi = end pointer
 //		ecx = direction +/-	//multiply of 4 if > 3
@@ -395,5 +422,5 @@ nma_memmoverelative:
 	pop esi
 	pop eax
 	ret
-
+#endif
 #endif
