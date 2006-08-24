@@ -2623,9 +2623,9 @@ checkgrferrormsg:
 	cmp al,0xff
 	je .isvalid
 
-	cmp al,5
+	cmp al,numactionbmsg
 	mov al,INVSP_INVERRMSG
-	ja checknewgraphicsblock.invalid
+	jae checknewgraphicsblock.invalid
 
 .isvalid:
 	lea ecx,[edi-1]
@@ -2763,6 +2763,7 @@ formatspriteerror:
 	dw statictext(grfnotice),ourtext(grfwarning)
 	dw ourtext(grferror),ourtext(grferror)
 	dw ourtext(grfbefore),ourtext(grfafter)
+numactionbmsg equ ($-.grferrortypes)/2
 
 
 	// *** action C handler ***
