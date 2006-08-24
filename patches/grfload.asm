@@ -1127,11 +1127,9 @@ pseudospriteaction:
 .good:
 	lodsb
 
-	cmp ecx,5
-	jnb .always	// non-vehicle specific actions are always carried out
-
-	dec ecx		// always do action 1 to skip the sprites
-	jz short .always
+	extern docheckfeature
+	bt [docheckfeature],ecx
+	jnc .always	// non-vehicle specific actions are always carried out
 
 	cmp eax,0x48
 	mov cl,INVSP_BADFEATURE

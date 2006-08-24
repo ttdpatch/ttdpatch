@@ -474,8 +474,12 @@ newspriteblock:
 ; endp newspriteblock
 
 activatevehspriteblock:
+	mov byte [exscurfeature], al	// needed to resolve the action 1 feature later ...
+	movzx ecx,byte [newgrfflags+eax]
+	testflags ecx			// don't reserve sprites if feature is disabled
+	jnc near skipvehspriteblock
+
 	push esi
-	mov byte [exscurfeature], al	//needed to resolve the action 1 feature later ...
 	lodsb
 	mov ecx,eax
 	call getextendedbyte
@@ -3909,6 +3913,11 @@ spriteactnogrfid equ 10111101111000000b
 	// the pseudo sprite data
 
 global numspriteactions,spritegrfidcheckofs
+
+// Actions for which the byte after the action byte is the feature
+// and we should check if it's enabled
+// so far that's actions 0, 2-4 and 13 (not 1 because the sprites need to be skipped always)
+vard docheckfeature, 10000000000000001101b
 
 	align 4
 
