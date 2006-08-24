@@ -1615,6 +1615,13 @@ postinfoapply:
 	// Disable 32px depots completely (no enhancegui active) until I can workout some fragments.
 	btr dword [grfmodflags], 3
 .lendofdepots:
+
+testmultiflags clonetrain
+	jz .noclonetrain
+extern CloneTrainChangeGrfSprites
+	call CloneTrainChangeGrfSprites
+
+.noclonetrain:
 	CHECKMEM
 	ret
 

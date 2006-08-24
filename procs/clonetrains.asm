@@ -6,14 +6,10 @@
 #include <textdef.inc>
 #include <window.inc>
 
-extern patchflags, malloccrit
-extern variabletofind, variabletowrite
-extern newDepotWinElemList, CloneDepotToolTips
-extern CloneDepotClick, CloneDepotRightClick
-extern patchwindowsizer.addforclonetrain
-extern CloneDepotDisableElements, CloneDepotWindowHandler
-extern CloneDepotVehicleClick, CloneTrainOpenTrainWindow
-extern CloneTrainBuySecondHead
+extern patchflags, malloccrit, variabletofind, variabletowrite, newDepotWinElemList
+extern CloneDepotToolTips, CloneDepotClick, CloneDepotRightClick, newgraphicssetsenabled
+extern patchwindowsizer.addforclonetrain, CloneDepotDisableElements, CloneDepotWindowHandler
+extern CloneDepotVehicleClick, CloneTrainOpenTrainWindow, CloneTrainBuySecondHead
 
 ext_frag findvariableaccess,newvariable
 
@@ -155,6 +151,8 @@ patchclonetrain:
 	mov dword [CloneTrainOpenTrainWindow], edi
 
 	patchcode oldbuysecondhead, newbuysecondhead
+
+	or dword [newgraphicssetsenabled], 1 << 7 // We need some gui sprites from the ttdpbase[w].grf
 	ret
 
 .addclonebutton:

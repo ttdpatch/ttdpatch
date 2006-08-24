@@ -49,7 +49,7 @@ varb basegrfname
 #endif
 endvar
 %define BASEGRF_VERCODE 0xBD25
-%define BASEGRF_VERNUM 1
+%define BASEGRF_VERNUM 2
 
 
 uvard dummyspriteblock

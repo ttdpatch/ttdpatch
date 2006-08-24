@@ -19,7 +19,7 @@ extern setmousetool, patchflags, findvehontile, errorpopup, actionhandler
 extern RefreshWindowArea, forceextrahead, isengine, trainplanerefitcost
 extern traindepotwindowhandler.resizewindow, CloneTrainBuild_actionnum
 extern FindWindow, newvehdata, forcenoextrahead, shareorders_actionnum
-extern copyvehordersfn, vehtypedataptr
+extern copyvehordersfn, vehtypedataptr, numguisprites, guispritebase
 
 /*
 
@@ -31,6 +31,9 @@ extern copyvehordersfn, vehtypedataptr
 * Run the action Handler with bl=1, (bl=0, then bl=1)
   > Check Loop
     * Check the consist to be cloned is owned by the player
+    * Check that it a Rail Vehicle (class 0x10)
+    * Check that it is compatible with the rail type
+    * Check that it has an engine head
     * Check that each vehicle type is available
     * Check that the vehicle can be built
     * If a vehicle can be built store it's cost
@@ -163,8 +166,8 @@ CloneDepotVehicleClick:
 	push edi
 	movzx edx, word [curmousetoolwinid]
 	mov cl, 0x12
-	pop edi
 	call [FindWindow]
+	pop edi
 
 	add dword [esp], 0x65 // Jumps to a ret after doing the clone subroutine
 	jmp CloneTrainMain.foundvehicle
@@ -221,14 +224,19 @@ CloneDepotActiveMouseTool:
 	mov ah, 0x12
 	mov al, 1
 
-	mov ebx, -1 // Makes the Cursor animated
+	mov ebx, -1 // Default cursor for the clone depot (animated)
 	mov esi, CloneDepotMouseSpriteTable
 
+	cmp dword [numguisprites], 0x49 // Only appears in newer versions
+	jbe .nonewsprites
+	movzx ebx, word [guispritebase] // Calculate the sprite to use
+	add ebx, 0x49
+
+.nonewsprites:
 	call [setmousetool]
 	pop esi
 
-	call dword [RefreshWindowArea]
-
+	call dword [RefreshWindowArea] // Refresh the screen
 	ret
 
 // Handles the deactivation of the Mouse Tool
@@ -236,6 +244,32 @@ global CloneDepotDeActiveMouseTool
 CloneDepotDeActiveMouseTool:
 	btr dword [esi+window.activebuttons], 7
 	call dword [RefreshWindowArea]
+	ret
+
+// Handles the changing of the cursor *if* the grf sprites were changed
+global CloneTrainChangeGrfSprites
+CloneTrainChangeGrfSprites:
+	cmp byte [curmousetoolwintype], 0x12 // Is the current mouse tool for a clone train
+	jne .notraildepotclonetrain
+
+	movzx edx, word [curmousetoolwinid] // Yes, so get the window which activated it
+
+	push edx // Protect the window id for later
+	push ecx // Push these otherwise TTD will crash
+	push esi
+	mov al, 0 // Reset the mouse tool to default
+	mov ebx, 0
+	call [setmousetool]
+	pop esi
+	pop ecx
+	pop edx
+
+	mov cl, 0x12 // Find the window which set the mouse tool orginally
+	call [FindWindow]
+
+	jmp CloneDepotActiveMouseTool // Reactivate the clone train mouse tool
+
+.notraildepotclonetrain:
 	ret
 
 /*
@@ -334,6 +368,8 @@ exported CloneTrainBuild
 // Atric's are special so you need to move to the next artic piece in the train being created
 .artic:
 	movzx edi, word [edi+veh.nextunitidx]
+	cmp di, byte -1
+	je near .badrefit
 	shl edi, 7
 	add edi, [veharrayptr]
 	jmp .refit
@@ -387,6 +423,10 @@ exported CloneTrainBuild
 	pop eax
 
 .refit:
+	mov dx, [esi+veh.vehtype]
+	cmp word [edi+veh.vehtype], dx
+	jne .badrefit
+
 	mov dl, [esi+veh.cargotype] // Copy all the refit settings to make the vehicle the same refits
 	mov byte [edi+veh.cargotype], dl
 	mov dx, [esi+veh.capacity] // Copy the vehicle capacity as a word
@@ -402,6 +442,7 @@ exported CloneTrainBuild
 	mov word [CloneTrainLastIdx], di
 	pop edi
 
+.badrefit:
 	movzx esi, word [esi+veh.nextunitidx] // Move to the next vehicle in the consist to be copied
 	cmp si, byte -1
 	je .done
