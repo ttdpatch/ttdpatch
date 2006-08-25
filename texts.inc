@@ -227,7 +227,7 @@ def sortmaxspeed, db "Max. Speed",0
 def sortreliability, db "Reliability",0
 def sortcargo, db "Cargo",0
 def sortdestination, db "First destination",0
-def sorthint, db "Select sorting method of vehicles in this list",0
+def sorthint, db 0x98,"Select sorting method of vehicles in this list",0
 
 def performance, db " (Perf. score: ",0x7e,")",0
 
