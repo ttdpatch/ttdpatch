@@ -119,7 +119,7 @@ static void printdefault(FILE *txt, int txtindex, int withname)
 	return;
   }
 
-  if (!defined[txtindex]) {
+  if (!defined[txtindex] && withname) {
 	fprintf(txt, "; ");
   }
   fprintf(txt, withname ? "%s=\"" : "\"", ingametextnames[txtindex]);
