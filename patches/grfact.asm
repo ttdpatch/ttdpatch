@@ -2809,6 +2809,8 @@ setparam:
 	ret
 
 .globalvar:
+	cmp al,0x9f		// var. 9f is special - it must be written before activation
+	je .ok			// happens, so allow it in the reserve phase
 	extern procall_type
 	cmp dword [procall_type],PROCALL_ACTIVATE	// skip writing to global
 	je .ok						// variables unless doing
