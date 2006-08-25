@@ -119,7 +119,10 @@ static void printdefault(FILE *txt, int txtindex, int withname)
 	return;
   }
 
-  fprintf(txt, withname ? "; %s=\"" : "\"", ingametextnames[txtindex]);
+  if (!defined[txtindex]) {
+	fprintf(txt, "; ");
+  }
+  fprintf(txt, withname ? "%s=\"" : "\"", ingametextnames[txtindex]);
 
   prefix = "";
   linelen=strlen(ingametextnames[txtindex])+2;
