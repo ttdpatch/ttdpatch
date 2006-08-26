@@ -312,7 +312,7 @@ othertoolselect:
 	mov al,[airportToolMap+eax]
 	test eax,eax
 	jz .ret
-	call [eax*4+ebx+67h]
+	call [eax*4+edi+67h]
 	jmp short .ret
 
 .maybetrees:
