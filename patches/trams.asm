@@ -2054,3 +2054,22 @@ updateRoadMenuSelection:
 	mov	word [esi+window.data+2], ax
 	pop	eax
 	retn
+
+global checkIfDepotIsTramDepot
+checkIfDepotIsTramDepot:
+	cmp	dword [tramVehPtr], 0FFFFFFFFh
+	je	.normalDepotCheck
+	push	ebx
+	add	ebx, edi
+	cmp	byte [landscape5(bx)], 1
+	pop	ebx
+	je	.normalDepotCheck
+	mov	al, 0
+	retn
+.normalDepotCheck:
+	push	ebx
+	add	ebx, edi
+	mov	al, byte [landscape5(bx)]
+	pop	ebx
+	and	al, 0F0h
+	retn
