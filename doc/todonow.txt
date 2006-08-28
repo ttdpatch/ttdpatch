@@ -700,3 +700,5 @@ CHANGELOG
   * Fix bitswitches with all bits set off being read as if the switch was off.
 - correctly display non-ASCII characters in directory names
 - fix crash with directory names containing characters with no glyphs in Unicode mode
+- by Lakie:
+  * fixed a bug in resizing depot windows when 32px mode was on

@@ -482,7 +482,7 @@ FindWindowData:
 	mov edi, [esi+window.elemlistptr]
 
 	cmp byte [esi+window.type], 0x12
-	je .raildepot
+	je .isdepot
 
 .loop:
 	cmp byte [edi], cWinElemLast
@@ -497,7 +497,15 @@ FindWindowData:
 	clc
 	ret
 
-.raildepot:
+.isdepot:
+	push edx // Used to work out the sub type of depot
+	movzx edx, word [esi+window.id]
+	mov bl, [landscape4(dx, 1)]
+	and bl, 0xF0
+	cmp bl, 0x10
+	pop edx
+	jne .loop // Is not a rail depot so use old code
+
 	bt dword [grfmodflags], 3
 	jnc .loop
 	mov dword [tmpAddress+2], depotwindowconstraints
