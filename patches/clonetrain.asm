@@ -153,7 +153,10 @@ CloneDepotVehicleClick:
 	test al, al
 	jl .notactive // These function fine anyway
 
-	cmp byte [curmousetoolwintype], 0x12 // Is this depot clone train active?
+	cmp byte [curmousetoolwintype], 0x12 // Is this depot clone vehicle active?
+	jne .notactive
+
+	cmp byte [curmousetooltype], 0x10 // Is it for class 0x10 (Rail Vehicles)
 	jne .notactive
 
 	cmp edi, 0
@@ -222,7 +225,7 @@ CloneDepotActiveMouseTool:
 
 	mov dx, [esi+window.id] // Settings for the Mouse Tool
 	mov ah, 0x12
-	mov al, 1
+	mov al, 0x10 // Rail Depot set it (for feature expanding of clone vehicle)
 
 	mov ebx, -1 // Default cursor for the clone depot (animated)
 	mov esi, CloneDepotMouseSpriteTable
@@ -250,6 +253,9 @@ CloneDepotDeActiveMouseTool:
 global CloneTrainChangeGrfSprites
 CloneTrainChangeGrfSprites:
 	cmp byte [curmousetoolwintype], 0x12 // Is the current mouse tool for a clone train
+	jne .notraildepotclonetrain
+
+	cmp byte [curmousetooltype], 0x10 // Is the current mouse tool for a clone train
 	jne .notraildepotclonetrain
 
 	movzx edx, word [curmousetoolwinid] // Yes, so get the window which activated it

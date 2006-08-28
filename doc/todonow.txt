@@ -694,6 +694,7 @@ CHANGELOG
   * new switch "newroutes" which currently only loads Landscape8 Array
   * updated cht:landinfo to give the value of Landscape 8
   * fixed the changes to the airport selection gui not respecting the switch 'keepsmallairports'
+  * added new feature for cloning rail vehicles (clonetrain)
 - by DaleStan
   * add the depots-obey-transparency fix to generalfixes
   * add a miscmods bit to disable the depots-obey-transparency fix
