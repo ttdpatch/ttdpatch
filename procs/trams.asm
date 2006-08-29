@@ -567,7 +567,7 @@ patchtrams:
 	patchcode oldSetRoadXPieceTool,newSetRoadXPieceTool,1,1
 	patchcode oldSetRoadYPieceTool,newSetRoadYPieceTool,1,1
 
-	;patchcode oldRVFindDepot, newRVFindDepot, 1, 1
+	patchcode oldRVFindDepot, newRVFindDepot, 1, 1
 
 	or byte [newgraphicssetsenabled+1],1 << (11 - 8)
 	retn

@@ -2057,11 +2057,20 @@ updateRoadMenuSelection:
 
 global checkIfDepotIsTramDepot
 checkIfDepotIsTramDepot:
+	int3
 	cmp	dword [tramVehPtr], 0FFFFFFFFh
-	je	.normalDepotCheck
+	je	.isRoadVehicle
 	push	ebx
 	add	ebx, edi
-	cmp	byte [landscape5(bx)], 1
+	cmp	byte [landscape3 + ebx * 2], 1
+	pop	ebx
+	je	.normalDepotCheck
+	mov	al, 0
+	retn
+.isRoadVehicle:
+	push	ebx
+	add	ebx, edi
+	cmp	byte [landscape3 + ebx * 2], 0
 	pop	ebx
 	je	.normalDepotCheck
 	mov	al, 0
