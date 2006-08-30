@@ -150,10 +150,27 @@ static int radix[4] = { 0, 8, 10, 16 };
 	{ ch, txt, comment, manpage, -1,  0, 2, CAT_ ## cat, {-1, -1, -1}, 0, var, -1 }
 
 #define RANGE(ch, txt, comment, cat, manpage, sw, radix, varsize, var, low, high, default) \
-	{ ch, txt, comment, manpage, sw, radix, varsize, CAT_ ## cat, {low, high, default}, 0, var, -1 }
+	{ ch, txt, comment, manpage, sw, RADIX_ ## radix, VARSIZE_ ## varsize, CAT_ ## cat, {low, high, default}, 0, var, -1 }
 
 #define BITS(ch, txt, comment, cat, manpage, sw, varsize, var, default) \
-	{ ch, txt, comment, manpage, sw, 0, varsize, CAT_ ## cat, {0, 0x7fffffff, default}, 0, var, BITSWITCH_ ## sw }
+	{ ch, txt, comment, manpage, sw, 0, VARSIZE_ ## varsize, CAT_ ## cat, {0, 0x7fffffff, default}, 0, var, BITSWITCH_ ## sw }
+
+#define VARSIZE_U8	0
+#define VARSIZE_U16	1
+#define VARSIZE_S16	2
+#define VARSIZE_S32	3
+#define VARSIZE_S8	4
+
+#define RADIX_AUTO	0
+#define RADIX_OCT	1
+#define RADIX_DEC	2
+#define RADIX_HEX	3
+#define RADIX_MASK	3
+#define RADIX_INVERT	4
+#define RADIX_AUTO_I	RADIX_AUTO|RADIX_INVERT
+#define RADIX_OCT_I	RADIX_OCT |RADIX_INVERT
+#define RADIX_DEC_I	RADIX_DEC |RADIX_INVERT
+#define RADIX_HEX_I	RADIX_HEX |RADIX_INVERT
 
 
 #define noswitch -2
@@ -192,23 +209,23 @@ static void setswitchvar(int switchid, s32 value)
 {
   void _fptr *ptr = getswitchvarptr(switchid);
 
-  if (switches[switchid].radix & 4)
+  if (switches[switchid].radix & RADIX_INVERT)
 	value = ~value;
 
   switch (switches[switchid].varsize) {
-	case 0:
+	case VARSIZE_U8:
 		*( (u8 _fptr *) ptr) = value;
 		break;
-	case 1:
+	case VARSIZE_U16:
 		*( (u16 _fptr *) ptr) = value;
 		break;
-	case 2:
+	case VARSIZE_S16:
 		*( (s16 _fptr *) ptr) = value;
 		break;
-	case 3:
+	case VARSIZE_S32:
 		*( (s32 _fptr *) ptr) = value;
 		break;
-	case 4:
+	case VARSIZE_S8:
 		*( (s8 _fptr *) ptr) = value;
 		break;
 	default:  // Unknown .varsize
@@ -222,23 +239,23 @@ static s32 getswitchvar(int switchid)
   void _fptr *ptr = getswitchvarptr(switchid);
 
   switch (switches[switchid].varsize) {
-	case 0:
+	case VARSIZE_U8:
 		value = *( (u8 _fptr *) ptr);
 		mask = 0xff;
 		break;
-	case 1:
+	case VARSIZE_U16:
 		value = *( (u16 _fptr *) ptr);
 		mask = 0xffff;
 		break;
-	case 2:
+	case VARSIZE_S16:
 		value = *( (s16 _fptr *) ptr);
 		mask = 0xffff;
 		break;
-	case 3:
+	case VARSIZE_S32:
 		value = *( (s32 _fptr *) ptr);
 		mask = 0xffffffff;
 		break;
-	case 4:
+	case VARSIZE_S8:
 		value = *( (s8 _fptr *) ptr);
 		mask = 0xff;
 		break;
@@ -247,7 +264,7 @@ static s32 getswitchvar(int switchid)
 		return 0; // Can't get here, but it makes gcc happy
   }
 
-  if (switches[switchid].radix & 4)
+  if (switches[switchid].radix & RADIX_INVERT)
 	value = (~value & mask);
 
   return value;
@@ -471,7 +488,7 @@ static int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int s
 
 			} else {
 			parvalue = strtol(cfgpar, &endptr,
-					radix[switches[switchid].radix & 3]);
+					radix[switches[switchid].radix & RADIX_MASK]);
 
 			}
 			if (*endptr == 0) {
@@ -697,11 +714,11 @@ static void writerangedswitch(int switchid, const char **const formatstring, s32
   } else {
 	tempstr[0] = 0;
 	*formatstring = tempstr;
-	switch (switches[switchid].radix & 3) {
-		case 1:
+	switch (switches[switchid].radix & RADIX_MASK) {
+		case RADIX_OCT:
 			strcat(tempstr, "%s %lo");
 			break;
-		case 3:
+		case RADIX_HEX:
 			strcat(tempstr, "%s %lx");
 			break;
 		default:
@@ -1613,7 +1630,7 @@ static void dumpxmlcategoryswitches(FILE *f, categories cat, int depth)
 		isbitswitch = 1;
 		fprintf(f, "<bitswitch name=\"%s\" default=\"%ld\"",
 			switches[i].cfgcmd, switches[i].range[2]);
-	   } else if (switches[i].radix == 3)
+	   } else if (switches[i].radix == RADIX_HEX)
 		fprintf(f, "<range name=\"%s\" min=\"%lx\" max=\"%lx\" default=\"%lx\"",
 			switches[i].cfgcmd,
 			switches[i].range[0], switches[i].range[1], switches[i].range[2]);
