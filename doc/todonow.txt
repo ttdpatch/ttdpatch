@@ -204,8 +204,6 @@
 - allow dividers in GRF stat wnd, use e.g. +<text> in newgrf.cfg, make
   unselectable and in different colour, or better, with ----- <text> -----
 
-- gamespeed setting is written to ttdpatch.cfg as unsigned variable, not signed
-
 - PBS bug?: http://www.tt-forums.net/viewtopic.php?p=338775#338775
 
 - change pers.eng. to bit switch for each vehicle type
@@ -698,6 +696,7 @@ CHANGELOG
 - fix missing cargo type suffix in train info window
 - by DaleStan:
   * Fix bitswitches with all bits set off being read as if the switch was off.
+  * Fix gamespeed switch being written to ttdpatch.cfg as unsigned.
 - correctly display non-ASCII characters in directory names
 - fix crash with directory names containing characters with no glyphs in Unicode mode
 - by Lakie:

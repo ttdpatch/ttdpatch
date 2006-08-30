@@ -209,7 +209,7 @@
 	YESNO('d',"newbridges", CFG_NEWBRIDGES, INFST_BRIDGE, "NewBridges", newbridges),
 	     //e
 	RANGE('f',"freighttrains", CFG_FREIGHTTRAINS, VEH_RAIL, "FreightTrains", freighttrains, 0, 0, FLAGDATA(freightweightfactor), 1, 100, 5),
-	RANGE('g',"gamespeed", CFG_GAMESPEED, INTERFACE, "GameSpeed", gamespeed, 0, 0, FLAGDATA(initgamespeed), -3, 3, 0),
+	RANGE('g',"gamespeed", CFG_GAMESPEED, INTERFACE, "GameSpeed", gamespeed, 0, 4, FLAGDATA(initgamespeed), -3, 3, 0),
 	YESNO('h',"higherbridges", CFG_HIGHERBRIDGES, INFST_BRIDGE, "HigherBridges", higherbridges),
 	     //i
 	     //j
