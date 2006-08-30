@@ -2057,7 +2057,6 @@ updateRoadMenuSelection:
 
 global checkIfDepotIsTramDepot
 checkIfDepotIsTramDepot:
-	int3
 	cmp	dword [tramVehPtr], 0FFFFFFFFh
 	je	.isRoadVehicle
 	push	ebx
