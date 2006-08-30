@@ -211,6 +211,8 @@ static void setswitchvar(int switchid, s32 value)
 	case 4:
 		*( (s8 _fptr *) ptr) = value;
 		break;
+	default:  // Unknown .varsize
+		error(langtext[LANG_INTERNALERROR], 12);
   }
 }
 
@@ -232,7 +234,7 @@ static s32 getswitchvar(int switchid)
 		value = *( (s16 _fptr *) ptr);
 		mask = 0xffff;
 		break;
-	default:				// case 3 really
+	case 3:
 		value = *( (s32 _fptr *) ptr);
 		mask = 0xffffffff;
 		break;
@@ -240,6 +242,9 @@ static s32 getswitchvar(int switchid)
 		value = *( (s8 _fptr *) ptr);
 		mask = 0xff;
 		break;
+	default:  // Unknown .varsize
+		error(langtext[LANG_INTERNALERROR], 13);
+		return 0; // Can't get here, but it makes gcc happy
   }
 
   if (switches[switchid].radix & 4)

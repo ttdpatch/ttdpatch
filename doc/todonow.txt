@@ -704,6 +704,8 @@ CHANGELOG
   * make hotkeys work for ship and aircraft tools, and for road and land
     tools in the scenario editor.
   * (devel) Make ttdprotw.exe compilable (and thus debuggable) with MSVC.
+  * (devel) Make TTDPatch error out when a switch with an unknown variable
+    size is encountered.
 - added autosignals to new signal gui, build two-way signals every 3/4 tiles
   (use `autosignaldistance n' or -ZL to set desired signal separation)
 - by Tron:
