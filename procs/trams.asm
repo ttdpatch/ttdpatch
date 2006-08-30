@@ -437,7 +437,7 @@ begincodefragments
 		icall	checkIfDepotIsTramDepot
 		setfragmentsize 9
 #else
-	codefragment rvFindDepot, -10
+	codefragment oldRVFindDepot, -10
 		add	bx, di
 		movzx	edx, bx
 	codefragment newRVFindDepot
