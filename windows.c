@@ -10,7 +10,12 @@
 
 #include <string.h>
 #include <windows.h>
-#include <unistd.h>
+#ifndef _MSC_VER
+#	include <unistd.h>
+#else
+#	include <io.h>
+#	define R_OK 4
+#endif
 
 #define IS_WINDOWS_CPP
 #include "osfunc.h"
@@ -85,13 +90,14 @@ void checkpatch(void)
   u32 ourcode, codelen;
   FILE *f, *prcode;
 
-  ttd_winexenames[1] = langtext[LANG_WINDEFLANGEXE];
-  u32 newexepos = checkexe(&f, ttd_winexenames, maketwochars('P','E'), "Windows");
+  u32 newexepos;
   u32 section;
   u32 sectionaddr = 0;
   u32 sectionsize;
   u32 sectionalign;
   char sectname[9], *oldcode, *newcode;
+  ttd_winexenames[1] = langtext[LANG_WINDEFLANGEXE];
+  newexepos = checkexe(&f, ttd_winexenames, maketwochars('P','E'), "Windows");
 
   // Ensure that enough memory is available for the large vehicle array
   setseglen(newexepos + 0x50, 0x16, 0x20, 0x80, 0x80);
@@ -224,6 +230,7 @@ static int trynoregistry(void)
   t_RegOpenKey *fake_RegOpenKey;
   typedef char *t_getreginifilename();
   t_getreginifilename *getreginifilename;
+  char *inifile;
 
   HANDLE patchdll = LoadLibrary("ttdpatch.dll");
   if (!patchdll)
@@ -239,7 +246,7 @@ static int trynoregistry(void)
   IMPORT(fake_RegCloseKey, t_RegCloseKey, "fake_RegCloseKey@4");
   IMPORT(fake_RegOpenKey, t_RegOpenKey, "fake_RegOpenKeyA@12");
 
-  char *inifile = (*getreginifilename)();
+  inifile = (*getreginifilename)();
   printf(langtext[LANG_TRYINGNOREGIST], inifile);
 
   if (access(inifile, R_OK)) {
@@ -396,13 +403,14 @@ static void check_patchdll(void)
   u32 ofs, size, oldstamp = 0, newstamp = 1;
   FILE *f;
   char *buf;
+  int ret;
 
   f = fopen(filename, "rb");
   if (f) {
 	oldstamp = getdllstamp(f, 0);	// get time stamp of existing .dll
 	fclose(f);
   }
-  int ret = findattachment(AUX_PATCHDLL, &ofs, &f);
+  ret = findattachment(AUX_PATCHDLL, &ofs, &f);
   if (!ret)
 	error(langtext[LANG_INTERNALERROR], 10);
   if (ret == 2)
@@ -515,7 +523,7 @@ static void chkipcerror(
 int runttd(const char *program, char *options, langinfo **info)
 {
   HANDLE shmem, ipcevent;
-  void *shdata;
+  char *shdata;
   STARTUPINFO siStartInfo = {
 		sizeof(STARTUPINFO), 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0,

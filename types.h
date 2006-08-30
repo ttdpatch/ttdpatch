@@ -75,6 +75,8 @@
 #	else
 #		if __BORLANDC__>0x310
 #			define _fptr
+#		elif defined _MSC_VER
+#			define _fptr
 #		else
 #			define _fptr far
 #		endif

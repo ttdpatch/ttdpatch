@@ -703,6 +703,7 @@ CHANGELOG
   * elrails: Allow grfs turn on catenary above the third rail type.
   * make hotkeys work for ship and aircraft tools, and for road and land
     tools in the scenario editor.
+  * (devel) Make ttdprotw.exe compilable (and thus debuggable) with MSVC.
 - added autosignals to new signal gui, build two-way signals every 3/4 tiles
   (use `autosignaldistance n' or -ZL to set desired signal separation)
 - by Tron:
