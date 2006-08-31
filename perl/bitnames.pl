@@ -1,7 +1,7 @@
 #!/usr/bin/perl -nl
 # Generate names of bit flag bits
 #
-# Input: vars.ah   Output: bitnames.h
+# Input: bitnames.ah   Output: bitnames.h
 #
 use strict;
 use warnings;
@@ -71,6 +71,8 @@ s/.*?_// for $id;
 
 #print STDERR "Is $name/$val";
 #my $bit = $bitid{0+$val} or die "Invalid number `$val' (line $.)";
+
+die "bitnames.ah:$.: .$id wants bit number $bit already taken by .$bits[$bit][0].\n" if $bits[$bit];
 $bits[$bit] = [ lc $id, $desc ];
 
 push @allbits, [ lc $id, $bit, $#bitswitches ];
