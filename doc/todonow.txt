@@ -643,8 +643,6 @@
 
 - Larger tile sizes in the editor.
 
-- cht: money 1,000,000 (i.e. ignore commas and/or decimal points for better legibility)
-
 - add option in menu to jump between editor and playing
 
 - some hydroplanes that land on water and use the boat docks?
@@ -704,6 +702,7 @@ CHANGELOG
   * (devel) Make ttdprotw.exe compilable (and thus debuggable) with MSVC.
   * (devel) Make TTDPatch error out when a switch with an unknown variable
     size is encountered.
+  * Make sign cheats ignore commas and decimal points in numeric arguments.
 - added autosignals to new signal gui, build two-way signals every 3/4 tiles
   (use `autosignaldistance n' or -ZL to set desired signal separation)
 - by Tron:
