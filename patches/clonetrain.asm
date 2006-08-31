@@ -156,7 +156,7 @@ CloneDepotVehicleClick:
 	cmp byte [curmousetoolwintype], 0x12 // Is this depot clone vehicle active?
 	jne .notactive
 
-	cmp byte [curmousetooltype], 0x10 // Is it for class 0x10 (Rail Vehicles)
+	cmp byte [curMouseToolVehType], 0x10 // Is it for class 0x10 (Rail Vehicles)
 	jne .notactive
 
 	cmp edi, 0
@@ -218,6 +218,9 @@ CloneTrainBuySecondHead:
 var CloneDepotMouseSpriteTable
 	dw 0x2CC, 0x1D, 0x2CD, 0x1D, 0x2CE, 0x62, 0xFFFF
 
+// Holds a special value for clone vehicle systems
+uvarb curMouseToolVehType
+
 // Handles the activation of the Mouse Tool
 CloneDepotActiveMouseTool:
 	push esi
@@ -225,7 +228,7 @@ CloneDepotActiveMouseTool:
 
 	mov dx, [esi+window.id] // Settings for the Mouse Tool
 	mov ah, 0x12
-	mov al, 0x10 // Rail Depot set it (for feature expanding of clone vehicle)
+	mov al, 0x1 // This has to be 1 for the tile highlight
 
 	mov ebx, -1 // Default cursor for the clone depot (animated)
 	mov esi, CloneDepotMouseSpriteTable
@@ -237,6 +240,7 @@ CloneDepotActiveMouseTool:
 
 .nonewsprites:
 	call [setmousetool]
+	mov byte [curMouseToolVehType], 0x10 // This is a Rail Depot so only Class 0x10 vehicles can be cloned
 	pop esi
 
 	call dword [RefreshWindowArea] // Refresh the screen
@@ -246,6 +250,7 @@ CloneDepotActiveMouseTool:
 global CloneDepotDeActiveMouseTool
 CloneDepotDeActiveMouseTool:
 	btr dword [esi+window.activebuttons], 7
+	mov byte [curMouseToolVehType], 0 // Reset this to stop any bleeding effects
 	call dword [RefreshWindowArea]
 	ret
 
@@ -255,7 +260,7 @@ CloneTrainChangeGrfSprites:
 	cmp byte [curmousetoolwintype], 0x12 // Is the current mouse tool for a clone train
 	jne .notraildepotclonetrain
 
-	cmp byte [curmousetooltype], 0x10 // Is the current mouse tool for a clone train
+	cmp byte [curMouseToolVehType], 0x10 // Is the current mouse tool for a clone train
 	jne .notraildepotclonetrain
 
 	movzx edx, word [curmousetoolwinid] // Yes, so get the window which activated it
@@ -266,6 +271,7 @@ CloneTrainChangeGrfSprites:
 	mov al, 0 // Reset the mouse tool to default
 	mov ebx, 0
 	call [setmousetool]
+	mov byte [curMouseToolVehType], 0 // Reset this to stop any bleeding effects
 	pop esi
 	pop ecx
 	pop edx
