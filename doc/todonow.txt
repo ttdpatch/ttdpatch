@@ -703,6 +703,7 @@ CHANGELOG
   * (devel) Make TTDPatch error out when a switch with an unknown variable
     size is encountered.
   * Make sign cheats ignore commas and decimal points in numeric arguments.
+  * Check all on/off states, not just those attached to on/off switches.
 - added autosignals to new signal gui, build two-way signals every 3/4 tiles
   (use `autosignaldistance n' or -ZL to set desired signal separation)
 - by Tron:

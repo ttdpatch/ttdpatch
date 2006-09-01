@@ -442,13 +442,13 @@ static int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int s
 
   if (swon < 0) {	// not yet determined
 	swon = 1;	// switch given, implies default "on"
-	if (cfgpar &&
+	if (cfgpar && (cfgsub || ( // parameter present and switch.bit or (in last two lines) on/off switch
 	    (switches[switchid].cmdline != 154) &&	// ignore debug switches
 	    (switches[switchid].cmdline != 155) &&	// ignore CDPath
 	    (switches[switchid].cmdline != 'W') &&	// and -W / writecfg
 	    (switches[switchid].cmdline != maketwochars('X','n')) &&	// and -Xn / newgrfcfg
 	    (switches[switchid].range[0] == -1) &&
-	    (switches[switchid].range[1] == -1) ) {
+	    (switches[switchid].range[1] == -1) ) ) ) {
 		// check if a non-ranged switch has a value
 		parvalue = strtol(cfgpar, &endptr, 0);
 		if (*endptr == 0)
@@ -489,7 +489,10 @@ static int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int s
 			} else {
 			parvalue = strtol(cfgpar, &endptr,
 					radix[switches[switchid].radix & RADIX_MASK]);
-
+				if (*endptr) {
+					warning(langtext[LANG_UNKNOWNSTATE], cfgpar);
+					swon = 0;
+				}
 			}
 			if (*endptr == 0) {
 				int offrange = -1;
@@ -569,6 +572,7 @@ static int processswitch(int switchchar, const char *cfgswline, int swon, int on
 			if (switchonofftext[k]) {
 				if (stricmp(cfgpar, switchonofftext[k]) == 0) {
 					swon = l;
+					cfgpar = NULL; // recognized param; bypass checks in setswitch
 					break;
 				}
 			} else {
