@@ -335,8 +335,6 @@
 
 - George reports lost stations, see emails
 
-- cht:face doesn't work but cht: face does
-
 - cht: resetpbs sometimes misses some signals
   http://www.tt-forums.net/viewtopic.php?p=400886#400886
 
@@ -697,6 +695,9 @@ CHANGELOG
 - by DaleStan:
   * Fix bitswitches with all bits set off being read as if the switch was off.
   * Fix gamespeed switch being written to ttdpatch.cfg as unsigned.
+  * Fix Cht:Face not working with no space between the : and the F.
+  * Fix Cht:Face potentially returning "Cht:Face h".
+  * Fix Cht:Face and Cht:Used overwriting their names with the returned value.
 - correctly display non-ASCII characters in directory names
 - fix crash with directory names containing characters with no glyphs in Unicode mode
 - by Lakie:
