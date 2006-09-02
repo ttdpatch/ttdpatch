@@ -328,11 +328,30 @@ signcheat:
 
 .notalias:
 	xor ebx,ebx
-	add esi,ecx
+	push esi
+	mov esi,[esp+4]
+.loop:
+	lodsb
+	cmp al,"?"
+	je .checkcosts
+	or al,al
+	jnz .loop
 	movzx edx,byte [edi+cheat.bit]
 	bts [landscape3+ttdpatchdata.chtused],edx
+.docheat:
+	pop esi
+	add esi,ecx
 	call dword [edi+cheat.func]
+	jmp short .cheatdone
 
+.checkcosts: // Cost check requested
+	pop esi
+	cmp byte [edi+cheat.costs],0
+	jne .docheat // Cheat has costs, use cheatfunc
+	xor al,al
+	call showcost
+
+.cheatdone:
 	pop esi
 	popad		// restore registers but keep them saved
 	pushad

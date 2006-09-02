@@ -512,9 +512,6 @@
 
 - Makefile: make install dirs an environment parameter in .bat files
 
-- make Cht: XXXX ? always show cost even for cheats that don't cost
-- make Cht: XXXX ? not set the bit in Cht: Used
-
 - DOS version: save interrupt vectors before calling TTD, restore afterwards,
   so that the DOS version doesn't lock up/crash/catch fire when TTD crashes
 
@@ -695,9 +692,11 @@ CHANGELOG
 - by DaleStan:
   * Fix bitswitches with all bits set off being read as if the switch was off.
   * Fix gamespeed switch being written to ttdpatch.cfg as unsigned.
-  * Fix Cht:Face not working with no space between the : and the F.
+  * Make Cht:Face work without a space between the : and the F.
   * Fix Cht:Face potentially returning "Cht:Face h".
   * Fix Cht:Face and Cht:Used overwriting their names with the returned value.
+  * Make Cht: XXXX ? always show cost even for cheats that don't cost.
+  * Make Cht: XXXX ? not set the bit in Cht: Used.
 - correctly display non-ASCII characters in directory names
 - fix crash with directory names containing characters with no glyphs in Unicode mode
 - by Lakie:
