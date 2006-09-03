@@ -701,3 +701,4 @@ CHANGELOG
 - fix crash with directory names containing characters with no glyphs in Unicode mode
 - by Lakie:
   * fixed a bug in resizing depot windows when 32px mode was on
+- fixed bogus sprite error when calling a procedure beyond sprite 255

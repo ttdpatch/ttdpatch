@@ -735,6 +735,7 @@ newcargoid:
 	mov dh,INVSP_INVCID
 	jz .invalid
 	mov [ecx],ax
+	xor eax,eax
 
 .noparam:
 	lodsb
