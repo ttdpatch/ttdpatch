@@ -221,7 +221,6 @@ TEXTARRAY(halflines,) =
 	  "-XB: p¡tkez‚s sznet alatt",
 	  "-XE: Villamos¡tott vas£tvonalak",
 	  "-XF: K¡s‚rleti funkci¢k be",
-	  "-XG: éj grafik k bet”lt‚se mindig",
 	  "-XH: R‚gebbi h¡rek ment‚se ‚s mutat sa",
 	  "-XI: étvonal-alap£ jelz‹k haszn lata",
 	  "-XL: Profit mutat sa a j rmûlist ban",

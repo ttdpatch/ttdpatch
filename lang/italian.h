@@ -232,7 +232,6 @@ TEXTARRAY(halflines,) =
  	  "-XB: Costruisci a gioco fermo",
 	  "-XE: Ferrovie elettrificate",
 	  "-XF: Abilita funzionalit… sperimentali",
-	  "-XG: Carica tutti i nuovi elem grafici",
  	  "-XH: Salva lo storico delle notizie",
 	  "-XI: Attiva i segnali PBS",
  	  "-XL: Profitto nella lista dei veicoli",
