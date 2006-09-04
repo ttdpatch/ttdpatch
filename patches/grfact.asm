@@ -742,7 +742,6 @@ newcargoid:
 	test eax,eax
 	mov dh,INVSP_INVCID
 	jz .invalid
-	xor eax,eax
 
 	mov edx,[ecx]
 	test edx,edx
@@ -759,6 +758,7 @@ newcargoid:
 
 .havebuffer:
 	mov [esi+edx-2],ax
+	xor eax,eax
 
 .noparam:
 	lodsb
