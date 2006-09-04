@@ -186,7 +186,6 @@ TEXTARRAY(halflines,) =
 	  "-D:  Dynamite can destroy more items",
 	  "-E:  Move red error popups",
 	  "-F:  Full load means any cargo type",
-	  "-G:  Selectable station goods",
 	  "-H:  Custom bridge heads",
 	  "-I:  Turn off inflation",
 	  "-J:  Allow more airports per city",
@@ -222,7 +221,6 @@ TEXTARRAY(halflines,) =
 	  "-XE: Electrified railways",
 	  "-XF: Enable experimental features",
 	  "-XH: Save+display news history",
-	  "-XI: Enable path based signalling",
 	  "-XL: Show profit in vehicle list",
 	  "-XO: Enabled shared/copied orders",
 	  "-XP: New aircraft models",
@@ -234,7 +232,6 @@ TEXTARRAY(halflines,) =
 	  "-Yb: Building more things on slopes",
 	  "-Yc: Track types have different cost",
 	  "-Yd: New bridges",
-	  "-Yg: Changeable gamespeed",
 	  "-Yh: Allow higher bridges",
 	  "-Ym: Allow manual track conversion",
 	  "-Yn: Enable new station graphics",
@@ -248,7 +245,6 @@ TEXTARRAY(halflines,) =
 	  "-YH: More/new hotkeys",
 	  "-YL: Speed limits for train wagons",
 	  "-YN: Enable new town name schemes",
-	  "-YP: Planes fly at the indicated speed",
 	  "-YS: Semaphore signals before 1975",
 
 	  "-Zc: Enable new cargo types",
@@ -262,7 +258,7 @@ TEXTARRAY(halflines,) =
 
 	  "-ZA: Enable new airports",
 	  "-ZC: Enable AI transport type chances",
-	  "-ZD: Ebnalbes the cloning of trains",
+	  "-ZD: Enables the cloning of trains",
 	  "-ZI: Enable irregular stations",
 	  "-ZM: Collect more company statistics",
 	  "-ZN: Enables newRoutes",
@@ -284,6 +280,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-mc #:   New mountain or curve handling, respectively\n"
 	  "-trpb #: Increase number of trains, road vehicles, planes or ships, resp.\n"
 	  "-A #:    Enable autoreplace for vehicles with given minimum reliability\n"
+	  "-G #:    Selectable station goods. # is days before cargo disappears again.\n"
 	  "-M #:    Allow multi-headed trains, set speed increase in percent.\n"
 	  "-U #:    Enable the new locomotion-like gui. 1 for new gui without ctrl.\n"
 	  "-Xa #:   Automatically renew vehicles # months after end of their life span\n"
@@ -294,6 +291,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-Xz #:   Snap windows together\n"
 	  "-XC #:   Allow more currencies,  and set currency display options\n"
 	  "-XD #:   Choose which disasters may occur\n"
+	  "-XI #:   Enable path based signalling\n"
 	  "-XN #:   TTD newspaper in color after the given year\n"
 	  "-XM #:   Combine monorail and maglev track systems\n"
 	  "-XT #:   Set one out of how many towns grows faster and larger\n"
@@ -302,6 +300,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-XW #:   Stretch TTD's window to this size in pixels (Windows version only)\n"
 	  "-X1 #, -X2 #: Max. time train waits at red one-way resp. two-way signal in days\n"
 	  "-Yf #:   Make freight trains more massive by the given factor\n"
+	  "-Yg #:   Changeable gamespeed. # is speed at game start\n"
 	  "-Yl #:   Enable mouse wheel support and set options (Windows version only)\n"
 	  "-Yo #:   Control some features of other switches (see the documentation)\n"
 	  "-Yp #:   Allow planting many trees, choose plant mode\n"
@@ -311,6 +310,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-YM #:   Show more (or fewer) steam plumes, value sets amount\n"
 	  "-YG #:   Enhance the user interface, choose option with parameter\n"
 	  "-YO #:   Enable the snow line in the temperate climate and set its height\n"
+	  "-YP #:   Planes fly at #/4 times their indicated speed.\n"
 	  "-YR #:   Override map refresh frequency to # ticks\n"
 	  "-YT #:   Set town growth rate algorithm\n"
 	  "-YW #:   Set maximum allowed window count\n"
