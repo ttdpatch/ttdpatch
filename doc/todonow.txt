@@ -512,9 +512,6 @@
 - DOS version: save interrupt vectors before calling TTD, restore afterwards,
   so that the DOS version doesn't lock up/crash/catch fire when TTD crashes
 
-- translation compiler, auto-add new switches to the help display for lang's
-  where they're not defined yet
-
 - signals in tunnels & on bridge.
   could work like this: when last waggon leaves bridge ramp/tunnel entrance,
   set signal green.  Whenever entering a new fake square, fudge the signal
@@ -703,6 +700,8 @@ CHANGELOG
     size is encountered.
   * Make sign cheats ignore commas and decimal points in numeric arguments.
   * Check all on/off states, not just those attached to on/off switches.
+  * Make new switches get automatically added to the -h display when the
+    description is not yet translated.
 - added autosignals to new signal gui, build two-way signals every 3/4 tiles
   (use `autosignaldistance n' or -ZL to set desired signal separation)
 - by Tron:

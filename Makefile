@@ -193,7 +193,7 @@ cleantemp:
 	rm -f *.{o,obj,OBJ}
 	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po
 	rm -f ${OTMP}*.*lst ${OTMP}patches/*.*lst ${OTMP}procs/*.*lst
-	rm -f lang/*.{o,map,exe} lang/language.*
+	rm -f lang/*.{o,map,exe} lang/language.* lang/*.tmp
 	rm -f host/*.o host/lang/* host/mkpttxt host/makelang
 	rm -f *.*.lst.gz *.*lst *.LST patches/*.*lst
 	rm -f ttdload.ovl
@@ -481,13 +481,17 @@ host/makelang${HOSTEXE}:	LDLIBS = -lz
 makelang${EXEW}:		${makelangobjs} $(langobjs)
 host/makelang${HOSTEXE}:	${makelangobjs:%.o=host/%.o} $(hostlangobjs)
 
-lang/%.o:	lang/%.h
-	${_E} [CC] $@
+lang/%.o:	lang/%.h lang/english.h
+	${_E} [PERL/CC] $@
+	${_C}perl perl/langmerge.pl lang/english.h $< > lang/$*.tmp 2> lang/$*.err || (tail -5 lang/$*.err; false)
 	${_C}$(CC) -c -o $@ $(CFLAGS) -DLANGUAGE=$* proclang.c
+	@rm -f lang/$*.tmp
 
-host/lang/%.o:	lang/%.h
-	${_E} [HOSTCC] $@
+host/lang/%.o:	lang/%.h lang/english.h
+	${_E} [PERL/HOSTCC] $@
+	${_C}perl perl/langmerge.pl lang/english.h $< > lang/$*.tmp 2> lang/$*.err || (tail -5 lang/$*.err; false)
 	${_C}$(HOSTCC) -c -o $@ $(HOSTCFLAGS) -DLANGUAGE=$* proclang.c
+	@rm -f lang/$*.tmp
 
 # test versions of makelang with a single language: make lang/<language> and run
 # the executable to make a single-language language.dat file
