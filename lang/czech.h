@@ -222,7 +222,6 @@ TEXTARRAY(halflines,) =
 	  "-XB: Stavba pýi zapauzovan‚ hýe",
 	  "-XE: Electrifikovan‚ tratØ",
 	  "-XF: Nastavit experimentaln¡ volby",
-	  "-XG: V§dy nahraje novou grafiku",
 	  "-XH: Ulo§it a zobrazit historii zpr v",
 	  "-XI: Umo§nit path based signall.(PBS)",
 	  "-XL: Zobrazit zisk v pýehledu vozidel",

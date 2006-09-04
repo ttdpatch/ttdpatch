@@ -69,6 +69,13 @@ cht_%2:
 	%assign cheataliascount cheataliascount+1
 %endmacro
 
+%macro getwriteloc 1 //param: cheatnamelen
+	mov esi,[esp+4]
+	call skipspaces
+	add ebx,%1
+	mov edi,esi
+%endmacro
+
 	// Do not uncomment any of them, or the marking will be incorrect
 	// Renaming is ok, and lowercase chars will never be matched
 	// Each cheat should return with a "ret", and set the carry flag
@@ -321,11 +328,30 @@ signcheat:
 
 .notalias:
 	xor ebx,ebx
-	add esi,ecx
+	push esi
+	mov esi,[esp+4]
+.loop:
+	lodsb
+	cmp al,"?"
+	je .checkcosts
+	or al,al
+	jnz .loop
 	movzx edx,byte [edi+cheat.bit]
 	bts [landscape3+ttdpatchdata.chtused],edx
+.docheat:
+	pop esi
+	add esi,ecx
 	call dword [edi+cheat.func]
+	jmp short .cheatdone
 
+.checkcosts: // Cost check requested
+	pop esi
+	cmp byte [edi+cheat.costs],0
+	jne .docheat // Cheat has costs, use cheatfunc
+	xor al,al
+	call showcost
+
+.cheatdone:
 	pop esi
 	popad		// restore registers but keep them saved
 	pushad
@@ -713,16 +739,18 @@ var hexdigits, db "0123456789ABCDEF"
 
 // show what cheats have been used
 usedcheat:
-	call skipspaces
+	getwriteloc 4
 	mov edx,[landscape3+ttdpatchdata.chtused+4]
-	mov edi,[esp+4]
 	call .showhex
 	mov edx,[landscape3+ttdpatchdata.chtused]
+	cmp dword [edi+ebx-2], " 0h"
+	jne .skipwhite
+	dec ebx
+	jmp short .skipwhite
 .showhex:
-	mov byte [edi+ebx]," "
-	inc ebx
-	mov word [edi+ebx],"  "
-	add ebx,byte 2
+	mov dword [edi+ebx],"   "
+	add ebx,byte 3
+.skipwhite:
 	mov ecx,8
 .nextdigit:
 	rol edx,4
@@ -734,9 +762,14 @@ usedcheat:
 .notzero:
 	mov al,byte [hexdigits+eax]
 	mov [edi+ebx],al
-.skipzero:
 	inc ebx
+.skipzero:
 	loop .nextdigit
+	cmp byte [edi+ebx-1]," "
+	jne .no0
+	mov byte [edi+ebx],"0"
+	inc ebx
+.no0:
 	mov word [edi+ebx],"h"
 	clc
 	ret
@@ -2606,11 +2639,10 @@ facecheat:
 	mov [eax+player.face],edx
 	call redrawscreen
 
+	xor ebx,ebx
 .show:
+	getwriteloc 4
 	mov edx,[eax+player.face]
-	mov ebx,5
-	call skipspaces
-	mov edi,[esp+4]
 	jmp usedcheat.showhex
 
 	extern initializecargofn

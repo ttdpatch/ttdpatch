@@ -742,6 +742,7 @@ newcargoid:
 	test eax,eax
 	mov dh,INVSP_INVCID
 	jz .invalid
+	xor eax,eax
 
 	mov edx,[ecx]
 	test edx,edx

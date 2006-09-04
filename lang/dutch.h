@@ -227,7 +227,6 @@ TEXTARRAY(halflines,) =
 	  "-XB: Bouwen tijdens pauze mogelijk",
 	  "-XE: Electrische treinen",
 	  "-XF: Experimentele opties aan",
-	  "-XG: Alle nieuwe plaatjes laden",
 	  "-XH: Oud nieuws opslaan en weergeven",
 	  "-XI: Seinen met routering",
 	  "-XL: Winst in voertuiglijst weergeven",

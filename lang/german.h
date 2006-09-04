@@ -228,7 +228,6 @@ TEXTARRAY(halflines,) =
 	  "-XB: Bauen mîglich im Pausenmodus",
 	  "-XE: Eisenbahn mit Oberleitung",
 	  "-XF: Experimentelle Features",
-	  "-XG: Alle neuen Grafiken einbinden",
 	  "-XH: Nachrichtenlog fÅhren",
 	  "-XI: Wegbasierte Signale aktivieren",
 	  "-XL: Gewinn in Fahrzeugliste anzeigen",

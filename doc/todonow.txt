@@ -331,8 +331,6 @@
 
 - George reports lost stations, see emails
 
-- cht:face doesn't work but cht: face does
-
 - cht: resetpbs sometimes misses some signals
   http://www.tt-forums.net/viewtopic.php?p=400886#400886
 
@@ -416,6 +414,10 @@
   need states: in flight, in holding pattern, early approach, late approach,
   braking, taxiing: after landing, before takeoff, other, in hangar, on pad,
   accelerating for take off, ascent
+
+- resolution 640x480 causes giantscreenshot patch to fail, see
+  http://www.tt-forums.net/viewtopic.php?p=487192#487192
+  should move that patch before resolution patches?
 
 ==== Rather urgent =====
 
@@ -506,9 +508,6 @@
   operation
 
 - Makefile: make install dirs an environment parameter in .bat files
-
-- make Cht: XXXX ? always show cost even for cheats that don't cost
-- make Cht: XXXX ? not set the bit in Cht: Used
 
 - DOS version: save interrupt vectors before calling TTD, restore afterwards,
   so that the DOS version doesn't lock up/crash/catch fire when TTD crashes
@@ -732,7 +731,13 @@ CHANGELOG
 - by DaleStan:
   * Fix bitswitches with all bits set off being read as if the switch was off.
   * Fix gamespeed switch being written to ttdpatch.cfg as unsigned.
+  * Make Cht:Face work without a space between the : and the F.
+  * Fix Cht:Face potentially returning "Cht:Face h".
+  * Fix Cht:Face and Cht:Used overwriting their names with the returned value.
+  * Make Cht: XXXX ? always show cost even for cheats that don't cost.
+  * Make Cht: XXXX ? not set the bit in Cht: Used.
 - correctly display non-ASCII characters in directory names
 - fix crash with directory names containing characters with no glyphs in Unicode mode
 - by Lakie:
   * fixed a bug in resizing depot windows when 32px mode was on
+- fixed bogus sprite error when calling a procedure beyond sprite 255
