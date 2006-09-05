@@ -9,38 +9,35 @@
 use strict;
 use warnings;
 
-# sort -l, -L, -2, -Xl, -XL, -Yl, -YL, ...
-# strategy: convert to -L, -l, -A2, -XL, -Xl, -YL, -Yl, ... then check length first.
+# sort -h, -H, -2, -Xh, -XH, -X2 -Yh, -YH, ...
+# strategy: convert to -AH, -Ah, -B2, -XAH, -XAh, -XB2 -YAH, -YAh ...
 
 sub convert ($) {
-	my $sw = $_[0];
-	if ((length($sw) > 2) && ($sw !~ /-[XYZ]/)){
-		$sw = substr $sw, 0, 2;
+	my $extsw = "[XYZ]";	# Characters introducing extended switches
+	local $_ = $_[0];
+	$_ = substr $_, 0, 2 if length > 2 and !/-$extsw/o;
+
+	if (/-[a-z]/ or /-$extsw[a-z]/o) {
+		$_ = uc;
+	} elsif ( !/-$extsw?\d/o ) {
+		/(-$extsw)([A-Z])/o or /(-)([A-Z])/ or die "Failed to parse switch $_[0]\n";
+		$_ = $1 . lc $2;
 	}
-	$sw =~ s/-(\d)/-a$1/;
-	if ($sw =~ /-[a-z]/ or $sw =~ /-[XYZ][a-z]/) {
-		$sw = uc $sw;
-	} else {
-		$sw =~ /(-[XYZ])([A-Z])/ or $sw =~ /(-)([A-Z])/ or die "Failed to parse switch $_[0]\n";
-		$sw = $1 . lc $2;
-	}
-	return $sw;
+
+	s/-($extsw?)(\d)$/-$1B$2/o;
+	s/-($extsw?)([a-zA-Z])$/-$1A$2/o;
+
+	return $_;
 }
 
-my ($c, $d);
-
-sub swsort ($$){
-	($c, $d) = (convert($_[0]), convert($_[1]));
-	return length $c <=> length $d if length $c <=> length $d;
-	return $c cmp $d;
-}
-
+sub swsort { return convert($a) cmp convert($b); }
 
 my %halflines;
 my %fulllines;
 my %cfglines;
 my $sw;
 my $cfgline = 0;
+my $linemod;
 
 while(<>){
 	next until /SETNAME/;
@@ -51,6 +48,7 @@ while(<>) {
 	next if /^\s*\/\//;
 	if(/SETNAME/){
 		print $_;
+		$linemod = $. - 8;
 		last;
 	}elsif (/TEXTARRAY\(halflines/ .. /NULL/) {
 		next if /ARRAY/ or /NULL/;
@@ -97,6 +95,13 @@ my $cfgfile;
 
 while(<>) {
 	next if /^\s*\/\//;
+	if (m#/\*\*\*/#) {
+		s#/\*\*\*/##;
+		while (s/\t/ /g) {}
+		s/\n//;
+		while (s/\s{2,}/ /g) {}
+		printf STDERR "Line %d tagged as untranslated: %s\n", $.-$linemod, substr $_, 0, 32;
+	}
 	if (/TEXTARRAY\(halflines/ .. /NULL/) {
 		die "Multiple halfline blocks!\n" if $readhalf == 2;
 		$readhalf = 1;
@@ -169,8 +174,7 @@ while(<>) {
 			print $cfglines{$_}[0];
 			print STDERR "LANG_FULLSWITCHES missing description of option $_\n" unless $cfglines{$_}[1];
 		}
-		print '	  "\n"'."\n\n";
-		print $_;
+		print '	  "\n"'."\n\n$_";
 	} else {
 		$sw = "";
 		next if /NULL/ or /^\s*};/ or /SETARRAY\(halflines/;

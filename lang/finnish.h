@@ -468,22 +468,22 @@ SWITCHTEXT(followvehicle, "Seuraa ajoneuvoa p„„kartassa", "")
 SWITCHTEXT(trams, "Aktivoi raitiovaunut", "")
 SWITCHTEXT(enhancetunnels, "Salli rautateiden rakentaminen tunnelin p„iden p„„ll„", "")
 SWITCHTEXT(forcegameoptions, "Sallii sinun pakottaa peli asetuksia","")
-/***/
-/***///---------------------------------------
-/***///  BIT SWITCH DESCRIPTIONS
-/***///---------------------------------------
-/***/
-/***/// Description for noplanecrashes bits
-/***/BITSWITCH(noplanecrashes)
+
+//---------------------------------------
+//  BIT SWITCH DESCRIPTIONS
+//---------------------------------------
+
+// Description for noplanecrashes bits
+BITSWITCH(noplanecrashes)
 BIT(normdis,      "normaalit lentokone onnettomuudet jos tapaturmat pois p„„lt„")
 BIT(jetsdis,      "pienien lentokoneiden onnettomuudet pienill„ lentokentill„ jos tapaturmat pois p„„lt„")
 BIT(normbrdown,   "normaalit lentokoneiden onnettomuudet vain hajonneille koneille, kerroin * 4")
 BIT(jetssamerate, "sama onnettomuus kerroin jeteille pienill„ lentokentill„ ja normaalit onnettomuudet")
 BIT(normoff,      "normaalit lentokone onnettomuudet pois p„„lt„")
 BIT(jetsoff,      "jettien onnettomuudet pienlentokentill„ pois p„„lt„")
-/***/
-/***/// Description for miscmods bits
-/***/BITSWITCH(miscmods)
+
+// Description for miscmods bits
+BITSWITCH(miscmods)
 BIT(nobuildonbanks,        "kaupungit eiv„t rakenna rannoille/joenrannoille")
 BIT(servintonlyhuman,      "servint asetus ei vaikuta tietokone pelaajia")
 BIT(noroadtakeover,        "kaupungit eiv„t ota haltuun kaikkia teit„ kartta editorissa")
@@ -514,9 +514,9 @@ BIT(loaduntilgreen,        "lastaa asemalla kunnes poistumis opastin on vihre„")
 BIT(dontshowaltitude,      "Žl„ n„yt„ korkeutta ruudun info ikkunassa")
 BIT(nogrfidsinscreenshots, "Žl„ n„yt„ aktiivisia grfidta kuvissa")
 BIT(dontchangesnow,        "Žl„ muuta kuinka korkeus lasketaan lumisuudelle")
-/***/
-/***/// Description for morebuildoptions bits
-/***/BITSWITCH(morebuildoptions)
+
+// Description for morebuildoptions bits
+BITSWITCH(morebuildoptions)
 BIT(ctunnel,         "salli riste„v„t tunnelit")
 BIT(oilrefinery,     "salli ”ljyn jalostamot kaikkialla")
 BIT(moreindustries,  "salli enemm„n kuin yhden samaa teollisuus tyyppi„ l„hekk„in")
@@ -525,15 +525,15 @@ BIT(removeindustry,  "salli teollisuuden poistaminen")
 BIT(closeindustries, "salli samanlaiset teollisuus tyypit l„hekk„in")
 BIT(enhancedbuoys,   "salli poijut jotka toimivat kun normaalit asemat")
 BIT(bulldozesignals, "automaattisesti puskutraktoroi opastimet radalla")
-/***/
-/***/// Description for experimentalfeatures bits
-/***/BITSWITCH(experimentalfeatures)
+
+// Description for experimentalfeatures bits
+BITSWITCH(experimentalfeatures)
 BIT(slowcrossing, "junat hidastavat ennen tasoristeyst„")
 BIT(cooperative,  "yhteispeli, todella rajallinen")
 BIT(mandatorygrm, "tee GRF Resurssien hallitseminen pakkoliseksi .grf tiedostoja varte")
-/***/
-/***/// Description for maskdisasters bits
-/***/BITSWITCH(maskdisasters)
+
+// Description for maskdisasters bits
+BITSWITCH(maskdisasters)
 BIT(zeppelincrash,      "Salli zeppelinin putoaminen")
 BIT(smallufo,           "Salli pieni UFO")
 BIT(refineryexplosion,  "Salli jalostamon r„j„ht„minen")
@@ -542,32 +542,32 @@ BIT(largeufo,           "Salli suuri UFO")
 BIT(smallsubmarine,     "Salli pieni sukellusvene")
 BIT(largesubmarine,     "Salli suuri sukellusvene")
 BIT(coalminesubsidence, "Salli hiilikaivoksen sortuminen")
-/***/
-/***/// Description for mousewheel bits
-/***/BITSWITCH(mousewheel)
+
+// Description for mousewheel bits
+BITSWITCH(mousewheel)
 BIT(cursorzoom, "Zoomaa kursorin paikalla ruudun keskustan sijaan")
 BIT(safezoom,   "Zoomaa ainoastaan kahden vierityksen j„lkeen")
 BIT(legacy,     "K„yt„ tukea vanhemmille (legacy) k„ytt”j„rjestelmille ja ajureille (ei normaalisti tarvita)")
-/***/
-/***/// Description for plantmanytrees bits
-/***/BITSWITCH(plantmanytrees)
+
+// Description for plantmanytrees bits
+BITSWITCH(plantmanytrees)
 BIT(morethanonepersquare,   "Salli istuttaa enemm„n kuin yksi puu joka ruudulle")
 BIT(rectangular,            "Salli istutus suorakulmaiselle alueelle 'Ctrl' avulla")
 BIT(morethanonerectangular, "Enemm„n kuin yksi puu joka ruudule suorakulmaisella istutus tyypill„")
-/***/
-/***/// Description for moretoylandfeatures bits
-/***/BITSWITCH(moretoylandfeatures)
+
+// Description for moretoylandfeatures bits
+BITSWITCH(moretoylandfeatures)
 BIT(lighthouses, "Salli majakat merenrannoilla Lelumaailmassa")
 BIT(woodlands,   "Salli mets„maa (joukko puita) Lelumaailmassa")
-/***/
-/***/// Description for locomotiongui bits
-/***/BITSWITCH(locomotiongui)
+
+// Description for locomotiongui bits
+BITSWITCH(locomotiongui)
 BIT(usenewgui,      "Salli uusi k„ytt”liittym„")
 BIT(defaultnewgui,  "K„yt„ uutta k„ytt”liittym„„ oletuksena (jos t„m„ on pois p„„lt„ p„„see uuteen k„ytt”liittym„„n ctrl napin avulla, jos p„„ll„ ctrl napin avulla vanhaa k„ytt”liittym„„ k„ytet„„n.)")
 BIT(defaultstation, "Pist„ aseman rakennus nappula avaamaan locomotion tyylisen k„ytt”liittym„n.")
-/***/
-/***/// Description for pathbasedsignalling bits
-/***/BITSWITCH(pathbasedsignalling)
+
+// Description for pathbasedsignalling bits
+BITSWITCH(pathbasedsignalling)
 BIT(autoconvertpresig,    "Muuta esi, poistumis ja combo opastimet suunta pohjaisiksi opastimiksi")
 BIT(manualpbssig,         "Salli manuaalinen suunta pohjaisen opastimen asettaminen")
 BIT(preservemanualpresig, "Žl„ muuta risteyksi„ miss„ on manuaalisesti asetetut opastimet suunta pohjaisiksi opastimiksi")
@@ -575,21 +575,21 @@ BIT(showreservedpath,     "N„yt„ varatut rataosat tummemmalla")
 BIT(shownonjunctionpath,  "N„yt„ varatut rataosat jopa normaalilla rataosuudella(ei risteyksi„)")
 BIT(allowunsafejunction,  "Žl„ pid„ttele junia ep„turvallisill„ suunta pohjaisilla opastimella")
 BIT(allowunsafereverse,   "Žl„ pys„yt„ junia jotka eiv„t voi k„„nty„ turvallisesti")
-/***/
-/***/// Description for newsounds bits
-/***/BITSWITCH(newsounds)
+
+// Description for newsounds bits
+BITSWITCH(newsounds)
 BIT(highfrequency, "(DOS ainoastaan) Mixaa „„net 22KHz taajudella tavallisen 11KHz taajuuden sijaan. Mahdollistaa oikean soittamisen 22KHz „„nitteille.")
-/***/
-/***/// Description for morecurrencies bits
-/***/BITSWITCH(morecurrencies)
+
+// Description for morecurrencies bits
+BITSWITCH(morecurrencies)
 BIT(symbefore, "Valuutta symboli aina n„ytet„„n ennen numeroa")
 BIT(symafter,  "Valuutta symboli aina n„ytet„„n numeron j„lkeen")
 BIT(noeuro,    "Žl„ tutustuta euroa")
 BIT(comma,     "Aina k„yt„ pilkkua erottamaan tuhannet")
 BIT(period,    "Aina k„yt„ pistett„ erottamaan tuhannet")
-/***/
-/***/// Description for forcegameoptions bits
-/***/BITSWITCH(forcegameoptions)
+
+// Description for forcegameoptions bits
+BITSWITCH(forcegameoptions)
 BIT(trafficleft,	"Pakota tien ajosuunta olemaan vasen")
 BIT(trafficright,	"Pakota tien ajosuunta olemaan oikea")
 BIT(imperial,		"Pakota imperiaalisten (mailien) pituus yksik”iden k„ytt”")
@@ -604,7 +604,7 @@ BIT(autosavedisabled,	"Aseta autotallenus pois p„„lt„")
 BIT(autosave3months,	"Aseta autotallenus kolmeksi kuukaudeksi")
 BIT(autosave6months,	"Aseta autotallenus kuudeksi kuukaudeksi")
 BIT(autosave12months,	"Aseta autotallenus kahdeksitoista kuukaudeksi")
-/***/
+
 
 // A cfg file (%s) could not be found and is ignored.
 SETTEXT(LANG_CFGFILENOTFOUND, "Konfiguraatiotiedostoa '%s' ei l”ydy. Jatketaan ilman.\n")
@@ -854,11 +854,11 @@ SETTEXT(LANG_SWTWOWAY, "Kaksisuunta: ")
 // Train wait time is either in days or infinite
 SETTEXT(LANG_TIMEDAYS, "%d p„iv„(„)")
 SETTEXT(LANG_INFINITETIME, "loputon")
-/***/
-/***/// Shows the keys to scroll the verbose switch table
+
+// Shows the keys to scroll the verbose switch table
 SETTEXT(LANG_SCROLLKEYS, " N„pp„imet: Up Down PgUp PgDown Home End ")
-/***/
-/***/// ... and to abort TTDPatch
+
+// ... and to abort TTDPatch
 SETTEXT(LANG_SCROLLABORTKEY, " Escape = lopeta ")
 
 // Shows the load options for ttdload.  %s is the given parameters to be passed to ttdload
