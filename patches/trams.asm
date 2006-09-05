@@ -2059,6 +2059,12 @@ global checkIfDepotIsTramDepot
 checkIfDepotIsTramDepot:
 	cmp	dword [tramVehPtr], 0FFFFFFFFh
 	je	.isRoadVehicle
+	push	esi
+	mov	esi, [tramVehPtr]
+	movzx	esi, byte [esi+veh.vehtype]
+	test	byte [vehmiscflags+esi], VEHMISCFLAG_RVISTRAM
+	pop	esi
+	jz	.isRoadVehicle
 	push	ebx
 	add	ebx, edi
 	cmp	byte [landscape3 + ebx * 2], 1
