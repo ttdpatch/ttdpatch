@@ -326,7 +326,7 @@ exported drawstringunicode
 	jmp .nextchar
 
 .badtable:
-	mov ebx,[fonttableofs]
+	mov ebx,[fonttables]
 	mov al,'?'
 	jmp .getfontinfo
 
