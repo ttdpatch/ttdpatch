@@ -249,3 +249,104 @@ stxt airportsel_typebutton, 0x98,0x80,0
 stxt airportsel_smallairport, 0x9A,0x02,0x81,0x59,0x30,0
 stxt airportsel_largeairport, 0x9A,0x02,0x81,0x5a,0x30,0
 stxt airportsel_heliport, 0x9A,0x02,0x81,0x6b,0x30,0
+
+stxt trdlg_lt,"<",0
+stxt trdlg_gt,">",0
+stxt trdlg_lte,"<=",0
+stxt trdlg_gte,">=",0
+stxt trdlg_eq,"==",0
+stxt trdlg_neq,"!=",0
+
+stxt trdlg_lt_b,0x98,"<",0
+stxt trdlg_gt_b,0x98,">",0
+stxt trdlg_lte_b,0x98,"<=",0
+stxt trdlg_gte_b,0x98,">=",0
+stxt trdlg_eq_b,0x98,"==",0
+stxt trdlg_neq_b,0x98,"!=",0
+
+stxt tr_trainlen,0x98,0x81
+stxt_cont dw ourtext(tr_trainlen)
+stxt_cont db 0
+stxt tr_maxspeed,0x98,0x81
+stxt_cont dw ourtext(tr_maxspeed)
+stxt_cont db 0
+stxt tr_curorder,0x98,0x81
+stxt_cont dw ourtext(tr_curorder)
+stxt_cont db 0
+stxt tr_curdeporder,0x98,0x81
+stxt_cont dw ourtext(tr_curdeporder)
+stxt_cont db 0
+stxt tr_totalpower,0x98,0x81
+stxt_cont dw ourtext(tr_totalpower)
+stxt_cont db 0
+stxt tr_totalweight,0x98,0x81
+stxt_cont dw ourtext(tr_totalweight)
+stxt_cont db 0
+stxt tr_valuebtn,0x98,0x81
+stxt_cont dw ourtext(tr_valuebtn)
+stxt_cont db 0
+stxt tr_andbtn,0x98,0x81
+stxt_cont dw ourtext(tr_andbtn)
+stxt_cont db 0
+stxt tr_orbtn,0x98,0x81
+stxt_cont dw ourtext(tr_orbtn)
+stxt_cont db 0
+stxt tr_xorbtn,0x98,0x81
+stxt_cont dw ourtext(tr_xorbtn)
+stxt_cont db 0
+stxt tr_sigval_sw2,0x98,0x81
+stxt_cont dw statictext(tr_sigval_sw)
+stxt_cont db 0
+stxt tr_sigval_se2,0x98,0x81
+stxt_cont dw statictext(tr_sigval_se)
+stxt_cont db 0
+stxt tr_sigval_nw2,0x98,0x81
+stxt_cont dw statictext(tr_sigval_nw)
+stxt_cont db 0
+stxt tr_sigval_ne2,0x98,0x81
+stxt_cont dw statictext(tr_sigval_ne)
+stxt_cont db 0
+
+stxt trdlg_txt_depot,0x81,
+stxt_cont dw ourtext(gototraindepot)
+stxt_cont db " ",0x81
+stxt_cont dw statictext(trdlg_txt_XY)
+stxt_cont db 0
+
+stxt trdlg_txt_XY, "X:",0x7E," Y:",0x7E,0
+
+stxt trdlg_txt_3,"- ",0x80," ",0x80," ",0x80,0
+//var,op,station name
+//var,op,statictext(printdword)/empty,[dword]
+//var,op,statictext(trdlg_txt_depot)/empty,[depot's town name,x,y]
+//var,is green/is red/empty,statictext(trdlg_txt_XY)/empty,[x,y]
+
+stxt whitetext,0x94,0x80,0
+stxt blacktext, 0x98,0x80,0
+stxt lightbluetext, 0x95,0x80,0
+stxt printdword, 0x7B,0
+stxt printword, 0x7E,0
+stxt dash, "-",0
+
+stxt tr_sigval_sw, 0x81
+stxt_cont dw ourtext(tr_sigval)
+stxt_cont db " ",0x81
+stxt_cont dw ourtext(tr_sw)
+stxt_cont db 0
+stxt tr_sigval_se, 0x81
+stxt_cont dw ourtext(tr_sigval)
+stxt_cont db " ",0x81
+stxt_cont dw ourtext(tr_se)
+stxt_cont db 0
+stxt tr_sigval_nw, 0x81
+stxt_cont dw ourtext(tr_sigval)
+stxt_cont db " ",0x81
+stxt_cont dw ourtext(tr_nw)
+stxt_cont db 0
+stxt tr_sigval_ne, 0x81
+stxt_cont dw ourtext(tr_sigval)
+stxt_cont db " ",0x81
+stxt_cont dw ourtext(tr_ne)
+stxt_cont db 0
+
+

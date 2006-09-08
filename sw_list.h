@@ -314,8 +314,8 @@
 	     //V
 	     //W
 	     //X
-	     //Y
-	     //Z
+	RANGE('Y',"stationsize", CFG_STATIONSIZE, INFST_STATION, "StationSize", stationsize, AUTO, U8, FLAGDATA(stationsizevalue), 1, 255, 255),
+	YESNO('Z',"tracerestrict", CFG_TRACERESTRICT, VEH_ORDERS, "", tracerestrict),
 
 
 
@@ -509,4 +509,6 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	newairports,
 	newroutes,
 	clonetrain,
+	tracerestrict,
+	stationsize,
 

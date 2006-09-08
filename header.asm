@@ -219,7 +219,8 @@ varb patchflagsfixedmap
 	// note, newairports it at 13, don't add it here
 	db newroutes		// 120
 	db clonetrain		// 121
-
+	db tracerestrict	// 122
+	db stationsize	// 123
 
 	times 127-(addr($)-patchflagsfixedmap) db noflag
 	db anyflagset		// 127

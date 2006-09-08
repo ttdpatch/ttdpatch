@@ -493,6 +493,8 @@ enum langtextids {
 	CFG_NEWROUTES,
 	CFG_AUTOSIGDISTANCE,
 	CFG_CLONETRAIN,
+	CFG_TRACERESTRICT,
+	CFG_STATIONSIZE,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS

@@ -415,6 +415,41 @@ def txtcloneerror_nothead, db 0x94, "No engine head at the start of the consist"
 def txtcloneerror_notrail, db 0x94, "Not a rail vehicle", 0
 def txtcloneerror_unknown, db 0x94, "Unknown reason", 0
 
+def tr_trainlen, db  "Number of Train Carriages",0
+def tr_maxspeed, db  "Maximum Speed",0
+def tr_curorder, db "Station of Current Order",0
+def tr_curdeporder, db  "Depot of Current Order",0
+def tr_totalpower, db  "Total Train Horsepower",0
+def tr_totalweight, db  "Total Train Weight",0
+def tr_restricttitle, db 0x98,"Routefinding Restriction",0
+   
+def tr_valuebtn, db  "Value",0
+def tr_andbtn, db  "And",0
+def tr_orbtn, db  "Or",0
+def tr_xorbtn, db  "Xor",0
+
+def tr_error1, db 0x94, "Error: Too Many Restriction Objects.",0
+def tr_siggui_text, db 0x98, "Routefinding",0
+def tr_enternumber, db 0x94, "Enter Number", 0
+
+def tr_copy, db 0x98, "Copy",0
+def tr_share, db 0x98, "Share",0
+def tr_end, db "-- End of routefinding restriction criteria",0x80," --", 0
+def tr_endshare, db " ,Shared by ",0x7E," signals", 0
+def tr_landinfotext, db "restricted",0
+
+def tr_sigval, db "Signal Status", 0
+
+def tr_sw, db "SW",0
+def tr_se, db "SE",0
+def tr_nw, db "NW",0
+def tr_ne, db "NE",0
+
+def tr_sigval_is_green, db 0x98, "is green", 0
+def tr_sigval_is_red, db 0x98, "is red", 0
+def tr_sigval_is_g, db 0x98, "G", 0
+def tr_sigval_is_r, db 0x98, "R", 0
+
 def last
 
 secondlanguage
@@ -809,6 +844,41 @@ def txtcloneerror_unavail, db 0x94, "Vehicle in consist is not available anymore
 def txtcloneerror_nothead, db 0x94, "No engine head at the start of the consist", 0
 def txtcloneerror_notrail, db 0x94, "Not a rail vehicle", 0
 def txtcloneerror_unknown, db 0x94, "Unknown reason", 0
+
+def tr_trainlen, db  "Number of Train Carriages",0
+def tr_maxspeed, db  "Maximum Speed",0
+def tr_curorder, db "Station of Current Order",0
+def tr_curdeporder, db  "Depot of Current Order",0
+def tr_totalpower, db  "Total Train Horsepower",0
+def tr_totalweight, db  "Total Train Weight",0
+def tr_restricttitle, db 0x98,"Routefinding Restriction",0
+   
+def tr_valuebtn, db  "Value",0
+def tr_andbtn, db  "And",0
+def tr_orbtn, db  "Or",0
+def tr_xorbtn, db  "Xor",0
+def tr_error1, db 0x94, "Error: Too Many Restriction Objects.",0
+def tr_siggui_text, db 0x98, "Routefinding",0
+def tr_enternumber, db 0x94, "Enter Number", 0
+
+def tr_copy, db 0x98, "Copy",0
+def tr_share, db 0x98, "Share",0
+
+def tr_end, db "-- End of routefinding restriction criteria",0x80," --", 0
+def tr_endshare, db " ,Shared by ",0x7E," signals", 0
+def tr_landinfotext, db "restricted",0
+
+def tr_sigval, db "Signal Status", 0
+
+def tr_sw, db "SW",0
+def tr_se, db "SE",0
+def tr_nw, db "NW",0
+def tr_ne, db "NE",0
+
+def tr_sigval_is_green, db 0x98, "is green", 0
+def tr_sigval_is_red, db 0x98, "is red", 0
+def tr_sigval_is_g, db 0x98, "G", 0
+def tr_sigval_is_r, db 0x98, "R", 0
 
 def last
 

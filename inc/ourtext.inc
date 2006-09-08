@@ -311,6 +311,36 @@ defourtext txtcloneerror_unknown
 defourtext grfbefore
 defourtext grfafter
 
+defourtext tr_trainlen
+defourtext tr_maxspeed
+defourtext tr_curorder
+defourtext tr_curdeporder
+defourtext tr_totalpower
+defourtext tr_totalweight
+defourtext tr_restricttitle
+defourtext tr_valuebtn
+defourtext tr_andbtn
+defourtext tr_orbtn
+defourtext tr_xorbtn
+defourtext tr_error1
+defourtext tr_siggui_text
+defourtext tr_enternumber
+
+defourtext tr_copy
+defourtext tr_share
+defourtext tr_end
+defourtext tr_endshare
+defourtext tr_landinfotext
+defourtext tr_sigval
+defourtext tr_sw
+defourtext tr_se
+defourtext tr_nw
+defourtext tr_ne
+defourtext tr_sigval_is_green
+defourtext tr_sigval_is_red
+defourtext tr_sigval_is_g
+defourtext tr_sigval_is_r
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

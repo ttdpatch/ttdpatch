@@ -266,6 +266,7 @@ TEXTARRAY(halflines,) =
 	  "-ZR: Prevent towns from building roads",
 	  "-ZS: Enable new sound effects",
 	  "-ZT: Allow buildings tramways",
+	  "-ZZ: Enable route tracing restrictions",
 
 	  NULL
 	};
@@ -323,6 +324,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-Zp #, -Zr #, -Zs #, -Zt #: Warn about lost aircraft, road vehicles, ships and\n"
 	  "         trains after this many days\n"
 	  "-ZF #:   Enable certain game features in the Toyland climate\n"
+	  "-ZY #:   Set maximum rail station size (still limited by station spread)\n"
 	  "\n"
 	  "-C cfg-file:  Read this configuration file instead of ttdpatch.cfg\n"
 	  "-W cfg-file:  Creates a configuration file with the current configuration\n"
@@ -503,6 +505,8 @@ SWITCHTEXT(articulatedrvs, "Enabled Articulated RVs", "")
 SWITCHTEXT(newairports, "Allows using new airport types","")
 SWITCHTEXT(newroutes, "Allows the changing of Rails and Roads through grf files", "")
 SWITCHTEXT(clonetrain, "Allows the cloning of a train through the depot window.", "")
+SWITCHTEXT(tracerestrict, "Enables train routetracing to be restricted", "")
+SWITCHTEXT(stationsize, "Set maximum rail station size (still limited by station spread)", "")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -873,6 +877,8 @@ SETTEXT(CFG_NEWAIRPORTS, "`%s' (%s) allows using new airport types supplied by G
 SETTEXT(CFG_NEWROUTES, "`%s' (%s) allows the changing of rails and roads though GRF files")
 SETTEXT(CFG_AUTOSIGDISTANCE, "`%s' (%s) sets the separation of signals placed by the autosignal tool.  The / and \\ directions count as 4, the others as 3, so a value of 12 places signals every 3 resp. 4 tiles.  Range 4..255, default 12.")
 SETTEXT(CFG_CLONETRAIN, "`%s' (%s) allows the cloning of a train through the depot window.")
+SETTEXT(CFG_TRACERESTRICT, "%s (%s) enables train routetracing to be restricted according to user criteria")
+SETTEXT(CFG_STATIONSIZE, "%s (%s) changes the maximum railway station size to the specified value, note stations are still limited by the spread switch. Range 1..255 default 255. Options: on/off/number")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

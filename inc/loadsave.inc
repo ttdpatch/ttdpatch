@@ -18,12 +18,14 @@
 %assign L7_NEWINDUSTRIES		0x4	// random bits for industries
 %assign L7_ONEWAYROADS			0x8	// oneway road flags
 %assign L7_NEWSTATIONS			0x10	// animation state for station tiles
+%assign L7_TRACERESTRICTION		0x20	// routefinding restriction
 
 // Flags to indicate what switches were active when saving the station2 array
 %assign S2_FIFOLOADING			0x1	// fifo loading
 %assign S2_CATCHMENT			0x2	// catchment areas for stations
 %assign S2_NEWCARGO			0x4	// extra cargo data for newcargos
-%assign S2_IRRSTATIONS			0x8	// extra cargo data for newcargos
+%assign S2_IRRSTATIONS			0x8	// irregular stations
+%assign S2_STATIONSIZE			0x10	// max rail station size
 
 // Flags to indicate what switches were active when saving the L8 array
 %assign L8_NEWROUTES			0x1	// newRoutes

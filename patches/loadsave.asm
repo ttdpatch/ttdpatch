@@ -57,6 +57,7 @@ extern player2array,player2clear,cargoids
 extern disabledoldhouses,savevar40x
 extern clearairportdataids,airportdataidtogameid
 extern landscape8_ptr, landscape8clear, landscape8init
+extern robjflags,robjgameoptionflag,clearrobjarrays
 
 // Known (defined) extra chunks.
 // The first table defines chunk IDs.
@@ -88,6 +89,7 @@ var knownextrachunkids
 	dw 0x800c	// player 2 array
 	dw 0x800d	// new airport type data
 	dw 0x800e	// Landscape8 Array
+	dw 0x800f	// Restriction Object Arrays
 
 knownextrachunknum equ (addr($)-knownextrachunkids)/2
 
@@ -118,6 +120,7 @@ var knownextrachunkloadfns
 	dd addr(loadplayer2array)
 	dd addr(loadnewairporttypes)
 	dd addr(loadlandscape8array)
+	dd addr(loadrobjarray)
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkloadfns)/4
 	%error "Inconsistent number of chunk functions"
@@ -151,6 +154,7 @@ var knownextrachunksavefns
 	dd addr(saveplayer2array)
 	dd addr(savenewairporttypes)
 	dd addr(savelandscape8array)
+	dd addr(saverobjarray)
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunksavefns)/4
 	%error "Inconsistent number of chunk functions"
@@ -186,6 +190,7 @@ var knownextrachunkqueryfns
 	dd addr(canhaveplayer2array)
 	dd addr(canhavenewairporttypes)
 	dd addr(canhavelandscape8array)
+	dd addr(canhaverobjarray)
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkqueryfns)/4
 	%error "Inconsistent number of chunk functions"
@@ -229,6 +234,7 @@ uvarw loadremovedsfxs	// ... and this many pseudo-/special vehicles
 %assign LOADED_X2_NEWAIRPORTLIST	0x80
 
 %assign LOADED_X3_L8ARRAY		0x1
+%assign LOADED_X3_ROBJARRAY		0x2
 
 %define SKIPGUARD 1			// the variables get cleaned by a dword.. 
 uvarb extrachunksloaded1		// a combination of LOADED_X1_*
@@ -985,12 +991,20 @@ newloadtitleproc:
 	// check landscape8 array
 	cmp dword [landscape8_ptr],0
 	jle .no_l8
-	test byte [extrachunksloaded4],LOADED_X3_L8ARRAY
+	test byte [extrachunksloaded3],LOADED_X3_L8ARRAY
 	jnz .l8_ok
 	call landscape8clear
 .l8_ok:
 	call landscape8init
 .no_l8:
+
+	// check tracing restriction
+	test BYTE [robjgameoptionflag],1
+	jz .robj_loadend
+	test byte [extrachunksloaded3],LOADED_X3_ROBJARRAY
+	jnz .robj_loadend
+	call clearrobjarrays
+.robj_loadend:
 
 	call updategamedata
 	
@@ -1570,6 +1584,10 @@ savelandscape7array:
 	jnc .nonewstations
 	or ecx,L7_NEWSTATIONS
 .nonewstations:
+	testflags tracerestrict
+	jnc .notracerestriction
+	or ecx,L7_TRACERESTRICTION
+.notracerestriction:
 
 	mov [l7switches],ecx
 
@@ -1789,6 +1807,12 @@ savestation2array:
 	jnc .noirrstations
 	or ecx,S2_IRRSTATIONS
 .noirrstations:
+
+	testflags stationsize
+	jnc .nostationsize
+	or ecx,S2_STATIONSIZE
+.nostationsize:
+
 	mov [station2switches],ecx
 
 loadsavestation2array:
@@ -2560,3 +2584,29 @@ loadsavelandscape8array:
 
 	ret
 
+// In:	CF=0 for loading, CF=1 for saving
+// Out:	CF=1 if chunk is to be saved/loaded, CF=0 if not
+canhaverobjarray:
+	mov al, [robjgameoptionflag]
+	jnc .load
+	and al, [robjflags]
+	.load:
+	rcr al,1
+	ret
+
+
+loadrobjarray:
+	cmp eax, 0x22010
+	jne badchunk
+	jmp loadsaverobjarray
+
+saverobjarray:
+	mov eax, 0x22010
+	call savechunkheader
+
+loadsaverobjarray:
+	mov ecx,eax
+	mov esi, robjflags
+	call ebp			//ecx=num bytes, esi=data ptr
+	or BYTE [extrachunksloaded3],LOADED_X3_ROBJARRAY
+	ret
