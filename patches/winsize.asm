@@ -269,7 +269,7 @@ procwindowdragmode:
 	mov byte [esi+window.itemsoffset], 0
 	mov al, [esi+window.itemstotal]
 	sub al, [esi+window.itemsvisible]
-	js .itemokay
+	jna .itemokay		//note was previously js, caused errorneous movement of the offset to zero when more than 127 items in list.
 	mov [esi+window.itemsoffset], al
 .itemokay:
 	pop ax
