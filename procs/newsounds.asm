@@ -107,7 +107,6 @@ patchperiodicprocs:
 	mov [oldclass4periodicproc],ecx
 
 .nonewsounds:
-	xor ecx,ecx
 	ret
 
 
