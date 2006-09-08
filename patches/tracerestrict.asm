@@ -301,11 +301,11 @@ ret
 	dec dh	//5-8 --> 4-7, signal bits in L2,L3
 	mov cl, dh
 	movzx eax, WORD [ebx+robj.word1]
-	mov dh, [landscape4(ax)]
+	mov dh, [landscape4(ax,1)]
 	shr dh,4
 	cmp dl, 1
 	jne .sigval_redret
-	mov dh, [landscape5(ax)]
+	mov dh, [landscape5(ax,1)]
 	mov ch, dh
 	and ch, 0xC0
 	xor ch, 0x40
@@ -1074,7 +1074,7 @@ jmp .redrawvaluebtn
 ret
 .mtoolclickhndlr_nret:
 
-	mov cl, [landscape4(ax)]
+	mov cl, [landscape4(ax,1)]
 	shr cl,4
 	movzx edx,BYTE [ebx+robj.varid]
 	mov dl, [var_flags-1+edx]
@@ -1083,7 +1083,7 @@ ret
 	cmp cl,5
 	jne NEAR .mtcl_fexit
 	
-	cmp BYTE [landscape5(ax)],7
+	cmp BYTE [landscape5(ax,1)],7
 	ja NEAR .mtcl_fexit
 	movzx cx, BYTE [landscape2+eax]
 	mov [ebx+robj.word1], cx
@@ -1096,7 +1096,7 @@ ret
 	jz .notdepot
 	cmp cl, 1
 	jne .mtcl_fexit
-	mov dl, [landscape5(ax)]
+	mov dl, [landscape5(ax,1)]
 	and dl, 0xC0
 	xor dl, 0xC0
 	jnz .mtcl_fexit
@@ -1127,7 +1127,7 @@ ret
 	cmp cl, 1
 	jne .mtcl_fexit
 	
-	mov dl, [landscape5(ax)]
+	mov dl, [landscape5(ax,1)]
 	and dl, 0xC0
 	xor dl, 0x40
 	jnz .mtcl_fexit
@@ -1781,13 +1781,13 @@ copysharelist:
 	cmp BYTE [copyshareaction], 0
 	je NEAR .ret
 	
-	mov cl, [landscape4(ax)]
+	mov cl, [landscape4(ax,1)]
 	shr cl, 4
 	cmp cl, 1
 	jne NEAR .ret
 	test BYTE [landscape3+1+eax*2], 0x10
 	jz NEAR .ret
-	mov cl, [landscape5(ax)]
+	mov cl, [landscape5(ax,1)]
 	shr cl, 6
 	xor cl, 1
 	jnz NEAR .ret
