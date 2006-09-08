@@ -31,6 +31,11 @@ extern autosignalsep
 %assign win_signalgui_height 14+win_signalgui_signalboxheight*2
 %assign win_signalgui_signalboxheightX2 win_signalgui_signalboxheight*2
 
+global sigguiwindimensions
+vard sigguiwindimensions
+dd win_signalgui_width + (win_signalgui_height << 16) // width , height
+endvar
+
 varb win_signalgui_elements
 db cWinElemTextBox,cColorSchemeDarkGreen
 dw 0, 10, 0, 13, 0x00C5
@@ -64,6 +69,15 @@ db cWinElemTextBox,cColorSchemeDarkGreen
 dw win_signalgui_signalboxwidth*4,win_signalgui_signalboxwidth*5-1-win_signalgui_signalboxwidth/2, 14+win_signalgui_signalboxheightX2-1-6, 14+win_signalgui_signalboxheightX2-1, 0x0188
 db cWinElemTextBox,cColorSchemeDarkGreen
 dw win_signalgui_signalboxwidth*4+win_signalgui_signalboxwidth/2, win_signalgui_signalboxwidth*5-1, 14+win_signalgui_signalboxheightX2-1-6, 14+win_signalgui_signalboxheightX2-1, 0x0189
+
+
+global signalboxrobjendpt1
+signalboxrobjendpt1:
+; --- restriction object
+
+db cWinElemLast,cColorSchemeDarkGreen
+dw 0, win_signalgui_width-1, 14+win_signalgui_signalboxheightX2, 14+win_signalgui_signalboxheightX2+13, ourtext(tr_siggui_text)
+
 db cWinElemLast
 endvar
 
@@ -144,7 +158,7 @@ exported win_signalgui_create
 	mov ax, bx
 .xok:
 		
-	mov ebx, win_signalgui_width + (win_signalgui_height << 16) // width , height
+	mov ebx, [sigguiwindimensions]
 
 	mov cx, 0x2A			// window type
 	mov dx, -1				// -1 = direct handler
@@ -167,6 +181,11 @@ exported win_signalgui_create
 	
 	
 	mov dl, byte [landscape3+1+edi*2]
+	
+	//robj
+	and dl, ~0x10
+	//robj
+
 	mov ebx,landscape6
 	test ebx,ebx
 	jle .nopbstoggle
@@ -200,6 +219,11 @@ win_signalgui_refreshtilestatus:
 	//signal present
 	
 	mov dl, byte [landscape3+1+edi*2]
+
+	//robj
+	and dl, ~0x10
+	//robj
+
 	mov ebx,landscape6
 	test ebx,ebx
 	jle .nopbstoggle
@@ -374,6 +398,13 @@ win_signalgui_clickhandler:
 	jne .nottilebar
 	jmp dword [WindowTitleBarClicked]
 .nottilebar:
+
+	//trace restriction
+	extern tracerestrict_createwindow
+	cmp cl, 14
+	je tracerestrict_createwindow
+	//trace restriction
+
 	cmp cl, 11
 	je .autosignalclick
 	cmp cl,12

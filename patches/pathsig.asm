@@ -496,15 +496,15 @@ markrailroute:
 	// ebp= direction of travel
 	// dl = track pieces to choose from (only a single piece allowed here)
 
-	mov esi,finaltracert
+	mov ecx,finaltracert
 	mov byte [ignorereservedpieces],1
-	and dword [esi],0
-	call tracepath
+	and dword [ecx],0
+	call tracepath //pass veh pointer to tracepath
 
 	cmp byte [currouteallowredtwoway],0	// trying the best to find *any* path?
 	jne .trymark
 
-	mov ah,[esi+finalrt.type]
+	mov ah,[ecx+finalrt.type]
 	test ah,ah
 	jz .bad		// no route found at all
 
@@ -513,16 +513,16 @@ markrailroute:
 	// if so, we wait till we can use it
 
 	mov al,[currouteclosest]
-	push dword [esi]
+	push dword [ecx]
 	push dword [curtracertdist]
-	and dword [esi],0
-	mov byte [esi+finalrt.norecord],1
-	call tracepath
+	and dword [ecx],0
+	mov byte [ecx+finalrt.norecord],1
+	call tracepath //pass veh pointer to tracepath
 	add byte [currouteclosest],5
 	sub [currouteclosest],al	// new route at least 5 tiles shorter?
-	sbb ah,[esi+finalrt.type]	// new route has higher quality?
+	sbb ah,[ecx+finalrt.type]	// new route has higher quality?
 	pop dword [curtracertdist]
-	pop dword [esi]
+	pop dword [ecx]
 	jb .bad		// new route is better or shorter, so wait for it to become clear
 
 	// nope, also just getting as close, let's try it and hope for the best
@@ -561,10 +561,11 @@ markrailroute:
 tracepath:
 	pusha
 	bsf ebx,edx
-	xor edx,edx
 
-	mov esi,[railroutestepfnarg]
-	mov dword [esi],addr(chksignalpathtarget)	// use our step function
+	mov edx,[railroutestepfnarg]
+	mov dword [edx],addr(chksignalpathtarget)	// use our step function
+
+	xor edx,edx
 
 	dec edx
 	mov [curtracertdist],edx
@@ -575,6 +576,9 @@ tracepath:
 //	mov [sigtracertdist],edx
 .norecord:
 	inc edx
+
+	//JGR: pass veh ptr in esi to trainchoosedirection
+
 	call [trainchoosedirection]		// then call the regular path finding
 	mov byte [ignorereservedpieces],0
 

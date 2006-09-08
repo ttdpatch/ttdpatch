@@ -1329,7 +1329,7 @@ showtrackinfo:
 .nopbs:
 	mov al,0x22	// signals
 	mov ch,[nosplit edi*2+landscape3+1]
-	test cx,0x8708
+	test cx,0x9708
 	jz short .done
 
 	// we have pre-signals
@@ -1339,6 +1339,10 @@ showtrackinfo:
 	shr cl,2
 	or cl,ch
 	mov ch,0
+
+	test al, 0x10	//trace restrict signal
+	jnz .tr_signal
+
 
 	and eax,byte 0x6
 	jnz short .notplain
@@ -1351,6 +1355,9 @@ showtrackinfo:
 	mov ax,0x1022
 	jmp .done
 
+.tr_signal:
+	and eax,byte 0x6
+	add cx, statictext(tr_landinfotext_presig_auto)-ourtext(presigautomatic)
 .notplain:
 	add cx,ourtext(presigautomatic)
 	shl ecx,16	// store that in the higher 16 bits
