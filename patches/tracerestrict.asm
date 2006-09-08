@@ -899,6 +899,7 @@ ret
 	add al, 32
 	mov [ebx+robj.type], al
 .ddl1_action_bop_ret:
+	mov edx, ebx
 	jmp updatebuttons
 
 .ddl1_action_norm:
@@ -1424,7 +1425,9 @@ updatebuttons:
 	or ecx, 0x1000
 .nodisdel:
 	mov [esi+window.disabledbuttons], ecx
-	mov WORD [tracerestrictwindowelements.vartb],statictext(empty)
+	movzx ax, BYTE [edx+robj.type]
+	add ax, statictext(tr_andbtn)-32
+	mov WORD [tracerestrictwindowelements.vartb], ax
 	mov WORD [tracerestrictwindowelements.optb],statictext(empty)
 	jmp .end
 
