@@ -349,4 +349,24 @@ stxt_cont db " ",0x81
 stxt_cont dw ourtext(tr_ne)
 stxt_cont db 0
 
+stxt tr_landinfotext_presig_auto, 0x81
+stxt_cont dw ourtext(presigautomatic)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_landinfotext)
+stxt_cont db 0
+stxt tr_landinfotext_presig_manual, 0x81
+stxt_cont dw ourtext(presigmanual)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_landinfotext)
+stxt_cont db 0
+stxt tr_landinfotext_pbs_auto, 0x81
+stxt_cont dw ourtext(pathbasedauto)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_landinfotext)
+stxt_cont db 0
+stxt tr_landinfotext_pbs_manual, 0x81
+stxt_cont dw ourtext(pathbasedmanual)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_landinfotext)
+stxt_cont db 0
 
