@@ -31,6 +31,17 @@ codefragment oldlandinfotextinsert,-2
 codefragment newlandinfotextinsert
 	ijmp	addlandinfoheightstring
 	setfragmentsize 13
+	
+codefragment oldlandinfotextsplit, -5
+	pop dx
+	pop cx
+	add dx, BYTE 11
+	push dx
+	db 0x8A, 0x15 // mov dl, ...
+	
+codefragment newlandinfotextsplit
+	icall splitlandinfotext
+	setfragmentsize 15
 
 endcodefragments
 
@@ -40,4 +51,5 @@ patchshowaltitude:
 	patchcode oldsizelandinfowindow1,newsizelandinfowindow1,1,2
 	patchcode oldsizelandinfowindow2,newsizelandinfowindow2,1,1
 	patchcode oldlandinfotextinsert,newlandinfotextinsert,1,1
+	patchcode oldlandinfotextsplit,newlandinfotextsplit,1,1
 	ret
