@@ -8,6 +8,8 @@ patchproc sortvehlist, patchsortvehlist
 
 extern vehlistwindowsizes,patchflags,vehlistwindowconstraints
 
+extern TrainListDrawHandlerCountDec,TrainListDrawHandlerCountTrains,TrainListClickHandlerAddOffset,TrainListDrawHandlerCountDec.skip
+
 begincodefragments
 
 codefragment oldfindlisttrains
@@ -87,8 +89,7 @@ codefragment oldclicktrainlist,3
 	cmp byte [edi+veh.class],0x10
 
 codefragment newclicktrainlist
-	mov edx,0x10
-	call runindex(clicklist_next)
+	call runindex(clicklist_next_train)
 	setfragmentsize 18
 	db 0x72
 
@@ -246,12 +247,60 @@ codefragment newnewveharrayentry
 
 // --- End of vehicle list sorting fragments ---
 
+// --- Start of more than 256 trains in list fragments
+
+codefragment trainlistfragment
+	//Std address: American: DOS:_CS:001645A9,Win:005765C0
+	db 0x72, 0xE0, 0x88, 0x66, 0x01, 0x2A, 0x66, 0x02, 0x73, 0x02, 0x32, 0xE4, 0x3A, 0x66, 0x03, 0x73, 0x03, 0x88, 0x66, 0x03, 0x0F, 0xB7, 0x5E, 0x06, 0x66, 0x69, 0xDB, 0xB2, 0x03
+codefragment newTrainListDrawHandlerCountDecFunc
+	icall TrainListDrawHandlerCountDec
+	setfragmentsize 8
+codefragment newTrainListDrawHandlerCountTrains
+	icall TrainListDrawHandlerCountTrains
+	setfragmentsize 6
+//codefragment newTrainListDrawHandlerCountTrainsInc
+//	inc ebx
+//	setfragmentsize 2
+codefragment newTrainListDrawHandlerCountTrainsXor
+	xor ebx, ebx
+	setfragmentsize 2
+codefragment newTrainListClickHandlerAddOffset
+	icall TrainListClickHandlerAddOffset
+	setfragmentsize 9
+//codefragment newTrainListClickHandlerAddOffsetDec
+//	dec edx
+//	setfragmentsize 2
+
 
 endcodefragments
 
 ext_frag oldfindnexttrain
 
 patchsortvehlist:
+
+
+//JGR more than 256 trains in listing
+	stringaddress trainlistfragment
+	mov ebx, edi
+	xor ecx, ecx
+	add edi, 0x576635-0x5765C0
+	copyrelative TrainListDrawHandlerCountDec.skip
+	sub edi, 4
+	storefragment newTrainListDrawHandlerCountDecFunc
+	lea edi, [ebx+0x5765C2-0x5765C0]
+	storefragment newTrainListDrawHandlerCountTrains
+	//sub edi, 16
+	//storefragment newTrainListDrawHandlerCountTrainsInc
+	//sub edi, 22
+	lea edi, [ebx+0x57659A-0x5765C0]
+	storefragment newTrainListDrawHandlerCountTrainsXor
+	lea edi, [ebx+0x57655F-0x5765C0]
+	storefragment newTrainListClickHandlerAddOffset
+	//add edi, 28
+	//storefragment newTrainListClickHandlerAddOffsetDec
+//ENDS
+
+
 // do the ordering if necessary
 	patchcode oldfindlisttrains,newfindlisttrains,1,1
 	multipatchcode oldfindlistvehs,newfindlistvehs,3

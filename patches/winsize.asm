@@ -9,7 +9,7 @@ extern BringWindowToForeground,CreateTooltip,DestroyWindow,FindWindow
 extern RefreshWindowArea,TabClicked,TitleBarClicked,currscreenupdateblock
 extern dfree,dmalloc,errorpopup,fillrectangle,redrawscreen
 extern win_newshistory_constraints,win_newshistory_elements
-extern windowstack,CheckBoxClicked
+extern windowstack,CheckBoxClicked,patchflags
 extern grfmodflags
 
 
@@ -270,7 +270,7 @@ procwindowdragmode:
 	mov byte [esi+window.itemsoffset], 0
 	mov al, [esi+window.itemstotal]
 	sub al, [esi+window.itemsvisible]
-	js .itemokay
+	jna .itemokay		//note was previously js, caused errorneous movement of the offset to zero when more than 127 items in list.
 	mov [esi+window.itemsoffset], al
 .itemokay:
 	pop ax
@@ -592,7 +592,21 @@ HandleSizeConstraints:
 	div cl
 	cmp edx, -1
 	je .nocount4
+	cmp edi, trainlistwindowsizes
+	jne .norm1
+	testflags sortvehlist
+	jnc .norm1
+	push ecx
+	mov cl, [esi+0x33]
+	mov [esi+0x2F], al
+	mov ch, al
+	shr ch, cl
+	mov [esi+window.itemsvisible], ch
+	pop ecx
+	jmp .anorm1
+.norm1:
 	mov [esi+window.itemsvisible], al
+.anorm1:
 	mov [ebp+edx+11], al
 .nocount4:
 	mul cl
@@ -1342,6 +1356,7 @@ lastvehdrawn:
 .hasword:
 	push edx
 	mov dl, [esi+window.itemsvisible]
+.hasdl:
 	neg dl
 	movzx eax, ax
 	cmp bl, dl
@@ -1357,7 +1372,10 @@ lastrailvehdrawn:
 	push eax
 	mov al,0xFF
 ovar railvehoffset,-1
-	jmp lastvehdrawn
+	push edx
+	mov dl, [esi+0x2F]
+	movzx ax, al
+	jmp lastvehdrawn.hasdl
 
 global lastroadvehdrawn
 lastroadvehdrawn:
