@@ -14,7 +14,8 @@
 
 extern checkvehiclesinthewayfn,cleartilefn,curplayerctrlkey,ishumanplayer
 extern locationtoxy,newstationpos,newstationtracks,patchflags
-extern stationarray2ofst,stationidgrfmap
+extern stationarray2ofst,stationidgrfmap,newstationspread
+extern maxrstationspread
 
 
 // in:	bl = action flags
@@ -124,17 +125,21 @@ proc irrcheckistrainstation
 
 	// now cx most south
 	mov word [newstationxysouth], cx
-	
-	sub cl, al
-	cmp cl, 14
-	ja .donebad
-	
-	sub ch, ah
-	cmp ch, 14
-	ja .donebad
 
+	sub cl, al
+	sub ch, ah
 
 	add cx, 0x101
+
+	cmp cl, [maxrstationspread]
+	ja .donebad
+	cmp ch, [maxrstationspread]
+	ja .donebad
+
+	cmp cl, [newstationspread]
+	ja .donebad
+	cmp ch, [newstationspread]
+	ja .donebad
 
 	// now check what direction our new station should get
 	mov word [newstationpos],ax
@@ -147,7 +152,7 @@ proc irrcheckistrainstation
 	// cl platform length
 	// ch number of platforms 
 
-	shl cl,stationlengthshift
+/*	shl cl,stationlengthshift
 	// for realbigstations
 	cmp ch, 8
 	jb .dontneedextrabit
@@ -155,7 +160,8 @@ proc irrcheckistrainstation
 .dontneedextrabit:
 
 	or ch,cl
-	mov byte [newstationtracks],ch	
+	*/
+	mov [newstationtracks],cx
 	
 
 	or byte [newstationlengthplatforms],0x80
@@ -389,8 +395,10 @@ proc fixstationplatformslength
 
 	sub bl, dl
 	sub bh, dh
-	and bx, 0x0F0F
-	add bx, 0x0101	
+	add bx, 0x0101
+	
+	test bx, 0xF0F0
+	jnz .bigstation
 
 	mov dx, word [%$dir]
 	cmp dl, dh
@@ -406,13 +414,21 @@ proc fixstationplatformslength
 .dontneedextrabit2:
 	or dl, bh
 	mov byte [esi+station.platforms], dl
-	
+	and BYTE [esi+station.flags], ~0x80
 	jmp short .done
 	
+.bigstation:
+	or BYTE [esi+station.flags], 0x80
+	mov eax, [stationarray2ofst]
+	add eax, esi
+	mov [eax+station2.platforms], bx
+	jmp short .done
+
 .notilesleft:
 	mov word [esi+station.railXY], 0
 	and byte [esi+station.facilities], 0xFE
 	mov byte [esi+station.platforms], 0
+	and BYTE [esi+station.flags], ~0x80
 .done:
 	_ret
 	ret

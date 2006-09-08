@@ -12,11 +12,14 @@ extern irrsetstationsizeext,irrsetstationsizenew,ishumanplayer,miscgrfvar
 extern newstationlayout,newstationpos,newstationtracks,patchflags
 extern stationsizeofs
 extern usenewstationlayout
+extern stationarray2ofst,newstationspread
 
 
 
-
-
+// JGR: Added word-sized platforms var to station2 to provide theoretical max of 255x255 limited by stationsize switch, total station size limited by spread switch
+// bit 7 of station.flags is set to use this instead of old platform var
+global maxrstationspread
+uvarb maxrstationspread
 
 // Oskar: I have hacked to provide bigger stations with 15x15
 // TTD and TTDPatch 7x7 station uses this old format to store the byte:
@@ -109,16 +112,18 @@ checkistrainstation:
 	//mov bl,byte [esi+station.platforms]	// number of the platforms
 	//and bl,stationtracksand
 
-	mov bl,byte [esi+station.platforms]	
-	// for realbigstations
-	//  in: bl = platforms as in station array
-	// out: bh = length, bl = tracks
-	mov bh, bl
-	and bx, 7887h 	// Bitmask: 1111000 10000111
-	shr bh, 3
-	cmp bl, 80h
-	jb .istoosmall
-	sub bl, (80h - 8h)
+
+	test BYTE [esi+station.flags], 80h
+	jz .normgetstatlength
+	mov eax, [stationarray2ofst]
+	add eax, esi
+	mov bx, [eax+station2.platforms]
+	
+	jmp .istoosmall
+.normgetstatlength:
+	mov al,byte [esi+station.platforms]
+	call convertplatformsincargoacceptlist
+	mov ebx, eax
 .istoosmall:
 
 		// calculate landscape offset of the new position
@@ -171,7 +176,8 @@ checkistrainstation:
 	mov [newstationpos],ax
 
 	mov al,[esi+station.platforms]
-	mov [newstationtracks],al
+	call convertplatformsincargoacceptlist
+	mov [newstationtracks],ax
 
 	or byte [oldedx],0x80
 	stc
@@ -232,7 +238,11 @@ checkistrainstation:
 .isrightpos:
 	add bl,[oldedx+1]
 	// cmp bl, stationtracksmax		// to many tracks?
-	cmp bl, 15	// for realbigstations 
+
+	cmp bl, [maxrstationspread]	// for realbigstations
+	ja trainstationbad
+
+	cmp bl, [newstationspread]
 	ja trainstationbad
 
 		// all right, extend the station!
@@ -251,7 +261,7 @@ checkistrainstation:
 
 	mov word [newstationpos],cx
 
-	shl bh,stationlengthshift
+/*	shl bh,stationlengthshift
 	// for realbigstations
 	cmp bl, 8
 	jb .dontneedextrabit
@@ -259,7 +269,8 @@ checkistrainstation:
 .dontneedextrabit:
 
 	or bl,bh
-	mov byte [newstationtracks],bl
+*/
+	mov [newstationtracks],bx
 
 	// set bit 7 in the platform length so that later
 	// we'll know we're changing the right station
@@ -303,7 +314,11 @@ checkistrainstation:
 		// position matches, qualifies for making station longer
 .isrightlength:
 	add bh,[oldedx]
-	cmp bh, 15 // for realbigstations / otherwise 7		// too long?
+
+	cmp bh, [maxrstationspread] //15 // for realbigstations / otherwise 7		// too long?
+	ja trainstationbad
+
+	cmp bh, [newstationspread]
 	ja trainstationbad
 
 		// all right, extend the station!
@@ -359,9 +374,10 @@ setstationsize:
 	mov ax,word [newstationpos]
 	mov [esi+0xa],ax
 
-	mov al,byte [newstationtracks]	// new number and length of tracks
 	testflags irrstations
 	jc near irrsetstationsizeext
+	mov dx, [newstationtracks]	// new number and length of tracks
+	call calcplatformsfornewstation
 	ret
 ; endp setstationsize 
 
@@ -581,10 +597,14 @@ getstationlayout:
 // Fix the various rail station functions to support new format
 global calcplatformsfornewstation
 calcplatformsfornewstation:
-	// in: dl = length, dh = tracks 
+	// in: dl = length, dh = tracks, esi = station ptr
 	// dx is needed, so don't change content
-	// out: al = platforms as in station array
+	// out: al = platforms as in station array, also sets station ptr value
 	push edx
+	cmp dl, 15
+	ja .bigstation
+	cmp dh, 15
+	ja .bigstation
 	mov al,dl
 	shl al, 3
 	cmp dh, 8
@@ -593,14 +613,26 @@ calcplatformsfornewstation:
 .dontneedextrabit:
 	or al,dh
 	pop edx
+	and BYTE [esi+station.flags], ~0x80
+	ret
+.bigstation:
+	or BYTE [esi+station.flags], 0x80
+	mov eax, [stationarray2ofst]
+	add eax, esi
+	mov [eax+station2.platforms], dx
+	xor eax, eax
+	pop edx
+ret
 
 ;endp calcplatformsfornewstation
 
 
 global convertplatformsinremoverailstation
 convertplatformsinremoverailstation:
-	//  in: dl = platforms as in station array
+	//  in: dl = platforms as in station array, esi = station ptr
 	// out: dh = length, dl = tracks
+	test BYTE [esi+station.flags], 0x80
+	jnz .bigstation
 	mov dh, dl
 	and dx, 7887h	// Bitmask: 1111000 10000111
 	shr dh, 3
@@ -609,11 +641,18 @@ convertplatformsinremoverailstation:
 	sub dl, (80h - 8h)
 .issmall:
 	ret
+.bigstation:
+	mov edx, [stationarray2ofst]
+	add edx, esi
+	mov dx, [edx+station2.platforms]
+	ret
 
 global convertplatformsincargoacceptlist
 convertplatformsincargoacceptlist:
-	//  in: al = platforms as in station array
+	//  in: al = platforms as in station array, esi = station ptr
 	// out: ah = length, al = tracks
+	test BYTE [esi+station.flags], 0x80
+	jnz .bigstation
 	mov ah, al
 	and ax, 7887h	// Bitmask: 1111000 10000111
 	shr ah, 3
@@ -621,4 +660,9 @@ convertplatformsincargoacceptlist:
 	jb .issmall
 	sub al, (80h - 8h)
 .issmall:
+	ret
+.bigstation:
+	mov eax, [stationarray2ofst]
+	add eax, esi
+	mov ax, [eax+station2.platforms]
 	ret

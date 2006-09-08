@@ -1,8 +1,7 @@
 #include <defs.inc>
 #include <frag_mac.inc>
 
-
-extern largestationlayout
+extern largestationlayout, maxrstationspread, stationsizevalue, patchflags
 
 
 global patchmorestationtracks
@@ -119,4 +118,11 @@ patchmorestationtracks:
 	//patchcode oldcalcplatformsfornewstation, newcalcplatformsfornewstation,1,1
 	patchcode oldgetplatformsforremovestation,newgetplatformsforremovestation,1,1
 	patchcode oldgetplatformsforcargoacceptlist,newgetplatformsforcargoacceptlist,1,1
+	
+	mov al, 15	//default max station size
+	testflags stationsize
+	jnc .usedefaultstationsize
+	mov al, [stationsizevalue]
+.usedefaultstationsize:
+	mov [maxrstationspread], al
 	ret

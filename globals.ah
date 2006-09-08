@@ -68,7 +68,7 @@ uvard newvehicles,1,z        	// maximum number of vehicles
 uvard newspecialvehicles,1,z	// Special, reserved slots for vehicles
 uvard newnormalvehicles,1,z	// Normal, player-usable vehicles
 uvarw newstationpos,1,z		// New position for train station extension
-uvarb newstationtracks,1,z	// new length & number of tracks
+uvarw newstationtracks,1,z	// new length & number of tracks
 uvard currrmsignalcost,1,s	// cost of removing a signal, or 0 if just removing pre-signal setup
 uvard isengine, (totalvehtypes+31)/32
 				// Bit array of whether a vehtype is an engine (bit set) or a waggon (bit clear)

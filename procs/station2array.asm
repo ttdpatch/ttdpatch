@@ -18,6 +18,8 @@ patchstation2array:
 .nogenfix:
 	testflags fifoloading
 	jc .doit
+	testflags stationsize
+	jc .doit
 	testflags newcargos
 	jnc .dontdoit
 .doit:

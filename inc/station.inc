@@ -30,7 +30,8 @@ struc station
 	.flags:		resw 1	// 1ah:bit 0: no facilities left, will be removed
 				//     bits 1..5: train/bus/truck/aircraft/ship has visited station
 				//     bit 6: station will not receive cargo (e.g. for buoys)
-				//     bits 7..15: not used
+				//     bit 7: use station2.platforms instead of station.platforms
+				//     bits 8..15: not used
 	.cargos:	resb stationcargo_size * 12	// 1ch:cargo structs for 12 cargo types
 				// 1ch:passengers
 				// 24h:coal
@@ -83,6 +84,7 @@ struc station2
 	.acceptedcargos:	resd 1				// 64h: bitmask of accepted cargos
 	.railxysouth:	resw 1				// 68h: for a rail station the south corner if 
 	.airportbusyedges:	resd 2				// 6ah: bitmask of busy edges for new airports
+	.platforms:		resw 1				//6eh: lengthened platform variable: active if bit 7 of station.flags set, format: bits 0-7 number of tracks, 8-15 length 
 				resb station_size - $
 endstruc
 
