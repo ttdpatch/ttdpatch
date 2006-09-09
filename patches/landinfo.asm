@@ -10,14 +10,14 @@ uvard tilealtitude
 global patchtotallandwindowsize
 patchtotallandwindowsize:
 	mov dword [tilealtitude],esi  	//store esi which is the short form of XY for tileinfo
-	mov ebx, 620118h 				//resize the landinfosizewindow
+	mov ebx, 6D0118h 				//resize the landinfosizewindow
 	mov dx, -1						//...old code
 	ret
 
 global patchlandwindowboxsizes	
 patchlandwindowboxsizes:
 	mov     ebp, [esi+window.elemlistptr]						//grab the window pointer
-	mov	dword [ebp+(windowbox_size*2)+windowbox.y2], 61h	//61 is the new height we need to add
+	mov	dword [ebp+(windowbox_size*2)+windowbox.y2], 6Ch		//61h	//61 is the new height we need to add
 	call	[DrawWindowElements]								//do the original code
 	mov     cx, [esi+window.x]									//shift the new co-ords
 	mov     dx, [esi+window.y]
@@ -53,3 +53,20 @@ addlandinfoheightstring:
 	pop		ecx
 	call	[drawcenteredtextfn]				//draw it.
 	retn
+	
+global splitlandinfotext
+splitlandinfotext:
+	mov ebp, [textrefstack]
+	mov [textrefstack+2], ebp
+	add dx, 5
+	mov [textrefstack], bx
+	mov bx, statictext(lightbluetext)
+	mov bp, 276
+	call [drawsplitcenteredtextfn]
+
+	pop ebp
+	pop dx
+	pop cx
+	add dx, BYTE 22
+	push dx
+	jmp ebp
