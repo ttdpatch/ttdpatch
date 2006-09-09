@@ -220,6 +220,7 @@ clean:	cleantemp
 	rm -f *.{res,RES}
 	rm -f langerr.h
 	rm -f sw_lists.h pprocd.h pprocw.h bitnames.h
+	rm -f patchflags.ah
 	rm -f inc/ourtexts.h
 	rm -f version{d,w}.h
 
@@ -318,7 +319,7 @@ host/%.o : %.asm
 # various versions)
 define A-PO-COMMANDS
 	${_E} [CPP/NASM] $@
-	${_C}$(CPP) ${XASMDEF} -Wcomment -x assembler-with-cpp -Iinc -I. $< -MD -MF $@.d -MT $@ | perl perl/lineinfo.pl > $@.asp
+	${_C}$(CPP) ${XASMDEF} -Wcomment -x assembler-with-cpp -Iinc -I. $< -MD -MG -MF $@.d -MT $@ | perl perl/lineinfo.pl > $@.asp
 	${_C}$(NASM) -f win32 $(NASMDEF) $@.asp -o $@
 	@rm -f $@.asp
 endef
@@ -330,7 +331,7 @@ define A-LST-COMMANDS
 endef
 define C-PO-COMMANDS
 	${_E} [CC] $@
-	${_C}$(CC) ${XASMDEF} -Wall -c -o $@ $< -Iinc -I. -MD -MF $@.d -MT $@
+	${_C}$(CC) ${XASMDEF} -Wall -c -o $@ $< -Iinc -I. -MD -MG -MF $@.d -MT $@
 endef
 define C-A-D-COMMANDS
 	${_E} [CPP DEP] $@
@@ -437,6 +438,10 @@ inc/ourtext.h:	inc/ourtext.inc
 bitnames.h:	bitnames.ah
 	${_E} [PERL] $@
 	${_C}perl perl/bitnames.pl < $< > $@
+
+patchflags.ah:	common.h
+	${_E} [PERL] $@
+	${_C}perl perl/flags.pl < $< > $@
 
 # generate relocations
 reloc%.inc:	ttdprot%.map
