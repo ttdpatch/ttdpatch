@@ -267,8 +267,11 @@ stxt trdlg_neq_b,0x98,"!=",0
 stxt tr_trainlen,0x98,0x81
 stxt_cont dw ourtext(tr_trainlen)
 stxt_cont db 0
-stxt tr_maxspeed,0x98,0x81
-stxt_cont dw ourtext(tr_maxspeed)
+stxt tr_maxspeed_kph,0x98,0x81
+stxt_cont dw ourtext(tr_maxspeed_kph)
+stxt_cont db 0
+stxt tr_maxspeed_mph,0x98,0x81
+stxt_cont dw ourtext(tr_maxspeed_mph)
 stxt_cont db 0
 stxt tr_curorder,0x98,0x81
 stxt_cont dw ourtext(tr_curorder)

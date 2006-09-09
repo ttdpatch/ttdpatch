@@ -168,7 +168,7 @@ ret
 	or dh,dh
 	jz NEAR .tret
 	test edx, 0x10000
-	jz .tret
+	jz NEAR .tret
 	
 	mov [tempdlvar],dl
 	
@@ -180,12 +180,14 @@ ret
 	je near .curorder
 	cmp dh,4
 	je near .curdeporder
-	cmp dh,4
+	cmp dh,5
 	je near .totalpower
-	cmp dh,4
+	cmp dh,6
 	je near .totalweight
-	cmp dh,8
+	cmp dh,10
 	jle near .sigval
+	cmp dh,11
+	je near .maxspeed_mph
 
 .gotvar:
 	cmp BYTE [tempdlvar],1
@@ -261,6 +263,13 @@ ret
 	movzx ecx, WORD [eax+veh.maxspeed]
 	movzx edx, WORD [ebx+robj.word1]
 	jmp .gotvar
+	
+.maxspeed_mph:
+	movzx ecx, WORD [eax+veh.maxspeed]
+	lea ecx, [ecx+ecx*4]
+	shr ecx, 3
+	movzx edx, WORD [ebx+robj.word1]
+	jmp .gotvar
 
 .curorder:
 	mov cx, [eax+veh.currorder]
@@ -291,9 +300,21 @@ ret
 	jmp .gotvar
 
 .totalweight:
-	mov ecx, [eax+veh.veh2ptr]
-	movzx ecx, WORD [ecx+veh2.fullweight]
+	push eax
+	xor ecx, ecx
+.totalweight_next:
+		mov edx, [eax+veh.veh2ptr]
+		movzx edx, WORD [edx+veh2.fullweight]
+		add ecx, edx
+		movzx eax, WORD [eax+veh.nextunitidx]
+		cmp ax, -1
+		je .totalweight_end
+		shl eax, vehicleshift
+		add eax, [veharrayptr]
+	jmp .totalweight_next
+.totalweight_end:
 	movzx edx, WORD [ebx+robj.word1]
+	pop eax
 	jmp .gotvar
 
 .sigval:
@@ -517,13 +538,13 @@ dw ourtext(tr_sigval_is_r)
 dw 0xffff
 endvar
 
-%assign var_array_num 11
+%assign var_array_num 12
 varw pre_var_array
 dw statictext(empty)
 endvar
 varw var_array
 dw statictext(tr_trainlen)
-dw statictext(tr_maxspeed)
+dw statictext(tr_maxspeed_kph)
 dw statictext(tr_curorder)
 dw statictext(tr_curdeporder)
 dw statictext(tr_totalpower)
@@ -532,6 +553,7 @@ dw statictext(tr_sigval_sw2)
 dw statictext(tr_sigval_se2)
 dw statictext(tr_sigval_nw2)
 dw statictext(tr_sigval_ne2)
+dw statictext(tr_maxspeed_mph)
 dw 0xffff
 endvar
 
@@ -540,7 +562,7 @@ dw statictext(empty)
 endvar
 varw var_array_nc
 dw ourtext(tr_trainlen)
-dw ourtext(tr_maxspeed)
+dw ourtext(tr_maxspeed_kph)
 dw ourtext(tr_curorder)
 dw ourtext(tr_curdeporder)
 dw ourtext(tr_totalpower)
@@ -549,6 +571,7 @@ dw statictext(tr_sigval_sw)
 dw statictext(tr_sigval_se)
 dw statictext(tr_sigval_nw)
 dw statictext(tr_sigval_ne)
+dw ourtext(tr_maxspeed_mph)
 dw 0xffff
 endvar
 
@@ -564,6 +587,37 @@ db 33
 db 33
 db 33
 db 33
+db 8
+endvar
+
+varb dropdownorder
+db 0
+db 1
+db 10
+db 2
+db 3
+db 4
+db 5
+db 6
+db 7
+db 8
+db 9
+db 11
+endvar
+
+varb revdropdownorder
+db 0
+db 1
+db 3
+db 4
+db 5
+db 6
+db 7
+db 8
+db 9
+db 10
+db 2
+db 11
 endvar
 
 varw waAnimGoToCursorSprites
@@ -831,16 +885,17 @@ ret
 	mov DWORD [tempvar+4], statictext(tr_xorbtn) | 0xffff0000
 	mov BYTE [curvarddboxmode], 1
 
-	jmp .ddl1_nodecdx
+	jmp .ddl1_nomoddx
 
 	.ddl1_norm:
 	push ecx
 	mov BYTE [curvarddboxmode], 0
-	mov eax, var_array-4
-	mov ecx, (var_array_num+1)>>1
+	mov eax, dropdownorder-1
+	mov ecx, var_array_num
 	.ddl1_loop:
-		mov ebx,[eax+ecx*4]
-		mov [tempvar-4+ecx*4],ebx
+		movzx ebx,BYTE [eax+ecx]
+		mov bx, [var_array+ebx*2]
+		mov [tempvar-2+ecx*2],bx
 	loop .ddl1_loop
 	pop ecx
 	mov eax, [curselrobj]
@@ -848,13 +903,17 @@ ret
 	jnz .ddl1_n
 	cmp DWORD [rootobj], 0
 	jne .ret
-	jmp .ddl1_nodecdx
+	mov edx, -1
+	jmp .ddl1_nomoddx
 .ddl1_n:
-	movzx dx, byte [eax+robj.varid]
-	or dx,dx
-	jz .ddl1_nodecdx
-	dec dx
+	movzx edx, byte [eax+robj.varid]
+	or edx,edx
+	jnz .ddl1_nodecdx
+	dec edx
+	jmp .ddl1_nomoddx
 .ddl1_nodecdx:
+	movzx dx, BYTE [revdropdownorder-1+edx]
+.ddl1_nomoddx:
  	xor ebx, ebx
 	jmp dword [GenerateDropDownMenu]
 
@@ -907,6 +966,7 @@ ret
 	jne .ddl1_action_bop_ret
 
 	movzx eax,al
+	movzx eax, BYTE [dropdownorder+eax]
 
 	/* movzx ecx, BYTE [var_flags+eax]
 	and ecx, BYTE 1
@@ -1028,8 +1088,8 @@ CreateTextInputWindow
 	mov ax, -1
 	mov dword [baTempBuffer1], 0
 .nblank:
-	mov bl, 30
-	mov cx, 0x7F2A
+	mov bl, 0xFF
+	mov cx, 0x1E2A
 	mov dx, 111
 	mov bp, ourtext(tr_enternumber)
 	jmp [CreateTextInputWindow]

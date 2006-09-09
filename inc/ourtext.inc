@@ -312,7 +312,7 @@ defourtext grfbefore
 defourtext grfafter
 
 defourtext tr_trainlen
-defourtext tr_maxspeed
+defourtext tr_maxspeed_kph
 defourtext tr_curorder
 defourtext tr_curdeporder
 defourtext tr_totalpower
@@ -341,6 +341,7 @@ defourtext tr_sigval_is_red
 defourtext tr_sigval_is_g
 defourtext tr_sigval_is_r
 
+defourtext tr_maxspeed_mph
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

@@ -416,7 +416,7 @@ def txtcloneerror_notrail, db 0x94, "Not a rail vehicle", 0
 def txtcloneerror_unknown, db 0x94, "Unknown reason", 0
 
 def tr_trainlen, db  "Number of Train Carriages",0
-def tr_maxspeed, db  "Maximum Speed",0
+def tr_maxspeed_kph, db  "Maximum Speed in km/h",0
 def tr_curorder, db "Station of Current Order",0
 def tr_curdeporder, db  "Depot of Current Order",0
 def tr_totalpower, db  "Total Train Horsepower",0
@@ -449,6 +449,8 @@ def tr_sigval_is_green, db 0x98, "is green", 0
 def tr_sigval_is_red, db 0x98, "is red", 0
 def tr_sigval_is_g, db 0x98, "G", 0
 def tr_sigval_is_r, db 0x98, "R", 0
+
+def tr_maxspeed_mph, db  "Maximum Speed in mph",0
 
 def last
 
@@ -846,7 +848,7 @@ def txtcloneerror_notrail, db 0x94, "Not a rail vehicle", 0
 def txtcloneerror_unknown, db 0x94, "Unknown reason", 0
 
 def tr_trainlen, db  "Number of Train Carriages",0
-def tr_maxspeed, db  "Maximum Speed",0
+def tr_maxspeed_kph, db  "Maximum Speed in km/h",0
 def tr_curorder, db "Station of Current Order",0
 def tr_curdeporder, db  "Depot of Current Order",0
 def tr_totalpower, db  "Total Train Horsepower",0
@@ -879,6 +881,8 @@ def tr_sigval_is_green, db 0x98, "is green", 0
 def tr_sigval_is_red, db 0x98, "is red", 0
 def tr_sigval_is_g, db 0x98, "G", 0
 def tr_sigval_is_r, db 0x98, "R", 0
+
+def tr_maxspeed_mph, db  "Maximum Speed in mph",0
 
 def last
 
@@ -1276,7 +1280,7 @@ def txtcloneerror_notrail, db 0x94, "Not a rail vehicle", 0
 def txtcloneerror_unknown, db 0x94, "Unknown reason", 0
 
 def tr_trainlen, db  "Number of Train Carriages",0
-def tr_maxspeed, db  "Maximum Speed",0
+def tr_maxspeed_kph, db  "Maximum Speed in km/h",0
 def tr_curorder, db "Station of Current Order",0
 def tr_curdeporder, db  "Depot of Current Order",0
 def tr_totalpower, db  "Total Train Horsepower",0
@@ -1309,6 +1313,8 @@ def tr_sigval_is_green, db 0x98, "is green", 0
 def tr_sigval_is_red, db 0x98, "is red", 0
 def tr_sigval_is_g, db 0x98, "G", 0
 def tr_sigval_is_r, db 0x98, "R", 0
+
+def tr_maxspeed_mph, db  "Maximum Speed in mph",0
 
 def last
 
@@ -1705,7 +1711,7 @@ def txtcloneerror_notrail, db 0x94, "Not a rail vehicle", 0
 def txtcloneerror_unknown, db 0x94, "Unknown reason", 0
 
 def tr_trainlen, db  "Number of Train Carriages",0
-def tr_maxspeed, db  "Maximum Speed",0
+def tr_maxspeed_kph, db  "Maximum Speed in km/h",0
 def tr_curorder, db "Station of Current Order",0
 def tr_curdeporder, db  "Depot of Current Order",0
 def tr_totalpower, db  "Total Train Horsepower",0
@@ -1738,6 +1744,9 @@ def tr_sigval_is_green, db 0x98, "is green", 0
 def tr_sigval_is_red, db 0x98, "is red", 0
 def tr_sigval_is_g, db 0x98, "G", 0
 def tr_sigval_is_r, db 0x98, "R", 0
+
+def tr_maxspeed_mph, db  "Maximum Speed in mph",0
+
 
 def last
 
@@ -2134,7 +2143,7 @@ def txtcloneerror_notrail, db 0x94, "Not a rail vehicle", 0
 def txtcloneerror_unknown, db 0x94, "Unknown reason", 0
 
 def tr_trainlen, db  "Number of Train Carriages",0
-def tr_maxspeed, db  "Maximum Speed",0
+def tr_maxspeed_kph, db  "Maximum Speed in km/h",0
 def tr_curorder, db "Station of Current Order",0
 def tr_curdeporder, db  "Depot of Current Order",0
 def tr_totalpower, db  "Total Train Horsepower",0
@@ -2167,5 +2176,8 @@ def tr_sigval_is_green, db 0x98, "is green", 0
 def tr_sigval_is_red, db 0x98, "is red", 0
 def tr_sigval_is_g, db 0x98, "G", 0
 def tr_sigval_is_r, db 0x98, "R", 0
+
+def tr_maxspeed_mph, db  "Maximum Speed in mph",0
+
 
 def last
