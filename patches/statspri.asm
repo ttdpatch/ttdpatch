@@ -11,6 +11,7 @@
 #include <veh.inc>
 #include <misc.inc>
 #include <ptrvar.inc>
+#include <newvehdata.inc>
 
 extern GenerateDropDownMenu,actionhandler
 extern actionnewstations_actionnum,cantrainenterstattile,cleartilefn
@@ -1004,6 +1005,11 @@ newstationtile:
 	mov [edi+eax*8+stationid.gameid],cl
 	mov [edi+eax*8+stationid.setid],dl
 
+	// also set stationnonenter
+	extern persgrfdata
+	mov bl,[cantrainenterstattile+ecx]
+	mov [stationnonenter+eax],bl
+
 .gotit:
 	inc word [edi+eax*8+stationid.numtiles]
 	xchg eax,ecx
@@ -1466,9 +1472,9 @@ checktrainenterstationtile:
 	cmp al,0
 	jne .old
 
+	extern newvehdata
 	movzx eax,byte [landscape3+edi*2+1]
-	movzx eax,byte [stationidgrfmap+eax*8+stationid.gameid]
-	mov ah,[cantrainenterstattile+eax]
+	mov ah,[stationnonenter+eax]
 	mov al,[landscape5(di,1)]
 	add al,8
 	bt eax,eax	// really bt ah,tiletype
@@ -1502,8 +1508,7 @@ doestrainstopatstationtile:
 	jnz .done       // wrong 
 	
 	movzx esi,byte [landscape3+esi*2+1]
-	movzx esi,byte [stationidgrfmap+esi*8+stationid.gameid]
-	mov dh,[cantrainenterstattile+esi]
+	mov dh,[stationnonenter+esi]
 	add dl,8
 	bt edx,edx	// really bt dh,tiletype
 //	jc .stop

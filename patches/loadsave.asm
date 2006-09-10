@@ -61,7 +61,7 @@ extern robjflags,robjgameoptionflag,clearrobjarrays
 
 // Known (defined) extra chunks.
 // The first table defines chunk IDs.
-var knownextrachunkids
+varw knownextrachunkids
 // Optional chunks (no real loss of game state if they're discarded)
 	dw 0		// TTD Vehicle data
 	dw 1		// TTDPatch Vehicle data
@@ -90,11 +90,14 @@ var knownextrachunkids
 	dw 0x800d	// new airport type data
 	dw 0x800e	// Landscape8 Array
 	dw 0x800f	// Restriction Object Arrays
+	dw 0x8010	// Persistent GRF data
 
 knownextrachunknum equ (addr($)-knownextrachunkids)/2
 
+endvar
+
 // The load functions for each chunk
-var knownextrachunkloadfns
+vard knownextrachunkloadfns
 	dd addr(loadspecvehdata)
 	dd addr(loadttdvehdata)
 	dd addr(loadgrfidlist)
@@ -121,14 +124,18 @@ var knownextrachunkloadfns
 	dd addr(loadnewairporttypes)
 	dd addr(loadlandscape8array)
 	dd addr(loadrobjarray)
+	dd loadpersgrfdata
+
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkloadfns)/4
 	%error "Inconsistent number of chunk functions"
 %endif
 %endif
 
+endvar
+
 // The save functions for each chunk
-var knownextrachunksavefns
+vard knownextrachunksavefns
 	dd addr(savespecvehdata)
 	dd addr(savettdvehdata)
 	dd 0	// if this is used, something went wrong
@@ -155,16 +162,20 @@ var knownextrachunksavefns
 	dd addr(savenewairporttypes)
 	dd addr(savelandscape8array)
 	dd addr(saverobjarray)
+	dd savepersgrfdata
+
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunksavefns)/4
 	%error "Inconsistent number of chunk functions"
 %endif
 %endif
 
+endvar
+
 // The query functions for each chunk (to determine if the chunk is to be saved/loaded)
 // In:	CF=0 for loading, CF=1 for saving
 // Out:	CF=1 if chunk is to be saved/loaded, CF=0 if not
-var knownextrachunkqueryfns
+vard knownextrachunkqueryfns
 	dd addr(canhavespecvehdata)
 	dd addr(canhavettdvehdata)
 	dd addr(canhaveoldgrfidlist)
@@ -191,11 +202,15 @@ var knownextrachunkqueryfns
 	dd addr(canhavenewairporttypes)
 	dd addr(canhavelandscape8array)
 	dd addr(canhaverobjarray)
+	dd canhavepersgrfdata
+
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkqueryfns)/4
 	%error "Inconsistent number of chunk functions"
 %endif
 %endif
+
+endvar
 
 
 
@@ -480,6 +495,29 @@ newsaveproc:
 ; endp newsaveproc
 
 
+preloadadjust:
+	pusha
+
+	// start by resetting all the vehicle type data
+	call inforeset
+	and dword [extrachunksloaded1],0	// indicate that extra data are no longer valid
+	and dword [grfidlistnum],0	// clear list of GRF IDs
+	mov byte [activatedefault],0	// don't activate by default if we have no grf id list block
+
+	call setvehiclearraysize	// probably unnecessary but just in case
+	call cleardata
+
+	// if no pers.grf data is stored, we don't want to use the
+	// current save's data!
+	xor eax,eax
+	mov edi,persgrfdata
+	mov ecx,persgrfdatastruc_size/4
+	rep stosd
+
+	popa
+	ret
+
+
 postloadadjust:
 	mov edx,addr(adjaivehicleptrsload)
 	call adjaivehicleptrs
@@ -570,20 +608,7 @@ newloadtitleproc:
 .proceedwithload:
 	and byte [loadproblem],0
 
-	// start by resetting all the vehicle type data
-	push ebp
-	push esi
-
-	call inforeset
-	and dword [extrachunksloaded1],0	// indicate that extra data are no longer valid
-	and dword [grfidlistnum],0	// clear list of GRF IDs
-	mov byte [activatedefault],0	// don't activate by default if we have no grf id list block
-
-	call setvehiclearraysize	// probably unnecessary but just in case
-	call cleardata
-
-	pop esi
-	pop ebp
+	call preloadadjust
 
 	// load the main data
 	mov bl,0
@@ -1177,6 +1202,12 @@ canhaveoptionaldata:		// generic label
 	testflags saveoptdata
 	ret
 
+// All query functions that are always available go here
+canhavepersgrfdata:
+canalwayshavedata:		// generic label
+	stc
+	ret
+
 // Query functions for optional chunks that depend on other features as well as saveoptdata
 
 canhaveenhanceguioptions:
@@ -1292,6 +1323,34 @@ loadsavettdvehdata:
 	xchg eax,ebx
 	jmp skipchunkonload		// for now we don't indicate this condition; perhaps we should
 					// also, this relies on skipchunkonload doing nothing when EAX=0...
+
+// and same for persistent GRF data (in persgrfdata struct)
+loadpersgrfdata:
+	xor ebx,ebx
+	mov ecx,persgrfdatastruc_size
+	sub ecx,eax
+	jae .nottoomuch
+
+	add eax,ecx
+	sub ebx,ecx
+
+.nottoomuch:
+	jmp short loadsavepersgrfdata
+
+savepersgrfdata:
+	mov eax,persgrfdatastruc_size
+	call savechunkheader
+	xor ebx,ebx
+
+loadsavepersgrfdata:
+	extern persgrfdata
+	mov esi,persgrfdata
+	xchg ecx,eax
+	call ebp
+	xchg eax,ebx
+	test eax,eax
+	jnz skipchunkonload
+	ret
 
 
 canhaveoldgrfidlist:	// old style, only load, don't save

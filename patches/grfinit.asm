@@ -104,6 +104,10 @@ newvehtypeinit:
 	mov edi,stationidgrfmap
 	lea ecx,[eax+256/4]
 	rep stosd
+	extern persgrfdata
+	mov edi,persgrfdata
+	add ecx,persgrfdatastruc_size/4
+	rep stosd
 
 .dontresetgraphics:
 
@@ -1622,6 +1626,29 @@ extern CloneTrainChangeGrfSprites
 	call CloneTrainChangeGrfSprites
 
 .noclonetrain:
+
+	// Set persgrfdata.statnonenter
+	mov esi,stationidgrfmap
+	xor ecx,ecx
+.nextnonenter:
+	mov al,0
+	cmp word [esi+ecx*stationid_size+stationid.numtiles],0
+	je .nostationdata	// ID not in use, reset it
+
+	movzx ebx,byte [esi+ecx*stationid_size+stationid.gameid]
+	test ebx,ebx
+	jz .nogameid		// ID in use but grf missing, keep values
+
+	extern cantrainenterstattile
+	mov al,[cantrainenterstattile+ebx]
+
+.nostationdata:
+	mov [stationnonenter+ecx],al
+
+.nogameid:
+	inc cl
+	jnz .nextnonenter
+
 	CHECKMEM
 	ret
 

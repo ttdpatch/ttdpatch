@@ -126,6 +126,7 @@ startpatchactions			// this is a macro, not a label...
 	patchaction CloneTrainBuild
 
 uvard newvehdata, newvehdatastruc_size/4
+uvard persgrfdata, persgrfdatastruc_size/4
 
 #include "patchflags.ah"
 

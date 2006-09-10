@@ -59,6 +59,11 @@ struc newvehdatastruc
 	.cargolabels:	resd NUMCARGOS			// 1220..129F
 endstruc
 
+// similar to the above, but not cleared when reinitializing graphics/loading game
+struc persgrfdatastruc
+	.statnonenter:	resb 256
+endstruc
+
 #define VEHMISCFLAG_TRAINTILT		1	// Trains: train is tilting and can run faster in curves
 #define VEHMISCFLAG_RVISTRAM		1	// RVs: RV requires tram track
 #define VEHMISCFLAG_TWOCOL		2	// All vehicle types: has 2nd company colour support
@@ -115,6 +120,8 @@ endstruc
 %define shipphase2dec (newvehdata+newvehdatastruc.vehphase2dec+SHIPBASE)
 %define planephase2dec (newvehdata+newvehdatastruc.vehphase2dec+AIRCRAFTBASE)
 %define globalcargolabels (newvehdata+newvehdatastruc.cargolabels)
+
+%define stationnonenter (persgrfdata+persgrfdatastruc.statnonenter)
 
 // related variable (also set by action 0) but not stored in newvehdata
 %define traincallbackflags (callbackflags)
