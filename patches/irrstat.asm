@@ -161,6 +161,7 @@ proc irrcheckistrainstation
 
 	or ch,cl
 	*/
+	xchg cl, ch
 	mov [newstationtracks],cx
 	
 
@@ -397,14 +398,14 @@ proc fixstationplatformslength
 	sub bh, dh
 	add bx, 0x0101
 	
-	test bx, 0xF0F0
-	jnz .bigstation
-
 	mov dx, word [%$dir]
 	cmp dl, dh
 	jae .noswitch
 	xchg bl, bh
 .noswitch:
+
+	test bx, 0xF0F0
+	jnz .bigstation
 
 	mov dl, bl
 	shl dl, stationlengthshift
@@ -421,6 +422,7 @@ proc fixstationplatformslength
 	or BYTE [esi+station.flags], 0x80
 	mov eax, [stationarray2ofst]
 	add eax, esi
+	xchg bl, bh
 	mov [eax+station2.platforms], bx
 	jmp short .done
 

@@ -357,14 +357,16 @@ setstationsize:
 
 .normal:
 	push edx	// we need dh,dl, so don't destroy them...
-	mov al,dl
+/*	mov al,dl
 	shl al,stationlengthshift
 	// for realbigstations
 	cmp dh, 8
 	jb .dontneedextrabit2
 	add dh, (80h-8h)
 .dontneedextrabit2:
-	or al,dh
+	or al,dh */
+	xchg dh, dl
+	call calcplatformsfornewstation
 	pop edx
 	testflags irrstations
 	jc near irrsetstationsizenew
@@ -377,7 +379,9 @@ setstationsize:
 	testflags irrstations
 	jc near irrsetstationsizeext
 	mov dx, [newstationtracks]	// new number and length of tracks
+	xchg dh, dl
 	call calcplatformsfornewstation
+	xchg dh, dl
 	ret
 ; endp setstationsize 
 
@@ -619,7 +623,9 @@ calcplatformsfornewstation:
 	or BYTE [esi+station.flags], 0x80
 	mov eax, [stationarray2ofst]
 	add eax, esi
+	xchg dl, dh
 	mov [eax+station2.platforms], dx
+	xchg dl, dh
 	xor eax, eax
 	pop edx
 ret
