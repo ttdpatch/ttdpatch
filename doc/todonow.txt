@@ -423,9 +423,6 @@
 
 - new string code to choose normal size
 
-- station overbuilding needs to call cleartile on overbuilt tiles to update
-  the dataid's numtiles
-
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -711,3 +708,4 @@ CHANGELOG
 - by Lakie:
   * fixed a bug in resizing depot windows when 32px mode was on
 - fixed bogus sprite error when calling a procedure beyond sprite 255
+- fixed station overbuilding to adjust the overwritten tile's numtiles

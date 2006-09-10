@@ -1218,6 +1218,19 @@ alteraddlandscape3tracktype:
 	call [ebp+4]
 	popa
 
+	// if old tile was station tile, adjust the appropriate .numtiles
+	mov bl,[landscape4(di,1)]
+	and bl,0xf0
+	cmp bl,0x50
+	jne .notoverbuild
+
+	movzx ebx,byte [landscape3+edi*2+1]
+	test ebx,ebx
+	jz .notoverbuild
+
+	dec word [stationidgrfmap+ebx*stationid_size+stationid.numtiles]
+
+.notoverbuild:
 	movzx ebx,byte [curplayer]
 	mov ah,[curselstationid+ebx]
 	call newstationtile
