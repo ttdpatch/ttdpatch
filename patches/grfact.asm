@@ -4253,7 +4253,7 @@ uvard stationpylons,256/4
 uvard stationnowires,256/4
 uvard stationflags,256/4
 uvard statcargotriggers,256
-uvard cantrainenterstattile,256
+uvard cantrainenterstattile,256/4
 uvard stationanimtriggers,256/2
 uvard bridgeflags,(NBRIDGES+3)/4
 uvard trainuserbits,NTRAINTYPES/4

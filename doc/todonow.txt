@@ -419,6 +419,13 @@
   braking, taxiing: after landing, before takeoff, other, in hangar, on pad,
   accelerating for take off, ascent
 
+- use one bit per signal for PBS state to allow two-way single-side-PBS signals
+
+- new string code to choose normal size
+
+- station overbuilding needs to call cleartile on overbuilt tiles to update
+  the dataid's numtiles
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -544,6 +551,8 @@
   won't trigger right if prior vehicle is too short
 
 - in orders menu, make skip change to "skip to" when an order is selected
+
+- UTF-8 colour codes broken, http://www.tt-forums.net/viewtopic.php?p=489083#489083
 
 =====  Not so urgent  =====
 
