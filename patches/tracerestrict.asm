@@ -97,6 +97,20 @@ trpatch_stubstepfunc:
 	and al,0xC0
 	jnz .norm
 	test BYTE [landscape3+1+edi*2],16
+	jz .norm
+	
+	test ch, 3
+	jnz .check
+	
+	test ch, 14h	//N or W track
+	jz .nonw
+	test BYTE [landscape3+edi*2], 0xC0
+	jnz .check
+
+	.nonw:
+	test ch, 28h	//S or E track
+	jz .norm
+	test BYTE [landscape3+edi*2], 0x30
 	jnz .check
 
 .norm:
