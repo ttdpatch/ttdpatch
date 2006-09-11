@@ -419,6 +419,10 @@
   http://www.tt-forums.net/viewtopic.php?p=487192#487192
   should move that patch before resolution patches?
 
+- use one bit per signal for PBS state to allow two-way single-side-PBS signals
+
+- new string code to choose normal size
+
 ==== Rather urgent =====
 
 - change sprite drawing to use z-buffer instead of sprite sorter
@@ -541,6 +545,8 @@
 
 - redraw screen after processing key [2]/[8] in the scenario editor's Land
   generation window
+
+- UTF-8 colour codes broken, http://www.tt-forums.net/viewtopic.php?p=489083#489083
 
 =====  Not so urgent  =====
 
@@ -740,3 +746,4 @@ CHANGELOG
 - by Lakie:
   * fixed a bug in resizing depot windows when 32px mode was on
 - fixed bogus sprite error when calling a procedure beyond sprite 255
+- fixed station overbuilding to adjust the overwritten tile's numtiles
