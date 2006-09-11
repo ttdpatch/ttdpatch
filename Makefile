@@ -73,6 +73,7 @@ doscsources:=	$(csources) dos.c
 wincsources:=	$(csources) windows.c codepage.c
 makelangsrcs:=	makelang.c switches.c codepage.c
 mkpttxtsrcs:=	mkpttxt.c
+mkptincsrcs:=	mkptinc.c
 
 langhsources:=	$(wildcard lang/*.h)
 langobjs:=	$(langhsources:%.h=%.o)
@@ -88,6 +89,8 @@ winobjs:=	$(wincsources:%.c=%.o) ttdpatchw.res libz.a
 hostwinobjs:=	$(wincsources:%.c=host/%.o)
 mkpttxtobjs:=	$(mkpttxtsrcs:%.c=%.o)
 hostmkpttxtobjs:=$(mkpttxtsrcs:%.c=host/%.o)
+mkptincobjs:=	$(mkptinvsrcs:%.c=%.o)
+hostmkptincobjs:=$(mkptincsrcs:%.c=host/%.o)
 
 ifdef NODOS
 	asmdobjs:=
@@ -113,10 +116,12 @@ ${MAKEFILELOCAL}:
 -include ${wincsources:%.c=%.o.d}
 -include ${makelangsrcs:%.c=%.o.d} texts.o.d
 -include ${mkpttxtsrcs:%.c=%.o.d}
+-include ${mkptincsrcs:%.c=%.o.d}
 ifneq (${HOSTPATH},)
 -include ${wincsources:%.c=host/%.o.d}
 -include ${makelangsrcs:%.c=host/%.o.d} host/texts.o.d
 -include ${mkpttxtsrcs:%.c=host/%.o.d}
+-include ${mkptincsrcs:%.c=host/%.o.d}
 endif
 
 # =======================================================================
@@ -204,7 +209,7 @@ cleantemp:
 remake:
 	rm -f *.{o,obj,OBJ,bin,bil} lang/*.o host/*.o host/lang/*.o
 	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po reloc.a
-	rm -f mkpttxt.exe host/mkpttxt
+	rm -f mkpttxt.exe host/mkpttxt mkptinc.exe host/mkptinc
 
 # remove temporary files and all compilation results that can be
 # remade with make
@@ -213,7 +218,7 @@ clean:	cleantemp
 	rm -f language.ucd
 	rm -f ttdprotd.exe
 	rm -f ttdprotw.exe
-	rm -f lang/*.{new,o}
+	rm -f lang/*.{new,o,inc}
 	rm -f *.{bin,bil}
 	rm -f *.{map,MAP,map.gz}
 	rm -f reloc.a
@@ -521,6 +526,15 @@ lang/%:		makelang.c lang/%.o switches.o codepage.o texts.o
 mkpttxt.o host/mkpttxt.o:       mkpttxt.c # patches/texts.h
 mkpttxt${EXEW}:  ${mkpttxtobjs} texts.o
 host/mkpttxt${HOSTEXE}:  ${hostmkpttxtobjs} host/texts.o
+
+mkptinc${EXEW}:  ${mkptincobjs}
+host/mkptinc${HOSTEXE}:  ${hostmkptincobjs}
+
+lang/%.inc: ${HOSTPATH}mkptinc${HOSTEXE} lang/%.txt lang/american.txt
+	${_E} [MKPTINC]	$@
+	${_C} ./$< $* > lang/$*.inc.err
+	@cat lang/*.inc.err > mkptinc.err
+	@if grep "american:" $@.err; then false; else true; fi;
 
 # ----------------------------------------------------------------------
 #               Resource file for Windows version
