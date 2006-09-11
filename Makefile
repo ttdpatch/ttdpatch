@@ -292,10 +292,6 @@ host/%${HOSTEXE} : %.o
 	${_E} [NASM] $@
 	${_C}$(NASM) $(NASMOPT) -f coff -dCOFF $(NASMDEF) $< -o $@
 
-%.obj : %.asm
-	${_E} [NASM] $@
-	${_C}$(NASM) $(NASMOPT) -f obj -dOBJ $(NASMDEF) $< -o $@
-
 host/%.o : %.asm
 	${_E} [NASM] $@
 	${_C}$(NASM) $(NASMOPT) $(HOSTNASM) $(NASMDEF) $< -o $@
