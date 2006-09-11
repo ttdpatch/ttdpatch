@@ -103,7 +103,7 @@ static void printdefault(FILE *txt, char *name, int txtindex, int withname)
 	if (c == '\r') {
 		exittxt();
 		fprintf(txt, "13,");
-	} else if (c < ' ' || ( (c > 'z') && (c <= 0x9e) ) || (c == '\\' || c == '"') {
+	} else if (c < ' ' || ( (c > 'z') && (c <= 0x9e) ) || c == '\\' || c == '"') {
 		exittxt();
 		fprintf(txt, "0x%02x,", c);
 	} else {
