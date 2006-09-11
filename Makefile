@@ -111,11 +111,11 @@ ${MAKEFILELOCAL}:
 -include ${asmwobjs:.wpo=.wpo.d}
 -include ${doscsources:%.c=%.obj.d}
 -include ${wincsources:%.c=%.o.d}
--include ${makelangsrcs:%.c=%.o.d}
+-include ${makelangsrcs:%.c=%.o.d} texts.o.d
 -include ${mkpttxtsrcs:%.c=%.o.d}
 ifneq (${HOSTPATH},)
 -include ${wincsources:%.c=host/%.o.d}
--include ${makelangsrcs:%.c=host/%.o.d}
+-include ${makelangsrcs:%.c=host/%.o.d} host/texts.o.d
 -include ${mkpttxtsrcs:%.c=host/%.o.d}
 endif
 
@@ -291,10 +291,12 @@ host/%${HOSTEXE} : %.o
 %.o : %.asm
 	${_E} [NASM] $@
 	${_C}$(NASM) $(NASMOPT) -f coff -dCOFF $(NASMDEF) $< -o $@
+	@$(NASM) ${NASMDEF} $< -M -o $@ > $@.d
 
 host/%.o : %.asm
 	${_E} [NASM] $@
 	${_C}$(NASM) $(NASMOPT) $(HOSTNASM) $(NASMDEF) $< -o $@
+	@$(NASM) ${NASMDEF} $< -M -o $@ > $@.d
 
 # -------------------------------------------------------------------------
 #                  The assembly modules
@@ -365,11 +367,25 @@ ${OTMP}%.wpo.d:
 	${C-A-D-COMMANDS}
 
 host/%.o.d:
-	${_E} [HOSTCC DEP] $@
-	${_C}$(HOSTCC) -c $(HOSTCFLAGS) -D_MAKEDEP $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null
+	${_E} [DEP] $@
+	${_C} if [ -e $*.asm ]; then \
+		$(NASM) ${NASMDEF} $*.asm -M -o ${subst .d,,$@} > $@; \
+	elif [ -e $*.c ]; then \
+		$(HOSTCC) -c $(HOSTCFLAGS) -D_MAKEDEP $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null \
+	else \
+		echo Don\'t know how to make $@.; exit 1; \
+	fi
+
 %.o.d:
-	${_E} [CC DEP] $@
-	${_C}$(CC) -c $(CFLAGS) -D_MAKEDEP $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null
+	${_E} [DEP] $@
+	${_C} if [ -e $*.asm ]; then \
+		$(NASM) ${NASMDEF} $*.asm -M -o ${subst .d,,$@} > $@; \
+	elif [ -e $*.c ]; then \
+		$(CC) -c $(CFLAGS) -D_MAKEDEP $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null \
+	else \
+		echo Don\'t know how to make $@.; exit 1; \
+	fi
+
 %.obj.d : %.c
 	${_E} [CC DEP] $@
 	${_C}$(CC) -c $(CFLAGS) -D_MAKEDEP $(foreach DEF,$(DOSDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $< -o /dev/null
