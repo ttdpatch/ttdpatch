@@ -181,16 +181,19 @@ endif
 # =======================================================================
 
 # _E = prefix for the echo [TYPE] TARGET
+# _En = prefix for echo in if blocks
 # _C = prefix for the actual command(s)
 # _I = indentation for sub-make
 ifeq (${V},1)
 	# verbose, set _C = nothing (print command), _E = comment (don't echo)
 	_C=
 	_E=@\#
+	_En=true
 else
 	# not verbose, _C = @ (suppress cmd line), _E = @echo (echo type&target)
 	_C=@
 	_E:=@echo -e ${_I}
+	_En:=echo -e ${_I}
 endif
 
 # increase indentation level for sub-makes

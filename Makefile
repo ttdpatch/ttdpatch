@@ -367,21 +367,23 @@ ${OTMP}%.wpo.d:
 	${C-A-D-COMMANDS}
 
 host/%.o.d:
-	${_E} [DEP] $@
 	${_C} if [ -e $*.asm ]; then \
+		${_En} [NASM DEP] $@ ; \
 		$(NASM) ${NASMDEF} $*.asm -M -o ${subst .d,,$@} > $@; \
 	elif [ -e $*.c ]; then \
-		$(HOSTCC) -c $(HOSTCFLAGS) -D_MAKEDEP $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null \
+		${_En} [HOSTCC DEP] $@ ; \
+		$(HOSTCC) -c $(HOSTCFLAGS) -D_MAKEDEP $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null; \
 	else \
 		echo Don\'t know how to make $@.; exit 1; \
 	fi
 
 %.o.d:
-	${_E} [DEP] $@
 	${_C} if [ -e $*.asm ]; then \
+		${_En} [NASM DEP] $@ ; \
 		$(NASM) ${NASMDEF} $*.asm -M -o ${subst .d,,$@} > $@; \
 	elif [ -e $*.c ]; then \
-		$(CC) -c $(CFLAGS) -D_MAKEDEP $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null \
+		${_En} [CC DEP] $@ ; \
+		$(CC) -c $(CFLAGS) -D_MAKEDEP $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null; \
 	else \
 		echo Don\'t know how to make $@.; exit 1; \
 	fi
