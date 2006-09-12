@@ -331,11 +331,10 @@ defourtext tr_share
 defourtext tr_end
 defourtext tr_endshare
 defourtext tr_landinfotext
-defourtext tr_sigval
-defourtext tr_sw
-defourtext tr_se
-defourtext tr_nw
-defourtext tr_ne
+defourtext tr_sigval_sw
+defourtext tr_sigval_se
+defourtext tr_sigval_nw
+defourtext tr_sigval_ne
 defourtext tr_sigval_is_green
 defourtext tr_sigval_is_red
 defourtext tr_sigval_is_g

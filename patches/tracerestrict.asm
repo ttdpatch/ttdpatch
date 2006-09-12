@@ -467,8 +467,8 @@ varb tracerestrictwindowelements
 	db cWinElemSpriteBox, cColorSchemeGrey
 	dw 0, winwidth-1, 14, winheight-1, 0
 
-	// unused 3
-	db cWinElemDummyBox, 0
+	// Set text color 3
+	db cWinElemSetTextColor, 0x10
 	dw 0, 0, 0, 0, 0
 	
 	// Text Box of the Var Dropdown List 4
@@ -491,19 +491,19 @@ varb tracerestrictwindowelements
 
 	// Value button 8
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 266, 296, winheight-13, winheight-1, statictext(tr_valuebtn)
+	dw 266, 296, winheight-13, winheight-1, ourtext(tr_valuebtn)
 
 	// And button 9
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 306, 336, winheight-13, winheight-1, statictext(tr_andbtn)
+	dw 306, 336, winheight-13, winheight-1, ourtext(tr_andbtn)
 
 	// Or button 10
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 343, 373, winheight-13, winheight-1, statictext(tr_orbtn)
+	dw 343, 373, winheight-13, winheight-1, ourtext(tr_orbtn)
 	
 	// Xor button 11
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 380, 410, winheight-13, winheight-1, statictext(tr_xorbtn)
+	dw 380, 410, winheight-13, winheight-1, ourtext(tr_xorbtn)
 
 	// Delete button 12
 	db cWinElemTextBox, cColorSchemeGrey
@@ -532,12 +532,12 @@ varw pre_op_array
 dw statictext(empty)
 endvar
 varw op_array
-dw statictext(trdlg_lt_b)
-dw statictext(trdlg_gt_b)
-dw statictext(trdlg_lte_b)
-dw statictext(trdlg_gte_b)
-dw statictext(trdlg_eq_b)
-dw statictext(trdlg_neq_b)
+dw statictext(trdlg_lt)
+dw statictext(trdlg_gt)
+dw statictext(trdlg_lte)
+dw statictext(trdlg_gte)
+dw statictext(trdlg_eq)
+dw statictext(trdlg_neq)
 dw 0xffff
 endvar
 
@@ -561,8 +561,8 @@ dw 0xffff
 endvar
 
 varw op_array3
-dw statictext(tr_sigval_is_g)
-dw statictext(tr_sigval_is_r)
+dw ourtext(tr_sigval_is_g)
+dw ourtext(tr_sigval_is_r)
 dw 0xffff
 endvar
 
@@ -577,18 +577,18 @@ varw pre_var_array
 dw statictext(empty)
 endvar
 varw var_array
-dw statictext(tr_trainlen)
-dw statictext(tr_maxspeed_kph)
-dw statictext(tr_curorder)
-dw statictext(tr_curdeporder)
-dw statictext(tr_totalpower)
-dw statictext(tr_totalweight)
-dw statictext(tr_sigval_sw2)
-dw statictext(tr_sigval_se2)
-dw statictext(tr_sigval_nw2)
-dw statictext(tr_sigval_ne2)
-dw statictext(tr_maxspeed_mph)
-dw statictext(tr_nextorder)
+dw ourtext(tr_trainlen)
+dw ourtext(tr_maxspeed_kph)
+dw ourtext(tr_curorder)
+dw ourtext(tr_curdeporder)
+dw ourtext(tr_totalpower)
+dw ourtext(tr_totalweight)
+dw ourtext(tr_sigval_sw)
+dw ourtext(tr_sigval_se)
+dw ourtext(tr_sigval_nw)
+dw ourtext(tr_sigval_ne)
+dw ourtext(tr_maxspeed_mph)
+dw ourtext(tr_nextorder)
 dw 0xffff
 endvar
 
@@ -602,10 +602,10 @@ dw ourtext(tr_curorder)
 dw ourtext(tr_curdeporder)
 dw ourtext(tr_totalpower)
 dw ourtext(tr_totalweight)
-dw statictext(tr_sigval_sw)
-dw statictext(tr_sigval_se)
-dw statictext(tr_sigval_nw)
-dw statictext(tr_sigval_ne)
+dw ourtext(tr_sigval_sw)
+dw ourtext(tr_sigval_se)
+dw ourtext(tr_sigval_nw)
+dw ourtext(tr_sigval_ne)
 dw ourtext(tr_maxspeed_mph)
 dw ourtext(tr_nextorder)
 dw 0xffff
@@ -972,8 +972,8 @@ ret
 	movzx edx, BYTE [eax+robj.type]
 	sub edx, 32
 	jb .ddl1_norm
-	mov DWORD [tempvar], statictext(tr_andbtn) | statictext(tr_orbtn)<<16
-	mov DWORD [tempvar+4], statictext(tr_xorbtn) | 0xffff0000
+	mov DWORD [tempvar], ourtext(tr_andbtn) | ourtext(tr_orbtn)<<16
+	mov DWORD [tempvar+4], ourtext(tr_xorbtn) | 0xffff0000
 	mov BYTE [curvarddboxmode], 1
 
 	jmp .ddl1_nomoddx
@@ -1005,11 +1005,6 @@ ret
 .ddl1_nodecdx:
 	movzx dx, BYTE [revdropdownorder-1+edx]
 .ddl1_nomoddx:
-	movzx ebx, dx
-	or dx, dx
-	js .nohilite
-	add WORD [tempvar+ebx*2], statictext(tr_trainlen_white)-statictext(tr_trainlen)
-.nohilite:
  	xor ebx, ebx
 	jmp dword [GenerateDropDownMenu]
 
@@ -1042,11 +1037,6 @@ ret
  	mov ebx, [eax+8]
 	mov dword [tempvar+8], ebx
 	mov word [tempvar+12], 0xFFFF
-	movzx ebx, dx
-	or dx, dx
-	js .nohilite2
-	add WORD [tempvar+ebx*2], statictext(tr_trainlen_white)-statictext(tr_trainlen)
-.nohilite2:
  	xor ebx, ebx
 	jmp dword [GenerateDropDownMenu]
 
@@ -1596,7 +1586,7 @@ updatebuttons:
 .nodisdel:
 	mov [esi+window.disabledbuttons], ecx
 	movzx ax, BYTE [edx+robj.type]
-	add ax, statictext(tr_andbtn)-32
+	add ax, ourtext(tr_andbtn)-32
 	mov WORD [tracerestrictwindowelements.vartb], ax
 	mov WORD [tracerestrictwindowelements.optb],statictext(empty)
 	jmp .end
