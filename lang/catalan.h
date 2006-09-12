@@ -274,6 +274,7 @@ TEXTARRAY(halflines,) =
 	  "-ZR: Prev‚ que les ciutats asfaltin",
 	  "-ZS: Permet nous efectes sonors",
 	  "-ZT: Permet construir tramvies",
+	  "-ZZ: Permet restriccions de rutes",
 	
 	  NULL
 	};
@@ -326,6 +327,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-Zx #, -Zy #, -Zz #: Estableix el mode en que IA construeix vies/carreteres/rutes aŠries\n"
 	  "-Zp #, -Zr #, -Zs #, -Zt #: Avisa sobre aviones, vehicles, barcos i trens despr‚s d'aquests dies\n"
 	  "-ZF #:   Permet certes funcionalitats en el clima Toyland\n"
+	  "-ZY #:   Estableix el tamany m…xim d'estacions (segueix limitat per l'extensi¢ de l'estaci¢)\n"
 	  "\n"
 	  "-C cfg-file:  Llegeixi aquest arxiu de configuraci¢ en lloc de ttdpatch.cfg\n"
 	  "-W cfg-file:  Crea un arxiu de configuraci¢ amb la configuraci¢ actual\n"
@@ -504,6 +506,11 @@ SWITCHTEXT(forcegameoptions, "Li permet a vostŠ for‡ar opcions del joc","")
 SWITCHTEXT(shortrvs, "Permet vehicles de carretera m‚s curts (o m‚s llargs)", "")
 SWITCHTEXT(articulatedrvs, "Permet vehicles de carretera articulats", "")
 SWITCHTEXT(newairports, "Permet l'£s de nous tipus d'aeroports","")
+SWITCHTEXT(newroutes, "Permet el canvi de rails i carreteres a trav‚s dels arxius grf.", "")
+SWITCHTEXT(clonetrain, "Permet clonar els trens amb la finestra de la cotxera.", "")
+SWITCHTEXT(tracerestrict, "Permet restringir les rutes ferrovi…ries", "")
+SWITCHTEXT(stationsize, "Estableix el tamany m…xim d'estacions (segueix limitat per l'extensi¢ de l'estaci¢)", "")
+
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -550,6 +557,7 @@ BIT(loaduntilgreen,        "mantenir carregant en l'estaci¢ fins que el sem…for 
 BIT(dontshowaltitude,      "no mostrar altitut en la finestra d'informaci¢ de la rajola")
 BIT(nogrfidsinscreenshots, "no mostrar els grfids actius en les captures de pantalles")
 BIT(dontchangesnow,        "no canviar com l'altitut ‚s calculada per a les nevades")
+BIT(notransparentdepots,   "no fer les cotxeres de cotxes i trens transparents en el mode transparent")
 
 // Description for morebuildoptions bits
 BITSWITCH(morebuildoptions)
@@ -568,6 +576,7 @@ BIT(slowcrossing, "els trens redueixen la marxa abans dels passos a nivell")
 BIT(cooperative,  "joc cooperatiu, molt limitat")
 BIT(mandatorygrm, "fer la gerŠncia de recursos de GRF obligat•ria per als arxius .grf")
 BIT(incvehconsist, "permet m‚s de 255 trens per companyia (molt experimental)")
+BIT(signalgui,    "altera els sem…fors amb la finestra de sem…fors (molt experimental)")
 
 // Description for maskdisasters bits
 BITSWITCH(maskdisasters)
@@ -871,6 +880,12 @@ SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) li permet a vostŠ for‡ar opcions del jo
 SETTEXT(CFG_SHORTRVS, "`%s' (%s) activa vehicles de carretera curts (o llargs)")
 SETTEXT(CFG_ARTICULATEDRVS, "`%s' (%s) permet vehicles de carretera articulats")
 SETTEXT(CFG_NEWAIRPORTS, "`%s' (%s) permet usar els nous tipus d'aeroports amb GRFs")
+SETTEXT(CFG_NEWROUTES, "`%s' (%s) Permet el canvi de rails i carreteres a trav‚s dels arxius grf")
+SETTEXT(CFG_AUTOSIGDISTANCE, "`%s' (%s) estableix la separaci¢ dels sem…fors indicada per l'eina de semaforizar. Les direccions / i \\ conten com a 4, les dem‚s com a 3, per tant el valor de 12 posa sem…fors cada 3. Rang 4..255, per defecte 12.")
+SETTEXT(CFG_CLONETRAIN, "`%s' (%s) Permet clonar els trens amb la finestra de la cotxera.")
+SETTEXT(CFG_TRACERESTRICT, "%s (%s) Permet restringir les rutes ferrovi…ries segons el criteri de l'usuari.")
+SETTEXT(CFG_STATIONSIZE, "%s (%s) canvia el tamany m…xim de les estacions ferrovi…ries al valor especificat, nota que les estacions segueixen limitades per l'extensi¢ de l'estaci¢. Rang 1..255 per defecte 255. Opcions: on/off/n£mero")
+
 
 
 

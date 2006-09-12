@@ -282,6 +282,7 @@ TEXTARRAY(halflines,) =
 	  "-ZR: Previene que ciudades asfalten",
 	  "-ZS: Permite nuevos efectos sonoros",
 	  "-ZT: Permite construir tramvias",
+	  "-ZZ: Permite restricciones de rutas",
 																					  
 	  NULL
 	};
@@ -334,6 +335,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-Zx #, -Zy #, -Zz #: Establece el modo en que IA construye v¡as/carreteras/rutas a‚reas\n"
 	  "-Zp #, -Zr #, -Zs #, -Zt #: Avisa acerca de aviones, veh¡culos, barcos y trenes despu‚s de ‚stos dias\n"
 	  "-ZF #:   Permite ciertas funcionalidades en el clima Toyland\n"
+	  "-ZY #:   Establece el tama¤o m ximo de estaciones (sigue limitado por la extensi¢n de la estaci¢n)\n"
 	  "\n"
 	  "-C cfg-file:  Lee este archivo de configuraci¢n en lugar de ttdpatch.cfg\n"
 	  "-W cfg-file:  Crea un archivo de configuraci¢n con la conf. actual\n"
@@ -512,6 +514,11 @@ SWITCHTEXT(forcegameoptions, "Le permite a usted forzar opciones del juego","")
 SWITCHTEXT(shortrvs, "Permite veh¡culos de carretera cortos (o largos)", "")
 SWITCHTEXT(articulatedrvs, "Permite veh¡culos de carretera articulados", "")
 SWITCHTEXT(newairports, "Permite usar nuevos tipos de aeropuertos","")
+SWITCHTEXT(newroutes, "Permite el cambio de railes y carreteras a trav‚s de los archivos grf.", "")
+SWITCHTEXT(clonetrain, "Permite clonar los trenes con la ventana de la cochera.", "")
+SWITCHTEXT(tracerestrict, "Permite restringir las rutas ferroviarias", "")
+SWITCHTEXT(stationsize, "Establece el tama¤o m ximo de estaciones (sigue limitado por la extensi¢n de la estaci¢n)", "")
+
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -558,6 +565,7 @@ BIT(loaduntilgreen,        "mantener cargando en la estaci¢n hasta que el sem fo
 BIT(dontshowaltitude,      "no mostrar altitud en la ventana de informaci¢n del azulejo")
 BIT(nogrfidsinscreenshots, "no mostrar los grfids activos en las capturas de pantallas")
 BIT(dontchangesnow,        "no cambiar como la altitud es calculada para las nevadas")
+BIT(notransparentdepots,   "no hacer las cocheras de coches y trenes transparentes en el modo transparente")
 
 // Description for morebuildoptions bits
 BITSWITCH(morebuildoptions)
@@ -576,6 +584,7 @@ BIT(slowcrossing, "los trenes reducen la marcha antes de los pasos a nivel")
 BIT(cooperative,  "juego cooperativo, muy limitado")
 BIT(mandatorygrm, "hacer la gerencia de recursos de GRF obligatoria para los archivos .grf")
 BIT(incvehconsist, "permite m s de 255 trenes por compa¤ia (muy experimental)")
+BIT(signalgui,    "altera los sem foros con la ventana de sem foros (muy experimental)")
 
 // Description for maskdisasters bits
 BITSWITCH(maskdisasters)
@@ -879,6 +888,12 @@ SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) le permite a usted forzar opciones del 
 SETTEXT(CFG_SHORTRVS, "`%s' (%s) activa veh¡culos de carretera cortos (o largos)")
 SETTEXT(CFG_ARTICULATEDRVS, "`%s' (%s) permite veh¡culos de carretera articulados")
 SETTEXT(CFG_NEWAIRPORTS, "`%s' (%s) permite el uso de nuevos tipos de aeropuertos con GRFs")
+SETTEXT(CFG_NEWROUTES, "`%s' (%s) Permite el cambio de railes y carreteras a trav‚s de los archivos grf")
+SETTEXT(CFG_AUTOSIGDISTANCE, "`%s' (%s) establece la separaci¢n de los sem foros indicada por la herramienta de semaforizar. Las direcciones / y \\ cuentan como 4, las dem s como 3, por tanto el valor de 12 pone sem…fors cada 3. Rango 4..255, por defecto 12.")
+SETTEXT(CFG_CLONETRAIN, "`%s' (%s) Permite clonar los trenes con la ventana de la cochera.")
+SETTEXT(CFG_TRACERESTRICT, "%s (%s) Permite restringir las rutas ferroviarias seg£n el criterio del usuario.")
+SETTEXT(CFG_STATIONSIZE, "%s (%s) cambia el tama¤o m ximo de las estaciones ferroviarias al valor especificado, nota que las estaciones siguen limitadas por la extensi¢n de la estaci¢n. Rango 1..255 por defecto 255. Opciones: on/off/n£mero")
+
 
 
 
