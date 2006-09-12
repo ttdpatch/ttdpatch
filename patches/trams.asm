@@ -829,8 +829,6 @@ drawTramOrRoadDepot:
 .finishDrawing:
 	test	byte [displayoptions], 10h
 	jne	.notTransparent
-	test	byte [miscmodsflags+3], MISCMODS_NOTRANSPARENTDEPOTS>>24
-	jne	.notTransparent
 	and	ebx, 3FFFh
 	or	ebx, 3224000h
 .notTransparent:
