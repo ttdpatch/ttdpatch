@@ -127,7 +127,7 @@ void readfile(FILE *txt, char istrans){
 	line = baseline;
 	if (!fgets(line, 16384, txt))
 		break;
-	if ( (strncmp(line, "//", 2) == 0) || (line[0] == ';') || line[0] == '\n')
+	if ( (strncmp(line, "//", 2) == 0) || (line[0] == ';') || line[0] == '\n' || line[0] == '\r')
 		continue;
 
 	// does it begin with whitespace?
