@@ -186,6 +186,11 @@ begincodefragments
 		push	ecx
 		setfragmentsize 19
 
+	reusecodefragment oldroadmenuselection, oldroadmenudropdown, 47
+
+	codefragment newroadmenuselection
+		icall	updateRoadMenuSelection
+
 	codefragment newsetroadmenunum
 		pop ecx
 		mov [esi+0x2a],cx
@@ -424,6 +429,21 @@ begincodefragments
 		icall	resetL3DataToo
 		setfragmentsize 7
 
+#if WINTTDX
+	codefragment oldRVFindDepot, -13
+		add	bx, di
+		movzx	edx, bx
+	codefragment newRVFindDepot
+		icall	checkIfDepotIsTramDepot
+		setfragmentsize 9
+#else
+	codefragment oldRVFindDepot, -10
+		add	bx, di
+		movzx	edx, bx
+	codefragment newRVFindDepot
+		icall	checkIfDepotIsTramDepot
+#endif
+
 endcodefragments
 
 patchtrams:
@@ -535,6 +555,7 @@ patchtrams:
 
 	patchcode oldCreateRoadConsWindow,newCreateRoadConsWindow,1,1
 
+	patchcode oldroadmenuselection, newroadmenuselection, 1, 1
 	stringaddress oldroadmenudropdown,1,1
 	mov eax,[edi+3]
 	mov [roadmenuelemlisty2],eax
@@ -545,6 +566,8 @@ patchtrams:
 
 	patchcode oldSetRoadXPieceTool,newSetRoadXPieceTool,1,1
 	patchcode oldSetRoadYPieceTool,newSetRoadYPieceTool,1,1
+
+	patchcode oldRVFindDepot, newRVFindDepot, 1, 1
 
 	or byte [newgraphicssetsenabled+1],1 << (11 - 8)
 	retn

@@ -18,6 +18,7 @@
 #include <textdef.inc>
 #include <misc.inc>
 #include <vehtype.inc>
+#include <bitvars.inc>
 
 extern	RefreshWindows,  gettileinfo, gettileinfoshort, addsprite, addgroundsprite
 extern	newvehdata, invalidatetile, demolishroadflag, checkroadremovalconditions
@@ -31,6 +32,8 @@ extern paStationbusstop1, paStationbusstop2, paStationtruckstop1, paStationtruck
 extern bridgedrawrailunder, displayfoundation
 
 extern addrailfence1,addrailfence2,addrailfence3,addrailfence4,addrailfence5,addrailfence6,addrailfence7,addrailfence8
+
+extern miscmodsflags
 
 uvard	tramVehPtr,1,s
 uvard	RVMovementArrayPtr
@@ -600,27 +603,29 @@ updateTramStopSpriteLayout:
 
 global stopTramOvertaking
 stopTramOvertaking:
-	cmp	dword [tramVehPtr], 0FFFFFFFFh
-	je	.dontLetTramsOvertake
-	push	esi
+;	cmp	dword [tramVehPtr], 0FFFFFFFFh
+;	je	.dontLetTramsOvertake
+;	push	esi
 	push	edx
-	mov	esi, [tramVehPtr]
+;	mov	esi, [tramVehPtr]
 	movzx	edx, byte [esi+veh.vehtype]
 	test	byte [vehmiscflags+edx], VEHMISCFLAG_RVISTRAM
 	pop	edx
-	pop	esi
+;	pop	esi
 	jnz	.dontLetTramsOvertake
-	call	[rvcheckovertake]
+	cmp	word [esi+veh.nextunitidx], 0xFFFF
+	jne	.dontLetTramsOvertake
+	jmp	[rvcheckovertake]
 .dontLetTramsOvertake:
 	retn
 
-uvarb	lastselection,1,s
+uvarb	lastroadmenuselection
 global createRoadConstructionWindow
 createRoadConstructionWindow:
 
 	cmp	al, 0FFh
 	jne	.dontShiftInLastValue
-	mov	al, byte [lastselection]
+	mov	al, byte [lastroadmenuselection]
 .dontShiftInLastValue:
 	cmp	al, 1
 	jne	near .moveInZero
@@ -652,7 +657,7 @@ createRoadConstructionWindow:
 	pop	edi
 	pop	eax
 .movedInData:
-	mov	byte [lastselection], al
+	mov	byte [lastroadmenuselection], al
 	mov	eax, 356 + (22 << 16)
 	mov	ebx, 284 + (36 << 16)
 	mov	cx, 3h
@@ -823,6 +828,8 @@ drawTramOrRoadDepot:
 	mov     dh, 14h
 .finishDrawing:
 	test	byte [displayoptions], 10h
+	jne	.notTransparent
+	test	byte [miscmodsflags+3], MISCMODS_NOTRANSPARENTDEPOTS>>24
 	jne	.notTransparent
 	and	ebx, 3FFFh
 	or	ebx, 3224000h
@@ -2038,4 +2045,45 @@ global resetL3DataToo
 resetL3DataToo:
 	mov	byte [landscape2 + esi], 0
 	and	word [landscape3 + esi * 2], ~1111b
+	retn
+
+global updateRoadMenuSelection
+updateRoadMenuSelection:
+	push	eax
+	movzx	ax, byte [lastroadmenuselection]
+	mov	word [esi+window.data+2], ax
+	pop	eax
+	retn
+
+global checkIfDepotIsTramDepot
+checkIfDepotIsTramDepot:
+	cmp	dword [tramVehPtr], 0FFFFFFFFh
+	je	.isRoadVehicle
+	push	esi
+	mov	esi, [tramVehPtr]
+	movzx	esi, byte [esi+veh.vehtype]
+	test	byte [vehmiscflags+esi], VEHMISCFLAG_RVISTRAM
+	pop	esi
+	jz	.isRoadVehicle
+	push	ebx
+	add	ebx, edi
+	cmp	byte [landscape3 + ebx * 2], 1
+	pop	ebx
+	je	.normalDepotCheck
+	mov	al, 0
+	retn
+.isRoadVehicle:
+	push	ebx
+	add	ebx, edi
+	cmp	byte [landscape3 + ebx * 2], 0
+	pop	ebx
+	je	.normalDepotCheck
+	mov	al, 0
+	retn
+.normalDepotCheck:
+	push	ebx
+	add	ebx, edi
+	mov	al, byte [landscape5(bx)]
+	pop	ebx
+	and	al, 0F0h
 	retn
