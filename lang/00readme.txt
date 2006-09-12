@@ -1,10 +1,16 @@
-Various language text files, as C header files
-They are used by the makelang program which turns them into a
+Various language text files, as C header files, and the five sets of in-game
+texts, in the ttdpttxt.txt format.
+
+--------------------------
+| <lang>.h
+--------------------------
+
+These are used by the makelang program which turns them into a
 special compressed format to be appended to the TTDPatch exe
 files.
 
 PLEASE NOTE.
-	The files in this directory must be edited with a DOS editor,
+	The .h files in this directory must be edited with a DOS editor,
 	and the codepage set to the value stated at the beginning of the
 	the language file.
 
@@ -64,3 +70,21 @@ How to translate:
 	"This is the second line.\n"
 	"This is the last line.\n")
 
+
+--------------------------
+| <lang>.txt
+--------------------------
+
+These are the in-game texts, in the same format that mkpttxt uses, except that 
+trailing nulls are automatically appended by mkptinc. american.txt contains
+the canonical texts, and any texts that are not translated in the other four 
+languages will automatically fall back to the strings in american.txt. These 
+files are processed by mkptinc, to produce <lang>.inc, which contains merged 
+texts, and then compiled into makelang and mkpttxt.
+
+Translate following basically the same instructions as for ttdpttxt.txt,
+except that new texts are found in american.txt, not at the end of
+<lang>.txt. <lang>.inc.err contains the list of missing or invalid texts in
+<lang>.txt, and ../mkptinc.err contains the same, but for all five languages.
+
+Edit these files with a Windows editor, or a charset of ISO-8859-1 (Latin-1).
