@@ -8,7 +8,6 @@ extern mapwindowelementsptr,mapwindowsizes,newgraphicssetsenabled
 extern railvehoffset,roadvehoffset,rvdepotwindowsizes,shipdepotwindowsizes
 extern shipvehoffset,temp_windowclicked_element,traindepotwindowsizes
 extern variabletofind,variabletowrite,vehlistwinsizesptr,windowsizesbufferptr
-extern winelemdrawptrs,drawresizebox,DrawWinElemCheckBox
 
 #include <window.inc>
 #include <textdef.inc>
@@ -18,10 +17,6 @@ ext_frag findvariableaccess,newvariable
 global patchwindowsizer
 
 begincodefragments
-
-codefragment finddrawwindowelementslist,7
-	movzx ebx, byte [ebp+windowbox.type]
-	db 0xff // jmp ...
 
 codefragment oldwindowclicked, 5
 	db 0xEB, 0xAA
@@ -263,19 +258,6 @@ codefragment newcalcdepottotalitems
 endcodefragments
 
 patchwindowsizer:
-	//first patch the code to make resizing possible at all
-	stringaddress finddrawwindowelementslist
-	push edi
-	mov esi, [edi]
-	mov edi, winelemdrawptrs
-	mov ecx, 11*4
-	rep movsb
-	pop edi
-	mov dword [edi], winelemdrawptrs
-	mov dword [winelemdrawptrs+4*cWinElemSizer], addr(drawresizebox)
-	mov dword [winelemdrawptrs+4*cWinElemCheckBox], addr(DrawWinElemCheckBox)
-	mov eax, [winelemdrawptrs+4*cWinElemDummyBox]
-	mov dword [winelemdrawptrs+4*cWinElemExtraData], eax
 	stringaddress oldwindowclicked
 	mov eax, [edi+2]
 	mov [temp_windowclicked_element], eax

@@ -8,7 +8,6 @@ patchproc locomotiongui,enhancegui, patchtabbedwindows
 
 extern CloseDropDownMenu.ddmParentWinIdPtr1
 extern CloseDropDownMenu.ddmParentWinIdPtr2
-extern winelemdrawptrs,DrawWinElemTab,DrawWinElemTabButton
 
 begincodefragments
 
@@ -50,8 +49,6 @@ endcodefragments
 
 
 patchtabbedwindows:
-	mov dword [winelemdrawptrs+4*cWinElemTab], addr(DrawWinElemTab)
-	mov dword [winelemdrawptrs+4*cWinElemTabButton], addr(DrawWinElemTabButton)
 	stringaddress oldclosedropdownmenu
 	mov eax, [edi+7]
 	mov [CloseDropDownMenu.ddmParentWinIdPtr1], eax

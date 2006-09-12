@@ -1408,6 +1408,10 @@ codefragment findCheckForVehiclesInTheWay,1
 	pusha
 	db 0xC6,5
 
+codefragment finddrawwindowelementslist,7
+	movzx ebx, byte [ebp+windowbox.type]
+	db 0xff // jmp ...
+
 codefragment findMakeTempScrnBlockDesc, 13
 	mov bx, 469
 	mov cx, 358
@@ -2200,6 +2204,18 @@ dogeneralpatching:
 
 	stringaddress findCheckForVehiclesInTheWay
 	storeaddress CheckForVehiclesInTheWay // Stores the address of this
+
+	stringaddress finddrawwindowelementslist
+	extern winelemdrawptrs
+	mov esi,winelemdrawptrs
+	xchg esi,[edi]
+	mov edi,winelemdrawptrs
+	mov ecx, 11
+	rep movsd
+	mov eax,[winelemdrawptrs+4*cWinElemText]
+	lea edi,[eax+110]
+	extern DrawCenteredTextWithColor
+	storerelative edi,DrawCenteredTextWithColor
 	ret
 
 global newsavename

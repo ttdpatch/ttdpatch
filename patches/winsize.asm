@@ -13,8 +13,50 @@ extern windowstack,CheckBoxClicked,patchflags
 extern grfmodflags
 
 
-uvard winelemdrawptrs,cWinElemMax+1,s
 uvard windowsizesbufferptr
+
+vard winelemdrawptrs
+	extern DrawWinElemTab,DrawWinElemTabButton
+	extern DrawWinElemCheckBox
+	// first few entries are TTD's procs, will be set in dogeneralpatching
+	dd 0			// 00: dummy box
+	dd 0			// 01: sprite box
+	dd 0			// 02: sprite box next active
+	dd 0			// 03: text box
+	dd 0			// 04: text box next active
+	dd 0			// 05: text
+	dd 0			// 06: pushed in box
+	dd 0			// 07: tiled box
+	dd 0			// 08: slider
+	dd 0			// 09: frame with text
+	dd 0			// 0a: title bar
+	dd 0			// 0b: last
+	// patch draw handlers
+	dd drawresizebox	// 0c: sizer
+	dd drawdummy		// 0d: extra data
+	dd DrawWinElemTab	// 0e: tab
+	dd DrawWinElemTabButton	// 0f: tab button
+	dd DrawWinElemCheckBox	// 10: check box
+	dd DrawWinSetTextColor	// 11: set text color
+%if ($-winelemdrawptrs)/4 <> cWinElemMax+1
+	%error "Wrong number of winelemdrawptrs"
+%endif
+endvar
+
+uvarb curwintextcolor
+
+DrawWinSetTextColor:
+	mov al,[ebp+windowbox.bgcolor]
+	mov [curwintextcolor],al
+	// fall through
+
+drawdummy:
+	jmp [winelemdrawptrs+4*cWinElemDummyBox]
+
+exported DrawCenteredTextWithColor
+	extern drawcenteredtextfn
+	mov al,[curwintextcolor]
+	jmp [drawcenteredtextfn]
 
 uvarw guispritebase,1,s
 var numguisprites, dd 3+12
@@ -22,7 +64,6 @@ var numguisprites, dd 3+12
 var depotscalefactor
 	dw 29
 
-global drawresizebox
 drawresizebox:
 	mov word [ebp+windowbox.extra], 682
 	mov ax, [guispritebase]
