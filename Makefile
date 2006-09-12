@@ -285,7 +285,7 @@ host/%.o : %.c
 %.lst : %.S
 	as -a $< -o /dev/null > $@
 
-host/%${HOSTEXE} : %.o
+host/%${HOSTEXE} : host/%.o
 	${_E} [HOSTLD] $@
 	${_C}$(HOSTLD) -o $@ ${filter host/%,$^} $(HOSTLDFLAGS)
 
