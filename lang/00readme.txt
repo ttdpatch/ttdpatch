@@ -55,7 +55,7 @@ How to translate:
   file lines may have any length). Some lines have even shorter length limits:
 	* The entries in TEXTARRAY(halflines, ...) may be at most 38 chars long
 	  However, you can, if you need, use multiple lines for each entry.
-	* The entries in SWITCHTEXT(...) may be at most 36 chars long, 
+	* The entries in SWITCHTEXT(...) may be at most 74 chars long, 
 	  including the second part with a substituted number.  Note that you
 	  cannot use multiple lines, so you have to be very brief.
 
