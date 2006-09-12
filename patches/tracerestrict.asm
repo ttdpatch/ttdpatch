@@ -547,8 +547,14 @@ dw 0xffff
 endvar
 
 varw op_array3
-dw ourtext(tr_sigval_is_g)
-dw ourtext(tr_sigval_is_r)
+dw statictext(tr_sigval_is_g)
+dw statictext(tr_sigval_is_r)
+dw 0xffff
+endvar
+
+varw op_array4
+dw ourtext(tr_sigval_is_green)
+dw ourtext(tr_sigval_is_red)
 dw 0xffff
 endvar
 
@@ -666,11 +672,6 @@ uvard screenclickxy, 1
 global tracerestrict_createwindow
 tracerestrict_createwindow:
 	pushad
-	mov cx, 0x2A
-	mov dx,111
-	call dword [BringWindowToForeground]
-	jnz NEAR .alreadywindowopen
-	
 	mov esi, [esp+4]
 
 	movzx ecx, WORD [esi+window.data+signalguidata.xy]
@@ -705,12 +706,18 @@ tracerestrict_createwindow:
 .initover:
 
 	mov cx, 0x2A
+	mov dx,111
+	call dword [BringWindowToForeground]
+	jnz NEAR .alreadywindowopen
+
+	mov cx, 0x2A
 	mov dx, -1
 	mov eax, (640-winwidth)/2 + (((480-winheight)/2) << 16) // x, y
 	mov ebx, winwidth + (winheight << 16) // width , height
 	mov ebp, trwin_msghndlr
 	call dword [CreateWindow]
 
+.alreadywindowopen:
 	call countrows
 
 	mov dword [esi+window.elemlistptr], tracerestrictwindowelements
@@ -730,7 +737,6 @@ tracerestrict_createwindow:
 	mov edx, [curselrobj]
 	call updatebuttons
 
-.alreadywindowopen:
 	popad
 ret
 
@@ -889,6 +895,7 @@ ret
 ret
 
 .ddl1:
+	call CheckDDL2
 	mov eax, [curselrobj]
 	or eax, eax
 	jz .ddl1_norm
@@ -928,25 +935,32 @@ ret
 .ddl1_nodecdx:
 	movzx dx, BYTE [revdropdownorder-1+edx]
 .ddl1_nomoddx:
+	movzx ebx, dx
+	or dx, dx
+	js .nohilite
+	add WORD [tempvar+ebx*2], statictext(tr_trainlen_white)-statictext(tr_trainlen)
+.nohilite:
  	xor ebx, ebx
 	jmp dword [GenerateDropDownMenu]
 
 .ddl2:
+	call CheckDDL1
 	mov eax, [curselrobj]
 	or eax, eax
 	jz .ret
 	movzx dx, byte [eax+robj.type]
-	or dx,dx
-	jz .ddl2_nodecdx
 	dec dx
-.ddl2_nodecdx:
 	//mov eax, [curoparray]
 	movzx ebx, BYTE [eax+robj.varid]
 	mov bl, [var_flags-1+ebx]
 	mov eax, op_array
 	test bl, 1
 	jz .ddl_noop2array
-	mov eax, op_array2
+	add eax, 8
+	or dx, dx
+	js .nosubdx4
+	sub dx, 4
+	.nosubdx4:
 	test bl, 32
 	jz .ddl_noop2array
 	mov eax, op_array3
@@ -958,6 +972,11 @@ ret
  	mov ebx, [eax+8]
 	mov dword [tempvar+8], ebx
 	mov word [tempvar+12], 0xFFFF
+	movzx ebx, dx
+	or dx, dx
+	js .nohilite2
+	add WORD [tempvar+ebx*2], statictext(tr_trainlen_white)-statictext(tr_trainlen)
+.nohilite2:
  	xor ebx, ebx
 	jmp dword [GenerateDropDownMenu]
 
@@ -973,7 +992,7 @@ ret
 	mov [ebx+robj.type], al
 .ddl1_action_bop_ret:
 	mov edx, ebx
-	jmp updatebuttons
+	jmp updatebuttons.noddlcheck
 
 .ddl1_action_norm:
 	cmp BYTE [curvarddboxmode], 0
@@ -1045,7 +1064,7 @@ ret
 	mov [ebx+robj.varid],al
 	mov BYTE [ebx+robj.type],0
 	mov edx, ebx
-	jmp updatebuttons
+	jmp updatebuttons.noddlcheck
 
 .ddl2_action:
 	movzx eax,al
@@ -1061,7 +1080,7 @@ ret
 	lea eax, [eax+1+ecx*4]
 	mov [ebx+robj.type],al
 	mov edx,ebx
-	jmp updatebuttons
+	jmp updatebuttons.noddlcheck
 
 .trwin_dropdown:
 	cmp cl,5
@@ -1071,6 +1090,8 @@ ret
 ret
 
 .valuebtn:
+	call CheckDDL1
+	call CheckDDL2
 	mov ebx, [curselrobj]
 	or ebx, ebx
 	jnz .valuebtn_nret
@@ -1304,6 +1325,8 @@ ret
 	mov eax, 1
 	jmp copysharelistbtn
 .rstnorm:
+	mov WORD [tracerestrictwindowelements.vartb], statictext(empty)
+	mov WORD [tracerestrictwindowelements.optb], statictext(empty)
 	push esi
 	movzx esi, WORD [curxypos]
 	call delrobjsignal
@@ -1451,6 +1474,9 @@ ret
 
 //in: edx=curselrobj,esi=window
 updatebuttons:
+	call CheckDDL1
+	call CheckDDL2
+.noddlcheck:
 	pusha
 	cmp DWORD [rootobj], 0
 	sete al
@@ -1511,6 +1537,11 @@ updatebuttons:
 	jnz .novar
 	or cx, 0x180
 .novar:
+	mov ebx, op_array
+	test BYTE [var_flags-1+eax], 32
+	jz .nsigop
+	mov ebx, op_array4-8
+.nsigop:
 	mov ax,[var_array-2+eax*2]
 	mov WORD [tracerestrictwindowelements.vartb],ax
 
@@ -1519,7 +1550,7 @@ updatebuttons:
 	jnz .noop
 	or ch, 1
 .noop:
-	mov ax,[op_array-2+eax*2]
+	mov ax,[ebx-2+eax*2]
 	mov WORD [tracerestrictwindowelements.optb],ax
 	mov [esi+window.disabledbuttons], ecx
 
@@ -1529,6 +1560,32 @@ updatebuttons:
 	or al, 0x40
 	call dword [invalidatehandle]
 	popa
+ret
+
+CheckDDL1:
+	test BYTE [esi+window.activebuttons], 20h
+	jz .end
+	pusha
+	mov cl, 5
+	mov dx, -1
+ 	xor ebx, ebx
+ 	mov word [tempvar], 0xFFFF
+	call dword [GenerateDropDownMenu]
+	popa
+.end:
+ret
+
+CheckDDL2:
+	test BYTE [esi+window.activebuttons], 80h
+	jz .end
+	pusha
+	mov cl, 7
+	mov dx, -1
+ 	xor ebx, ebx
+ 	mov word [tempvar], 0xFFFF
+	call dword [GenerateDropDownMenu]
+	popa
+.end:
 ret
 
 //In: esi,edi
@@ -1655,7 +1712,7 @@ ret
 	mov bp, [op_array3-10+ecx*2]
 	mov WORD [textrefstack+4], bp
 	test BYTE [eax+robj.flags],1
-	jnz .blank6
+	jz .blank6
 	mov WORD [textrefstack+6], statictext(trdlg_txt_XY)
 	mov cx, [eax+robj.word1]
 	mov bp,cx

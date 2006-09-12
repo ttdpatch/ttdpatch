@@ -257,13 +257,6 @@ stxt trdlg_gte,">=",0
 stxt trdlg_eq,"==",0
 stxt trdlg_neq,"!=",0
 
-stxt trdlg_lt_b,0x98,"<",0
-stxt trdlg_gt_b,0x98,">",0
-stxt trdlg_lte_b,0x98,"<=",0
-stxt trdlg_gte_b,0x98,">=",0
-stxt trdlg_eq_b,0x98,"==",0
-stxt trdlg_neq_b,0x98,"!=",0
-
 stxt tr_trainlen,0x98,0x81
 stxt_cont dw ourtext(tr_trainlen)
 stxt_cont db 0
@@ -309,6 +302,75 @@ stxt_cont db 0
 stxt tr_sigval_ne2,0x98,0x81
 stxt_cont dw statictext(tr_sigval_ne)
 stxt_cont db 0
+stxt tr_sigval_is_g,0x98,0x81
+stxt_cont dw ourtext(tr_sigval_is_g)
+stxt_cont db 0
+stxt tr_sigval_is_r,0x98,0x81
+stxt_cont dw ourtext(tr_sigval_is_r)
+stxt_cont db 0
+stxt trdlg_lt_b,0x98,"<",0
+stxt trdlg_gt_b,0x98,">",0
+stxt trdlg_lte_b,0x98,"<=",0
+stxt trdlg_gte_b,0x98,">=",0
+stxt trdlg_eq_b,0x98,"==",0
+stxt trdlg_neq_b,0x98,"!=",0
+stxt tr_trainlen_white,0x94,0x81
+stxt_cont dw ourtext(tr_trainlen)
+stxt_cont db 0
+stxt tr_maxspeed_kph_white,0x94,0x81
+stxt_cont dw ourtext(tr_maxspeed_kph)
+stxt_cont db 0
+stxt tr_maxspeed_mph_white,0x94,0x81
+stxt_cont dw ourtext(tr_maxspeed_mph)
+stxt_cont db 0
+stxt tr_curorder_white,0x94,0x81
+stxt_cont dw ourtext(tr_curorder)
+stxt_cont db 0
+stxt tr_curdeporder_white,0x94,0x81
+stxt_cont dw ourtext(tr_curdeporder)
+stxt_cont db 0
+stxt tr_totalpower_white,0x94,0x81
+stxt_cont dw ourtext(tr_totalpower)
+stxt_cont db 0
+stxt tr_totalweight_white,0x94,0x81
+stxt_cont dw ourtext(tr_totalweight)
+stxt_cont db 0
+stxt tr_valuebtn_white,0x94,0x81
+stxt_cont dw ourtext(tr_valuebtn)
+stxt_cont db 0
+stxt tr_andbtn_white,0x94,0x81
+stxt_cont dw ourtext(tr_andbtn)
+stxt_cont db 0
+stxt tr_orbtn_white,0x94,0x81
+stxt_cont dw ourtext(tr_orbtn)
+stxt_cont db 0
+stxt tr_xorbtn_white,0x94,0x81
+stxt_cont dw ourtext(tr_xorbtn)
+stxt_cont db 0
+stxt tr_sigval_sw2_white,0x94,0x81
+stxt_cont dw statictext(tr_sigval_sw)
+stxt_cont db 0
+stxt tr_sigval_se2_white,0x94,0x81
+stxt_cont dw statictext(tr_sigval_se)
+stxt_cont db 0
+stxt tr_sigval_nw2_white,0x94,0x81
+stxt_cont dw statictext(tr_sigval_nw)
+stxt_cont db 0
+stxt tr_sigval_ne2_white,0x94,0x81
+stxt_cont dw statictext(tr_sigval_ne)
+stxt_cont db 0
+stxt tr_sigval_is_g_white,0x94,0x81
+stxt_cont dw ourtext(tr_sigval_is_g)
+stxt_cont db 0
+stxt tr_sigval_is_r_white,0x94,0x81
+stxt_cont dw ourtext(tr_sigval_is_r)
+stxt_cont db 0
+stxt trdlg_lt_b_white,0x94,"<",0
+stxt trdlg_gt_b_white,0x94,">",0
+stxt trdlg_lte_b_white,0x94,"<=",0
+stxt trdlg_gte_b_white,0x94,">=",0
+stxt trdlg_eq_b_white,0x94,"==",0
+stxt trdlg_neq_b_white,0x94,"!=",0
 
 stxt trdlg_txt_depot,0x81,
 stxt_cont dw ourtext(gototraindepot)
