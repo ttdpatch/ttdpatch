@@ -342,6 +342,7 @@ defourtext tr_sigval_is_g
 defourtext tr_sigval_is_r
 
 defourtext tr_maxspeed_mph
+defourtext tr_nextorder
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

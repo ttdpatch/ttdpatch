@@ -269,6 +269,9 @@ stxt_cont db 0
 stxt tr_curorder,0x98,0x81
 stxt_cont dw ourtext(tr_curorder)
 stxt_cont db 0
+stxt tr_nextorder,0x98,0x81
+stxt_cont dw ourtext(tr_nextorder)
+stxt_cont db 0
 stxt tr_curdeporder,0x98,0x81
 stxt_cont dw ourtext(tr_curdeporder)
 stxt_cont db 0
@@ -325,6 +328,9 @@ stxt_cont dw ourtext(tr_maxspeed_mph)
 stxt_cont db 0
 stxt tr_curorder_white,0x94,0x81
 stxt_cont dw ourtext(tr_curorder)
+stxt_cont db 0
+stxt tr_nextorder_white,0x94,0x81
+stxt_cont dw ourtext(tr_nextorder)
 stxt_cont db 0
 stxt tr_curdeporder_white,0x94,0x81
 stxt_cont dw ourtext(tr_curdeporder)

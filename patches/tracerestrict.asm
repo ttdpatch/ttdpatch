@@ -202,6 +202,8 @@ ret
 	jle near .sigval
 	cmp dh,11
 	je near .maxspeed_mph
+	cmp dh,12
+	je near .nextorder
 
 .gotvar:
 	cmp BYTE [tempdlvar],1
@@ -285,8 +287,20 @@ ret
 	movzx edx, WORD [ebx+robj.word1]
 	jmp .gotvar
 
+.nextorder:
+	movzx edx, BYTE [eax+veh.currorderidx]
+	inc edx
+	movzx ecx, BYTE [eax+veh.totalorders]
+	cmp edx, ecx
+	jb .nosubecx
+	sub edx, ecx
+	.nosubecx:
+	mov ecx, [eax+veh.scheduleptr]
+	mov cx, [ecx+edx*2]
+	jmp .orderin
 .curorder:
 	mov cx, [eax+veh.currorder]
+.orderin:
 	and ecx,0xff0f
 	cmp cl,1
 	je .curordernbl
@@ -558,7 +572,7 @@ dw ourtext(tr_sigval_is_red)
 dw 0xffff
 endvar
 
-%assign var_array_num 12
+%assign var_array_num 13
 varw pre_var_array
 dw statictext(empty)
 endvar
@@ -574,6 +588,7 @@ dw statictext(tr_sigval_se2)
 dw statictext(tr_sigval_nw2)
 dw statictext(tr_sigval_ne2)
 dw statictext(tr_maxspeed_mph)
+dw statictext(tr_nextorder)
 dw 0xffff
 endvar
 
@@ -592,10 +607,12 @@ dw statictext(tr_sigval_se)
 dw statictext(tr_sigval_nw)
 dw statictext(tr_sigval_ne)
 dw ourtext(tr_maxspeed_mph)
+dw ourtext(tr_nextorder)
 dw 0xffff
 endvar
 
 //1: 2op, 2: station, 4: depot, 8: uword, 16: udword, 32: sig
+/*
 varb var_flags
 db 8
 db 8
@@ -608,6 +625,7 @@ db 33
 db 33
 db 33
 db 8
+db 3
 endvar
 
 varb dropdownorder
@@ -615,6 +633,7 @@ db 0
 db 1
 db 10
 db 2
+db 11
 db 3
 db 4
 db 5
@@ -622,23 +641,74 @@ db 6
 db 7
 db 8
 db 9
-db 11
+db 12
 endvar
 
 varb revdropdownorder
 db 0
 db 1
 db 3
-db 4
 db 5
 db 6
 db 7
 db 8
 db 9
 db 10
-db 2
 db 11
+db 2
+db 4
+db 12
 endvar
+*/
+
+%assign currentflagnum 0
+
+%macro varinfo 2	//%1=flags as above, %2=dropdown index
+var_flag_value_ %+ currentflagnum equ %1
+var_flag_revddlnum_ %+ currentflagnum equ %2
+var_flag_ddlnum_%2 equ currentflagnum
+%assign currentflagnum currentflagnum+1
+%endmacro
+
+varinfo 8, 0
+varinfo 8, 1
+varinfo 3, 3
+varinfo 5, 5
+varinfo 16, 6
+varinfo 16, 7
+varinfo 33, 8
+varinfo 33, 9
+varinfo 33, 10
+varinfo 33, 11
+varinfo 8, 2
+varinfo 3, 4
+
+varb var_flags
+%assign i 0
+%rep currentflagnum
+db var_flag_value_ %+ i
+%assign i i+1
+%endrep
+endvar
+
+varb dropdownorder
+%assign i 0
+%rep currentflagnum
+db var_flag_ddlnum_ %+ i
+%assign i i+1
+%endrep
+db currentflagnum
+endvar
+
+varb revdropdownorder
+%assign i 0
+%rep currentflagnum
+db var_flag_revddlnum_ %+ i
+%assign i i+1
+%endrep
+db currentflagnum
+endvar
+
 
 varw waAnimGoToCursorSprites
 dw 2CCh, 1Dh, 2CDh, 1Dh, 2CEh, 62h, 0FFFFh
@@ -1540,7 +1610,7 @@ updatebuttons:
 	mov ebx, op_array
 	test BYTE [var_flags-1+eax], 32
 	jz .nsigop
-	mov ebx, op_array4-8
+	mov ebx, op_array3-8
 .nsigop:
 	mov ax,[var_array-2+eax*2]
 	mov WORD [tracerestrictwindowelements.vartb],ax
@@ -1709,7 +1779,7 @@ ret
 	movzx ecx, BYTE [eax+robj.type]
 	cmp ecx, 5
 	jb .blank4
-	mov bp, [op_array3-10+ecx*2]
+	mov bp, [op_array4-10+ecx*2]
 	mov WORD [textrefstack+4], bp
 	test BYTE [eax+robj.flags],1
 	jz .blank6
