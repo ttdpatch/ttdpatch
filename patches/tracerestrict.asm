@@ -541,18 +541,14 @@ dw statictext(trdlg_neq)
 dw 0xffff
 endvar
 
-varw pre_op_array_nc
+varw pre_op_array3
+dw statictext(empty)
 dw statictext(empty)
 endvar
-varw op_array_nc
-dw statictext(trdlg_lt)
-dw statictext(trdlg_gt)
-dw statictext(trdlg_lte)
-dw statictext(trdlg_gte)
-dw statictext(trdlg_eq)
-dw statictext(trdlg_neq)
-dw 0xffff
-endvar
+
+// four words between ourtext(tr_sigval_is_g) and first statictext(empty)
+// if robj.type==0
+// op_array3-8 + robj.type*2 --> first statictext(empty)
 
 varw op_array2
 dw statictext(trdlg_eq)
@@ -592,27 +588,7 @@ dw ourtext(tr_nextorder)
 dw 0xffff
 endvar
 
-varw pre_var_array_nc
-dw statictext(empty)
-endvar
-varw var_array_nc
-dw ourtext(tr_trainlen)
-dw ourtext(tr_maxspeed_kph)
-dw ourtext(tr_curorder)
-dw ourtext(tr_curdeporder)
-dw ourtext(tr_totalpower)
-dw ourtext(tr_totalweight)
-dw ourtext(tr_sigval_sw)
-dw ourtext(tr_sigval_se)
-dw ourtext(tr_sigval_nw)
-dw ourtext(tr_sigval_ne)
-dw ourtext(tr_maxspeed_mph)
-dw ourtext(tr_nextorder)
-dw 0xffff
-endvar
-
 //1: 2op, 2: station, 4: depot, 8: uword, 16: udword, 32: sig
-/*
 varb var_flags
 db 8
 db 8
@@ -628,73 +604,49 @@ db 8
 db 3
 endvar
 
-varb dropdownorder
+varw pre_var_compat_id
+db -1
+endvar
+varb var_compat_id
 db 0
 db 1
-db 10
 db 2
-db 11
 db 3
 db 4
 db 5
 db 6
-db 7
-db 8
-db 9
-db 12
-endvar
-
-varb revdropdownorder
-db 0
-db 1
-db 3
-db 5
+db 6
+db 6
 db 6
 db 7
-db 8
-db 9
-db 10
-db 11
 db 2
-db 4
-db 12
 endvar
-*/
 
 %assign currentflagnum 0
 
-%macro varinfo 2	//%1=flags as above, %2=dropdown index
-var_flag_value_ %+ currentflagnum equ %1
-var_flag_revddlnum_ %+ currentflagnum equ %2
-var_flag_ddlnum_%2 equ currentflagnum
+%macro varinfo 1	//%1=variable number
+var_info_ddlnum_ %+ currentflagnum equ %1
+var_info_revddlnum_%1 equ currentflagnum
 %assign currentflagnum currentflagnum+1
 %endmacro
 
-varinfo 8, 0
-varinfo 8, 1
-varinfo 3, 3
-varinfo 5, 5
-varinfo 16, 6
-varinfo 16, 7
-varinfo 33, 8
-varinfo 33, 9
-varinfo 33, 10
-varinfo 33, 11
-varinfo 8, 2
-varinfo 3, 4
-
-varb var_flags
-%assign i 0
-%rep currentflagnum
-db var_flag_value_ %+ i
-%assign i i+1
-%endrep
-endvar
+varinfo 0
+varinfo 1
+varinfo 10
+varinfo 2
+varinfo 11
+varinfo 3
+varinfo 4
+varinfo 5
+varinfo 6
+varinfo 7
+varinfo 8
+varinfo 9
 
 varb dropdownorder
 %assign i 0
 %rep currentflagnum
-db var_flag_ddlnum_ %+ i
+db var_info_ddlnum_ %+ i
 %assign i i+1
 %endrep
 db currentflagnum
@@ -703,7 +655,7 @@ endvar
 varb revdropdownorder
 %assign i 0
 %rep currentflagnum
-db var_flag_revddlnum_ %+ i
+db var_info_revddlnum_ %+ i
 %assign i i+1
 %endrep
 db currentflagnum
@@ -1119,10 +1071,15 @@ ret
 	pop eax
 	call countrows
 .ddl1_action_noinit:
-	and BYTE [ebx+robj.flags],~1
 	inc eax
-	mov [ebx+robj.varid],al
+	mov edx, eax
+	xchg [ebx+robj.varid],al
+	mov dl, [edx+var_compat_id-1]
+	cmp dl, [eax+var_compat_id-1]
+	je .noclearvalue
+	and BYTE [ebx+robj.flags],~1
 	mov BYTE [ebx+robj.type],0
+.noclearvalue:
 	mov edx, ebx
 	jmp updatebuttons.noddlcheck
 
@@ -1688,10 +1645,10 @@ ret
 	test edx, 2
 	jz NEAR .nostation
 	mov WORD [textrefstack], statictext(trdlg_txt_3)
-	mov bp, [var_array_nc+ecx*2]
+	mov bp, [var_array+ecx*2]
 	mov WORD [textrefstack+2], bp
 	movzx ecx, BYTE [eax+robj.type]
-	mov bp, [op_array_nc-2+ecx*2]
+	mov bp, [op_array-2+ecx*2]
 	mov WORD [textrefstack+4], bp
 	test BYTE [eax+robj.flags],1
 	jz .dontprintstation
@@ -1714,10 +1671,10 @@ ret
 	test edx, 4
 	jz NEAR .nodepot
 	mov WORD [textrefstack], statictext(trdlg_txt_3)
-	mov bp, [var_array_nc+ecx*2]
+	mov bp, [var_array+ecx*2]
 	mov WORD [textrefstack+2], bp
 	movzx ecx, BYTE [eax+robj.type]
-	mov bp, [op_array_nc-2+ecx*2]
+	mov bp, [op_array-2+ecx*2]
 	mov WORD [textrefstack+4], bp
 	test BYTE [eax+robj.flags],1
 	jnz .printdepot
@@ -1746,10 +1703,10 @@ ret
 	test edx, 24
 	jz .nodword
 	mov WORD [textrefstack], statictext(trdlg_txt_3)
-	mov bp, [var_array_nc+ecx*2]
+	mov bp, [var_array+ecx*2]
 	mov WORD [textrefstack+2], bp
 	movzx ecx, BYTE [eax+robj.type]
-	mov bp, [op_array_nc-2+ecx*2]
+	mov bp, [op_array-2+ecx*2]
 	mov WORD [textrefstack+4], bp
 	test BYTE [eax+robj.flags],1
 	jnz .printdword
@@ -1764,7 +1721,7 @@ ret
 	test edx, 32
 	jz .nosignal
 	mov WORD [textrefstack], statictext(trdlg_txt_3)
-	mov bp, [var_array_nc+ecx*2]
+	mov bp, [var_array+ecx*2]
 	mov WORD [textrefstack+2], bp
 	movzx ecx, BYTE [eax+robj.type]
 	cmp ecx, 5
