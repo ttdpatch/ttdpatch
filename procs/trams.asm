@@ -35,6 +35,8 @@ extern roadmenudropdown,roadmenuelemlisty2,roadDropdownCode,createRoadConstructi
 
 extern checkdepot3jump, checkdepot4jump, checkdepot3return, checkdepot4return, checkdepot5jump, checkdepot5return
 
+extern paRoadDepotSpriteTable
+
 begincodefragments
 	codefragment olddrawgroundspriteroad, 9
 		cmp dh, 1
@@ -429,6 +431,13 @@ begincodefragments
 		icall	resetL3DataToo
 		setfragmentsize 7
 
+	codefragment oldDrawBuildDepot, -6
+		add	cx, 21h
+		add	dx, 11h
+
+	codefragment newDrawBuildDepot
+		icall	throwInTramDepots
+
 #if WINTTDX
 	codefragment oldRVFindDepot, -13
 		add	bx, di
@@ -566,6 +575,13 @@ patchtrams:
 
 	patchcode oldSetRoadXPieceTool,newSetRoadXPieceTool,1,1
 	patchcode oldSetRoadYPieceTool,newSetRoadYPieceTool,1,1
+
+	stringaddress oldDrawBuildDepot, 2-WINTTDX, 2
+	push	eax
+	mov	eax, [edi+2]
+	mov	dword [paRoadDepotSpriteTable], eax
+	pop	eax
+	patchcode oldDrawBuildDepot, newDrawBuildDepot, 2-WINTTDX, 2
 
 	patchcode oldRVFindDepot, newRVFindDepot, 1, 1
 

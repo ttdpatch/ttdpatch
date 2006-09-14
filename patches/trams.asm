@@ -54,6 +54,7 @@ uvard	bTempNewBridgeDirection
 uvard	tramTracksSWNE
 uvard	tramTracksNWSE
 uvard	paRoadConstrWinClickProcs,1,s
+uvard	paRoadDepotSpriteTable
 uvarw	tmpDI,1,s
 var	numtramtracks, dd 107
 var	tramfrontwiresprites,	db 0h, 37h, 37h, 3Fh, 37h, 37h, 43h, 37h, 37h, 3Fh, 37h, 37h, 3Fh, 37h, 37h, 37h
@@ -598,6 +599,21 @@ updateTramStopSpriteLayout:
 	mov	cx, 38h
 	add	cx, word [tramtracks]
 	mov	dword [paStationtramfreightstop2+30], ecx
+//tram depot window cons
+	xor	ecx,ecx
+	mov	cx, 35h
+	add	cx, word [tramtracks]
+	mov	dword [tramdepotorient1+4], ecx
+	sub	cx, 3
+	mov	dword [tramdepotorient2+12], ecx
+	sub	cx, 1
+	mov	dword [tramdepotorient2+4], ecx
+	add	cx, 3
+	mov	dword [tramdepotorient3+12], ecx
+	sub	cx, 1
+	mov	dword [tramdepotorient3+4], ecx
+	add	cx, 3
+	mov	dword [tramdepotorient4+4], ecx
 	pop	ecx
 	retn
 
@@ -2086,4 +2102,42 @@ checkIfDepotIsTramDepot:
 	mov	al, byte [landscape5(bx)]
 	pop	ebx
 	and	al, 0F0h
+	retn
+
+vard paTramDepotSpriteTable, tramdepotorient1, tramdepotorient2, tramdepotorient3, tramdepotorient4
+var tramdepotorient1,	dd 2634
+			dd 8000h+1412
+			db 0, 0Fh, 10h, 1
+			dd 0
+var tramdepotorient2,	dd 2634
+			dd 1408
+			db 0, 0, 1, 10h
+			dd 8000h+1409
+			db 0Fh, 0, 1, 10h
+			dd 0
+var tramdepotorient3,	dd 2634
+			dd 1410
+			db 0, 0, 10h, 1
+			dd 8000h+1411
+			db 0, 0Fh, 10h, 1
+			dd 0
+var tramdepotorient4,	dd 2634
+			dd 8000h+1413
+			db 0Fh, 0, 1, 10h
+			dd 0
+
+;paRoadDepotSpriteTable is the original
+
+global throwInTramDepots
+throwInTramDepots:
+	push	eax
+	cmp	byte [editTramMode], 0
+	jne	.insertTramDepots
+	mov	eax, [paRoadDepotSpriteTable]
+	jmp	short .continueDrawing
+.insertTramDepots:
+	mov	eax, paTramDepotSpriteTable
+.continueDrawing:
+	mov	ebx, [eax+ebx]
+	pop	eax
 	retn

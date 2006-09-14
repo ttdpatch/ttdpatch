@@ -1530,51 +1530,40 @@ void showtheswitches(const struct consoleinfo *const pcon)
 // When adding things here, also add them to categories in switches.h
 struct st_categoryinfo {
 	categories parent;
+	const char *name;
 	const char *desc;
 	int numsubcategories;
 };
 typedef struct st_categoryinfo categoryinfo;
 
 categoryinfo category_info[] = {
-	{ CAT_NONE, "Basic" },
-	{ CAT_NONE, "Vehicles" },
-	{ CAT_VEH, "Rail" },
-	{ CAT_VEH, "Road" },
-	{ CAT_VEH, "Aircraft" },
-	{ CAT_VEH, "Orders" },
-	{ CAT_NONE, "Terrain" },
-	{ CAT_NONE, "Infrastructure" },
-	{ CAT_INFST, "Bridges" },
-	{ CAT_INFST, "Railways" },
-	{ CAT_INFST_RAIL, "Signalling" },
-	{ CAT_INFST, "Roads" },
-	{ CAT_INFST, "Stations" },
-	{ CAT_NONE, "Houses/Towns" },
-	{ CAT_HOUSESTOWNS, "Town growth rate" },
-	{ CAT_NONE, "Industries/Cargo" },
-	{ CAT_NONE, "Finance/Economy" },
-	{ CAT_NONE, "Difficulty" },
-	{ CAT_NONE, "Interface" },
-	{ CAT_INTERFACE, "News messages" },
-	{ CAT_INTERFACE, "Vehicles" },
-	{ CAT_INTERFACE, "Windows" },
+	// Parent category	name (permanent)	description (may change)
+	{ CAT_NONE,		"basic",		"Basic" },
+	{ CAT_NONE,		"vehicles",		"Vehicles" },
+	{ CAT_VEH,		"vehiclesrail",		"Rail" },
+	{ CAT_VEH,		"vehiclesroad",		"Road" },
+	{ CAT_VEH,		"vehiclesaircraft",	"Aircraft" },
+	{ CAT_VEH,		"vehiclesorders",	"Orders" },
+	{ CAT_NONE,		"terrain",		"Terrain" },
+	{ CAT_NONE,		"infrastructure",	"Infrastructure" },
+	{ CAT_INFST,		"infstbridges",		"Bridges" },
+	{ CAT_INFST,		"infstrailways",	"Railways" },
+	{ CAT_INFST_RAIL,	"infstrailsignalling",	"Signalling" },
+	{ CAT_INFST,		"infstroads",		"Roads" },
+	{ CAT_INFST,		"infststations",	"Stations" },
+	{ CAT_NONE,		"housestowns",		"Houses/Towns" },
+	{ CAT_HOUSESTOWNS,	"towngrowthrate",	"Town growth rate" },
+	{ CAT_NONE,		"industriescargo",	"Industries/Cargo" },
+	{ CAT_NONE,		"financeeconomy",	"Finance/Economy" },
+	{ CAT_NONE,		"difficulty",		"Difficulty" },
+	{ CAT_NONE,		"interface",		"Interface" },
+	{ CAT_INTERFACE,	"interfacenewsmessages","News messages" },
+	{ CAT_INTERFACE,	"interfacevehicles",	"Vehicles" },
+	{ CAT_INTERFACE,	"interfacewindows",	"Windows" },
 
-	{ CAT_NONE, NULL },
+	{ CAT_NONE, NULL, NULL },
 };
 
-/*
-Write switches in XML format
-
-Format:
-<switches version="TTDPatch 2.0.1 alpha 17" ID="020A00AA">
-	<bool name="debtmax" desc="(from cfg") value="1" />
-	<range name="multihead" min="0" max="100" default="35" value="35" />
-	<bitswitch name="experimentalfeatures" desc="(from cfg file)">
-		<bit num="0" name="slowcrossing" desc="slow before crossing">
-	</bitswitch>
-</switches>
-
-*/
 
 static void putxmlstr(FILE *f, const char *str)
 {
@@ -1677,8 +1666,8 @@ static void dumpxmlcategoryswitches(FILE *f, categories cat, int depth)
 
 static int dumpxmlcategory(FILE *f, categories cat, int depth)
 {
-  fprintf(f, "%s<category desc=\"%s\">\n",
-	tabs(depth), category_info[cat].desc);
+  fprintf(f, "%s<category name=\"%s\" desc=\"%s\">\n",
+	tabs(depth), category_info[cat].name, category_info[cat].desc);
 
   dumpxmlcategoryswitches(f, cat, depth + 1);
 
