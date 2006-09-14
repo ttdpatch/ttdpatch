@@ -1074,14 +1074,36 @@ ret
 	inc eax
 	mov edx, eax
 	xchg [ebx+robj.varid],al
-	mov dl, [edx+var_compat_id-1]
-	cmp dl, [eax+var_compat_id-1]
+	mov dl, [edx+var_compat_id-1]	//new var
+	mov dh, [eax+var_compat_id-1]	//old var
+	cmp dl, dh
 	je .noclearvalue
+	cmp dx, 0x0701
+	je .ddl1_action_convert_mph_kph
+	cmp dx, 0x0107
+	je .ddl1_action_convert_kph_mph
 	and BYTE [ebx+robj.flags],~1
 	mov BYTE [ebx+robj.type],0
 .noclearvalue:
 	mov edx, ebx
 	jmp updatebuttons.noddlcheck
+
+.ddl1_action_convert_kph_mph:
+	movzx edx, WORD [ebx+robj.word1]
+	lea edx, [edx+edx*4]
+	shr edx, 3
+	mov [ebx+robj.word1], dx
+	jmp .noclearvalue
+
+.ddl1_action_convert_mph_kph:
+	movzx eax, WORD [ebx+robj.word1]
+	mov edx, 0x33333333
+	mul edx
+	add eax, 0x10000000
+	adc edx, BYTE 0
+	shrd eax, edx, 29
+	mov [ebx+robj.word1], ax
+	jmp .noclearvalue
 
 .ddl2_action:
 	movzx eax,al
