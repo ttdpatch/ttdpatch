@@ -2841,13 +2841,13 @@ exported periodicstationupdate
 
 exported setrailstationrvrouteing
 .nexstationid:
-	CALLINT3		// prevent the use of this feature by grfauthors until the feature is complete
+	CALLINT3			// prevent the use of this feature by grfauthors until the feature is complete
 	lodsd
-	test eax, 0xF0F0	// prevent the use of the upper 4 bits
+	test eax, 0xF0F0F0F0	// prevent the use of the upper 4 bits
 	jnz .bad 
 	mov [canrventerrailstattile+ebx*8], eax
 	lodsd
-	test eax, 0xF0F0
+	test eax, 0xF0F0F0F0
 	jnz .bad 
 	mov [canrventerrailstattile+ebx*8+4], eax
 	inc ebx
