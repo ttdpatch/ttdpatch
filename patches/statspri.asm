@@ -14,7 +14,7 @@
 #include <newvehdata.inc>
 
 extern GenerateDropDownMenu,actionhandler
-extern actionnewstations_actionnum,cantrainenterstattile,cleartilefn
+extern actionnewstations_actionnum,cantrainenterstattile,canrventerrailstattile,cleartilefn
 extern curcallback,curgrfstationlist,curselclass,curselclassid,curselstation
 extern curselstationid,curspriteblock,disallowedlengths,disallowedplatforms
 extern ecxcargooffset,fixednumber_addr,getdesertmap,geteffectivetracktype
@@ -1005,10 +1005,15 @@ newstationtile:
 	mov [edi+eax*8+stationid.gameid],cl
 	mov [edi+eax*8+stationid.setid],dl
 
-	// also set stationnonenter
+	// also set stationnonenter and stationrventer
 	extern persgrfdata
 	mov bl,[cantrainenterstattile+ecx]
 	mov [stationnonenter+eax],bl
+	
+	mov ebx,[canrventerrailstattile+ecx*8]
+	mov [stationrventer+eax*8],ebx
+	mov ebx,[canrventerrailstattile+ecx*8+4]
+	mov [stationrventer+eax*8+4],ebx
 
 .gotit:
 	inc word [edi+eax*8+stationid.numtiles]
@@ -2818,4 +2823,38 @@ exported periodicstationupdate
 	mov edx,6
 	call stationanimtrigger
 	clc
+	ret
+
+	
+	
+// Functions dealing with RV on rail station by eis_os
+
+// special functions to handle station properties
+//
+// in:	eax=special prop-num
+//	ebx=offset (stationid)
+//	ecx=num-info
+//	esi=>data
+// out:	esi=>after data
+//	carry clear if successful
+//	carry set if error, then ax=error message
+
+exported setrailstationrvrouteing
+.nexstationid:
+	CALLINT3		// prevent the use of this feature by grfauthors until the feature is complete
+	lodsd
+	test eax, 0xF0F0	// prevent the use of the upper 4 bits
+	jnz .bad 
+	mov [canrventerrailstattile+ebx*8], eax
+	lodsd
+	test eax, 0xF0F0
+	jnz .bad 
+	mov [canrventerrailstattile+ebx*8+4], eax
+	inc ebx
+	loop .nexstationid
+	clc	// no error
+	ret
+.bad:
+	mov ax, ourtext(invalidsprite)
+	stc
 	ret

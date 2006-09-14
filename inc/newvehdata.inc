@@ -62,6 +62,8 @@ endstruc
 // similar to the above, but not cleared when reinitializing graphics/loading game
 struc persgrfdatastruc
 	.statnonenter:	resb 256
+	.statrventer: resd 256*2
+//	.statrvzcorrect: resd 256 
 endstruc
 
 #define VEHMISCFLAG_TRAINTILT		1	// Trains: train is tilting and can run faster in curves
@@ -122,7 +124,9 @@ endstruc
 %define globalcargolabels (newvehdata+newvehdatastruc.cargolabels)
 
 %define stationnonenter (persgrfdata+persgrfdatastruc.statnonenter)
-
+%define stationrventer (persgrfdata+persgrfdatastruc.statrventer)
+//%define stationrvzcorrect (persgrfdata+persgrfdatastruc.statrvzcorrect)
+	
 // related variable (also set by action 0) but not stored in newvehdata
 %define traincallbackflags (callbackflags)
 %define rvcallbackflags (traincallbackflags+NTRAINTYPES)

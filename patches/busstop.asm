@@ -5,12 +5,12 @@
 #include <station.inc>
 #include <veh.inc>
 #include <flags.inc>
+#include <newvehdata.inc>
 
 extern DrawStationImageInSelWindow,generatesoundeffect,isrvbus,redrawscreen
 extern editTramMode
 extern patchflags
-
-
+extern persgrfdata
 
 
 uvarb paStationEntry1, 28
@@ -70,6 +70,10 @@ uvarb rvmovementschemestops, 32
 
 uvarb salorrystationguielements, 133	//steven hoefel: added space for two new station styles
 
+varb roadbitstoroute
+	db 0, 0, 0, 0x10, 0, 0x2, 0x8, 0x1A, 0, 0x4, 0x1, 0x15, 0x20, 0x26, 0x29, 0x3F
+endvar
+
 global NewClass5RouteMapHandler
 NewClass5RouteMapHandler:
 	cmp ax, 2
@@ -97,31 +101,51 @@ NewClass5RouteMapHandler:
 	je .busstop2
 	cmp al, 0x5A		//tram freight stop
 	je .busstop2
-//	cmp al, 0x07
-//	jbe .railstation
+	cmp al, 0x07
+	jbe .railstation
 	xor eax, eax
 	ret
 
+#if 0
+// Is this still needed Steven?
 .doNotAllowEntry:
 	xor eax, eax	//zero the 'tile route map'
 	xor edi, edi	//ruin the landscape XY pointer so that the routemapper wont allow entry.
 	ret
+#endif
 
-#if 0
 .railstation:
-	CALLINT3
-	nop
-	nop
-	nop
-	mov ax, 0x0101
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
+	extern newvehdata
+	movzx esi, byte [landscape3+edi*2+1]
+	and eax, 0xF
+	mov al, byte [stationrventer+esi*8+eax]
+	cmp al, 0
+	jnz .railrvroute
+.errorinstatdata:
+	xor eax, eax
+	ret
+.railrvroute:
+	and eax, 1111b
+	mov al, byte [roadbitstoroute+eax]
+	mov ah, al
+	ret
+#if 0
+	mov ah,[stationrventer+esi*4]
+	add al, 8
+	bt ax, ax
+	jc .railrvroute
+	xor eax, eax
+	ret
+.railrvroute:
+	bt ax, 0
+	jc .railrvroute2
+	mov eax, 0x0202
+	ret
+.railrvroute2:
+	mov eax, 0x0101
 	ret
 #endif
+
 .busstop1:
 	mov ax, 0x0101
 	ret

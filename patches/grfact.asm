@@ -66,6 +66,7 @@ extern newcoastspritebase, newcoastspritenum
 extern setairportlayout,airportstarthangarnodes,setairportmovementdata
 extern airportcallbackflags,airportspecialflags,airportaction3
 extern airportweight,airporttypenames
+extern setrailstationrvrouteing
 
 uvarb action1lastfeature
 
@@ -356,6 +357,8 @@ proc processnewinfo
 	//	ebx=offset (translated for type "F", untranslated for type "H")
 	//	ecx=num-info (for type "H" only; type "F" should assume num-info=1)
 	//	edx->feature specific data offset
+	//		same as ebx for anything but vehicles, for vehicles: 
+	//		it's ebx+class base ID, so ebx+116 for RVs, etc.
 	//	esi->data
 	// out:	esi->after data
 	//	carry clear if successful
@@ -3913,7 +3916,7 @@ defvehdata specplanedata, B,B,B,B,B,B,B,W,B,B		// 08..12
 defvehdata spclplanedata, d,B,B,B,B,w,w			// 13..19
 
 defvehdata specstationdata				// no properties
-defvehdata spclstationdata, F,H,F,B,B,B,F,F,w,B,F,B,B,B,w,B,w	// 08..18
+defvehdata spclstationdata, F,H,F,B,B,B,F,F,w,B,F,B,B,B,w,B,w,F	// 08..19
 
 defvehdata specbridgedata, B,B,B,B			// 08..0B
 defvehdata spclbridgedata, w,F,B			// 0C..0E
@@ -4237,6 +4240,7 @@ var newstationdata
 	dd stationflags,stationnowires,cantrainenterstattile	// 13,14,15
 	dd stationanimdata,stationanimspeeds			// 16,17
 	dd stationanimtriggers					// 18
+	dd addr(setrailstationrvrouteing)				// 19
 
 var bridgedata	// (prop 0C is set in patches.ah)
 	dd 0, addr(alterbridgespritetable), bridgeflags		// 0C..0E
@@ -4361,6 +4365,7 @@ uvard stationnowires,256/4
 uvard stationflags,256/4
 uvard statcargotriggers,256
 uvard cantrainenterstattile,256/4
+uvard canrventerrailstattile,256*2
 uvard stationanimtriggers,256/2
 uvard bridgeflags,(NBRIDGES+3)/4
 uvard trainuserbits,NTRAINTYPES/4

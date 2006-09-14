@@ -1627,11 +1627,13 @@ extern CloneTrainChangeGrfSprites
 
 .noclonetrain:
 
-	// Set persgrfdata.statnonenter
+	// Set persgrfdata.statnonenter and statrventer
 	mov esi,stationidgrfmap
 	xor ecx,ecx
 .nextnonenter:
-	mov al,0
+	mov ax,0
+	xor edx, edx
+	xor edi, edi
 	cmp word [esi+ecx*stationid_size+stationid.numtiles],0
 	je .nostationdata	// ID not in use, reset it
 
@@ -1641,9 +1643,15 @@ extern CloneTrainChangeGrfSprites
 
 	extern cantrainenterstattile
 	mov al,[cantrainenterstattile+ebx]
-
+	
+	extern canrventerrailstattile
+	mov edx,[canrventerrailstattile+ebx*8]
+	mov edi,[canrventerrailstattile+ebx*8+4]
+	
 .nostationdata:
 	mov [stationnonenter+ecx],al
+	mov [stationrventer+ecx*8],edx
+	mov [stationrventer+ecx*8+4],edi
 
 .nogameid:
 	inc cl
