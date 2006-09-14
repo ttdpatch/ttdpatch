@@ -240,8 +240,6 @@
   http://www.tt-forums.net/viewtopic.php?p=354169#354169
   -> see bTempNewHouseAllowedOnBareLand
 
-- cht: newai
-
 - make Cht: tracks, renew, clearpresig, nounload, semaphores, etc. also affect
   subsidiaries
 
@@ -334,9 +332,6 @@
 - when changing 2nd cc, sprites in veh window get offsets (?)
 
 - George reports lost stations, see emails
-
-- cht: resetpbs sometimes misses some signals
-  http://www.tt-forums.net/viewtopic.php?p=400886#400886
 
 - bugs in plane refitting
   http://www.tt-forums.net/viewtopic.php?p=402035
@@ -541,9 +536,6 @@
 - make "build signal" button a toggle, then count squares and build signal
   every "signalevery x" squares
 
-- make some grf errors nonfatal warnings; but if real error after warning
-  show that instead!
-
 - support train prop 21=06 or 07, problem is @16046b, the cmp al/cl,2/-2,
   won't trigger right if prior vehicle is too short
 
@@ -557,13 +549,8 @@
 
 - Cht to reset "will not get exclusive offers" flag
 
-- make bank production dependent on town population, e.g. pop/40 = bags/month
-
 - when building tunnel, not only try lowering one corner of other side but
   also try raising other corner; do what's cheapest of the two
-
-- add sound effects for diesel, electric and monorail/maglev trains entering
-  a tunnel
 
 - allow trains to go backwards: fake it by reversing the order, and copying
   all engine data from the real engine to the new first wagon; make sure to
