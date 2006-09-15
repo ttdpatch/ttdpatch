@@ -3371,7 +3371,7 @@ calcdropdownmenuwidth:
 	call [gettextwidth]
 	pop bx
 	cmp cx, bx
-	jb .okay
+	jl .okay
 	mov bx, cx
 .okay:
 	add ebp, 2
