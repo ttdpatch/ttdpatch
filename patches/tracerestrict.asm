@@ -15,6 +15,7 @@
 
 extern CreateWindow,DrawWindowElements,WindowClicked,DestroyWindow,WindowTitleBarClicked,GenerateDropDownMenu,BringWindowToForeground,invalidatehandle,setmousetool,getnumber,errorpopup
 global robjgameoptionflag,robjflags
+extern cargotypes,newcargotypenames, cargobits
 
 global tr_siggui_btnclick
 
@@ -204,6 +205,10 @@ ret
 	je near .maxspeed_mph
 	cmp dh,12
 	je near .nextorder
+	cmp dh,13
+	je near .prevst
+	cmp dh,14
+	je near .cargo
 
 .gotvar:
 	cmp BYTE [tempdlvar],1
@@ -344,6 +349,35 @@ ret
 	movzx edx, WORD [ebx+robj.word1]
 	pop eax
 	jmp .gotvar
+	
+.prevst:
+	movzx ecx, BYTE [eax+veh.laststation]
+	movzx edx, BYTE [ebx+robj.word1]
+	jmp .gotvar
+	
+.cargo:
+	push eax
+	mov dl, [ebx+robj.word1]
+	xor cl, cl
+.cargo_next:
+	mov ch, [eax+veh.cargotype]
+	cmp WORD [eax+veh.capacity], 0
+	movzx eax, WORD [eax+veh.nextunitidx]
+	je .no_cargo_check
+	cmp ch, dl
+	sete ch
+	or cl, ch
+.no_cargo_check:
+	cmp ax, -1
+	je .cargo_end
+	shl eax, vehicleshift
+	add eax, [veharrayptr]
+	jmp .cargo_next
+.cargo_end:
+	movzx ecx, cl
+	mov edx, 1
+	pop eax
+	jmp .gotvar
 
 .sigval:
 	push eax
@@ -448,7 +482,7 @@ clearrobjarrays:
 
 ret
 
-%assign winwidth 505
+%assign winwidth 515
 %assign numrows 20
 %assign winheight numrows*12+36
 
@@ -495,24 +529,24 @@ varb tracerestrictwindowelements
 
 	// And button 9
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 306, 336, winheight-13, winheight-1, ourtext(tr_andbtn)
+	dw 316, 346, winheight-13, winheight-1, ourtext(tr_andbtn)
 
 	// Or button 10
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 343, 373, winheight-13, winheight-1, ourtext(tr_orbtn)
+	dw 353, 383, winheight-13, winheight-1, ourtext(tr_orbtn)
 	
 	// Xor button 11
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 380, 410, winheight-13, winheight-1, ourtext(tr_xorbtn)
+	dw 390, 420, winheight-13, winheight-1, ourtext(tr_xorbtn)
 
 	// Delete button 12
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 417, 457, winheight-13, winheight-1
+	dw 427, 467, winheight-13, winheight-1
 	.delbtn: dw 0x8824
 	
 	// Reset button 13
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 464, 504, winheight-13, winheight-1
+	dw 474, 514, winheight-13, winheight-1
 	.rstbtn: dw ourtext(resetorders)
 
 	// Text Box 14
@@ -523,6 +557,14 @@ varb tracerestrictwindowelements
 	// Slider 15
 	db cWinElemSlider, cColorSchemeGrey
 	dw winwidth-11, winwidth-1, 14, winheight-14,0
+	
+	// Template for value drop-down list 16
+	db cWinElemDummyBox, cColorSchemeGrey
+	dw 210, 296, winheight-13, winheight-1, 0
+
+	// Drop Down List button for Value 17
+	db cWinElemTextBox, cColorSchemeGrey
+	dw 297, 309, winheight-13, winheight-1, statictext(txtetoolbox_dropdown)
 
 	db 0xb
 
@@ -568,7 +610,7 @@ dw ourtext(tr_sigval_is_red)
 dw 0xffff
 endvar
 
-%assign var_array_num 13
+%assign var_array_num 15
 varw pre_var_array
 dw statictext(empty)
 endvar
@@ -585,10 +627,12 @@ dw ourtext(tr_sigval_nw)
 dw ourtext(tr_sigval_ne)
 dw ourtext(tr_maxspeed_mph)
 dw ourtext(tr_nextorder)
+dw ourtext(tr_lastvisitstation)
+dw ourtext(tr_carriescargo)
 dw 0xffff
 endvar
 
-//1: 2op, 2: station, 4: depot, 8: uword, 16: udword, 32: sig
+//1: 2op, 2: station, 4: depot, 8: uword, 16: udword, 32: sig, 64: cargo
 varb var_flags
 db 8
 db 8
@@ -602,6 +646,8 @@ db 33
 db 33
 db 8
 db 3
+db 3
+db 65
 endvar
 
 varw pre_var_compat_id
@@ -620,6 +666,8 @@ db 6
 db 6
 db 7
 db 2
+db 2
+db 8
 endvar
 
 %assign currentflagnum 0
@@ -635,9 +683,11 @@ varinfo 1
 varinfo 10
 varinfo 2
 varinfo 11
+varinfo 12
 varinfo 3
 varinfo 4
 varinfo 5
+varinfo 13
 varinfo 6
 varinfo 7
 varinfo 8
@@ -799,7 +849,7 @@ ret
 	js NEAR .ret
 
 	cmp byte [rmbclicked],0 // Was it the right mouse button
-	jne .ret
+	jne NEAR .ret
 	
 	movzx ecx,cl
 	bt DWORD [esi+window.disabledbuttons], ecx
@@ -850,6 +900,9 @@ ret
 	
 	cmp cl, 14
 	je .tbox
+
+	cmp cl, 17
+	je NEAR .valuebtn
 
 .ret:
 ret
@@ -1121,11 +1174,42 @@ ret
 	mov edx,ebx
 	jmp updatebuttons.noddlcheck
 
+.ddl3_action:
+	movzx eax,al
+	
+	mov edx, [curselrobj]
+	or edx, edx
+	jnz .ddl3_action_nret
+.ddl3_action_ret:
+ret
+.ddl3_action_nret:
+	movzx ecx, BYTE [edx+robj.varid]
+	test BYTE [var_flags-1+ecx], 64
+	jz .ddl3_action_ret
+
+	xor ecx, ecx
+
+	.ddl3_action_cargo_loop:
+	bt DWORD [cargobits], ecx
+	jnc .ddl3_action_cargo_skip
+	dec eax
+	js .ddl3_action_cargo_gotit
+	.ddl3_action_cargo_skip:
+	inc ecx
+	cmp cl, 32
+	jb .ddl3_action_cargo_loop
+	.ddl3_action_cargo_gotit:
+	mov [edx+robj.word1], cl
+	or BYTE [edx+robj.flags], 1
+	jmp updatebuttons.noddlcheck
+
 .trwin_dropdown:
 	cmp cl,5
-	je .ddl1_action
+	je NEAR .ddl1_action
 	cmp cl,7
-	je .ddl2_action
+	je NEAR .ddl2_action
+	cmp cl,17
+	je .ddl3_action
 ret
 
 .valuebtn:
@@ -1136,10 +1220,13 @@ ret
 	jnz .valuebtn_nret
 ret
 .valuebtn_nret:
-	movzx ecx,BYTE [ebx+robj.varid]
-	dec ecx
-	mov al,[var_flags+ecx]
+	movzx eax,BYTE [ebx+robj.varid]
+	dec eax
+	mov al,[var_flags+eax]
 	
+	test al, 0x40
+	jnz NEAR .valuebtnddlcargo
+
 	test al, 0x26
 	jnz .mtool
 
@@ -1283,6 +1370,38 @@ ret
 .mtoolclosehndlr:
 	and BYTE [esi+window.activebuttons+1], ~1
 	jmp .redrawvaluebtnnpopesi
+
+.valuebtnddlcargo:
+	mov dl, [ebx+robj.word1]
+	mov dh, [ebx+robj.flags]
+	and dh, 1
+	dec dh
+	or dl, dh
+	mov dh, -1
+	xor ecx, ecx
+	xor eax, eax
+.valuebtnddlcargo_loop:
+	//cmp BYTE [cargotypes+ecx], 0xff
+	//je .valuebtnddlcargo_skip
+	bt DWORD [cargobits], ecx
+	jnc .valuebtnddlcargo_skip
+	mov bp, [newcargotypenames+ecx*2]
+	mov [tempvar+eax], bp
+	cmp al, dl
+	jne .valuebtnddlcargo_nosetcurr
+	mov dh, al
+	shr dh, 1
+	.valuebtnddlcargo_nosetcurr:
+	add eax, 2
+	.valuebtnddlcargo_skip:
+	inc ecx
+	cmp cl, 32
+	jb .valuebtnddlcargo_loop
+	mov WORD [tempvar+eax], 0xffff
+	sar dx, 8
+ 	xor ebx, ebx
+ 	mov ecx, 17
+	jmp dword [GenerateDropDownMenu]
 
 .andbtn:
 	mov al, 0
@@ -1515,6 +1634,7 @@ ret
 updatebuttons:
 	call CheckDDL1
 	call CheckDDL2
+	call CheckDDL3
 .noddlcheck:
 	pusha
 	cmp DWORD [rootobj], 0
@@ -1524,7 +1644,7 @@ updatebuttons:
 	jz .norm
 	mov WORD [tracerestrictwindowelements.delbtn], ourtext(tr_copy)
 	mov WORD [tracerestrictwindowelements.rstbtn], ourtext(tr_share)
-	mov DWORD [esi+window.disabledbuttons], 0x0F80
+	mov DWORD [esi+window.disabledbuttons], 0x20F80
 	jmp .end
 .norm:
 	mov WORD [tracerestrictwindowelements.delbtn], 0x8824
@@ -1533,7 +1653,7 @@ updatebuttons:
 	jnz .noblank
 	mov WORD [tracerestrictwindowelements.vartb],statictext(empty)
 	mov WORD [tracerestrictwindowelements.optb],statictext(empty)
-	mov DWORD [esi+window.disabledbuttons], 0x1FA0
+	mov DWORD [esi+window.disabledbuttons], 0x21FA0
 	cmp DWORD [rootobj],0
 	je NEAR .end
 	or BYTE [esi+window.disabledbuttons], 0x20
@@ -1543,7 +1663,7 @@ updatebuttons:
 	xor ecx, ecx
 	cmp BYTE [edx+robj.type], 32
 	jb .cmp
-	mov ecx, 0x180
+	mov ecx, 0x20180
 	mov ebx, [edx+robj.word1]
 	or bx, bx
 	jz .nodisdel
@@ -1573,21 +1693,25 @@ updatebuttons:
 .cmp:
 	movzx eax, BYTE [edx+robj.varid]
 	or eax, eax
-	jnz .novar
-	or cx, 0x180
-.novar:
+	jnz .var
+	or ecx, 0x180
+.var:
 	mov ebx, op_array
 	test BYTE [var_flags-1+eax], 32
 	jz .nsigop
 	mov ebx, op_array3-8
 .nsigop:
+	test BYTE [var_flags-1+eax], 64
+	jnz .nddl3
+	or ecx, 0x20000
+.nddl3:
 	mov ax,[var_array-2+eax*2]
 	mov WORD [tracerestrictwindowelements.vartb],ax
 
 	movzx eax, BYTE [edx+robj.type]
 	or eax, eax
 	jnz .noop
-	or ch, 1
+	or ecx, 0x20100
 .noop:
 	mov ax,[ebx-2+eax*2]
 	mov WORD [tracerestrictwindowelements.optb],ax
@@ -1619,6 +1743,19 @@ CheckDDL2:
 	jz .end
 	pusha
 	mov cl, 7
+	mov dx, -1
+ 	xor ebx, ebx
+ 	mov word [tempvar], 0xFFFF
+	call dword [GenerateDropDownMenu]
+	popa
+.end:
+ret
+
+CheckDDL3:
+	test BYTE [esi+window.activebuttons+2], 2h
+	jz .end
+	pusha
+	mov cl, 17
 	mov dx, -1
  	xor ebx, ebx
  	mov word [tempvar], 0xFFFF
@@ -1747,11 +1884,11 @@ ret
 	mov WORD [textrefstack+2], bp
 	movzx ecx, BYTE [eax+robj.type]
 	cmp ecx, 5
-	jb .blank4
+	jb NEAR .blank4
 	mov bp, [op_array4-10+ecx*2]
 	mov WORD [textrefstack+4], bp
 	test BYTE [eax+robj.flags],1
-	jz .blank6
+	jz NEAR .blank6
 	mov WORD [textrefstack+6], statictext(trdlg_txt_XY)
 	mov cx, [eax+robj.word1]
 	mov bp,cx
@@ -1761,6 +1898,25 @@ ret
 	mov WORD [textrefstack+10], bp
 	jmp .print
 .nosignal:
+	test edx, 64
+	jz .nocargo
+	mov WORD [textrefstack], statictext(trdlg_txt_3)
+	mov bp, [var_array+ecx*2]
+	mov WORD [textrefstack+2], bp
+	movzx ecx, BYTE [eax+robj.type]
+	mov bp, [op_array-2+ecx*2]
+	mov WORD [textrefstack+4], bp
+	test BYTE [eax+robj.flags],1
+	jnz .cargotxt
+	mov WORD [textrefstack+6], statictext(empty)
+	jmp .print
+.cargotxt:
+	movzx ecx, BYTE [eax+robj.word1]
+	mov bp, [newcargotypenames+ecx*2]
+	mov [textrefstack+6], bp
+	jmp .print
+.nocargo:
+
 
 	//none
 	mov DWORD [textrefstack], statictext(empty)+statictext(empty)<<16

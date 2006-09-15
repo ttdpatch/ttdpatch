@@ -342,6 +342,8 @@ defourtext tr_sigval_is_r
 
 defourtext tr_maxspeed_mph
 defourtext tr_nextorder
+defourtext tr_lastvisitstation
+defourtext tr_carriescargo
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
