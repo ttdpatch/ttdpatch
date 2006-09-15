@@ -14,7 +14,7 @@ extern curcallback,curstationtile,getindustileid,getirrplatformlength
 extern getnewsprite,grffeature,invalidatetile,irrgetrailxysouth
 extern patchflags,randomfn,redrawtile,statcargotriggers
 extern stationidgrfmap
-extern updatestationgraphics
+extern updatestationgraphics,convertplatformsinecx
 
 
 uvard triggerbits	// all bits which have triggered in this event
@@ -128,8 +128,9 @@ randomconsisttrigger:
 
 // and now for stations
 // in:	 al=trigger bit(s)
-//	 ah=bits 0..3: platform number, bit 6: redraw, bit 7: all platforms
+//	 ah=bits 0..3: platform number, bit 5: use ecx for platform number, bit 6: redraw, bit 7: all platforms
 //	ebx->station
+//	ecx=platform number if bit 5 of ah set
 //	edx=bit mask of cargo types
 //	[curstationtile] set if ah bit 7 clear
 // destroys all registers
@@ -146,9 +147,11 @@ randomstationtrigger:
 
 .startxy: dw 0
 .numxy: dw 0
+.tempplatnum: db 0
 
 .hasrailway:
 	push eax
+	mov [.tempplatnum], cl
 
 	// setup .startxy and .numxy
 	movzx esi,word [ebx+station.railXY]
@@ -157,23 +160,26 @@ randomstationtrigger:
 	testmultiflags irrstations
 	jnz .getirrsize
 
-	mov ch,[ebx+station.platforms]
-	mov cl,ch
-	and ch, 87h 	// Bitmask: 10000111
-	and cl, 78h 	// Bitmask:  1111000
-	shr cl, 3
-	cmp ch, 80h
-	jb .istoosmall
-	sub ch, (80h - 8h)
-.istoosmall:
+	mov cl,[ebx+station.platforms]
+	xchg ebx, esi
+	call convertplatformsinecx
+	xchg cl, ch
+	//cl=length,ch=tracks
+	xchg ebx, esi
 	mov al,[landscape5(si,1)]
 	xor al,1
 	and eax,1		// orientation (0=y, 1=x)
 
 	test byte [esp+1],0x80
 	js .alltracks
+	test byte [esp+1],0x20
+	jz .norm1
+	mov ch, [.tempplatnum]
+	jmp .anorm1
+	.norm1:
 	mov ch,[esp+1]
 	and ch,15
+	.anorm1:
 	add [.startxy+eax],ch
 	mov ch,1
 .alltracks:

@@ -27,6 +27,7 @@ extern planttreearea,redrawscreen,redrawtile,resetnewsprites
 extern resetpathsignalling,setmainviewxy,specialerrtext1,specialerrtext2
 extern stationarray2ofst,subsidyfn,traincost,treenum,treestart,vehtypedataptr
 extern yeartodate,trackcheat,isplaneinflight
+extern convertplatformsinremoverailstation
 
 
 %assign cheattext "CHT:"	// gives "CHT:" in little endian
@@ -1493,14 +1494,13 @@ proc ghoststationcheat
 	or eax,eax
 	jz short .clear	// no coordinates
 
-	mov bl,byte [edi+station.platforms]
-	mov bh,bl
-	and bx,0x7887
-	shr bh,3
-	cmp bl, 80h
-	jb .issmall
-	sub bl, (80h - 8h)
-.issmall:
+	mov ebx, edx
+	mov dl,byte [edi+station.platforms]
+	xchg esi, edi
+	call convertplatformsinremoverailstation
+	xchg esi, edi
+	xchg edx, ebx
+	//bl=tracks, bh=length
 
 	test dl,1	// horizontal or vertical?
 	jnz short .vertical

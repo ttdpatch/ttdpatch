@@ -36,6 +36,7 @@ extern getotherindustileanimstage,getotherindustileanimstage_industry
 extern getstationanimframe,getnearbystationanimframe,getothertypedistance
 extern airportaction3,getaircraftvehdata,getaircraftdestination
 extern substindustile,substindustries
+extern convertplatformsinecx
 
 uvard grffeature
 uvard curgrffeature,1,s		// must be signed to indicate "no current feature"
@@ -398,6 +399,8 @@ grfcalltable getaction2spritenum
 	push edx
 	push ecx
 	movzx ecx,byte [esi+station.platforms]
+	call convertplatformsinecx
+/*
 	mov edx,ecx	// XXX when stat var 40+x cached, use var 49 here
 	and cl,0x87
 	and dl,0x78
@@ -406,6 +409,10 @@ grfcalltable getaction2spritenum
 	jb .istoosmall
 	sub cl, (80h - 8h)
 .istoosmall:
+*/
+	movzx edx, ch
+	movzx ecx, cl
+	//edx=len, ecx=tracks
 	add ecx,edx
 	xor edx,edx
 	div ecx

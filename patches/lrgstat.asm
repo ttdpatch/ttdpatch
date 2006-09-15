@@ -672,3 +672,24 @@ convertplatformsincargoacceptlist:
 	add eax, esi
 	mov ax, [eax+station2.platforms]
 	ret
+	
+global convertplatformsinecx
+convertplatformsinecx:
+	//  in: cl = platforms as in station array, esi = station ptr
+	// out: ch = length, cl = tracks
+	test BYTE [esi+station.flags], 0x80
+	jnz .bigstation
+	mov ch, cl
+	and cx, 7887h	// Bitmask: 1111000 10000111
+	shr ch, 3
+	cmp cl, 80h
+	jb .issmall
+	sub cl, (80h - 8h)
+.issmall:
+	ret
+.bigstation:
+	mov ecx, [stationarray2ofst]
+	add ecx, esi
+	mov cx, [ecx+station2.platforms]
+	ret
+

@@ -24,6 +24,7 @@ extern stationcargowaitingmask,stationcargowaitingnotmask
 extern stationplatformtrigger,totalloadamount,transferprofit
 extern updatestationgraphics
 extern vehcallback,stationplatformanimtrigger
+extern convertplatformsinremoverailstation
 
 
 
@@ -776,8 +777,9 @@ LoadUnloadCargo:
 	jc .irrgetstationlen
 
 	mov	dl,[eax+station.platforms]
-	and	dl, 78h	// added for realbigstations support
-	shr	dl,3
+	xchg eax, esi
+	call convertplatformsinremoverailstation
+	xchg eax, esi
 	mov	[%$stationlength],dl
 	jmp short .donegetstationlen
 .irrgetstationlen:	

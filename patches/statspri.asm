@@ -34,6 +34,7 @@ extern failpropwithgrfconflict,lastextragrm,curextragrm,setspriteerror
 extern generatesoundeffect,redrawtile,stationanimtriggers,callback_extrainfo
 extern miscgrfvar,irrgetrailxysouth,getirrplatformlength
 extern DrawStationImageInSelWindow,MakeTempScrnBlockDesc
+extern convertplatformsinecx,convertplatformsincargoacceptlist,convertplatformsinremoverailstation
 
 // bits in L7:
 %define L7STAT_PBS 1		// is station tile in a PBS block?
@@ -1556,6 +1557,7 @@ doestrainstopatstationtile:
 //	 P position along this platform (0 for beginning)
 //	 p position counted from end (0 for end)
 //
+// ecx=NNLLCCPP
 global getplatforminfo,getplatforminfo.getccpp
 getplatforminfo:
 	mov byte [.checkdirection],0	// direction doesn't matter
@@ -1571,14 +1573,9 @@ getplatforminfo:
 	testmultiflags irrstations
 	jnz .irregular
 
-	mov ah,[esi+station.platforms]
-	mov al,ah
-	and ax, 8778h 	// Bitmask: 10000111 1111000
-	shr al, 3
-	cmp ah, 80h
-	jb .istoosmall
-	sub ah, (80h - 8h)
-.istoosmall:
+	mov al,[esi+station.platforms]
+	call convertplatformsincargoacceptlist
+	xchg al, ah
 	// now al = length, ah = tracks
 	shl eax,16
 	mov ax,cx
@@ -1589,6 +1586,7 @@ getplatforminfo:
 	xchg ah,al
 .getccpp:
 	// here eax=NNLLCCPP
+	push ecx
 	ror eax,16
 	mov ecx,eax
 	shr ax,4
@@ -1599,6 +1597,7 @@ getplatforminfo:
 	sub cx,0x0101
 	shl cx,4
 	or ax,cx
+	pop ecx
 	ret
 
 .irregular:
@@ -2256,13 +2255,8 @@ updatestationgraphics:
 	
 .noirrstations:
 	mov dh,[esi+station.platforms]
-	mov dl,dh
-	and dx, 8778h 	// Bitmask: 10000111 1111000
-	shr dl, 3
-	cmp dh, 80h
-	jb .istoosmall
-	sub dh, (80h - 8h)
-.istoosmall:
+	call convertplatformsinremoverailstation
+	xchg dh, dl
 	// now dl = length, dh = tracks
 	test byte [landscape5(ax,1)],1	// orientation
 	jz .notflip
@@ -2350,7 +2344,7 @@ stationplatformtrigger:
 	mov ebx,eax
 	mov esi,eax
 	call getplatforminfo
-	and ah,0x0f
+	mov ah, cl
 	mov al,[esp+0x24]
 	or ah,0x40	// force redraw
 	call randomstationtrigger
@@ -2646,8 +2640,11 @@ exported stationplatformanimtrigger
 	jc .irregular
 
 	mov cl,[esi+station.platforms]
-	and cl,0x78
-	shr cl,3
+	call convertplatformsinecx
+	shr ecx, 8
+	mov ch,1
+	
+	//cl=length, ch=tracks
 
 	test byte [landscape5(bx)],1
 	jnz .ydir
@@ -2690,15 +2687,9 @@ exported stationanimtrigger
 	testflags irrstations
 	jc .irregular
 
-	mov ch,[esi+station.platforms]
-	mov cl,ch
-	and ch, 0x87
-	and cl, 0x78
-	shr cl, 3
-	test ch,0x80
-	jz .notlarge
-	add ch,8-0x80
-.notlarge:
+	mov cl,[esi+station.platforms]
+	call convertplatformsinecx
+	xchg cl, ch
 
 	test byte [landscape5(bx)],1
 	jz .gotposandsize

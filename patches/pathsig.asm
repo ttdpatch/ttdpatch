@@ -960,7 +960,7 @@ activatestationpbstrigger:
 	mov ebx,eax
 	mov esi,eax
 	call getplatforminfo
-	and ah,0x0f
+	mov ah, cl
 	mov al,0x20
 	or edx,byte -1
 	call randomstationtrigger
