@@ -508,7 +508,7 @@ createlistwindow:
 	jb .correct
 	xor dl,dl
 .correct:
-	mov BYTE [esi+0x2F], 0
+	mov BYTE [esi+0x2F], 7	// for default size only
 	mov [esi+0x31],dl
 	mov WORD [esi+0x32],0	// the first reordering will be a forced one, clear shift factor
 	or byte [esi+window.flags],7	// start the GUI timer
