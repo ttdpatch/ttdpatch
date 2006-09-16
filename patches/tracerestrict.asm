@@ -384,8 +384,8 @@ ret
 	dec dh	//5-8 --> 4-7, signal bits in L2,L3
 	mov cl, dh
 	movzx eax, WORD [ebx+robj.word1]
-	mov dh, [landscape4(ax,1)]
-	shr dh,4
+	mov dl, [landscape4(ax,1)]
+	shr dl, 4
 	cmp dl, 1
 	jne .sigval_redret
 	mov dh, [landscape5(ax,1)]
@@ -394,11 +394,11 @@ ret
 	xor ch, 0x40
 	jnz .sigval_redret
 	test dh, 3
-	jnz .noewtrack
+	jz .noewtrack
 	or cl, 2
 	.noewtrack:
 	test dh, 0x30
-	jnz .nonstrack
+	jz .nonstrack
 	//4-->6
 	//5-->4
 	//6-->7
