@@ -371,6 +371,7 @@ ecxcargooffset_force:
 	mov edx, ecx
 	mov ah, [ebx+station.cargos+ecx+stationcargo.timesincevisit]
 .better:
+	add ecx, 0+stationcargo2_size
 	cmp ecx,12*stationcargo2_size
 	jb .loop3
 
