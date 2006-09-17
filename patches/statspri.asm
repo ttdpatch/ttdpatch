@@ -1571,7 +1571,7 @@ getplatforminfo:
 .hastrainfacility:
 	mov ecx,[curstationtile]
 	testmultiflags irrstations
-	jnz .irregular
+	jnz NEAR .irregular
 
 	mov al,[esi+station.platforms]
 	call convertplatformsincargoacceptlist
@@ -1586,19 +1586,59 @@ getplatforminfo:
 	xchg ah,al
 .getccpp:
 	// here eax=NNLLCCPP
-	push ecx
+	push eax
+	mov ecx, eax
+	shr ecx, 16	// now cx=NNLL
+	sub cx, ax	// now cx=ccpp
+	sub cx,0x0101
+	test cx, 0xf0f0
+	jnz .saturate
+	test eax, 0xf0f0f0f0
+	jnz .saturate2
+.saturate_done:
+	// here eax=0N0L0C0P
+	// here ecx=00000c0p
+	shl ecx,4
+	or eax,ecx	// now eax=0N0LcCpP
 	ror eax,16
 	mov ecx,eax
 	shr ax,4
-	or al,cl
+	or al,cl	//now eax=cCpP00NL
 	or ah,[curstattiletype]
-	rol eax,16	// now cx=NNLL, eax=0TNLCCPP
-	sub cx,ax	// now cx=ccpp
-	sub cx,0x0101
-	shl cx,4
-	or ax,cx
+	rol eax,16	// now eax=0TNLcCpP
 	pop ecx
 	ret
+.saturate:
+	test cl, 0xf0
+	jz .saturate1
+	mov cl, 0x0f
+.saturate1:
+	test ch, 0xf0
+	jz .saturate2
+	mov ch, 0x0f
+.saturate2:
+	shl ecx, 16
+	test al, 0xf0
+	setz cl
+	dec cl
+	or al, cl
+	test ah, 0xf0
+	setz cl
+	dec cl
+	or ah, cl
+	rol eax, 16
+	test al, 0xf0
+	setz cl
+	dec cl
+	or al, cl
+	test ah, 0xf0
+	setz cl
+	dec cl
+	or ah, cl
+	rol eax, 16
+	and eax, 0x0f0f0f0f
+	shr ecx, 16
+	jmp .saturate_done
 
 .irregular:
 	// ecx=tile
