@@ -328,6 +328,8 @@ CloneTrainMain:
 
 	push esi
 	mov bl, 1
+	sub edi, [veharrayptr]
+	shr edi, 7
 	mov word [operrormsg1], ourtext(txtcloneerrortop) // Header for error messages
 	dopatchaction CloneTrainBuild // Clone the consist
 	cmp ebx, 1<<31 // Skip opening of the vehicle window (would crash otherwise)
@@ -370,6 +372,9 @@ uvarw CloneTrainLastIdx // Stores the last created unit id
 exported CloneTrainBuild
 	push edi // Store the orginal vehicle consist's vehicle pointer
 	xchg esi, edi
+
+	shl esi, 7
+	add esi, [veharrayptr]
 
 	test bl, 1
 	jz near CloneTrainCalcOnly
@@ -464,6 +469,8 @@ exported CloneTrainBuild
 
 .done:
 	mov esi, [esp] // Get the orginal id of the train being cloned (engine)
+	shl esi, 7
+	add esi, [veharrayptr]
 	movzx edi, word [edi+veh.engineidx] // Get and store the engine head's id for the next subroutine
 	mov [CloneTrainLastIdx], di
 
@@ -542,18 +549,21 @@ testmultiflags electrifiedrail // Special code for the the different types
 .continue:
 	pop ebx
 	mov word [operrormsg2], ourtext(txtcloneerror_unknown) // Unknown issue with copying
+	xor dh, dh
 
 .loop:
 	cmp byte [esi+veh.artictype], 0xFD // Artic vehicles are already bought with there head
 	jae near .artic
 
 	push ebx
+	push edx
 	movzx bx, bh
 	mov word [operrormsg2], ourtext(txtcloneerror_unavail) // Vehicle not avilable anymore
 	movzx edx, word [esi+veh.vehtype]
 	imul edx, vehtype_size
 	add edx, vehtypearray
 	bt word [edx+vehtype.playeravail], bx
+	pop edx
 	jnc near .failebx
 	pop ebx
 
@@ -567,6 +577,7 @@ testmultiflags electrifiedrail // Special code for the the different types
 	mov byte [forcenoextrahead], 1 // Only really applies to the first vehicle
 
 	push ebx
+	push edx
 	mov dx, -1 // Contruct the vehicle (not for real though)
 	movzx ebx, word [esi+veh.vehtype]
 	shl bx, 8
@@ -579,6 +590,7 @@ testmultiflags electrifiedrail // Special code for the the different types
 	mov byte [forceextrahead], 0
 	pop ebp
 	pop esi
+	pop edx
 
 	cmp ebx, 1<<31 // Fail or add costs
 	je near .failebx
@@ -613,6 +625,7 @@ testmultiflags electrifiedrail // Special code for the the different types
 	pop ebx
 
 .next:
+	inc dh
 	movzx esi, word [esi+veh.nextunitidx] // Get the next id of the consist to clone
 	cmp si, byte -1
 	je .done
@@ -632,6 +645,44 @@ testmultiflags electrifiedrail // Special code for the the different types
 	ret
 
 .done:
+	mov word [operrormsg2], 0xE1 // 0xE1 is 'Too many vehicles in game'
+	push ebx
+	mov ebx, [veharrayptr]
+	push eax 
+	push ecx
+	mov ax, 690 // This calculates the total vehicles allowed
+extern vehicledatafactor // normally (690*vehicledatafactor), id's 0 to (690*vehicledatafactor)-1
+	movzx cx, byte [vehicledatafactor]
+	cmp cx, 0
+	je .nomorevehicles
+	imul ax, cx
+.nomorevehicles: // With the highest morevehicles factor (40)
+	xor cx, cx // The maxium number of vehicles fits in a word (value of 6BD0 as the end)
+
+.countloop:
+	cmp byte [ebx+veh.class], 0 // is this slot free
+	jne .countnofind
+	dec dh // Yes so decrease number needed
+	jz .realdone // If dh is 0, we are all done
+
+.countnofind:
+	add ebx, 0x80 // move to next entry
+	inc cx // increase counter
+	cmp cx, ax // is the counter at the maxium array entry yet?
+	jb .countloop
+	
+	pop ecx // restore the registors and return bad, since ran out of entries
+	pop eax
+	pop ebx
+	mov ebx, 1<<31
+	pop edi
+	ret
+
+.realdone:
+	pop ecx // Restore these otherwise ttd will crash
+	pop eax
+	pop ebx
+	mov word [operrormsg2], ourtext(txtcloneerror_unknown)
 	mov ebx, [trainplanerefitcost] // Refit cost
 	sar ebx, 7 // Correct the end value for refits
 	add ebx, [CloneTrainCost]

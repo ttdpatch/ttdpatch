@@ -180,7 +180,7 @@ GetPlaneCallBackSpeed:
 //	  esi as vehicle id if applable
 // out:	eax=callback value
 exported GetCallBack36
-	mov [miscgrfvar],ah
+	mov [miscgrfvar], ah
 	mov ah, 0x36 ; Id for the callback
 	call vehtypecallback ; Get the callback results
 	jnc .lresults
