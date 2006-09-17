@@ -209,6 +209,8 @@ ret
 	je near .prevst
 	cmp dh,14
 	je near .cargo
+	cmp dh,15
+	je near .distsig
 
 .gotvar:
 	cmp BYTE [tempdlvar],1
@@ -377,6 +379,11 @@ ret
 	movzx ecx, cl
 	mov edx, 1
 	pop eax
+	jmp .gotvar
+	
+.distsig:
+	movzx ecx, WORD [tracertdistance] 
+	movzx edx, WORD [ebx+robj.word1]
 	jmp .gotvar
 
 .sigval:
@@ -610,7 +617,7 @@ dw ourtext(tr_sigval_is_red)
 dw 0xffff
 endvar
 
-%assign var_array_num 15
+%assign var_array_num 16
 varw pre_var_array
 dw statictext(empty)
 endvar
@@ -629,6 +636,7 @@ dw ourtext(tr_maxspeed_mph)
 dw ourtext(tr_nextorder)
 dw ourtext(tr_lastvisitstation)
 dw ourtext(tr_carriescargo)
+dw ourtext(tr_distancefromsig)
 dw 0xffff
 endvar
 
@@ -648,6 +656,7 @@ db 8
 db 3
 db 3
 db 65
+db 8
 endvar
 
 varw pre_var_compat_id
@@ -668,6 +677,7 @@ db 7
 db 2
 db 2
 db 8
+db 9
 endvar
 
 %assign currentflagnum 0
@@ -688,6 +698,7 @@ varinfo 3
 varinfo 4
 varinfo 5
 varinfo 13
+varinfo 14
 varinfo 6
 varinfo 7
 varinfo 8

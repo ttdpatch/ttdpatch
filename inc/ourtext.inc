@@ -344,6 +344,7 @@ defourtext tr_maxspeed_mph
 defourtext tr_nextorder
 defourtext tr_lastvisitstation
 defourtext tr_carriescargo
+defourtext tr_distancefromsig
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
