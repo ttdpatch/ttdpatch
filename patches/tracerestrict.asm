@@ -608,7 +608,7 @@ vard TRConstraints
 endvar
 
 varw pre_op_array
-dw ourtext(tr_optxt)
+dw statictext(empty)
 endvar
 varw op_array
 dw statictext(trdlg_lt)
@@ -621,8 +621,8 @@ dw 0xffff
 endvar
 
 varw pre_op_array3
-dw ourtext(tr_optxt)
-dw ourtext(tr_optxt)
+dw statictext(empty)
+dw statictext(empty)
 endvar
 
 // four words between ourtext(tr_sigval_is_g) and first statictext(empty)
@@ -649,7 +649,7 @@ endvar
 
 %assign var_array_num 16
 varw pre_var_array
-dw ourtext(tr_vartxt)
+dw statictext(empty)
 endvar
 varw var_array
 dw ourtext(tr_trainlen)
@@ -1753,10 +1753,11 @@ updatebuttons:
 
 	movzx eax, BYTE [edx+robj.type]
 	or eax, eax
+	mov ax,[ebx-2+eax*2]
 	jnz .noop
 	or ecx, 0x20100
+	mov ax,ourtext(tr_optxt)
 .noop:
-	mov ax,[ebx-2+eax*2]
 	mov WORD [tracerestrictwindowelements.optb],ax
 	mov [esi+window.disabledbuttons], ecx
 
