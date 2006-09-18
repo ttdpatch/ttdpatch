@@ -489,8 +489,8 @@ clearrobjarrays:
 
 ret
 
-%assign winwidth 515
-%assign numrows 20
+%assign winwidth 534
+%assign numrows 10
 %assign winheight numrows*12+36
 
 //<,>,<=,>=,==,!=,&&,||,^^
@@ -572,13 +572,43 @@ varb tracerestrictwindowelements
 	// Drop Down List button for Value 17
 	db cWinElemTextBox, cColorSchemeGrey
 	dw 297, 309, winheight-13, winheight-1, statictext(txtetoolbox_dropdown)
+	
+	// Window sizer 18
+	db cWinElemSizer, cColorSchemeGrey
+	dw 521, 533, winheight-13, winheight-1, 0
+
+	// Sizer data 19
+	db cWinElemExtraData, cWinDataSizer
+	dd TRConstraints, TRSizes
+	dw 0
 
 	db 0xb
 
 endvar
 
+vard TRSizes
+	dw winwidth, winwidth
+	db 1, -1
+	dw 0
+	dw 2*12+36, 30*12+36
+	db 12, 19
+	dw 36
+endvar
+
+vard TRConstraints
+	db 0
+	db 0
+	db 8
+	db 0
+	times 10 db 12
+	db 8
+	db 8
+	times 3 db 12
+	db 0
+endvar
+
 varw pre_op_array
-dw statictext(empty)
+dw ourtext(tr_optxt)
 endvar
 varw op_array
 dw statictext(trdlg_lt)
@@ -591,8 +621,8 @@ dw 0xffff
 endvar
 
 varw pre_op_array3
-dw statictext(empty)
-dw statictext(empty)
+dw ourtext(tr_optxt)
+dw ourtext(tr_optxt)
 endvar
 
 // four words between ourtext(tr_sigval_is_g) and first statictext(empty)
@@ -619,7 +649,7 @@ endvar
 
 %assign var_array_num 16
 varw pre_var_array
-dw statictext(empty)
+dw ourtext(tr_vartxt)
 endvar
 varw var_array
 dw ourtext(tr_trainlen)
@@ -801,8 +831,7 @@ tracerestrict_createwindow:
 	call dword [CreateWindow]
 
 .alreadywindowopen:
-	call countrows
-
+	
 	mov dword [esi+window.elemlistptr], tracerestrictwindowelements
 	mov DWORD [esi+window.disabledbuttons], 0x1F80
 	cmp DWORD [rootobj],0
@@ -814,9 +843,10 @@ tracerestrict_createwindow:
 	mov byte [esi+window.itemsvisible], numrows
 	mov byte [esi+window.itemsoffset],0
 
-	mov WORD [tracerestrictwindowelements.vartb],statictext(empty)
-	mov WORD [tracerestrictwindowelements.optb],statictext(empty)
-	
+	mov WORD [tracerestrictwindowelements.vartb],ourtext(tr_vartxt)
+	mov WORD [tracerestrictwindowelements.optb],ourtext(tr_optxt)
+
+	call countrows
 	mov edx, [curselrobj]
 	call updatebuttons
 
@@ -1655,6 +1685,8 @@ updatebuttons:
 	jz .norm
 	mov WORD [tracerestrictwindowelements.delbtn], ourtext(tr_copy)
 	mov WORD [tracerestrictwindowelements.rstbtn], ourtext(tr_share)
+	mov WORD [tracerestrictwindowelements.vartb], ourtext(tr_vartxt)
+	mov WORD [tracerestrictwindowelements.optb], ourtext(tr_optxt)
 	mov DWORD [esi+window.disabledbuttons], 0x20F80
 	jmp .end
 .norm:
@@ -1662,8 +1694,8 @@ updatebuttons:
 	mov WORD [tracerestrictwindowelements.rstbtn], ourtext(resetorders)
 	or edx, edx
 	jnz .noblank
-	mov WORD [tracerestrictwindowelements.vartb],statictext(empty)
-	mov WORD [tracerestrictwindowelements.optb],statictext(empty)
+	mov WORD [tracerestrictwindowelements.vartb], ourtext(tr_vartxt)
+	mov WORD [tracerestrictwindowelements.optb], ourtext(tr_optxt)
 	mov DWORD [esi+window.disabledbuttons], 0x21FA0
 	cmp DWORD [rootobj],0
 	je NEAR .end
@@ -1698,7 +1730,7 @@ updatebuttons:
 	movzx ax, BYTE [edx+robj.type]
 	add ax, ourtext(tr_andbtn)-32
 	mov WORD [tracerestrictwindowelements.vartb], ax
-	mov WORD [tracerestrictwindowelements.optb],statictext(empty)
+	mov WORD [tracerestrictwindowelements.optb], ourtext(tr_optxt)
 	jmp .end
 
 .cmp:
@@ -1951,7 +1983,7 @@ ret
 	inc WORD [curprintrobjnum]
 	sub eax, ebp
 	js .quit
-	cmp eax, numrows
+	cmp al, [esi+window.itemsvisible] //numrows
 	jae .quit
 	shl eax, 2
 	lea eax, [eax*2+eax]

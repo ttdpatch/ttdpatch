@@ -345,6 +345,9 @@ defourtext tr_nextorder
 defourtext tr_lastvisitstation
 defourtext tr_carriescargo
 defourtext tr_distancefromsig
+
+defourtext tr_vartxt
+defourtext tr_optxt
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
