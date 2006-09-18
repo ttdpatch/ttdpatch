@@ -382,7 +382,7 @@ ret
 	jmp .gotvar
 	
 .distsig:
-	movzx ecx, WORD [tracertdistance] 
+	movzx ecx, WORD [tracertdistance]
 	movzx edx, WORD [ebx+robj.word1]
 	jmp .gotvar
 
@@ -2194,6 +2194,7 @@ ret
 	shl ebx, 3
 	mov edi, robjs
 	add ebx, edi
+	push edx
 	push DWORD .endcopy
 .recurse:
 	cmp BYTE [ebx+robj.type], 32
@@ -2233,11 +2234,13 @@ ret
 ret
 
 .endcopy:
+	pop edx
 	mov [rootobj], eax
 	mov BYTE [eax+robj.count], 1
 	sub eax, robjs
 	shr eax, 3
 	mov [robjid], ax
+	mov [edx], ax
 	movzx eax, WORD [curxypos]
 	mov cl, [robjidindex]
 	mov BYTE [landscape7+eax], cl
