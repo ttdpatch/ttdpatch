@@ -31,6 +31,7 @@ struc elrailsprites
 	.tunnelicon:	resb 1
 	.tunnelcursor:	resb 1
 	.anchor:	resb 2	// Anchors for drawing pylons in screen Z order
+	.depots:	resb 6	// Electrified depots.
 endstruc
 
 // arrangement of wires:
@@ -89,6 +90,23 @@ ovar .tracktypetemp,-4,$,gettrackspriteset
 	ret
 ; endp gettrackspriteset
 
+//adjust the wTempRailwayTypeOffset to use the new elrails depots if need be
+global getcorrectdepotsprites
+getcorrectdepotsprites:
+	add bx, word [dword -1]		// save it in a temp variable
+ovar .tracktypetemp,-4,$,getcorrectdepotsprites
+;TO BE COMPLETED
+;	test if track type == 1
+;	jne .notElectrified
+;	GET DEPOT DIRECTION? Should I AND the current sprite number to do this?
+;	or check landscape data?
+;		what about for the build depot window?
+;	push ax
+;	mov ax, word [catenaryspritebase+elrailsprites.depots]
+;	add direction.
+.notElectrified:
+	ret
+; endp getcorrectdepotsprites
 
 // and the same for station sprites
 // in:	BP{3:0} = track type

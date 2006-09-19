@@ -3,7 +3,7 @@
 
 
 extern aicargovehinittables,electrtextreplace
-extern gettrackspriteset.tracktypetemp,monorailtextreplace
+extern gettrackspriteset.tracktypetemp,monorailtextreplace,getcorrectdepotsprites.tracktypetemp
 extern newgraphicssetsenabled,numelectrtextreplace,nummonorailtextreplace
 extern realtracktypes,tracktypes
 extern unimaglevmode,railtypetextids,gettextandtableptrs,railtypetextbackup
@@ -20,6 +20,19 @@ codefragment oldgettrackspriteset
 codefragment newgettrackspriteset
 	call runindex(gettrackspriteset)
 	setfragmentsize 11
+
+codefragment oldsetraildepotoffset, -7
+	or al, [edi+4]
+	or cl, [edi+5]
+
+codefragment newsetraildepotoffset
+	icall getcorrectdepotsprites
+	setfragmentsize 7
+
+codefragment olddrawbuildraildepot, 16
+	add dx, bp
+	mov ebx, [ebx]
+	or bx, bx
 
 codefragment oldgetcrossingspriteset
 	imul si,byte 12
@@ -89,6 +102,7 @@ patchelectrifiedrail:
 
 	stringaddress oldgettrackspriteset,1,2
 	mov eax,[edi+7]
+	mov [getcorrectdepotsprites.tracktypetemp],eax
 	mov [gettrackspriteset.tracktypetemp],eax
 	storefragment newgettrackspriteset
 	patchcode oldgettrackspriteset,newgettrackspriteset,1,0
@@ -99,6 +113,9 @@ patchelectrifiedrail:
 
 	patchcode olddisplaytrackdetails,newdisplaytrackdetails,1,1
 	patchcode olddrawcrossing,newdrawcrossing,1,1
+
+	patchcode oldsetraildepotoffset,newsetraildepotoffset,1+WINTTDX,2
+	patchcode olddrawbuildraildepot,newsetraildepotoffset,1+WINTTDX,2
 
 	// conversion of types is now done in tools.asm/postinfoapply.typeconversion
 
