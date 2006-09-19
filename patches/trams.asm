@@ -1315,6 +1315,8 @@ drawNormalSlopeAndAddTrams:
 	retn
 .continuethisstuff:
 	add	di, word [tracktocheck+ebx*2]
+	test	dword [landscape5(di)], 16		//skip level crossings.
+	jne	near .dontdraw				//these have been causing big issues.
 	push	cx
 	xor	ecx,ecx
 	mov 	cl, byte [landscape4(di)]
