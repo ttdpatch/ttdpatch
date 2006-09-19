@@ -648,6 +648,7 @@ dw 0xffff
 endvar
 
 %assign var_array_num 16
+%assign var_end_mark 15
 varw pre_var_array
 dw statictext(empty)
 endvar
@@ -710,48 +711,71 @@ db 8
 db 9
 endvar
 
-%assign currentflagnum 0
+%assign j 0
 
-%macro varinfo 1	//%1=variable number
-var_info_ddlnum_ %+ currentflagnum equ %1
-var_info_revddlnum_%1 equ currentflagnum
+%macro varinfo 2	//%1=variable number, %2=j
+var_info_ddlnum_%2_ %+ currentflagnum equ %1
+var_info_revddlnum_%2_%1 equ currentflagnum
+var_exists_%2_%1 equ 1
+var_exists2_%2_ %+ currentflagnum equ 1
 %assign currentflagnum currentflagnum+1
 %endmacro
 
-varinfo 0
-varinfo 1
-varinfo 10
-varinfo 2
-varinfo 11
-varinfo 12
-varinfo 3
-varinfo 4
-varinfo 5
-varinfo 13
-varinfo 14
-varinfo 6
-varinfo 7
-varinfo 8
-varinfo 9
-
-varb dropdownorder
+%macro tr_mklists 1
+varb dropdownorder_%1
 %assign i 0
 %rep currentflagnum
-db var_info_ddlnum_ %+ i
+db var_info_ddlnum_%1_ %+ i
 %assign i i+1
 %endrep
-db currentflagnum
+db var_end_mark
 endvar
 
-varb revdropdownorder
+varb revdropdownorder_%1
 %assign i 0
-%rep currentflagnum
-db var_info_revddlnum_ %+ i
+%rep var_end_mark
+%if var_exists_%1_ %+ i == 1
+db var_info_revddlnum_%1_ %+ i
+%else
+db var_end_mark
+%endif
 %assign i i+1
 %endrep
-db currentflagnum
+db var_end_mark
 endvar
+%endmacro
 
+%rep 3
+%assign j j+1
+%assign currentflagnum 0
+
+varinfo 0,j
+%if j==2 || j==3
+varinfo 1,j	//kph
+%else
+var_exists_ %+ j %+ _1 equ 0
+%endif
+%if j==1 || j==3
+varinfo 10,j	//mph
+%else
+var_exists_ %+ j %+ _10 equ 0
+%endif
+varinfo 2,j
+varinfo 11,j
+varinfo 12,j
+varinfo 3,j
+varinfo 4,j
+varinfo 5,j
+varinfo 13,j
+varinfo 14,j
+varinfo 6,j
+varinfo 7,j
+varinfo 8,j
+varinfo 9,j
+
+tr_mklists j
+
+%endrep
 
 varw waAnimGoToCursorSprites
 dw 2CCh, 1Dh, 2CDh, 1Dh, 2CEh, 62h, 0FFFFh
@@ -1027,10 +1051,10 @@ ret
 	.ddl1_norm:
 	push ecx
 	mov BYTE [curvarddboxmode], 0
-	mov eax, dropdownorder-1
+	mov eax, [curddlvarptr]
 	mov ecx, var_array_num
 	.ddl1_loop:
-		movzx ebx,BYTE [eax+ecx]
+		movzx ebx,BYTE [eax+ecx-1]
 		mov bx, [var_array+ebx*2]
 		mov [tempvar-2+ecx*2],bx
 	loop .ddl1_loop
@@ -1049,7 +1073,8 @@ ret
 	dec edx
 	jmp .ddl1_nomoddx
 .ddl1_nodecdx:
-	movzx dx, BYTE [revdropdownorder-1+edx]
+	mov ebx, [currevddlvarptr]
+	movzx dx, BYTE [ebx-1+edx]
 .ddl1_nomoddx:
  	xor ebx, ebx
 	jmp dword [GenerateDropDownMenu]
@@ -1105,7 +1130,8 @@ ret
 	jne .ddl1_action_bop_ret
 
 	movzx eax,al
-	movzx eax, BYTE [dropdownorder+eax]
+	mov ecx, [curddlvarptr]
+	movzx eax, BYTE [ecx+eax]
 
 	/* movzx ecx, BYTE [var_flags+eax]
 	and ecx, BYTE 1
@@ -1671,6 +1697,17 @@ ret
 .end:
 	ret
 
+uvard curddlvarptr
+uvard currevddlvarptr
+vard ddlvarptrlist
+dd dropdownorder_1
+dd dropdownorder_2
+endvar
+vard revddlvarptrlist
+dd revdropdownorder_1
+dd revdropdownorder_2
+endvar
+
 //in: edx=curselrobj,esi=window
 updatebuttons:
 	call CheckDDL1
@@ -1678,6 +1715,11 @@ updatebuttons:
 	call CheckDDL3
 .noddlcheck:
 	pusha
+	movzx ecx, BYTE [measuresys]
+	mov eax, [ddlvarptrlist+ecx*4]
+	mov [curddlvarptr], eax
+	mov eax, [revddlvarptrlist+ecx*4]
+	mov [currevddlvarptr], eax
 	cmp DWORD [rootobj], 0
 	sete al
 	mov [curmode], al
@@ -1703,7 +1745,6 @@ updatebuttons:
 	jmp .end
 
 .noblank:
-	xor ecx, ecx
 	cmp BYTE [edx+robj.type], 32
 	jb .cmp
 	mov ecx, 0x20180
@@ -1734,7 +1775,18 @@ updatebuttons:
 	jmp .end
 
 .cmp:
-	movzx eax, BYTE [edx+robj.varid]
+	//ecx=0: mph, 1: kph
+
+	mov ebx, ecx
+	shl ecx, 3
+	lea ecx, [ecx+ebx+2]			//ecx: kph=11, mph=2
+	movzx eax, BYTE [edx+robj.varid]	//eax: kph=2, mph=11
+	cmp eax, ecx
+	jne .nobothmphkph
+	mov DWORD [curddlvarptr], dropdownorder_3
+	mov DWORD [currevddlvarptr], revdropdownorder_3
+.nobothmphkph:
+	xor ecx, ecx
 	or eax, eax
 	jnz .var
 	or ecx, 0x180
@@ -1858,14 +1910,22 @@ ret
 	movzx ecx, BYTE [eax+robj.word1]
 	imul ecx, ecx, station_size
 	add ecx, [stationarrayptr]
+	cmp WORD [ecx], 0
+	je .clearvalueflag_dontprintstation
 	mov bp, [ecx+station.name]
+	or bp, bp
+	jz .clearvalueflag_dontprintstation
 	mov WORD [textrefstack+6], bp
 	mov ebp, [ecx+station.townptr]
+	or ebp, ebp
+	jz .clearvalueflag_dontprintstation
 	mov dx, [ebp+town.citynametype]
 	mov WORD [textrefstack+8], dx
 	mov edx, [ebp+town.citynameparts]
 	mov DWORD [textrefstack+10],edx
 	jmp .print
+.clearvalueflag_dontprintstation:
+	and BYTE [eax+robj.flags], ~1
 .dontprintstation:
 	mov WORD [textrefstack+6], statictext(empty)
 	jmp .print
@@ -1889,12 +1949,16 @@ ret
 	add ecx,ecx
 	lea ecx, [depotarray+ecx+ecx*2]
 	mov ebp, [ecx+depot.townptr]
+	or ebp, ebp
+	jz .clearvalueflag_dontprintstation
 	mov dx, [ebp+town.citynametype]
 	mov WORD [textrefstack+8], dx
 	mov edx, [ebp+town.citynameparts]
 	mov DWORD [textrefstack+10], edx
 
 	mov cx, [ecx+depot.XY]
+	or cx, cx
+	jz .clearvalueflag_dontprintstation
 	mov bp,cx
 	and cx,0xff
 	mov WORD [textrefstack+14], cx
