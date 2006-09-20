@@ -11,7 +11,7 @@ extern displbasewithfoundation,gettileinfo,invalidatetile,ishumanplayer
 extern isrealhumanplayer
 extern patchflags
 
-extern editTramMode, tramVehPtr, newvehdata
+extern editTramMode, tramVehPtr, newvehdata, invalidateBridgeIfExists
 
 
 
@@ -279,6 +279,12 @@ removebridgeroad:
 .continueaftertramhack:
 	call [invalidatetile]
 
+	testmultiflags trams
+	jz .onlytesting
+	cmp byte [editTramMode], 1
+	jne .onlytesting
+	call invalidateBridgeIfExists
+
 .onlytesting:
 	movsx ebx, word [roadremovecost]
 	ret
@@ -317,7 +323,7 @@ buildbridgeroad:
 	shl bx, 4
 .checkforroad:
 	test [landscape3 +2*esi], bx
-	jnz .error
+	jnz near .error
 	
 	// see if this can be build with this slope
 	push ebx
@@ -359,7 +365,13 @@ buildbridgeroad:
 	or word [landscape3 +2*esi], bx
 
 	call [invalidatetile]
-	
+
+	testmultiflags trams
+	jz .onlytesting
+	cmp byte [editTramMode], 1
+	jne .onlytesting
+	call invalidateBridgeIfExists
+
 .onlytesting:
 	movzx ebx, word [roadbuildcost]
 	ret
