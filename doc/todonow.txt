@@ -673,6 +673,11 @@ CHANGELOG
 - by Oskar:
   * (devel) added memory guard system to find memory overflows (GUARD=1)
   * added new signal gui popup window (experimentalfeatures.signalgui) for changeing presignal/pbs status
+  * (devel) added code ideas for newmaparray
+  * fixed gigantscreenshot function with resolution patch
+  * added pre-code for station property 19 road routeing on rail stations
+  * added code to allow 240 entries per directory/savegame listing, 
+    warn user if outside the limit, should fix problems that savegame doesn't show fail error
 - by Lakie:
   * add Support for irregular airports using blank tiles
   * added a Landscape 8 which is a word in size.

@@ -348,6 +348,8 @@ defourtext tr_distancefromsig
 
 defourtext tr_vartxt
 defourtext tr_optxt
+
+defourtext directoryoverflow
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

@@ -3527,3 +3527,19 @@ exported firstnextlongfilename
 	ret
 #endif
 
+exported adddirectoryentry
+	cmp di, 240 // see procs generalfixes
+	jnb .fail
+	ret
+.fail:
+	pusha
+	mov bx,ourtext(directoryoverflow)
+	mov edx, -1
+	xor eax, eax
+	xor ecx, ecx
+	call dword [errorpopup]
+	popa
+	add esp, 4
+	ret
+
+

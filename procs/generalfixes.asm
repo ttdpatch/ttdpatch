@@ -686,6 +686,41 @@ codefragment newfindfirstnextfile
 	icall firstnextlongfilename
 #endif
 
+// more filedir entries
+#if WINTTDX
+codefragment oldadddirectoryentry, -4
+	mov [edi], al
+	inc edi
+	lea ebx,[edi+0x0D]
+	
+codefragment olddirectoryentriesinwindow, 9
+	mov ah, 0x3D
+	mul ah
+	movzx edi, ax
+	
+codefragment olddirectoryentriesinwindow2, 10
+	mov ah, bl
+	xor al, al
+	imul bx, 0x3D
+	
+codefragment oldgametitletofilename, -10
+	cmp byte [edi], 3
+	jnz $+2+0x16
+	lea ebx, [edi+0x0E]
+	
+codefragment oldpredefgametitletofilename, -10
+	cmp byte [edi], 5
+	jb $+2+0x16
+	lea ebx, [edi+0x0E]
+	
+codefragment oldsavegamegetdirentries, -10
+	cmp byte [edi], 3
+	jnz $+2+0x3B
+	lea ebx, [edi+1]
+#endif
+
+
+
 codefragment oldgetsnowyheight
 	cmp dl,[snowline]
 	db 0x76		// jbe ...
@@ -807,6 +842,43 @@ patchgeneralfixes:
 	stringaddress oldadddirectoryentrydir
 	storefunctioncall adddirectoryentrydir
 	multipatchcode findfirstnextfile,2
+#endif
+
+#if WINTTDX
+	// support for more filelist entries
+	mov eax, 0x3D*220
+	push eax
+	extern malloccrit
+	call malloccrit
+	pop ebx
+	
+	stringaddress oldadddirectoryentry
+	mov [edi], ebx
+	
+	sub edi, 18
+	mov byte [edi+5], 0x90
+	extern adddirectoryentry
+	storefunctioncall adddirectoryentry
+	//mov byte [edi-15], 220
+	
+	stringaddress olddirectoryentriesinwindow,1,2
+	mov [edi], ebx
+	stringaddress olddirectoryentriesinwindow,1,0
+	mov [edi], ebx
+	
+	stringaddress olddirectoryentriesinwindow2,1,2 
+	mov [edi], ebx
+	stringaddress olddirectoryentriesinwindow2,1,0
+	mov [edi], ebx
+	
+	stringaddress oldgametitletofilename,1,1
+	mov [edi], ebx
+	
+	stringaddress oldpredefgametitletofilename,1,1
+	mov [edi], ebx
+	
+	stringaddress oldsavegamegetdirentries,1,1
+	mov [edi], ebx
 #endif
 
 #if WINTTDX
