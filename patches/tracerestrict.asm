@@ -489,7 +489,7 @@ clearrobjarrays:
 
 ret
 
-%assign winwidth 534
+%assign winwidth 564
 %assign numrows 10
 %assign winheight numrows*12+36
 
@@ -532,28 +532,28 @@ varb tracerestrictwindowelements
 
 	// Value button 8
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 266, 296, winheight-13, winheight-1, ourtext(tr_valuebtn)
+	dw 266, 306, winheight-13, winheight-1, ourtext(tr_valuebtn)
 
 	// And button 9
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 316, 346, winheight-13, winheight-1, ourtext(tr_andbtn)
+	dw 326, 356, winheight-13, winheight-1, ourtext(tr_andbtn)
 
 	// Or button 10
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 353, 383, winheight-13, winheight-1, ourtext(tr_orbtn)
+	dw 363, 393, winheight-13, winheight-1, ourtext(tr_orbtn)
 	
 	// Xor button 11
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 390, 420, winheight-13, winheight-1, ourtext(tr_xorbtn)
+	dw 400, 430, winheight-13, winheight-1, ourtext(tr_xorbtn)
 
 	// Delete button 12
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 427, 467, winheight-13, winheight-1
+	dw 437, 487, winheight-13, winheight-1
 	.delbtn: dw 0x8824
 	
 	// Reset button 13
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 474, 514, winheight-13, winheight-1
+	dw 494, 544, winheight-13, winheight-1
 	.rstbtn: dw ourtext(resetorders)
 
 	// Text Box 14
@@ -567,15 +567,15 @@ varb tracerestrictwindowelements
 	
 	// Template for value drop-down list 16
 	db cWinElemDummyBox, cColorSchemeGrey
-	dw 210, 296, winheight-13, winheight-1, 0
+	dw 210, 306, winheight-13, winheight-1, 0
 
 	// Drop Down List button for Value 17
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 297, 309, winheight-13, winheight-1, statictext(txtetoolbox_dropdown)
+	dw 307, 319, winheight-13, winheight-1, statictext(txtetoolbox_dropdown)
 	
 	// Window sizer 18
 	db cWinElemSizer, cColorSchemeGrey
-	dw 521, 533, winheight-13, winheight-1, 0
+	dw 551, 563, winheight-13, winheight-1, 0
 
 	// Sizer data 19
 	db cWinElemExtraData, cWinDataSizer
