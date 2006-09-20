@@ -1502,7 +1502,9 @@ exported drawtraininforows
 	dec al
 	jns .nextrow
 
-	cmp al,-6
+	mov ah, [esi+window.itemsvisible]
+	neg ah
+	cmp al,ah
 	jl .nextrow
 
 	cmp byte [articrownum],0

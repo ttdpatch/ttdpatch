@@ -5,6 +5,7 @@
 extern aircraftdepotwindowsizes,airvehoffset,calloccrit
 extern depotwindowconstraints,malloccrit,mapwindowconstraints
 extern mapwindowelementsptr,mapwindowsizes,newgraphicssetsenabled
+extern traininfowindowelementsptr,traininfosizes,traininfoelemconstraints
 extern railvehoffset,roadvehoffset,rvdepotwindowsizes,shipdepotwindowsizes
 extern shipvehoffset,temp_windowclicked_element,traindepotwindowsizes
 extern variabletofind,variabletowrite,vehlistwinsizesptr,windowsizesbufferptr
@@ -60,6 +61,10 @@ codefragment newwindowclickedelement
 codefragment findmapwindowelements, -12
 	db cWinElemTitleBar, cColorSchemeBrown
 	dw 11, 233
+
+codefragment findtraininfowindowelements, -12
+	db cWinElemTitleBar, cColorSchemeGrey
+	dw 11, 329, 0, 13, 0x8802
 
 codefragment oldmapwindowdragmode, -13
 	cmp cx, 0xFE0
@@ -254,6 +259,21 @@ depottotalsizex equ $-1
 codefragment newcalcdepottotalitems
 	icall calcdepottotalitems
 
+codefragment olddrawtraininfoserviceinterval
+	add cx, 13
+	add dx, 141
+
+codefragment newdrawtraininfoserviceinterval
+	icall calctraininfoserviceintervalpos
+	setfragmentsize 9
+
+codefragment olddrawtraininfocalcrowcount,18
+	mov al, [esi+window.itemsoffset]
+	movzx edi, word [esi+window.id]
+
+codefragment newdrawtraininfocalcrowcount
+	icall calctraininforowcount
+	setfragmentsize 6
 
 endcodefragments
 
@@ -298,6 +318,7 @@ patchwindowsizer:
 	mov word [edi+12*14+0], cWinElemExtraData + (cWinDataSizer << 8)
 	mov dword [edi+12*14+2], mapwindowconstraints
 	mov dword [edi+12*14+6], mapwindowsizes
+	mov word [edi+12*14+10], 0
 	mov word [edi+12*15+0], cWinElemSpriteBox + (cColorSchemeBrown << 8)
 	mov dword [edi+12*15+2], 226 + (247 << 16)
 	mov dword [edi+12*15+6], 168 + (189 << 16)
@@ -323,6 +344,46 @@ patchwindowsizer:
 	add edi,lastediadj+20
 	storefragment newopenmapwindowyadjust
 	patchcode olddrawmapwindow,newdrawmapwindow,1,1
+
+	// train info window
+	push dword 12*12+1+ 4*12
+	call malloccrit
+	pop dword [traininfowindowelementsptr]
+	stringaddress findtraininfowindowelements
+	push edi
+	mov esi, edi
+	mov edi, [traininfowindowelementsptr]
+	mov ecx, 12*12+1
+	rep movsb
+	
+	mov edi, [traininfowindowelementsptr]
+	;9, 10, 11 == cargo/info/capa
+	sub word [edi+12*11+ windowbox.x2],11
+	sub word [edi+12*11+ windowbox.x1],7
+	sub word [edi+12*10+ windowbox.x2],7
+	sub word [edi+12*10+ windowbox.x1],4
+	sub word [edi+12* 9+ windowbox.x2],4
+
+	mov byte [edi+14*12+windowbox.type], cWinElemLast
+	mov byte [edi+12*12+windowbox.type], cWinElemSizer
+	mov byte [edi+12*12+windowbox.bgcolor], cColorSchemeGrey
+	mov word [edi+12*12+windowbox.x1], 359
+	mov word [edi+12*12+windowbox.x2], 369
+	mov word [edi+12*12+windowbox.y1], 152
+	mov word [edi+12*12+windowbox.y2], 163
+	mov byte [edi+13*12+windowbox.type], cWinElemExtraData
+	mov byte [edi+13*12+1], cWinDataSizer
+	mov dword [edi+13*12+2], traininfoelemconstraints
+	mov dword [edi+13*12+6], traininfosizes
+	mov word [edi+13*12+10], 1
+
+	mov dword [variabletowrite], edi
+	pop edi
+	mov [variabletofind], edi
+        patchcode findvariableaccess,newvariable
+
+	patchcode olddrawtraininfoserviceinterval,newdrawtraininfoserviceinterval
+	patchcode olddrawtraininfocalcrowcount,newdrawtraininfocalcrowcount, 1,1,,{testmultiflags newtrains},z
 
 	//then the vehicle-lists (most of this code is patched in the sortvehlist patchproc)
 	
@@ -413,6 +474,10 @@ testmultiflags clonetrain
 
 .isclonetrain:
 	call .addsizer
+	testmultiflags clonetrain
+	jz .noclonetrain2
+	mov word [esi+ebx+1*12+10],1
+.noclonetrain2:
 	pop edx
 	sub word [esi+6*12+windowbox.x2], 11
 
@@ -582,4 +647,5 @@ extern newDepotWinElemList, newdepotwindowconstraints, newtraindepotwindowsizes
 	mov byte [esi+ebx+1*12+1], cWinDataSizer
 	mov dword [esi+ebx+1*12+2], edi
 	mov dword [esi+ebx+1*12+6], edx
+	mov word [esi+ebx+1*12+10], 0
 	ret

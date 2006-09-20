@@ -374,8 +374,23 @@ ResizeWindowElements:
 	
 //same as above, only esi is a pointer to the first windowelement, and ax,bx are size changes instead of absolute sizes
 ResizeWindowElementsDelta:
-	cmp edi, newdepotwindowconstraints
-	je near ResizeWindowElementsDeltax
+	push edi
+	push edx
+	mov edi, esi
+	mov dh, cWinDataSizer
+	call FindWindowData.haveelements
+	jc .normal
+	test word [edi+8], 1
+	jz .normal
+	pop edx
+	pop edi
+	jmp ResizeWindowElementsDeltax
+.normal:
+	pop edx
+	pop edi
+	
+;	cmp edi, newdepotwindowconstraints
+;	je near ResizeWindowElementsDeltax
 
 	push ax
 	push bx
@@ -666,7 +681,7 @@ global FindWindowData
 FindWindowData:
 	mov dl, cWinElemExtraData
 	mov edi, [esi+window.elemlistptr]
-
+.haveelements:
 	cmp byte [esi+window.type], 0x12
 	je .isdepot
 
@@ -1222,6 +1237,20 @@ var mapwindowsizes
 	dw 248, 2048, 1, 0
 	dw 234, 2048, 1, 0
 
+uvard traininfowindowelementsptr
+
+var traininfosizes
+	dw 370, 370, 1, 0
+	dw 108, 1000
+	db 14, 4
+	dw 80
+var traininfoelemconstraints
+	dw 0000b, 0010b, 0011b
+	dw 0010b, 1010b, 1011b
+	dw 1100b, 1100b, 1110b
+	dw 0000001000001100b, 0000100100001100b, 0000010000001110b
+	dw 1111b, 0000b, 0000b
+	
 var tmpwindowsizes
 	dw 100, 1000, 1, 0
 	dw 100, 1000, 1, 0
@@ -1389,6 +1418,25 @@ drawmapwindow:
 	popa
 	mov cx, [esi+window.x]
 	mov dx, [esi+window.y]
+	ret
+
+global calctraininfoserviceintervalpos
+calctraininfoserviceintervalpos:
+	add cx, 13
+	add dx, [esi+window.height]
+	sub dx, 23
+	ret
+	
+global calctraininforowcount
+calctraininforowcount:
+	jns .next
+	mov ah, [esi+window.itemsvisible]
+	neg ah
+	cmp al, ah
+	jl .next
+	ret
+.next:
+	add dword [esp], 0x54
 	ret
 
 //Functions to make the vehicle lists resizable:

@@ -404,6 +404,7 @@ patchsortvehlist:
 	mov dword [edi+3*12+2], vehlistwindowconstraints
 	mov eax, [ebx]
 	mov dword [edi+3*12+6], eax
+	mov word [edi+3*12+10], 0
 	add ebx, 4
 	mov byte [edi+4*12+windowbox.type], cWinElemLast
 .noresize:
