@@ -1317,6 +1317,8 @@ drawNormalSlopeAndAddTrams:
 	retn
 .continuethisstuff:
 	add	di, word [tracktocheck+ebx*2]
+	test	dword [landscape5(di)], 16		//skip level crossings.
+	jne	near .dontdraw				//these have been causing big issues.
 	push	cx
 	xor	ecx,ecx
 	mov 	cl, byte [landscape4(di)]
@@ -2060,7 +2062,7 @@ checkIfTramDepot5:
 global resetL3DataToo
 resetL3DataToo:
 	mov	byte [landscape2 + esi], 0
-	and	word [landscape3 + esi * 2], ~1111b
+	and word [nosplit landscape3+esi*2], ~0xFF // Reset the lower byte since thats used for owner of crossings
 	retn
 
 global updateRoadMenuSelection
