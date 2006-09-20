@@ -649,7 +649,12 @@ HandleSizeConstraints:
 	cmp edx, -1
 	je .nocount4
 	cmp edi, trainlistwindowsizes
+	je .notnorm1
+	cmp edi, shipairlistwindowsizes
+	je .notnorm1
+	cmp edi, rvlistwindowsizes
 	jne .norm1
+.notnorm1:
 	testflags sortvehlist
 	jnc .norm1
 	push ecx
@@ -1471,21 +1476,28 @@ lastroadvehdrawn:
 	push eax
 	mov al,0xFF
 ovar roadvehoffset,-1
-	jmp lastvehdrawn
+	push edx
+	mov dl, [esi+0x2F]
+	movzx ax, al
+	jmp lastvehdrawn.hasdl
 
 global lastairvehdrawn
 lastairvehdrawn:
 	push eax
 	mov ax, 0xFFFF
 ovar airvehoffset, -2
-	jmp lastvehdrawn.hasword
+	push edx
+	mov dl, [esi+0x2F]
+	jmp lastvehdrawn.hasdl
 
 global lastshipvehdrawn
 lastshipvehdrawn:
 	push eax
 	mov ax, 0xFFFF
 ovar shipvehoffset, -2
-	jmp lastvehdrawn.hasword
+	push edx
+	mov dl, [esi+0x2F]
+	jmp lastvehdrawn.hasdl
 
 #if 0
 global drawtrainlist

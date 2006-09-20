@@ -508,7 +508,8 @@ createlistwindow:
 	jb .correct
 	xor dl,dl
 .correct:
-	mov BYTE [esi+0x2F], 7	// for default size only
+	mov al, [esi+window.itemsvisible]
+	mov BYTE [esi+0x2F], al	// for default size only
 	mov [esi+0x31],dl
 	mov WORD [esi+0x32],0	// the first reordering will be a forced one, clear shift factor
 	or byte [esi+window.flags],7	// start the GUI timer
@@ -553,6 +554,7 @@ clicklist_next:
 global clicklist_next_train
 clicklist_next_train:
 	call dword [wantvehicle]
+.in:
 	jnz .exit
 	cmp ah,[edi+veh.owner]
 	jnz .exit
@@ -567,6 +569,20 @@ clicklist_next_train:
 .exit:
 	clc
 	ret
+
+global clicklist_next_rv
+clicklist_next_rv:
+	push DWORD clicklist_next_train.in
+	jmp DWORD [wantvehicle+4]
+	
+global clicklist_next_ship
+clicklist_next_ship:
+	push DWORD clicklist_next_train.in
+	jmp DWORD [wantvehicle+8]
+global clicklist_next_aircraft
+clicklist_next_aircraft:
+	push DWORD clicklist_next_train.in
+	jmp DWORD [wantvehicle+12]
 
 // called when a vehicle array entry is deleted
 // force reordering the according veh. list window if visible
@@ -692,4 +708,77 @@ TrainListClickHandlerAddOffset:
 	mov edi, [veharrayptr]
 ret
 
+//JGR more than 256 road vehicles in list
 
+global RVListDrawHandlerCountDec,RVListDrawHandlerCountDec, RVListDrawHandlerCountVehs
+
+RVListDrawHandlerCountDec:
+
+	dec DWORD [trainlistoffset]
+	//cmp bl, 0
+	jns .jmp
+
+	.dec:
+	dec bl
+	jns .reinc
+	ret
+	.reinc:
+	inc bl
+	ret
+	
+	.jmp:
+	xor bl, bl
+	add esp, 4
+	jmp near $
+	ovar .skip, -4, $,RVListDrawHandlerCountDec
+
+RVListDrawHandlerCountVehs:
+	movzx ebx, ax
+	call TrainListDrawHandlerCountTrains
+	//don't modify flags
+	mov al, ah
+	ret
+
+//JGR more than 256 ships in list
+
+global ShipListDrawHandlerCountDec,ShipListDrawHandlerCountDec.skip
+
+ShipListDrawHandlerCountDec:
+
+	dec DWORD [trainlistoffset]
+	//cmp bl, 0
+	jns .jmp
+
+	.dec:
+	dec bl
+	jns .reinc
+	ret
+	.reinc:
+	inc bl
+	ret
+	
+	.jmp:
+	xor bl, bl
+	add esp, 4
+	jmp near $
+	ovar .skip, -4, $,ShipListDrawHandlerCountDec
+	
+global AircraftListDrawHandlerCountDec,AircraftListDrawHandlerCountDec.skip
+AircraftListDrawHandlerCountDec:
+	dec DWORD [trainlistoffset]
+	//cmp bl, 0
+	jns .jmp
+
+	.dec:
+	dec bl
+	jns .reinc
+	ret
+	.reinc:
+	inc bl
+	ret
+	
+	.jmp:
+	xor bl, bl
+	add esp, 4
+	jmp near $
+	ovar .skip, -4, $,AircraftListDrawHandlerCountDec
