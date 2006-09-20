@@ -174,3 +174,9 @@ endstruc
 
 #define AIRCRAFTACT_UNKNOWN 0x80008000	// signals that .curraircraftact isn't valid and needs
 					// to be recalculated
+ 
+// convert vehicle index to vehicle pointer 
+%macro cvivp 0-1 esi // param: register containing index
+	shl	%1, vehicleshift
+	add	%1, [veharrayptr]
+%endmacro

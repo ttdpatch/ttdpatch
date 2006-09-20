@@ -136,3 +136,8 @@ extern overflowhandler,realoverflowreturn
 #else
 %define CHECKMEM ;
 #endif
+
+%macro extcall 1.nolist
+	extern %1
+	call %1
+%endmacro
