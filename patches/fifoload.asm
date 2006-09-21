@@ -284,7 +284,7 @@ exported buildloadlists
 	jz	.noveh
 	call	fifoenterstation_load
 .noveh:
-	add	edi, 4
+	sub	edi, 4
 	cmp	edi, esp
 	jnb	.listloop
 	lea	esp, [ebp+4]
