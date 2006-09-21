@@ -235,6 +235,7 @@ mrproper: clean remake
 	rm -f *.o.d *.obj.d host/*.o.d
 	rm -f *.{d,w,l}lst patches/*.{d,w,l}lst procs/*.{d,w,l}lst
 	rm -f patches/*.ba* procs/*.ba*
+	rm -f *.err lang/*.err
 
 # if a command fails, delete its output
 .DELETE_ON_ERROR:
