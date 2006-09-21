@@ -313,6 +313,7 @@ movbxcargoshortnames:
 global ecxcargooffset
 ecxcargooffset:
 	add ebx, [stationarray2ofst]
+exported ecxcargooffset_ebx2
 	xor ecx,ecx
 	
 .loop:

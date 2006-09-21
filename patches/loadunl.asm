@@ -288,35 +288,77 @@ LoadCargoFromStation:
 
 	// this cargo type wasn't here before, and there's no space for its slot either,
 	// so just quit - there's nothing to load anyway
+.ret:
 	ret
 
 .offset_ok:
 	testflags fifoloading
-	jnc	.nofifo
+	jnc	near .nofifo
 
-	// with FIFO loading, only one train can do full loading, so check the semaphore
+	// with FIFO loading, only vehicles that have reserved can do full loading, so check modflags
+	// if that fails, check queue and reserve if allowed.
 	// if we aren't allowed to load, we're done, so return from the proc
-	cmp	byte [edi+veh.class], 0x10
-	jne	.nofifo
 	test	word [edi+veh.currorder], 0x40
-	jz	.nofifo
+	jz	near .nofifo
 
-	mov	eax,edi
-	sub	eax, [veharrayptr]
-	shr	eax, vehicleshift
-	add	ebx, [stationarray2ofst]	// now ebx points to the station2 struc
+	test	byte [esi+veh.modflags+1], 1 << (MOD_HASRESERVED-8)
+	jnz	near .reserved
 
-	cmp 	word [ebx+station2.cargos+ecx+stationcargo2.curveh], -1
-	jne	.reserved
-	mov	word [ebx+station2.cargos+ecx+stationcargo2.curveh], ax
-	jmp	.allowfifo
-.reserved:
-	cmp	word [ebx+station2.cargos+ecx+stationcargo2.curveh], ax
-	je	.allowfifo
-	ret
+	mov	eax, [esi+veh.veh2ptr]
+.queueloop:
+	mov	eax, [eax+veh2.prevptr]
+	test	eax, eax
+	jz	.reserve
+	mov	edx, [eax+veh2.vehptr]
+	test	byte [edx+veh.modflags], 1 << MOD_MORETOUNLOAD
+	jz	.ret
+	jmp	short .queueloop
 
+.overflow:
+	cmp	byte [ebx+station2.cargos+ecx+stationcargo2.rescount], 0
+	jne	.ret
+
+	mov	al, [esi+veh.cargotype]
+	push	esi
+	mov	esi, edi
+.consistreserve:
+	cmp	word [esi+veh.capacity], 0
+	je	.nextveh
+	cmp	al, [esi+veh.cargotype]
+	jne	.nextveh
+	extcall dequeueveh
+	or	byte [esi+veh.modflags+1], 1 << (MOD_HASRESERVED-8)
+	inc	byte [ebx+station2.cargos+ecx+stationcargo2.rescount]
+	mov	dx, [esi+veh.capacity]
+	sub	dx, [esi+veh.currentload]
+	add	[ebx+station2.cargos+ecx+stationcargo2.resamt], dx
+
+.nextveh:
+	movzx	esi, word [esi+veh.nextunitidx]
+	cmp	si, -1
+	je	.doneres
+	cvivp
+	jmp	short .consistreserve
+.doneres:
+	pop	esi
+	jmp	short .allowfifo
+
+.reserve:
+	mov	dx, [esi+veh.capacity]
+	sub	dx, [esi+veh.currentload]
+	mov	ax, [ebx+station.cargos+ecx+stationcargo.amount]
+	and	ax, [stationcargowaitingmask]
+	add	ebx, [stationarray2ofst]
+	cmp	ax, dx
+	jb	.overflow
+	call	dequeueveh
+	or	byte [esi+veh.modflags+1], 1 << (MOD_HASRESERVED-8)
+	inc	byte [ebx+station2.cargos+ecx+stationcargo2.rescount]
+	add	[ebx+station2.cargos+ecx+stationcargo2.resamt], dx
 .allowfifo:
 	sub	ebx, [stationarray2ofst]	// ebx points to the station struc again
+
+.reserved:
 .nofifo:
 //original code to update some station fields
 	mov	byte [ebx+station.cargos+ecx+stationcargo.timesincevisit], 0
@@ -444,6 +486,12 @@ LoadCargoFromStation:
 	
 .noadjustprofit:
 // actually load the cargo from the station
+	test	byte [esi+veh.modflags+1], 1<<(MOD_HASRESERVED-8)
+	jz	.unres
+	add	ebx, [stationarray2ofst]
+	sub	[ebx+station2.cargos+ecx+stationcargo2.resamt], ax
+	sub	ebx, [stationarray2ofst]
+.unres:
 	sub	[ebx+station.cargos+ecx+stationcargo.amount], ax
 	mov	byte [ebx+station.timesinceload], 0
 	add	[%$cargomoved], ax

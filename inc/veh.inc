@@ -87,7 +87,8 @@ struc veh
 			resw 1	// 68h:rv:??
 			resb 1	// 6ah:rv:turn-around counter
 				// So far it's the last entry identified as used by TTD.
-			resb 0x6F-$
+			resb 0x6E-$
+	.slfifoidx:	resb 1	// 6Eh:the index of this vehicle in the fifo queue (save/load only)
 	.prevmovementstat:	// 6Fh:the previous movementstat (used for RV trailers and Plane accel/decel)
 	.parentmvstat	resb 1	//     the next turn for Articulated RVs (so that they follow the leader)
 	.traveltime:	resw 1	// 70h:number of days travelling since last load/unload
@@ -109,6 +110,7 @@ struc veh
 #define MOD_NOTELECTRICHERE 6	// 	bit 6=mixed power train is on non-electric tile
 #define MOD_ISFULL 7		//	bit 7=train is done loading even with full load set
 #define MOD_REVERSE 8		//	bit 8=toggled whenever train reverses
+#define MOD_HASRESERVED 9	//	bit 9=this vehicle has reserved its cargo type and is loading (FIFO)
 
 	.modflags: 	resw 1	// 7eh:above flags, bitcoded.
 endstruc
@@ -167,6 +169,9 @@ struc veh2
 	.colormap:	resd 1	// color translation sprite
 	.curraircraftact: resb 6	// raw movement data needed by AircraftMovement
 	.userbits:	resb 1	// user bits (train prop 25)
+	.pad:		resb 1
+	.prevptr:	resd 1	// linked list of vehicles queued-for-reserving
+	.nextptr:	resd 1	// pointers point to veh2 struct
 endstruc
 
 #define VEH2_MIXEDPOWERTRAIN 0	// set if train has mix of electric/nonelectric engines

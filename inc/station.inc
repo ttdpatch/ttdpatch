@@ -70,9 +70,12 @@ endstruc
 
 // additional cargo information, stored in secondary station array, same size as original one, for easier pointer arithmetic
 struc stationcargo2
-	.amount:	resd 1	// +00h/+1Ch:total amount waiting (full 32 bits), not yet implemented
-	.curveh:	resw 1	// +04h/+20h:vehicle currently loading this cargo type
+	.resamt		resw 1  // +00h/+1Ch:amount reserved by FIFO 2
+	.unused:	resw 1	
+	.curveh:	resw 1	// +04h/+20h:vehicle currently loading this cargo type (FIFO 1)
+				// Next vehicle (not consist!) to reserve this cargo type (FIFO 2)
 	.type:		resb 1
+	.rescount:	resb 1	// Count of consists that have reserved this cargo type
 			resb 8 - $
 endstruc
 

@@ -4,6 +4,7 @@
 #include <station.inc>
 #include <bitvars.inc>
 #include <loadsave.inc>
+#include <veh.inc>
 
 extern clearfifodata,miscmodsflags,patchflags,station2switches
 extern stationarray2ptr
@@ -27,8 +28,46 @@ station2init:
 	testflags fifoloading
 	jnc .no_fifo
 	test dword [station2switches],S2_FIFOLOADING
+	jnz .fifo_old
+	test byte [station2switches],S2_FIFOLOADING2
 	jnz .fifo_good
 	call clearfifodata
+	jmp short .fifo_good
+.fifo_old:
+	extcall clearvehfifodata
+
+	mov ebx, numstations-1
+.stationloop:
+	mov eax, ebx
+	imul eax, station_size
+	add eax, [stationarray2ptr]
+
+	mov ecx, 11*8
+.cargoloop:
+	movzx esi, word [eax+station2.cargos+ecx+stationcargo2.curveh]
+	cmp si, -1
+	je .nextcargo_old
+
+	cvivp
+	mov al, [eax+station2.cargos+ecx+stationcargo2.type]
+.vehloop:
+	cmp al, [esi+veh.cargotype]
+	jne .nextveh
+	mov byte [esi+veh.slfifoidx], 0
+.nextveh:
+	movzx esi, word [esi+veh.nextunitidx]
+	cmp si, -1
+	je .nextcargo_old
+	cvivp
+	jmp short .vehloop
+
+.nextcargo_old:
+	sub ecx,0+station2_size
+	jnc .cargoloop
+
+	dec ebx
+	jnc .stationloop
+
 .fifo_good:
 .no_fifo:
 	testflags generalfixes

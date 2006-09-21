@@ -367,6 +367,7 @@ varb tracktypes, 0,2,3	// by default: regular, monorail, maglev
 uvard stationarray2ptr
 // Offset from the station array to the secondary station array, 0 if not available
 uvard stationarray2ofst
+uvard stationarray2endptr
 
 vard cachevehvar40x, cachevehvar40x_def	// bitmask of actually cacheable 40+x vars
 
