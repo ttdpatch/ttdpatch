@@ -177,6 +177,22 @@ endstruc
  
 // convert vehicle index to vehicle pointer 
 %macro cvivp 0-1 esi // param: register containing index
-	shl	%1, vehicleshift
-	add	%1, [veharrayptr]
+	%tostr %%1 %1
+	%substr %%e %%1 1
+	%strlen %%len %%1
+	%if %%len == 2
+		%substr %%x %%1 2
+		%ifidn %%x,'x'	 //[abcd]x
+		%elifidn %%x,'i' //[sd]i
+		%elifidn %%x,'p' //[sb]p
+		%else
+			%error "cvivp requires a word or dword register."
+		%endif
+		movzx	e%1, %1
+		shl	e%1, vehicleshift
+		add	e%1, [veharrayptr]
+	%else
+		shl	%1, vehicleshift
+		add	%1, [veharrayptr]
+	%endif
 %endmacro
