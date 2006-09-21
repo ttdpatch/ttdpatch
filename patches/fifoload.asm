@@ -219,23 +219,26 @@ exported buildloadlists
 .stationloop:
 	mov	eax, ebx
 	sub	eax, [stationarray2ofst]
-	cmp	word [ebx+station.XY], 0
+	cmp	word [eax+station.XY], 0
 	je	near .nextstation
 	sub	eax, [stationarrayptr]
 	cdq
-	mov	edx, station2_size
-	div	edx
-	mov	ecx, 11*8
+	xor	ecx, ecx
+	mov	cl, station2_size
+	div	ecx, 0 // '0' disables the divide-by-zero prep, but there's no way ecx can be 0 in the first place.
+	mov	cl, 11*8
 
 .cargoloop:
 	mov	word [ebx+station2.cargos+ecx+stationcargo2.curveh], -1
 	mov	dh, al
 	mov	dl, cl
-	lea	edi, [esp+4]
+	lea	edi, [esp-4]
 	mov	ebp, edi
 	mov	ecx, 256
 	xor	eax, eax
+	std
 	rep stosd
+	cld
 	sub	esp, 256*4
 	mov	al, dh
 	mov	cl, dl
@@ -261,6 +264,7 @@ exported buildloadlists
 	test	byte [edi+veh.modflags+1], 1<<(MOD_HASRESERVED-8)
 	jz	.nextveh
 	movzx	edx, byte [edi+veh.slfifoidx]
+	neg	edx
 	cmp	esi, [ebp+edx*4]
 	je	.nextveh	// This consist is already in this slot
 	xchg	esi, [ebp+edx*4]
@@ -282,8 +286,8 @@ exported buildloadlists
 .noveh:
 	add	edi, 4
 	cmp	edi, esp
-	jna	.listloop
-	lea	esp, [ebp-4]
+	jnb	.listloop
+	lea	esp, [ebp+4]
 
 .nextcargo:
 	sub	ecx, stationcargo2_size
@@ -297,6 +301,8 @@ exported buildloadlists
 	popa
 	ret
 
+
+// This destroys the linked-lists to generate the indices for SL, and then rebuilds the lists.
 exported buildfifoidx
 	pusha
 	mov	ebx, [stationarray2ptr]
