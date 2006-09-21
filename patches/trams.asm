@@ -1317,15 +1317,13 @@ drawNormalSlopeAndAddTrams:
 	retn
 .continuethisstuff:
 	add	di, word [tracktocheck+ebx*2]
-	test	dword [landscape5(di)], 16		//skip level crossings.
-	jne	near .dontdraw				//these have been causing big issues.
 	push	cx
 	xor	ecx,ecx
 	mov 	cl, byte [landscape4(di)]
 	and	cl, 0xF0
 	cmp	cl, 0x20
 	pop	cx
-	jz	.nextbit
+	jz	.checkLevelCrossing
 	push	cx
 	xor	ecx,ecx
 	mov 	cl, byte [landscape4(di)]
@@ -1341,6 +1339,11 @@ drawNormalSlopeAndAddTrams:
 	pop	cx
 	jz	.checkfortunnel
 	jmp	.dontdraw
+
+.checkLevelCrossing:
+	test	dword [landscape5(di)], 16		//skip level crossings.
+	jne	near .dontdraw				//these have been causing big issues.
+	jmp	.nextbit
 
 .checkfortunnel:
 	test	byte [landscape5(di)], 80h
@@ -1493,17 +1496,21 @@ drawTramBridgeMiddlePart:
 .setoffset:
 	//RIGHT HERE...!! TEST FOR CUSTOM BRIDGEHEAD
 	//IF bridge head
-	test word [landscape3+2*edi], 3 << 13
-	jz .notacustombridgehead
+	push	ax
+	mov	ax, word [landscape3+2*edi]
+	and	ax, 0FA0h
+	cmp	ax, 0
+	pop	ax
+	je	.notacustombridgehead
 	xor	ecx, ecx
 	movzx	ecx,word [landscape3+edi*2]
 	shr	ecx,8		//check for trams
 	and	ecx,0x0f
 	test	cl, byte [midshouldbe+esi]
-	jz	near .notacustombridgehead
+	jz	near .cleanup
 	xor	ecx, ecx
 	movzx	ecx,word [landscape3+edi*2]
-	shr	ecx,4		//check for trams
+	shr	ecx,4		//check for roads
 	and	ecx,0x0f
 	test	cl, byte [midshouldbe+esi]
 	jz	.changestyledir
@@ -1530,8 +1537,18 @@ drawTramBridgeMiddlePart:
 	and	cl, 0xF0
 	cmp	cl, 0x50
 	pop	cx
-	jz	.setoffset
+	jnz	.checkNext
+	//check for road station
+	cmp 	byte [landscape5(di)], 0x43	//first of original bus stops
+	jl	.checkNext
+	cmp 	byte [landscape5(di)], 0x4A	//last of original truck stops (which are directly after bus stops)
+	jle	.setoffset
+	cmp 	byte [landscape5(di)], 0x53	//first of new tram stops
+	jl	.checkNext
+	cmp 	byte [landscape5(di)], 0x5A	//last of new tramfreight stops
+	jle	.setoffset
 
+.checkNext:
 	push	cx
 	xor	ecx,ecx
 	mov 	cl, byte [landscape4(di)]
