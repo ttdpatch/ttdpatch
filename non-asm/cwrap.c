@@ -82,7 +82,7 @@ for (i_y = 0;i_y < resize;++i_y)
         (&landscape4base)[i_y*256+i_x] = v;
 #else
 	int ofs = i_y*256+i_x;
-	asm("movb %%al,%%fs:(%[ofs])" : : "a" (v), [ofs] "r" (ofs));
+	asm("movb %[v],%%fs:(%[ofs])" : : [v] "q" (v), [ofs] "r" (ofs));
 #endif
     }
 }
