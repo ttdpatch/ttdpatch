@@ -119,5 +119,5 @@ destroyArray(&desert);
 
 void makerandomterrain() {
   // use TTD terrain settings here
-  terrain(14, 5, 0, 2, 3, randomfn);
+  terrain(24, 8, 8, 16, 3, randomfn);
 }
