@@ -14,11 +14,13 @@
 * the appropiate arrays
 */
 
+#include <stdint.h>
 #include <ttdvar.h>
+
 extern char landscape4base;
 extern char desertmap;
 
-extern void *randomfn asm("randomfn");
+extern uint32_t (*randomfn)(void) asm("randomfn");
 
 #define OUTPUT_FILE // undef this to disable outputing the heightmap and
                     // desert map as bmps
