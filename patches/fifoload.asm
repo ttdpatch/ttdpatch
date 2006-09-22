@@ -72,25 +72,30 @@ exported dequeueveh
 	test edi,edi
 	jz .ishead
 	mov [edi+veh2.nextptr], edx
-	jmp short .checktail
-.ishead:
-	test edx,edx
-	jz .isboth
-	mov bp, [esi+veh.idx]
-	mov [ebx+station2.cargos+ecx+stationcargo2.curveh], bp
-.checktail:
-	test edx,edx
+	test edx, edx
 	jz .istail
 	mov [edx+veh2.prevptr], edi
 .istail:
 	popa
 	ret
-.isboth:
-	mov bp, [ebx+station2.cargos+ecx+stationcargo2.curveh]
-	cmp bp, [esi+veh.idx]
+
+.ishead:
+	mov bp, [esi+veh.idx]
+	cmp bp, [ebx+station2.cargos+ecx+stationcargo2.curveh]
 	jne .done	// Not in queue, do nothing
-	mov word [ebx+station2.cargos+ecx+stationcargo2.curveh], -1
+
+	test edx, edx
+	jz .isboth
+	mov [edx+veh2.prevptr], edi
+	mov edx, [edx+veh2.vehptr]
+	mov ebp, [edx+veh.idx]
+	mov [ebx+station2.cargos+ecx+stationcargo2.curveh], bp
 .done:
+	popa
+	ret
+
+.isboth:
+	mov word [ebx+station2.cargos+ecx+stationcargo2.curveh], -1
 	popa
 	ret
 
@@ -105,13 +110,16 @@ exported enqueueveh
 	movzx eax, word [ebx+station2.cargos+ecx+stationcargo2.curveh]
 	cmp ax,-1
 	je .first
+	cvivp eax
+	mov eax, [eax+veh.veh2ptr]
 .loop:
-	mov eax, edi
-	mov edi, [edi+veh2.nextptr]
-	test edi, edi
+	mov edx, eax
+	mov eax, [eax+veh2.nextptr]
+	test eax, eax
 	jnz .loop
-
-	mov [eax+veh2.nextptr], edi
+// Now edx->last queued vehicle
+	mov [edx+veh2.nextptr], edi
+	mov [edi+veh2.prevptr], edx
 	popa
 	ret
 
@@ -191,6 +199,7 @@ exported fifoenterstation
 	add	eax, [stationarray2ptr]
 	mov	ebx, eax
 .vehloop:
+	and	byte [esi+veh.modflags+1], ~(1 << (MOD_HASRESERVED-8))
 	cmp	word [esi+veh.capacity], 0
 	je	.next
 	mov	al, [esi+veh.cargotype]
@@ -199,7 +208,6 @@ exported fifoenterstation
 	cmp	cl, -1
 	je	.next
 	call	enqueueveh
-	and	byte [esi+veh.modflags+1], ~(1 << (MOD_HASRESERVED-8))
 .next:
 	movzx	esi, word [esi+veh.nextunitidx]
 	cmp	si, -1

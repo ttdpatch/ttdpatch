@@ -349,6 +349,8 @@ LoadCargoFromStation:
 	mov	ax, [ebx+station.cargos+ecx+stationcargo.amount]
 	and	ax, [stationcargowaitingmask]
 	add	ebx, [stationarray2ofst]
+	sub	ax, [ebx+station2.cargos+ecx+stationcargo2.resamt]
+	jb	.overflow
 	cmp	ax, dx
 	jb	.overflow
 	call	dequeueveh

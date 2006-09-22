@@ -65,7 +65,7 @@ station2init:
 	sub ecx,0+station2_size
 	jnc .cargoloop
 
-	dec ebx
+	sub ebx, 1
 	jnc .stationloop
 
 .fifo_good:
