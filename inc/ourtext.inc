@@ -353,6 +353,7 @@ defourtext directoryoverflow
 
 defourtext trdlg_eq
 defourtext trdlg_neq
+defourtext tr_nextdeporder
 
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 

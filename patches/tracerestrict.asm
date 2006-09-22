@@ -211,6 +211,8 @@ ret
 	je near .cargo
 	cmp dh,15
 	je near .distsig
+	cmp dh,16
+	je near .nextdeporder
 
 .gotvar:
 	cmp BYTE [tempdlvar],1
@@ -294,7 +296,12 @@ ret
 	movzx edx, WORD [ebx+robj.word1]
 	jmp .gotvar
 
+.nextdeporder:
+	push DWORD .deporderin
+	jmp .nextorderin
 .nextorder:
+	push DWORD .orderin
+.nextorderin:
 	movzx edx, BYTE [eax+veh.currorderidx]
 	inc edx
 	movzx ecx, BYTE [eax+veh.totalorders]
@@ -304,7 +311,8 @@ ret
 	.nosubecx:
 	mov ecx, [eax+veh.scheduleptr]
 	mov cx, [ecx+edx*2]
-	jmp .orderin
+	ret
+
 .curorder:
 	mov cx, [eax+veh.currorder]
 .orderin:
@@ -319,6 +327,7 @@ ret
 
 .curdeporder:
 	mov cx, [eax+veh.currorder]
+.deporderin:
 	and ecx,0xff0f
 	cmp cl,2
 	je .curdepordernbl
@@ -674,8 +683,8 @@ dw ourtext(tr_sigval_is_red)
 dw 0xffff
 endvar
 
-%assign var_array_num 16
-%assign var_end_mark 15
+%assign var_array_num 17
+%assign var_end_mark 16
 varw pre_var_array
 dw ourtext(tr_vartxt)
 endvar
@@ -695,6 +704,7 @@ dw ourtext(tr_nextorder)
 dw ourtext(tr_lastvisitstation)
 dw ourtext(tr_carriescargo)
 dw ourtext(tr_distancefromsig)
+dw ourtext(tr_nextdeporder)
 dw 0xffff
 endvar
 
@@ -715,6 +725,7 @@ db 3
 db 3
 db 65
 db 8
+db 5
 endvar
 
 varw pre_var_compat_id
@@ -736,6 +747,7 @@ db 2
 db 2
 db 8
 db 9
+db 3
 endvar
 
 %assign j 0
@@ -791,6 +803,7 @@ varinfo 2,j
 varinfo 11,j
 varinfo 12,j
 varinfo 3,j
+varinfo 15,j
 varinfo 4,j
 varinfo 5,j
 varinfo 13,j
