@@ -15,7 +15,7 @@
 */
 
 #include <ttdvar.h>
-extern char _landscape6 asm("_landscape6");
+extern char landscape4base;
 extern char desertmap;
 
 extern void *randomfn asm("randomfn");
@@ -76,10 +76,11 @@ for (i_x = 0;i_x < resize;++i_x)
     for (i_y = 0;i_y < resize;++i_y)
     {
 #if WINTTDX
-        (&_landscape6)[i_y*256+i_x] = (char)(val(i_x,i_y,source));
+        (&landscape4base)[i_y*256+i_x] = (char)(val(i_x,i_y,source));
 #else
 	char v = (char)(val(i_x,i_y,source));
-	asm("movb %%al,%%gs:(0)" : "=a" (v));
+	int ofs = i_y*256+i_x;
+	asm("movb %%al,%%fs:(%[ofs])" : : "a" (v), [ofs] "r" (ofs));
 #endif
     }
 }
