@@ -21,7 +21,8 @@ dmalloc:
 // the list to merge free blocks together and try again, if still no blocks can be found, fail (allocate extra memory, not possible in dos?)
 	push eax
 	mov edi, [dynmemstart]
-	add ecx, 4
+	add ecx, 7
+	and ecx, ~3
 .searchloop:
 	cmp edi, [dynmemend]
 	jae .fail
