@@ -71,9 +71,9 @@ while (resize < 256) {
 
 ttMap(truncHeight,deltaHeight,source);
 
-for (i_x = 0;i_x < resize;++i_x)
+for (i_y = 0;i_y < resize;++i_y)
 {
-    for (i_y = 0;i_y < resize;++i_y)
+    for (i_x = 0;i_x < resize;++i_x)
     {
 #if WINTTDX
         (&landscape4base)[i_y*256+i_x] = (char)(val(i_x,i_y,source));
@@ -88,9 +88,9 @@ for (i_x = 0;i_x < resize;++i_x)
 snipArray(source,size_x(source),size_y(source),&desert);
 ttDesert(desert,desertMin,desertMax,3,source);
 
-for (i_x = 0;i_x < resize;++i_x)
+for (i_y = 0;i_y < resize/4;++i_y)
 {
-    for (i_y = 0;i_y < resize/4;++i_y)
+    for (i_x = 0;i_x < resize;++i_x)
     {
         char a, b, c, d;
         a = (char)(val(i_x,(i_y*4)  ,desert));

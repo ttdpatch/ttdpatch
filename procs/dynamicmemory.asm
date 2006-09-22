@@ -5,7 +5,7 @@
 extern dynmemend,dynmemstart
 extern malloccrit
 
-%define DYNMEMSIZE 0x20000
+%define DYNMEMSIZE 0x1c0000
 
 global patchdynamicmemory
 patchdynamicmemory:

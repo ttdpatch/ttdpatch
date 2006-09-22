@@ -7,15 +7,19 @@ patchprocandor experimentalfeatures,BIT(EXP_NEWTERRAINGEN),, patchterraingen
 
 begincodefragments
 
-codefragment oldrandomland,-5
-	mov edx, eax
-	shr edx, 16
+codefragment oldrandomland,-27
+	and ax,7fh
+	mov bx,2
 
-codefragment_call newrandomland,_makerandomterrain,5
+codefragment newrandomland
+	icall _makerandomterrain
+	icall dmemcompact
+	test al,0
+	jmp fragmentstart-6
 
 endcodefragments
 
 patchterraingen:
-//	patchcode randomland
+	patchcode randomland
 	ret
 

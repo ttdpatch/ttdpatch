@@ -37,8 +37,6 @@ void snipArray (gridArray* source_,ulong  size_x_,ulong  size_y_,gridArray** thi
 void makeArray (ulong size_x_, ulong size_y_,uint (*randomizer)(void), gridArray** this_);
 /* construct an array of a given size */
 
-ulong size_x(gridArray* this_);
-
 void destroyArray(gridArray** this_);
 /* destructor of the array */
 
@@ -78,28 +76,90 @@ void ttDesert(gridArray* target, ulong min, ulong max, ulong range, gridArray* t
 void print (gridArray* this_);
 /* print the contents of the array */
 
-ulong size_x(gridArray* this_);
-/* returns the size of the array in the x vector */
-
-ulong size_y(gridArray* this_);
-/* returns the size of the array in the y vector */
-
-double val (ulong indice_x, ulong indice_y, gridArray* this_);
-/* return the height data at the x, y */
-
-void insert (long double val,ulong indice_x, ulong indice_y, gridArray* this_);
-/* insert a value into the array */
-
-void test (long* current, long* prev);
-/* check if the value is between -1 and 1
-   needed for the "ttsation" of the original
-   long double array */
-
 int recursiveTest(ulong range, ulong x, ulong y, gridArray* this_);
 /* recursive test of whether a tile can be a desert tile
 	 needs an improvement to seek a circual pattern and not
 	 a 'star' like currently */
 
-int dist(ulong otherSize, ulong other, ulong mySize, ulong indice, gridArray* this_);
-/* distance of the points when scaling to a larger size */
+/*
+*
+* return size of the array
+*
+*/
+
+inline static ulong size_x(gridArray* this_)
+{
+  return this_->size_x;
+}
+
+/*
+*
+* likewise
+*
+*/
+
+inline static ulong size_y(gridArray* this_)
+{
+  return this_->size_y;
+}
+
+/*
+*
+* return value under indices
+*
+*/
+
+inline static double val (ulong i_x, ulong i_y, gridArray* this_)
+{
+
+  if (size_x(this_) > i_x && size_y(this_) > i_y) {
+    return this_->data[i_x][i_y];
+  }
+
+  return 0.0;
+}
+
+/*
+*
+* insert value under indices
+*
+*/
+
+inline static void insert (long double val,ulong i_x, ulong i_y, gridArray* this_)
+{
+  if (size_x(this_) > i_x && size_y(this_) > i_y)
+    this_->data[i_x][i_y] = val;
+}
+
+/*
+*
+* test if one of values is bigger than another
+*
+*/
+
+inline static void test (long* current, long* prev)
+{
+  if (*current > *prev)
+    *current = *prev + 1;
+  if (*current < *prev)
+    *current = *prev - 1;
+}
+
+/*
+*
+* check if two verices are close/far away.
+* needed for scaling
+*
+*/
+
+inline static int dist(ulong otherSize, ulong other, ulong mySize, ulong indice, gridArray* this_) {
+
+  double len = 0.0;
+  double my = indice *1.0 /mySize;
+  double ot = other  *1.0 /otherSize;
+
+  len = (ot-my)*mySize*1.0;
+  return (len < 1.0);
+}
+
 #endif

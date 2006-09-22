@@ -1,6 +1,6 @@
 
 inline void free(void *ptr) {
-  asm("call dfree" : "=D" (ptr) : "D" (ptr) : "eax", "ebx", "esi");
+  asm volatile ("call dfree" : "=D" (ptr) : "D" (ptr) : "eax", "ebx", "esi");
 }
 
 inline void *malloc(size_t size) {
