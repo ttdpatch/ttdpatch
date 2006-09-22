@@ -75,10 +75,12 @@ for (i_y = 0;i_y < resize;++i_y)
 {
     for (i_x = 0;i_x < resize;++i_x)
     {
+	char v = val(i_x,i_y,source);
+	if (v < 0) v = 0;
+	else if (v > 15) v = 15;
 #if WINTTDX
-        (&landscape4base)[i_y*256+i_x] = (char)(val(i_x,i_y,source));
+        (&landscape4base)[i_y*256+i_x] = v;
 #else
-	char v = (char)(val(i_x,i_y,source));
 	int ofs = i_y*256+i_x;
 	asm("movb %%al,%%fs:(%[ofs])" : : "a" (v), [ofs] "r" (ofs));
 #endif

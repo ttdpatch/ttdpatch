@@ -709,6 +709,15 @@ CHANGELOG
 - added generic feature 0C (newsounds) callback for new ambient sounds
 - allow unlimited var.action 2 procedure calls in one var.action 2
 - implement action 13 to allow translating D000/DC00 texts of another grf
+- by JGR:
+  * show more than 255 trains/ships/rvs/planes in vehicle list
+  * allow stations larger than 15x15, enable with "stationsize <maxsize>"
+  * implement signal restrictions, enable with "tracerestrict on" and
+    access from new signal gui ("signalgui on")
+- by Uzurpator: new terrain generator, enable with
+  "experimentalfeatures.newterraingen on"
+- by Mek: allow resizing the train info window
+
 
 
 
