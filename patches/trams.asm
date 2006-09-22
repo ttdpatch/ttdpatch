@@ -205,50 +205,64 @@ noOneWaySetTramTurnAround:
 
 global insertTramTrackL3Value
 insertTramTrackL3Value:
-	call	[gettileinfo]
+	call	[gettileinfo]			//the original call
 	push	bx
 	xor	bx, bx
 	mov	bl, byte [human1]
-	cmp	byte [curplayer], bl
+	cmp	byte [curplayer], bl		//check that we are player 1
 	pop	bx
 	jne	.dontLoadTramArray
-	cmp	byte [editTramMode], 0
+	cmp	byte [editTramMode], 0		//are we building trams?
 	jz	.dontLoadTramArray
 	push	dx
 	and	dh, 10h
 	cmp	dh, 10h
 	pop	dx
-	je	.dontLoadTramArray
+	je	.levelCrossing			//we have a level crossing
+	cmp	bl, 08h				//this is rail we are trying to apply trams to!
+	je	.levelCrossing			//we have a level crossing
 
-	test	byte [landscape5(si)], 20h
+	test	byte [landscape5(si)], 20h	//DEPOT! skip... this fixed $4mil bug
 	jne	.dontLoadTramArray
 
 	cmp	bl, 0x48		//check if it's a bridge and DON'T insert tram tracks
 	je	.dontLoadTramArray
 
-	mov	byte dh, [landscape3+esi*2]
+	mov	byte dh, [landscape3+esi*2]	//move in tram track data...
+
+.levelCrossing:
+	;bleh... do something if we're placing tram tracks on a level crossing here
+	;see 00148761 and hack to move the tram bits to the correct spot.
+	;actually... just let this go and then patch later after it's converted the tile to a rail crossing.
 
 .dontLoadTramArray:
 	cmp	bl, 10h
 	retn
 
+global tramLevelCrossing
+tramLevelCrossing:
+	;placeholder number 2... somewhere here we need to work out if we're working on trams and then shift
+	;in the correct tram bits depending on whether road exists or not....
+	;start with just tram bits and screw 'just road crossings'
+	mov	word [landscape3+esi*2], dx
+	retn
 
 global insertTramTrackIntoRemove
 insertTramTrackIntoRemove:
-	call	[gettileinfo]
+	call	[gettileinfo]			;get the standard tile info
 	push	bx
 	xor	bx, bx
 	mov	bl, byte [human1]
-	cmp	byte [curplayer], bl
+	cmp	byte [curplayer], bl		;check if we're player one
 	pop	bx
 	jne	.dontLoadTramArray
-	cmp	byte [demolishroadflag],1
-	je	.dontLoadTramArray
-	cmp	byte [editTramMode], 0
+	cmp	byte [demolishroadflag],1	;are we dynamiting? or removing?
+	je	.dontLoadTramArray		;if we're dynamiting, then just continue, all gets removed
+	cmp	byte [editTramMode], 0		;removing... trams or roads?
 	jz	.dontLoadTramArray
-	mov	byte dh, [landscape3+esi*2]
+	mov	byte dh, [landscape3+esi*2]	;trams... move in the current tram tracks
 .dontLoadTramArray:
-	cmp	bl, 48h
+	cmp	bl, 48h				;original code.
 	retn
 
 global newSendVehicleToDepot
@@ -259,6 +273,7 @@ newSendVehicleToDepot:
 	mov	dword [tramVehPtr], 0FFFFFFFFh
 	retn
 
+;called by the 'system' as opposed to a user request.
 global newSendVehicleToDepotAuto
 newSendVehicleToDepotAuto:
 	mov	dword [tramVehPtr], esi
@@ -277,17 +292,16 @@ shiftTramBytesIntoL5:
 	jne	near .dontMakeTramTracks
 	cmp	byte [editTramMode], 0
 	je	near .dontMakeTramTracks
-	or	byte [landscape3+esi*2], bh
+	or	byte [landscape3+esi*2], bh		;this is where the tram tracks are stored
 	//now lets check if we are next to a bridge
-
-	call	invalidateBridgeIfExists
 	jmp	short .dontMakeRoads
 
 .dontMakeTramTracks:
-	or	byte [landscape5(si)], bh		//we want to move this into landscape3 now
+	or	byte [landscape5(si)], bh		;this is where the roads are stored.
 
 .dontMakeRoads:
-	mov	byte [landscape2+esi], 0
+	call	invalidateBridgeIfExists		;this should be called on both circumstances
+	mov	byte [landscape2+esi], 0		;original code.
 	retn
 
 

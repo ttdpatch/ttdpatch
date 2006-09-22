@@ -453,6 +453,14 @@ begincodefragments
 		icall	checkIfDepotIsTramDepot
 #endif
 
+	codefragment oldInsertLevelCrossing, -14
+		pop	ebx
+		retn
+		cmp	bl, 48h
+
+	codefragment newInsertLevelCrossing
+		icall	tramLevelCrossing
+		setfragmentsize 8
 endcodefragments
 
 patchtrams:
@@ -584,6 +592,8 @@ patchtrams:
 	patchcode oldDrawBuildDepot, newDrawBuildDepot, 2-WINTTDX, 2
 
 	patchcode oldRVFindDepot, newRVFindDepot, 1, 1
+
+	patchcode oldInsertLevelCrossing, newInsertLevelCrossing, 1, 1
 
 	or byte [newgraphicssetsenabled+1],1 << (11 - 8)
 	retn
