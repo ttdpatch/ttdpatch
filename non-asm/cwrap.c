@@ -97,7 +97,7 @@ for (i_y = 0;i_y < resize/4;++i_y)
         b = (char)(val(i_x,(i_y*4)+1,desert));
         c = (char)(val(i_x,(i_y*4)+2,desert));
         d = (char)(val(i_x,(i_y*4)+3,desert));
-        (&desertmap)[(i_y*256+i_x)>>2] = a + (b<<2) + (c<<4) + (d<<6);
+        (&desertmap)[i_y*256+i_x] = a + (b<<2) + (c<<4) + (d<<6);
     }
 }
 
@@ -119,5 +119,5 @@ destroyArray(&desert);
 
 void makerandomterrain() {
   // use TTD terrain settings here
-  terrain(24, 8, 8, 16, 3, randomfn);
+  terrain(24, 8, 0, 8, 3, randomfn);
 }
