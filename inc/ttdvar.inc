@@ -45,6 +45,7 @@ ttdvar(datastart,0x0)			// only useful for the Windows version, where it points 
 ttdvar(landscape1,0x4cba)
 ttdvar(landscape2,0x14cba)
 ttdvar(landscape3,0x24cba)
+ttdvar(desertmap,0x44cba)
 
 #if WINTTDX
 	ttdvar(landscape4base,0xb12b3)
