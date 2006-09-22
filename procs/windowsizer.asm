@@ -62,9 +62,8 @@ codefragment findmapwindowelements, -12
 	db cWinElemTitleBar, cColorSchemeBrown
 	dw 11, 233
 
-codefragment findtraininfowindowelements, -12
-	db cWinElemTitleBar, cColorSchemeGrey
-	dw 11, 329, 0, 13, 0x8802
+codefragment findtraininfowindowelements, -20
+	dw 13, 0x8802
 
 codefragment oldmapwindowdragmode, -13
 	cmp cx, 0xFE0
@@ -358,6 +357,11 @@ patchwindowsizer:
 	
 	mov edi, [traininfowindowelementsptr]
 	;9, 10, 11 == cargo/info/capa
+	mov ax, [edi+12*11+ windowbox.x2]
+	inc ax
+	mov word [traininfosizes], ax
+	mov word [traininfosizes+2], ax
+	dec ax
 	sub word [edi+12*11+ windowbox.x2],11
 	sub word [edi+12*11+ windowbox.x1],7
 	sub word [edi+12*10+ windowbox.x2],7
@@ -367,8 +371,9 @@ patchwindowsizer:
 	mov byte [edi+14*12+windowbox.type], cWinElemLast
 	mov byte [edi+12*12+windowbox.type], cWinElemSizer
 	mov byte [edi+12*12+windowbox.bgcolor], cColorSchemeGrey
-	mov word [edi+12*12+windowbox.x1], 359
-	mov word [edi+12*12+windowbox.x2], 369
+	mov word [edi+12*12+windowbox.x2], ax
+	sub ax, 10
+	mov word [edi+12*12+windowbox.x1], ax
 	mov word [edi+12*12+windowbox.y1], 152
 	mov word [edi+12*12+windowbox.y2], 163
 	mov byte [edi+13*12+windowbox.type], cWinElemExtraData

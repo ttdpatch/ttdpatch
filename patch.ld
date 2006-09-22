@@ -45,12 +45,14 @@ SECTIONS
 	/* and the .text and .data of the remaining files */
 	*/*.*po(.text)
 
-	. = ALIGN(4);
+	. = ALIGN(16);
 	__varlist_start = .;
 	*(.varlist)
 	__varlist_end = .;
 
 	*(.datad)
+	non-asm/*.*po(.data)
+	non-asm/*.*po(.rdata)
 	*(.dataw)
 	*(.datab)
 	. = ALIGN(4);

@@ -350,6 +350,10 @@ defourtext tr_vartxt
 defourtext tr_optxt
 
 defourtext directoryoverflow
+
+defourtext trdlg_eq
+defourtext trdlg_neq
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

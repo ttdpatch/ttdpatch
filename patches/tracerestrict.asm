@@ -489,9 +489,36 @@ clearrobjarrays:
 
 ret
 
-%assign winwidth 564
 %assign numrows 10
 %assign winheight numrows*12+36
+%assign buttongap 0
+btn_start_end equ -buttongap-1
+%define prev_btn start
+%macro btndata 2-3 //name,width,follows
+%ifstr %3
+btn_%1_start equ btn_ %+ %3 %+ _end + buttongap+1
+%else
+btn_%1_start equ btn_ %+ prev_btn %+ _end + buttongap+1
+%endif
+btn_%1_end equ btn_%1_start+%2
+%xdefine prev_btn %1
+%endmacro
+
+%define btnwidths(a) btn_ %+ a %+ _start , btn_ %+ a %+ _end
+
+btndata vartxt, 190
+btndata varddl, 12
+btndata optxt, 40
+btndata opddl, 12
+btndata value, 40
+btndata valueddl, 12
+btndata and, 30
+btndata or, 30
+btndata xor, 30
+btndata delete, 50
+btndata reset, 50
+btndata sizer, 12
+%assign winwidth btn_sizer_end+1
 
 //<,>,<=,>=,==,!=,&&,||,^^
 
@@ -514,46 +541,46 @@ varb tracerestrictwindowelements
 	
 	// Text Box of the Var Dropdown List 4
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 0, 190, winheight-13, winheight-1
+	dw btnwidths(vartxt), winheight-13, winheight-1
 	.vartb: dw statictext(empty)
 
 	// Drop Down List button for Var 5
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 191, 203, winheight-13, winheight-1, statictext(txtetoolbox_dropdown)
+	dw btnwidths(varddl), winheight-13, winheight-1, statictext(txtetoolbox_dropdown)
 
 	// Text Box of the Op Dropdown List 6
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 210, 246, winheight-13, winheight-1
+	dw btnwidths(optxt), winheight-13, winheight-1
 	.optb: dw statictext(empty)
 
 	// Drop Down List button for Op 7
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 247, 259, winheight-13, winheight-1, statictext(txtetoolbox_dropdown)
+	dw btnwidths(opddl), winheight-13, winheight-1, statictext(txtetoolbox_dropdown)
 
 	// Value button 8
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 266, 306, winheight-13, winheight-1, ourtext(tr_valuebtn)
+	dw btnwidths(value), winheight-13, winheight-1, ourtext(tr_valuebtn)
 
 	// And button 9
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 326, 356, winheight-13, winheight-1, ourtext(tr_andbtn)
+	dw btnwidths(and), winheight-13, winheight-1, ourtext(tr_andbtn)
 
 	// Or button 10
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 363, 393, winheight-13, winheight-1, ourtext(tr_orbtn)
+	dw btnwidths(or), winheight-13, winheight-1, ourtext(tr_orbtn)
 	
 	// Xor button 11
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 400, 430, winheight-13, winheight-1, ourtext(tr_xorbtn)
+	dw btnwidths(xor), winheight-13, winheight-1, ourtext(tr_xorbtn)
 
 	// Delete button 12
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 437, 487, winheight-13, winheight-1
+	dw btnwidths(delete), winheight-13, winheight-1
 	.delbtn: dw 0x8824
 	
 	// Reset button 13
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 494, 544, winheight-13, winheight-1
+	dw btnwidths(reset), winheight-13, winheight-1
 	.rstbtn: dw ourtext(resetorders)
 
 	// Text Box 14
@@ -567,15 +594,15 @@ varb tracerestrictwindowelements
 	
 	// Template for value drop-down list 16
 	db cWinElemDummyBox, cColorSchemeGrey
-	dw 210, 306, winheight-13, winheight-1, 0
+	dw btn_optxt_start, btn_valueddl_end, winheight-13, winheight-1, 0
 
 	// Drop Down List button for Value 17
 	db cWinElemTextBox, cColorSchemeGrey
-	dw 307, 319, winheight-13, winheight-1, statictext(txtetoolbox_dropdown)
+	dw btnwidths(valueddl), winheight-13, winheight-1, statictext(txtetoolbox_dropdown)
 	
 	// Window sizer 18
 	db cWinElemSizer, cColorSchemeGrey
-	dw 551, 563, winheight-13, winheight-1, 0
+	dw btnwidths(sizer), winheight-13, winheight-1, 0
 
 	// Sizer data 19
 	db cWinElemExtraData, cWinDataSizer
@@ -615,8 +642,8 @@ dw statictext(trdlg_lt)
 dw statictext(trdlg_gt)
 dw statictext(trdlg_lte)
 dw statictext(trdlg_gte)
-dw statictext(trdlg_eq)
-dw statictext(trdlg_neq)
+dw ourtext(trdlg_eq)
+dw ourtext(trdlg_neq)
 dw 0xffff
 endvar
 
@@ -630,8 +657,8 @@ endvar
 // op_array3-8 + robj.type*2 --> first statictext(empty)
 
 varw op_array2
-dw statictext(trdlg_eq)
-dw statictext(trdlg_neq)
+dw ourtext(trdlg_eq)
+dw ourtext(trdlg_neq)
 dw 0xffff
 endvar
 
@@ -650,7 +677,7 @@ endvar
 %assign var_array_num 16
 %assign var_end_mark 15
 varw pre_var_array
-dw statictext(empty)
+dw ourtext(tr_vartxt)
 endvar
 varw var_array
 dw ourtext(tr_trainlen)
@@ -1729,7 +1756,7 @@ updatebuttons:
 	mov WORD [tracerestrictwindowelements.rstbtn], ourtext(tr_share)
 	mov WORD [tracerestrictwindowelements.vartb], ourtext(tr_vartxt)
 	mov WORD [tracerestrictwindowelements.optb], ourtext(tr_optxt)
-	mov DWORD [esi+window.disabledbuttons], 0x20F80
+	mov DWORD [esi+window.disabledbuttons], 0x20FC0
 	jmp .end
 .norm:
 	mov WORD [tracerestrictwindowelements.delbtn], 0x8824
@@ -1738,16 +1765,13 @@ updatebuttons:
 	jnz .noblank
 	mov WORD [tracerestrictwindowelements.vartb], ourtext(tr_vartxt)
 	mov WORD [tracerestrictwindowelements.optb], ourtext(tr_optxt)
-	mov DWORD [esi+window.disabledbuttons], 0x21FA0
-	cmp DWORD [rootobj],0
-	je NEAR .end
-	or BYTE [esi+window.disabledbuttons], 0x20
+	mov DWORD [esi+window.disabledbuttons], 0x21FF0
 	jmp .end
 
 .noblank:
 	cmp BYTE [edx+robj.type], 32
 	jb .cmp
-	mov ecx, 0x20180
+	mov ecx, 0x201C0
 	mov ebx, [edx+robj.word1]
 	or bx, bx
 	jz .nodisdel
@@ -1789,7 +1813,7 @@ updatebuttons:
 	xor ecx, ecx
 	or eax, eax
 	jnz .var
-	or ecx, 0x180
+	or ecx, 0x1C0
 .var:
 	mov ebx, op_array
 	test BYTE [var_flags-1+eax], 32

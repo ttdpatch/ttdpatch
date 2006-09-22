@@ -254,8 +254,6 @@ stxt trdlg_lt,"<",0
 stxt trdlg_gt,">",0
 stxt trdlg_lte,"<=",0
 stxt trdlg_gte,">=",0
-stxt trdlg_eq,"==",0
-stxt trdlg_neq,"!=",0
 
 stxt trdlg_txt_depot,0x81,
 stxt_cont dw ourtext(gototraindepot)

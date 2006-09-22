@@ -67,7 +67,7 @@ URSP = $(subst \,\\,$(shell cygpath -w $(DRSP)))
 
 asmmainsrc:=	header.asm loader.asm init.asm patches.asm 
 asmsources:=	$(asmmainsrc) $(wildcard patches/*.asm) $(wildcard procs/*.asm)
-asmcsources:=	$(wildcard patches/*.c) $(wildcard procs/*.c)
+asmcsources:=	$(wildcard non-asm/*.c)
 csources:=	ttdpatch.c error.c grep.c switches.c loadlng.c checkexe.c auxfiles.c
 doscsources:=	$(csources) dos.c
 wincsources:=	$(csources) windows.c codepage.c
@@ -335,7 +335,7 @@ define A-LST-COMMANDS
 endef
 define C-PO-COMMANDS
 	${_E} [CC] $@
-	${_C}$(CC) ${XASMDEF} -Wall -c -o $@ $< -Iinc -I. -MD -MG -MF $@.d -MT $@
+	${_C}$(CC) ${XASMDEF} -Wall -O2 -c -o $@ $< -Iinc -I. -MD -MG -MF $@.d -MT $@
 endef
 define C-A-D-COMMANDS
 	${_E} [CPP DEP] $@

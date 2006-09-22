@@ -39,6 +39,8 @@ dmalloc:
 	jmp .searchloop
 	
 .fail:
+	extern outofmemoryerror
+	jmp outofmemoryerror
 	pop eax
 	stc
 	ret
