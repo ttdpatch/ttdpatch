@@ -71,7 +71,7 @@ dfree:
 	lea esi, [edi+eax]
 	cmp esi, [dynmemend]
 	jae .notnextfree	// this is the last block, so don't check the next
-	test dword [esi], 10000000h
+	test dword [esi], 80000000h
 	jnz .notnextfree	// the next block isn't free, so don't merge with it
 	mov ebx, [esi]
 	and ebx, 7fffffffh
@@ -79,3 +79,34 @@ dfree:
 .notnextfree:
 	mov [edi], eax
 	ret
+
+// compact the memory: join adjacent free blocks
+exported dmemcompact
+	pusha
+	mov edi, [dynmemstart]
+.searchloop:
+	cmp edi, [dynmemend]
+	jae .done
+	mov eax,[edi]
+	btr eax,31
+	jc .notempty	// current block not free, can't merge
+
+.mergenext:
+	lea esi,[edi+eax+4]
+	cmp esi, [dynmemend]
+	jae .done
+
+	test dword [esi-4],0x80000000
+	jnz .notempty	// next block not free, can't merge more
+
+	add eax,[esi-4]
+	mov [edi],eax
+	jmp .mergenext
+	
+.notempty:
+	add edi,eax
+	jmp .searchloop
+.done:
+	popa
+	ret
+
