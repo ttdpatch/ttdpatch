@@ -143,6 +143,8 @@ ttdvar(snowline,0x77134)			// B: altitude of the snow line in the arctic climate
 ttdvar(randomindustrytypes,0x77135)	// B[32]: table of industry types to be randomly created
 ttdvar(noftowns,0x77112)			// W: Number of towns to generate
 ttdvar(interestrate,0x77118)		// W: Interest rate in percent
+ttdvar(terraintype, 0x77126)		// The Type of land to generate
+ttdvar(quantityofwater, 0x77128)	// The 'amount' of sea to be on the map
 ttdvar(economy,0x7712a)			// W: Economy difficulty setting
 ttdvar(disasters,0x7712e)		// W: Disasters difficulty setting
 ttdvar(currency,0x770fb)			// B: currency used in display: 0=pound, 1=dollar, ...

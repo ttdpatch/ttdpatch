@@ -121,7 +121,26 @@ destroyArray(&desert);
 
 }
 
+extern uint8_t terraintype; // We need these variables
+extern uint8_t quantityofwater;
+
 void makerandomterrain() {
-  // use TTD terrain settings here
-  terrain(24, 8, 0, 8, 3, randomfn);
+//  terrain(24, 8, 0, 8, 3, randomfn); // Orginal function call.
+// Note: Lakie's first attempt at making nice randomly generated maps.
+
+	int tmpwater; // Local vars used for calculating some values
+	int tmpland;
+
+	tmpwater = 8+(quantityofwater*(terraintype)); // Right, water should scale against the 'hieght'
+	tmpland = 12+(terraintype*3); // Land should increase faster than the water
+
+	if (tmpland > 24) { // Attempt to stop any overflowing
+		tmpland = 24;
+	};
+
+	if (tmpwater > tmpland-2) { // Make sure our land doesn't diappear
+		tmpwater = tmpland-2;
+	};
+
+	terrain(tmpland, tmpwater, 0, 8, ((randomfn()%2)+(terraintype+1)), randomfn); // Actually generate the landscape
 }
