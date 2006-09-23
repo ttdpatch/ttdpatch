@@ -131,14 +131,15 @@ void makerandomterrain() {
 	int tmpwater; // Local vars used for calculating some values
 	int tmpland;
 
-	tmpwater = 8+(quantityofwater*(terraintype)); // Right, water should scale against the 'hieght'
-	tmpland = 12+(terraintype*3); // Land should increase faster than the water
-
-	if (tmpland > 24) { // Attempt to stop any overflowing
-		tmpland = 24;
+	if (terraintype != 0) {
+		tmpwater = 8+(quantityofwater*(terraintype)); // Right, water should scale against the 'hieght'
+	} else {
+		tmpwater = 8+quantityofwater; // Water is also scaled at lower heights
 	};
 
-	if (tmpwater > tmpland-2) { // Make sure our land doesn't diappear
+	tmpland = 12+(terraintype*3); // Land should increase faster than the water
+
+	if (tmpwater > tmpland-3) { // Make sure our land doesn't diappear
 		tmpwater = tmpland-2;
 	};
 
