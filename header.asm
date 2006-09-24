@@ -124,6 +124,7 @@ startpatchactions			// this is a macro, not a label...
 	patchaction fundprospecting_newindu
 	patchaction AlterSignalsByGUI
 	patchaction CloneTrainBuild
+	patchaction ConvertEngineType
 
 uvard newvehdata, newvehdatastruc_size/4
 uvard persgrfdata, persgrfdatastruc_size/4

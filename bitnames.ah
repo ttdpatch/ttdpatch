@@ -96,6 +96,7 @@ defbit EXP_MANDATORYGRM,	2 // make GRF Resource Management mandatory for .grf fi
 defbit EXP_INCVEHCONSIST,	3 // allows more then 255 train consists...
 defbit EXP_SIGNALGUI,		4 // use a new gui to change signal state...
 defbit EXP_NEWTERRAINGEN,	5 // new terrain generator
+defbit EXP_ENGINECONVERT,	6 // Experimental Engine to multihead converter (maybe the other way too)
 enddefbits
 
 

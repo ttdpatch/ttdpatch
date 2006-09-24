@@ -574,6 +574,7 @@ BIT(mandatorygrm, "make GRF Resource Management mandatory for .grf files")
 BIT(incvehconsist, "build even more then 255 trains per company (very experimental)")
 BIT(signalgui,     "alter signals with the signal window (very experimental)")
 BIT(newterraingen, "new terrain generator for random landscapes")
+BIT(engineconvert, "converts an engine to a extra head (very experimental)")
 
 // Description for maskdisasters bits
 BITSWITCH(maskdisasters)

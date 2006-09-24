@@ -130,7 +130,7 @@ static void copyflagdata(void)
   }
 }
 
-
+#define WANTBITNUMS
 #include "bitnames.h"
 
 #ifndef _MAKEDEP
@@ -1086,6 +1086,7 @@ void commandline(int argc, const char *const *argv)
 
     if (!getf(multihead)) {
 	flags->data.multihdspeedup = 0;
+	flags->data.expswitches &= ~(1<<engineconvert_NUM); // If it's not on, then disable this since it requires it
     }
 
 #if 0
