@@ -44,7 +44,7 @@ void terrain(  int   deltaHeight, // the desired difference between lowest and h
                                       // minimum is 0
                                       // maximum is 5
 
-              uint   (*TTD_random)(void)) // pointer to the random number generator function
+              uint32_t   (*TTD_random)(void)) // pointer to the random number generator function
 {
 
 gridArray* source = NULL;

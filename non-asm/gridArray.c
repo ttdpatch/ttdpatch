@@ -71,7 +71,7 @@ void snipArray (gridArray* source_,ulong size_x_,ulong size_y_,gridArray** this_
 *
 */
 
-void makeArray (ulong size_x_,ulong size_y_,uint (*randomizer)(void),gridArray** this_) {
+void makeArray (ulong size_x_,ulong size_y_,uint32_t (*randomizer)(void),gridArray** this_) {
 
 /* first checkif the pointer we get is NULL or not */
 

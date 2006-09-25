@@ -34,7 +34,7 @@ void snipArray (gridArray* source_,ulong  size_x_,ulong  size_y_,gridArray** thi
 /* copy constructor for creating the array from another
    array with its sub-cutted elements */
 
-void makeArray (ulong size_x_, ulong size_y_,uint (*randomizer)(void), gridArray** this_);
+void makeArray (ulong size_x_, ulong size_y_,uint32_t (*randomizer)(void), gridArray** this_);
 /* construct an array of a given size */
 
 void destroyArray(gridArray** this_);
