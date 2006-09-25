@@ -1862,7 +1862,7 @@ CheckDDL1:
 	test BYTE [esi+window.activebuttons], 20h
 	jz .end
 	pusha
-	mov cl, 5
+	mov ecx, 5
 	mov dx, -1
  	xor ebx, ebx
  	mov word [tempvar], 0xFFFF
@@ -1875,7 +1875,7 @@ CheckDDL2:
 	test BYTE [esi+window.activebuttons], 80h
 	jz .end
 	pusha
-	mov cl, 7
+	mov ecx, 7
 	mov dx, -1
  	xor ebx, ebx
  	mov word [tempvar], 0xFFFF
@@ -1888,7 +1888,7 @@ CheckDDL3:
 	test BYTE [esi+window.activebuttons+2], 2h
 	jz .end
 	pusha
-	mov cl, 17
+	mov ecx, 17
 	mov dx, -1
  	xor ebx, ebx
  	mov word [tempvar], 0xFFFF
