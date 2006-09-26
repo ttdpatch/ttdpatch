@@ -474,7 +474,7 @@ exported CloneTrainBuild
 	movzx edi, word [edi+veh.engineidx] // Get and store the engine head's id for the next subroutine
 	mov [CloneTrainLastIdx], di
 
-	cmp word [esi+veh.currorder], 0 // If it has no orders then don't copy or share orders
+	cmp word [esi+veh.totalorders], 0 // If it has no orders then don't copy or share orders
 	je .donesharingorders
 
 testmultiflags sharedorders // Shared orders isn't a dependancy so this needs to be handled differently
