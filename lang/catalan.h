@@ -577,6 +577,9 @@ BIT(cooperative,  "joc cooperatiu, molt limitat")
 BIT(mandatorygrm, "fer la gerŠncia de recursos de GRF obligat•ria per als arxius .grf")
 BIT(incvehconsist, "permet m‚s de 255 trens per companyia (molt experimental)")
 BIT(signalgui,    "altera els sem…fors amb la finestra de sem…fors (molt experimental)")
+BIT(newterraingen, "nou generador de terrenys per als escenaris aleatoris")
+BIT(engineconvert, "converteix m…quines de tren en m…quines extra (molt experimental)")
+
 
 // Description for maskdisasters bits
 BITSWITCH(maskdisasters)
