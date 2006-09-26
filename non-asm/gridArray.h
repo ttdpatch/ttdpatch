@@ -21,6 +21,7 @@ compliation as C++ as BMP is a class */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 typedef struct {
 
