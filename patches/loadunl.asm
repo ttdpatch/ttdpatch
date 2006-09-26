@@ -311,8 +311,8 @@ LoadCargoFromStation:
 	jz	.reserve
 	mov	edx, [eax+veh2.vehptr]
 	test	byte [edx+veh.modflags], 1 << MOD_MORETOUNLOAD
-	jz	.ret
-	jmp	short .queueloop
+	jnz	.queueloop
+	ret
 
 .overflow:
 	cmp	byte [ebx+station2.cargos+ecx+stationcargo2.rescount], 0
@@ -488,6 +488,8 @@ LoadCargoFromStation:
 	
 .noadjustprofit:
 // actually load the cargo from the station
+	testflags fifoloading
+	jnc	.unres
 	test	byte [esi+veh.modflags+1], 1<<(MOD_HASRESERVED-8)
 	jz	.unres
 	add	ebx, [stationarray2ofst]
@@ -504,6 +506,15 @@ LoadCargoFromStation:
 	mov	[esi+veh.cargosource], dl
 	mov	dl, [ebx+station.cargos+ecx+stationcargo.enroutetime]
 	mov	[esi+veh.cargotransittime], dl
+	mov	dx, [esi+veh.capacity]
+	cmp	dx, [esi+veh.currentload]
+	jmp	.notfull
+// Vehicle is full; reduce rescount so next vehicle can load, and mark as has-not-reserved so the exit proc doesn't decrement again
+	and	byte [esi+veh.modflags+1], ~ (1 << (MOD_HASRESERVED-8) )
+	add	ebx, [stationarray2ofst]
+	dec	byte [ebx+station2.cargos+ecx+stationcargo2.rescount]
+	sub	ebx, [stationarray2ofst]
+.notfull:
 .nothingmoved:
 	or	byte [%$flags], 2			// both the vehicle and the station windows need redrawing
 	mov	ax, [esi+veh.idx]

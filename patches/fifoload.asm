@@ -34,10 +34,10 @@ removetrainfromqueue:
 	je .next
 	test byte [esi+veh.modflags+1], 1<<(MOD_HASRESERVED-8)
 	jz .dequeue
+// Unreserve cargo
 	mov dx, [esi+veh.capacity]
+	sub dx, [esi+veh.currentload]
 	sub [ebx+station2.cargos+ecx+stationcargo2.resamt], dx
-	mov dx, [esi+veh.currentload]
-	add [ebx+station2.cargos+ecx+stationcargo2.resamt], dx
 	dec byte [ebx+station2.cargos+ecx+stationcargo2.rescount]
 	jmp short .next
 .dequeue:
@@ -114,6 +114,12 @@ exported enqueueveh
 	mov eax, [eax+veh.veh2ptr]
 .loop:
 	mov edx, eax
+#if DEBUG
+	cmp edx, edi
+	jne .ok
+	ud2	// This vehicle already queued!
+.ok:
+#endif
 	mov eax, [eax+veh2.nextptr]
 	test eax, eax
 	jnz .loop
@@ -198,15 +204,21 @@ exported fifoenterstation
 	mul	ebx
 	add	eax, [stationarray2ptr]
 	mov	ebx, eax
+	push	ebx
 .vehloop:
 	and	byte [esi+veh.modflags+1], ~(1 << (MOD_HASRESERVED-8))
 	cmp	word [esi+veh.capacity], 0
 	je	.next
 	mov	al, [esi+veh.cargotype]
 	call	ecxcargooffset_ebx2
-	add	ebx, [stationarray2ofst]
+	cmp	cl, -1
+	jne	.call
+	extcall	ecxcargooffset_force
+	mov	ebx, [esp]
 	cmp	cl, -1
 	je	.next
+.call:
+	mov	ebx, [esp]
 	call	enqueueveh
 .next:
 	movzx	esi, word [esi+veh.nextunitidx]
@@ -215,6 +227,7 @@ exported fifoenterstation
 	cvivp
 	jmp	short .vehloop
 .popret:
+	pop	ebx
 	popa
 .ret:
 	ret
