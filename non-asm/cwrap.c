@@ -101,7 +101,7 @@ for (i_x = 0;i_x < resize/4;++i_x)
         b = (char)(val(i_x*4+1,i_y,desert));
         c = (char)(val(i_x*4+2,i_y,desert));
         d = (char)(val(i_x*4+3,i_y,desert));
-        (&desertMap)[i_x*64+i_y] = a + (b<<2) + (c<<4) + (d<<6);
+        (&desertmap)[i_x*64+i_y] = a + (b<<2) + (c<<4) + (d<<6);
     }
 }
 
