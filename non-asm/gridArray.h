@@ -113,11 +113,10 @@ inline static ulong size_y(gridArray* this_)
 inline static double val (ulong i_x, ulong i_y, gridArray* this_)
 {
 
-  if (size_x(this_) > i_x && size_y(this_) > i_y) {
-    return this_->data[i_x][i_y];
-  }
+  if (size_x(this_) <= i_x || size_y(this_) <= i_y)
+    return -1000000.0;
 
-  return 0.0;
+  return this_->data[i_x][i_y];
 }
 
 /*
