@@ -92,16 +92,16 @@ for (i_y = 0;i_y < resize;++i_y)
 snipArray(source,size_x(source),size_y(source),&desert);
 ttDesert(desert,desertMin,desertMax,3,source);
 
-for (i_y = 0;i_y < resize/4;++i_y)
+for (i_x = 0;i_x < resize/4;++i_x)
 {
-    for (i_x = 0;i_x < resize;++i_x)
+    for (i_y = 0;i_y < resize;++i_y)
     {
         char a, b, c, d;
-        a = (char)(val(i_x,(i_y*4)  ,desert));
-        b = (char)(val(i_x,(i_y*4)+1,desert));
-        c = (char)(val(i_x,(i_y*4)+2,desert));
-        d = (char)(val(i_x,(i_y*4)+3,desert));
-        (&desertmap)[i_y*256+i_x] = a + (b<<2) + (c<<4) + (d<<6);
+        a = (char)(val(i_x*4  ,i_y,desert));
+        b = (char)(val(i_x*4+1,i_y,desert));
+        c = (char)(val(i_x*4+2,i_y,desert));
+        d = (char)(val(i_x*4+3,i_y,desert));
+        (&desertMap)[i_x*64+i_y] = a + (b<<2) + (c<<4) + (d<<6);
     }
 }
 
