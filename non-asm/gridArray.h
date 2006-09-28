@@ -31,6 +31,13 @@ typedef struct {
         ulong size_y; /* size of the array */
 } gridArray;
 
+#ifdef __GNUC__
+	#define INLINE static inline
+	#define INLINE_DEF
+#else
+	#define INLINE
+#endif
+
 void snipArray (gridArray* source_,ulong  size_x_,ulong  size_y_,gridArray** this_);
 /* copy constructor for creating the array from another
    array with its sub-cutted elements */
@@ -88,7 +95,8 @@ int recursiveTest(ulong range, ulong x, ulong y, gridArray* this_);
 *
 */
 
-inline static ulong size_x(gridArray* this_)
+#ifdef INLINE_DEF
+INLINE ulong size_x(gridArray* this_)
 {
   return this_->size_x;
 }
@@ -99,7 +107,7 @@ inline static ulong size_x(gridArray* this_)
 *
 */
 
-inline static ulong size_y(gridArray* this_)
+INLINE ulong size_y(gridArray* this_)
 {
   return this_->size_y;
 }
@@ -110,7 +118,7 @@ inline static ulong size_y(gridArray* this_)
 *
 */
 
-inline static double val (ulong i_x, ulong i_y, gridArray* this_)
+INLINE double val (ulong i_x, ulong i_y, gridArray* this_)
 {
 
   if (size_x(this_) <= i_x || size_y(this_) <= i_y)
@@ -125,7 +133,7 @@ inline static double val (ulong i_x, ulong i_y, gridArray* this_)
 *
 */
 
-inline static void insert (long double val,ulong i_x, ulong i_y, gridArray* this_)
+INLINE void insert (long double val,ulong i_x, ulong i_y, gridArray* this_)
 {
   if (size_x(this_) > i_x && size_y(this_) > i_y)
     this_->data[i_x][i_y] = val;
@@ -137,7 +145,7 @@ inline static void insert (long double val,ulong i_x, ulong i_y, gridArray* this
 *
 */
 
-inline static void test (long* current, long* prev)
+INLINE void test (long* current, long* prev)
 {
   if (*current > *prev)
     *current = *prev + 1;
@@ -152,7 +160,7 @@ inline static void test (long* current, long* prev)
 *
 */
 
-inline static int dist(ulong otherSize, ulong other, ulong mySize, ulong indice, gridArray* this_) {
+INLINE int dist(ulong otherSize, ulong other, ulong mySize, ulong indice, gridArray* this_) {
 
   double len = 0.0;
   double my = indice *1.0 /mySize;
@@ -161,5 +169,13 @@ inline static int dist(ulong otherSize, ulong other, ulong mySize, ulong indice,
   len = (ot-my)*mySize*1.0;
   return (len < 1.0);
 }
+#else
+INLINE ulong size_x(gridArray* this_);
+INLINE ulong size_y(gridArray* this_);
+INLINE double val (ulong i_x, ulong i_y, gridArray* this_);
+INLINE void insert (long double val,ulong i_x, ulong i_y, gridArray* this_);
+INLINE void test (long* current, long* prev);
+INLINE int dist(ulong otherSize, ulong other, ulong mySize, ulong indice, gridArray* this_);
+#endif
 
 #endif

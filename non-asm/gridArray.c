@@ -10,7 +10,9 @@
 * 'this_' pointer
 */
 
+#define INLINE_DEF
 #include "gridArray.h"
+#undef INLINE_DEF
 #include "cwrap.h"
 
 #ifndef NOBMP
