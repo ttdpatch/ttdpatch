@@ -73,17 +73,20 @@ while (resize < 256) {
 
 ttMap(truncHeight,truncHeight+deltaHeight,source);
 
-for (i_y = 0;i_y < resize;++i_y)
+for (i_y = 0;i_x < resize;++i_x)
 {
-    for (i_x = 0;i_x < resize;++i_x)
+    for (i_y = 0;i_y < resize;++i_y)
     {
 	char v = val(i_x,i_y,source);
 	if (v < 0) v = 0;
 	else if (v > 15) v = 15;
+	
+	/* this range checking is not necessary, ttmap produces 0..15 range */
+	
 #if WINTTDX
-        (&landscape4base)[i_y*256+i_x] = v;
+        (&landscape4base)[i_x*256+i_y] = v;
 #else
-	int ofs = i_y*256+i_x;
+	int ofs = i_x*256+i_y;
 	asm("movb %[v],%%fs:(%[ofs])" : : [v] "q" (v), [ofs] "r" (ofs));
 #endif
     }
