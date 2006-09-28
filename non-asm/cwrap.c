@@ -71,7 +71,7 @@ while (resize < 256) {
     filter(4,&source);
 }
 
-ttMap(truncHeight,deltaHeight,source);
+ttMap(truncHeight,truncHeight+deltaHeight,source);
 
 for (i_y = 0;i_y < resize;++i_y)
 {
