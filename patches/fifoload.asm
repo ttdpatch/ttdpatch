@@ -165,7 +165,9 @@ clearfifodata:
 	lea edi, [edi+station2.cargos]
 	mov ecx, 12
 .cargoloop:
+	mov word [edi+stationcargo2.resamt], 0
 	mov word [edi+stationcargo2.curveh], -1
+	mov byte [edi+stationcargo2.rescount], 0
 	add edi, stationcargo2_size
 	dec ecx
 	jnz .cargoloop
@@ -174,6 +176,19 @@ clearfifodata:
 	add edi, station2_size
 	dec ecx
 	jnz .stationloop
+
+	mov esi, [veharrayptr]
+extern veh2ptr
+	mov edi, [veh2ptr]
+	xor eax, eax
+.vehloop:
+	mov [edi+veh2.prevptr], eax
+	mov [edi+veh2.nextptr], eax
+	and byte [esi+veh.modflags+1], ~(1 << (MOD_HASRESERVED-8) )
+	add edi, veh2_size
+	sub esi, 0-veh_size
+	cmp esi, [veharrayendptr]
+	jb .vehloop
 .done:
 	ret
 
