@@ -668,7 +668,9 @@ void ttDesert(gridArray* target, ulong min, ulong max, ulong range, gridArray* t
             if ( val(i_x,i_y,this_) < max && val(i_x,i_y,this_) > min)
             {
                 if ( recursiveTest(range,i_x,i_y,this_) )
-                insert(1.0,i_x,i_y,target);
+                  insert(1.0,i_x,i_y,target);
+                else
+                  insert(0.0,i_x,i_y,target);
             }
         }
     }
@@ -687,14 +689,14 @@ int recursiveTest(ulong range, ulong x, ulong y, gridArray* this_)
       return val(x,y,this_) > 0.0;
   }
       return val (x+range, y+range, this_) > 0.0 &&
-              val (x-range, y-range, this_) > 0.0 &&
-              val (x+range, y-range, this_) > 0.0 &&
-              val (x-range, y+range, this_) > 0.0 &&
-	val (x      , y+range, this_) > 0.0 &&
-              val (x      , y-range, this_) > 0.0 &&
-              val (x+range, y      , this_) > 0.0 &&
-              val (x-range, y      , this_) > 0.0 &&
-              recursiveTest(range - 1, x, y, this_);
+             val (x-range, y-range, this_) > 0.0 &&
+             val (x+range, y-range, this_) > 0.0 &&
+             val (x-range, y+range, this_) > 0.0 &&
+             val (x      , y+range, this_) > 0.0 &&
+             val (x      , y-range, this_) > 0.0 &&
+             val (x+range, y      , this_) > 0.0 &&
+             val (x-range, y      , this_) > 0.0 &&
+             recursiveTest(range - 1, x, y, this_);
 }
 
 /*

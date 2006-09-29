@@ -25,6 +25,8 @@ extern uint32_t (*randomfn)(void) asm("randomfn");
 #define OUTPUT_FILE // undef this to disable outputing the heightmap and
                     // desert map as bmps
 
+static const char deserttype[4] = { 1, 0, 2, 2 };
+
 static
 void terrain(  int   deltaHeight, // the desired difference between lowest and highest
                                   // point of the map - roughly the 'amount of hills'
@@ -71,9 +73,9 @@ while (resize < 256) {
     filter(4,&source);
 }
 
-ttMap(truncHeight,truncHeight+deltaHeight,source);
+ttMap(truncHeight,/*truncHeight+*/deltaHeight,source);
 
-for (i_y = 0;i_x < resize;++i_x)
+for (i_x = 0;i_x < resize;++i_x)
 {
     for (i_y = 0;i_y < resize;++i_y)
     {
@@ -95,16 +97,16 @@ for (i_y = 0;i_x < resize;++i_x)
 snipArray(source,size_x(source),size_y(source),&desert);
 ttDesert(desert,desertMin,desertMax,3,source);
 
-for (i_x = 0;i_x < resize/4;++i_x)
+for (i_y = 0;i_y < resize;++i_y)
 {
-    for (i_y = 0;i_y < resize;++i_y)
+    for (i_x = 0;i_x < resize/4;++i_x)
     {
         char a, b, c, d;
-        a = (char)(val(i_x*4  ,i_y,desert));
-        b = (char)(val(i_x*4+1,i_y,desert));
-        c = (char)(val(i_x*4+2,i_y,desert));
-        d = (char)(val(i_x*4+3,i_y,desert));
-        (&desertmap)[i_x*64+i_y] = a + (b<<2) + (c<<4) + (d<<6);
+        a = (char)val(i_x*4  ,i_y,desert);
+        b = (char)val(i_x*4+1,i_y,desert);
+        c = (char)val(i_x*4+2,i_y,desert);
+        d = (char)val(i_x*4+3,i_y,desert);
+        (&desertmap)[i_y*64+i_x] = a + (b<<2) + (c<<4) + (d<<6);
     }
 }
 
@@ -127,12 +129,44 @@ destroyArray(&desert);
 extern uint8_t terraintype; // We need these variables
 extern uint8_t quantityofwater;
 
+typedef struct {
+	int deltamin;
+	int deltarange;
+	int truncmin;
+	int truncrange;
+} terrain_parm_t;
+
+terrain_parm_t terrain_parms[3][4] = {
+	// low water
+	{
+		{ 2, 4, 2, 4 },		// very flat
+		{ 6, 2, 8, 4 },		// flat
+		{ 8, 4, 8, 4 },		// hilly
+		{ 14, 4, 8, 4 }		// mountaineous
+	}, 
+	// medium water
+	{
+		{ 2, 4, 8, 2 },
+		{ 6, 2, 12, 4 },
+		{ 8, 4, 16, 4 },
+		{ 16, 4, 32, 8 },
+	},
+	// high water
+	{
+		{ 2, 2, 12, 4 },
+		{ 6, 2, 16, 4 },
+		{ 8, 4, 24, 6 },
+		{ 16, 4, 50, 10 },
+	},
+};
+
 void makerandomterrain() {
 //  terrain(24, 8, 0, 8, 3, randomfn); // Orginal function call.
 // Note: Lakie's first attempt at making nice randomly generated maps.
 
 	int tmpwater; // Local vars used for calculating some values
 	int tmpland;
+
 
 	if (terraintype != 0) {
 		tmpwater = 8+(quantityofwater*(terraintype)); // Right, water should scale against the 'hieght'
@@ -142,9 +176,18 @@ void makerandomterrain() {
 
 	tmpland = 12+(terraintype*3); // Land should increase faster than the water
 
+	DO NOT COMPILE THIS IT DOESN'T WORK
+
+/*
+	terrain_parm_t parm = terrain_parms[quantityofwater][terraintype];
+	float range = (float)randomfn()/0xffffffff;
+	tmpland = parm.deltamin + (int) (range * parm.deltarange);
+	tmpwater = parm.truncmin + (int) (range * parm.truncrange);
+*/
+
 	if (tmpwater > tmpland-3) { // Make sure our land doesn't diappear
 		tmpwater = tmpland-2;
 	};
 
-	terrain(tmpland, tmpwater, 0, 8, ((randomfn()%2)+(terraintype+1)), randomfn); // Actually generate the landscape
+	terrain(tmpland, tmpwater, tmpwater+2, tmpwater+4, ((randomfn()%2)+(terraintype+1)), randomfn); // Actually generate the landscape
 }
