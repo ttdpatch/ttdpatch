@@ -88,19 +88,18 @@ while(<>) {
 
 # Done reading english.h; read <lang>.h/write <lang>.tmp
 
-my ($readhalf, $readfull, $readcfg) = (0,0,0);
+my ($readhalf, $readfull) = (0,0);
 
 $cfgline = 0;
 my $cfgfile;
 
 while(<>) {
-	next if /^\s*\/\//;
-	if (m#/\*\*\*/#) {
-		s#/\*\*\*/##;
-		while (s/\t/ /g) {}
+	next if m#^\s*//#;
+	if (m#/\*{3,}/#) {
+		s#/\*{3,}/##;
 		s/\n//;
-		while (s/\s{2,}/ /g) {}
-		printf STDERR "Line %d tagged as untranslated: %s\n", $.-$linemod, substr $_, 0, 32;
+		while (s/\s{2,}|\t/ /) {}
+		printf STDERR "Line %d tagged as untranslated: %s\n", $.-$linemod, substr $_, 0, 40;
 	}
 	if (/TEXTARRAY\(halflines/ .. /NULL/) {
 		die "Multiple halfline blocks!\n" if $readhalf == 2;
@@ -144,7 +143,6 @@ while(<>) {
 		$cfgfile = $1 if !$cfgfile and /-\w+ (.*?)\s*:/;
 		if ($cfgfile) {
 			$cfgline = 0;
-			$readcfg = 1;
 			$sw = $1 if /"(-\w+)/;
 			if (!$cfglines{$sw}) {
 				die "Description for $sw not found in english.h\n";
@@ -153,8 +151,10 @@ while(<>) {
 			} else {
 				$cfglines{$sw} = [$_, 1, $cfglines{$sw}[2]];
 			}
+		} else {
+			die "Could not find translation for \"cfg-file\" in LANG_FULLSWITCHES block.\n";
 		}
-	} elsif ($readhalf == 1 and $readfull == 1 and $readcfg == 1) {
+	} elsif ($readhalf == 1 and $readfull == 1) {
 		$readhalf++; $readfull++;
 		print "TEXTARRAY(halflines,) = {\n";
 		for (sort swsort keys %halflines) {
@@ -184,4 +184,3 @@ while(<>) {
 
 die "halflines block not found.\n" unless $readhalf;
 die "LANG_FULLSWITCHES block not found.\n" unless $readfull;
-die "Could not find translation for \"cfg-file\" in LANG_FULLSWITCHES block.\n" unless $readcfg;
