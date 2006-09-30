@@ -537,7 +537,7 @@ host/mkptinc${HOSTEXE}:  ${hostmkptincobjs}
 lang/%.inc: ${HOSTPATH}mkptinc${HOSTEXE} lang/%.txt lang/american.txt
 	${_E} [MKPTINC]	$@
 	${_C} ./$< $* > lang/$*.inc.err
-	@grep . lang/*.inc.err | sed -e "s/\.inc\.err:/.txt:\ /" > mkptinc.err
+	@cat lang/*.inc.err > mkptinc.err
 	@if grep "american:" $@.err; then false; else true; fi;
 
 # ----------------------------------------------------------------------
