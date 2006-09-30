@@ -68,6 +68,7 @@ SECTIONS
 	__pbss_start = .;
 	*.*po(.bss)
 	*/*.*po(.bss)
+	*(COMMON)
 	*(.bss2)
 	*(.bss1)
 	. = ALIGN(4);
