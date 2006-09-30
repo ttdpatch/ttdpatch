@@ -55,6 +55,10 @@ DOSDEFS = $(EXTRADEFS) $(DEFS) ${WDEF_d} LINTTDX=0
 WINDEFS = $(EXTRADEFS) $(DEFS) ${WDEF_w} LINTTDX=0
 LINDEFS = $(EXTRADEFS) $(DEFS) ${WDEF_l} LINTTDX=1
 
+# compiler flags for compiling C files in non-asm
+# (compile without -O2 by running make CASMFLAGS= ...)
+CASMFLAGS = -O2
+
 # temporary response files
 DRSP = $(TEMP)/BCC.RSP
 URSP = $(subst \,\\,$(shell cygpath -w $(DRSP)))
@@ -334,7 +338,7 @@ define A-LST-COMMANDS
 endef
 define C-PO-COMMANDS
 	${_E} [CC] $@
-	${_C}$(CC) ${XASMDEF} -Wall -O2 -c -o $@ $< -Iinc -I. -MD -MG -MF $@.d -MT $@
+	${_C}$(CC) ${XASMDEF} -Wall $(CASMFLAGS) -c -o $@ $< -Iinc -I. -MD -MG -MF $@.d -MT $@
 endef
 define C-A-D-COMMANDS
 	${_E} [CPP DEP] $@
