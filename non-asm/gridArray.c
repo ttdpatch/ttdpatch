@@ -539,8 +539,6 @@ void ttMap(ulong cutDown, ulong cutUp, gridArray* this_) {
     ulong i_x = 0;
     ulong i_y = 0;
     ulong i_  = 0;
-    long current = 0;
-    long prev = 0;
 
 
 
@@ -577,55 +575,35 @@ void ttMap(ulong cutDown, ulong cutUp, gridArray* this_) {
       /* how many times to run the checking
          one should suffice */
 
-    for (i_x = 1; i_x < limit_x-1; ++i_x)
+    for (i_x = 0; i_x < limit_x; ++i_x)
     {
-        for (i_y = 1; i_y < limit_y-1; ++i_y)
+        for (i_y = 1; i_y < limit_y; ++i_y)
         {
-            current = (long)(val(i_x, i_y  , this_));
-            prev    = (long)(val(i_x, i_y-1, this_));
-
-            test (&current, &prev);
-
-            insert (current, i_x, i_y, this_);
+            adjust(i_x, i_y, i_x, i_y-1, this_);
         }
     }
     
-    for (i_y = limit_y-1; i_y > 1; --i_y)
+    for (i_y = limit_y-1; i_y > 0; --i_y)
     {
-        for (i_x = 1 ;i_x < limit_x-1; ++i_x)
+        for (i_x = 1 ;i_x < limit_x; ++i_x)
         {
-            current = (long)(val(i_x  , i_y, this_));
-            prev    = (long)(val(i_x-1, i_y, this_));
-
-            test (&current, &prev);
-
-            insert (current, i_x, i_y, this_);
+            adjust(i_x, i_y, i_x-1, i_y, this_);
         }
     }
 
-    for (i_x = limit_x-1;i_x > 1;--i_x)
+    for (i_x = limit_x-1;i_x > 0;--i_x)
     {
-        for (i_y = limit_y-2;i_y > 1;--i_y)
+        for (i_y = limit_y-2;i_y > 0;--i_y)
         {
-            current = (long)(val(i_x,i_y  ,this_));
-            prev    = (long)(val(i_x,i_y+1,this_));
-            
-            test (&current, &prev);
-
-            insert (current, i_x, i_y, this_);
+            adjust(i_x, i_y, i_x, i_y+1, this_);
         }
     }
 
-    for (i_y = 1;i_y < limit_y-1;++i_y)
+    for (i_y = 0;i_y < limit_y;++i_y)
     {
-        for (i_x = limit_x-2;i_x > 1;--i_x)
+        for (i_x = limit_x-2;i_x > 0;--i_x)
         {
-            current = (long)(val(i_x  , i_y, this_));
-            prev    = (long)(val(i_x+1, i_y, this_));
-
-            test(&current, &prev);
-
-            insert(current, i_x, i_y, this_);
+            adjust(i_x, i_y, i_x+1, i_y, this_);
         }
     }
 
