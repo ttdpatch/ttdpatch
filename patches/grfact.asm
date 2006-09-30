@@ -2498,6 +2498,23 @@ recordgrfid:
 
 	mov [ebp+spriteblock.grfid],eax
 
+	cmp eax,byte -1
+	je .notduplicate
+
+	// check for duplicate ID
+
+	mov edx,[spriteblockptr]
+.checknext:
+	cmp ebp,edx
+	je .notduplicate
+
+	cmp [edx+spriteblock.grfid],eax
+	je .duplicate
+	mov edx,[edx+spriteblock.next]
+	test edx,edx
+	jnz .checknext
+
+.notduplicate:
 	test cl,cl
 	jnz .activate
 	ret
@@ -2508,6 +2525,14 @@ recordgrfid:
 	and ch,~4
 	cmp ch,cl
 	jne .skip	// skip rest of file if not active
+	ret
+
+.duplicate:
+	or byte [ebp+spriteblock.flags],2
+	mov [ebp+spriteblock.errparam],edx
+	mov word [ebp+spriteblock.errparam+4],-12
+	mov [ebp+spriteblock.errparam+6],di
+	or edi,byte -1
 	ret
 
 
