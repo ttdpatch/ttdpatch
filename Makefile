@@ -138,8 +138,8 @@ ttdpatchw.res:	ttdpatchw.rc versionw.h
 
 # Language compiler files
 lang/%.o host/lang/%.o: lang/%.h
-$(langobjs): proclang.c types.h error.h common.h language.h
-$(hostlangobjs): proclang.c types.h error.h common.h language.h
+$(langobjs): proclang.c types.h error.h common.h language.h bitnames.h
+$(hostlangobjs): proclang.c types.h error.h common.h language.h bitnames.h
 
 # =======================================================================
 #           special targets
@@ -286,9 +286,8 @@ host/%.o : %.c
 %.lst : %.S
 	as -a $< -o /dev/null > $@
 
-host/%${HOSTEXE} : host/%.o
-	${_E} [HOSTLD] $@
-	${_C}$(HOSTLD) -o $@ ${filter host/%,$^} $(HOSTLDFLAGS)
+# host/%${HOSTEXE} rule is located near line 560, so make will use
+# the host/lang/%${HOSTEXE} rule when appropriate.
 
 %${EXEW} : %.o
 	${_E} [LD] $@
@@ -520,9 +519,13 @@ host/lang/%.o:	lang/%.h lang/english.h
 
 # test versions of makelang with a single language: make lang/<language> and run
 # the executable to make a single-language language.dat file
-lang/%:		makelang.c lang/%.o switches.o codepage.o texts.o
+lang/%:		makelang.c lang/%.o switches.o codepage.o texts.o langerr.h
 	${_E} [CC] $@
-	${_C}$(CC) -o $@ $(CFLAGS) $(LDOPT) $(foreach DEF,$(WINDEFS),-D$(DEF)) -DSINGLELANG=${patsubst lang/%,%,$@} $^ -L. -lz
+	${_C}$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -DSINGLELANG=${patsubst lang/%,%,$@} $^ -L. -lz
+
+host/lang/%${HOSTEXE}:	makelang.c host/lang/%.o host/switches.o host/codepage.o host/texts.o langerr.h
+	${_E} [HOSTCC] $@
+	${_C}$(HOSTCC) -o $@ $(HOSTCFLAGS) $(HOSTLDFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -DSINGLELANG=${patsubst host/lang/%,%,$@} $^ -lz
 
 mkpttxt.o host/mkpttxt.o:       mkpttxt.c # patches/texts.h
 mkpttxt${EXEW}:  ${mkpttxtobjs} texts.o
@@ -550,6 +553,9 @@ lang/%.inc: ${HOSTPATH}mkptinc${HOSTEXE} lang/%.txt lang/american.txt
 #               The executables
 # ----------------------------------------------------------------------
 
+host/%${HOSTEXE} : host/%.o
+	${_E} [HOSTLD] $@
+	${_C}$(HOSTLD) -o $@ ${filter host/%,$^} $(HOSTLDFLAGS)
 
 # make both uncompressed (for testing) and compressed language data
 # if an error occurs, show last 5 lines of makelang.err
