@@ -196,8 +196,8 @@ endif
 cleantemp:
 	rm -f *.asp
 	rm -f *.{o,obj,OBJ}
-	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po
-	rm -f ${OTMP}*.*lst ${OTMP}patches/*.*lst ${OTMP}procs/*.*lst
+	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po ${OTMP}non-asm/*.*po
+	rm -f ${OTMP}*.*lst ${OTMP}patches/*.*lst ${OTMP}procs/*.*lst ${OTMP}non-asm/*.*lst
 	rm -f lang/*.{o,map,exe} lang/language.* lang/*.tmp
 	rm -f host/*.o host/lang/* host/mkpttxt host/makelang
 	rm -f *.*.lst.gz *.*lst *.LST patches/*.*lst
@@ -208,7 +208,7 @@ cleantemp:
 # remove files that depend on compiler flags (DEBUG, etc.)
 remake:
 	rm -f *.{o,obj,OBJ,bin,bil} lang/*.o host/*.o host/lang/*.o
-	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po reloc.a
+	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po ${OTMP}non-asm/*.*po reloc.a
 	rm -f mkpttxt.exe host/mkpttxt mkptinc.exe host/mkptinc
 
 # remove temporary files and all compilation results that can be
@@ -231,10 +231,10 @@ clean:	cleantemp
 
 # also remove Makefile.dep?, listings and bak files
 mrproper: clean remake
-	rm -f ${OTMP}*.*po.d ${OTMP}patches/*.*po.d ${OTMP}procs/*.*po.d
+	rm -f ${OTMP}*.*po.d ${OTMP}patches/*.*po.d ${OTMP}procs/*.*po.d ${OTMP}non-asm/*.*po.d
 	rm -f *.o.d *.obj.d host/*.o.d
-	rm -f *.{d,w,l}lst patches/*.{d,w,l}lst procs/*.{d,w,l}lst
-	rm -f patches/*.ba* procs/*.ba*
+	rm -f *.{d,w,l}lst patches/*.{d,w,l}lst procs/*.{d,w,l}lst non-asm/*.{d,w,l}lst
+	rm -f patches/*.ba* procs/*.ba* non-asm/*.ba*
 	rm -f *.err lang/*.err
 
 # if a command fails, delete its output
@@ -534,7 +534,7 @@ host/mkptinc${HOSTEXE}:  ${hostmkptincobjs}
 lang/%.inc: ${HOSTPATH}mkptinc${HOSTEXE} lang/%.txt lang/american.txt
 	${_E} [MKPTINC]	$@
 	${_C} ./$< $* > lang/$*.inc.err
-	@cat lang/*.inc.err > mkptinc.err
+	@grep . lang/*.inc.err | sed -e "s/\.inc\.err:/.txt:\ /" > mkptinc.err
 	@if grep "american:" $@.err; then false; else true; fi;
 
 # ----------------------------------------------------------------------
