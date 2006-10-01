@@ -542,19 +542,19 @@ INLINE void constrain(int raise, gridArray* this_) {
    in each direction */
 
   for (i_x = 0; i_x < limit_x; ++i_x)
-      for (i_y = 1; i_y < limit_y; ++i_y)
+      for (i_y = 1; i_y < limit_y-2; ++i_y)
           adjust(i_x, i_y, i_x, i_y-1, raise, this_);
   
   for (i_y = limit_y-1; i_y > 0; --i_y)
-      for (i_x = 1 ;i_x < limit_x; ++i_x)
+      for (i_x = 1 ;i_x < limit_x-2; ++i_x)
           adjust(i_x, i_y, i_x-1, i_y, raise, this_);
 
   for (i_x = limit_x-1;i_x > 0;--i_x)
-      for (i_y = limit_y-2;i_y > 0;--i_y)
+      for (i_y = limit_y-2;i_y > 1;--i_y)
           adjust(i_x, i_y, i_x, i_y+1, raise, this_);
 
   for (i_y = 0;i_y < limit_y;++i_y)
-      for (i_x = limit_x-2;i_x > 0;--i_x)
+      for (i_x = limit_x-2;i_x > 1;--i_x)
           adjust(i_x, i_y, i_x+1, i_y, raise, this_);
 }
 

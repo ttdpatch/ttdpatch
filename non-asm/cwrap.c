@@ -73,22 +73,23 @@ while (resize < 256) {
     filter(4,&source);
 }
 
-ttMap(truncHeight,deltaHeight,source);
+ttMap(truncHeight,truncHeight+deltaHeight,source);
 
-for (i_x = 0;i_x < resize;++i_x)
+for (i_y = 0;i_y < resize;++i_y)
 {
-    for (i_y = 0;i_y < resize;++i_y)
+    for (i_x = 0;i_x < resize;++i_x)
     {
-	char v = val(i_x,i_y,source);
-	if (v < 0) v = 0;
-	else if (v > 15) v = 15;
+	char v = val(i_y,i_x,source);
+	
+	/*if (v < 0) v = 0;
+	else if (v > 15) v = 15;*/
 	
 	/* this range checking is not necessary, ttmap produces 0..15 range */
 	
 #if WINTTDX
-        (&landscape4base)[i_x*256+i_y] = v;
+        (&landscape4base)[i_y*256+i_x] = v;
 #else
-	int ofs = i_x*256+i_y;
+	int ofs = i_y*256+i_x;
 	asm("movb %[v],%%fs:(%[ofs])" : : [v] "q" (v), [ofs] "r" (ofs));
 #endif
     }
@@ -97,15 +98,15 @@ for (i_x = 0;i_x < resize;++i_x)
 snipArray(source,size_x(source),size_y(source),&desert);
 ttDesert(desert,desertMin,desertMax,3,source);
 
-for (i_y = 0;i_y < resize;++i_y)
+for (i_y = 0;i_y < resize/4;++i_y)
 {
-    for (i_x = 0;i_x < resize/4;++i_x)
+    for (i_x = 0;i_x < resize;++i_x)
     {
         char a, b, c, d;
-        a = (char)val(i_x*4  ,i_y,desert);
-        b = (char)val(i_x*4+1,i_y,desert);
-        c = (char)val(i_x*4+2,i_y,desert);
-        d = (char)val(i_x*4+3,i_y,desert);
+        a = (char)val(i_y*4  ,i_x,desert);
+        b = (char)val(i_y*4+1,i_x,desert);
+        c = (char)val(i_y*4+2,i_x,desert);
+        d = (char)val(i_y*4+3,i_x,desert);
         (&desertmap)[i_y*64+i_x] = a + (b<<2) + (c<<4) + (d<<6);
     }
 }
@@ -174,8 +175,8 @@ void makerandomterrain() {
 	int trunc = parm.truncmin + ((float)range1 * parm.truncrange / (1 << 16));
 	int patch = parm.patchmin + (       range2 * parm.patchrange >> 16);
 
-	if (trunc > delta-2)	 // Make sure our land doesn't diappear
-		trunc = delta-2;
+	/*if (trunc > delta-2)
+		trunc = delta-2;*/
 
 	terrain(delta, trunc, trunc+2, trunc+5, patch, randomfn);
 }
