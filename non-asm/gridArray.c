@@ -607,6 +607,15 @@ void ttMap(ulong cutDown, ulong cutUp, gridArray* this_) {
    to raise map edges */
 
     constrain(0, this_);
+    
+    for (i_x = 0; i_x < limit_x;++i_x)
+    {
+        for (i_y = 0; i_y < limit_y;++i_y)
+        {
+            if (val(i_x,i_y,this_) > 15.0) insert (15.0, i_x, i_y, this_);
+            if (val(i_x,i_y,this_) <  0.0)  insert (0.0, i_x, i_y, this_);
+        }
+    }
 
 }
 

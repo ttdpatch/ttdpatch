@@ -98,9 +98,9 @@ for (i_y = 0;i_y < resize;++i_y)
 snipArray(source,size_x(source),size_y(source),&desert);
 ttDesert(desert,desertMin,desertMax,3,source);
 
-for (i_y = 0;i_y < resize/4;++i_y)
+/*for (i_y = 0;i_y < resize;++i_y)
 {
-    for (i_x = 0;i_x < resize;++i_x)
+    for (i_x = 0;i_x < resize/4;++i_x)
     {
         char a, b, c, d;
         a = (char)val(i_x*4  ,i_y,desert);
@@ -109,7 +109,7 @@ for (i_y = 0;i_y < resize/4;++i_y)
         d = (char)val(i_x*4+3,i_y,desert);
         (&desertmap)[i_y*64+i_x] = a + (b<<2) + (c<<4) + (d<<6);
     }
-}
+}*/
 
 #ifndef NOBMP
    addScalar (-2.0        ,desert);
