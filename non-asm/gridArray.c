@@ -525,6 +525,41 @@ void image(const char* filename,gridArray* this_) {
 
 /*
 *
+* Constrain adjacent vertices to differ no more than +1/-1 in height
+* (inline to allow compiler to optimize the comparison type)
+*
+*/
+
+INLINE void constrain(int raise, gridArray* this_) {
+  ulong limit_x = size_x(this_);
+  ulong limit_y = size_y(this_);
+
+  ulong i_x;
+  ulong i_y;
+
+/* pass the map in four directions to set it so the
+   map is in the TTD format (no more then 1 height difference
+   in each direction */
+
+  for (i_x = 0; i_x < limit_x; ++i_x)
+      for (i_y = 1; i_y < limit_y; ++i_y)
+          adjust(i_x, i_y, i_x, i_y-1, raise, this_);
+  
+  for (i_y = limit_y-1; i_y > 0; --i_y)
+      for (i_x = 1 ;i_x < limit_x; ++i_x)
+          adjust(i_x, i_y, i_x-1, i_y, raise, this_);
+
+  for (i_x = limit_x-1;i_x > 0;--i_x)
+      for (i_y = limit_y-2;i_y > 0;--i_y)
+          adjust(i_x, i_y, i_x, i_y+1, raise, this_);
+
+  for (i_y = 0;i_y < limit_y;++i_y)
+      for (i_x = limit_x-2;i_x > 0;--i_x)
+          adjust(i_x, i_y, i_x+1, i_y, raise, this_);
+}
+
+/*
+*
 * Transform into TTD format
 *
 */
@@ -538,9 +573,6 @@ void ttMap(ulong cutDown, ulong cutUp, gridArray* this_) {
     ulong limit_y = size_y(this_);
     ulong i_x = 0;
     ulong i_y = 0;
-    ulong i_  = 0;
-
-
 
 /* check for sensibility of the arguments */
 
@@ -550,6 +582,10 @@ void ttMap(ulong cutDown, ulong cutUp, gridArray* this_) {
 
     normalize(0.0,cutUp,this_);
     addScalar((cutDown* -1.0),this_);
+
+/* first pass to adjust adjacent heights by raising neighbors as needed */
+
+    constrain(1, this_);
 
 /* zero two outmost vertices to 0.0 */
 
@@ -567,56 +603,11 @@ void ttMap(ulong cutDown, ulong cutUp, gridArray* this_) {
         insert(0.0,limit_x-1,i_y,this_);
     }
 
-/* pass the map in four directions to set it so the
-   map is in the TTD format (no more then 1 height difference
-   in each direction */
+/* constrain neighbours again, this time lowering as needed so as not
+   to raise map edges */
 
-    for (i_ = 0;i_ < 1;++i_) {
-      /* how many times to run the checking
-         one should suffice */
+    constrain(0, this_);
 
-    for (i_x = 0; i_x < limit_x; ++i_x)
-    {
-        for (i_y = 1; i_y < limit_y; ++i_y)
-        {
-            adjust(i_x, i_y, i_x, i_y-1, this_);
-        }
-    }
-    
-    for (i_y = limit_y-1; i_y > 0; --i_y)
-    {
-        for (i_x = 1 ;i_x < limit_x; ++i_x)
-        {
-            adjust(i_x, i_y, i_x-1, i_y, this_);
-        }
-    }
-
-    for (i_x = limit_x-1;i_x > 0;--i_x)
-    {
-        for (i_y = limit_y-2;i_y > 0;--i_y)
-        {
-            adjust(i_x, i_y, i_x, i_y+1, this_);
-        }
-    }
-
-    for (i_y = 0;i_y < limit_y;++i_y)
-    {
-        for (i_x = limit_x-2;i_x > 0;--i_x)
-        {
-            adjust(i_x, i_y, i_x+1, i_y, this_);
-        }
-    }
-
-    }
-
-    for (i_x = 0; i_x < limit_x;++i_x)
-    {
-        for (i_y = 0; i_y < limit_y;++i_y)
-        {
-            if (val(i_x,i_y,this_) > 15.0) insert (15.0, i_x, i_y, this_);
-            if (val(i_x,i_y,this_) <  0.0)  insert (0.0, i_x, i_y, this_);
-        }
-    }
 }
 
 /*

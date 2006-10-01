@@ -145,15 +145,22 @@ INLINE void insert (long double val,ulong i_x, ulong i_y, gridArray* this_)
 *
 */
 
-INLINE void adjust (ulong i_x, ulong i_y, ulong j_x, ulong j_y, gridArray* this_)
+INLINE void adjust (ulong i_x, ulong i_y, ulong j_x, ulong j_y, int raise, gridArray* this_)
 {
   long current = (long)(val(i_x,i_y,this_));
   long prev    = (long)(val(j_x,j_y,this_));
 
-  if (current > prev + 1)
-    insert (prev + 1, i_x, i_y, this_);
-  else if (current + 1 < prev)
-    insert (current + 1, j_x, j_y, this_);
+  if (raise) {
+    if (current > prev + 1)
+      insert (current - 1, j_x, j_y, this_);
+    if (current + 1 < prev)
+      insert (prev - 1, i_x, i_y, this_);
+  } else {
+    if (current > prev + 1)
+      insert (prev + 1, i_x, i_y, this_);
+    else if (current + 1 < prev)
+      insert (current + 1, j_x, j_y, this_);
+  }
 }
 
 /*
