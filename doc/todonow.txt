@@ -674,7 +674,7 @@ CHANGELOG
   * (devel) added memory guard system to find memory overflows (GUARD=1)
   * added new signal gui popup window (experimentalfeatures.signalgui) for changeing presignal/pbs status
   * (devel) added code ideas for newmaparray
-  * fixed gigantscreenshot function with resolution patch
+  * fixed giant screenshot function with resolution patch
   * added pre-code for station property 19 road routeing on rail stations
   * added code to allow 240 entries per directory/savegame listing, 
     warn user if outside the limit, should fix problems that savegame doesn't show fail error
@@ -685,6 +685,8 @@ CHANGELOG
   * updated cht:landinfo to give the value of Landscape 8
   * fixed the changes to the airport selection gui not respecting the switch 'keepsmallairports'
   * added new feature for cloning rail vehicles (clonetrain)
+  * allow converting train engines to additional heads, enable by turning on
+    experimentalfeatures.engineconvert
 - by DaleStan
   * add the depots-obey-transparency fix to generalfixes
   * add a miscmods bit to disable the depots-obey-transparency fix
@@ -709,11 +711,16 @@ CHANGELOG
 - added generic feature 0C (newsounds) callback for new ambient sounds
 - allow unlimited var.action 2 procedure calls in one var.action 2
 - implement action 13 to allow translating D000/DC00 texts of another grf
+- add generic "must be loaded before/after" messages to action B
 - by JGR:
   * show more than 255 trains/ships/rvs/planes in vehicle list
   * allow stations larger than 15x15, enable with "stationsize <maxsize>"
   * implement signal restrictions, enable with "tracerestrict on" and
     access from new signal gui ("signalgui on")
+- store some persistent grf properties in savegame (includes "non enter"
+  station tiles to prevent stations from breaking when loaded without their
+  grf file present
+- implement window element to set default text color
 - by Uzurpator: new terrain generator, enable with
   "experimentalfeatures.newterraingen on"
 - by Mek: allow resizing the train info window
