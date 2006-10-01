@@ -103,10 +103,10 @@ for (i_y = 0;i_y < resize/4;++i_y)
     for (i_x = 0;i_x < resize;++i_x)
     {
         char a, b, c, d;
-        a = (char)val(i_y*4  ,i_x,desert);
-        b = (char)val(i_y*4+1,i_x,desert);
-        c = (char)val(i_y*4+2,i_x,desert);
-        d = (char)val(i_y*4+3,i_x,desert);
+        a = (char)val(i_x*4  ,i_y,desert);
+        b = (char)val(i_x*4+1,i_y,desert);
+        c = (char)val(i_x*4+2,i_y,desert);
+        d = (char)val(i_x*4+3,i_y,desert);
         (&desertmap)[i_y*64+i_x] = a + (b<<2) + (c<<4) + (d<<6);
     }
 }
