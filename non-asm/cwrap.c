@@ -73,7 +73,7 @@ while (resize < 256) {
     filter(4,&source);
 }
 
-ttMap(truncHeight,truncHeight+deltaHeight,source);
+ttMap(truncHeight,deltaHeight,source);
 
 for (i_y = 0;i_y < resize;++i_y)
 {
@@ -89,8 +89,7 @@ for (i_y = 0;i_y < resize;++i_y)
 #if WINTTDX
         (&landscape4base)[i_y*256+i_x] = v;
 #else
-	int ofs = i_y*256+i_x;
-	asm("movb %[v],%%fs:(%[ofs])" : : [v] "q" (v), [ofs] "r" (ofs));
+	asm("movb %[v],%%fs:(%[ofs])" : : [v] "q" (v), [ofs] "r" (i_y*256+i_x));
 #endif
     }
 }
@@ -98,7 +97,7 @@ for (i_y = 0;i_y < resize;++i_y)
 snipArray(source,size_x(source),size_y(source),&desert);
 ttDesert(desert,desertMin,desertMax,3,source);
 
-/*for (i_y = 0;i_y < resize;++i_y)
+for (i_y = 0;i_y < resize;++i_y)
 {
     for (i_x = 0;i_x < resize/4;++i_x)
     {
@@ -109,7 +108,7 @@ ttDesert(desert,desertMin,desertMax,3,source);
         d = (char)val(i_x*4+3,i_y,desert);
         (&desertmap)[i_y*64+i_x] = a + (b<<2) + (c<<4) + (d<<6);
     }
-}*/
+}
 
 #ifndef NOBMP
    addScalar (-2.0        ,desert);
@@ -175,8 +174,8 @@ void makerandomterrain() {
 	int trunc = parm.truncmin + ((float)range1 * parm.truncrange / (1 << 16));
 	int patch = parm.patchmin + (       range2 * parm.patchrange >> 16);
 
-	/*if (trunc > delta-2)
-		trunc = delta-2;*/
+	if (trunc > delta-2)
+		trunc = delta-2;
 
 	terrain(delta, trunc, trunc+2, trunc+5, patch, randomfn);
 }
