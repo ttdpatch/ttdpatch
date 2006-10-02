@@ -1510,7 +1510,9 @@ exported drawtraininforows
 	mov [edi+veh.cargotype+4],bx
 
 .showinfo:
+	push edi
 	call [showtraininforow]
+	pop edi
 
 	pop dword [edi+veh.cargotype+4]
 	pop dword [edi+veh.cargotype]
