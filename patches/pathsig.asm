@@ -1909,12 +1909,16 @@ cleartrainsignalpath:
 
 	mov ah,[landscape4(di,1)]
 	and ah,0xf0
+	cmp ah,0x90
+	je .jct		// might be a custom bridge head with multiple pieces
+
 	cmp ah,0x10
 	jne .notjct	// can only have one matching track piece
 
 	test byte [landscape5(di,1)],0xc0
 	jg .notjct	// signal means there's only one track piece in al now
 
+.jct:
 //	mov ecx,[landscape6ptr]
 	and al,[landscape6+edi]	// else find out which one it is that's reserved
 	jz .done		// none -> end of path

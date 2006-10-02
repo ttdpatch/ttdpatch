@@ -167,6 +167,13 @@ gentrainviseffecttype equ $-2
 codefragment newgentrainviseffect
 	icall gentrainviseffect
 
+codefragment oldsellwagon,5
+	mov [ebx+veh.nextunitidx], ax
+	push esi
+
+codefragment newsellwagon
+	icall sellwagon_updateconsist
+	setfragmentsize 7
 
 endcodefragments
 
@@ -306,6 +313,7 @@ patchnewtrains:
 	patchcode gentrainviseffect,1,0
 	mov byte [gentrainviseffecttype],6
 	patchcode gentrainviseffect
+	patchcode sellwagon
 	ret
 
 	// this subproc is common for new train and ship windows

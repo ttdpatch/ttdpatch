@@ -755,3 +755,14 @@ CHANGELOG
   * fixed a bug in resizing depot windows when 32px mode was on
 - fixed bogus sprite error when calling a procedure beyond sprite 255
 - fixed station overbuilding to adjust the overwritten tile's numtiles
+- by stevenh:
+  * miscellaneous tram fixes
+  * show tram depot graphics in tram construction window
+  * fixed incorrect display of tram tracks on bridge with adjacent level
+    crossing
+  * fix bug causing some newly built roads to also have tram tracks
+- add "name" property in addition to "desc" for switches.xml categories
+- prevent loading multiple GRFs with identical GRFID (except for FFFFFFFF)
+- fix lockup when reversing train with multiple reserved pieces on a custom
+  bridge head
+- fix consist variables/callbacks not being updated when selling wagon

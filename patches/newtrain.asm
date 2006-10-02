@@ -1547,7 +1547,9 @@ exported drawtraininforows
 	mov [edi+veh.cargotype+4],bx
 
 .showinfo:
+	push edi
 	call [showtraininforow]
+	pop edi
 
 	pop dword [edi+veh.cargotype+4]
 	pop dword [edi+veh.cargotype]
@@ -1799,4 +1801,18 @@ startstopveh:
 .ok:
 	clc
 .done:
+	ret
+
+// called when selling a train wagon
+// needs to delete the veh entry and update the origin consist
+//
+// in:	edx->wagon being sold
+//	esi->source consist
+// out:
+// safe:ebx esi
+exported sellwagon_updateconsist
+	extern delveharrayentry
+	call consistcallbacks
+	mov esi,edx
+	call [delveharrayentry]		// overwritten
 	ret
