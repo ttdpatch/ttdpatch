@@ -1747,3 +1747,17 @@ startstopveh:
 
 .done:
 	ret
+
+// called when selling a train wagon
+// needs to delete the veh entry and update the origin consist
+//
+// in:	edx->wagon being sold
+//	esi->source consist
+// out:
+// safe:ebx esi
+exported sellwagon_updateconsist
+	extern delveharrayentry
+	call consistcallbacks
+	mov esi,edx
+	call [delveharrayentry]		// overwritten
+	ret
