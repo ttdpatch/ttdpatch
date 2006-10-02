@@ -125,6 +125,8 @@ SVNVERSION = svnversion -c .
 
 UPX = upx
 
+CPFLAGS=-u --remove-destination
+
 -include ${MAKEFILELOCAL}
 
 # Now use the appropriate settings to define the final variables

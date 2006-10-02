@@ -182,10 +182,10 @@ endif
 .PHONY: test testd testw
 
 testd: ttdprotd.lst ttdpatch.exe
-	@cp -v -u --remove-destination ttdpatch.exe ${GAMEDIR}/ttdpatch-${VERSION}.exe
+	@cp -v ${CPFLAGS} ttdpatch.exe ${GAMEDIR}/ttdpatch-${VERSION}.exe
 
 testw: ttdprotw.lst ttdpatchw.exe
-	@cp -v -u --remove-destination ttdpatchw.exe ${GAMEDIRW}/ttdpatchw-${VERSION}.exe
+	@cp -v ${CPFLAGS} ttdpatchw.exe ${GAMEDIRW}/ttdpatchw-${VERSION}.exe
 
 test:	testd testw
 
