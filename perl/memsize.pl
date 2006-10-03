@@ -13,7 +13,7 @@ my $found = 0;
 while(<>) {
 	next unless /TTDPATCH/;
 	$found++;
-	while (s/\r|\n//) {};
+	tr/\n\r//d;
 	print "// Output from mem /c:";
 	print "// $_\n";
 	my $size = (split " ", $_)[1];
