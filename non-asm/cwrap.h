@@ -8,3 +8,7 @@ inline void *malloc(size_t size) {
   asm("call dmalloc" : "=D" (ptr), "+c" (size));
   return ptr;
 }
+
+inline void memcompact() {
+  asm("call dmemcompact");
+}
