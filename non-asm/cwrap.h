@@ -9,6 +9,6 @@ inline void *malloc(size_t size) {
   return ptr;
 }
 
-inline void memcompact() {
-  asm("call dmemcompact");
-}
+// defragment dynamic memory
+void memcompact() asm("dmemcompact");
+
