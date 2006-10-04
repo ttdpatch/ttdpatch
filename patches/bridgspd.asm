@@ -215,7 +215,7 @@ exported vehonbridge
 	sub al,0x10
 	mov [grfvarfeature_set_add],al
 	inc dword [grfvarfeature_set_and]
-	mov byte [miscgrfvar],2
+	mov byte [miscgrfvar],10
 	mov [callback_extrainfo],edi
 
 	mov eax,0x106	// generic callback for feature 6 (bridges)
