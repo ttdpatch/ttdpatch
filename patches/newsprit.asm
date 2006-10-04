@@ -45,6 +45,10 @@ uvard curaction3info
 uvard mostrecentspriteblock
 uvarb mostrecentgrfversion
 
+uvard grfvarfeature		// feature to use for 40+x etc. variable handlers
+uvard grfvarfeature_set_add	// set to feature when using grfvarfeature, then to -1 when done
+uvard grfvarfeature_set_and,1,s	// set to zero when using grfvarfeature, then to -1 when done
+
 uvard curstationcargo
 
 #ifndef RELEASE
@@ -614,6 +618,10 @@ getnewsprite:
 #endif
 	xchg eax,ecx
 	mov eax,[grffeature]
+	mov ebx,eax
+	and ebx,[grfvarfeature_set_and]
+	add ebx,[grfvarfeature_set_add]
+	mov [grfvarfeature],ebx
 	call [getaction3cargo+eax*4]
 
 //.gotcargo:
@@ -865,7 +873,7 @@ getrandomorvariational:
 	cmp byte [nostructvars],0
 	jne badaction2var
 
-	mov ecx,[grffeature]
+	mov ecx,[grfvarfeature]
 	call [getother+ecx*4]
 
 .noother:
@@ -913,7 +921,7 @@ getrandom:	// random cargo ID
 	or [septriggerbits+4*edx],eax
 
 .nottriggeredyet:
-	mov eax,[grffeature]
+	mov eax,[grfvarfeature]
 	call [getrandombits+eax*4]
 #ifndef RELEASE
 	mov edx,eax
@@ -1061,7 +1069,7 @@ getvariationalvariable:
 	jmp short .gotval
 
 .checkvaravail:			// variable available even without structure?
-	movzx esi,byte [grffeature]
+	movzx esi,byte [grfvarfeature]
 	add esi,esi
 	add esi,[isother]
 	bt [varavailability-0x40/8+esi*8],eax
@@ -1077,7 +1085,7 @@ getvariationalvariable:
 	test esi,esi
 	jz .novar
 
-	movzx ecx,byte [grffeature]
+	movzx ecx,byte [grfvarfeature]
 	shl ecx,1
 	add cl,[isother]
 	add al,[featurevarofs+ecx]
@@ -1654,7 +1662,7 @@ exported savevar40x
 // safe:ecx
 getspecialvar:
 	sub eax,0x40
-	movzx ecx,byte [grffeature]
+	movzx ecx,byte [grfvarfeature]
 	cmp al,0x1f
 	je .getrandomtriggers
 
@@ -1717,7 +1725,7 @@ getspecparamvar:
 	ja .grfparam
 
 	mov ah,cl
-	movzx ecx,byte [grffeature]
+	movzx ecx,byte [grfvarfeature]
 	shl ecx,1
 	add cl,[isother]
 	cmp al,[specialparamvars+ecx]
