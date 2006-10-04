@@ -17,4 +17,5 @@ endcodefragments
 
 patchnewbridges:
 	patchcode vehonbridge
+	mov word [edi+lastediadj-74],0x368d	// 2-byte nop
 	ret

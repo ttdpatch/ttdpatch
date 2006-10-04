@@ -93,6 +93,9 @@ bridgespeedlimit:
 	movzx edx,word [dword -1+esi*2]	// overwritten by runindex call
 ovar .limittable,-4,$,bridgespeedlimit
 	call getbridgespeedlimit
+	movzx edi,word [edi+veh.engineidx]
+	shl edi,7
+	add edi,[veharrayptr]
 	ret
 ; endp bridgespeedlimit
 
@@ -196,7 +199,8 @@ calcnewbridgespeedlimits:
 //	esi=L2 value
 //	edi->vehicle
 // out:	esi=bridge type
-// safe:dx,?
+// safe:eax ebx ecx edx
+uvard lastbridgeconsist
 exported vehonbridge
 	and esi,0xf0
 	shr esi,4
@@ -204,9 +208,27 @@ exported vehonbridge
 	extern genericids
 	cmp dword [genericids+6*4],0
 	jg .havecallback
+
+.dontplay:
 	ret
 
 .havecallback:
+	// new consist?
+	mov dx,[edi+veh.engineidx]
+	cmp dx,[lastbridgeconsist]
+	jne .isnew
+
+	// or new engine tick?
+	mov dl,[animcounter]
+	cmp dl,[lastbridgeconsist+2]
+	je .dontplay	// if same consist in same tick, don't play again
+
+.isnew:
+	mov dx,[edi+veh.engineidx]
+	mov [lastbridgeconsist],dx
+	mov dl,[animcounter]
+	mov [lastbridgeconsist+2],dl
+
 	extern grfvarfeature_set_add,grfvarfeature_set_and,grffeature
 	extern getnewsprite,miscgrfvar,callback_extrainfo,curcallback
 	xchg esi,edi
@@ -228,9 +250,9 @@ exported vehonbridge
 	call [generatesoundeffect]
 
 .nosound:
-	mov byte [grfvarfeature_set_add],0
 	dec dword [grfvarfeature_set_and]
-	and dword [miscgrfvar],0
+	mov byte [grfvarfeature_set_add],0
+	mov byte [miscgrfvar],0
 	mov byte [curcallback],0
 
 	pop eax
