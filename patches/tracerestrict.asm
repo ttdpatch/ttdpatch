@@ -2234,7 +2234,8 @@ copysharelistbtn:
 	call [setmousetool]
 .end:
 	pop esi
-ret
+	mov edx, [curselrobj]
+	jmp updatebuttons
 
 uvarb copyshareaction, 1
 //1=copy,2=share
