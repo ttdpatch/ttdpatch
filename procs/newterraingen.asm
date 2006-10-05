@@ -17,9 +17,17 @@ codefragment newrandomland
 	test al,0
 	jmp fragmentstart-6
 
+codefragment oldsetupdesert,10
+	add ax,16
+	cmp ax,0xfef
+
+codefragment newsetupdesert
+	ret
+
 endcodefragments
 
 patchterraingen:
 	patchcode randomland
+	patchcode setupdesert
 	ret
 

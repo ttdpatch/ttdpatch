@@ -39,6 +39,8 @@ void terrain(  int   maxHeight, // the desired difference between lowest and hig
 
                int   desertMax,   // the maximum height the desert will appear
 
+               int   rainforestMin,   // minimum height of rainforest
+
                int   sourcePatchSize, // source patch size
                                       // this setting creates how "busy" the terrain
                                       // is, the smaller value, the smoother and less
@@ -51,37 +53,16 @@ gridArray* source = NULL;
 gridArray* desert = NULL;
 //gridArray* stenci = NULL;
 
-ulong sourceSize = 64;
-ulong resize = 0;
+ulong sourceSize = 96;
+ulong resize = 64;
 int i_x = 0;
 int i_y = 0;
 //int i_z = 0;
 
-switch (sourcePatchSize) {
-
-     case 0:  sourceSize = 40;  resize = 32;  break;
-     case 1:  sourceSize = 48;  resize = 32;  break;
-     case 2:  sourceSize = 56;  resize = 32;  break;
-     case 3:  sourceSize = 64;  resize = 64;  break;
-     case 4:  sourceSize = 72;  resize = 64;  break;
-     case 5:  sourceSize = 80;  resize = 64;  break;
-     case 6:  sourceSize = 88;  resize = 64;  break;
-     case 7:  sourceSize = 96;  resize = 64;  break;
-     case 8:  sourceSize = 104; resize = 64;  break;
-     case 9:  sourceSize = 112; resize = 64;  break;
-     case 10: sourceSize = 120; resize = 64;  break;
-     case 11: sourceSize = 128; resize = 128; break;
-     case 12: sourceSize = 132; resize = 128; break;
-     case 13: sourceSize = 140; resize = 128; break;
-     case 14: sourceSize = 148; resize = 128; break;
-     case 15: sourceSize = 152; resize = 128; break;
-     case 16: sourceSize = 160; resize = 128; break;
-     case 17: sourceSize = 168; resize = 128; break;
-     case 18: sourceSize = 176; resize = 128; break;
-     case 19: sourceSize = 184; resize = 128; break;
-     case 20: sourceSize = 192; resize = 128; break;
-     default: sourceSize = 96;  resize = 64;  break;
-     }
+if (sourcePatchSize <= 20) {
+     sourceSize = (sourcePatchSize + 5) * 8;
+     resize = 1 << ((sourcePatchSize + 5) / 8 + 5);
+}
 
 makeArray(sourceSize+TTD_random()%64-32, sourceSize+TTD_random()%64-32, TTD_random, &source);
 
@@ -130,74 +111,45 @@ destroyArray(&desert);
 
 ttMap(maxHeight,truncHeight,source);
 
-for (i_y = 0;i_y < resize;++i_y)
+for (i_y = 0;i_y < resize-1;++i_y)	// don't touch southern-most tiles
 {
-    for (i_x = 0;i_x < resize;++i_x)
+    for (i_x = 0;i_x < resize-1;++i_x)	// because they contain guard tiles
     {
 	char v = val(i_y,i_x,source);
-	
+
+	// set height, but make sure we're not overwriting guard tiles
 #if WINTTDX
+#if DEBUG
+        if ((&landscape4base)[i_y*256+i_x])
+          asm("ud2");
+#endif
         (&landscape4base)[i_y*256+i_x] = v;
 #else
+#if DEBUG
+        char old;
+        asm("movb %%fs:(%[ofs]),%[old]" : [old] "=q" (old) : [ofs] "r" (i_y*256+i_x));
+        if (old)
+          asm("ud2");
+#endif
 	asm("movb %[v],%%fs:(%[ofs])" : : [v] "q" (v), [ofs] "r" (i_y*256+i_x));
 #endif
     }
 }
 
 snipArray(source,size_x(source),size_y(source),&desert);
-ttDesert(desert,desertMin,desertMax,5,source);
+ttDesert(desert,desertMin,desertMax,rainforestMin,5,source);
 
-/* for some odd reason genearting a map in tropics causes
-the start year to go to 6404. Dunno why (even if I do
-nothing to actual values of the desertmap the error persists).
-anyhoo - the loop below "fixes" the problem,
-but no info i have if this is a proper procedure */
-
-for (i_y = 0;i_y < resize*resize/4;++i_y) {
-    (&desertmap)[i_y] = 85;
-}
-
-for (i_y = 1;i_y < resize-1;++i_y)
+for (i_y = 0;i_y < resize;++i_y)
 {
-    for (i_x = 1;i_x < resize/4-1;++i_x)
+    for (i_x = 0;i_x < resize/4;++i_x)
     {
-        char a, b, c, d;
+        unsigned char a, b, c, d;
         a = (char)val(i_y,i_x*4  ,desert);
         b = (char)val(i_y,i_x*4+1,desert);
         c = (char)val(i_y,i_x*4+2,desert);
         d = (char)val(i_y,i_x*4+3,desert);
-        if (a!=0)
-        {
-         if(a == 1)
-           a = 1;
-         else
-           a = 2;
-        }
-        
-        if (b!=0)
-        {
-          if (b == 1)
-            b = 4;
-          else
-            b = 8;
-        }
-        
-        if (c!=0)
-        {
-          if (c == 1)
-            c = 16;
-          else
-            c = 32;
-        }
-        
-        if (d!=0)
-        {
-          if (d == 1)
-            d = 64;
-          else
-            d = 128;
-        }
-        (&desertmap)[i_y*64+i_x] = a + b + c + d;
+
+        (&desertmap)[i_y*64+i_x] = a + (b << 2) + (c << 4) + (d << 6);
     }
 }
 
@@ -252,5 +204,5 @@ void makerandomterrain() {
 	int trunc = parm.truncmin + (randomfn()%(parm.truncrange+1));
 	int patch = parm.patchmin + (randomfn()%(parm.patchrange+1));
 
-	terrain(delta, trunc, 1, 6, patch, randomfn);
+	terrain(delta, trunc, 1, 6, 9, patch, randomfn);
 }

@@ -81,7 +81,7 @@ void ttMap(ulong cutDown, ulong cutUp, gridArray* this_);
 /* change the map to fulfill the Transport
    Tycoon requirements for the vertex data */
 
-void ttDesert(gridArray* target, ulong min, ulong max, ulong range, gridArray* this_);
+void ttDesert(gridArray* target, ulong min, ulong max, ulong rfmin, ulong range, gridArray* this_);
 /* make TT desert */
 
 void print (gridArray* this_);

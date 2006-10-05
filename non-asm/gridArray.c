@@ -587,7 +587,7 @@ void ttMap(ulong cutDown, ulong cutUp, gridArray* this_) {
 *
 */
 
-void ttDesert(gridArray* target, ulong min, ulong max, ulong range, gridArray* this_) {
+void ttDesert(gridArray* target, ulong min, ulong max, ulong rfmin, ulong range, gridArray* this_) {
 
     ulong limit_x = size_x(this_) - range;
     ulong limit_y = size_y(this_) - range;
@@ -597,7 +597,6 @@ void ttDesert(gridArray* target, ulong min, ulong max, ulong range, gridArray* t
     ulong rBonus = 2;
 
     mulScalar(0.0,target); // zero the array
-    addScalar(2.0,target); // assume all tiles are rainforest
 
     scale(limit_x,limit_y,&this_);
 
@@ -605,12 +604,12 @@ void ttDesert(gridArray* target, ulong min, ulong max, ulong range, gridArray* t
     {
         for (i_y = range+rBonus;i_y < limit_y-rBonus;++i_y)
         {
-            if ( val(i_x,i_y,this_) < max && val(i_x,i_y,this_) > min)
+            if (val(i_x,i_y,this_) > rfmin)
+                insert(2.0,i_x,i_y,target);
+            else if ( val(i_x,i_y,this_) < max && val(i_x,i_y,this_) > min)
             {
                 if ( recursiveTest(range,i_x,i_y,this_) )
                   insert(1.0,i_x,i_y,target);
-                else
-                  insert(0.0,i_x,i_y,target);
             }
         }
     }
