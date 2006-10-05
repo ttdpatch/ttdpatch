@@ -692,6 +692,9 @@ SETTEXT(CFG_INTRO,
 // Line before previously unset switches
 SETTEXT(CFG_NEWSWITCHINTRO, "**** New switches ****")
 
+// Line before previously unset bits in bit switches
+SETTEXT(CFG_NEWBITINTRO, "**** New bits ****")
+
 // For switches which have no command line equivalent
 SETTEXT(CFG_NOCMDLINE, "no command line switch")
 

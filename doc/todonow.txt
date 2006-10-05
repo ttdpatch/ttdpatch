@@ -717,6 +717,7 @@ CHANGELOG
   * allow stations larger than 15x15, enable with "stationsize <maxsize>"
   * implement signal restrictions, enable with "tracerestrict on" and
     access from new signal gui ("signalgui on")
+  * Make TTDPatch mark new bits in bitswitches when writing ttdpatch.cfg.
 - store some persistent grf properties in savegame (includes "non enter"
   station tiles to prevent stations from breaking when loaded without their
   grf file present

@@ -306,6 +306,9 @@ enum langtextids {
 // Line before previously unset switches
 	CFG_NEWSWITCHINTRO,
 
+// Line before previously unset switches
+	CFG_NEWBITINTRO,
+
 // No command line option available
 	CFG_NOCMDLINE,
 

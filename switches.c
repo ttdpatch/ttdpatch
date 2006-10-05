@@ -205,6 +205,8 @@ static void _fptr *getswitchvarptr(int switchid)
   return (void _fptr*) ptr;
 }
 
+static u32 setbits[BITSWITCHNUM];
+
 static void setswitchvar(int switchid, s32 value)
 {
   void _fptr *ptr = getswitchvarptr(switchid);
@@ -285,6 +287,7 @@ static void setswitchbit(int switchid, const char *bitname, int swon)
 		var &= ~(((s32)1)<<i);
 		var |= (((s32)swon)<<i);
 		setswitchvar(switchid, var);
+		setbits[switches[switchid].bitswitchid] |= (((u32)1)<<i);
 		return;
 	}
   }
@@ -479,12 +482,16 @@ static int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int s
   } else if (!onlycheck) {	// not special
 	if ( (switches[switchid].range[0] != -1) ||
 	     (switches[switchid].range[1] != -1) ) {	// with a range (value)
+		int bitswid = switches[switchid].bitswitchid, i=0;
 		if (cfgpar == NULL || *cfgpar == 0)
 			parvalue = switches[switchid].range[2];	//default
 		else {
 			if (*cfgpar == '#') { // We have bin format
 			cfgpar++;
 			parvalue = strtol(cfgpar, &endptr, 2);
+				if (bitswid >= 0)
+					for (i=(endptr-cfgpar); i; )
+						setbits[bitswid] |= ((u32)1)<<(--i);
 
 			} else {
 			parvalue = strtol(cfgpar, &endptr,
@@ -520,11 +527,16 @@ static int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int s
 				parvalue = switches[switchid].range[2];
 		}
 
-		if (switches[switchid].bitswitchid >= 0 && cfgsub && swon >= 0) {
+		if (bitswid >= 0 && cfgsub && swon >= 0) {
 			setswitchbit(switchid, cfgsub, swon);
 			swon = 1; // Setting switch.bit always sets switch on
-		} else
+		} else {
 			setswitchvar(switchid, parvalue);
+			if (bitswid >= 0 && parvalue)
+				do {
+					setbits[bitswid] |= ((u32)1)<<(i++);
+				} while (parvalue >>= 1);
+		}
 	}
 
 	if (switches[switchid].bit >= 0)
@@ -693,7 +705,11 @@ static void writebitswitch(int switchid, FILE *cfg)
 	  int i, bitswid;
   const char *cfgcmd;
   const char **names;
+  int newbits[32];
+  int j=0;
   s32 val;
+
+  memset( newbits, 0, sizeof(newbits) );
 
   bitswid = switches[switchid].bitswitchid;
   cfgcmd = switches[switchid].cfgcmd;
@@ -702,11 +718,23 @@ static void writebitswitch(int switchid, FILE *cfg)
 
   for (i=0; names[i]; i++) {
 	if (!strcmp(names[i], "(reserved)")) continue;
-	if (i) fputs("\n", cfg);
-	fprintf(cfg, "%s.%s %s   // %s",
+	if (setbits[bitswid] & 1<<i){
+		if (i) fputs("\n", cfg);
+		fprintf(cfg, "%s.%s %s   // %s",
 		cfgcmd, names[i],
 		val & (((s32)1) << i) ? switchonofftext[0] : switchofftext,
 		langstr(bitswitchdesc[bitswid][i]));
+	} else
+		newbits[j++] = i;
+  }
+  if (j && i != j ) fprintf(cfg, "\n" CFG_COMMENT "%s\n", langcfg(CFG_NEWBITINTRO) );
+  else if (j && switches[switchid].order ) fprintf(cfg, CFG_COMMENT "%s\n", langcfg(CFG_NEWBITINTRO) );
+  for (i=0; i<j; i++) {
+		if (i) fputs("\n", cfg);
+		fprintf(cfg, "%s.%s %s   // %s",
+		cfgcmd, names[newbits[i]],
+		val & (((s32)1) << newbits[i]) ? switchonofftext[0] : switchofftext,
+		langstr(bitswitchdesc[bitswid][newbits[i]]));
   }
 }
 
@@ -919,6 +947,7 @@ void commandline(int argc, const char *const *argv)
   memset(&flags->data, 0, sizeof(flags->data));
   flags->datasize = (s32) ( offsetof(paramset, data.flags_byte_end) + sizeof(flags->data.flags_byte_end) - offsetof(paramset, data));
  // sizeof(flags->data);
+  memset(setbits, 0, sizeof(setbits) );
   initvalues(0);
 
   for (i=0; i<nflagssw; i++)
