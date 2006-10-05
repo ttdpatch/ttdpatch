@@ -25,7 +25,7 @@ compliation as C++ as BMP is a class */
 
 typedef struct {
 
-	double** data; /* data array */
+	float** data; /* data array */
         
         ulong size_x; /* size of the array */
         ulong size_y; /* size of the array */
@@ -48,13 +48,16 @@ void makeArray (ulong size_x_, ulong size_y_,uint32_t (*randomizer)(void), gridA
 void destroyArray(gridArray** this_);
 /* destructor of the array */
 
-void mulScalar (double scalar, gridArray* this_);
+void mulArray(gridArray* source_,gridArray* this_);
+/* multiply elements of one array with elements of this_ array*/
+
+void mulScalar (float scalar, gridArray* this_);
 /* scalar multiply operator */
 
 void addArray(gridArray* _source, gridArray* this_);
 /* addition of two arrays */
 
-void addScalar(double scalar, gridArray* this_);
+void addScalar(float scalar, gridArray* this_);
 /* addition of a value to all array elements */
 
 void scale(ulong newSize_x, ulong newSize_y, gridArray** this_);
@@ -66,7 +69,7 @@ void filter(ulong iterations, gridArray** this_);
 void go(ulong iterations, gridArray** this_);
 /* do the generation using the iterations set by the user */
 
-void normalize(double low, double hi, gridArray* this_);
+void normalize(float hi, gridArray* this_);
 /* normalize the array to the low-hi range */
 
 #ifndef NOBMP
@@ -83,6 +86,16 @@ void ttDesert(gridArray* target, ulong min, ulong max, ulong range, gridArray* t
 
 void print (gridArray* this_);
 /* print the contents of the array */
+
+void shift_x (int dir, ulong row, gridArray* this_);
+/* move values by 1 on thr x axis */
+
+void shift_y (int dir, ulong row, gridArray* this_);
+/* move values by q on the y axis */
+
+/* in both cases - if dir is negative, shift low->hi
+else shift hi->lo */
+
 
 int recursiveTest(ulong range, ulong x, ulong y, gridArray* this_);
 /* recursive test of whether a tile can be a desert tile
@@ -118,7 +131,7 @@ INLINE ulong size_y(gridArray* this_)
 *
 */
 
-INLINE double val (ulong i_x, ulong i_y, gridArray* this_)
+INLINE float val (ulong i_x, ulong i_y, gridArray* this_)
 {
 
   if (size_x(this_) <= i_x || size_y(this_) <= i_y)
@@ -133,7 +146,7 @@ INLINE double val (ulong i_x, ulong i_y, gridArray* this_)
 *
 */
 
-INLINE void insert (long double val,ulong i_x, ulong i_y, gridArray* this_)
+INLINE void insert (float val,ulong i_x, ulong i_y, gridArray* this_)
 {
   if (size_x(this_) > i_x && size_y(this_) > i_y)
     this_->data[i_x][i_y] = val;
@@ -172,9 +185,9 @@ INLINE void adjust (ulong i_x, ulong i_y, ulong j_x, ulong j_y, int raise, gridA
 
 INLINE int dist(ulong otherSize, ulong other, ulong mySize, ulong indice, gridArray* this_) {
 
-  double len = 0.0;
-  double my = indice *1.0 /mySize;
-  double ot = other  *1.0 /otherSize;
+  float len = 0.0;
+  float my = indice *1.0 /mySize;
+  float ot = other  *1.0 /otherSize;
 
   len = (ot-my)*mySize*1.0;
   return (len < 1.0);
@@ -182,10 +195,20 @@ INLINE int dist(ulong otherSize, ulong other, ulong mySize, ulong indice, gridAr
 #else
 INLINE ulong size_x(gridArray* this_);
 INLINE ulong size_y(gridArray* this_);
-INLINE double val (ulong i_x, ulong i_y, gridArray* this_);
-INLINE void insert (long double val,ulong i_x, ulong i_y, gridArray* this_);
+INLINE float val (ulong i_x, ulong i_y, gridArray* this_);
+INLINE void insert (long float val,ulong i_x, ulong i_y, gridArray* this_);
 INLINE void test (long* current, long* prev);
 INLINE int dist(ulong otherSize, ulong other, ulong mySize, ulong indice, gridArray* this_);
 #endif
+
+/*
+*
+* Stencils
+*
+*/
+
+void stencil (float stencil_data[16][16], gridArray** this_);
+
+extern float valley_data[16][16];
 
 #endif
