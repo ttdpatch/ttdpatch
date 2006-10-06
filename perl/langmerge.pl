@@ -45,12 +45,13 @@ while(<>){
 }
 
 while(<>) {
-	next if /^\s*\/\//;
-	if(/SETNAME/){
+	if(m#// Localization strings#){
 		print $_;
-		$linemod = $. - 8;
+		$linemod = $. - 2;
 		last;
-	}elsif (/TEXTARRAY\(halflines/ .. /NULL/) {
+	}
+	next if /^\s*\/\//;
+	if (/TEXTARRAY\(halflines/ .. /NULL/) {
 		next if /ARRAY/ or /NULL/;
 		$sw = $1 if /"(-\w+):/;
 		die "Halfline is not attached to a switch:\n$_ " unless $sw;
