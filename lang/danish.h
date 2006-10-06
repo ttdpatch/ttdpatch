@@ -52,7 +52,7 @@ SETTEXT(LANG_WRONGVERSION, "\n"
 	"          V‘r venlig at l‘se\n"
 	"          \"Version Trouble\" afsnittet i TTDPatch manualen for mere\n"
 	"          information.\n"
-	"n"
+	"\n"
         "Svar kun 'j' (ja), hvis du er helt sikker p† hvad du g›r. NU ER DU ADVARET!\n"
 	"Vil du alligevel starte TTD? ")
 
@@ -703,7 +703,7 @@ SETTEXT(CFG_LOWMEMORY, "`%s' (%s) tillader TTDPatch at k›re med 3.5MB hukommelse
 SETTEXT(CFG_GENERALFIXES, "`%s' (%s) retter diverse forskellige sm†ting, se dokumentationen for yderligere detaljer.")
 SETTEXT(CFG_MOREAIRPORTS, "`%s' (%s) tillader at man kan bygge flere lufthavne end de normale to pr. by.")
 SETTEXT(CFG_BRIBE, "`%s' (%s) tillader at bestikke de lokale myndigheder, dette er et nyt menu punkt under lokale myndigheder (local authorities).")
-SETTEXT(CFG_PLANECRCTRL, "`%s' (%s) tillader kontrol med, hvorn†r/tit fly styrter. Bitkodet v‘rdi, standard 1.")
+SETTEXT(CFG_PLANECRCTRL, "`%s' (%s) tillader kontrol med, hvorn†r/tit fly styrter.")
 SETTEXT(CFG_SHOWSPEED, "`%s' (%s) viser hastigheden for fart›jer i status baren i deres vindue.")
 SETTEXT(CFG_AUTORENEW, "`%s' (%s) fornyer automatisk lokomitiver n†r de bliver alt for gamle (very old).  Interval  %ld..%ld.  Standard %ld.")
 SETTEXT(CFG_CHEATSCOST, "`%s' (%s) s›rger for, at det koster penge, n†r skiltesnydekoder (sign cheats) bruges.")
@@ -719,7 +719,7 @@ SETTEXT(CFG_GRADUALLOADING, "`%s' (%s) ‘ndrer m†den fart›jer l‘sses til en mere 
 SETTEXT(CFG_MOVEERRORPOPUP, "`%s' (%s) flytter alle r›de fejlmeddelelser til ›verste h›jre hj›rne.")
 SETTEXT(CFG_SIGNAL1WAITTIME, "`%s' (%s) ‘ndre det antal dage et tog venter ved et en-vejssignal f›r det vender om. Interval 0..254, eller  255 for at venter evigt.")
 SETTEXT(CFG_SIGNAL2WAITTIME, "`%s' (%s) ‘ndre det antal dage et tog venter ved et to-vejssignal f›r det vender om. Interval 0..254, eller  255 for at venter evigt.")
-SETTEXT(CFG_DISASTERS, "`%s' (%s) tillader valg af hvilke katastrofer der m† indtr‘ffe. Bitkode v‘rdi, standard 255 (all katastrofer).")
+SETTEXT(CFG_DISASTERS, "`%s' (%s) tillader valg af hvilke katastrofer der m† indtr‘ffe.")
 SETTEXT(CFG_FORCEAUTORENEW, "`%s' (%s) tvinger et k›ret›j til v‘rksted n†r det er tid til auto-fornyelse (jvf `autorenew').")
 SETTEXT(CFG_MORENEWS, "`%s' (%s) genere beskeder/nyheder om flere begivenheder, se ogs† dokumentationen for mere information.")
 SETTEXT(CFG_UNIFIEDMAGLEV, "`%s' (%s) g›r det muligt at k›be monorail lokomotiver i maglev depoter og omvendt. indstilling: 1 - ‘ndre alle maglev lokomotiver til monorail; 2 - ‘ndre alle monorail lokomotiver til maglev; 3 - holder monorail og maglev adskilt.")                                         
@@ -735,14 +735,14 @@ SETTEXT(CFG_STARTYEAR, "`%s' (%s) bestemmer det normale start†r for vilk†rlige (
 SETTEXT(CFG_ERRORPOPUPTIME, "`%s' (%s) ‘ndre det tidsrum de r›de popup vinduer bliver vist. Interval 1..255 (i sekunder) , eller 0 for meget lang tid. Standard 10.")
 SETTEXT(CFG_TOWNGROWTHLIMIT, "`%s' (%s) ‘ndre den faktor der betemmer hvor store byer kan blive. Interval %ld..%ld. Standard %ld.")
 SETTEXT(CFG_LARGERTOWNS, "`%s' (%s) g›r at en by ud af den givne antal, vokser huritgere og st›rre (tilf›jer ogs† `towngrowthlimit'). Interval %ld..%ld. Standard %ld (1 ud af 4 byer).") 
-SETTEXT(CFG_MISCMODS, "`%s' (%s) g›r det muligt at ‘ndre effekten af andre kontakter, se dokumentation for mere info. Bitkode v‘rdi, standard 0 (ingen ‘ndring).")
+SETTEXT(CFG_MISCMODS, "`%s' (%s) g›r det muligt at ‘ndre effekten af andre kontakter, se dokumentation for mere info.")
 SETTEXT(CFG_LOADALLGRAPHICS, "`%s' (%s) tvinger TTDPatch til at hente alle .grf filer i newgrf(w).cfg, uanset om de har v‘ret brugt f›r i spillet eller ej.")
 SETTEXT(CFG_SAVEOPTDATA, "`%s' (%s) g›r at TTDPatch gemmer og henter yderligere (valgfrit) data i slutningen af de gemte spil.")
-SETTEXT(CFG_MOREBUILDOPTIONS, "`%s' (%s) giver flere bygge muligheder. Bitkode v‘rdi.")
+SETTEXT(CFG_MOREBUILDOPTIONS, "`%s' (%s) giver flere bygge muligheder.")
 SETTEXT(CFG_SEMAPHORES, "`%s' (%s) ‘ndre nye signaler bygget f›r 1975 til semafore signaler.")
 SETTEXT(CFG_MOREHOTKEYS, "`%s' (%s) aktivere nye genvejstaster.")
 SETTEXT(CFG_MANYTREES, "`%s' (%s) tillader plantning af mere end et tr‘ i hvert felt, eller over et retangul‘rt omr†der vha Ctrl.")
-SETTEXT(CFG_MORECURRENCIES,"`%s' (%s) giver flere valutaer og Euroen.  Bitkode v‘rdi.  Standardv‘rdi 0.")
+SETTEXT(CFG_MORECURRENCIES,"`%s' (%s) giver flere valutaer og Euroen.")
 SETTEXT(CFG_MANCONVERT,"`%s' (%s) tillader manuel spor‘ndring ved at placere de nye spor ovenp† de eksisterende spor.")
 SETTEXT(CFG_NEWAGERATING, "`%s' (%s) g›r stationsandelen (ratings) mere tolerent overfor vognalder. Nu kan vogenen v‘re 21 istedet for 3 †r gamle.")
 SETTEXT(CFG_ENHANCEGUI,"`%s' (%s) forbedre brugergr‘nsefladen.")
@@ -798,14 +798,14 @@ SETTEXT(CFG_SHIPLOSTTIME, "`%s' (%s) giver en advarsel hvis et skib er faret vil
 SETTEXT(CFG_AIRCRAFTLOSTTIME, "`%s' (%s) giver en advarsel hvis et fly er faret vild efter det givende antal dage. Omr†de %ld..%ld.  Standardv‘rdi %ld.")
 SETTEXT(CFG_MAPREFRESH, "`%s' (%s) giver en anden opdateringsfrekvens p† kortet i stedet for TTD's standardv‘rsdi p† 64. Omr†de %ld..%ld.  Standardv‘rdi %ld.")
 SETTEXT(CFG_NETWORKTIMEOUT, "`%s' (%s) afbryder et netv‘rkspil hvis der ikke er noget svar i det givende antal sekunder. Omr†de %ld..%ld.  Standardv‘rdi %ld.")
-SETTEXT(CFG_TOYLANDFEATURES, "`%s' (%s) aktivere nogle tilf‘ldige bygninger i terr‘net fx. fyrt†rn, som normalt er deaktiveret i Toyland. Bitkode v‘rdi.")
+SETTEXT(CFG_TOYLANDFEATURES, "`%s' (%s) aktivere nogle tilf‘ldige bygninger i terr‘net fx. fyrt†rn, som normalt er deaktiveret i Toyland.")
 SETTEXT(CFG_STRETCHWINDOW, "`%s' (%s) str‘kker TTD vinduer til givne antal horisontale pixels (kun n†r TTD bliver vist i et vindue i Windows). Omr†de %ld..%ld.  Standardv‘rdi %ld.")
 SETTEXT(CFG_CANALS, "`%s' (%s) tillader at man kan bygge kanaler og sluser ved brug af 'buy land' knappen fra skips konstruktionsmenuen.")
 SETTEXT(CFG_FREIGHTTRAINS, "`%s' (%s) ganger godsm‘ngden for godstoge med den givende faktor, for at simulere meget lange godstoge. Parametre har kun indflydelse p† togets accelaration, ikke hvor meget gods godstoget reelt transportere. Omr†de %ld..%ld.  Standardv‘rdi %ld.")
 SETTEXT(CFG_GAMESPEED, "`%s' (%s) g›r det muligt at ‘ndret spillet hastighed. Kr‘ver at genvejstast patchen er installeret. Ved at trykke 'q' for›ges hastigheden med en faktor 2 (til max 8x hastigheden). ved at trykke 'w' kan den s‘nkes igen. Parametret er starthastigheden. Omr†de %ld..%ld.  Standardv‘rdi %ld.") 
 SETTEXT(CFG_HIGHERBRIDGES, "`%s' (%s) tillader konstruktion af h›jere broer.")
 SETTEXT(CFG_NEWGRFCFG, "`%s' (%s) v‘lger konfigurationsfilen for de nye grafik s‘t.")
-SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s) g›r det muligt at bruge musehjulet i Windows versionen. 0 betyder zoom med hjulet p† den originale m†de (midten forbliver hvor den er), 1 betyder OpenTTD-metoden (punkt ved mark›ren forbliver hvor det er hvis det er muligt). l‘g 2 til for at aktivere 'sikker' zooming (to hak for at aktivere zoom). L‘g 4 til for underst›ttelse af gamle musehjul (nogle drivere og Win95 har brug for denne indstilling) Omr†de %ld..%ld. Standardv‘rdi %ld.")
+SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s) g›r det muligt at bruge musehjulet i Windows versionen.")
 SETTEXT(CFG_MOREWINDOWS, "`%s' (%s) g›r det muligt at have flere vinduer †bne samtidigt. TTD's stadardv‘rdi er 10, men 3 pladser er allerede optaget (hovedv‘rkt›jslinien, det store kort, statusbaren), s† det reele antal er 7. Rullemenuer og nyheder t‘ller ogs† som vinduer.  Omr†de %ld..%ld. Standardv‘rdi %ld.")
 SETTEXT(CFG_ENHANCEDDIFFICULTYSETTINGS, "'%s' (%s) g›r det muligt at v‘lge 'ingen' ('none') under antal industrier i sv‘rhedsgradsindstillingerne.")
 SETTEXT(CFG_NEWBRIDGES, "`%s' (%s) aktivere nye grafikker for broer.")
