@@ -52,7 +52,7 @@ SETTEXT(LANG_WRONGVERSION, "\n"
 	"          V‘r venlig at l‘se\n"
 	"          \"Version Trouble\" afsnittet i TTDPatch manualen for mere\n"
 	"          information.\n"
-	"n"
+	"\n"
         "Svar kun 'j' (ja), hvis du er helt sikker p† hvad du g›r. NU ER DU ADVARET!\n"
 	"Vil du alligevel starte TTD? ")
 
