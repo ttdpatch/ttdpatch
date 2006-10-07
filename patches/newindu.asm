@@ -1489,6 +1489,7 @@ restoreindustrydata:
 	mov edi,[industrylayouttableptr]
 	mov ecx,296
 	rep movsb
+
 // default industry names are the consecutive textIDs starting from 0x4802
 	mov edi,industrynames
 	mov eax,0x4802
@@ -1652,6 +1653,8 @@ copyindustryprops:
 
 %undef copyinduprop
 
+extern industryaction3
+
 // restore every property of an old type from backup to the given slot
 reloadoldindustry:
 // first, copy basic properties
@@ -1666,6 +1669,10 @@ reloadoldindustry:
 	lea edi,[edi+ebx*8]
 	movsd
 	movsd
+
+// no action3 and no sprite block
+	and dword [industryaction3+ebx*4],0
+	and dword [industryspriteblock+ebx*4],0
 
 // original name = 0x4802 + type
 	mov si,0x4802
@@ -1737,6 +1744,16 @@ copynewindustrydata:
 	lea esi,[esi+eax*8]
 	movsd
 	movsd
+
+// ...substitute type....
+	mov dl,[substindustries+eax]
+	mov [substindustries+ebx],dl
+
+// ...sprite block and action 3...
+	mov edx,[industryspriteblock+eax*4]
+	mov [industryspriteblock+ebx*4],edx
+	mov edx,[industryaction3+eax*4]
+	mov [industryaction3+ebx*4],edx
 
 // ...industry name...
 	mov si,[industrynames+2*eax]
@@ -1847,10 +1864,6 @@ setsubstindustry:
 	mov [curgrfindustrylist+ebx],cl
 	inc byte [curgrfindustrylist+ebx]
 
-// store the sprite block of the industry (needed for newsounds)
-	mov eax,[curspriteblock]
-	mov [industryspriteblock+ecx*4],eax
-
 // set the substitute industry type
 	xor eax,eax
 	lodsb
@@ -1861,9 +1874,16 @@ setsubstindustry:
 // load all properties of the substitute industry into this slot
 	mov ebx,ecx
 	call reloadoldindustry
+
 // replace the placement-check function with our special one that prepares things for callback 22
 	mov dword [industryplacecheckprocs+ebx*4],addr(newindu_placechkproc)
 	popa
+
+// store the sprite block of the industry (needed for newsounds)
+// this must be after reloadoldindustry because it resets industryspriteblock
+	mov eax,[curspriteblock]
+	mov [industryspriteblock+ecx*4],eax
+
 	pop ecx
 	jmp short .loopend
 

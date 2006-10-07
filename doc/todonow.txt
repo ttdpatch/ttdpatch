@@ -733,6 +733,7 @@ CHANGELOG
 - by Csaboka:
   * bug fixed: turning newindustries on reintroduced the "temperate banks 
     on tropic" TTD bug
+  * fixed crash when enabling new industries in existing game
 - fixed cargo type FE not working in action 3
 - debug switch 'r' to not run TTDLOAD(W).OVL directly
 - fixed crash when running out of memory
