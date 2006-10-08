@@ -847,6 +847,7 @@ RVTrailerProcessing:
 ; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 .checkForTunnelOrTryAgain:
+	movzx   ebp, bp
 	mov	bl, byte [landscape4(bp)]
 	and	bl, 0F0h
 	cmp	bl, 90h
