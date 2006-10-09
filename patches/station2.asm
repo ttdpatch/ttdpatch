@@ -26,7 +26,7 @@ global station2init
 station2init:
 	pusha
 	testflags fifoloading
-	jnc near .no_fifo
+	jnc .no_fifo
 	test byte [station2switches],S2_FIFOLOADING2
 	jnz .fifo_good
 .fifo_old:
@@ -43,22 +43,20 @@ station2init:
 
 // Now set it appropriately
 
-	mov ebx, numstations-1
+	mov eax, [stationarray2ptr]
 .stationloop:
-	mov eax, ebx
-	imul eax, station_size
-	add eax, [stationarray2ptr]
 
-	mov ecx, 11*8
+	xor ecx, ecx
+	mov cl, 11*8
 .cargoloop:
 	movzx esi, word [eax+station2.cargos+ecx+stationcargo2.curveh]
 	cmp si, 0-1
 	je .nextcargo_old
 
 	cvivp
-	mov al, [eax+station2.cargos+ecx+stationcargo2.type]
+	mov dl, [eax+station2.cargos+ecx+stationcargo2.type]
 .vehloop:
-	cmp al, [esi+veh.cargotype]
+	cmp dl, [esi+veh.cargotype]
 	jne .nextveh
 	mov byte [esi+veh.slfifoidx], 0
 .nextveh:
@@ -69,11 +67,13 @@ station2init:
 	jmp short .vehloop
 
 .nextcargo_old:
-	add ecx, station2_size
+	sub ecx, 0+stationcargo2_size
 	jnc .cargoloop
 
-	sub ebx, 1
-	jnc .stationloop
+	add eax, station2_size
+extern stationarray2endptr
+	cmp eax, [stationarray2endptr]
+	jb .stationloop
 
 	// FIFO data has been moved to veh.slfifoidx; clear the station info
 .fifo_clear:
