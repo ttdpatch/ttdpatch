@@ -320,6 +320,8 @@ LoadCargoFromStation:
 	push	esi
 	test	ah, ah
 	jz	.consistreserve
+	cmp	esi, edi
+	je	.popret
 
 // Check to see if all currently loading vehicles are part of this consist.
 	mov	esi, edi
@@ -337,6 +339,7 @@ LoadCargoFromStation:
 	cvivp
 	cmp	esi, [esp]
 	jne	.consistloop1
+.popret:
 	pop	esi
 	ret
 
