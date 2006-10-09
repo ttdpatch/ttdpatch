@@ -114,7 +114,7 @@ exported enqueueveh
 	mov eax, [eax+veh.veh2ptr]
 .loop:
 	mov edx, eax
-#if DEBUG
+#ifndef RELEASE
 	cmp edx, edi
 	jne .ok
 	ud2	// This vehicle already queued!
@@ -192,29 +192,14 @@ extern veh2ptr
 .done:
 	ret
 
-exported clearvehfifodata
-	mov esi, [veharrayptr]
-.vehloop:
-	mov byte [esi+veh.slfifoidx],1
-	sub esi,0-veh_size
-	cmp esi,[veharrayendptr]
-	jb .vehloop
-	ret
-
 // In: esi->consist-head
 // Out: all attached vehicles have queued for reserving (IFF full-load)
-exported fifoenterstation_load
-	mov al, [esi+veh.currorder]
-
-// as above, but also:
-// In:	al: bits 5..6 of current order, from order heap
 exported fifoenterstation
-	or	[esi+veh.currorder], al
 	test	al, 0x40
 	jz	.ret
 
 	pusha
-	movzx	eax, byte [esi+veh.currorder+1]
+	movzx	eax, byte [esi+veh.laststation]
 	mov	ebx, station_size
 	mul	ebx
 	add	eax, [stationarray2ptr]
@@ -318,7 +303,7 @@ exported buildloadlists
 	mov	esi, [edi]
 	test	esi, esi
 	jz	.noveh
-	call	fifoenterstation_load
+	call	fifoenterstation
 .noveh:
 	sub	edi, 4
 	cmp	edi, esp

@@ -26,15 +26,22 @@ global station2init
 station2init:
 	pusha
 	testflags fifoloading
-	jnc .no_fifo
-	test dword [station2switches],S2_FIFOLOADING
-	jnz .fifo_old
+	jnc near .no_fifo
 	test byte [station2switches],S2_FIFOLOADING2
 	jnz .fifo_good
-	call clearfifodata
-	jmp short .fifo_good
 .fifo_old:
-	extcall clearvehfifodata
+// Clear the FIFO data in the vehicle array
+	mov esi, [veharrayptr]
+.vehloop_init:
+	mov byte [esi+veh.slfifoidx],1
+	sub esi,byte -veh_size
+	cmp esi,[veharrayendptr]
+	jb .vehloop_init
+
+	test byte [station2switches],S2_FIFOLOADING
+	jz .fifo_clear		// Game contains no FIFO info; just clear the remainder.
+
+// Now set it appropriately
 
 	mov ebx, numstations-1
 .stationloop:
@@ -45,7 +52,7 @@ station2init:
 	mov ecx, 11*8
 .cargoloop:
 	movzx esi, word [eax+station2.cargos+ecx+stationcargo2.curveh]
-	cmp si, -1
+	cmp si, 0-1
 	je .nextcargo_old
 
 	cvivp
@@ -56,17 +63,21 @@ station2init:
 	mov byte [esi+veh.slfifoidx], 0
 .nextveh:
 	movzx esi, word [esi+veh.nextunitidx]
-	cmp si, -1
+	cmp si, 0-1
 	je .nextcargo_old
 	cvivp
 	jmp short .vehloop
 
 .nextcargo_old:
-	sub ecx,0+station2_size
+	add ecx, station2_size
 	jnc .cargoloop
 
 	sub ebx, 1
 	jnc .stationloop
+
+	// FIFO data has been moved to veh.slfifoidx; clear the station info
+.fifo_clear:
+	call	clearfifodata
 
 .fifo_good:
 .no_fifo:

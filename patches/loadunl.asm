@@ -346,7 +346,7 @@ LoadCargoFromStation:
 .reserve:
 	mov	dx, [esi+veh.capacity]
 	sub	dx, [esi+veh.currentload]
-	jz	.ret				// No remaining capacity; we're done.
+	jz	near .done		// No remaining capacity; we're done.
 	mov	ax, [ebx+station.cargos+ecx+stationcargo.amount]
 	and	ax, [stationcargowaitingmask]
 	add	ebx, [stationarray2ofst]
