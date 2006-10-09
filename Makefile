@@ -198,13 +198,14 @@ endif
 
 # remove temporary files
 cleantemp:
-	rm -f *.asp
+	rm -f *.asp patches/*.asp procs/*.asp
 	rm -f *.{o,obj,OBJ}
 	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po ${OTMP}non-asm/*.*po
 	rm -f ${OTMP}*.*lst ${OTMP}patches/*.*lst ${OTMP}procs/*.*lst ${OTMP}non-asm/*.*lst
+	rm -f mkptinc.exe mkpttxt.exe makelang.exe
 	rm -f lang/*.{o,map,exe} lang/language.* lang/*.tmp
-	rm -f host/*.o host/lang/* host/mkpttxt host/makelang
-	rm -f *.*.lst.gz *.*lst *.LST patches/*.*lst
+	rm -f host/*.o host/lang/* host/mkptinc host/mkpttxt host/makelang
+	rm -f *.*lst.gz *.*lst *.LST patches/*.*lst procs/*.*lst
 	rm -f ttdload.ovl
 	rm -f reloc*.inc
 	rm -f *.pe
@@ -220,8 +221,8 @@ remake:
 clean:	cleantemp
 	rm -f language.dat
 	rm -f language.ucd
-	rm -f ttdprotd.exe
-	rm -f ttdprotw.exe
+	rm -f ttdprotd.exe ttdpatch.exe
+	rm -f ttdprotw.exe ttdpatchw.exe
 	rm -f lang/*.{new,o,inc}
 	rm -f *.{bin,bil}
 	rm -f *.{map,MAP,map.gz}
@@ -230,8 +231,9 @@ clean:	cleantemp
 	rm -f langerr.h
 	rm -f sw_lists.h pprocd.h pprocw.h bitnames.h
 	rm -f patchflags.ah
-	rm -f inc/ourtexts.h
+	rm -f inc/ourtext.h
 	rm -f version{d,w}.h
+	rm -f .rev
 
 # also remove Makefile.dep?, listings and bak files
 mrproper: clean remake
@@ -239,7 +241,7 @@ mrproper: clean remake
 	rm -f *.o.d *.obj.d host/*.o.d
 	rm -f *.{d,w,l}lst patches/*.{d,w,l}lst procs/*.{d,w,l}lst non-asm/*.{d,w,l}lst
 	rm -f patches/*.ba* procs/*.ba* non-asm/*.ba*
-	rm -f *.err lang/*.err
+	rm -f *.err lang/*.err makelang.log
 
 # if a command fails, delete its output
 .DELETE_ON_ERROR:
