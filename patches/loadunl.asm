@@ -308,37 +308,59 @@ LoadCargoFromStation:
 .queueloop:
 	mov	eax, [eax+veh2.prevptr]
 	test	eax, eax
-	jz	.reserve
+	jz	near .reserve
 	mov	edx, [eax+veh2.vehptr]
 	test	byte [edx+veh.modflags], 1 << MOD_MORETOUNLOAD
 	jnz	.queueloop
 	ret
 
 .overflow:
-	cmp	byte [ebx+station2.cargos+ecx+stationcargo2.rescount], 0
-	jne	.ret
-
+	mov	ah, [ebx+station2.cargos+ecx+stationcargo2.rescount]
 	mov	al, [esi+veh.cargotype]
 	push	esi
+	test	ah, ah
+	jz	.consistreserve
+
+// Check to see if all currently loading vehicles are part of this consist.
 	mov	esi, edi
-.consistreserve:
-	cmp	word [esi+veh.capacity], 0
-	je	.nextveh
-	cmp	al, [esi+veh.cargotype]
-	jne	.nextveh
-	extcall dequeueveh
-	or	byte [esi+veh.modflags+1], 1 << (MOD_HASRESERVED-8)
-	inc	byte [ebx+station2.cargos+ecx+stationcargo2.rescount]
+.consistloop1:
 	mov	dx, [esi+veh.capacity]
 	sub	dx, [esi+veh.currentload]
+	jz	.nextveh1		// no capacity
+	cmp	al, [esi+veh.cargotype]
+	jne	.nextveh1		// wrong cargo
+	bt	dword [esi+veh.modflags], MOD_HASRESERVED
+	sbb	ah, 0			// dec ah if this vehicle is loading
+	jz	.consistreserve		// if ah hits 0, all loading vehicles are in this consist
+.nextveh1:
+	movzx	esi, word [esi+veh.nextunitidx]
+	cvivp
+	cmp	esi, [esp]
+	jne	.consistloop1
+	pop	esi
+	ret
+
+// Reserve for all unreserved vehicles in consist.
+.consistreserve:
+	mov	esi, edi
+.consistloop2:
+	mov	dx, [esi+veh.capacity]
+	sub	dx, [esi+veh.currentload]
+	jz	.nextveh2		// no capacity
+	cmp	al, [esi+veh.cargotype]
+	jne	.nextveh2		// wrong cargo
+	bts	dword [esi+veh.modflags], MOD_HASRESERVED
+	jc	.nextveh2		// already reserved
+	extcall dequeueveh
+	inc	byte [ebx+station2.cargos+ecx+stationcargo2.rescount]
 	add	[ebx+station2.cargos+ecx+stationcargo2.resamt], dx
 
-.nextveh:
+.nextveh2:
 	movzx	esi, word [esi+veh.nextunitidx]
-	cmp	si, -1
+	cmp	si, 0-1
 	je	.doneres
 	cvivp
-	jmp	short .consistreserve
+	jmp	short .consistloop2
 .doneres:
 	pop	esi
 	jmp	short .allowfifo
