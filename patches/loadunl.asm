@@ -346,6 +346,7 @@ LoadCargoFromStation:
 .reserve:
 	mov	dx, [esi+veh.capacity]
 	sub	dx, [esi+veh.currentload]
+	jz	.ret				// No remaining capacity; we're done.
 	mov	ax, [ebx+station.cargos+ecx+stationcargo.amount]
 	and	ax, [stationcargowaitingmask]
 	add	ebx, [stationarray2ofst]
@@ -508,7 +509,7 @@ LoadCargoFromStation:
 	mov	[esi+veh.cargotransittime], dl
 	mov	dx, [esi+veh.capacity]
 	cmp	dx, [esi+veh.currentload]
-	jmp	.notfull
+	jnz	.notfull
 // Vehicle is full; reduce rescount so next vehicle can load, and mark as has-not-reserved so the exit proc doesn't decrement again
 	and	byte [esi+veh.modflags+1], ~ (1 << (MOD_HASRESERVED-8) )
 	add	ebx, [stationarray2ofst]
