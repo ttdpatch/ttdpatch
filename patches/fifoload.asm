@@ -6,14 +6,16 @@
 
 extern stationarray2ptr,trainleaveplatform,patchflags
 
-global trainleavestation
-trainleavestation:
-	call removetrainfromqueue
+exported vehleavestation
+	call removeconsistfromqueue
+	cmp byte [esi+veh.class], 10h
+	jne .nottrain
 	call trainleaveplatform
+.nottrain:
 	test word [esi+veh.currorder], 80h
 	ret
 
-removetrainfromqueue:
+removeconsistfromqueue:
 	testflags fifoloading
 	jnc .done
 	pusha
@@ -32,8 +34,8 @@ removetrainfromqueue:
 	add ebx, [stationarray2ofst]
 	cmp cl, -1
 	je .next
-	test byte [esi+veh.modflags+1], 1<<(MOD_HASRESERVED-8)
-	jz .dequeue
+	btr dword [esi+veh.modflags], MOD_HASRESERVED
+	jnc .dequeue
 // Unreserve cargo
 	mov dx, [esi+veh.capacity]
 	sub dx, [esi+veh.currentload]
@@ -86,9 +88,9 @@ exported dequeueveh
 
 	test edx, edx
 	jz .isboth
-	mov [edx+veh2.prevptr], edi
+	mov [edx+veh2.prevptr], edi	// edi == 0, guaranteed.
 	mov edx, [edx+veh2.vehptr]
-	mov ebp, [edx+veh.idx]
+	mov bp, [edx+veh.idx]
 	mov [ebx+station2.cargos+ecx+stationcargo2.curveh], bp
 .done:
 	popa
@@ -103,10 +105,12 @@ exported dequeueveh
 //	ebx->station2
 //	ecx: cargo offset
 //Out:	vehicle has been added to end of reserving queue
+// NOTE! Do not clear MOD_HASRESERVED! This vehicle may have reseved and then gone to service.
 exported enqueueveh
+	test byte [esi+veh.modflags+1], (1<<(MOD_HASRESERVED-8))
+	jnz .ret		// This vehicle left to visit a depot after reserving; do nothing.
 	pusha
 	mov edi, [esi+veh.veh2ptr]
-	mov dword [edi+veh2.nextptr], 0
 	movzx eax, word [ebx+station2.cargos+ecx+stationcargo2.curveh]
 	cmp ax,-1
 	je .first
@@ -114,19 +118,19 @@ exported enqueueveh
 	mov eax, [eax+veh.veh2ptr]
 .loop:
 	mov edx, eax
-#ifndef RELEASE
 	cmp edx, edi
-	jne .ok
-	ud2	// This vehicle already queued!
-.ok:
-#endif
+	je .done	// This vehicle left to visit a depot after queuing, do nothing.
+	mov dword [edi+veh2.nextptr], 0
 	mov eax, [eax+veh2.nextptr]
 	test eax, eax
 	jnz .loop
+
 // Now edx->last queued vehicle
 	mov [edx+veh2.nextptr], edi
 	mov [edi+veh2.prevptr], edx
+.done:
 	popa
+.ret:
 	ret
 
 .first:
@@ -137,8 +141,7 @@ exported enqueueveh
 	ret
 
 
-global sendtraintodepot
-sendtraintodepot:
+exported sendvehtodepot
 	movzx esi, dx
 	shl esi, 7
 	add esi, [veharrayptr]
@@ -148,8 +151,11 @@ sendtraintodepot:
 	cmp dl,3	// are we loading currently?
 	jne .notloading
 
-	call removetrainfromqueue
+	call removeconsistfromqueue
+	cmp byte [esi+veh.class], 10h
+	jne .nottrain
 	call trainleaveplatform
+.nottrain:
 .notloading:
 	ret
 

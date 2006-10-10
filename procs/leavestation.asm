@@ -6,23 +6,20 @@ patchproc fifoloading,newstations, patchleavestation
 
 begincodefragments
 
-codefragment oldtrainleavestation, 5
-	db 0xE8, 0x28, 0, 0, 0
+codefragment oldvehleavestation
 	test word [esi+veh.currorder], 80h
-	mov word [esi+veh.currorder], 4
 
-codefragment_call newtrainleavestation,trainleavestation
+codefragment_call newvehleavestation,vehleavestation
 
-codefragment oldsendtraintodepot,1
-	db 0x08
+codefragment oldsendvehtodepot
 	movzx esi, dx
 	shl esi, 7
 
-codefragment_call newsendtraintodepot,sendtraintodepot,19
+codefragment_call newsendvehtodepot,sendvehtodepot,19
 
 endcodefragments
 
 patchleavestation:
-	patchcode oldtrainleavestation,newtrainleavestation
-	patchcode oldsendtraintodepot,newsendtraintodepot
+	multipatchcode oldvehleavestation,newvehleavestation,4
+	multipatchcode oldsendvehtodepot,newsendvehtodepot,4
 	ret
