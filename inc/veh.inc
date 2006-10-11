@@ -183,7 +183,6 @@ endstruc
 // convert vehicle index to vehicle pointer 
 %macro cvivp 0-1 esi // param: register containing index
 	%tostr %%1 %1
-	%substr %%e %%1 1
 	%strlen %%len %%1
 	%if %%len == 2
 		%substr %%x %%1 2
@@ -200,4 +199,9 @@ endstruc
 		shl	%1, vehicleshift
 		add	%1, [veharrayptr]
 	%endif
+%endmacro
+
+%macro cvivp 2 //params: destination register, source word
+	movzx %1, word %2
+	cvivp %1
 %endmacro
