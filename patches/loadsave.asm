@@ -1041,6 +1041,7 @@ newloadtitleproc:
 
 	call infoapply
 	call updatevehvars
+	extcall buildloadlists
 
 	// finally make sure all vehicles have correct new sprites
 	// in case newgrf.txt has changed
@@ -1849,7 +1850,7 @@ savestation2array:
 	xor ecx,ecx
 	testflags fifoloading
 	jnc .nofifoloading
-	or ecx,S2_FIFOLOADING
+	or ecx,S2_FIFOLOADING2
 .nofifoloading:
 	testflags generalfixes
 	jnc .nocatchment

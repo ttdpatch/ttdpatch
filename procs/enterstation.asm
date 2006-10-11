@@ -44,6 +44,9 @@ patchenterstation:
 	testflags feederservice
 	sbb bl,0	// now bl==0 if neither gradualloading nor feederservice are on
 
+	testflags fifoloading
+	sbb bl,0	// now bl==0 if none of gradualloading,feederservice,fifoloading on
+
 	patchcode oldenterstation,newentertrainstation,1+WINTTDX,2	// trains
 	patchcode oldenterstation,newenterrvstation,1,1,,{test bl,bl},nz// truck/bus
 	patchcode oldenterairport,newenterairport,1,1,,{test bl,bl},nz

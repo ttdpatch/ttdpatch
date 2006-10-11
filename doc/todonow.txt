@@ -702,6 +702,7 @@ CHANGELOG
   * Check all on/off states, not just those attached to on/off switches.
   * Make new switches get automatically added to the -h display when the
     description is not yet translated.
+  * Improve FIFO loading to allow multiple consists to load simultaneously.
 - added autosignals to new signal gui, build two-way signals every 3/4 tiles
   (use `autosignaldistance n' or -ZL to set desired signal separation)
 - by Tron:

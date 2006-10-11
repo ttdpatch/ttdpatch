@@ -26,6 +26,7 @@
 %assign S2_NEWCARGO			0x4	// extra cargo data for newcargos
 %assign S2_IRRSTATIONS			0x8	// irregular stations
 %assign S2_STATIONSIZE			0x10	// max rail station size
+%assign S2_FIFOLOADING2			0x20	// fifo loading v2
 
 // Flags to indicate what switches were active when saving the L8 array
 %assign L8_NEWROUTES			0x1	// newRoutes

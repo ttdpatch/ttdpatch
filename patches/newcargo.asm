@@ -313,6 +313,7 @@ movbxcargoshortnames:
 global ecxcargooffset
 ecxcargooffset:
 	add ebx, [stationarray2ofst]
+exported ecxcargooffset_ebx2
 	xor ecx,ecx
 	
 .loop:
@@ -396,8 +397,10 @@ ecxcargooffset_force:
 	mov edx, ebx
 	add edx, [stationarray2ofst]
 
+	and word [edx+station2.cargos+ecx+stationcargo2.resamt],0
 	or word [edx+station2.cargos+ecx+stationcargo2.curveh],-1
 	mov [edx+station2.cargos+ecx+stationcargo2.type],al
+	mov byte [edx+station2.cargos+ecx+stationcargo2.rescount],0
 
 .done:
 	ret
@@ -1657,7 +1660,7 @@ exported calcstationrating
 	mov [callback_extrainfo],al
 	mov [miscgrfvar],ah
 	mov ax,[esi+station.cargos+ebx+stationcargo.amount]
-	and ah,0x7f
+	and ah,0x7f				// Csaboka: Why not "and ax, [stationcargomask]"?
 	mov [callback_extrainfo+1],ax
 	mov al,[esi+station.cargos+ebx+stationcargo.lastspeed]
 	mov [callback_extrainfo+3],al
