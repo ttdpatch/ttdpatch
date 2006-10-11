@@ -317,55 +317,54 @@ LoadCargoFromStation:
 .overflow:
 	mov	ah, [ebx+station2.cargos+ecx+stationcargo2.rescount]
 	mov	al, [esi+veh.cargotype]
-	push	esi
+	push	ebp
 	test	ah, ah
 	jz	.consistreserve
 	cmp	esi, edi
 	je	.popret
 
 // Check to see if all currently loading vehicles are part of this consist.
-	mov	esi, edi
+	mov	ebp, edi
 .consistloop1:
-	mov	dx, [esi+veh.capacity]
-	sub	dx, [esi+veh.currentload]
+	mov	dx, [ebp+veh.capacity]
+	sub	dx, [ebp+veh.currentload]
 	jz	.nextveh1		// no capacity
-	cmp	al, [esi+veh.cargotype]
+	cmp	al, [ebp+veh.cargotype]
 	jne	.nextveh1		// wrong cargo
-	bt	dword [esi+veh.modflags], MOD_HASRESERVED
+	bt	dword [ebp+veh.modflags], MOD_HASRESERVED
 	sbb	ah, 0			// dec ah if this vehicle is loading
 	jz	.consistreserve		// if ah hits 0, all loading vehicles are in this consist
 .nextveh1:
-	movzx	esi, word [esi+veh.nextunitidx]
-	cvivp
-	cmp	esi, [esp]
+	cvivp	ebp, [ebp+veh.nextunitidx]
+	cmp	esi, ebp
 	jne	.consistloop1
 .popret:
-	pop	esi
+	pop	ebp
 	ret
 
 // Reserve for all unreserved vehicles in consist.
 .consistreserve:
-	mov	esi, edi
+	mov	ebp, edi
 .consistloop2:
-	mov	dx, [esi+veh.capacity]
-	sub	dx, [esi+veh.currentload]
+	mov	dx, [ebp+veh.capacity]
+	sub	dx, [ebp+veh.currentload]
 	jz	.nextveh2		// no capacity
-	cmp	al, [esi+veh.cargotype]
+	cmp	al, [ebp+veh.cargotype]
 	jne	.nextveh2		// wrong cargo
-	bts	dword [esi+veh.modflags], MOD_HASRESERVED
+	bts	dword [ebp+veh.modflags], MOD_HASRESERVED
 	jc	.nextveh2		// already reserved
 	extcall dequeueveh
 	inc	byte [ebx+station2.cargos+ecx+stationcargo2.rescount]
 	add	[ebx+station2.cargos+ecx+stationcargo2.resamt], dx
 
 .nextveh2:
-	movzx	esi, word [esi+veh.nextunitidx]
-	cmp	si, 0-1
+	movzx	ebp, word [ebp+veh.nextunitidx]
+	cmp	bp, 0-1
 	je	.doneres
-	cvivp
+	cvivp	ebp
 	jmp	short .consistloop2
 .doneres:
-	pop	esi
+	pop	ebp
 	jmp	short .allowfifo
 
 .reserve:
