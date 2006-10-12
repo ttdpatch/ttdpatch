@@ -201,7 +201,7 @@ extern veh2ptr
 // In: esi->consist-head
 // Out: all attached vehicles have queued for reserving (IFF full-load)
 exported fifoenterstation
-	test	al, 0x40
+	test	byte [esi+veh.currorder], 0x40
 	jz	.ret
 
 	pusha
