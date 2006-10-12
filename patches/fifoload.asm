@@ -200,8 +200,16 @@ extern veh2ptr
 
 // In: esi->consist-head
 // Out: all attached vehicles have queued for reserving (IFF full-load)
+exported fifoenterstation_load
+	mov al, [esi+veh.currorder]
+
+// as above, but also:
+// In:	al: bits 5..6 of current order, from order heap
 exported fifoenterstation
-	test	byte [esi+veh.currorder], 0x40
+	or	[esi+veh.currorder], al
+	testflags fifoloading
+	jnc	.ret
+	test	al, 0x40
 	jz	.ret
 
 	pusha
@@ -309,7 +317,7 @@ exported buildloadlists
 	mov	esi, [edi]
 	test	esi, esi
 	jz	.noveh
-	call	fifoenterstation
+	call	fifoenterstation_load
 .noveh:
 	sub	edi, 4
 	cmp	edi, esp

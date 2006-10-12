@@ -34,9 +34,18 @@ codefragment newenterdock
 	call runindex(enterdock)
 	setfragmentsize 7
 
+codefragment oldpostorderupdate,-4
+	or [esi+veh.currorder], ax
+
+codefragment newpostorderupdate
+	and al, 60h
+	icall fifoenterstation
+	setfragmentsize 8
 
 endcodefragments
 
+return:
+	ret
 patchenterstation:
 	testflags gradualloading
 	sbb bl,bl
@@ -46,11 +55,20 @@ patchenterstation:
 
 	testflags fifoloading
 	sbb bl,0	// now bl==0 if none of gradualloading,feederservice,fifoloading on
+	
+	test bl, bl
+	jz return
 
 	patchcode oldenterstation,newentertrainstation,1+WINTTDX,2	// trains
-	patchcode oldenterstation,newenterrvstation,1,1,,{test bl,bl},nz// truck/bus
-	patchcode oldenterairport,newenterairport,1,1,,{test bl,bl},nz
-	patchcode oldenterdock,newenterdock,1,1,,{test bl,bl},nz
+	patchcode oldenterstation,newenterrvstation,1,1		// truck/bus
+	patchcode oldenterairport,newenterairport,1,1
+	patchcode oldenterdock,newenterdock,1,1
+	
+	testflags fifoloading
+	jnc .ret
+	
+	multipatchcode postorderupdate,4
+.ret:
 	ret
 
 

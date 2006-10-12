@@ -45,7 +45,6 @@ enterdock:
 	// jmp short resetloadcycle
 
 resetloadcycle:
-	extcall fifoenterstation
 	and byte [esi+veh.modflags],~ (1 << MOD_NOTDONEYET)
 
 	// clear "did unload already" flag if we have something to unload
