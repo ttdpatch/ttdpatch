@@ -618,8 +618,10 @@ int readcfgfile(const char *filename)
 		continue;	// skip empty lines
 
 	if (isalpha(cfgline[linepos])) {	// all lines starting with a-z are options
-		if (linetoolong)
-			warning(langtext[LANG_CFGLINETOOLONG], CFGLINEMAXLEN);
+		if (linetoolong) {
+			if (!strstr(cfgline, "//"))	// if there's a comment, the part after it being too long can be ignored
+				warning(langtext[LANG_CFGLINETOOLONG], CFGLINEMAXLEN);
+		}
 
 		{
 		  char *eol = strchr(cfgline, '\n');

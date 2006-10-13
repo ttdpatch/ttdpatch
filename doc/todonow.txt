@@ -709,3 +709,5 @@ CHANGELOG
   bridge head
 - fix consist variables/callbacks not being updated when selling wagon
 - add bridge sounds to callback 33 (via generic feature 6 callback)
+- fix "line too long" warning if it's a bit switch description (or any 
+  other comment)
