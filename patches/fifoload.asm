@@ -359,11 +359,10 @@ exported buildfifoidx
 	cvivp
 	mov	ah, [esi+veh.cargotype]
 
-	mov	esi, [esi+veh.engineidx]
-	cvivp
+	cvivp	esi, [esi+veh.engineidx]
 .vehloop:
 	cmp	word [esi+veh.capacity], 0
-	js	.nextveh
+	je	.nextveh
 	cmp	[esi+veh.cargotype], ah
 	jne	.nextveh
 	mov	[esi+veh.slfifoidx], al
