@@ -206,6 +206,7 @@ exported fifoenterstation_load
 
 // as above, but also:
 // In:	al: bits 5..6 of current order, from order heap
+// NOTE! Do not clear MOD_HASRESERVED! This consist may have reseved and then gone to service.
 exported fifoenterstation
 	or	[esi+veh.currorder], al
 	testflags fifoloading
@@ -221,7 +222,6 @@ exported fifoenterstation
 	mov	ebx, eax
 	push	ebx
 .vehloop:
-	and	byte [esi+veh.modflags+1], ~(1 << (MOD_HASRESERVED-8))
 	mov	dx, [esi+veh.capacity]
 	cmp	dx, [esi+veh.currentload]
 	jz	.next
