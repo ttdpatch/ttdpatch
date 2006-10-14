@@ -88,6 +88,7 @@ exported dequeueveh
 
 	test edx, edx
 	jz .isboth
+	mov esi, [veh2ptr]	// Debugging; make it easier to determine whether eax and edx are valid veh2 pointers
 	mov [edx+veh2.prevptr], edi	// edi == 0, guaranteed.
 	mov edi, [edx+veh2.vehptr]
 	mov bp, [edi+veh.idx]
