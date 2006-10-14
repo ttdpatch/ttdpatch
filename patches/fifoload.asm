@@ -89,8 +89,8 @@ exported dequeueveh
 	test edx, edx
 	jz .isboth
 	mov [edx+veh2.prevptr], edi	// edi == 0, guaranteed.
-	mov edx, [edx+veh2.vehptr]
-	mov bp, [edx+veh.idx]
+	mov ebx, [edx+veh2.vehptr]
+	mov bp, [ebx+veh.idx]
 	mov [ebx+station2.cargos+ecx+stationcargo2.curveh], bp
 .done:
 	popa
