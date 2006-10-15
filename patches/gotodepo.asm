@@ -636,6 +636,7 @@ advanceorders:
 // out:	dl=new command
 global skipbutton
 skipbutton:
+	mov esi, edi
 	extcall removeconsistfromqueue // No-op if consist is not queued or if fifo is off.
 	cmp dl,byte [edi+veh.totalorders]
 	jb short .nottoolarge
