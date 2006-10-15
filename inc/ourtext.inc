@@ -289,6 +289,8 @@ defourtext grfstatdebug
 defourtext grfdebughint
 defourtext grfdebugmsg
 
+defourtext firstpasstramarrives
+defourtext firstfreighttramarrives
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

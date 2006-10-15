@@ -453,6 +453,21 @@ begincodefragments
 		icall	checkIfDepotIsTramDepot
 #endif
 
+	codefragment oldFirstBusArrivesNewsMsg
+		mov	bx, 0A02h
+		db	0x66, 0xBA, 0x2F, 0x90
+
+	codefragment newFirstBusArrivesNewsMsg
+		icall	updateFirstBusArrivesNewsItem
+		setfragmentsize 8
+
+	codefragment oldFirstTruckArrivesNewsMsg
+		mov	bx, 0A02h
+		db	0x66, 0xBA, 0x30, 0x90
+
+	codefragment newFirstTruckArrivesNewsMsg
+		icall	updateFirstTruckArrivesNewsItem
+		setfragmentsize 8
 endcodefragments
 
 patchtrams:
@@ -584,6 +599,9 @@ patchtrams:
 	patchcode oldDrawBuildDepot, newDrawBuildDepot, 2-WINTTDX, 2
 
 	patchcode oldRVFindDepot, newRVFindDepot, 1, 1
+	
+	patchcode oldFirstBusArrivesNewsMsg, newFirstBusArrivesNewsMsg, 1, 1
+	patchcode oldFirstTruckArrivesNewsMsg, newFirstTruckArrivesNewsMsg, 1, 1
 
 	or byte [newgraphicssetsenabled+1],1 << (11 - 8)
 	retn
