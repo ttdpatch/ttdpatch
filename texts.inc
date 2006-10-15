@@ -364,6 +364,9 @@ def txteroadmenu, db "Tramway construction",0
 def txtetramwindowheader, db 0x94,"Tramway Construction",0
 def txtetramstationheader, db 0x94,"Tram Stop Orientation",0
 def txtetramdepotheader, db 0x94,"Tram Depot Orientation",0
+
+def firstpasstramarrives, db 0x98, 0x0f, "Citizens celebrate . . .",0x0D,"First passenger tram arrives at ",0x80,0x21,0
+def firstfreighttramarrives, db 0x98, 0x0f, "Citizens celebrate . . .",0x0D,"First freight tram arrives at ",0x80,0x21,0
   
 def shortdateformat, db 4, " ", 1, 0
 def longdateformat, db 2, " ", 3, " ", 1, 0
@@ -400,9 +403,6 @@ def textsprite, db 0x98,"Sprite",0
 
 def hotkeylistdos, db "xqwe!@#$t%1234567890-=",1eh,5ch,0
 def hotkeylistwin, db "xqwe!@#$t%1234567890-=`",5ch,0
-
-def firstpasstramarrives, db 0x98, 0x0f, "Citizens celebrate . . .",0x0D,"First passenger tram arrives at ",0x80,0x21,0
-def firstfreighttramarrives, db 0x98, 0x0f, "Citizens celebrate . . .",0x0D,"First freight tram arrives at ",0x80,0x21,0
 
 def last
 
@@ -748,6 +748,9 @@ def txteroadmenu, db "Tramway construction",0
 def txtetramwindowheader, db 0x94,"Tramway Construction",0
 def txtetramstationheader, db 0x94,"Tram Stop Orientation",0
 def txtetramdepotheader, db 0x94,"Tram Depot Orientation",0
+
+def firstpasstramarrives, db 0x98, 0x0f, "Citizens celebrate . . .",0x0D,"First passenger tram arrives at ",0x80,0x21,0
+def firstfreighttramarrives, db 0x98, 0x0f, "Citizens celebrate . . .",0x0D,"First freight tram arrives at ",0x80,0x21,0
   
 def shortdateformat, db 4, " ", 1, 0
 def longdateformat, db 2, " ", 3, " ", 1, 0
@@ -784,9 +787,6 @@ def textsprite, db 0x98,"Sprite",0
 
 def hotkeylistdos, db "xqwe!",22h,0xa3,"$t%1234567890-=",1eh,5ch,0
 def hotkeylistwin, db "xqwe!",22h,0xa3,"$t%1234567890-=~",5ch,0
-
-def firstpasstramarrives, db 0x98, 0x0f, "Citizens celebrate . . .",0x0D,"First passenger tram arrives at ",0x80,0x21,0
-def firstfreighttramarrives, db 0x98, 0x0f, "Citizens celebrate . . .",0x0D,"First freight tram arrives at ",0x80,0x21,0
 
 def last
 
@@ -1132,6 +1132,9 @@ def txteroadmenu, db "Straßenbahnbau",0
 def txtetramwindowheader, db 0x94,"Straßenbahnbau",0
 def txtetramstationheader, db 0x94,"Haltestellenausrichtung",0
 def txtetramdepotheader, db 0x94,"S.-Depotausrichtung",0
+
+def firstpasstramarrives, db 0x98, 0x0f, "Bürger feiern . . .",0x0D,"Die erste Straßenbahn nach ",0x80,0x21,0
+def firstfreighttramarrives, db 0x98, 0x0f, "Bürger feiern . . .",0x0D,"Die erste Frachtstraßenbahn nach ",0x80,0x21,0
   
 def shortdateformat, db 4, " ", 1, 0
 def longdateformat, db 2, " ", 3, " ", 1, 0
@@ -1168,9 +1171,6 @@ def textsprite, db 0x98,"Sprite",0
 
 def hotkeylistdos, db "xqwe!",0x22,"-$t%1234567890",0xdf,27h,09h,5ch,0
 def hotkeylistwin, db "xqwe!",0x22,"§$t%1234567890-=~]",0
-
-def firstpasstramarrives, db 0x98, 0x0f, "Citizens celebrate . . .",0x0D,"First passenger tram arrives at ",0x80,0x21,0
-def firstfreighttramarrives, db 0x98, 0x0f, "Citizens celebrate . . .",0x0D,"First freight tram arrives at ",0x80,0x21,0
 
 def last
 
@@ -1515,6 +1515,9 @@ def txteroadmenu, db "Construction de tramway",0
 def txtetramwindowheader, db 0x94,"Construction de tramway",0
 def txtetramstationheader, db 0x94,"Orientation de l'arrêt de tram",0
 def txtetramdepotheader, db 0x94,"Orientation du dépot de tram",0
+
+def firstpasstramarrives, db 0x98, 0x0f, "Les habitants célèbrent . . .",0x0D,"L'arrivée du premier tram à ",0x80,0x21,0
+def firstfreighttramarrives, db 0x98, 0x0f, "Les habitants célèbrent . . .",0x0D,"L'arrivée du premier tram de fret à ",0x80,0x21,0
   
 def shortdateformat, db 4, " ", 1, 0
 def longdateformat, db 2, " ", 3, " ", 1, 0
@@ -1551,9 +1554,6 @@ def textsprite, db 0x98,"Sprite",0
 
 def hotkeylistdos, db "xqwe!",0x22,0x9C,"$t%1234567890-=",1eh,5ch,0
 def hotkeylistwin, db "xqwe1234t5&",0xE9,0x22,"'(-",0xE8,"_",0xE7,")=$",0xB2,"*",0
-
-def firstpasstramarrives, db 0x98, 0x0f, "Citizens celebrate . . .",0x0D,"First passenger tram arrives at ",0x80,0x21,0
-def firstfreighttramarrives, db 0x98, 0x0f, "Citizens celebrate . . .",0x0D,"First freight tram arrives at ",0x80,0x21,0
 
 def last
 
@@ -1898,6 +1898,9 @@ def txteroadmenu, db "Construcción de tramvía",0
 def txtetramwindowheader, db 0x94,"Construcción de tramvía",0
 def txtetramstationheader, db 0x94,"Orientación de la parada de tramvía",0
 def txtetramdepotheader, db 0x94,"Orientación del hangar de tramvía",0
+
+def firstpasstramarrives, db 0x98, 0x0f, "Los habitantes celebran . . .",0x0D,"Llegada de la primera tramvía a ",0x80,0x21,0
+def firstfreighttramarrives, db 0x98, 0x0f, "Los habitantes celebran . . .",0x0D,"Llegada de la primera tramvía de mercancias a ",0x80,0x21,0
   
 def shortdateformat, db 4, " ", 1, 0
 def longdateformat, db 2, " ", 3, " ", 1, 0
@@ -1934,8 +1937,5 @@ def textsprite, db 0x98,"Puntero",0
 
 def hotkeylistdos, db "xqwe!",0x22,"$%t&1234567890'",0xa1,1eh,5ch,0
 def hotkeylistwin, db "xqwe!",0x22,0xb7,"$t%1234567890'",0xa1,0xba,0xe7,0
-
-def firstpasstramarrives, db 0x98, 0x0f, "Citizens celebrate . . .",0x0D,"First passenger tram arrives at ",0x80,0x21,0
-def firstfreighttramarrives, db 0x98, 0x0f, "Citizens celebrate . . .",0x0D,"First freight tram arrives at ",0x80,0x21,0
 
 def last
