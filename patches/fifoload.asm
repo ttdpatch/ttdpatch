@@ -15,7 +15,12 @@ exported vehleavestation
 	test word [esi+veh.currorder], 80h
 	ret
 
-removeconsistfromqueue:
+// Called when a vehicle is going to a depot for an unordered service and gives up
+exported cantfinddepot
+	mov word [esi+veh.currorder], 100h
+//Intentional fall-through
+
+exported removeconsistfromqueue
 	testflags fifoloading
 	jnc .done
 	pusha
@@ -147,12 +152,12 @@ exported sendvehtodepot
 	shl esi, 7
 	add esi, [veharrayptr]
 
+	call removeconsistfromqueue
+
 	mov dx,[esi+veh.currorder]
 	and dl,0x1f
 	cmp dl,3	// are we loading currently?
 	jne .notloading
-
-	call removeconsistfromqueue
 	cmp byte [esi+veh.class], 10h
 	jne .nottrain
 	call trainleaveplatform
