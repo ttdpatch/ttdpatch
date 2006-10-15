@@ -296,7 +296,7 @@ endef
 define C-A-D-COMMANDS
 	${_E} [CPP DEP] $@
 	${_C} if [ -e $*.asm ]; then \
-		$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc -I. $*.asm -M -MG -MF $@ -MT ${subst po.d,po,$@}; \
+		$(CPP) ${XASMDEF} -DMAKEDEP -x assembler-with-cpp -Iinc -I. $*.asm -M -MG -MF $@ -MT ${subst po.d,po,$@}; \
 	elif [ -e $*.c ]; then \
 		$(CC) ${XASMDEF} -M -MG -MF $@ -MT ${subst .d,,$@} $*.c -Iinc -I.; \
 	else \
