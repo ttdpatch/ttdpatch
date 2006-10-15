@@ -351,12 +351,12 @@ malloc:
 
 	// now esi=last valid heap structure
 
-	// reserve in 2 MB chunks
+	// reserve in 4 MB chunks
 	push ecx
 
 	push byte 4		// PAGE_READWRITE
 	push 0x2000		// AllocateType MEM_RESERVE
-	push 0x200000		// Reserve (without committing) a 2 MB chunk
+	push 0x400000		// Reserve (without committing) a 4 MB chunk
 	push 0			// Address
 	call dword [VirtualAlloc]
 	pop ecx
