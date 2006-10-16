@@ -9,9 +9,9 @@
 %include "inc/ourtext.inc"
 
 // mild hack to get the dependencies right
-#ifdef MAKEDEP
+%if 0
 #include <inc/ourtext.inc>
-#endif
+%endif
 
 //
 // statictext(): custom texts that are language-independent
