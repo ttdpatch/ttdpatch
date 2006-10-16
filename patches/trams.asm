@@ -2174,3 +2174,33 @@ throwInTramDepots:
 	mov	ebx, [eax+ebx]
 	pop	eax
 	retn
+
+global updateFirstBusArrivesNewsItem
+updateFirstBusArrivesNewsItem:
+	push	esi
+	movzx	esi, byte [esi+veh.vehtype]
+	test	byte [vehmiscflags+esi], VEHMISCFLAG_RVISTRAM
+	pop	esi
+	jz	.isRoadVehicle
+	mov	bx, 0A02h
+	mov	dx, ourtext(firstpasstramarrives)
+	retn
+.isRoadVehicle:
+	mov	bx, 0A02h
+	mov	dx, 0x902F
+	retn
+
+global updateFirstTruckArrivesNewsItem
+updateFirstTruckArrivesNewsItem:
+	push	esi
+	movzx	esi, byte [esi+veh.vehtype]
+	test	byte [vehmiscflags+esi], VEHMISCFLAG_RVISTRAM
+	pop	esi
+	jz	.isRoadVehicle
+	mov	bx, 0A02h
+	mov	dx, ourtext(firstfreighttramarrives)
+	retn
+.isRoadVehicle:
+	mov	bx, 0A02h
+	mov	dx, 0x9030
+	retn

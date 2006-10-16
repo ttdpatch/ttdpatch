@@ -355,6 +355,8 @@ defourtext trdlg_eq
 defourtext trdlg_neq
 defourtext tr_nextdeporder
 
+defourtext firstpasstramarrives
+defourtext firstfreighttramarrives
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
