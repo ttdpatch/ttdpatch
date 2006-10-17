@@ -107,7 +107,7 @@ void checkpatch(void)
   fread(&initialize1ptr, 4, 1, f);
   fread(&auxdataptr, 4, 1, f);
 
-  if (!findattachment(AUX_PROTCODE, &pcofs, &prcode))
+  if (!findattachment(AUX_LOADER, &pcofs, &prcode))
 	error(langtext[LANG_INTERNALERROR], 7);
 
   fseek(prcode, pcofs, SEEK_SET);
@@ -406,8 +406,6 @@ int writepatchdata(FILE *dat)
 	error(langtext[LANG_INTERNALERROR], 8);
 
   fseek(f, ofs, SEEK_SET);
-  fread(&patchmemsize, 4, 1, f);	// loader size
-  fseek(f, patchmemsize, SEEK_CUR);
 
   fread(&patchmemsize, 4, 1, f);
   fread(&patchdatsize, 4, 1, f);

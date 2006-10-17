@@ -4,8 +4,8 @@ SECTIONS
 	/* loader header and code */
   .phead 0xec636 : SUBALIGN(1)
   {
-	/* pROTcODE marker */
-	LONG(0x544F5270);
+	/* lOADcODE marker */
+	LONG(0x44414F6C);
 	LONG(0x45444F63);
 
 	/* Size of the loader */
@@ -18,8 +18,12 @@ SECTIONS
   }
 
 	/* main patch code and data */
-  .ptext __image_base__ -8 :
+  .ptext __image_base__ -16 :
   {
+	/* pROTcODE marker */
+	LONG(0x544F5270);
+	LONG(0x45444F63);
+
 	/* The code size, with and without bss */
 	LONG(__psbss_end - __ptext_start)
 	LONG(__ptext_end - __ptext_start)

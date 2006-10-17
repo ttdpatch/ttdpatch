@@ -169,7 +169,7 @@ void checkpatch(void)
   getval(0, 4);	// skip 4 bytes
   ourcode += getval(0, 4);		// + .exe offset = same location in .exe file
 
-  if (!findattachment(AUX_PROTCODE, &flen, &prcode))
+  if (!findattachment(AUX_LOADER, &flen, &prcode))
 	error(langtext[LANG_INTERNALERROR], 7);
 
   fseek(prcode, flen, SEEK_SET);
@@ -569,8 +569,6 @@ int runttd(const char *program, char *options, langinfo **info)
 	error(langtext[LANG_INTERNALERROR], 8);
 
   fseek(f, ofs, SEEK_SET);
-  fread(&patchmemsize, 4, 1, f);	// loader size
-  fseek(f, patchmemsize, SEEK_CUR);
 
   fread(&patchmemsize, 4, 1, f);
   fread(&patchdatsize, 4, 1, f);
