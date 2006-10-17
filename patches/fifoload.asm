@@ -15,11 +15,6 @@ exported vehleavestation
 	test word [esi+veh.currorder], 80h
 	ret
 
-// Called when a vehicle is going to a depot for an unordered service and gives up
-exported cantfinddepot
-	mov word [esi+veh.currorder], 100h
-//Intentional fall-through
-
 exported removeconsistfromqueue
 	testflags fifoloading
 	jnc .done
