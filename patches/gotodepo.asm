@@ -1308,8 +1308,17 @@ adjustorders:
 	ret
 
 .shared:
-	mov dl,[edi+veh.totalorders]	// adjust totalorders
-	mov [esi+veh.totalorders],dl
+	mov al,[edi+veh.totalorders]	// adjust totalorders
+	cmp al,[esi+veh.totalorders]
+	mov [esi+veh.totalorders],al
+	ja .nodequeue			// we're adding orders, not deleting them.
+	sub edx,ebp
+	shr edx,1
+	// dl is now the arithmetic inverse of [ebp]'s order index
+	add dl,[esi+veh.currorderidx]
+	jnz .nodequeue
+	extcall removeconsistfromqueue
+.nodequeue:
 	pop edx				// get our return address
 	push edx
 	pusha
@@ -1356,7 +1365,16 @@ deletepressed:
 
 .deny:
 	clc
+	ret
 .end:
+	// But before exiting, some FIFO accounting: dequeue/unreserve if current order was deleted
+	cmp al,[edi+veh.currorderidx]
+	jne .nodequeue
+	xchg esi, edi
+	call removeconsistfromqueue
+	xchg esi, edi
+.nodequeue:
+	clc
 	ret
 
 uvarb skipsharingcheck	// if nonzero, shared orders are saved like non-shared ones (new veh. won't be shared)
@@ -1376,8 +1394,14 @@ resetorders:
 	pusha
 	call makeordercopy
 	popa
+	
+	jmp short .nodequeue
 
 .notunshare:
+	mov esi, edi
+	call removeconsistfromqueue
+
+.nodequeue:
 	mov edx,edi
 	call dword [delvehschedule]	// delete old orders (the function handles shared orders properly)
 	mov ebx,[scheduleheapfree]	// create the terminator order
