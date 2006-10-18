@@ -42,7 +42,7 @@ static attachment_t attachments[AUX_NUM] = {
 	{ &debug_flags.langdatafile, "language.dat", LANGCODE },
 	{ &debug_flags.protcodefile, "loader" OS_CODE ".bin", LOADCODE },
 	{ &debug_flags.protcodefile, "ttdprot" OS_CODE ".bin", PROTCODE },
-	{ &debug_flags.relocofsfile, "reloc.bin", RELOCOFS },
+	{ &debug_flags.relocofsfile, "reloc" OS_CODE ".bin", RELOCOFS },
 	{ &debug_flags.patchdllfile, "ttdpatch.dll", PATCHDLL, 1 },
 };
 
