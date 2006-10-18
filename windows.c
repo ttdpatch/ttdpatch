@@ -12,6 +12,7 @@
 #include <windows.h>
 #include <unistd.h>
 
+#include "zlib.h"
 #define IS_WINDOWS_CPP
 #include "osfunc.h"
 #include "types.h"
@@ -33,6 +34,7 @@ const char *ttd_winexenames[] = {
 	NULL,
 	NULL };
 
+int __errno;
 
 // Function pointers to deal with the registry, these may
 // be redirected to noregist.c's fake_* functions if needed
@@ -538,6 +540,7 @@ int runttd(const char *program, char *options, langinfo **info)
 
   u32 ofs;
   FILE *f;
+  gzFile gz;
 
   check_patchdll();
   fixregistry();
@@ -570,8 +573,17 @@ int runttd(const char *program, char *options, langinfo **info)
 
   fseek(f, ofs, SEEK_SET);
 
-  fread(&patchmemsize, 4, 1, f);
-  fread(&patchdatsize, 4, 1, f);
+  //printf("gzdopening\n");
+  gz = gzdopen(dup(fileno(f)), "rb");
+  if (!gz)
+	error(langtext[LANG_NOTENOUGHMEM], "gzdopen", 8);
+
+  //printf("gzreading\n");
+
+  gzread(gz, &patchmemsize, 4);
+  gzread(gz, &patchdatsize, 4);
+
+  //printf("Read sizes: %ld/%ld\n", patchmemsize, patchdatsize);
 
   if (curversion->h.numoffsets) {
 	versionsize[0] = versionsize[1] = sizeof(versionheader) + 4 * curversion->h.numoffsets;
@@ -603,7 +615,12 @@ int runttd(const char *program, char *options, langinfo **info)
 
   ((u32 *)shdata)[0] = patchmemsize;
   ((u32 *)shdata)[1] = patchdatsize;
-  fread(shdata + 8, 1, patchdatsize, f);
+
+  //printf("Read %d of %ld bytes\n",
+  gzread(gz, shdata + 8, patchdatsize);
+  //patchdatsize);
+
+  gzclose(gz);
 
   memcpy(shdata + 8, flags, sizeof(paramset));
 

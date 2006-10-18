@@ -18,11 +18,9 @@ SECTIONS
   }
 
 	/* main patch code and data */
-  .ptext __image_base__ -16 :
+  .ptext __image_base__ -8 :
   {
-	/* pROTcODE marker */
-	LONG(0x544F5270);
-	LONG(0x45444F63);
+	/* pROTcODE marker is prepended after gzipping*/
 
 	/* The code size, with and without bss */
 	LONG(__psbss_end - __ptext_start)
