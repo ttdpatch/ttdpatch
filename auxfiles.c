@@ -31,16 +31,17 @@ static char *exename;
 static FILE *exefile;
 
 #if WINTTDX
-	#define PROTCODEFILE "ttdprotw.bin"
+	#define OS_CODE "w"
 #elif LINTTDX
-	#define PROTCODEFILE "ttdprotl.bin"
+	#define OS_CODE "l"
 #else
-	#define PROTCODEFILE "ttdprotd.bin"
+	#define OS_CODE "d"
 #endif
 
 static attachment_t attachments[AUX_NUM] = {
 	{ &debug_flags.langdatafile, "language.dat", LANGCODE },
-	{ &debug_flags.protcodefile, PROTCODEFILE, PROTCODE },
+	{ &debug_flags.protcodefile, "loader" OS_CODE ".bin", LOADCODE },
+	{ &debug_flags.protcodefile, "ttdprot" OS_CODE ".bin", PROTCODE },
 	{ &debug_flags.relocofsfile, "reloc.bin", RELOCOFS },
 	{ &debug_flags.patchdllfile, "ttdpatch.dll", PATCHDLL, 1 },
 };

@@ -14,17 +14,19 @@
 
 // supported auxiliary files
 #define AUX_LANG 0	// language data (.exe or language.dat)
-#define AUX_PROTCODE 1	// protected mode code (.exe or ttdprot?.bin)
-#define AUX_RELOCOFS 2	// relocation data (.exe or reloc.bin)
-#define AUX_PATCHDLL 3	// ttdpatch.dll (.exe or ttdpatch.dll)
+#define AUX_LOADER 1	// TTDPatch loader (.exe or loader?.bin)
+#define AUX_PROTCODE 2	// protected mode code (.exe or ttdprot?.bin)
+#define AUX_RELOCOFS 3	// relocation data (.exe or reloc.bin)
+#define AUX_PATCHDLL 4	// ttdpatch.dll (.exe or ttdpatch.dll)
 
 #define AUX_FIRST 0	// first and
-#define AUX_LAST 3	// last of the codes above
+#define AUX_LAST 4	// last of the codes above
 
 #define AUX_ALL -1	// special code for closing all files, not a specific one
 
 #define AUX_NUM AUX_LAST+1	// number of aux files
 
+#define LOADCODE "LoadCode"
 #define PROTCODE "ProtCode"
 #define LANGCODE "LangData"
 #define RELOCOFS "RelocDat"
