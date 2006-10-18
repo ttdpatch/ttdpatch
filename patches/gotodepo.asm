@@ -1374,7 +1374,7 @@ deletepressed:
 	call removeconsistfromqueue
 	xchg esi, edi
 .nodequeue:
-	clc
+	stc
 	ret
 
 uvarb skipsharingcheck	// if nonzero, shared orders are saved like non-shared ones (new veh. won't be shared)
