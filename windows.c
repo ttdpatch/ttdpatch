@@ -574,17 +574,17 @@ int runttd(const char *program, char *options, langinfo **info)
 
   fseek(f, ofs, SEEK_SET);
 
-  printf("gzdopening\n");
+  //printf("gzdopening\n");
   gz = gzdopen(dup(fileno(f)), "rb");
   if (!gz)
 	error(langtext[LANG_NOTENOUGHMEM], "gzdopen", 8);
 
-  printf("gzreading\n");
+  //printf("gzreading\n");
 
   gzread(gz, &patchmemsize, 4);
   gzread(gz, &patchdatsize, 4);
 
-  printf("Read sizes: %ld/%ld\n", patchmemsize, patchdatsize);
+  //printf("Read sizes: %ld/%ld\n", patchmemsize, patchdatsize);
 
   if (curversion->h.numoffsets) {
 	versionsize[0] = versionsize[1] = sizeof(versionheader) + 4 * curversion->h.numoffsets;
@@ -617,9 +617,9 @@ int runttd(const char *program, char *options, langinfo **info)
   ((u32 *)shdata)[0] = patchmemsize;
   ((u32 *)shdata)[1] = patchdatsize;
 
-  printf("Read %d of %ld bytes\n",
-  gzread(gz, shdata + 8, patchdatsize),
-  patchdatsize);
+  //printf("Read %d of %ld bytes\n",
+  gzread(gz, shdata + 8, patchdatsize);
+  //patchdatsize);
 
   gzclose(gz);
 
