@@ -463,9 +463,6 @@
 
 - check for duplicate grfs and show warning if GRFID exists already
 
-- use zlib to compress ttdprot?.bin; ideally keep header+loader uncompressed
-  and compress only rest; otherwise uncompress header+loader separately
-
 - town stats with growth mode 2: maybe show growth rate if debugging?
 
 - lowering/raising land removes exclusive land use signs?
@@ -752,6 +749,7 @@ CHANGELOG
   * Fix Cht:Face and Cht:Used overwriting their names with the returned value.
   * Make Cht: XXXX ? always show cost even for cheats that don't cost.
   * Make Cht: XXXX ? not set the bit in Cht: Used.
+  * Use zlib to compress ttdprot?.bin.
 - correctly display non-ASCII characters in directory names
 - fix crash with directory names containing characters with no glyphs in Unicode mode
 - by Lakie:
