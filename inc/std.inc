@@ -1,6 +1,5 @@
-// replaces defs.inc, also includes standard variable definitions
+// include standard variable definitions
 
-#include <defs.inc>
 #include <var.inc>
 #include <ttdvar.inc>
 
