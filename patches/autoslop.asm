@@ -36,10 +36,10 @@ var roadconvertdepottobit, db 1000b, 100b, 10b, 1b, 1000b, 100b, 10b, 1b
 var stationtoroutetranslation, db 1b, 10b
 
 uvarb autoslopechecklandscapezf,1
+uvarb autoslopecheckeachtileonchangeheight,1
 
 global autoslopechecklandscape
 autoslopechecklandscape:
-
 	setnz [autoslopechecklandscapezf]
 
 	push byte PL_DEFAULT
@@ -61,6 +61,8 @@ autoslopechecklandscape:
 	je near .stationtile
 	cmp ah, 0x80
 	je near .industrytile
+	cmp ah, 0x90
+	je near .bridgetile
 	cmp ah, 0xA0
 	je near .noroutetiles
 
@@ -336,6 +338,199 @@ ovar tempraiseloweraffectedtilearray, -4
 .oktochangeproblem:
 	mov al, 0xFF
 	ret
+	
+.bridgetile:
+	pusha
+	mov esi, ebx
+	call [gettileinfoshort]
+//I/O: AX,CX = X,Y coord. (precise) of tile's north corner
+//Out: ESI = XY index of the tile
+//     BX = class of the tile * 8
+//     DH = type of the tile (from L5)
+//     DL = altitude of the lowest corner (height * 8)
+//     DI = map of corners that are above DL, <3:0>=<NESW>;
+//          bit 4 set if one corner is more than 1 height unit above DL
+
+//RaiseLowerLand
+
+	test di, 0x10
+	jnz NEAR .exit
+	test dh, 0x80
+	jz NEAR .exit
+	test dh, 0x40
+	jnz NEAR .bridgemiddle
+//bridge end
+
+	//assumption: corners: 0=sloped, 1=flat, 2=flat, 3=sloped
+	mov al, [bTempRaiseLowerDirection]
+	mov bx, 3
+	sub bl, byte [bTempRaiseLowerCorner]
+	xor ah, ah
+	mov cx, di
+	or cx, cx
+	jz .checkedbridgeendslope
+	mov ch, cl
+	xor cx, 0x0F0F
+	dec cl
+	and ch, cl	//3 corner -> 1 bit -> ch&dl=0 -> ah=0
+	setnz ah
+.checkedbridgeendslope:
+	or al, al
+	js .bridgeenddown
+//bridge end up
+	mov cx, di
+	bts cx, bx
+	jc NEAR .exit
+	cmp cx, 0xF
+	jne .bridgeendin
+	xor cx, cx
+	jmp .bridgeendin
+.bridgeenddown:
+	mov cx, di
+	btr cx, bx
+	jc .bridgeendin	// easy lower raised corner
+	or di, di
+	jnz NEAR .exit	//would make a steep slope
+	//cx=0
+	bts cx, bx
+	xor cx, 0xF
+.bridgeendin:
+	xor al, al
+	mov ch, cl
+	or cl, cl
+	jz .checkedbridgeendslope2
+	xor cx, 0x0F0F
+	dec ch
+	and ch, cl
+	setnz al
+.checkedbridgeendslope2:
+	xor al, ah
+	jnz NEAR .exit	//sloped bridge end has become a flat bridge end or vice versa
+	mov ax, [landscape3+esi*2]
+	test dh, 6
+	jnz .roadbridgeend
+//rail bridge end
+	and ax, 0x02f0
+	shr ax, 4
+	mov dh, al
+	mov ecx, railgetol5
+	jmp .routecommon
+.roadbridgeend:
+	mov dh, al
+	shr dh, 4
+	shr ax, 8
+	and al, 0x0F
+	or dh, al
+	mov ecx, roadedgetol5
+	jmp .routecommon
+
+.bridgemiddle:
+	mov al, [bTempRaiseLowerDirection]
+	mov bx, 3
+	sub bl, byte [bTempRaiseLowerCorner]
+	test di, 0x10
+	jnz NEAR .exit	// steep slope...
+	or al, al
+	js .bridgemiddledown
+	mov cx, di
+	bts cx, bx
+	jc NEAR .exit	// steep slope...
+	xor cx, 0xF
+	setz al		// al=1 if baseline of tile raised
+	jmp .bridgemiddlein
+.bridgemiddledown:
+	bt di, bx	// is the corner level above the baseline
+	setc al
+	dec al		// level: -1, above: 0
+.bridgemiddlein:
+	mov ah, [landscape7+esi]
+	shr ah, 3
+	cmp ah, al
+	jl NEAR .exit
+	or al, al
+	setnz dl
+	or BYTE [autoslopecheckeachtileonchangeheight],dl
+	test dh, 0x20
+	jnz .routeunderbridge
+
+
+	jmp .oktochange
+.routeunderbridge:
+	xor dl, dl
+	bt dx, 8
+	//CF=bridge in Y direction, route in X direction
+	sbb dl, -2
+	//dl=if bridge in Y direction, 1, else 2
+	mov dh, dl
+	mov ecx, railgetol5
+	jmp .routecommon
+
+uvarb tmpautoslopebuff,4E2h/2
+
+global correctlandscapeonraiselower,correctlandscapeonraiselower.oldfn
+correctlandscapeonraiselower:
+	cmp BYTE [autoslopecheckeachtileonchangeheight], 0
+	jz .done
+	pusha
+	movzx ecx, WORD [esp+32+8]
+	movzx ebx, WORD [ebp+0]
+	mov BYTE [tmpautoslopebuff+ecx-1],0
+	mov al, [landscape4(bx)]
+	shr al, 4
+	cmp al, 9
+	jne .donepopa
+	mov esi, ebx
+	call [gettileinfoshort]
+	and dh, 0xC0
+	xor dh, 0xC0
+	jnz .donepopa
+	add dl,dl
+	and dl, 0xF0
+	or dl, 1
+	movzx ecx, WORD [esp+32+8]
+	mov BYTE [tmpautoslopebuff+ecx-1],dl
+	//[tmpautoslopebuff] = bits:7-4 old height, bits:3-0 type of tile operation: 0=none, 1=fix L7 higher bridges
+.donepopa:
+	popa
+.done:
+	jmp near $
+ovar correctlandscapeonraiselower.oldfn,-4
+
+global correctlandscapeonraiselower2,correctlandscapeonraiselower2.oldfn
+correctlandscapeonraiselower2:
+	cmp BYTE [autoslopecheckeachtileonchangeheight], 0
+	jz .done
+	pusha
+	movzx ecx, WORD [esp+32+8]
+	movzx ebx, WORD [ebp+0]
+	movzx ebp, BYTE [tmpautoslopebuff+ecx-1]
+	dec ecx
+	setnz al
+	and BYTE [autoslopecheckeachtileonchangeheight], al
+	mov eax, ebp
+	and eax, 0xf
+	cmp eax, 1
+	jne .donepopa
+	mov al, [landscape4(bx)]
+	shr al, 4
+	cmp al, 9
+	jne .donepopa
+	mov esi, ebx
+	call [gettileinfoshort]
+	and dh, 0xC0
+	xor dh, 0xC0
+	jnz .donepopa
+	shr ebp, 1
+	mov eax, ebp
+	//al=old tile height, dl=new tile height
+	sub al, dl
+	//al=amount tile has gone down
+	add [landscape7+esi], al
+.donepopa:
+	popa
+.done:
+	jmp near $
+ovar correctlandscapeonraiselower2.oldfn,-4
 
 // comp.lang.asm.x86  "One bit set? (Was: Bit Counting)"
 // Apart from the value 0, if only one bit is set in a variable x, it 
