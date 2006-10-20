@@ -442,6 +442,10 @@ ovar tempraiseloweraffectedtilearray, -4
 	bt di, bx	// is the corner level above the baseline
 	setc al
 	dec al		// level: -1, above: 0
+	jc .bridgemiddlein
+	xor bx, 2
+	bt di, bx
+	jc NEAR .exit	// steep slope...
 .bridgemiddlein:
 	mov ah, [landscape7+esi]
 	shr ah, 3
