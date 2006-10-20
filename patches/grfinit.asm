@@ -88,8 +88,20 @@ newvehtypeinit:
 	push ds
 	pop es
 	mov [activatetype],ah
+
+	test ah, ah
+	jz .nosavefifo
+
+	extcall buildfifoidx	// inforeset destroys the FIFO linked lists in veh2, so copy that data to veh
 	call inforeset		// reset all vehtype data
 	call initveh2
+	extcall buildloadlists	// ... and restore it
+	jmp short .donereset
+.nosavefifo:
+	call inforeset		// reset all vehtype data
+	call initveh2
+
+.donereset:
 	mov [activatedefault],al	// new game -> activate all graphics
 					// but not for Cht: ResetVehicles
 	test ah,ah
