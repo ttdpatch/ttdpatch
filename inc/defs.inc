@@ -1,14 +1,11 @@
 //
 // Basic setup of the assembly environment
 //
-// *Every* asm file must include either this or std.inc at the very top
+// Automatically included by every asm file
 //
 
-//#if !WINTTDX && !LINTTDX
-//#	include "versiond.h"
-//#else
-//#	include "versionw.h"
-//#endif
+#ifndef HAVE_DEFS_INC
+#define HAVE_DEFS_INC
 
 ; TTDPatch TTDPATCHVERSION
 
@@ -89,8 +86,12 @@ section .text align=4
 
 #include <opimm8.inc>
 
-// Macros for catching division-by-zero
+// Make overflow handlers extern except in init.asm
+#ifndef __File_init__
 extern overflowhandler,realoverflowreturn
+#endif
+
+// Macros for catching division-by-zero
 %macro div 1-2.nolist 1
 	%if %2
 		%ifndef overflowreturn_abs
@@ -141,3 +142,5 @@ extern overflowhandler,realoverflowreturn
 	extern %1
 	call %1
 %endmacro
+
+#endif // HAVE_DEFS_INC

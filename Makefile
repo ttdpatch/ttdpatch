@@ -321,13 +321,13 @@ host/%.o : %.asm
 # various versions)
 define A-PO-COMMANDS
 	${_E} [CPP/NASM] $@
-	${_C}$(CPP) ${XASMDEF} -Wcomment -x assembler-with-cpp -Iinc -I. $< -MD -MG -MF $@.d -MT $@ | perl perl/lineinfo.pl > $@.asp
+	${_C}$(CPP) ${XASMDEF} -Wcomment -x assembler-with-cpp -Iinc -I. -D__File_${subst /,_,$*}__ -include inc/defs.inc $< -MD -MG -MF $@.d -MT $@ | perl perl/lineinfo.pl > $@.asp
 	${_C}$(NASM) -f win32 $(NASMDEF) $@.asp -o $@
 	@rm -f $@.asp
 endef
 define A-LST-COMMANDS
 	${_E} [CPP/NASM] $@
-	${_C}$(CPP) ${XASMDEF} -Wcomment -x assembler-with-cpp -Iinc -I. $< | perl perl/lineinfo.pl > $@.asp
+	${_C}$(CPP) ${XASMDEF} -Wcomment -x assembler-with-cpp -Iinc -I.  -D__File_${subst /,_,$*}__ -include inc/defs.inc $< | perl perl/lineinfo.pl > $@.asp
 	${_C}$(NASM) -f win32 $(NASMDEF) $@.asp -o /dev/null -l $@
 	@rm -f $@.asp
 endef
@@ -338,7 +338,7 @@ endef
 define C-A-D-COMMANDS
 	${_E} [CPP DEP] $@
 	${_C} if [ -e $*.asm ]; then \
-		$(CPP) ${XASMDEF} -DMAKEDEP -x assembler-with-cpp -Iinc -I. $*.asm -M -MG -MF $@ -MT ${subst po.d,po,$@}; \
+		$(CPP) ${XASMDEF} -DMAKEDEP -x assembler-with-cpp -Iinc -I. -D__File_${subst /,_,$*}__ -include inc/defs.inc $*.asm -M -MG -MF $@ -MT ${subst po.d,po,$@}; \
 	elif [ -e $*.c ]; then \
 		$(CC) ${XASMDEF} -M -MG -MF $@ -MT ${subst .d,,$@} $*.c -Iinc -I.; \
 	else \

@@ -88,8 +88,8 @@ newvehtypeinit:
 	push ds
 	pop es
 	mov [activatetype],ah
-	call initveh2
 	call inforeset		// reset all vehtype data
+	call initveh2
 	mov [activatedefault],al	// new game -> activate all graphics
 					// but not for Cht: ResetVehicles
 	test ah,ah

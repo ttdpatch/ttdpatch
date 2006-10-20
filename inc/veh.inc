@@ -172,6 +172,7 @@ struc veh2
 	.pad:		resb 1
 	.prevptr:	resd 1	// linked list of vehicles queued-for-reserving
 	.nextptr:	resd 1	// pointers point to veh2 struct
+		align 4,resb 1
 endstruc
 
 #define VEH2_MIXEDPOWERTRAIN 0	// set if train has mix of electric/nonelectric engines

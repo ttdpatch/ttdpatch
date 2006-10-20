@@ -5,13 +5,7 @@
 // and initializations etc.
 //
 
-// To prevent the div overflow handlers being made externs
-#define realoverflowreturn _realoverflowreturn_
-#define overflowhandler _overflowhandler_
 #include <defs.inc>
-#undef realoverflowreturn
-#undef overflowhandler
-
 #include <var.inc>
 #include <flags.inc>
 #include <textdef.inc>
