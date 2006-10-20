@@ -437,7 +437,12 @@ ovar tempraiseloweraffectedtilearray, -4
 	jc NEAR .exit	// steep slope...
 	xor cx, 0xF
 	setz al		// al=1 if baseline of tile raised
-	jmp .bridgemiddlein
+	mov ah, [landscape7+esi]
+	shr ah, 3
+	test di, 0Fh
+	jnz .bridgemiddlegotah
+	dec ah		// reduce reported height if this tile was flat
+	jmp .bridgemiddlegotah
 .bridgemiddledown:
 	bt di, bx	// is the corner level above the baseline
 	setc al
@@ -449,6 +454,7 @@ ovar tempraiseloweraffectedtilearray, -4
 .bridgemiddlein:
 	mov ah, [landscape7+esi]
 	shr ah, 3
+.bridgemiddlegotah:
 	cmp ah, al
 	jl NEAR .exit
 	or al, al
