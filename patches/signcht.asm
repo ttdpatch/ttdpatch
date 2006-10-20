@@ -338,8 +338,8 @@ signcheat:
 	jnz .loop
 	movzx edx,byte [edi+cheat.bit]
 	bts [landscape3+ttdpatchdata.chtused],edx
-.docheat:
 	pop esi
+.docheat:
 	add esi,ecx
 	call dword [edi+cheat.func]
 	jmp short .cheatdone
