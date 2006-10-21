@@ -1153,6 +1153,10 @@ codefragment finddrawsplitcenteredtextfn,9
 	push    dx
 	mov     bp, 276
 
+codefragment finddrawwindowelementslist,7
+	movzx ebx, byte [ebp+windowbox.type]
+	db 0xff // jmp ...
+
 codefragment findCreateTextInputWindow, 7 
  	mov bp, 0x2A9
  	mov bl, 0xF6
@@ -1663,6 +1667,20 @@ dogeneralpatching:
 	patchcode oldinitializeveharray,newinitializeveharray
 	lea eax,[edi+lastediadj-10+6*WINTTDX]
 	mov [initializeveharraysizeptr],eax
+
+	stringaddress finddrawwindowelementslist
+	push edi
+	mov esi, [edi]
+	extern winelemdrawptrs,drawresizebox,DrawWinElemCheckBox
+	mov edi, winelemdrawptrs
+	mov ecx, 11*4
+	rep movsb
+	pop edi
+	mov dword [edi], winelemdrawptrs
+	mov dword [winelemdrawptrs+4*cWinElemSizer], addr(drawresizebox)
+	mov dword [winelemdrawptrs+4*cWinElemCheckBox], addr(DrawWinElemCheckBox)
+	mov eax, [winelemdrawptrs+4*cWinElemDummyBox]
+	mov dword [winelemdrawptrs+4*cWinElemExtraData], eax
 
 	storeaddresspointer findcurrscreenupdateblockptr,1,1,currscreenupdateblock
 	storefunctionaddress finddrawspritefn,1,1,drawspritefn

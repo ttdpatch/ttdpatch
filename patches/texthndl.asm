@@ -300,6 +300,13 @@ endvar
 	cmp eax,0x9e
 	jb .special
 
+	cmp eax,0x100
+	jae .unicode
+
+	mov ah,0xe0
+	jmp short .store	// E0 is ignored in non-utf8 mode
+
+.unicode:
 	cmp eax,0xe07b
 	jb .store
 
