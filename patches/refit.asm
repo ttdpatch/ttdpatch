@@ -1163,6 +1163,9 @@ setnewcargo:
 	mov esi,edx
 	call consistcallbacks
 
+	cmp byte [edx+veh.class],0x11
+	jne .noMoreTrailers	// not a road vehicle
+
 	cmp word [edx+veh.nextunitidx], 0xFFFF
 	je .noMoreTrailers
 	movzx edx, word [edx+veh.nextunitidx]
