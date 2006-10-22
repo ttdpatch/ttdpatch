@@ -1244,6 +1244,8 @@ insertactivespriteblockaction1:
 // in:	al=GRM_EXTRA_* code
 // out:	returns appropriately for grf handler
 exported failwithgrfconflict
+	cmp dword [procall_type],PROCALL_INITIALIZE
+	jbe .dontfail
 	call setgrfconflict
 	jnz .haveit
 
@@ -1251,16 +1253,22 @@ exported failwithgrfconflict
 	call settempspriteerror
 .haveit:
 	or edi,byte -1
+.dontfail:
 	ret
 
 // same as above, but to be called from an action 0 prop handler
 exported failpropwithgrfconflict
+	cmp dword [procall_type],PROCALL_INITIALIZE
+	jbe .dontfail
 	call setgrfconflict
 	mov ax,ourtext(toomanysprites)
 	jz .haveit
 	mov ax,0
 .haveit:
 	stc
+	ret
+.dontfail:
+	clc
 	ret
 
 setgrfconflict:
