@@ -10,6 +10,7 @@
 #include <systexts.inc>
 #include <bitvars.inc>
 #include <flagdata.inc>
+#include <house.inc>
 
 extern calloc,copyspriteinfofn,curfileofsptr,curspriteblock,decodespritefn
 extern dummygrfid,exscurfeature,exsfeaturemaxspritesperblock
@@ -886,6 +887,7 @@ uvard lastskip
 uvard lastsprite
 
 uvard spritehandlertable
+uvard procallclear
 
 uvarb procallsprites_noreset
 uvarb procallsprites_replaygrm
@@ -894,6 +896,8 @@ uvard procall_type
 global procallsprites
 procallsprites:
 	mov [procall_type],eax
+	mov edx,[procall_clear+eax*4]
+	mov [procallclear],edx
 	mov eax,[procall_handlers+eax*4]
 	mov [spritehandlertable],eax
 	mov edx,[spriteblockptr]
@@ -929,6 +933,13 @@ procallsprites:
 	mov ecx,GRM_EXTRA_NUM
 	rep movsd
 
+	mov edi,[procallclear]
+	test edi,edi
+	jz .noclearproc
+
+	call edi
+
+.noclearproc:
 	mov edi,[grfmodflags]
 	push edi
 	call procgrffile
@@ -968,7 +979,45 @@ procallsprites:
 
 extern PROCALL_HANDLERS
 vard procall_handlers, PROCALL_HANDLERS
+vard procall_clear, PROCALL_CLEAR
 
+	// called before every infoapply, and once for each file
+	// during initialization
+exported resetgrm
+	pusha
+
+	extern clearstationgameids,clearhousedataids,lastextrahousedata
+	extern disabledoldhouses,lasthousedataid,lastindustiledataid
+	extern clearindustiledataids,lastextraindustiledata,industileoverrides
+
+	call clearstationgameids	// clear station game ids; they'll get
+					// the right value by infoapply
+	testflags newhouses
+	jnc .nonewhouses
+	call clearhousedataids
+	mov byte [lastextrahousedata],0
+	xor eax,eax			// clear house overrides
+	mov edi,houseoverrides
+	lea ecx,[eax+110]
+	rep stosb
+
+	and dword [disabledoldhouses+0],0
+	and dword [disabledoldhouses+4],0
+	and dword [disabledoldhouses+8],0
+	and dword [disabledoldhouses+12],0
+.nonewhouses:
+
+	call clearindustiledataids
+	mov byte [lastextraindustiledata],0
+	xor eax,eax			// clear industry tile overrides
+	mov edi,industileoverrides
+	lea ecx,[eax+0xAF]
+	rep stosb
+
+	mov byte [lasthousedataid],0
+	mov byte [lastindustiledataid],0
+	popa
+	ret
 
 extern grfmodflags
 checkbasegrf:
@@ -1245,7 +1294,7 @@ insertactivespriteblockaction1:
 // out:	returns appropriately for grf handler
 exported failwithgrfconflict
 	cmp dword [procall_type],PROCALL_INITIALIZE
-	jbe .dontfail
+	jbe .badness
 	call setgrfconflict
 	jnz .haveit
 
@@ -1253,13 +1302,14 @@ exported failwithgrfconflict
 	call settempspriteerror
 .haveit:
 	or edi,byte -1
-.dontfail:
 	ret
+.badness:
+	ud2
 
 // same as above, but to be called from an action 0 prop handler
 exported failpropwithgrfconflict
 	cmp dword [procall_type],PROCALL_INITIALIZE
-	jbe .dontfail
+	jbe .badness
 	call setgrfconflict
 	mov ax,ourtext(toomanysprites)
 	jz .haveit
@@ -1267,9 +1317,8 @@ exported failpropwithgrfconflict
 .haveit:
 	stc
 	ret
-.dontfail:
-	clc
-	ret
+.badness:
+	ud2
 
 setgrfconflict:
 	movzx eax,al

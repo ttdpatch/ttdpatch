@@ -263,8 +263,6 @@
 
 - station buoy should attach to adjacent station
 
-- news history occasionally has wrong number of entries
-
 - callback for station names, http://www.tt-forums.net/viewtopic.php?p=355861#355861
 
 - access to current game speed
@@ -712,3 +710,10 @@ CHANGELOG
 - correctly translate characters B9, BC and BD in UTF-8 mode
 - don't crash when trying to display a text ID that's out of range
 - allow action 12 to overwrite unicode characters 9E..BD
+- calculate speed for new vehicle after var 40+x cache is initialized
+- ensure map and news history windows are not larger than screen when
+  loading game
+- fix news history sometimes having wrong number of items after loading game
+- don't abort grf initialization due to resource conflict
+- prevent trains from reserving a path out of a depot if the surrounding
+  signals are manually set non-PBS signals

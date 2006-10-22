@@ -105,36 +105,8 @@ newvehtypeinit:
 	rep stosd
 
 .dontresetgraphics:
-
-//	cmp [activatedefault],0
-//	jz .dontresethouses
-//	xor eax,eax
-//	mov byte [lasthousedataid],0	// this needs to be done before grfs are applied
-// .dontresethouses:
-
-	call clearstationgameids	// clear station game ids; they'll get
-					// the right value by infoapply
-	testflags newhouses
-	jnc .nonewhouses
-	call clearhousedataids
-	mov byte [lastextrahousedata],0
-	xor eax,eax			// clear house overrides
-	mov edi,houseoverrides
-	lea ecx,[eax+110]
-	rep stosb
-
-	and dword [disabledoldhouses+0],0
-	and dword [disabledoldhouses+4],0
-	and dword [disabledoldhouses+8],0
-	and dword [disabledoldhouses+12],0
-.nonewhouses:
-
-	call clearindustiledataids
-	mov byte [lastextraindustiledata],0
-	xor eax,eax			// clear industry tile overrides
-	mov edi,industileoverrides
-	lea ecx,[eax+0xAF]
-	rep stosb
+	extern resetgrm
+	call resetgrm		// reset house and industry substitions
 
 	cmp byte [activatedefault],0
 	jne .notnewgame2
