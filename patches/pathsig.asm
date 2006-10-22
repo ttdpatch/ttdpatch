@@ -2471,7 +2471,7 @@ chktrainleavedepot:
 	call [ebp+4]	// FunctionHandler
 	pop esi
 
-	cmp byte [waspbsblock],0
+	test byte [waspbsblock],1
 	je .done	// no path based signalling block
 
 	mov ax,[esi+veh.XY]
