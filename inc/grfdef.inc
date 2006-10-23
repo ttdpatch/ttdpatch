@@ -62,6 +62,9 @@ foundationtypes equ 14+8
 	// handlers for the above, in the right order
 %define PROCALL_HANDLERS spritesloadedaction, spriteinitializeaction, spritereserveaction, spriteactivateaction, spritetestactaction,
 
+	// and routines to call between grf files for each of them
+%define PROCALL_CLEAR 0,resetgrm,0,0,0
+
 	// invalid sprite error codes
 #define INVSP_ISREAL 1		// using real sprite where pseudo sprite expected
 #define INVSP_BADACTION 2	// unknown action

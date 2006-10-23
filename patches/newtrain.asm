@@ -1012,6 +1012,12 @@ proc newbuyrailvehicle
 	jz .notreally
 	mov esi,edi
 	call consistcallbacks
+	pusha
+	mov eax,[esi+veh.veh2ptr]
+	movzx ebp,word [eax+veh2.fullweight]
+	extern calcaccel
+	call calcaccel		// since it might use callbacks depending on cached 40+x vars
+	popa
 .notreally:
 	_ret
 

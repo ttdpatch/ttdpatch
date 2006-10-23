@@ -1192,13 +1192,24 @@ LoadWindowSizesFinish:
 	mov esi, edi
 	mov ebx, eax
 	shr ebx, 16
+	extern reswidth,resheight
+	cmp ax, [reswidth]
+	jbe .nottoowide
+	mov ax, [reswidth]
+.nottoowide:
 	sub ax, [edi+12*13+4]
 	dec ax
+	lea di, [ebx+34]
+	cmp di, [resheight]
+	jbe .nottoohigh
+	mov bx, [resheight]
+	sub bx, 34
+.nottoohigh:
 	cmp bx, 234
 	jae .correctheight
 	mov bx, 234
 .correctheight:
-	sub bx, [edi+12*13+8]
+	sub bx, [esi+12*13+8]
 	dec bx
 	mov edi, mapwindowconstraints
 	call ResizeWindowElementsDelta
@@ -1211,6 +1222,22 @@ LoadWindowSizesFinish:
 	mov esi, win_newshistory_elements
 	mov ebx, eax
 	shr ebx, 16
+	lea di, [ebx+34]
+	cmp di, [resheight]
+	jbe .nottoohigh2
+	movzx ebx, word [resheight]
+	sub ebx, 34
+	push eax
+	mov eax, ebx
+	mov bl, 42
+	sub eax, 14
+	div bl
+	mov byte [win_newshistory_elements+12*2+11], al
+	mov ah, 0
+	imul ebx,eax, 42
+	add ebx, 14
+	pop eax
+.nottoohigh2:
 	sub ax, [win_newshistory_elements+12*4+4]
 	dec ax
 	sub bx, [win_newshistory_elements+12*4+8]

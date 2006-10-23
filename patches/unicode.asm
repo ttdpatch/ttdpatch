@@ -17,6 +17,10 @@ extern fonttables,drawspriteonscreen,malloc,patchflags
 extern tempSplittextlinesNumlinesptr,splittextlines_done
 extern invalidatehandle,newtexthandler,specialtext1,specialtext2
 
+// Strings that were hardcoded into TTD and are used without the texthandler
+varb str_window_slider_up, 0xEE, 0x82, 0xA0, 0
+varb str_window_slider_dn, 0xEE, 0x82, 0xAA, 0
+
 // Initialize the font glyph tables with TTD's characters
 exported initglyphtables
 	mov esi,fonttables	// first make sure all allocated font tables are cleared

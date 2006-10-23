@@ -838,7 +838,7 @@ setplanecargotype:
 	mov byte [edi+veh.cargotype],2
 	mov al,[esi+veh.class]
 	shl eax,16
-	mov al,[esi+veh.vehtype]
+	mov al,bl
 	push eax
 	call getrefitmask
 	pop eax
