@@ -835,20 +835,36 @@ ovar .oldfn,-4,$,resetplanesprite
 // safe:eax edx
 global setplanecargotype
 setplanecargotype:
-	mov byte [esi+veh.cargotype],0
-	mov byte [edi+veh.cargotype],2
 	mov al,[esi+veh.class]
 	shl eax,16
 	mov al,bl
 	push eax
 	call getrefitmask
 	pop eax
-	test al,1
-	jnz .passok
-	push ebx
+
 	bsf eax,eax
 	mov [esi+veh.cargotype],al
+	mov byte [edi+veh.cargotype],2
+
+	test byte [planecallbackflags+ebx-AIRCRAFTBASE],8
+	jz .nocallback
+
+	push esi
+	mov al,bl
+	mov ah,0x15
+	xor esi,esi
+	call vehtypecallback
+	pop esi
+	jc .nocallback
+
+	mov [esi+veh.capacity],ax
+
+.nocallback:
+	cmp byte [esi+veh.cargotype],0
+	je .passok
+
 	// adjust capacity
+	push ebx
 	mov ax,[edi+veh.capacity]	// mail cap
 	add ax,ax			// 1 mail = 2 pass
 	add ax,[esi+veh.capacity]
@@ -892,6 +908,8 @@ shownewplaneinfo:
 	bsf eax,eax
 	extern currefitlist
 	mov [currefitlist+refitinfo.ctype],al
+	mov byte [currefitlist+refitinfo.cycle],0
+	push ebx
 	mov ebx,[cargoamountnnamesptr]
 	cmp eax,1
 	mov ax,[ebx+eax*2]
@@ -901,7 +919,22 @@ shownewplaneinfo:
 	mov ax,statictext(onecargotype)
 	adc ax,0
 	mov [esi+6],ax
+	pop ebx
 
+	test byte [planecallbackflags+ebx-AIRCRAFTBASE],8
+	jz .nocallback
+
+	push esi
+	mov al,bl
+	mov ah,0x15
+	xor esi,esi
+	call vehtypecallback
+	pop esi
+	jc .nocallback
+
+	mov [esi+0xa],ax
+
+.nocallback:
 	// convert cargo amount from pass->freight if necessary
 	mov ebx,currefitlist
 	cmp byte [ebx+refitinfo.ctype],0
