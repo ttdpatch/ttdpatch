@@ -1650,7 +1650,7 @@ dorestorevehorders:
 	call getrefitmask
 	pop edx
 	bt edx,ecx
-	jnc .nocapaadjust
+	jnc near .nocapaadjust
 
 	mov [esi+veh.cargotype],al
 	mov [esi+veh.refitcycle],ah
@@ -1667,6 +1667,16 @@ dorestorevehorders:
 	jc .nocapacallback
 
 	mov [esi+veh.capacity],ax
+
+	// remove mail capacity for non-passenger planes
+	cmp byte [esi+veh.class],0x13
+	jne .nocapaadjust
+	cmp byte [esi+veh.cargotype],0
+	je .nocapaadjust
+	movzx eax,word [esi+veh.nextunitidx]
+	shl eax,7
+	add eax,[veharrayptr]
+	mov word [eax+veh.capacity],0
 	jmp short .nocapaadjust
 
 .nocapacallback:
