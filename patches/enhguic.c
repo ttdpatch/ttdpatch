@@ -116,6 +116,7 @@ void ASMFUNC(DragNSRailUITick);
 void DragNSRailUITick() {
 	int16_t X, Y, diff, dx, dy;
 	ScreenToLandscapeCoords(X, Y);
+	if (X == -1) return;	// call failed
 	landscapemarkerorigx = 1; // Make sure the tiles get redrawn.
 	RefreshLandscapeHighlights();
 	dx = X - dragtoolstartx;
@@ -162,6 +163,7 @@ void ASMFUNC(DragEWRailUITick);
 void DragEWRailUITick() {
 	int16_t X, Y, diff, dx, dy;
 	ScreenToLandscapeCoords(X, Y);
+	if (X == -1) return;	// call failed
 	landscapemarkerorigx = 1; // Make sure the tiles get redrawn.
 	RefreshLandscapeHighlights();
 	dx = X - dragtoolstartx;
