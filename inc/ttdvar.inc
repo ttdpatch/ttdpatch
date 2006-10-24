@@ -226,6 +226,8 @@ ttdvar(curdecoderuntype,0x9c581)		// B: current LZ77 run type
 ttdvar(curfileblocksize,0x7722e)		// W: size of current file buffer
 
 ttdvar(keypresstable,0x9c476)		// Array for all keys; 0=pressed, 80h=not pressed
+ttdvar(shiftedkeyasciitable,0x9f70f)	// Array of ASCII codes to generate for each key, with shift
+ttdvar(regkeyasciitable,0x9f78f)	// Array of ASCII codes to generate for each key, without shift
 ttdvar(curplayer,0x9ea35)		// B: Current player
 ttdvar(displayoptions,0x9ea37)		// B: Bits for each of the display options
 ttdvar(gamesemaphore,0x9ea38)		// B: Game progress semaphore, nonzero=paused

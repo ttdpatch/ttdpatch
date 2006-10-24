@@ -717,3 +717,5 @@ CHANGELOG
 - don't abort grf initialization due to resource conflict
 - prevent trains from reserving a path out of a depot if the surrounding
   signals are manually set non-PBS signals
+- fix new aircraft getting wrong cargo type
+- prevent cursor keys from interfering with hotkeys in DOS
