@@ -13,6 +13,7 @@
 #include <newvehdata.inc>
 #include <grf.inc>
 #include <ptrvar.inc>
+#include <refit.inc>
 
 extern cargoamountnnamesptr,cargoclass,curgrfid
 extern cargotypes,deftwocolormaps,exscurfeature
@@ -844,9 +845,20 @@ setplanecargotype:
 	pop eax
 	test al,1
 	jnz .passok
+	push ebx
 	bsf eax,eax
 	mov [esi+veh.cargotype],al
+	// adjust capacity
+	mov ax,[edi+veh.capacity]	// mail cap
+	add ax,ax			// 1 mail = 2 pass
+	add ax,[esi+veh.capacity]
+	push eax
+	lea ebx,[esi+veh.cargotype-refitinfo.ctype]
+	call adjustcapacity
+	pop eax
+	mov [esi+veh.capacity],ax
 	mov word [edi+veh.capacity],0
+	pop ebx
 .passok:
 	ret
 
@@ -878,6 +890,8 @@ shownewplaneinfo:
 	call getrefitmask
 	pop eax
 	bsf eax,eax
+	extern currefitlist
+	mov [currefitlist+refitinfo.ctype],al
 	mov ebx,[cargoamountnnamesptr]
 	cmp eax,1
 	mov ax,[ebx+eax*2]
@@ -887,6 +901,22 @@ shownewplaneinfo:
 	mov ax,statictext(onecargotype)
 	adc ax,0
 	mov [esi+6],ax
+
+	// convert cargo amount from pass->freight if necessary
+	mov ebx,currefitlist
+	cmp byte [ebx+refitinfo.ctype],0
+	je .noadjust
+
+	movzx eax,word [esi+0xe]	// mail amount
+	add eax,eax			// 1 mail = 2 pass
+	add ax,[esi+0xa]		// pass amount
+	push eax
+	extern adjustcapacity
+	call adjustcapacity
+	pop eax
+	mov [esi+0xa],ax
+
+.noadjust:
 	ret
 
 // show plane stats in depot window
