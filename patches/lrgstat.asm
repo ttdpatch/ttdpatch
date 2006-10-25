@@ -352,6 +352,8 @@ setstationsize:
 	// was mov al,dl; shl al,3; or al,dh
 	// now add old size; fix position if edx has sign bit set
 	
+	//dl=len, dh=tracks
+	
 	or edx,edx
 	js short .extendedstation
 
@@ -365,7 +367,6 @@ setstationsize:
 	add dh, (80h-8h)
 .dontneedextrabit2:
 	or al,dh */
-	xchg dh, dl
 	call calcplatformsfornewstation
 	pop edx
 	testflags irrstations
@@ -378,10 +379,11 @@ setstationsize:
 
 	testflags irrstations
 	jc near irrsetstationsizeext
+	push edx
 	mov dx, [newstationtracks]	// new number and length of tracks
 	xchg dh, dl
 	call calcplatformsfornewstation
-	xchg dh, dl
+	pop edx
 	ret
 ; endp setstationsize 
 
@@ -625,7 +627,6 @@ calcplatformsfornewstation:
 	add eax, esi
 	xchg dl, dh
 	mov [eax+station2.platforms], dx
-	xchg dl, dh
 	xor eax, eax
 	pop edx
 ret
