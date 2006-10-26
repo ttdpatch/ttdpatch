@@ -459,6 +459,11 @@ ovar tempraiseloweraffectedtilearray, -4
 	jl NEAR .exit
 	or al, al
 	setnz dl
+	mov al, dh
+	and al, 0x38
+	xor al, 8
+	setz al
+	or dl, al
 	or BYTE [autoslopecheckeachtileonchangeheight],dl
 	test dh, 0x20
 	jnz .routeunderbridge
@@ -536,6 +541,15 @@ correctlandscapeonraiselower2:
 	sub al, dl
 	//al=amount tile has gone down
 	add [landscape7+esi], al
+.doneheight:
+	mov ah, [landscape5(si)]
+	mov al, ah
+	and ah, 0x38
+	xor ah, 8
+	jnz .donepopa
+	and al, ~0x18
+	mov [landscape5(si)], al
+	and BYTE [landscape3+esi*2], ~1
 .donepopa:
 	popa
 .done:
