@@ -561,7 +561,7 @@ BIT(displaytownsize,       "mostrar el tama¤o de la poblaci¢n en el nombre de la
 BIT(noextendstationrange,  "no incrementar la distancia m xima permitida entre el r¢tulo de la estaci¢n y la industria para que la mercancia sea mandada")
 BIT(nooldvehiclenews,      "no generar avisos cuando los veh¡culos est‚n quedando viejos")
 BIT(dontfixpaymentgraph,   "no fijar el eje de las X en la ventana de tarifas de pago de las mercancias")
-BIT(loaduntilgreen,        "mantener cargando en la estaci¢n hasta que el sem foro de salida est‚ verde")
+//BIT(loaduntilgreen,        "mantener cargando en la estaci¢n hasta que el sem foro de salida est‚ verde")
 BIT(dontshowaltitude,      "no mostrar altitud en la ventana de informaci¢n del azulejo")
 BIT(nogrfidsinscreenshots, "no mostrar los grfids activos en las capturas de pantallas")
 BIT(dontchangesnow,        "no cambiar como la altitud es calculada para las nevadas")
