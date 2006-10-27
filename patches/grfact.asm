@@ -2935,8 +2935,9 @@ setparam:
 	jnz .conflict
 
 	mov eax,[esi-13]
-	cmp eax,byte -1
-	je .noresult
+	cmp eax,byte -2
+	ja .noresult
+	sbb eax,byte -1		// -2 -> -1, (-1 -> 0), rest unchanged
 	mov [ebp],eax
 .noresult:
 	ret
@@ -3048,7 +3049,9 @@ endvar
 	pop esi
 	pop ebp
 	jz .checkok
+	or edx,byte -1
 	mov [ebp],edx
+	dec edx
 	mov [esi-13],edx
 .checkok:
 	ret

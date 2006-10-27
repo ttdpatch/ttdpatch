@@ -782,3 +782,7 @@ CHANGELOG
 - prevent cursor keys from interfering with hotkeys in DOS
 - fix new freight aircraft having incorrect capacity, and try use callback 15
   to determine capacity if enabled
+- fix draggable diagonal track building track across the entire map when
+  moving cursor into different window or outside of map
+- fix no-fail GRM operations not working
+- remove miscmods.loaduntilgreen, it was never actually implemented
