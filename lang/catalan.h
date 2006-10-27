@@ -516,7 +516,7 @@ BIT(displaytownsize,       "mostrar el tamany de la poblaci¢ en el nom de la pob
 BIT(noextendstationrange,  "no incrementar la dist…ncia m…xima permesa entre el r•tul de l'estaci¢ i la ind£stria per a que la mercaderia sigui enviada")
 BIT(nooldvehiclenews,      "no generar avisos quan els vehicles estiguin quedant vells")
 BIT(dontfixpaymentgraph,   "no fixar l'eix de les X en la finestra de tarifes de pago de les mercaderies")
-BIT(loaduntilgreen,        "mantenir carregant en l'estaci¢ fins que el sem…for de sortida estigui verd")
+//BIT(loaduntilgreen,        "mantenir carregant en l'estaci¢ fins que el sem…for de sortida estigui verd")
 BIT(dontshowaltitude,      "no mostrar altitut en la finestra d'informaci¢ de la rajola")
 BIT(nogrfidsinscreenshots, "no mostrar els grfids actius en les captures de pantalles")
 BIT(dontchangesnow,        "no canviar com l'altitut ‚s calculada per a les nevades")
