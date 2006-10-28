@@ -725,3 +725,4 @@ CHANGELOG
   moving cursor into different window or outside of map
 - fix no-fail GRM operations not working
 - remove miscmods.loaduntilgreen, it was never actually implemented
+- allow CB18 to use the cargo translation table
