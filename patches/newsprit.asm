@@ -849,7 +849,10 @@ checkoverride:
 #endif
 
 uvard isother			// 0 if the action refers to the vehicle/tile/whatever, 1 if to the "other thing"
+
 uvarb nostructvars		// 1 if in a callback that must not use 40+x or type 82/83
+				// 2 if in a callback that may use 40+x/60+x with custom handler
+uvard structvarcustomhnd	// handler for nostructvars=2
 
 badaction2var:
 	ud2
@@ -1049,7 +1052,7 @@ getvariationalvariable:
 	movzx eax,byte [ebx]	// variable
 	test al,0xc0
 	js .structvar		// 80+x
-	jz .externalvar		// x
+	jz near .externalvar	// x
 
 	bt eax,5		// check for 60+x variable
 	adc ebx,0		// advance ebx if it is one
@@ -1058,14 +1061,28 @@ getvariationalvariable:
 	test esi,esi
 	jz .checkvaravail
 
-	cmp byte [nostructvars],0
-	jne badaction2var
+	cmp byte [nostructvars],1
+	je badaction2var
+	ja .custom
 
 .usevar:
 	test al,0x20		// check for 0x6x variables
 	jnz .paramvar
 
 	call getspecialvar	// 40+x
+	jmp short .gotval
+
+.custom:
+	// call custom var 40+x/60+x handler
+	// in:	eax=var
+	//	cl=parameter for 60+x
+	//	esi->80+x data or 0 if none
+	// out:	eax=var value
+	//	CF=0 var was ok
+	//	CF=1 invalid variable
+	// safe:ecx
+	call [structvarcustomhnd]
+	jc badaction2var
 	jmp short .gotval
 
 .checkvaravail:			// variable available even without structure?
