@@ -23,7 +23,6 @@ extern invalidatehandle,ishumanplayer,isrealhumanplayer,isscheduleshared
 extern needsmaintcheck.always,numvehshared,orderhints,patchflags
 extern redrawscreen,resetorders_actionnum,cargotypes
 extern saverestorevehdata_actionnum,savevehordersfn,shareorders_actionnum
-extern specificpropertybase
 extern vehcallback
 
 
@@ -1676,9 +1675,7 @@ dorestorevehorders:
 
 	// one cargo type only
 	movzx eax,byte [esi+veh.vehtype]
-	add eax,9*NAIRCRAFTTYPES-AIRCRAFTBASE
-	add eax,[specificpropertybase+3*4]
-	movzx eax,byte [eax]
+	movzx eax,byte [planemailcap+eax-AIRCRAFTBASE]
 	add eax,eax			// 1 mail = 2 pass
 	add [esi+veh.capacity],ax
 	movzx eax,word [esi+veh.nextunitidx]

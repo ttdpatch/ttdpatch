@@ -968,9 +968,7 @@ calcplanetrainrefitcap:
 
 	// refitting to just one cargo type, so add mail cap. too
 	movzx eax,byte [edx+veh.vehtype]
-	add eax,9*NAIRCRAFTTYPES-AIRCRAFTBASE
-	add eax,[specificpropertybase+3*4]
-	movzx eax,byte [eax]
+	movzx eax,byte [planemailcap+eax-AIRCRAFTBASE]
 	add eax,eax		// 1 mail = 2 pass
 .gotamount:
 	add bp,ax
