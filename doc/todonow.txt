@@ -692,6 +692,9 @@ CHANGELOG
 - by Lakie:
   * fixed a bug in resizing depot windows when 32px mode was on
 - fixed bogus sprite error when calling a procedure beyond sprite 255
+- by JGR:
+  * split first line of land info window as necessary
+  * fix window resizing code with >127 entries
 - fixed station overbuilding to adjust the overwritten tile's numtiles
 - by stevenh:
   * miscellaneous tram fixes
@@ -699,6 +702,8 @@ CHANGELOG
   * fixed incorrect display of tram tracks on bridge with adjacent level
     crossing
   * fix bug causing some newly built roads to also have tram tracks
+  * change message for first vehicle arriving at station to indicate trams
+    correctly
 - add "name" property in addition to "desc" for switches.xml categories
 - prevent loading multiple GRFs with identical GRFID (except for FFFFFFFF)
 - fix lockup when reversing train with multiple reserved pieces on a custom
