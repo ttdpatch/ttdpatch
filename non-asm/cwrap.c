@@ -197,12 +197,20 @@ terrain_parm_t terrain_parms[3][4] = {
 	},
 };
 
+extern int32_t landgen_forceparam asm("landgen_forceparam");
+
 void makerandomterrain() {
 	terrain_parm_t parm = terrain_parms[quantityofwater][terraintype];
 
 	int delta = parm.deltamin + (randomfn()%(parm.deltarange+1));
 	int trunc = parm.truncmin + (randomfn()%(parm.truncrange+1));
 	int patch = parm.patchmin + (randomfn()%(parm.patchrange+1));
+
+	if (landgen_forceparam != -1) {
+		delta = landgen_forceparam & 0xff;
+		trunc = (landgen_forceparam >> 8) & 0xff;
+		patch = (landgen_forceparam >> 16) & 0xff;
+	}
 
 	terrain(delta, trunc, 1, 6, 9, patch, randomfn);
 }

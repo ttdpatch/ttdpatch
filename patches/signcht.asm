@@ -122,6 +122,7 @@ cheatentry "DELETEVEH",deletevehcheat,0
 cheatentry "RESETFIFO",resetfifocheat,0
 cheatentry "RELOADINDUSTRIES",resetinducheat,0
 cheatentry "FACE",facecheat,0
+cheatentry "LANDGEN",landgencheat,0
 //cheatentry "ENGINE",enginecheat
 //          12345678901234 (max length of name)
 
@@ -2651,3 +2652,17 @@ resetcargocheat:
 	clc
 	ret
 
+svard landgen_forceparam
+landgencheat:
+	call getnumber
+	xchg eax,edx
+	jc .done
+	call getnumber
+	mov ah,dl
+	call getnumber
+	shl edx,16
+	or eax,edx
+.done:
+	mov [landgen_forceparam],eax
+	clc
+	ret
