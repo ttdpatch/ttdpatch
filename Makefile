@@ -287,7 +287,7 @@ host/%.o : %.c
 	$(CPP) -o $@ $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) $<
 
 %.S : %.c
-	$(CC) -S -o $@ $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) $<
+	$(CC) -S -o $@ $(CFLAGS) -Iinc -I. $(foreach DEF,$(WINDEFS),-D$(DEF)) $<
 
 %.lst : %.S
 	as -a $< -o /dev/null > $@
