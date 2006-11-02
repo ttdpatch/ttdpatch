@@ -3,6 +3,8 @@
 // [esi+0x31]: number of sorting method
 // [esi+0x32]: time until next reordering (in 7-tick units)
 
+// [esi+0x33,2F]: used to provide more than 256 train support
+
 #include <std.inc>
 #include <textdef.inc>
 #include <patchdata.inc>
@@ -22,12 +24,12 @@ global findlisttrains
 findlisttrains:
 	cmp al,[edi+veh.owner]	// overwritten
 	jne .notours		// by the
-	inc ah			// runindex call
+	inc ebx			// runindex call
 	cmp byte [esi+0x32],0
 	jne .nosort
-	xchg al,bl
+	xchg eax,ebx
 	call sortloop	
-	xchg al,bl
+	xchg eax,ebx
 .notours:
 	ret
 
@@ -41,7 +43,7 @@ findlisttrains:
 	jne .ok
 
 	mov byte [esi+0x32],0		// force sorting
-	xor ah,ah			// reset vehicle count
+	xor ebx,ebx			// reset vehicle count
 	mov edi,[veharrayptr]		// force the loop to start over again
 	add edi,-vehiclesize
 .ok:
@@ -489,8 +491,10 @@ createlistwindow:
 	jb .correct
 	xor dl,dl
 .correct:
+	mov al, [esi+window.itemsvisible]
+	mov BYTE [esi+0x2F], al	// for default size only
 	mov [esi+0x31],dl
-	mov byte [esi+0x32],0	// the first reordering will be a forced one
+	mov WORD [esi+0x32],0	// the first reordering will be a forced one, clear shift factor
 	or byte [esi+window.flags],7	// start the GUI timer
 	pop edx
 	ret
@@ -528,6 +532,40 @@ clicklist_next:
 .exit:
 	clc
 	ret
+	
+// The same when clicking on an entry, for trains only, modified for more than 256 trains in window by JGR
+global clicklist_next_train
+clicklist_next_train:
+	call dword [wantvehicle]
+.in:
+	jnz .exit
+	cmp ah,[edi+veh.owner]
+	jnz .exit
+	sub edx,1
+	jnc .exit
+	mov edi,[edi+veh.veh2ptr]
+	mov edi,[edi+veh2.sortvar]	// this is the only part that isn't present in the old code
+					// after finding the correct vehicle entry, use its pointer
+					// instead of the vehicle itself
+	stc
+	ret
+.exit:
+	clc
+	ret
+
+global clicklist_next_rv
+clicklist_next_rv:
+	push DWORD clicklist_next_train.in
+	jmp DWORD [wantvehicle+4]
+	
+global clicklist_next_ship
+clicklist_next_ship:
+	push DWORD clicklist_next_train.in
+	jmp DWORD [wantvehicle+8]
+global clicklist_next_aircraft
+clicklist_next_aircraft:
+	push DWORD clicklist_next_train.in
+	jmp DWORD [wantvehicle+12]
 
 // called when a vehicle array entry is deleted
 // force reordering the according veh. list window if visible
@@ -576,3 +614,154 @@ listwindowhint:
 .exitparent:
 	pop ebx
 	ret
+
+//JGR more than 256 trains in list:
+
+global TrainListDrawHandlerCountDec,TrainListDrawHandlerCountTrains,TrainListClickHandlerAddOffset,TrainListDrawHandlerCountDec.skip
+
+TrainListDrawHandlerCountDec:
+
+	dec DWORD [trainlistoffset]
+	//cmp bl, 0
+	jns .jmp
+
+	.dec:
+	dec bl
+	jns .reinc
+	ret
+	.reinc:
+	inc bl
+	ret
+	
+	.jmp:
+	xor bl, bl
+	add esp, 4
+	jmp near $
+	ovar .skip, -4, $,TrainListDrawHandlerCountDec
+
+uvard trainlistoffset
+TrainListDrawHandlerCountTrains:
+	xor edx, edx
+	jmp .shrtest
+.shr1:
+	inc ebx
+	shr ebx, 1
+	inc edx
+.shrtest:
+	test ebx, 0xffffff00
+	jnz .shr1
+
+	mov [esi+window.itemstotal], bl
+	mov dh, [esi+0x33]
+	cmp dh, dl
+	je .itemsoffset_good
+	mov [esi+0x33], dl
+	push ecx
+	push ebx
+	movzx ebx, BYTE [esi+window.itemsoffset]
+	mov cl, dh
+	shl ebx, cl
+	mov cl, dl
+	shr ebx, cl
+	mov [esi+window.itemsoffset], bl
+	movzx ebx, BYTE [esi+0x2F]
+	shr ebx, cl
+	mov [esi+window.itemsvisible], bl
+	pop ebx
+	pop ecx
+	.itemsoffset_good:
+	push ecx
+	mov cl, dh
+	mov ah, bl
+	movzx ebx, BYTE [esi+window.itemsoffset]
+	shl ebx, cl
+	mov [trainlistoffset], ebx
+	xor bl, bl
+	sub ah, [esi+window.itemsvisible]
+	pop ecx
+ret
+
+TrainListClickHandlerAddOffset:
+
+	movzx edx, al
+	movzx eax, BYTE [esi+window.itemsoffset]
+	mov cl, [esi+0x33]
+	shl eax, cl
+	add edx, eax
+	mov edi, [veharrayptr]
+ret
+
+//JGR more than 256 road vehicles in list
+
+global RVListDrawHandlerCountDec,RVListDrawHandlerCountDec, RVListDrawHandlerCountVehs
+
+RVListDrawHandlerCountDec:
+
+	dec DWORD [trainlistoffset]
+	//cmp bl, 0
+	jns .jmp
+
+	.dec:
+	dec bl
+	jns .reinc
+	ret
+	.reinc:
+	inc bl
+	ret
+	
+	.jmp:
+	xor bl, bl
+	add esp, 4
+	jmp near $
+	ovar .skip, -4, $,RVListDrawHandlerCountDec
+
+RVListDrawHandlerCountVehs:
+	movzx ebx, ax
+	call TrainListDrawHandlerCountTrains
+	//don't modify flags
+	mov al, ah
+	ret
+
+//JGR more than 256 ships in list
+
+global ShipListDrawHandlerCountDec,ShipListDrawHandlerCountDec.skip
+
+ShipListDrawHandlerCountDec:
+
+	dec DWORD [trainlistoffset]
+	//cmp bl, 0
+	jns .jmp
+
+	.dec:
+	dec bl
+	jns .reinc
+	ret
+	.reinc:
+	inc bl
+	ret
+	
+	.jmp:
+	xor bl, bl
+	add esp, 4
+	jmp near $
+	ovar .skip, -4, $,ShipListDrawHandlerCountDec
+	
+global AircraftListDrawHandlerCountDec,AircraftListDrawHandlerCountDec.skip
+AircraftListDrawHandlerCountDec:
+	dec DWORD [trainlistoffset]
+	//cmp bl, 0
+	jns .jmp
+
+	.dec:
+	dec bl
+	jns .reinc
+	ret
+	.reinc:
+	inc bl
+	ret
+	
+	.jmp:
+	xor bl, bl
+	add esp, 4
+	jmp near $
+	ovar .skip, -4, $,AircraftListDrawHandlerCountDec

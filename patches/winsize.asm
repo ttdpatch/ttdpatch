@@ -1,5 +1,5 @@
-
 #include <std.inc>
+#include <flags.inc>
 #include <proc.inc>
 #include <window.inc>
 #include <textdef.inc>
@@ -9,7 +9,7 @@ extern BringWindowToForeground,CreateTooltip,DestroyWindow,FindWindow
 extern RefreshWindowArea,TabClicked,TitleBarClicked,currscreenupdateblock
 extern dfree,dmalloc,errorpopup,fillrectangle,redrawscreen
 extern win_newshistory_constraints,win_newshistory_elements
-extern windowstack,CheckBoxClicked
+extern windowstack,CheckBoxClicked,patchflags
 extern grfmodflags
 
 
@@ -461,7 +461,26 @@ HandleSizeConstraints:
 	div cl
 	cmp edx, -1
 	je .nocount4
+	cmp edi, trainlistwindowsizes
+	je .notnorm1
+	cmp edi, shipairlistwindowsizes
+	je .notnorm1
+	cmp edi, rvlistwindowsizes
+	jne .norm1
+.notnorm1:
+	testflags sortvehlist
+	jnc .norm1
+	push ecx
+	mov cl, [esi+0x33]
+	mov [esi+0x2F], al
+	mov ch, al
+	shr ch, cl
+	mov [esi+window.itemsvisible], ch
+	pop ecx
+	jmp .anorm1
+.norm1:
 	mov [esi+window.itemsvisible], al
+.anorm1:
 	mov [ebp+edx+11], al
 .nocount4:
 	mul cl
@@ -1211,6 +1230,7 @@ lastvehdrawn:
 .hasword:
 	push edx
 	mov dl, [esi+window.itemsvisible]
+.hasdl:
 	neg dl
 	movzx eax, ax
 	cmp bl, dl
@@ -1226,28 +1246,38 @@ lastrailvehdrawn:
 	push eax
 	mov al,0xFF
 ovar railvehoffset,-1
-	jmp lastvehdrawn
+	push edx
+	mov dl, [esi+0x2F]
+	movzx ax, al
+	jmp lastvehdrawn.hasdl
 
 global lastroadvehdrawn
 lastroadvehdrawn:
 	push eax
 	mov al,0xFF
 ovar roadvehoffset,-1
-	jmp lastvehdrawn
+	push edx
+	mov dl, [esi+0x2F]
+	movzx ax, al
+	jmp lastvehdrawn.hasdl
 
 global lastairvehdrawn
 lastairvehdrawn:
 	push eax
 	mov ax, 0xFFFF
 ovar airvehoffset, -2
-	jmp lastvehdrawn.hasword
+	push edx
+	mov dl, [esi+0x2F]
+	jmp lastvehdrawn.hasdl
 
 global lastshipvehdrawn
 lastshipvehdrawn:
 	push eax
 	mov ax, 0xFFFF
 ovar shipvehoffset, -2
-	jmp lastvehdrawn.hasword
+	push edx
+	mov dl, [esi+0x2F]
+	jmp lastvehdrawn.hasdl
 
 #if 0
 global drawtrainlist

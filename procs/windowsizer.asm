@@ -324,14 +324,17 @@ patchwindowsizer:
 	patchcode olddrawmapwindow,newdrawmapwindow,1,1
 
 	//then the vehicle-lists (most of this code is patched in the sortvehlist patchproc)
+	
 	stringaddress oldlast7vehdrawn,1,2
-	mov al, [edi+5]
-	mov [railvehoffset], al
-	storefragment newlastrailvehdrawn
-	stringaddress oldlast7vehdrawn,1,1
 	mov al, [edi+5]
 	mov [roadvehoffset], al
 	storefragment newlastroadvehdrawn
+	stringaddress oldlast7vehdrawn,1,1
+	mov al, [edi+5]
+	mov [railvehoffset], al
+	storefragment newlastrailvehdrawn
+	//previously these above were in the opposite (and incorrect) order, fixed by JGR
+	
 	stringaddress oldlast4vehdrawn,1+2*WINTTDX,4
 	mov ax, [edi+5]
 	mov [shipvehoffset], ax
