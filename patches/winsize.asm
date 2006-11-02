@@ -446,7 +446,7 @@ HandleSizeConstraints:
 	mov cx, [edi+8+2]
 .heightsenough:
 	cmp byte [edi+8+4], 1
-	jz .heightok
+	jz near .heightok
 	sub cx, [edi+8+6]
 	push ax
 	push edx
