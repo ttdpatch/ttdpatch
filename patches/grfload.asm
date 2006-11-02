@@ -1014,8 +1014,11 @@ exported resetgrm
 	lea ecx,[eax+0xAF]
 	rep stosb
 
+	cmp dword [procall_type],PROCALL_INITIALIZE
+	ja .noidreset
 	mov byte [lasthousedataid],0
 	mov byte [lastindustiledataid],0
+.noidreset:
 	popa
 	ret
 
