@@ -1452,8 +1452,6 @@ postinfoapply:
 
 .notoldformat:
 	xor edx,edx
-//	mov esi,[enginepowerstable]
-	mov ebx,[specificpropertybase+1*4]
 .nextc0:
 	mov al,[edi]
 	cmp al,0
@@ -1462,11 +1460,11 @@ postinfoapply:
 	cmp dl,NTRAINTYPES
 	jb .trainspeed
 
-	movzx eax,byte [rvhspeed+edx-NTRAINTYPES]
+	movzx eax,byte [rvhspeed+edx-ROADVEHBASE]
 	shl eax,maxrvspeedshift
 	jnz .gotspeed
 
-	mov al,[ebx+edx-NTRAINTYPES]
+	mov al,[rvspeed+edx-ROADVEHBASE]
 	jmp short .gotspeed
 
 .trainspeed:

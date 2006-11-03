@@ -20,7 +20,7 @@ extern fillrectangle,getnewsprite,getwincolorfromdoscolor
 extern grffeature,invalidatehandle,isfreight,isfreightmult
 extern malloc,patchflags,pdaTempStationPtrsInCatchArea,randomstationtrigger
 extern cargobits,cargotypes,spriteblockptr,stationarray2ofst
-extern updatestationgraphics,newvehdata,specificpropertybase
+extern updatestationgraphics,newvehdata
 extern callback_extrainfo,curcallback,grfstage,grfresources
 extern statanim_cargotype,stationanimtrigger
 

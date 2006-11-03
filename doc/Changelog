@@ -3683,3 +3683,71 @@ before 1.6
 - fix tunnels in cooperative play with enhancetunnels on
 - fix cargo in all but first vehicle of articulated wagons having no weight
 - improve display of articulated vehicles in train info window
+
+2.5 beta 9
+- by Csaboka:
+  * bug fixed: turning newindustries on reintroduced the "temperate banks 
+    on tropic" TTD bug
+  * fixed crash when enabling new industries in existing game
+- fixed cargo type FE not working in action 3
+- debug switch 'r' to not run TTDLOAD(W).OVL directly
+- fixed crash when running out of memory
+- fixed crash while processing action 1/5 blocks with pseudo-sprites shorter
+  than 8 bytes
+- fixed bug reserving several pieces on a tile when train fails to reverse
+- fix base graphics not getting loaded unless another .grf was loaded as well
+- fix pathfinding issues with irregular station if north tile not part of station
+- fix missing cargo type suffix in train info window
+- by DaleStan:
+  * Fix bitswitches with all bits set off being read as if the switch was off.
+  * Fix gamespeed switch being written to ttdpatch.cfg as unsigned.
+  * Make Cht:Face work without a space between the : and the F.
+  * Fix Cht:Face potentially returning "Cht:Face h".
+  * Fix Cht:Face and Cht:Used overwriting their names with the returned value.
+  * Make Cht: XXXX ? always show cost even for cheats that don't cost.
+  * Make Cht: XXXX ? not set the bit in Cht: Used.
+  * Use zlib to compress ttdprot?.bin.
+- correctly display non-ASCII characters in directory names
+- fix crash with directory names containing characters with no glyphs in Unicode mode
+- by Lakie:
+  * fixed a bug in resizing depot windows when 32px mode was on
+- fixed bogus sprite error when calling a procedure beyond sprite 255
+- by JGR:
+  * split first line of land info window as necessary
+  * fix window resizing code with >127 entries
+- fixed station overbuilding to adjust the overwritten tile's numtiles
+- by stevenh:
+  * miscellaneous tram fixes
+  * show tram depot graphics in tram construction window
+  * fixed incorrect display of tram tracks on bridge with adjacent level
+    crossing
+  * fix bug causing some newly built roads to also have tram tracks
+  * change message for first vehicle arriving at station to indicate trams
+    correctly
+- add "name" property in addition to "desc" for switches.xml categories
+- prevent loading multiple GRFs with identical GRFID (except for FFFFFFFF)
+- fix lockup when reversing train with multiple reserved pieces on a custom
+  bridge head
+- fix consist variables/callbacks not being updated when selling wagon
+- add bridge sounds to callback 33 (via generic feature 6 callback)
+- fix "line too long" warning if it's a bit switch description (or any 
+  other comment)
+- correctly translate characters B9, BC and BD in UTF-8 mode
+- don't crash when trying to display a text ID that's out of range
+- allow action 12 to overwrite unicode characters 9E..BD
+- calculate speed for new vehicle after var 40+x cache is initialized
+- ensure map and news history windows are not larger than screen when
+  loading game
+- fix news history sometimes having wrong number of items after loading game
+- don't abort grf initialization due to resource conflict
+- prevent trains from reserving a path out of a depot if the surrounding
+  signals are manually set non-PBS signals
+- fix new aircraft getting wrong cargo type
+- prevent cursor keys from interfering with hotkeys in DOS
+- fix new freight aircraft having incorrect capacity, and try use callback 15
+  to determine capacity if enabled
+- fix draggable diagonal track building track across the entire map when
+  moving cursor into different window or outside of map
+- fix no-fail GRM operations not working
+- remove miscmods.loaduntilgreen, it was never actually implemented
+- allow CB18 to use the cargo translation table

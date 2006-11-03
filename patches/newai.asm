@@ -18,7 +18,7 @@ extern callbackflags,cargotypes,curcallback
 extern currefitlist,curselstationid,featurevarofs,getcapacallback
 extern getnewsprite,getrailvehtypecargo,getrefitmask,grffeature,isengine
 extern mostrecentspriteblock,newstationnum,nostructvars
-extern specificpropertybase,stsetids,tracktypes
+extern stsetids,tracktypes
 extern trainplanerefitcost,newvehdata
 
 
@@ -363,8 +363,7 @@ ai_buildroadvehicle:
 .checkcargo:
 	movzx edx,byte [currefitlist+refitinfo.ctype]
 	movzx ebx,bh
-	add ebx,[specificpropertybase+1*4]
-	cmp [ebx-ROADVEHBASE+8*NROADVEHTYPES],dl	// cargo type
+	cmp [rvcargotype+ebx-ROADVEHBASE],dl
 	je .norefit
 
 	pusha
