@@ -147,8 +147,9 @@
 #define clonetrain		113	// enables the ablity to clone a train			(121)
 #define tracerestrict		114	// routetracing restrictions				(122)
 #define stationsize		115	// max rail station spread				(123)
+#define adjacentstation		116	// adjacent stations					(124)
 
-#define lastbitdefaulton	115	// META: last bit defined to be set by -a 
+#define lastbitdefaulton	116	// META: last bit defined to be set by -a 
 
 // add new flags that should be on by default above, flags off by default below
 

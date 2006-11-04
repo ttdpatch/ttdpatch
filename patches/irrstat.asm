@@ -25,12 +25,27 @@ extern maxrstationspread
 global irrcheckistrainstation
 proc irrcheckistrainstation
 	slocal orientation, byte
+	
+	extern adjflags
+	test BYTE [adjflags], 2
+	jnz .newst
+	test BYTE [adjflags], 1
+	jnz .istrainstation
 
 	mov al,[landscape5(di)]
 	cmp al,8
 	jbe short .istrainstation
 
 	// return, and combine this train station with the existing station
+	stc
+	ret
+.joinstnorailexist:
+	popa
+	mov cl, [adjflags+2]
+	leave
+.newst:
+	sub DWORD [esp], 8
+.ret:
 	stc
 	ret
 .istrainstation:
@@ -59,18 +74,32 @@ proc irrcheckistrainstation
 	push byte PL_RETURNCURRENT
 	call ishumanplayer
 	jne near .donebad
+	
+	mov esi, [adjflags]
+	test esi, 1
+	jz .nostjoin
+	shr esi, 16
+	imul esi, station_size
+	add esi, stationarray
+	test BYTE [esi+station.facilities], 1
+	jz near .joinstnorailexist		//no train station
+	cmp cl, [esi+station.owner]
+	jne near .donebad
+	jmp .gotstptr
+.nostjoin:
 
 	cmp byte [landscape1+edi],cl
 	jne near .donebad
-
-	// did we check this new station already?
-	or al,[newstationlengthplatforms]	// this does really test [%$org.dx],80h
-	js near .donegood	//.isgoodextension
 
 	movzx esi,byte [landscape2+edi]
 	imul esi,station_size
 	add esi,stationarray
 	// now esi = old station
+
+.gotstptr:
+	// did we check this new station already?
+	or al,[newstationlengthplatforms]	// this does really test [%$org.dx],80h
+	js near .donegood	//.isgoodextension
 
 	call getstationdimplatformslength
 
@@ -145,12 +174,12 @@ proc irrcheckistrainstation
 	mov word [newstationpos],ax
 	
 	test byte [%$orientation],1	// orientation
-	jz .notflipped2
+	jnz .notflipped2
 	xchg ch,cl
 .notflipped2:
 
-	// cl platform length
-	// ch number of platforms 
+	// ch platform length
+	// cl number of platforms 
 
 /*	shl cl,stationlengthshift
 	// for realbigstations
@@ -161,12 +190,14 @@ proc irrcheckistrainstation
 
 	or ch,cl
 	*/
-	xchg cl, ch
+//	xchg cl, ch
 	mov [newstationtracks],cx
 	
 
 	or byte [newstationlengthplatforms],0x80
-.donegood: 
+.donegood:
+	test BYTE [adjflags], 1
+	jnz NEAR .joinstnorailexist
 	stc
 	jmp short .leave
 .donebad:

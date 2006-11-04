@@ -498,6 +498,7 @@ enum langtextids {
 	CFG_CLONETRAIN,
 	CFG_TRACERESTRICT,
 	CFG_STATIONSIZE,
+	CFG_ADJSTATIONS,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS

@@ -266,6 +266,7 @@ TEXTARRAY(halflines,) =
 	  "-ZR: Prevent towns from building roads",
 	  "-ZS: Enable new sound effects",
 	  "-ZT: Allow buildings tramways",
+	  "-ZX: Enable adjacent stations",
 	  "-ZZ: Enable route tracing restrictions",
 
 	  NULL
@@ -507,6 +508,7 @@ SWITCHTEXT(newroutes, "Allows the changing of Rails and Roads through grf files"
 SWITCHTEXT(clonetrain, "Allows the cloning of a train through the depot window.", "")
 SWITCHTEXT(tracerestrict, "Enables train routetracing to be restricted", "")
 SWITCHTEXT(stationsize, "Set maximum rail station size (still limited by station spread)", "")
+SWITCHTEXT(adjacentstation, "Adjacent station building and remote merging with other stations", "")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -884,6 +886,7 @@ SETTEXT(CFG_AUTOSIGDISTANCE, "`%s' (%s) sets the separation of signals placed by
 SETTEXT(CFG_CLONETRAIN, "`%s' (%s) allows the cloning of a train through the depot window.")
 SETTEXT(CFG_TRACERESTRICT, "%s (%s) enables train routetracing to be restricted according to user criteria")
 SETTEXT(CFG_STATIONSIZE, "%s (%s) changes the maximum railway station size to the specified value, note stations are still limited by the spread switch. Range 1..255 default 255. Options: on/off/number")
+SETTEXT(CFG_ADJSTATIONS, "%s (%s) allows new station facilities to be merged to any station in range, even if it is adjacent to an existing station.")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

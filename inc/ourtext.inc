@@ -357,6 +357,11 @@ defourtext tr_nextdeporder
 
 defourtext firstpasstramarrives
 defourtext firstfreighttramarrives
+
+defourtext adjsttitle
+defourtext adjstnumstsinrange
+defourtext adjstnormstmergealgtxt
+defourtext adjstnewsttxt
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
