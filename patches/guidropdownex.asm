@@ -58,7 +58,7 @@ endvar
 struc DropDownExData
 	.parentid: resw 1
 	.parenttype: resb 1
-	.parentele: resb 1
+	.parentele: resw 1
 	.timer: resb 1
 	.mousestate: resb 1
 endstruc
@@ -83,7 +83,10 @@ exported GenerateDropDownExPrepare
 	rep stosb
 	mov word [DropDownExListItemHeight], 10
 	popa
-	btr [esi+window.activebuttons], ecx
+	push ecx
+	and ecx, 0x1F
+	btc [esi+window.activebuttons], ecx
+	pop ecx
 	ret
 
 // in:
@@ -97,12 +100,16 @@ proc GenerateDropDownEx
 	_enter
 	pusha
 	movzx ecx, cx
-	mov [%$parentele], ecx
+	mov dword [%$parentele], ecx
 	mov word [%$itemselected], dx
 
+
+	// needs to be changed for tabs
 	mov edi, ecx
 	imul edi, 0x0C
 	add edi, [esi+window.elemlistptr]
+
+
 	mov al, [edi+windowbox.bgcolor]
 	mov byte [DropDownExElements.bgcolorbox], al
 	mov byte [DropDownExElements.bgcolorslider], al
@@ -212,8 +219,8 @@ proc GenerateDropDownEx
 	mov byte [edi+window.data+DropDownExData.parenttype], cl
 	mov dx, word [%$parentid]
 	mov word [edi+window.data+DropDownExData.parentid], dx
-	mov cl, [%$parentele]
-	mov byte [esi+window.data+DropDownExData.parentele], cl
+	mov ecx, dword [%$parentele]
+	mov word [esi+window.data+DropDownExData.parentele], cx
 	
 	
 	mov dx, word [%$itemselected]
@@ -242,6 +249,7 @@ GenerateDropDownEx_close:
 	
 	mov dx, word [edi+window.data+DropDownExData.parentid]
 	movzx ecx, word [edi+window.data+DropDownExData.parentele]
+	and ecx, 0x1F
 	btr dword [esi+window.activebuttons], ecx
 	or al, 0x80
 	mov ah, cl
@@ -295,8 +303,8 @@ GenerateDropDownEx_uitick:
 	push esi
 	// generate drop down event
 	mov dl, cWinEventDropDownItemSelect
-	mov ax, word [edi+window.selecteditem]
-	mov cx, word [edi+window.data+DropDownExData.parentele]
+	movzx eax, word [edi+window.selecteditem]
+	movzx ecx, word [edi+window.data+DropDownExData.parentele]
 	
 	mov si, [edi+window.opclassoff]
 	cmp si,-1
