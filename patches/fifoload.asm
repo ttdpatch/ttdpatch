@@ -20,6 +20,8 @@ exported removeconsistfromqueue
 	jnc .done
 	pusha
 	movzx eax, byte [esi+veh.laststation]
+	cmp al, -1
+	je .exitvehloop
 	mov bx, station2_size
 	mul bx
 	mov ebx, eax
@@ -28,7 +30,7 @@ exported removeconsistfromqueue
 .vehloop:
 	cmp word [esi+veh.capacity],0
 	je .next
-	mov al, [esi+veh.cargotype]
+ 	mov al, [esi+veh.cargotype]
 	extcall ecxcargooffset_ebx2
 	extern stationarray2ofst
 	add ebx, [stationarray2ofst]
@@ -307,7 +309,7 @@ exported buildloadlists
 	xchg	esi, [ebp+edx*4]
 	test	esi, esi
 	jz	.nextveh	// No consist was in this slot
-	// There was already a consist in this slot. Put it at the end.
+ 	// There was already a consist in this slot. Put it at the end.
 	push	esi
 .nextveh:
 	sub	edi, 0-veh_size
