@@ -21,6 +21,8 @@ uvard adjblock,64
 uvard adjblocklen
 uvard adjdim
 uvard adjtile
+uvard adjaction
+uvarw adjoperrormsg1
 
 uvard stlist,256
 //bits: 0-15=num of station, 16-23=displayidx, 24-31=type: 1=station, 2=norm, 3=new, 4=cancel
@@ -555,10 +557,25 @@ clickhandler:
 .tret:
 ret
 
+global createbusstactionhook
+createbusstactionhook:
+	mov dx, 0x101
+	mov DWORD [adjaction], 0x50028
+	mov WORD [adjoperrormsg1], 0x1808
+	jmp createrailstactionhook.nocheckirr
+global createlorrystactionhook
+createlorrystactionhook:
+	mov dx, 0x101
+	mov DWORD [adjaction], 0x60028
+	mov WORD [adjoperrormsg1], 0x1809
+	jmp createrailstactionhook.nocheckirr
 global createrailstactionhook,createrailstactionhook.oldfn
 createrailstactionhook:
 	testflags irrstations
 	jnc .end
+	mov DWORD [adjaction], 0x28
+	mov WORD [adjoperrormsg1], 0x100F
+	.nocheckirr:
 	cmp DWORD [adjflags], 0
 	jne .end
 	pusha
@@ -611,7 +628,7 @@ adjstrailstfunc:
 	mov [adjflags], esi
 .fudge:
 //ugly hack approaching...
-//make sure that irrcheckistrainstation gets called by fudging temporarily L5 value
+//make sure that irrcheckistrainstation/buslorry code gets called by fudging temporarily L5 value
 	mov bl, 0x50
 	xchg [landscape4(ax,1)-0x101], bl
 	push ebx
@@ -619,7 +636,7 @@ adjstrailstfunc:
 	push DWORD .next
 .doit:
 	mov edi, [edx]
-	mov esi, 0x28
+	mov esi, [adjaction]
 	mov ebp, [edx+8]
 	mov ebx, [edx+16]
 	mov ecx, [edx+24]
@@ -629,7 +646,7 @@ adjstrailstfunc:
 	call DWORD [actionhandler]
 	cmp ebx, 0x80000000
 	jne .inret
-	mov bx, [operrormsg1]
+	mov bx, [adjoperrormsg1]
 	mov dx, [operrormsg2]
 	xor ax, ax
 	xor cx, cx
@@ -645,3 +662,27 @@ ret
 	mov DWORD [adjflags], 0
 .ret:
 ret
+
+global busstcheckadjtilehookfunc
+busstcheckadjtilehookfunc:
+	mov ah, 0x47
+jmp lorrystcheckadjtilehookfunc.busin
+
+global lorrystcheckadjtilehookfunc
+lorrystcheckadjtilehookfunc:
+	mov ah, 0x43
+.busin:
+	test BYTE [adjflags], 2
+	jnz .newst
+	test BYTE [adjflags], 1
+	jnz .joinst
+	
+	mov al,[landscape5(di)]
+	cmp al, ah
+
+ret
+.joinst:
+	mov cl, [adjflags+2]
+.newst:
+	sub DWORD [esp], 8
+	ret

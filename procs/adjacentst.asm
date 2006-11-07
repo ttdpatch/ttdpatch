@@ -4,6 +4,7 @@
 #include <window.inc>
 
 extern createrailstactionhook,createrailstactionhook.oldfn,patchflags,ophandler
+extern createbusstactionhook,createlorrystactionhook,busstcheckadjtilehookfunc,lorrystcheckadjtilehookfunc
 
 begincodefragments
 
@@ -39,6 +40,28 @@ xchg    dl, dh
 push    dx
 push    di
 
+codefragment oldcreatelorrybusstation1, -20
+mov     dx, 101h
+push    ax
+push    cx
+push    dx
+rol     cx, 8
+mov     di, cx
+rol     cx, 8
+or      di, ax
+ror     di, 4
+push    dx
+push    di
+db 0xE8 //call    sub_402031
+
+codefragment newcheckadjsttilebus1
+icall busstcheckadjtilehookfunc
+setfragmentsize 6+WINTTDX*2
+
+codefragment newcheckadjsttilelorry1
+icall lorrystcheckadjtilehookfunc
+setfragmentsize 6+WINTTDX*2
+
 endcodefragments
 
 patchproc adjacentstation, patchadjst
@@ -47,3 +70,11 @@ patchadjst:
 
 stringaddress oldcreatestfrag1
 chainfunction createrailstactionhook,.oldfn
+stringaddress oldcreatelorrybusstation1, 1, 2
+storerelative edi, createbusstactionhook
+add edi, 0xE5+WINTTDX*2
+storefragment newcheckadjsttilebus1
+stringaddress oldcreatelorrybusstation1, 2, 2
+storerelative edi, createlorrystactionhook
+add edi, 0xE5+WINTTDX*2
+storefragment newcheckadjsttilelorry1
