@@ -12,9 +12,9 @@ extern tmpbuffer1
 extern ttdtexthandler, gettextwidth
 extern resheight
 
-%assign DropDownExID 159
+%assign DropDownExID 112
 
-%assign DropDownMaxItemsVisible 15
+%assign DropDownMaxItemsVisible 8
 %assign DropDownExMax 100
 
 // Example of usage of GenerateDropDownEx* 
@@ -54,6 +54,9 @@ DropDownExElements.sliderheight:
 	dw 1000, 0
 	db cWinElemLast
 endvar
+%assign DropDownExMaxSliderWidth 10
+
+
 
 struc DropDownExData
 	.parentid: resw 1
@@ -94,9 +97,11 @@ exported GenerateDropDownExPrepare
 // dx  = selected item
 // cx  = calling ele number
 // filled DropDownExList, DropDownExListDisabled
+global GenerateDropDownEx
 proc GenerateDropDownEx
-	local parenttype,parentid,parentele,parentheight, newxy, itemselected, itemstotal
+	local parenttype,parentid,parentele,parentheight,newxy,itemselected,itemstotal
 	
+	CALLINT3
 	_enter
 	pusha
 	movzx ecx, cx
@@ -120,16 +125,19 @@ proc GenerateDropDownEx
 	mov byte [%$parenttype], al
 	
 	mov bx, word [edi+windowbox.y2]
+	add bx, word [esi+window.y]
 	mov word [%$newxy+2], bx
+	
+	mov bx, word [edi+windowbox.y2]
 	sub bx, word [edi+windowbox.y1]
 	mov word [%$parentheight], bx	// need to know if window doesn't fit anymore
 	
 	movzx ebx, word [edi+windowbox.x1]
+	add bx, word [esi+window.x]
 	mov word [%$newxy], bx
 	sub bx, word [edi+windowbox.x2]
 	neg ebx
-	
-	
+
 	// calculate the width of the texts, unsafe local vars!
 	push ebp
 	mov ebp, DropDownExList
@@ -152,11 +160,12 @@ proc GenerateDropDownEx
 .okay:
 	add ebp, 2
 	jmp .nexttext
+.nomoretext:
 	mov ecx, ebp
+
 	pop ebp
 	// unsafe local vars end
-		
-.nomoretext:
+
 	// how many items do we have?
 	sub ecx, DropDownExList
 	shr ecx, 1
@@ -178,14 +187,14 @@ proc GenerateDropDownEx
 	mov word [DropDownExElements.sliderheight], ax
 	inc ebx
 	mov word [DropDownExElements.sliderx], bx
-	add ebx, 16
+	add ebx, DropDownExMaxSliderWidth
 	mov word [DropDownExElements.sliderx+2], bx
 	// end change of element list
 
 	// create window sizes
 	inc eax
 	inc ebx
-	
+#if 0
 	// fix position if it's not well
 	mov cx, ax	// does it end below the visible area? (the status bar takes 12 pixels)
 	add cx, word [%$newxy+2]
@@ -199,7 +208,7 @@ proc GenerateDropDownEx
 	sub dx, word [%$parentheight]
 	mov word [%$newxy+2], dx
 .heightok:
-
+#endif
 	// merge sizes
 	shl eax, 16
 	or ebx, eax	
@@ -214,11 +223,13 @@ proc GenerateDropDownEx
 	pop ebp
 	mov word [esi+window.id], DropDownExID
 	mov dword [esi+window.elemlistptr], addr(DropDownExElements)
+	mov word [esi+window.flags], 0
+	
 	
 	mov cl, byte [%$parenttype]
-	mov byte [edi+window.data+DropDownExData.parenttype], cl
+	mov byte [esi+window.data+DropDownExData.parenttype], cl
 	mov dx, word [%$parentid]
-	mov word [edi+window.data+DropDownExData.parentid], dx
+	mov word [esi+window.data+DropDownExData.parentid], dx
 	mov ecx, dword [%$parentele]
 	mov word [esi+window.data+DropDownExData.parentele], cx
 	
@@ -238,12 +249,13 @@ endproc
 
 GenerateDropDownEx_close:
 	push esi
-	push edi
 	xchg esi, edi
+	push edi
 	mov cl, byte [edi+window.data+DropDownExData.parenttype]
 	mov dx, word [edi+window.data+DropDownExData.parentid]
 	mov ebx, edx
 	call [FindWindow]
+	pop edi
 	test esi,esi
 	jz .parentnotfound
 	
@@ -254,9 +266,7 @@ GenerateDropDownEx_close:
 	or al, 0x80
 	mov ah, cl
 	call [invalidatehandle]
-		
 .parentnotfound:
-	pop edi
 	pop esi
 	ret
 	
@@ -280,16 +290,14 @@ GenerateDropDownEx_winhandler:
 	
 	
 GenerateDropDownEx_uitick:
-	push edx
-	push esi
+	pusha
 	mov ax,0x8000
 	call [WindowClicked]	// release up/down scroll arrows
-	pop esi
-	pop edx
+	popa
 	
 	push esi
-	mov cl, byte [edi+window.data+DropDownExData.parenttype]
-	mov dx, word [edi+window.data+DropDownExData.parentid]
+	mov cl, byte [esi+window.data+DropDownExData.parenttype]
+	mov dx, word [esi+window.data+DropDownExData.parentid]
 	call [FindWindow]
 	mov edi, esi
 	pop esi
@@ -300,12 +308,13 @@ GenerateDropDownEx_uitick:
 	jz .checkmousedrag
 	dec byte [esi+window.data+DropDownExData.timer]
 	jnz .checkmousedrag
+	
 	push esi
 	// generate drop down event
 	mov dl, cWinEventDropDownItemSelect
-	movzx eax, word [edi+window.selecteditem]
-	movzx ecx, word [edi+window.data+DropDownExData.parentele]
-	
+	movzx eax, word [esi+window.selecteditem]
+	movzx ecx, word [esi+window.data+DropDownExData.parentele]
+	mov esi, edi
 	mov si, [edi+window.opclassoff]
 	cmp si,-1
 	je .plaincall
@@ -322,10 +331,17 @@ GenerateDropDownEx_uitick:
 	jmp [DestroyWindow]
 	
 .checkmousedrag:
-	// to be implemented
-	
+	cmp byte [esi+window.data+DropDownExData.mousestate], 1
+	je .holdingstate
+.done:
 	ret
-	
+.holdingstate:
+	cmp byte [lmbstate], 0
+	jnz .mousestillpressed
+	mov byte [esi+window.data+DropDownExData.mousestate], 0
+	ret
+.mousestillpressed:
+	ret
 	
 GenerateDropDownEx_redraw:
 	call dword [DrawWindowElements]
@@ -359,7 +375,7 @@ GenerateDropDownEx_redraw:
 	mov ecx, edx
 	mov ebx, eax
 	add bx, word [esi+window.width]
-	sub ebx, 5
+	sub ebx, 5+DropDownExMaxSliderWidth
     add edx, 9
 	xor ebp, ebp
 	call [fillrectangle]

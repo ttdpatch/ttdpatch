@@ -309,6 +309,7 @@ isstationavailable:
 
 global makestationclassdropdown
 makestationclassdropdown:
+	//jmp makestationclassdropdownex
 	mov eax,0xc000
 	xor ebx,ebx
 .loop:
@@ -336,6 +337,41 @@ makestationclassdropdown:
 	movzx dx,byte [curselclass]		// current selection
 	jmp [GenerateDropDownMenu]
 
+#if 0
+extern DropDownExList, DropDownExListDisabled
+makestationclassdropdownex:
+	extcall GenerateDropDownExPrepare
+	jnc .noolddrop
+	ret
+.noolddrop:
+	mov eax,0xc000
+	xor ebx,ebx
+.loop:
+	cmp al, 100 // DropDownExMax
+	jae .done
+	mov [DropDownExList+2*(eax-0xc000)],ax
+
+	push eax
+	movzx eax,al
+	call findstationforclass
+	pop eax
+	jnc .gotstation
+	bts [DropDownExListDisabled], eax	// mark as disabled, no stations available
+	
+.gotstation:
+	inc eax
+	cmp al, 100 //DropDownExMax
+	jae .done
+	cmp al,[numstationclasses]
+	jb .loop
+
+.done:
+	mov word [DropDownExList+2*(eax-0xc000)],-1	// terminate it
+	movzx dx,byte [curselclass]		// current selection
+	extjmp GenerateDropDownEx
+#endif
+	
+	
 uvarb stationdropdownnums,32
 
 global makestationseldropdown
