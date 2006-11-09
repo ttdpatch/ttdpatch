@@ -309,7 +309,7 @@ isstationavailable:
 
 global makestationclassdropdown
 makestationclassdropdown:
-	//jmp makestationclassdropdownex
+	jmp makestationclassdropdownex
 	mov eax,0xc000
 	xor ebx,ebx
 .loop:
@@ -337,7 +337,7 @@ makestationclassdropdown:
 	movzx dx,byte [curselclass]		// current selection
 	jmp [GenerateDropDownMenu]
 
-#if 0
+#if 1
 extern DropDownExList, DropDownExListDisabled
 makestationclassdropdownex:
 	extcall GenerateDropDownExPrepare

@@ -89,8 +89,16 @@ exported GenerateDropDownExPrepare
 	push ecx
 	and ecx, 0x1F
 	btc [esi+window.activebuttons], ecx
+	pushf
+	mov bx, [esi+window.id]
+	mov al, [esi+window.type]
+	or  al, 0x80
+	mov ah, cl
+	call [invalidatehandle]
+	popf
 	pop ecx
 	ret
+
 
 // in:
 // esi = window
@@ -101,14 +109,13 @@ global GenerateDropDownEx
 proc GenerateDropDownEx
 	local parenttype,parentid,parentele,parentheight,newxy,itemselected,itemstotal
 	
-	CALLINT3
+	//CALLINT3
 	_enter
 	pusha
 	movzx ecx, cx
 	mov dword [%$parentele], ecx
 	mov word [%$itemselected], dx
-
-
+	
 	// needs to be changed for tabs
 	mov edi, ecx
 	imul edi, 0x0C
@@ -126,18 +133,20 @@ proc GenerateDropDownEx
 	
 	mov bx, word [edi+windowbox.y2]
 	add bx, word [esi+window.y]
+	add bx, 1						// move window under the button
 	mov word [%$newxy+2], bx
 	
 	mov bx, word [edi+windowbox.y2]
 	sub bx, word [edi+windowbox.y1]
 	mov word [%$parentheight], bx	// need to know if window doesn't fit anymore
 	
-	movzx ebx, word [edi+windowbox.x1]
+	movzx ebx, word [edi+windowbox.x2]
 	add bx, word [esi+window.x]
 	mov word [%$newxy], bx
-	sub bx, word [edi+windowbox.x2]
-	neg ebx
-
+	
+	movzx ebx, word [edi+windowbox.x2]
+	sub bx, word [edi+windowbox.x1]
+	
 	// calculate the width of the texts, unsafe local vars!
 	push ebp
 	mov ebp, DropDownExList
@@ -175,12 +184,15 @@ proc GenerateDropDownEx
 	movzx eax, word [DropDownExListItemHeight]
 	mov ecx, DropDownMaxItemsVisible
 	imul ax, cx
-	
+		
 	// change the elements list
 	// ebx = width
 	// eax = height
 	add eax, 4	// pixels for borders
-	add ebx, 10	// pixels for borders and some space at the text 
+	add ebx, 10	// pixels for borders and some space at the text
+	
+	// now we know the full width, move window x to right place
+	sub word [%$newxy], bx
 	
 	mov word [DropDownExElements.boxwidth], bx
 	mov word [DropDownExElements.boxheight], ax
@@ -194,6 +206,7 @@ proc GenerateDropDownEx
 	// create window sizes
 	inc eax
 	inc ebx
+	
 #if 0
 	// fix position if it's not well
 	mov cx, ax	// does it end below the visible area? (the status bar takes 12 pixels)
@@ -209,6 +222,7 @@ proc GenerateDropDownEx
 	mov word [%$newxy+2], dx
 .heightok:
 #endif
+
 	// merge sizes
 	shl eax, 16
 	or ebx, eax	
@@ -259,9 +273,11 @@ GenerateDropDownEx_close:
 	test esi,esi
 	jz .parentnotfound
 	
-	mov dx, word [edi+window.data+DropDownExData.parentid]
+	mov bx, word [edi+window.data+DropDownExData.parentid]
+	mov al, byte [edi+window.data+DropDownExData.parenttype]
 	movzx ecx, word [edi+window.data+DropDownExData.parentele]
 	and ecx, 0x1F
+	
 	btr dword [esi+window.activebuttons], ecx
 	or al, 0x80
 	mov ah, cl
@@ -331,16 +347,22 @@ GenerateDropDownEx_uitick:
 	jmp [DestroyWindow]
 	
 .checkmousedrag:
-	cmp byte [esi+window.data+DropDownExData.mousestate], 1
-	je .holdingstate
-.done:
-	ret
-.holdingstate:
+	cmp byte [esi+window.data+DropDownExData.mousestate], 0
+	jz .done
 	cmp byte [lmbstate], 0
-	jnz .mousestillpressed
+	jnz .mousepressed
 	mov byte [esi+window.data+DropDownExData.mousestate], 0
+	mov ax, [mousecursorscrx]
+	mov bx, [mousecursorscry]
+	call GenerateDropDownEx_clickhandler
+	// we have [esi+window.data+DropDownExData.timer], 4 but maybe should be 2
 	ret
-.mousestillpressed:
+.mousepressed:
+	mov ax, [mousecursorscrx]
+	mov bx, [mousecursorscry]
+	call GenerateDropDownEx_clickhandler
+	mov byte [esi+window.data+DropDownExData.timer], 0	// undo click handler
+.done:
 	ret
 	
 GenerateDropDownEx_redraw:
@@ -415,15 +437,12 @@ GenerateDropDownEx_clickhandler:
 	jns .click
 	ret
 .click:
-#if 0
 	cmp cl, 0
-	jne .notdestroy
-	jmp [DestroyWindow]
-.notdestroy:
-#endif
+	jne .done
+	sub	bx, [esi+window.y]
+	sub bx, 2
+	js .done
 	mov ax, bx
-	sub	ax, [esi+window.y]
-	sub ax, 2
 	mov bl, 10
 //can we have a overflow here?
 	div bl
@@ -436,6 +455,6 @@ GenerateDropDownEx_clickhandler:
 	mov word [esi+window.selecteditem], ax
 	mov byte [esi+window.data+DropDownExData.timer], 4
 .nonselect:
-	movzx eax, al
 	call [RefreshWindowArea]
+.done:
 	ret
