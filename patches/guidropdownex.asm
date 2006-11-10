@@ -418,9 +418,11 @@ GenerateDropDownEx_redraw:
 	mov ecx, edx
 	mov ebx, eax
 	add bx, word [esi+window.width]
-	sub ebx, 5
+	sub ebx, 5+DropDownExMaxSliderWidth
     add edx, 9
-	mov bp, 0x8000
+	movzx ebp, byte [DropDownExElements.bgcolorbox]
+	movzx bp, byte [colorschememap+5+ebp*8]
+	or bp, 0x8000
 	call [fillrectangle]
 	popa
 .notdisabled:

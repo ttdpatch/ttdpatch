@@ -344,12 +344,16 @@ makestationclassdropdownex:
 	jnc .noolddrop
 	ret
 .noolddrop:
-	mov eax,0xc000
+	push ecx
+	xor eax,eax
 	xor ebx,ebx
 .loop:
 	cmp al, 100 // DropDownExMax
 	jae .done
-	mov [DropDownExList+2*(eax-0xc000)],ax
+	
+	mov cx, 0xc000
+	mov cl, al
+	mov word [DropDownExList+2*eax],cx
 
 	push eax
 	movzx eax,al
@@ -366,8 +370,9 @@ makestationclassdropdownex:
 	jb .loop
 
 .done:
-	mov word [DropDownExList+2*(eax-0xc000)],-1	// terminate it
+	mov word [DropDownExList+2*eax],-1	// terminate it
 	movzx dx,byte [curselclass]		// current selection
+	pop ecx
 	extjmp GenerateDropDownEx
 #endif
 	
