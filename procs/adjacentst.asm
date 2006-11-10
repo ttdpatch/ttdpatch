@@ -6,7 +6,7 @@
 
 extern createrailstactionhook,createrailstactionhook.oldfn,patchflags
 extern createbusstactionhook,createlorrystactionhook,busstcheckadjtilehookfunc,lorrystcheckadjtilehookfunc
-extern class5vehenterleavetilestchngecheckpatch
+extern class5vehenterleavetilestchngecheckpatch,buslorrystationbuilt
 
 begincodefragments
 
@@ -68,6 +68,19 @@ codefragment newclass5vehenterleavetilestchngecheckfunc1
 icall class5vehenterleavetilestchngecheckpatch
 setfragmentsize 7
 
+codefragment newbuslorrystationbuiltcondfunc1
+icall buslorrystationbuiltcondfunc
+setfragmentsize 7
+
+codefragment oldbuslorrystationbuilt1
+dw 0
+push    eax
+push    esi
+mov     esi, 0FFFFFFFFh
+push    ebx
+mov     bx, ax
+mov     eax, 1Dh
+
 endcodefragments
 
 patchproc adjacentstation, patchadjst
@@ -89,3 +102,10 @@ mov eax, [ophandler+5*8]
 mov edi, [eax+40]
 add edi, 0x4B+(0x1C*WINTTDX)
 storefragment newclass5vehenterleavetilestchngecheckfunc1
+
+stringaddress oldbuslorrystationbuilt1, 1, 2
+add edi, 2
+mov [buslorrystationbuilt], edi
+storefragment newbuslorrystationbuiltcondfunc1
+
+ret

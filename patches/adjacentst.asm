@@ -15,6 +15,8 @@ global adjflags
 
 uvard adjflags
 //bits: 0: attatch to station, 1: new station, 2: normal, 16-31: station id
+uvard adjflags2
+//bits: 0: cancel BusLorryStationBuilt, autoclear
 
 uvard adjfunc
 uvard adjblock,64
@@ -23,10 +25,13 @@ uvard adjdim
 uvard adjtile
 uvard adjaction
 uvarw adjoperrormsg1
+uvard adjtmp1
 
 uvard stlist,256
 //bits: 0-15=num of station, 16-23=displayidx, 24-31=type: 1=station, 2=norm, 3=new, 4=cancel
 uvard numinlist
+
+uvard buslorrystationbuilt
 
 %assign numrows 12
 %assign winwidth 358
@@ -561,20 +566,26 @@ global createbusstactionhook
 createbusstactionhook:
 	mov dx, 0x101
 	mov DWORD [adjaction], 0x50028
+	and DWORD [adjflags2], ~1
 	mov WORD [adjoperrormsg1], 0x1808
+	mov DWORD [adjtmp1], 1
 	jmp createrailstactionhook.nocheckirr
 global createlorrystactionhook
 createlorrystactionhook:
 	mov dx, 0x101
 	mov DWORD [adjaction], 0x60028
+	and DWORD [adjflags2], ~1
 	mov WORD [adjoperrormsg1], 0x1809
+	mov DWORD [adjtmp1], 1
 	jmp createrailstactionhook.nocheckirr
 global createrailstactionhook,createrailstactionhook.oldfn
 createrailstactionhook:
 	testflags irrstations
 	jnc .end
 	mov DWORD [adjaction], 0x28
+	and DWORD [adjflags2], ~1
 	mov WORD [adjoperrormsg1], 0x100F
+	mov DWORD [adjtmp1], 0
 	.nocheckirr:
 	cmp DWORD [adjflags], 0
 	jne .end
@@ -604,6 +615,7 @@ createrailstactionhook:
 ovar .oldfn, -4, $,createrailstactionhook
 .delay:
 	popa
+	or BYTE [adjflags2], 1
 	xor ebx, ebx
 	add esp, 4
 ret
@@ -652,6 +664,15 @@ adjstrailstfunc:
 	xor cx, cx
 	jmp dword [errorpopup]
 .inret:
+	test BYTE [adjtmp1], 1
+	jz .inret2
+	xor dl, dl
+	xchg dl, [curplayerctrlkey]
+	push edx
+	call DWORD [buslorrystationbuilt]
+	pop edx
+	mov [curplayerctrlkey], dl
+.inret2:
 ret
 
 .next:
@@ -702,4 +723,16 @@ ret
 .stc:
 	mov dl, -1
 	stc
+ret
+
+global buslorrystationbuiltcondfunc
+buslorrystationbuiltcondfunc:
+	pop edi
+	btr DWORD [adjflags2], 0
+	jc .quit
+	push eax
+	push esi
+	mov esi, -1
+	jmp edi
+.quit:
 ret
