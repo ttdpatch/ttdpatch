@@ -2,9 +2,11 @@
 #include <frag_mac.inc>
 #include <patchproc.inc>
 #include <window.inc>
+#include <ptrvar.inc>
 
-extern createrailstactionhook,createrailstactionhook.oldfn,patchflags,ophandler
+extern createrailstactionhook,createrailstactionhook.oldfn,patchflags
 extern createbusstactionhook,createlorrystactionhook,busstcheckadjtilehookfunc,lorrystcheckadjtilehookfunc
+extern class5vehenterleavetilestchngecheckpatch
 
 begincodefragments
 
@@ -62,6 +64,10 @@ codefragment newcheckadjsttilelorry1
 icall lorrystcheckadjtilehookfunc
 setfragmentsize 6+WINTTDX*2
 
+codefragment newclass5vehenterleavetilestchngecheckfunc1
+icall class5vehenterleavetilestchngecheckpatch
+setfragmentsize 7
+
 endcodefragments
 
 patchproc adjacentstation, patchadjst
@@ -78,3 +84,8 @@ stringaddress oldcreatelorrybusstation1, 2, 2
 storerelative edi, createlorrystactionhook
 add edi, 0xE5+WINTTDX*2
 storefragment newcheckadjsttilelorry1
+
+mov eax, [ophandler+5*8]
+mov edi, [eax+40]
+add edi, 0x4B+(0x1C*WINTTDX)
+storefragment newclass5vehenterleavetilestchngecheckfunc1

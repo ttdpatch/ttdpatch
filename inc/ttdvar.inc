@@ -58,6 +58,10 @@ ttdvar(desertmap,0x44cba)
 	%define landscape4(reg,large) (landscape4base+ e %+ reg)
 	%define landscape5(reg) (landscape5base+ e %+ reg)
 	%define landscape5(reg,large) (landscape5base+ e %+ reg)
+	%define landscape4_2(reg,reg2) (landscape4base+ e %+ reg + e %+ reg2)
+	%define landscape4_2(reg,reg2,large) (landscape4base+ e %+ reg + e %+ reg2)
+	%define landscape5_2(reg,reg2) (landscape5base+ e %+ reg + e %+ reg2)
+	%define landscape5_2(reg,reg2,large) (landscape5base+ e %+ reg + e %+ reg2)
 
 	%define searchend __image_base__	// where to stop searching
 #else
@@ -65,6 +69,10 @@ ttdvar(desertmap,0x44cba)
 	%define landscape4(reg,large) fs:e %+ reg
 	%define landscape5(reg) gs:reg
 	%define landscape5(reg,large) gs:e %+ reg
+	%define landscape4_2(reg,reg2) fs:reg+reg2
+	%define landscape4_2(reg,reg2,large) fs:e %+ reg + e %+ reg2
+	%define landscape5_2(reg,reg2) gs:reg+reg2
+	%define landscape5_2(reg,reg2,large) gs:e %+ reg + e %+ reg2
 
 	%define searchend [ttdmemsize]
 #endif

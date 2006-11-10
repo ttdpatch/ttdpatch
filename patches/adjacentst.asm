@@ -686,3 +686,20 @@ ret
 .newst:
 	sub DWORD [esp], 8
 	ret
+
+global class5vehenterleavetilestchngecheckpatch
+class5vehenterleavetilestchngecheckpatch:
+#if !WINTTDX
+	movzx ebx, bx
+	movzx esi, si
+#endif
+	mov dl, [landscape2+ebx]
+	cmp dl, [landscape2+ebx+esi]
+	jne .stc
+	mov dl, [landscape5_2(bx,si,1)]
+	clc
+ret
+.stc:
+	mov dl, -1
+	stc
+ret
