@@ -12,7 +12,15 @@ extern tmpbuffer1
 extern ttdtexthandler, gettextwidth
 extern resheight
 
+#if 0
+// old system, we don't touch the old DropDown Code
+%assign DropDownExType 0x2A
 %assign DropDownExID 112
+#else
+// we sit on top a normal dropdown, so we don't need to patch ttds click handling functions
+%assign DropDownExType 0x3F
+%assign DropDownExID 0
+#endif
 
 %assign DropDownMaxItemsVisible 8
 %assign DropDownExMax 100
@@ -73,7 +81,7 @@ endstruc
 // carry flag = set if the button was active already, you should surely quit your dropdown handler now
 exported GenerateDropDownExPrepare
 	pusha
-	mov cl, 0x2A
+	mov cl, DropDownExType
 	mov dx, DropDownExID
 	call [FindWindow]
 	test esi,esi
@@ -231,7 +239,7 @@ proc GenerateDropDownEx
 	
 	push ebp
 	mov ebp, addr(GenerateDropDownEx_winhandler)
-	mov cx, 0x2A			// window type
+	mov cx, DropDownExType	// window type
 	mov dx, -1				// -1 = direct handler
 	call dword [CreateWindow]
 	pop ebp
