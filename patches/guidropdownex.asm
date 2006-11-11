@@ -64,8 +64,6 @@ DropDownExElements.sliderheight:
 endvar
 %assign DropDownExMaxSliderWidth 10
 
-
-
 struc DropDownExData
 	.parentid: resw 1
 	.parenttype: resb 1
@@ -81,6 +79,23 @@ endstruc
 // carry flag = set if the button was active already, you should surely quit your dropdown handler now
 exported GenerateDropDownExPrepare
 	pusha
+	movzx eax, cl
+	lea edi, [esi+window.activebuttons]
+	
+	cmp ch, 0
+	je .notabs
+	movzx edi, ch
+	dec edi
+	imul edi, 8
+	add edi, dword [esi+window.data]
+	
+	// now [edi] = esi+window.activebuttons or tab(ch-1).activebuttons
+.notabs:
+	btr [edi], eax
+	pushf
+	
+	push ecx
+	push esi
 	mov cl, DropDownExType
 	mov dx, DropDownExID
 	call [FindWindow]
@@ -88,23 +103,30 @@ exported GenerateDropDownExPrepare
 	jz .noold
 	call [DestroyWindow]
 .noold:
+	pop esi
+	pop ecx
+	
+	popf
+	jc .wasactive	
+	bts [edi], eax
+	
+	mov bx, [esi+window.id]
+	mov al, [esi+window.type]
+	or  al, 0x80
+	mov ah, cl
+	call [invalidatehandle]
+	
 	xor eax, eax
 	mov ecx, DropDownExMax/8
 	mov edi, DropDownExListDisabled
 	rep stosb
 	mov word [DropDownExListItemHeight], 10
 	popa
-	push ecx
-	and ecx, 0x1F
-	btc [esi+window.activebuttons], ecx
-	pushf
-	mov bx, [esi+window.id]
-	mov al, [esi+window.type]
-	or  al, 0x80
-	mov ah, cl
-	call [invalidatehandle]
-	popf
-	pop ecx
+	clc
+	ret
+.wasactive:
+	popa
+	stc
 	ret
 
 
@@ -123,12 +145,24 @@ proc GenerateDropDownEx
 	movzx ecx, cx
 	mov dword [%$parentele], ecx
 	mov word [%$itemselected], dx
-	
-	// needs to be changed for tabs
-	mov edi, ecx
-	imul edi, 0x0C
-	add edi, [esi+window.elemlistptr]
 
+	
+	// Tab support, see DropDownMenuGetElements in wintabs.asm for general function
+	mov eax, [esi+window.elemlistptr]
+	cmp ch, 0 
+	je .notab
+	mov dh, cWinDataTabs
+	extcall FindWindowData
+	// edi pointer to data
+	jc .notab
+	movzx eax, byte [esi+window.selecteditem]	// Get the active tab
+	imul eax, 4
+	mov edi, dword [edi]
+	mov eax, dword [edi+eax]					// Get the elemlistptr to this tab
+.notab:
+	movzx edi, cl
+	imul edi, 0x0C
+	add edi, eax
 
 	mov al, [edi+windowbox.bgcolor]
 	mov byte [DropDownExElements.bgcolorbox], al
@@ -271,22 +305,34 @@ endproc
 
 GenerateDropDownEx_close:
 	push esi
-	xchg esi, edi
+	mov edi, esi
 	push edi
 	mov cl, byte [edi+window.data+DropDownExData.parenttype]
 	mov dx, word [edi+window.data+DropDownExData.parentid]
-	mov ebx, edx
 	call [FindWindow]
 	pop edi
 	test esi,esi
 	jz .parentnotfound
 	
+	push ecx
+	movzx ecx, word [edi+window.data+DropDownExData.parentele]
+	
+	lea eax, [esi+window.activebuttons]
+	cmp ch, 0
+	je .notabs
+	movzx eax, ch
+	dec eax
+	imul eax, 8
+	add eax, dword [esi+window.data]
+	
+	// now [eax] = esi+window.activebuttons or tab(ch-1).activebuttons
+.notabs:
+	movzx ecx, cl
+	btr [eax], ecx
+	pop ecx
+	
 	mov bx, word [edi+window.data+DropDownExData.parentid]
 	mov al, byte [edi+window.data+DropDownExData.parenttype]
-	movzx ecx, word [edi+window.data+DropDownExData.parentele]
-	and ecx, 0x1F
-	
-	btr dword [esi+window.activebuttons], ecx
 	or al, 0x80
 	mov ah, cl
 	call [invalidatehandle]
