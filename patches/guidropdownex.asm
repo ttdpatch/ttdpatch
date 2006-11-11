@@ -23,7 +23,7 @@ extern resheight
 #endif
 
 %assign DropDownMaxItemsVisible 8
-%assign DropDownExMax 100
+%assign DropDownExMax MAXDROPDOWNEXENTRIES
 
 // Example of usage of GenerateDropDownEx* 
 // you need esi = window  ecx = element nr that is calling
@@ -40,6 +40,8 @@ extern resheight
 
 // Needs to be filled after prepare
 uvarw DropDownExListItemHeight
+uvarw DropDownExListItemExtraWidth
+uvard DropDownExListItemDrawCallback
 uvarw DropDownExList, DropDownExMax+1
 uvarb DropDownExListDisabled, DropDownExMax/8+1
 
@@ -121,6 +123,8 @@ exported GenerateDropDownExPrepare
 	mov edi, DropDownExListDisabled
 	rep stosb
 	mov word [DropDownExListItemHeight], 10
+	mov word [DropDownExListItemExtraWidth], 0
+	mov dword [DropDownExListItemDrawCallback], 0
 	popa
 	clc
 	ret
@@ -232,7 +236,7 @@ proc GenerateDropDownEx
 	// eax = height
 	add eax, 4	// pixels for borders
 	add ebx, 10	// pixels for borders and some space at the text
-	
+	add bx, word [DropDownExListItemExtraWidth]
 	// now we know the full width, move window x to right place
 	sub word [%$newxy], bx
 	
@@ -249,7 +253,6 @@ proc GenerateDropDownEx
 	inc eax
 	inc ebx
 	
-#if 0
 	// fix position if it's not well
 	mov cx, ax	// does it end below the visible area? (the status bar takes 12 pixels)
 	add cx, word [%$newxy+2]
@@ -263,7 +266,6 @@ proc GenerateDropDownEx
 	sub dx, word [%$parentheight]
 	mov word [%$newxy+2], dx
 .heightok:
-#endif
 
 	// merge sizes
 	shl eax, 16
@@ -438,7 +440,7 @@ GenerateDropDownEx_redraw:
 	je near .done
 	
 	cmp word [DropDownExList+ebx*2], 0
-	je .next
+	je near .next
 	
 	mov al, 0x10	//cTextColorBlack
 	cmp bx, [esi+window.selecteditem]
@@ -452,7 +454,8 @@ GenerateDropDownEx_redraw:
 	mov ebx, eax
 	add bx, word [esi+window.width]
 	sub ebx, 5+DropDownExMaxSliderWidth
-    add edx, 9
+    add dx, word [DropDownExListItemHeight]
+	dec edx
 	xor ebp, ebp
 	call [fillrectangle]
 	popa
@@ -460,6 +463,13 @@ GenerateDropDownEx_redraw:
 	
 	pusha
 	add cx, 2
+	cmp dword [DropDownExListItemDrawCallback], 0
+	je .nocallback
+	pusha
+	call [DropDownExListItemDrawCallback]
+	popa
+.nocallback:
+	add cx, word [DropDownExListItemExtraWidth]
 	movzx ebx, word [DropDownExList+ebx*2]
 	call [drawtextfn]
 	popa
@@ -473,7 +483,8 @@ GenerateDropDownEx_redraw:
 	mov ebx, eax
 	add bx, word [esi+window.width]
 	sub ebx, 5+DropDownExMaxSliderWidth
-    add edx, 9
+    add dx, word [DropDownExListItemHeight]
+	dec edx
 	movzx ebp, byte [DropDownExElements.bgcolorbox]
 	movzx bp, byte [colorschememap+5+ebp*8]
 	or bp, 0x8000
@@ -499,7 +510,7 @@ GenerateDropDownEx_clickhandler:
 	sub bx, 2
 	js .done
 	mov ax, bx
-	mov bl, 10
+	mov bx, word [DropDownExListItemHeight]
 //can we have a overflow here?
 	div bl
 	movzx eax, al

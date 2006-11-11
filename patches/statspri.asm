@@ -306,7 +306,8 @@ isstationavailable:
 .done:
 	mov dh,0
 	ret
-
+	
+#if 0
 global makestationclassdropdown
 makestationclassdropdown:
 	jmp makestationclassdropdownex
@@ -337,9 +338,10 @@ makestationclassdropdown:
 	movzx dx,byte [curselclass]		// current selection
 	jmp [GenerateDropDownMenu]
 
-#if 1
+#else
+
 extern DropDownExList, DropDownExListDisabled
-makestationclassdropdownex:
+exported makestationclassdropdown
 	extcall GenerateDropDownExPrepare
 	jnc .noolddrop
 	ret
@@ -348,7 +350,7 @@ makestationclassdropdownex:
 	xor eax,eax
 	xor ebx,ebx
 .loop:
-	cmp al, 100 // DropDownExMax
+	cmp al, MAXDROPDOWNEXENTRIES
 	jae .done
 	
 	mov cx, 0xc000
@@ -364,7 +366,7 @@ makestationclassdropdownex:
 	
 .gotstation:
 	inc eax
-	cmp al, 100 //DropDownExMax
+	cmp al, MAXDROPDOWNEXENTRIES
 	jae .done
 	cmp al,[numstationclasses]
 	jb .loop
@@ -377,7 +379,100 @@ makestationclassdropdownex:
 #endif
 	
 	
-uvarb stationdropdownnums,32
+uvarb stationdropdownnums,255
+#if 1
+extern DropDownExListItemHeight
+extern DropDownExListItemExtraWidth
+extern DropDownExListItemDrawCallback
+
+exported makestationseldropdown
+	extcall GenerateDropDownExPrepare
+	jnc .noolddrop
+	ret
+.noolddrop:
+	mov word [DropDownExListItemExtraWidth], 38
+	mov word [DropDownExListItemHeight], 32
+	xor eax,eax
+	mov bl,[curselclass]
+	mov bh,-1
+	xor edx,edx
+.loop:
+	cmp al,MAXDROPDOWNEXENTRIES
+	jae .done
+
+	cmp [stationclass+edx],bl
+	jne .next
+
+	call isstationavailable
+	jc .next
+
+	mov [DropDownExList+eax*2],dl
+	mov byte [DropDownExList+1+eax*2],0xc1
+	mov [stationdropdownnums+eax],dl
+
+	cmp dl,[curselstation]
+	jne .notcur
+
+	mov bh,al
+
+.notcur:
+	inc eax
+
+.next:
+	cmp al,MAXDROPDOWNEXENTRIES
+	jae .done
+	inc edx
+	cmp edx,[newstationnum]
+	jbe .loop
+
+.done:
+	mov word [DropDownExList+2*eax],-1	// terminate it
+	movzx edx,bh		// current selection
+	mov dword [DropDownExListItemDrawCallback], makestationseldropdown_callback
+	extjmp GenerateDropDownEx
+
+// in cx, dx (x,y)
+makestationseldropdown_callback:
+	push edi
+	// create temp screen description
+	pusha
+	mov edi, baTempBuffer1
+	mov byte [edi], 0
+	//	DX,BX = X,Y CX,BP = width,height
+	mov ebx, edx
+	mov edx, ecx
+	mov cx, 64
+	mov bp, 48
+
+	call [MakeTempScrnBlockDesc]
+	popa
+	jz .invalid
+	mov edi, baTempBuffer1
+	mov word [edi+scrnblockdesc.zoom], 1
+	shl word [edi+scrnblockdesc.x], 1
+	shl word [edi+scrnblockdesc.y], 1
+	shl word [edi+scrnblockdesc.width], 1
+	shl word [edi+scrnblockdesc.height], 1
+	pusha
+	mov al, byte [curselstation]
+	push eax
+	mov bl, byte [stationdropdownnums+ebx]
+	mov byte [curselstation], bl
+	mov bl, 2
+	mov al, [currconstrtooltracktype]
+	mov eax, [stationdropdownnums]
+	add cx, 18
+	add dx, 16
+	shl cx, 1
+	shl dx, 1
+	call [DrawStationImageInSelWindow]
+	pop eax
+	mov byte [curselstation], al
+	popa
+.invalid:
+	pop edi
+	ret
+#else
 
 global makestationseldropdown
 makestationseldropdown:
@@ -419,6 +514,7 @@ makestationseldropdown:
 	movzx edx,bh		// current selection
 	xor ebx,ebx		// everything available
 	jmp [GenerateDropDownMenu]
+#endif
 
 global stationseldropdownclick
 stationseldropdownclick:
