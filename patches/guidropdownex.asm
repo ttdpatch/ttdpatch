@@ -124,7 +124,7 @@ exported GenerateDropDownExPrepare
 	mov word [DropDownExListItemExtraWidth], 0
 	mov dword [DropDownExListItemDrawCallback], 0
 	mov byte [DropDownExMaxItemsVisible], 8
-	mov byte [DropDownExFlags], 0b	// set auto shrink to default
+	mov byte [DropDownExFlags], 1b	// set auto shrink to default
 	popa
 	clc
 	ret

@@ -13,6 +13,7 @@
 #include <ptrvar.inc>
 #include <newvehdata.inc>
 #include <imports/dropdownex.inc>
+#include <bitvars.inc>
 
 extern GenerateDropDownMenu,actionhandler
 extern actionnewstations_actionnum,cantrainenterstattile,canrventerrailstattile,cleartilefn
@@ -387,10 +388,17 @@ exported makestationseldropdown
 	jnc .noolddrop
 	ret
 .noolddrop:
+	test byte [expswitches],EXP_PREVIEWDD
+	jnz .preview
+	mov word [DropDownExMaxItemsVisible], 12
+	jmp .setupdone
+.preview:
 	mov word [DropDownExListItemExtraWidth], 38
 	mov word [DropDownExListItemHeight], 27
 	mov word [DropDownExMaxItemsVisible], 6
 	mov word [DropDownExFlags], 11b
+	mov dword [DropDownExListItemDrawCallback], makestationseldropdown_callback
+.setupdone:
 	xor eax,eax
 	mov bl,[curselclass]
 	mov bh,-1
@@ -427,7 +435,6 @@ exported makestationseldropdown
 .done:
 	mov word [DropDownExList+2*eax],-1	// terminate it
 	movzx edx,bh		// current selection
-	mov dword [DropDownExListItemDrawCallback], makestationseldropdown_callback
 	extjmp GenerateDropDownEx
 
 // in cx, dx (x,y)
