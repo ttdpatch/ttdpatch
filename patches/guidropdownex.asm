@@ -185,14 +185,24 @@ proc GenerateDropDownEx
 	mov bx, word [edi+windowbox.y2]
 	sub bx, word [edi+windowbox.y1]
 	mov word [%$parentheight], bx	// need to know if window doesn't fit anymore
-	
+
+#if 0	
 	movzx ebx, word [edi+windowbox.x2]
 	add bx, word [esi+window.x]
 	mov word [%$newxy], bx
 	
 	movzx ebx, word [edi+windowbox.x2]
 	sub bx, word [edi+windowbox.x1]
-	
+#else 
+	movzx ebx, word [edi+windowbox.x1-0x0C]
+	add bx, word [esi+window.x]
+	mov word [%$newxy], bx
+
+	movzx ebx, word [edi+windowbox.x2]
+	sub bx, word [edi+windowbox.x1-0x0C]
+	sub bx, word [DropDownExListItemExtraWidth]
+#endif
+
 	// calculate the width of the texts, unsafe local vars!
 	push ebp
 	mov ebp, DropDownExList
@@ -262,8 +272,10 @@ proc GenerateDropDownEx
 	add ebx, 6	// pixels for borders and some space at the text
 	add bx, word [DropDownExListItemExtraWidth]
 	// now we know the full width, move window x to right place
+#if 0
 	sub word [%$newxy], bx
-	
+#endif
+
 	mov word [DropDownExElements.boxwidth], bx
 	mov word [DropDownExElements.boxheight], ax
 	mov word [DropDownExElements.sliderheight], ax
