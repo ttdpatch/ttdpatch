@@ -958,7 +958,7 @@ ret
 	
 	movzx ecx,cl
 	bt DWORD [esi+window.disabledbuttons], ecx
-	jc .ret
+	jc NEAR .ret
 
 	or cl,cl // Was the Close Window Button Pressed
 	jnz .notdestroywindow // Close the Window
@@ -974,13 +974,13 @@ ret
 	je .ret
 
 	cmp cl, 4
-	je .ret
+	je NEAR .ddl1
 	
 	cmp cl, 5
 	je NEAR .ddl1
 	
 	cmp cl, 6
-	je .ret
+	je NEAR .ddl2
 	
 	cmp cl, 7
 	je NEAR .ddl2
@@ -1117,6 +1117,7 @@ ret
 	movzx dx, BYTE [ebx-1+edx]
 .ddl1_nomoddx:
  	xor ebx, ebx
+ 	mov ecx, 5
 	jmp dword [GenerateDropDownMenu]
 
 .ddl2:
@@ -1149,6 +1150,7 @@ ret
 	mov dword [tempvar+8], ebx
 	mov word [tempvar+12], 0xFFFF
  	xor ebx, ebx
+ 	mov ecx, 7
 	jmp dword [GenerateDropDownMenu]
 
 .ddl1_action:
@@ -1232,9 +1234,9 @@ ret
 	call countrows
 .ddl1_action_noinit:
 	inc eax
-	mov edx, eax
+	mov ecx, eax
 	xchg [ebx+robj.varid],al
-	mov dl, [edx+var_compat_id-1]	//new var
+	mov dl, [ecx+var_compat_id-1]	//new var
 	mov dh, [eax+var_compat_id-1]	//old var
 	cmp dl, dh
 	je .noclearvalue
@@ -1242,8 +1244,13 @@ ret
 	je .ddl1_action_convert_mph_kph
 	cmp dx, 0x0107
 	je .ddl1_action_convert_kph_mph
-	and BYTE [ebx+robj.flags],~1
-	mov BYTE [ebx+robj.type],0
+	and BYTE [ebx+robj.flags], ~1
+	xor al, al
+	test BYTE [var_flags-1+ecx], 32
+	jnz .nosetdefopis
+	mov al, 5
+.nosetdefopis:
+	mov BYTE [ebx+robj.type], al
 .noclearvalue:
 	mov edx, ebx
 	jmp updatebuttons.noddlcheck
