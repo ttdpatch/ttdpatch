@@ -89,6 +89,9 @@ newvehtypeinit:
 	pop es
 	mov [activatetype],ah
 
+	testflags fifoloading
+	jnc .nosavefifo
+	
 	test ah, ah
 	jz .nosavefifo
 
