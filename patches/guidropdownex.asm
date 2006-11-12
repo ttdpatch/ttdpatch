@@ -12,17 +12,10 @@ extern tmpbuffer1
 extern ttdtexthandler, gettextwidth
 extern resheight
 
-#if 0
-// old system, we don't touch the old DropDown Code
-%assign DropDownExType 0x2A
-%assign DropDownExID 112
-#else
 // we sit on top a normal dropdown, so we don't need to patch ttds click handling functions
 %assign DropDownExType 0x3F
 %assign DropDownExID 0
-#endif
 
-%assign DropDownMaxItemsVisible 8
 %assign DropDownExMax MAXDROPDOWNEXENTRIES
 
 // Example of usage of GenerateDropDownEx* 
@@ -42,6 +35,9 @@ extern resheight
 uvarw DropDownExListItemHeight
 uvarw DropDownExListItemExtraWidth
 uvard DropDownExListItemDrawCallback
+uvarb DropDownExMaxItemsVisible
+uvarw DropDownExFlags
+
 uvarw DropDownExList, DropDownExMax+1
 uvarb DropDownExListDisabled, DropDownExMax/8+1
 
@@ -54,7 +50,9 @@ DropDownExElements.bgcolorbox:
 DropDownExElements.boxwidth:
 	dw 1000, 0,
 DropDownExElements.boxheight:
-	dw 1000, 0
+	dw 1000
+DropDownExElements.flagsentries:
+	dw 0
 	db cWinElemSlider
 DropDownExElements.bgcolorslider:
 	db cColorSchemeDarkBlue
@@ -125,6 +123,8 @@ exported GenerateDropDownExPrepare
 	mov word [DropDownExListItemHeight], 10
 	mov word [DropDownExListItemExtraWidth], 0
 	mov dword [DropDownExListItemDrawCallback], 0
+	mov byte [DropDownExMaxItemsVisible], 8
+	mov byte [DropDownExFlags], 0b	// set auto shrink to default
 	popa
 	clc
 	ret
@@ -207,6 +207,7 @@ proc GenerateDropDownEx
 	popa
 	mov esi, edi
 	push ebx
+	mov word [currentfont], 0
 	call [gettextwidth]
 	pop ebx
 	cmp cx, bx
@@ -226,16 +227,39 @@ proc GenerateDropDownEx
 	shr ecx, 1
 	mov dword [%$itemstotal], ecx
 
+	bt word [DropDownExFlags], 0
+	jnc .noautoshrink
+	cmp cl, byte [DropDownExMaxItemsVisible]
+	jae .noautoshrink
+	mov byte [DropDownExMaxItemsVisible], cl
+.noautoshrink:
+
 	// calculate the height of the window
 	movzx eax, word [DropDownExListItemHeight]
-	mov ecx, DropDownMaxItemsVisible
+	movzx ecx, byte [DropDownExMaxItemsVisible]
+	
+	// change for devider
+	mov byte [DropDownExElements], cWinElemSpriteBox
+	mov word [DropDownExElements.flagsentries], 0
+	bt word [DropDownExFlags], 1
+	jnc .nodivider
+	mov byte [DropDownExElements], cWinElemTiledBox
+ 	mov byte [DropDownExElements.flagsentries], 1
+	//mov cl, byte [DropDownExMaxItemsVisible]
+	mov byte [DropDownExElements.flagsentries+1], cl
+	add eax, 2
+.nodivider:
 	imul ax, cx
-		
 	// change the elements list
 	// ebx = width
 	// eax = height
+	
+	bt word [DropDownExFlags], 1
+	jc .divider
 	add eax, 4	// pixels for borders
-	add ebx, 10	// pixels for borders and some space at the text
+.divider:
+
+	add ebx, 6	// pixels for borders and some space at the text
 	add bx, word [DropDownExListItemExtraWidth]
 	// now we know the full width, move window x to right place
 	sub word [%$newxy], bx
@@ -247,6 +271,9 @@ proc GenerateDropDownEx
 	mov word [DropDownExElements.sliderx], bx
 	add ebx, DropDownExMaxSliderWidth
 	mov word [DropDownExElements.sliderx+2], bx
+	
+
+
 	// end change of element list
 
 	// create window sizes
@@ -296,8 +323,22 @@ proc GenerateDropDownEx
 	mov word [esi+window.selecteditem], dx
 	mov dx, word [%$itemstotal]
 	mov byte [esi+window.itemstotal], dl
-	mov byte [esi+window.itemsvisible], DropDownMaxItemsVisible
+	mov dl, [DropDownExMaxItemsVisible]
+	mov byte [esi+window.itemsvisible], dl
+	
+	// set to old position to old selected item
+	mov al, [esi+window.selecteditem]
+	mov byte [esi+window.itemsoffset], al
+	add al, [esi+window.itemsvisible]
+	cmp al, [esi+window.itemstotal]
+	jbe .itemokay
 	mov byte [esi+window.itemsoffset], 0
+	mov al, [esi+window.itemstotal]
+	sub al, [esi+window.itemsvisible]
+	jna .itemokay
+	mov [esi+window.itemsoffset], al
+.itemokay:
+		
 	// enable mouse tracking
 	mov byte [esi+window.data+DropDownExData.timer], 0
 	mov byte [esi+window.data+DropDownExData.mousestate], 1
@@ -331,13 +372,13 @@ GenerateDropDownEx_close:
 .notabs:
 	movzx ecx, cl
 	btr [eax], ecx
-	pop ecx
-	
+
 	mov bx, word [edi+window.data+DropDownExData.parentid]
 	mov al, byte [edi+window.data+DropDownExData.parenttype]
 	or al, 0x80
 	mov ah, cl
 	call [invalidatehandle]
+	pop ecx
 .parentnotfound:
 	pop esi
 	ret
@@ -351,11 +392,6 @@ GenerateDropDownEx_winhandler:
 	jz near GenerateDropDownEx_clickhandler
 	cmp dl, cWinEventClose
 	jz GenerateDropDownEx_close
-	cmp dl, cWinEventTimer
-//	jz GenerateDropDownEx_timer
-	cmp dl, cWinEventSecTick
-//	jz GenerateDropDownEx_sectick
-
 	cmp dl,cWinEventUITick
 	jz GenerateDropDownEx_uitick
 	ret
@@ -426,7 +462,11 @@ GenerateDropDownEx_redraw:
 	mov cx, [esi+window.x]
 	add cx, 1
 	mov dx, [esi+window.y]
-	add dx, 2
+	inc dx
+	bt word [DropDownExFlags], 1
+	jc .divider
+	inc dx
+.divider:
 
 	mov edi, [currscreenupdateblock]
 	movzx ebx, byte [esi+window.itemsoffset]
@@ -441,7 +481,7 @@ GenerateDropDownEx_redraw:
 	
 	cmp word [DropDownExList+ebx*2], 0
 	je near .next
-	
+		
 	mov al, 0x10	//cTextColorBlack
 	cmp bx, [esi+window.selecteditem]
 	jne .notelected
@@ -460,7 +500,7 @@ GenerateDropDownEx_redraw:
 	call [fillrectangle]
 	popa
 .notelected:
-	
+
 	pusha
 	add cx, 2
 	cmp dword [DropDownExListItemDrawCallback], 0
@@ -470,6 +510,10 @@ GenerateDropDownEx_redraw:
 	popa
 .nocallback:
 	add cx, word [DropDownExListItemExtraWidth]
+	mov bp, word [DropDownExListItemHeight]
+	sub bp, 10
+	shr bp, 1
+	add dx, bp
 	movzx ebx, word [DropDownExList+ebx*2]
 	call [drawtextfn]
 	popa
@@ -493,6 +537,10 @@ GenerateDropDownEx_redraw:
 .notdisabled:
 .next:
  	add dx, word [DropDownExListItemHeight]
+	bt word [DropDownExFlags], 1
+	jnc .nodivider
+	add dx, 2
+.nodivider:
 	inc ebx
 	cmp ebx, ebp
 	jne near .start

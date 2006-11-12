@@ -12,6 +12,7 @@
 #include <misc.inc>
 #include <ptrvar.inc>
 #include <newvehdata.inc>
+#include <imports/dropdownex.inc>
 
 extern GenerateDropDownMenu,actionhandler
 extern actionnewstations_actionnum,cantrainenterstattile,canrventerrailstattile,cleartilefn
@@ -340,7 +341,6 @@ makestationclassdropdown:
 
 #else
 
-extern DropDownExList, DropDownExListDisabled
 exported makestationclassdropdown
 	extcall GenerateDropDownExPrepare
 	jnc .noolddrop
@@ -375,23 +375,22 @@ exported makestationclassdropdown
 	mov word [DropDownExList+2*eax],-1	// terminate it
 	movzx dx,byte [curselclass]		// current selection
 	pop ecx
+	mov word [DropDownExMaxItemsVisible], 16
 	extjmp GenerateDropDownEx
 #endif
 	
 	
 uvarb stationdropdownnums,255
 #if 1
-extern DropDownExListItemHeight
-extern DropDownExListItemExtraWidth
-extern DropDownExListItemDrawCallback
-
 exported makestationseldropdown
 	extcall GenerateDropDownExPrepare
 	jnc .noolddrop
 	ret
 .noolddrop:
 	mov word [DropDownExListItemExtraWidth], 38
-	mov word [DropDownExListItemHeight], 32
+	mov word [DropDownExListItemHeight], 27
+	mov word [DropDownExMaxItemsVisible], 6
+	mov word [DropDownExFlags], 11b
 	xor eax,eax
 	mov bl,[curselclass]
 	mov bh,-1
@@ -442,7 +441,7 @@ makestationseldropdown_callback:
 	mov ebx, edx
 	mov edx, ecx
 	mov cx, 64
-	mov bp, 48
+	mov bp, 40
 
 	call [MakeTempScrnBlockDesc]
 	popa
@@ -460,9 +459,8 @@ makestationseldropdown_callback:
 	mov byte [curselstation], bl
 	mov bl, 2
 	mov al, [currconstrtooltracktype]
-	mov eax, [stationdropdownnums]
 	add cx, 18
-	add dx, 16
+	add dx, 12		// 16
 	shl cx, 1
 	shl dx, 1
 	call [DrawStationImageInSelWindow]
