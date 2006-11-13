@@ -1012,6 +1012,8 @@ proc newbuyrailvehicle
 	jz .notreally
 	mov esi,edi
 	call consistcallbacks
+	cmp byte [buildingroadvehicle], 1
+	je .notreally
 	pusha
 	mov eax,[esi+veh.veh2ptr]
 	movzx ebp,word [eax+veh2.fullweight]
