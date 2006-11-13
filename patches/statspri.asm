@@ -390,12 +390,12 @@ exported makestationseldropdown
 .noolddrop:
 	test byte [expswitches],EXP_PREVIEWDD
 	jnz .preview
-	mov word [DropDownExMaxItemsVisible], 12
+	mov byte [DropDownExMaxItemsVisible], 12
 	jmp .setupdone
 .preview:
 	mov word [DropDownExListItemExtraWidth], 38
 	mov word [DropDownExListItemHeight], 27
-	mov word [DropDownExMaxItemsVisible], 6
+	mov byte [DropDownExMaxItemsVisible], 6
 	mov word [DropDownExFlags], 11b
 	mov dword [DropDownExListItemDrawCallback], makestationseldropdown_callback
 .setupdone:
