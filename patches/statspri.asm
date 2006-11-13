@@ -376,7 +376,7 @@ exported makestationclassdropdown
 	mov word [DropDownExList+2*eax],-1	// terminate it
 	movzx dx,byte [curselclass]		// current selection
 	pop ecx
-	mov word [DropDownExMaxItemsVisible], 16
+	mov byte [DropDownExMaxItemsVisible], 16 // Changed the word to a byte to match var size (Lakie)
 	extjmp GenerateDropDownEx
 #endif
 	
