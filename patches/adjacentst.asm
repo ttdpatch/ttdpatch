@@ -713,16 +713,16 @@ class5vehenterleavetilestchngecheckpatch:
 #if !WINTTDX
 	movzx ebx, bx
 	movzx esi, si
+	cmp dl, 0x50
+	jne .stc
 #endif
 	mov dl, [landscape2+ebx]
 	cmp dl, [landscape2+ebx+esi]
 	jne .stc
 	mov dl, [landscape5_2(bx,si,1)]
-	clc
 ret
 .stc:
 	mov dl, -1
-	stc
 ret
 
 global buslorrystationbuiltcondfunc

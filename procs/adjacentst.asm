@@ -66,7 +66,7 @@ setfragmentsize 6+WINTTDX*2
 
 codefragment newclass5vehenterleavetilestchngecheckfunc1
 icall class5vehenterleavetilestchngecheckpatch
-setfragmentsize 7
+setfragmentsize 6+WINTTDX*1
 
 codefragment newbuslorrystationbuiltcondfunc1
 icall buslorrystationbuiltcondfunc
@@ -100,7 +100,7 @@ storefragment newcheckadjsttilelorry1
 
 mov eax, [ophandler+5*8]
 mov edi, [eax+40]
-add edi, 0x4B+(0x1C*WINTTDX)
+add edi, 0x49+(0x1E*WINTTDX)
 storefragment newclass5vehenterleavetilestchngecheckfunc1
 
 stringaddress oldbuslorrystationbuilt1, 1, 2
