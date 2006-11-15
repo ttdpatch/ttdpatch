@@ -1416,9 +1416,9 @@ drawtextlen:
 .done:
 	popa
 
-	mov bx, statictext(special1)
-	mov dword [specialtext1], tmpbuffer1
-	jmp [drawtextfn]
+	mov esi, tmpbuffer1
+	extern drawstringfn
+	jmp [drawstringfn]
 
 global getwincolorfromdoscolor
 getwincolorfromdoscolor:
