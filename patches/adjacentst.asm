@@ -712,7 +712,7 @@ global class5vehenterleavetilestchngecheckpatch
 class5vehenterleavetilestchngecheckpatch:
 #if !WINTTDX
 	movzx ebx, bx
-	movzx esi, si
+	movsx esi, si
 	cmp dl, 0x50
 	jne .stc
 #endif
