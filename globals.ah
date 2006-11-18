@@ -126,6 +126,7 @@ uvard MPtimeout,1,s
 
 uvard getymd,1,s		// Index to function getymd. In ax=[0]; Out al=Y-1920, dl=M, bl=D
 uvard getfullymd,1,s		// Alt. entry point to get uncapped Y-1920 in EAX with eternalgame
+uvard getlongymd,1,s		// Same but with full 32-bit date in EAX
 uvard loadchunkfn,1,s		// Load a chunk of game data
 uvard savechunkfn,1,s		// Save a chunk of game data
 uvard calcprofitfn,1,s		// Function to calculate cargo transit profit

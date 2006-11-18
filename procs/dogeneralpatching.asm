@@ -171,6 +171,7 @@ codefragment findgetymd,-2
 reusecodefragment oldprintdate,findgetymd,-3
 
 codefragment newprintdate
+	movzx eax,ax
 	call runindex(getyear4fromdate)
 	add eax,1920		// over the entire 32-bit range
 	sub ax,1920		// both date printing functions do ADD AX,1920 later
@@ -181,6 +182,8 @@ codefragment newgetymd
 getymd.wordyearentryoffset equ $-fragmentstart
 	push addr(reduceyeartoword)	// same here
 getymd.fullyearentryoffset equ $-fragmentstart
+	movzx eax,ax
+getymd.longdateentryoffset equ $-fragmentstart
 	call runindex(getyear4fromdate)
 	setfragmentsize 24,1
 
@@ -1526,6 +1529,7 @@ dogeneralpatching:
 
 	storeaddress findgetymd,3,3,getymd
 	mov [getfullymd],edi
+	mov [getlongymd],edi
 
 	call initializekeymap
 
@@ -2236,6 +2240,9 @@ patcheternalgame:
 	mov edi,[getymd]
 	lea eax,[edi+getymd.fullyearentryoffset]
 	mov [getfullymd],eax
+	lea eax,[edi+getymd.longdateentryoffset]
+	extern getlongymd
+	mov [getlongymd],eax
 	storefragment newgetymd
 	patchcode oldisnewyear,newisnewyear,1,1
 	patchcode oldgetdisasteryear,newgetdisasteryear,1,1

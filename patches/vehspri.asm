@@ -601,11 +601,38 @@ shiptopspeed:
 	//	ecx=num-info
 	//	edx->feature specific data offset
 	//	esi=>data
+	//	ebp=feature
 	// out:	esi=>after data
 	//	carry clear if successful
 	//	carry set if error, then ax=error message
-	// safe:eax ebx ecx edx edi
+	// safe:eax ebx ecx edx edi ebp
 
+exported longintrodate
+	extern vehtypedataptr,vehbase
+	movzx edx,byte [vehbase+ebp]
+	add ebx,edx
+	imul edx,ebx,vehtypeinfo_size
+	add edx,[vehtypedataptr]
+	lea edi,[vehlongintrodate+ebx*4]
+.next:
+	lodsd
+	stosd
+	sub eax,701265	// 1920
+	jge .notbefore
+
+	xor eax,eax
+
+.notbefore:
+	cmp eax,0xb000	// 2044
+	jb .ok
+
+	mov ax,0xb000
+
+.ok:
+	mov [edx],ax
+	add edx,vehtypeinfo_size
+	loop .next
+	ret
 
 global shuffletrainveh
 shuffletrainveh:	// shuffle vehicle
