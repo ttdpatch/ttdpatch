@@ -394,8 +394,8 @@ exported makestationseldropdown
 	jmp .setupdone
 .preview:
 	mov word [DropDownExListItemExtraWidth], 38
-	mov word [DropDownExListItemHeight], 27
-	mov byte [DropDownExMaxItemsVisible], 6
+	mov word [DropDownExListItemHeight], 23
+	mov byte [DropDownExMaxItemsVisible], 7
 	mov word [DropDownExFlags], 11b
 	mov dword [DropDownExListItemDrawCallback], makestationseldropdown_callback
 .setupdone:
@@ -441,14 +441,15 @@ exported makestationseldropdown
 makestationseldropdown_callback:
 	push edi
 	// create temp screen description
+	add cx, 1
 	pusha
 	mov edi, baTempBuffer1
 	mov byte [edi], 0
 	//	DX,BX = X,Y CX,BP = width,height
 	mov ebx, edx
 	mov edx, ecx
-	mov cx, 64
-	mov bp, 40
+	mov cx, 64/2
+	mov bp, 46/2
 
 	call [MakeTempScrnBlockDesc]
 	popa
@@ -466,8 +467,8 @@ makestationseldropdown_callback:
 	mov byte [curselstation], bl
 	mov bl, 2
 	mov al, [currconstrtooltracktype]
-	add cx, 18
-	add dx, 12		// 16
+	add cx, 16
+	add dx, 8
 	shl cx, 1
 	shl dx, 1
 	call [DrawStationImageInSelWindow]

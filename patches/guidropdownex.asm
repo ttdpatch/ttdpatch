@@ -35,7 +35,7 @@ extern resheight
 uvarw DropDownExListItemHeight
 uvarw DropDownExListItemExtraWidth
 uvard DropDownExListItemDrawCallback
-uvarb DropDownExMaxItemsVisible
+uvarw DropDownExMaxItemsVisible			// max 255
 uvarw DropDownExFlags
 
 uvarw DropDownExList, DropDownExMax+1
@@ -514,13 +514,13 @@ GenerateDropDownEx_redraw:
 .notelected:
 
 	pusha
-	add cx, 2
 	cmp dword [DropDownExListItemDrawCallback], 0
 	je .nocallback
 	pusha
 	call [DropDownExListItemDrawCallback]
 	popa
 .nocallback:
+	add cx, 2
 	add cx, word [DropDownExListItemExtraWidth]
 	mov bp, word [DropDownExListItemHeight]
 	sub bp, 10
