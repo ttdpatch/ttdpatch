@@ -57,6 +57,7 @@ struc newvehdatastruc
 	.cargoclasses:	resw 256			// E20..101F
 	.cargonotclasses:resw 256			// 1020..121F
 	.cargolabels:	resd NUMCARGOS			// 1220..129F
+	.longintrodate:	resd 256			// 12A0..169F
 endstruc
 
 // similar to the above, but not cleared when reinitializing graphics/loading game
@@ -78,6 +79,7 @@ endstruc
 %define vehmiscflags (newvehdata+newvehdatastruc.vehmiscflags)
 %define vehcargoclasses (newvehdata+newvehdatastruc.cargoclasses)
 %define vehnotcargoclasses (newvehdata+newvehdatastruc.cargonotclasses)
+%define vehlongintrodate (newvehdata+newvehdatastruc.longintrodate)
 
 %define traintractiontype (newvehdata+newvehdatastruc.traintractiontype)
 %define trainvehlength (newvehdata+newvehdatastruc.trainvehlength)

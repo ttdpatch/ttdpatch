@@ -67,6 +67,7 @@ extern setairportlayout,airportstarthangarnodes,setairportmovementdata
 extern airportcallbackflags,airportspecialflags,airportaction3
 extern airportweight,airporttypenames
 extern setrailstationrvrouteing
+extern longintrodate,longintrodatebridges
 
 uvarb action1lastfeature
 
@@ -97,7 +98,7 @@ action0:
 	// - pointer to feature-specific data, or 0 if none
 
 proc processnewinfo
-	local vehtype,numinfo,offset, specificnum, speciallist,specialnum, maxesi
+	local feature,numinfo,offset, specificnum, speciallist,specialnum, maxesi
 	local dataptrofs,orgoffset,ofstrans,curoffset,numofsleft,curprop
 
 	_enter
@@ -107,11 +108,11 @@ proc processnewinfo
 	lea ebx,[esi-6]
 	mov [%$dataptrofs],ebx
 
-	mov [%$vehtype],eax
+	mov [%$feature],eax
 	mov ebx,[specificpropertylist+ecx]
-	movzx eax,byte [ebx]		// number of vehtype-specific properties
+	movzx eax,byte [ebx]		// number of feature-specific properties
 	lea ebx,[ebx+1+eax]
-	mov [%$speciallist],ebx		// vehtype-special properties
+	mov [%$speciallist],ebx		// feature-special properties
 	mov [%$specificnum],al
 	mov al,[ebx]
 	mov [%$specialnum],al
@@ -137,7 +138,7 @@ proc processnewinfo
 
 	cmp byte [grfstage],0
 	je .resok
-	mov ebx,[%$vehtype]
+	mov ebx,[%$feature]
 	mov ebx,[grfresbase+ebx*4]
 	test ebx,ebx
 	js .resok
@@ -157,7 +158,7 @@ proc processnewinfo
 .notmandatory:
 
 	add eax,[%$numinfo]
-	mov ebx,[%$vehtype]
+	mov ebx,[%$feature]
 
 	mov bl,[vehbnum+ebx]
 	test ebx,ebx
@@ -219,7 +220,7 @@ proc processnewinfo
 	jb .genprop
 	je .loadamount
 
-	mov ebx,[%$vehtype]
+	mov ebx,[%$feature]
 
 	sub al,8
 	cmp al,[%$specificnum]
@@ -276,7 +277,7 @@ proc processnewinfo
 	add eax,[vehtypedataptr]
 
 .getgenprop:
-	mov edi,[%$vehtype]
+	mov edi,[%$feature]
 	movzx edi,byte [vehbase+edi]
 	add edi,[%$offset]
 	imul edi,ebx
@@ -339,7 +340,7 @@ proc processnewinfo
 
 .doprocess:
 	cmp dl,0x82
-	je .textid
+	je near .textid
 
 	cmp dl,1
 	jb .invalidprop		// 0
@@ -370,6 +371,7 @@ proc processnewinfo
 	mov ebx,[%$offset]
 	mov edx,[%$dataptrofs]
 	push ebp
+	mov ebp,[%$feature]
 	call edi
 	pop ebp
 	jnc .next
@@ -383,6 +385,7 @@ proc processnewinfo
 	mov ecx,[%$numinfo]
 	mov edx,[%$dataptrofs]
 	push ebp
+	mov ebp,[%$feature]
 	call edi
 	pop ebp
 	jnc .notoneatatime
@@ -3932,22 +3935,22 @@ definegrftranslation:
 defvehdata gendata, W,B,B,B,B,B				// 00..06
 
 defvehdata spectraindata, B,W,W,B,P,B,B,B,B,B,B,B	// 08..18
-defvehdata spcltraindata, B,F,w,B,d,B,B,B,B,B,B,B,B,B,B,w,w	// 19..29
+defvehdata spcltraindata, B,F,w,B,d,B,B,B,B,B,B,B,B,B,B,w,w,F	// 19..2A
 
 defvehdata specrvdata, B,B,P,B,B,B,B,B			// 08..12
-defvehdata spclrvdata, B,B,B,d,B,B,B,B,B,B,w,w		// 13..1E
+defvehdata spclrvdata, B,B,B,d,B,B,B,B,B,B,w,w,F	// 13..1F
 
 defvehdata specshipdata, B,B,B,B,B,W,B,B		// 08..10
-defvehdata spclshipdata, d,B,B,B,B,B,B,w,w		// 11..19
+defvehdata spclshipdata, d,B,B,B,B,B,B,w,w,F		// 11..1A
 
 defvehdata specplanedata, B,B,B,B,B,B,B,W,B,B		// 08..12
-defvehdata spclplanedata, d,B,B,B,B,w,w			// 13..19
+defvehdata spclplanedata, d,B,B,B,B,w,w,F		// 13..1A
 
 defvehdata specstationdata				// no properties
 defvehdata spclstationdata, F,H,F,B,B,B,F,F,w,B,F,B,B,B,w,B,w,F	// 08..19
 
 defvehdata specbridgedata, B,B,B,B			// 08..0B
-defvehdata spclbridgedata, w,F,B			// 0C..0E
+defvehdata spclbridgedata, w,F,B,F			// 0C..0F
 
 defvehdata spechousedata
 defvehdata spclhousedata, F,F,w,B,B,B,B,B,w,B,t,w,B,F,B,d,B,B,B,B,F,B,d	// 08..1e
@@ -4241,23 +4244,24 @@ var newtrainvehdata
 	dd traintecoeff,trainc2coeff,trainvehlength		// 1F,20,21
 	dd trainviseffect,trainwagonpowerweight,railvehhighwt	// 22,23,24
 	dd trainuserbits,trainphase2dec,trainmiscflags		// 25,26,27
-	dd traincargoclasses,trainnotcargoclasses		// 28,29
+	dd traincargoclasses,trainnotcargoclasses,longintrodate	// 28,29,2A
 
 var newrvvehdata
 	dd rvpowers, rvweight, rvhspeed, newrvrefit		// 13,14,15,16
 	dd rvcallbackflags, rvtecoeff, rvc2coeff, rvrefitcost	// 17,18,19,1A
 	dd rvphase2dec,rvmiscflags,rvcargoclasses		// 1B,1C,1D
-	dd rvnotcargoclasses					// 1E
+	dd rvnotcargoclasses,longintrodate			// 1E,1F
 
 var newshipvehdata
 	dd newshiprefit, shipcallbackflags, shiprefitcost	// 11,12,13
 	dd oceanspeedfract, canalspeedfract, shipphase2dec	// 14,15,16
 	dd shipmiscflags,shipcargoclasses,shipnotcargoclasses	// 17,18,19
+	dd longintrodate					// 1A
 
 var newplanevehdata
 	dd newplanerefit, planecallbackflags, planerefitcost	// 13,14,15
 	dd planephase2dec,planemiscflags,planecargoclasses	// 16,17,18
-	dd planenotcargoclasses					// 19
+	dd planenotcargoclasses,longintrodate			// 19,1A
 
 var newstationdata
 	dd addr(setstationclass),addr(setstationspritelayout)	// 08,09
@@ -4272,6 +4276,7 @@ var newstationdata
 
 var bridgedata	// (prop 0C is set in patches.ah)
 	dd 0, addr(alterbridgespritetable), bridgeflags		// 0C..0E
+	dd longintrodatebridges					// 0F
 
 var housedata
 	dd addr(setsubstbuilding)				// 08
