@@ -226,7 +226,8 @@ getdisasteryear:
 // safe:EBX,EDX,EDI
 global getvehintroyear
 getvehintroyear:
-	test ax,ax
+	movzx eax,ax
+	test eax,eax
 	jz .getlong
 	cmp ax,byte -1
 	jne .notoutofrange
@@ -245,7 +246,6 @@ getvehintroyear:
 	xchg edi,[landscape3+ttdpatchdata.daysadd]
 	add ax,1920
 	ret
-
 ; endp getvehintroyear
 
 
