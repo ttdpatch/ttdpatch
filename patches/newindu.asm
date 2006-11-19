@@ -922,8 +922,8 @@ getindustileanimframe:
 global getindustilelandslope
 getindustilelandslope:
 	pusha
-.gotesi:
-	mov ebp,esi		// save XY to a safe place
+	movzx ebp,byte [landscape2+esi]	// get industry ID
+.got_esi_ebp:
 
 // get fine X and Y coordinates from XY (plus the offsets), for GetTileTypeHeightInfo
 
@@ -952,7 +952,7 @@ getindustilelandslope:
 	cmp bx,8*8		// is it a class 8 tile?
 	jne .notpart
 
-	mov al,[landscape2+ebp]
+	mov eax,ebp
 	cmp al,[landscape2+esi]	// esi is now the offset of the asked tile
 	sete byte [esp+29]	// byte 2 of saved eax
 .notpart:
@@ -977,8 +977,8 @@ getindustilelandslope:
 exported getotherindustileanimstage
 	push ebx
 	mov ebx,esi
-.gotebx:
-	mov ecx,ebx
+	mov cl,[landscape2+ebx]		// get industry ID of current tile
+.got_ebx_cl:
 	sar ax,4
 	sar al,4
 	add bh,ah
@@ -989,8 +989,7 @@ exported getotherindustileanimstage
 	cmp al,0x80
 	jne .notpart
 
-	mov al,[landscape2+ecx]
-	cmp al,[landscape2+ebx]
+	cmp cl,[landscape2+ebx]
 	jne .notpart
 
 	movzx eax,byte [landscape3+ebx*2]
@@ -3926,13 +3925,17 @@ getindutilerandombits:
 global getindustilelandslope_industry
 getindustilelandslope_industry:
 	pusha
+	mov ebp,esi
+	getinduidfromptr ebp
 	movzx esi,word [esi+industry.XY]
-	jmp getindustilelandslope.gotesi
+	jmp getindustilelandslope.got_esi_ebp
 
 exported getotherindustileanimstage_industry
 	push ebx
 	movzx ebx,word [esi+industry.XY]
-	jmp getotherindustileanimstage.gotebx
+	mov ecx,esi
+	getinduidfromptr ecx
+	jmp getotherindustileanimstage.got_ebx_cl
 
 exported getothertypedistance
 	push ebx
