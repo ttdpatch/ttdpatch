@@ -641,9 +641,11 @@ adjstrailstfunc:
 .fudge:
 //ugly hack approaching...
 //make sure that irrcheckistrainstation/buslorry code gets called by fudging temporarily L5 value
-	mov bl, 0x50
-	xchg [landscape4(ax,1)-0x101], bl
+	mov bl, [landscape4(ax,1)-0x101]
 	push ebx
+	and bl,0xF
+	or bl, 0x50
+	mov [landscape4(ax,1)-0x101], bl
 	push eax
 	push DWORD .next
 .doit:
