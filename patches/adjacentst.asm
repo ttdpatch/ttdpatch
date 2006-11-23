@@ -9,7 +9,8 @@
 #include <flags.inc>
 #include <player.inc>
 
-extern convertplatformsinremoverailstation,newstationspread,ishumanplayer,patchflags,stationarray2ofst,errorpopup
+extern convertplatformsinremoverailstation,newstationspread,ishumanplayer,patchflags,stationarray2ofst,errorpopup,fixstationplatformslength
+extern RefreshWindows
 
 global adjflags
 
@@ -562,6 +563,8 @@ clickhandler:
 .tret:
 ret
 
+uvard stmodflags, (numstations+31)>>5
+
 global createbusstactionhook
 createbusstactionhook:
 	mov dx, 0x101
@@ -641,14 +644,53 @@ adjstrailstfunc:
 .fudge:
 //ugly hack approaching...
 //make sure that irrcheckistrainstation/buslorry code gets called by fudging temporarily L5 value
-	mov bl, [landscape4(ax,1)-0x101]
-	push ebx
-	and bl,0xF
-	or bl, 0x50
-	mov [landscape4(ax,1)-0x101], bl
+	mov cl, [landscape4(ax,1)-0x101]
+	push ecx
+	and cl,0xF
+	or cl, 0x50
+	mov [landscape4(ax,1)-0x101], cl
 	push eax
 	push DWORD .next
 .doit:
+	cmp DWORD [adjtmp1], 0
+	jne .noovbldchk
+	//check existance of other stations when overbuilding
+
+	xor esi, esi
+	mov ecx, (numstations+31)>>5
+.clearstmodflags:
+	mov [stmodflags-4+ecx*4], esi
+	loop .clearstmodflags
+
+	movzx ebx, bx
+	dec bl
+	js .noovbldchk
+	dec bh
+	js .noovbldchk
+	push ebx
+.chkloop:
+	mov cl, [landscape4_2(ax,bx,1)]
+	and cl, 0xF0
+	cmp cl, 0x50
+	jne .checkdone
+	mov cl, [landscape5_2(ax,bx,1)]
+	cmp cl, 7 // station
+	ja .checkdone
+	movzx ecx, BYTE [landscape2+eax+ebx]
+	mov esi, ecx
+	and esi, ~31
+	and ecx, 31
+	bts DWORD [stmodflags+esi], ecx
+.checkdone:
+	dec bl
+	jns .chkloop
+	mov bl, [esp]
+	dec bh
+	jns .chkloop
+	add esp, 4
+.noovbldchk:
+
+
 	mov edi, [edx]
 	mov esi, [adjaction]
 	mov ebp, [edx+8]
@@ -674,8 +716,31 @@ adjstrailstfunc:
 	call DWORD [buslorrystationbuilt]
 	pop edx
 	mov [curplayerctrlkey], dl
+	jmp .end
 .inret2:
-ret
+
+	mov ecx, (numstations+31)>>5
+.chkstpltfrmfxovrbldlp:
+	mov eax, [stmodflags-4+ecx*4]
+.chkstpltfrmfxovrbldlp_loopin:
+	bsf edx, eax
+	jz .chkstpltfrmfxovrbldlp_loopend
+	btr eax, edx
+	lea esi, [ecx*8-8]
+	lea esi, [edx+esi*4]
+	imul esi, station_size
+	add esi, stationarray
+	pusha
+	call fixstationplatformslength
+	//call RefreshStationName
+	call CheckStationFacilitiesLeft
+	popa
+	jmp .chkstpltfrmfxovrbldlp_loopin
+.chkstpltfrmfxovrbldlp_loopend:
+	loop .chkstpltfrmfxovrbldlp
+
+
+	jmp .end
 
 .next:
 	pop eax
@@ -738,3 +803,27 @@ buslorrystationbuiltcondfunc:
 	jmp edi
 .quit:
 ret
+
+CheckStationFacilitiesLeft:
+	mov	ax, [esi+station.busXY]
+	or	ax, [esi+station.lorryXY]
+	or	ax, [esi+station.railXY]
+	or	ax, [esi+station.airportXY]
+	or	ax, [esi+station.dockXY]
+	jnz	short locret_14EB1D
+	bts	WORD [esi+station.flags], 0
+	mov	BYTE [esi+station.updatecounter], 0
+	push	bx
+	push	cx
+	movzx	bx, [esi+station.owner]
+	mov	al, 6 //cWinTypeStationList
+	call	[RefreshWindows]		// AL = window type
+					// AH = element idx (only if AL:7 set)
+					// BX = window ID (only if AL:6 clear)
+	pop	cx
+	pop	bx
+	mov	BYTE [esi+station.owner], 10h
+
+
+locret_14EB1D:
+	ret
