@@ -33,14 +33,15 @@ totalsprites equ 0x131a+6*WINTTDX	// Windows TTD has six more (for Fish UK logo 
 
 // aggregate resources that aren't allocated by ID
 // (one for each extended sprite block, for stations, houses, tiles and industries)
-%define GRM_EXTRA_SPRITES 0				// extended sprite blocks
-%define GRM_EXTRA_STATIONS NUMSPRITEBLOCKS		// station IDs
-%define GRM_EXTRA_HOUSES GRM_EXTRA_STATIONS+1		// house IDs
-%define GRM_EXTRA_INDUSTILES GRM_EXTRA_HOUSES+1		// industry tiles
-%define GRM_EXTRA_INDUSTRIES GRM_EXTRA_INDUSTILES+1	// industries
-%define GRM_EXTRA_PERSTEXTS GRM_EXTRA_INDUSTRIES+1	// persistent GRF texts
+%assign GRM_EXTRA_SPRITES 0				// extended sprite blocks
+%assign GRM_EXTRA_STATIONS NUMSPRITEBLOCKS		// station IDs
+%assign GRM_EXTRA_HOUSES GRM_EXTRA_STATIONS+1		// house IDs
+%assign GRM_EXTRA_INDUSTILES GRM_EXTRA_HOUSES+1		// industry tiles
+%assign GRM_EXTRA_INDUSTRIES GRM_EXTRA_INDUSTILES+1	// industries
+%assign GRM_EXTRA_PERSTEXTS GRM_EXTRA_INDUSTRIES+1	// persistent GRF texts
+%assign GRM_EXTRA_GRFIDS GRM_EXTRA_PERSTEXTS+1		// GRFIDs
 
-%define GRM_EXTRA_NUM GRM_EXTRA_PERSTEXTS+1
+%assign GRM_EXTRA_NUM GRM_EXTRA_GRFIDS+1
 
 
 maxstationclasses equ 32
