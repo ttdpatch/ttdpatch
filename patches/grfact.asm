@@ -2533,7 +2533,7 @@ recordgrfid:
 .duplicate:
 	or byte [ebp+spriteblock.flags],2
 	mov [ebp+spriteblock.errparam],edx
-	mov word [ebp+spriteblock.errparam+4],-12
+	mov word [ebp+spriteblock.errparam+4],~GRM_EXTRA_GRFIDS
 	mov [ebp+spriteblock.errparam+6],di
 	or edi,byte -1
 	ret
