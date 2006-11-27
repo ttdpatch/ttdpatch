@@ -187,8 +187,9 @@ win_grfstat_setgrfactivation:
 	jz .bad
 
 	// now go through all .grf files and check whether they would activate
+	extern grfstage
 	call setactivegrfs
-	mov byte [grfstage+1],1
+	mov byte [grfstage+1],4
 	mov eax,PROCALL_TEST
 	call procallsprites
 	mov byte [grfstage+1],0
@@ -304,7 +305,7 @@ actiongrfstat:
 .titleapply:
 	mov byte [activatedefault],1
 	call setactivegrfs
-	mov byte [grfstage+1],1
+	mov byte [grfstage+1],4
 	mov eax,PROCALL_TEST
 	call procallsprites
 	mov byte [grfstage+1],0
