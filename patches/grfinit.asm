@@ -429,8 +429,11 @@ infoapply:
 	mov dword [numactsprites],baseoursprites
 	call exsresetspritecounts
 
+	extern grfstage
 	mov eax,PROCALL_RESERVE
+	mov byte [grfstage+1],1
 	call procallsprites
+	mov byte [grfstage+1],0
 	call postinforeserve
 
 	// reset "(in)active" to "will be (in)active"
@@ -439,7 +442,9 @@ infoapply:
 	mov byte [procallsprites_replaygrm],1
 	mov byte [procallsprites_noreset],1
 	mov eax,PROCALL_ACTIVATE
+	mov byte [grfstage+1],2
 	call procallsprites
+	mov byte [grfstage+1],0
 
 	call postinfoapply
 	popa
