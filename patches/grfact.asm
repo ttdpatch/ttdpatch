@@ -3992,7 +3992,7 @@ uvard spritebase
 
 uvard numactivesprites
 uvard lastnonoverride
-uvarb grfstage
+uvard grfstage
 
 // Actions for which we don't need to check that the GRFID is valid
 // so far that's actions 6-9, B-E and 10

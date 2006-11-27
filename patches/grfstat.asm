@@ -188,8 +188,10 @@ win_grfstat_setgrfactivation:
 
 	// now go through all .grf files and check whether they would activate
 	call setactivegrfs
+	mov byte [grfstage+1],1
 	mov eax,PROCALL_TEST
 	call procallsprites
+	mov byte [grfstage+1],0
 
 	// and set the real activation back, keep the new one
 	call win_grfstat_swapnewactive
@@ -302,8 +304,10 @@ actiongrfstat:
 .titleapply:
 	mov byte [activatedefault],1
 	call setactivegrfs
+	mov byte [grfstage+1],1
 	mov eax,PROCALL_TEST
 	call procallsprites
+	mov byte [grfstage+1],0
 	call win_grfstat_swapnewactive
 	xor ebx,ebx
 	ret
