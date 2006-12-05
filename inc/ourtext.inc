@@ -293,6 +293,9 @@ defourtext grfstatdebug
 defourtext grfdebughint
 defourtext grfdebugmsg
 
+defourtext firstpasstramarrives
+defourtext firstfreighttramarrives
+
 defourtext airporttype
 defourtext unnamedairporttype
 
@@ -305,8 +308,6 @@ defourtext txtcloneerror_unavail
 defourtext txtcloneerror_nothead
 defourtext txtcloneerror_notrail
 defourtext txtcloneerror_unknown
-
-; CRC 7f60b407 (check to make sure that the order above is unchanged)
 
 defourtext grfbefore
 defourtext grfafter
@@ -355,13 +356,14 @@ defourtext trdlg_eq
 defourtext trdlg_neq
 defourtext tr_nextdeporder
 
-defourtext firstpasstramarrives
-defourtext firstfreighttramarrives
-
 defourtext adjsttitle
 defourtext adjstnumstsinrange
 defourtext adjstnormstmergealgtxt
 defourtext adjstnewsttxt
+
+; CRC f0f2aac5 (check to make sure that the order above is unchanged)
+
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
