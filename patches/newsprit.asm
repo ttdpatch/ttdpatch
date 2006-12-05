@@ -1145,7 +1145,7 @@ getvariationalvariable:
 	auto_size {}, {push edx}, {push edx}
 	auto_size {cbw}, {cwd}, {cdq}
 
-	auto_size {mov cl,[ebx+1]}, {mov cx,[ebx+1]}, {mov ecx,[ebx+1]}
+	auto_size {mov cl,[ebx+1]}, {mov cx,[ebx+2]}, {mov ecx,[ebx+4]}
 	auto_size {test cl,cl}, {test cx,cx}, {test ecx,ecx}
 	jz %%nodiv
 	auto_size {idiv cl}, {idiv cx}, {idiv ecx}
