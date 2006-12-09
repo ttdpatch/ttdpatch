@@ -1017,6 +1017,15 @@ global	useParentMovement
 useParentMovement:
 	push	edx
 	mov	dl, byte [esi+veh.parentmvstat]
+	cmp	dl, 0xFF
+	jne	.allRight
+	push	ebx							//argh... no parentstat... have we used it already?
+	movzx	ebx, word [esi+veh.engineidx]		//either way... steal it from the parent if not stored for us
+	shl	bx, 7
+	add	ebx, [veharrayptr]
+	mov		dl, byte [ebx+veh.movementstat]
+	pop		ebx
+.allRight:
 	mov	dh, byte [esi+0x6E]
 	mov	byte [esi+veh+0x6E], 0xFF
 	mov	byte [esi+veh.parentmvstat], dh
