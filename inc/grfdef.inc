@@ -12,7 +12,7 @@ totalsprites equ 0x131a+6*WINTTDX	// Windows TTD has six more (for Fish UK logo 
 #define MAXGRFVERSION 7
 
 	// number of GRF features supported for actions 0, 1, 2, 3 etc.
-%define NUMFEATURES 14
+%define NUMFEATURES 15
 
 %assign NBRIDGES	11
 

@@ -312,8 +312,8 @@
 	YESNO('T',"trams", CFG_TRAMS, INFST_ROADS, "Trams", trams),
 	     //U
 	     //V
-	     //W
-	YESNO('X',"adjacentstation", CFG_ADJSTATIONS, VEH_ORDERS, "", adjacentstation),
+	YESNO('W',"newsignals", CFG_NEWSIGNALS, INFST_RAIL_SIGNAL, "", newsignals),
+	YESNO('X',"adjacentstation", CFG_ADJSTATIONS, INFST_STATION, "", adjacentstation),
 	RANGE('Y',"stationsize", CFG_STATIONSIZE, INFST_STATION, "StationSize", stationsize, AUTO, U8, FLAGDATA(stationsizevalue), 1, 255, 255),
 	YESNO('Z',"tracerestrict", CFG_TRACERESTRICT, VEH_ORDERS, "", tracerestrict),
 
@@ -512,3 +512,4 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	tracerestrict,
 	stationsize,
 	adjacentstation,
+	newsignals,

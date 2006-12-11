@@ -1019,8 +1019,10 @@ drawsignal:
 	mov esi,[esp+4]		// landscape offset
 
 	// show pre-signal or semaphore graphics
-	mov dh,6+8
+	mov dh,6+8+16
 	and dh,[landscape3+1+esi*2]
+	add dh, 16
+	and dh, ~16
 
 	testflags pathbasedsignalling
 	jnc .gotbits
@@ -1053,11 +1055,23 @@ drawsignal:
 
 .gotbits:
 	movzx esi,dh
+	testflags newsignals
+	jnc .nonewsignals
+	EXTERN newsignalson
+	//cmp BYTE [newsignalson], 0
+	EXTERN newsignalsdraw
+	//jz .nonewsignals
+	call newsignalsdraw
+	jc .nonewsignals
+	pop esi		//swallow return address to original DrawSignal func
+	pop esi
+	pop edx
+	ret
+.nonewsignals:
 	and esi,[numsiggraphics]
 	jz .nopresignal
 
 	movzx ebx,bx
-
 	// ebx-4fbh=org signal state, esi*8-16=(type of signal)*16
 	lea ebx,[ebx-0x4fb+esi*8-16]
 	add ebx,[presignalspritebase]

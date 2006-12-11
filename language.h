@@ -499,6 +499,7 @@ enum langtextids {
 	CFG_TRACERESTRICT,
 	CFG_STATIONSIZE,
 	CFG_ADJSTATIONS,
+	CFG_NEWSIGNALS,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS

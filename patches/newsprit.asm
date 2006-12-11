@@ -37,6 +37,7 @@ extern getstationanimframe,getnearbystationanimframe,getothertypedistance
 extern airportaction3,getaircraftvehdata,getaircraftdestination
 extern substindustile,substindustries
 extern convertplatformsinecx
+extern getsigtiledata
 
 uvard grffeature
 uvard curgrffeature,1,s		// must be signed to indicate "no current feature"
@@ -168,6 +169,7 @@ grfcalltable getaction3, dd addr(getaction3.generic)
 
 .getgeneric:
 .getsounds:
+.getsignals:
 	ud2
 
 .getairports:
@@ -213,6 +215,7 @@ grfcalltable getaction3cargo
 .getindustries:
 .getcargos:
 .getairports:
+.getsignals:
 
 .default:
 	movzx eax,word [ecx+action3info.defcid]
@@ -480,6 +483,9 @@ grfcalltable getaction2spritenum
 	lea eax,[ebx+4]
 	stc
 	ret
+
+.getsignals:
+	ud2
 
 .getgeneric:
 .getsounds:
@@ -987,6 +993,7 @@ grfcalltable getrandombits
 .norandom:
 .getsounds:
 .getairports:
+.getsignals:
 	ret
 
 .gethouses:
@@ -1025,6 +1032,7 @@ grfcalltable getrandomtriggers
 	mov al,[esi+station.newrandom]
 	ret
 
+.getsignals:
 .getcanals:
 .getbridges:
 .getgeneric:
@@ -1336,7 +1344,7 @@ dwordsize:
 vard calcoperators
 	dd addr(.add),addr(.sub),addr(.signed_min),addr(.signed_max),addr(.unsigned_min),addr(.unsigned_max)
 	dd addr(.signed_divmod),addr(.signed_divmod),addr(.unsigned_divmod),addr(.unsigned_divmod)
-	dd addr(.multiply),addr(.and),addr(.or),addr(.xor)
+	dd addr(.multiply),addr(.and),addr(.or),addr(.xor),addr(.storevar),addr(.copy)
 numcalcoperators equ ($-calcoperators)/4
 
 endvar
@@ -1476,6 +1484,15 @@ endvar
 	pop edx
 	ret
 
+.storevar:
+	movzx ecx, cl
+	mov [advvaraction2varbuff+ecx*4], eax
+	ret
+
+.copy:
+	mov eax, ecx
+	ret
+
 uvard lastcalcresult
 
 // get the "other" variable for random 83 or variational 82
@@ -1504,6 +1521,7 @@ grfcalltable getother
 .getgeneric:
 .getcargos:
 .getsounds:
+.getsignals:
 	ret
 
 .gethouses:
@@ -1740,6 +1758,8 @@ getspecparamvar:
 	cmp al,0x1e
 	je .grffncall
 	ja .grfparam
+	cmp al,0x1D
+	je .varbuff
 
 	mov ah,cl
 	movzx ecx,byte [grfvarfeature]
@@ -1771,6 +1791,11 @@ getspecparamvar:
 #endif
 
 .done:
+	ret
+
+.varbuff:
+	movzx ecx, cl
+	mov eax, [advvaraction2varbuff+ecx*4]
 	ret
 
 .grfparam:
@@ -1876,6 +1901,7 @@ varb featurevarofs
 	db 0, 0			// cargos don't have structures
 	db 0, 0			// sounds neither
 	db -0x80+0x10, -0x80	// airports: same as stations
+	db 0,0			// signals: no structures
 
 checkfeaturesize featurevarofs, 2
 
@@ -1885,20 +1911,21 @@ endvar
 	// even without a structure; once for 81+x and once for 82+x
 	// (all 60+x must set bit 15, which is special!)
 vard varavailability
-	dd 100001000b,3<<30,	100001000b,3<<30	// veh.vars 43, 48
-	dd 100001000b,3<<30,	100001000b,3<<30	// veh.vars 43, 48
-	dd 100001000b,3<<30,	100001000b,3<<30	// veh.vars 43, 48
-	dd 100001000b,3<<30,	100001000b,3<<30	// veh.vars 43, 48
-	dd 1000b,3<<30,		0,3<<30			// station var 43, towns
-	dd 0,3<<30,		0,3<<30			// canals
-	dd 0,3<<30,		0,3<<30			// bridges
-	dd 0,3<<30,		0,3<<30			// houses, bridges
-	dd 0,3<<30,		0,3<<30			// generic variables
-	dd 0,3<<30,		0,3<<30			// industry tiles, industries
-	dd 0,3<<30,		0,3<<30			// industries, towns
-	dd 0,3<<30,		0,3<<30			// cargos
-	dd 0,3<<30,		0,3<<30			// sounds
-	dd 0,3<<30,		0,3<<30			// airports
+	dd 100001000b,7<<29,	100001000b,7<<29	// veh.vars 43, 48
+	dd 100001000b,7<<29,	100001000b,7<<29	// veh.vars 43, 48
+	dd 100001000b,7<<29,	100001000b,7<<29	// veh.vars 43, 48
+	dd 100001000b,7<<29,	100001000b,7<<29	// veh.vars 43, 48
+	dd 1000b,7<<29,		0,7<<29			// station var 43, towns
+	dd 0,7<<29,		0,7<<29			// canals
+	dd 0,7<<29,		0,7<<29			// bridges
+	dd 0,7<<29,		0,7<<29			// houses, bridges
+	dd 0,7<<29,		0,7<<29			// generic variables
+	dd 0,7<<29,		0,7<<29			// industry tiles, industries
+	dd 0,7<<29,		0,7<<29			// industries, towns
+	dd 0,7<<29,		0,7<<29			// cargos
+	dd 0,7<<29,		0,7<<29			// sounds
+	dd 0,7<<29,		0,7<<29			// airports
+	dd 0,7<<29,		0,7<<29			// signals
 
 checkfeaturesize varavailability, (4*2*2)
 
@@ -2058,6 +2085,13 @@ vard airportparamvarhandler
 
 endvar
 
+vard signalsparamvarhandler
+	dd getsigtiledata
+%ifndef PREPROCESSONLY
+%assign n_signalsparamvarhandler (addr($)-signalsparamvarhandler)/4
+%endif
+endvar
+
 vard specialvarhandlertable
 	dd vehvarhandler,vehvarhandler
 	dd vehvarhandler,vehvarhandler
@@ -2073,6 +2107,7 @@ vard specialvarhandlertable
 	dd 0,0
 	dd 0,0
 	dd airportvarhandler,townvarhandler
+	dd 0,0
 
 checkfeaturesize specialvarhandlertable, (4*2)
 
@@ -2095,6 +2130,7 @@ vard specialvars
 	db 0,0
 	db 0,0
 	db n_airportvarhandler,n_townvarhandler
+	db 0,0
 %endif
 
 checkfeaturesize specialvars, (1*2)
@@ -2116,7 +2152,7 @@ vard specialparamvarhandlertable
 	dd 0,0
 	dd 0,0
 	dd airportparamvarhandler,townparamvarhandler
-
+	dd signalsparamvarhandler,0
 checkfeaturesize specialparamvarhandlertable, (4*2)
 
 endvar
@@ -2138,8 +2174,12 @@ varb specialparamvars
 	db 0,0
 	db 0,0
 	db n_airportparamvarhandler,n_townparamvarhandler
+	db n_signalsparamvarhandler,0
 %endif
 
 checkfeaturesize specialparamvars, (1*2)
 
 endvar
+
+global advvaraction2varbuff
+uvard advvaraction2varbuff, 256

@@ -11,6 +11,7 @@
 #include <patchproc.inc>
 
 patchproc sharedorders, patchsharedorders
+patchproc newsignals, patchnewsignals
 
 extern BringWindowToForeground,CreateTooltip,CreateWindow
 extern CreateWindowRelative,DestroyWindow,DistributeProducedCargo
@@ -2307,4 +2308,8 @@ patchsignals:
 
 	or byte [newgraphicssetsenabled],1 << 4
 .nopresignals:
+	ret
+	
+patchnewsignals:
+	or byte [newgraphicssetsenabled+1],1 << (0xE-8)
 	ret
