@@ -10,14 +10,14 @@
 #include <player.inc>
 
 extern convertplatformsinremoverailstation,newstationspread,ishumanplayer,patchflags,stationarray2ofst,errorpopup,fixstationplatformslength
-extern RefreshWindows
+extern RefreshWindows,maxrstationspread
 
 global adjflags
 
 uvard adjflags
 //bits: 0: attatch to station, 1: new station, 2: normal, 16-31: station id
 uvard adjflags2
-//bits: 0: cancel BusLorryStationBuilt, autoclear
+//bits: 0: cancel BusLorryStationBuilt, autoclear, 1: is in fact a railway station
 
 uvard adjfunc
 uvard adjblock,64
@@ -165,29 +165,40 @@ populatelist:
 	push eax
 	mov ecx, numstations
 	mov esi, stationarray
+	push edi
 .stloop:
 	cmp WORD [esi+station.XY], 0
-	je .endloop
+	je NEAR .endloop
 	push eax
 	mov al, [esi+station.owner]
 	cmp al, 16
 	je .noowner
-	cmp al, [esp+4]
+	cmp al, [esp+8]
 	jne NEAR .endlooppop
 .noowner:
 	pop eax
 	call getstationextent
 	mov edx, [adjtile]
-	call addcoord
+	call addcoord3
 	add edx, [adjdim]
 	sub edx, 0x101
-	call addcoord
+	call addcoord3
 	sub ebx, eax
 	mov al, [newstationspread]
 	cmp bl, al
 	ja .endloop
 	cmp bh, al
 	ja .endloop
+	or ebp, ebp
+	jz .norailfacility
+	mov ebx, ebp
+	sub ebx, edi
+	mov al, [maxrstationspread]
+	cmp bl, al
+	ja .endloop
+	cmp bh, al
+	ja .endloop
+.norailfacility:
 	mov eax, [numinlist]
 	lea edx, [ecx-numstations]
 	neg edx
@@ -199,7 +210,9 @@ populatelist:
 	inc DWORD [numinlist]
 .endloop:
 	add esi, station_size
-	loop .stloop
+	dec ecx
+	jnz NEAR .stloop
+	pop edi
 	mov al, [numinlist]
 	mov byte [edi+window.itemstotal], al
 	sub al, [edi+window.itemsvisible]
@@ -285,12 +298,15 @@ ret
 global getstationextent
 getstationextent:	//esi=station
 			//rets: eax=north corner, ebx=south corner, edx=extent or zero if station has no facilities
+			//rail: edi=north corner, ebp=south corner
 	mov eax, 0xffff
+	mov edi, eax
 	xor ebx, ebx
+	xor ebp, ebp
 	test BYTE [esi+station.facilities], 1
 	jz .norail
 	movzx edx, WORD [esi+station.railXY]
-	call addcoord
+	call addcoord2
 
 	push eax
 	push edx
@@ -308,7 +324,7 @@ getstationextent:	//esi=station
 	sub edx, 0x101
 	add edx, eax
 	pop eax
-	call addcoord
+	call addcoord2
 	jmp .norail
 .irr:
 	mov edx, esi
@@ -318,7 +334,7 @@ getstationextent:	//esi=station
 	jz .notirr
 	pop eax
 	pop eax
-	call addcoord
+	call addcoord2
 .norail:
 	test BYTE [esi+station.facilities], 2
 	jz .nolorry
@@ -378,6 +394,19 @@ addcoord:		//edx=coord
 	mov bh, dh
 	.nya:
 ret
+
+addcoord3:		//edx=coord, adds to appropriate variables based upon adjflags2
+	test BYTE [adjflags2], 2
+	jz addcoord
+//fall through
+
+addcoord2:		//edx=coord, does both station spread and rail spread
+	xchg edi, eax
+	xchg ebp, ebx
+	call addcoord
+	xchg edi, eax
+	xchg ebp, ebx
+	jmp addcoord
 
 createwindow:
 	mov cx, 6//cWinTypeStationList
@@ -587,6 +616,7 @@ createrailstactionhook:
 	jnc .end
 	mov DWORD [adjaction], 0x28
 	and DWORD [adjflags2], ~1
+	or DWORD [adjflags2], 2
 	mov WORD [adjoperrormsg1], 0x100F
 	mov DWORD [adjtmp1], 0
 	.nocheckirr:
@@ -817,7 +847,7 @@ CheckStationFacilitiesLeft:
 	push	cx
 	movzx	bx, [esi+station.owner]
 	mov	al, 6 //cWinTypeStationList
-	call	[RefreshWindows]		// AL = window type
+	call	[RefreshWindows]	// AL = window type
 					// AH = element idx (only if AL:7 set)
 					// BX = window ID (only if AL:6 clear)
 	pop	cx
