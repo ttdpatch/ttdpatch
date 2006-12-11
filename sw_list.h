@@ -313,9 +313,9 @@
 	     //U
 	     //V
 	YESNO('W',"newsignals", CFG_NEWSIGNALS, INFST_RAIL_SIGNAL, "", newsignals),
-	YESNO('X',"adjacentstation", CFG_ADJSTATIONS, INFST_STATION, "", adjacentstation),
-	RANGE('Y',"stationsize", CFG_STATIONSIZE, INFST_STATION, "StationSize", stationsize, AUTO, U8, FLAGDATA(stationsizevalue), 1, 255, 255),
-	YESNO('Z',"tracerestrict", CFG_TRACERESTRICT, VEH_ORDERS, "", tracerestrict),
+	YESNO('X',"adjacentstation", CFG_ADJSTATIONS, INFST_STATION, "AdjacentStations:Alpha", adjacentstation),
+	RANGE('Y',"stationsize", CFG_STATIONSIZE, INFST_STATION, "StationSize:Alpha", stationsize, AUTO, U8, FLAGDATA(stationsizevalue), 1, 255, 255),
+	YESNO('Z',"tracerestrict", CFG_TRACERESTRICT, VEH_ORDERS, "RoutingRestrictions:Alpha", tracerestrict),
 
 
 
