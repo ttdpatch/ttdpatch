@@ -397,7 +397,7 @@ ret
 
 .sigval:
 	push eax
-	dec dh	//5-8 --> 4-7, signal bits in L2,L3
+	sub dh, 3	//7-10 --> 4-7, signal bits in L2,L3
 	mov cl, dh
 	movzx eax, WORD [ebx+robj.word1]
 	mov dl, [landscape4(ax,1)]
