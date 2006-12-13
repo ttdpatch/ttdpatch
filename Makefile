@@ -522,11 +522,11 @@ host/lang/%.o:	lang/%.h lang/english.h
 
 # test versions of makelang with a single language: make lang/<language> and run
 # the executable to make a single-language language.dat file
-lang/%${EXEW}:		makelang.c lang/%.o switches.o codepage.o texts.o langerr.h
+lang/%${EXEW}:		makelang.c lang/%.o switches.o codepage.o texts.o
 	${_E} [CC] $@
 	${_C}$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -DSINGLELANG=$* $^ -L. -lz
 
-host/lang/%${HOSTEXE}:	makelang.c host/lang/%.o host/switches.o host/codepage.o host/texts.o langerr.h
+host/lang/%${HOSTEXE}:	makelang.c host/lang/%.o host/switches.o host/codepage.o host/texts.o
 	${_E} [HOSTCC] $@
 	${_C}$(HOSTCC) -o $@ $(HOSTCFLAGS) $(HOSTLDFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -DSINGLELANG=$* $^ -lz
 
