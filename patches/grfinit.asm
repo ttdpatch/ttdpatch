@@ -1507,9 +1507,12 @@ postinfoapply:
 	inc edx
 	call setbasecostmult
 
+extern recalctownpopulations
+
 	testflags newhouses
 	jnc .nohousecountrecalc
 	call recalchousecounts
+	call recalctownpopulations
 .nohousecountrecalc:
 
 	testflags tempsnowline
