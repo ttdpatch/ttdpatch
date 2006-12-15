@@ -25,8 +25,7 @@ totalsprites equ 0x131a+6*WINTTDX	// Windows TTD has six more (for Fish UK logo 
 %define GRM_RVS ROADVEHBASE
 %define GRM_SHIPS SHIPBASE
 %define GRM_PLANES AIRCRAFTBASE
-%define GRM_INDUSTRIES 256
-%define GRM_CARGOS GRM_INDUSTRIES+NINDUSTRIES	// cargo IDs
+%define GRM_CARGOS totalvehtypes		// cargo IDs
 %define GRM_CARGOBITS GRM_CARGOS+NUMCARGOS	// cargo bits
 
 %define GRM_NUM GRM_CARGOBITS+NUMCARGOS		// this will be the next used ID
