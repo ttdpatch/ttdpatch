@@ -4200,7 +4200,7 @@ uvard alwaysminusone,1,s
 	// -1 = no resources defined yet, -2 = has special handler
 var grfresbase, dd GRM_TRAINS,GRM_RVS,GRM_SHIPS,GRM_PLANES
 	dd -1, -1, -1, -1		// stations, canals, bridges houses
-	dd -2, -1,GRM_INDUSTRIES	// sprites, industiles, industries,
+	dd -2, -1, -1			// sprites, industiles, industries,
 	dd GRM_CARGOS,-1,-1,-1		// cargos, sounds, airports, signals
 checkfeaturesize grfresbase, 4
 	// next one starts with 357
