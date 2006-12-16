@@ -598,7 +598,7 @@ global createbusstactionhook
 createbusstactionhook:
 	mov dx, 0x101
 	mov DWORD [adjaction], 0x50028
-	and DWORD [adjflags2], ~1
+	and DWORD [adjflags2], ~3
 	mov WORD [adjoperrormsg1], 0x1808
 	mov DWORD [adjtmp1], 1
 	jmp createrailstactionhook.nocheckirr
@@ -606,7 +606,7 @@ global createlorrystactionhook
 createlorrystactionhook:
 	mov dx, 0x101
 	mov DWORD [adjaction], 0x60028
-	and DWORD [adjflags2], ~1
+	and DWORD [adjflags2], ~3
 	mov WORD [adjoperrormsg1], 0x1809
 	mov DWORD [adjtmp1], 1
 	jmp createrailstactionhook.nocheckirr
