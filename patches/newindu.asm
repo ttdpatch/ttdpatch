@@ -3816,6 +3816,7 @@ getindutiletypeatoffset:
 	shr ch,4
 	add cx,[esi+industry.XY]
 
+.got_esi_ecx:
 // check if it's an industry tile
 	mov al,[landscape4(cx,1)]
 	and al,0xF0
@@ -3886,6 +3887,24 @@ getindutiletypeatoffset:
 // the tile is defined in another GRF, so we can't return anything useful for it
 .othergrf:
 	mov eax,0xFFFE
+	ret
+
+// like the previous one, but for industry tiles, taking the
+// current tile as the point of reference, instead of the north corner
+exported getindutiletypeatoffset_tile
+	mov cl,ah
+	and ecx,0xF
+	mov ch,ah
+	shr ch,4
+	add ecx,esi
+
+	push esi
+	movzx esi,byte [landscape2+esi]
+	imul esi,industry_size
+	add esi,[industryarrayptr]
+
+	call getindutiletypeatoffset.got_esi_ecx
+	pop esi
 	ret
 
 global getindutilerandombits

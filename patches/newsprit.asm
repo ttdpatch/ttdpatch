@@ -2030,9 +2030,12 @@ vard industilesvarhandler
 %endif
 endvar
 
+extern getindutiletypeatoffset_tile
+
 vard industilesparamvarhandler
 	dd getindustilelandslope
 	dd getotherindustileanimstage
+	dd getindutiletypeatoffset_tile
 %ifndef PREPROCESSONLY
 %assign n_industilesparamvarhandler (addr($)-industilesparamvarhandler)/4
 %endif
