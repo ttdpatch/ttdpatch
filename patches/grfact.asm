@@ -1352,7 +1352,9 @@ exported runspectexthandlers
 //	esi points to some "safe position" (there's exactly one NULL between esi and the next text)
 // safe: eax
 
-%assign maxverstringlen 64
+// Buffer size for the new string
+// NOTE: 96 bytes should be enough for any string of reasonable length.
+%assign maxverstringlen 96
 
 // Append the TTDPatch version number to the main menu title and the about box title
 // The version string is always all-ASCII, so we don't need to worry about UTF-8 here
