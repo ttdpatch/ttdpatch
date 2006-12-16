@@ -252,8 +252,8 @@ DropDownMenuResetActiveButtons:
 	add edi, dword [esi+window.data] // Add the pointer for the actual data
 	xor ch, ch // Clear the tab bit
 	btr [edi], ecx // Reset the bit
-	pop ecx // Restore the tab number
 	pop edi // Restore Registor
+	pop ecx // Restore the tab number
 	ret
 //btr [esi+window.activebuttons], ecx
 //db 66h, 9ch
@@ -287,8 +287,8 @@ DropDownMenuSetActiveButtons:
 	add edi, dword [esi+window.data] // Add the pointer for the actual data
 	xor ch, ch // Clear the tab bit
 	bts [edi], ecx // Reset the bit
-	pop ecx // Restore the tab number
 	pop edi // Restore Registor
+	pop ecx // Restore the tab number
 	ret
 //bts [esi+window.activebuttons], ecx
 //mov bx, [esi+window.id]
