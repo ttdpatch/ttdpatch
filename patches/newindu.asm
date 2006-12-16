@@ -3890,13 +3890,14 @@ getindutiletypeatoffset:
 	ret
 
 // like the previous one, but for industry tiles, taking the
-// current tile as the point of reference, instead of the north corner
+// current tile as the point of reference, instead of the north corner, and
+// the offsets are signed
 exported getindutiletypeatoffset_tile
-	mov cl,ah
-	and ecx,0xF
-	mov ch,ah
-	shr ch,4
-	add ecx,esi
+	sar ax,4
+	sar al,4
+	mov ecx,esi
+	add ch,ah
+	add cl,al
 
 	push esi
 	movzx esi,byte [landscape2+esi]
