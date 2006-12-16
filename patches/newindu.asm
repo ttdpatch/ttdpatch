@@ -4102,19 +4102,22 @@ doproductioncallback:
 .nextininstruction:
 
 // load value...
-	movzx ebx,word [eax+productioninstruction.subtract_in_1+(ecx-1)*2]
+// we now support signed values here, so do the calculation on 32 bits and cap the result
+// to an unsigned word afterward
+	movsx ebx,word [eax+productioninstruction.subtract_in_1+(ecx-1)*2]
 // multiply with the division factor to maintain scaling
 	imul ebx,ebp
-// cap the result to 64K
-	test ebx,0xffff0000
-	jz .notmuloverflow
-	mov bx,0xffff
-.notmuloverflow:
-// subtract amount, but don't go negative
-	sub [edi+industryincargodata.in_amount1+(ecx-1)*2],bx
-	jnc .nottoofew
-	and word [edi+industryincargodata.in_amount1+(ecx-1)*2],0
-.nottoofew:
+
+	movzx edx,word [edi+industryincargodata.in_amount1+(ecx-1)*2]
+	sub edx,ebx
+	jns .notneg
+	xor edx,edx
+.notneg:
+	cmp edx,0xFFFF
+	jbe .nottoomuch
+	or edx,-1
+.nottoomuch:
+	mov [edi+industryincargodata.in_amount1+(ecx-1)*2],dx
 	loop .nextininstruction
 
 // the same steps for the two "out" instructions, but add instead of subtracting
@@ -4123,13 +4126,13 @@ doproductioncallback:
 	movzx ebx,word [eax+productioninstruction.add_out_1+(ecx-1)*2]
 	imul ebx,ebp
 	test ebx,0xffff0000
-	jz .notmuloverflow2
+	jz .notmuloverflow
 	mov bx,0xffff
-.notmuloverflow2:
+.notmuloverflow:
 	add [esi+industry.amountswaiting+(ecx-1)*2],bx
-	jnc .nottoomuch
+	jnc .nottoomuch2
 	or word [esi+industry.amountswaiting+(ecx-1)*2],byte -1
-.nottoomuch:
+.nottoomuch2:
 	loop .nextoutinstruction
 
 // increase the loop counter for the GRF
