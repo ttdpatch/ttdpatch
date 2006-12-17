@@ -15,6 +15,8 @@
 #include <font.inc>
 #include <bitvars.inc>
 #include <airport.inc>
+#include <idf.inc>
+#include <objects.inc>
 
 extern tramtracks,numtramtracks
 extern newonewayarrows,numonewayarrows
@@ -69,6 +71,7 @@ extern airportweight,airporttypenames
 extern setrailstationrvrouteing
 extern longintrodate,longintrodatebridges
 extern newsignalspritenum,newsignalspritebase
+extern setobjectclass
 
 uvarb action1lastfeature
 
@@ -100,7 +103,7 @@ action0:
 
 proc processnewinfo
 	local feature,numinfo,offset, specificnum, speciallist,specialnum, maxesi
-	local dataptrofs,orgoffset,ofstrans,curoffset,numofsleft,curprop
+	local dataptrofs,orgoffset,ofstrans,curoffset,numofsleft,curprop,ofstranssize
 
 	_enter
 
@@ -110,6 +113,8 @@ proc processnewinfo
 	mov [%$dataptrofs],ebx
 
 	mov [%$feature],eax
+	mov bl,[action0transtablesize+eax]
+	mov [%$ofstranssize],bl
 	mov ebx,[specificpropertylist+ecx]
 	movzx eax,byte [ebx]		// number of feature-specific properties
 	lea ebx,[ebx+1+eax]
@@ -119,6 +124,7 @@ proc processnewinfo
 	mov [%$specialnum],al
 	mov eax,[action0transtable+ecx]
 	mov [%$ofstrans],eax
+
 
 	mov ecx,[esi-6]
 	lea ecx,[esi-2+ecx+1]
@@ -206,14 +212,20 @@ proc processnewinfo
 
 	cmp al,8		// but not for prop. 08 which *sets* the translation
 	je .notrans
-
-	mov bl,[edi+ebx]
-	mov [%$offset],bl
+	
+	cmp byte [%$ofstranssize], 0
+	je .ofstranssize0
+	mov bx,[edi+ebx*2]
+	jmp short .ofstranssize1
+.ofstranssize0:
+	movzx bx, byte [edi+ebx]
+.ofstranssize1:
+	mov [%$offset],bx
 
 	mov [%$numofsleft],ecx
 	mov cl,1		// only process one at a time
 
-	test bl,bl
+	test bx,bx
 	jz .skip		// referring to an undefined offset
 
 .notrans:
@@ -1275,6 +1287,13 @@ grfcalltable action3storeid, dd addr(action3storeid.generic)
 	loop .nextvid
 	ret
 
+.getobjects:
+	push edx
+	extern objectidf
+	mov edx, objectidf		// the feature needs translation
+	extcall idf_bindaction3togameids
+	pop edx
+	ret
 .getsignals:
 .getbridges:
 .getgeneric:
@@ -2327,7 +2346,7 @@ endvar
 	jmp checknewgraphicsblock.invalid
 
 .equal:		// 2 = equal
-	je .skipit
+	je near .skipit
 	jmp short .dont		// "jmp" isn't short by default... stupid...
 
 .notequal:	// 3 = not equal
@@ -3979,6 +3998,9 @@ defvehdata spclsounddata, F,F,F				// 08..0A
 defvehdata specairportdata
 defvehdata spclairportdata, F,F,B,B,B,B,t			// 08..0d
 
+defvehdata specobjectdata
+defvehdata spclobjectdata, F						// 08
+
 %undef defvehdata
 
 %pop
@@ -4204,23 +4226,25 @@ var grfresbase, dd GRM_TRAINS,GRM_RVS,GRM_SHIPS,GRM_PLANES
 	dd -1, -1, -1, -1		// stations, canals, bridges houses
 	dd -2, -1, -1			// sprites, industiles, industries,
 	dd GRM_CARGOS,-1,-1,-1		// cargos, sounds, airports, signals
+	dd -1						// objects
 checkfeaturesize grfresbase, 4
 	// next one starts with 357
 
 	// the following variables need to be close in memory
-var vehbase, db TRAINBASE,ROADVEHBASE,SHIPBASE,AIRCRAFTBASE,0,0,0,0,0,0,0,0,0,0,0
+var vehbase, db TRAINBASE,ROADVEHBASE,SHIPBASE,AIRCRAFTBASE,0,0,0,0,0,0,0,0,0,0,0,0
 checkfeaturesize vehbase, 1
 
 var vehbnum, db NTRAINTYPES,NROADVEHTYPES,NSHIPTYPES,NAIRCRAFTTYPES
 	db 255,255,NBRIDGES,255		// stations,canals,bridges,houses
 	db 255,255,NINDUSTRIES,32	// generic,industiles,industries,cargos
 	db 0,NUMNEWAIRPORTS,0		// sounds,airports,signals
+	db 255						// objects
 checkfeaturesize vehbnum, 1
 
 	// for action 0, where are the regular vehicle specific properies listed
 var specificpropertylist, dd spectraindata,specrvdata,specshipdata,specplanedata,specstationdata, 0, specbridgedata
 			dd spechousedata,specglobaldata,specindustiledata,specindustrydata,speccargodata,specsounddata
-			dd specairportdata,0
+			dd specairportdata,0,specobjectdata
 checkfeaturesize specificpropertylist, 4
 
 	// for action 0, where the data for each vehicle class starts
@@ -4234,13 +4258,21 @@ var specificpropertyofs, db -10,-6,0,0
 	// special vehicle properties stored in newvehdatastruc (or with handler func)
 var specialpropertybase, dd newtrainvehdata,newrvvehdata,newshipvehdata,newplanevehdata
 	dd newstationdata, 0, bridgedata, housedata, globaldata, industiledata, industrydata, cargodata, sounddata
-	dd airportdata,0
+	dd airportdata,0,objectdata
 checkfeaturesize specialpropertybase, 4
 
 	// for those features that need ID translation, put the table here
 var action0transtable, dd 0,0,0,0,curgrfstationlist,0,0,curgrfhouselist,
-		       dd 0, curgrfindustilelist, curgrfindustrylist,0,0, curgrfairportlist,0
+		       dd 0, curgrfindustilelist, curgrfindustrylist,0,0, curgrfairportlist,0,curgrfobjectgameids
 checkfeaturesize action0transtable, 4
+
+	// for those features that need ID translation in word size, put a 1
+var action0transtablesize, db 0,0,0,0
+	db 0,0,0,0	// curgrfstationlist, 0, 0, curgrfhouselist
+	db 0,0,0,0	// 0, curgrfindustilelist, curgrfindustrylist, 0
+	db 0,0,0,1	// 0, curgrfairportlist, 0, curgrfobjectgameids
+checkfeaturesize action0transtablesize, 1
+
 
 	// pointers to the data for each of the special properties
 var newtrainvehdata
@@ -4365,7 +4397,10 @@ var airportdata
 	dd setairportlayout,setairportmovementdata			//08..09
 	dd airportstarthangarnodes,airportcallbackflags			//0a..0b
 	dd airportspecialflags,airportweight,airporttypenames		//0c..0e
-
+	
+var objectdata
+	dd addr(setobjectclass)						// 08
+	
 uvard grfvarreinitstart,0
 %define SKIPGUARD 1
 
@@ -4416,6 +4451,11 @@ uvard substindustries,(NINDUSTRIES+3)/4
 
 uvard cargoaction3,32
 
+	// objects
+uvard objectsdataidtogameid, NOBJECTS/2
+uvard objectsgameiddata, NOBJECTS*idf_gameid_data_size
+uvard objectsgameidcount
+
 	// other variables
 uvard newstationnum
 uvard trainspritemove
@@ -4465,6 +4505,7 @@ uvard curgrfindustilelist,256/4
 uvard curgrfindustrylist,NINDUSTRIES/4 + 1
 uvard globalidoffset
 uvard curgrfairportlist,256/4
+uvard curgrfobjectgameids,NOBJECTS/2
 
 uvard grfvarclearsigned,0
 

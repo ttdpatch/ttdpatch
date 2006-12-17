@@ -1902,7 +1902,7 @@ varb featurevarofs
 	db 0, 0			// sounds neither
 	db -0x80+0x10, -0x80	// airports: same as stations
 	db 0,0			// signals: no structures
-
+	db 0, -0x80		// objects
 checkfeaturesize featurevarofs, 2
 
 endvar
@@ -1926,6 +1926,7 @@ vard varavailability
 	dd 0,7<<29,		0,7<<29			// sounds
 	dd 0,7<<29,		0,7<<29			// airports
 	dd 0,7<<29,		0,7<<29			// signals
+	dd 0,3<<30,		0,3<<30			// objects
 
 checkfeaturesize varavailability, (4*2*2)
 
@@ -2111,7 +2112,7 @@ vard specialvarhandlertable
 	dd 0,0
 	dd airportvarhandler,townvarhandler
 	dd 0,0
-
+	dd 0,0						//objects					
 checkfeaturesize specialvarhandlertable, (4*2)
 
 endvar
@@ -2134,6 +2135,7 @@ vard specialvars
 	db 0,0
 	db n_airportvarhandler,n_townvarhandler
 	db 0,0
+	db 0,0						//objects
 %endif
 
 checkfeaturesize specialvars, (1*2)
@@ -2156,6 +2158,7 @@ vard specialparamvarhandlertable
 	dd 0,0
 	dd airportparamvarhandler,townparamvarhandler
 	dd signalsparamvarhandler,0
+	dd 0,0							// objects
 checkfeaturesize specialparamvarhandlertable, (4*2)
 
 endvar
@@ -2178,6 +2181,7 @@ varb specialparamvars
 	db 0,0
 	db n_airportparamvarhandler,n_townparamvarhandler
 	db n_signalsparamvarhandler,0
+	db 0,0							// objects
 %endif
 
 checkfeaturesize specialparamvars, (1*2)

@@ -500,6 +500,7 @@ enum langtextids {
 	CFG_STATIONSIZE,
 	CFG_ADJSTATIONS,
 	CFG_NEWSIGNALS,
+	CFG_NEWOBJECTS,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS

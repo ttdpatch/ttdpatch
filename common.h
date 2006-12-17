@@ -185,8 +185,9 @@
 #define shortrvs		218	// allow shortened RVs					(118)
 #define articulatedrvs		219	// allow articulated RVs				(119)
 #define newroutes		220	// Enable newRoutes					(120)
+#define newobjects	221	// Enable support for newobjects					(-)
 
-#define lastbitdefaultoff	220	// META: last bit defined not to be set by -a unless DEBUG
+#define lastbitdefaultoff	221	// META: last bit defined not to be set by -a unless DEBUG
 
 // so far unused flags, simply to remember what names I've used already
 // the numbers of these can be changed as desired

@@ -350,6 +350,8 @@
 	RANGE(152,"tgrtownsizefactor", CFG_TGRTOWNSIZEFACTOR, HOUSESTOWNS_GROWTH, "NewTownGrowthSwitches", noswitch, AUTO, U8, FLAGDATA(tgrtownsizefactor), 0, 255, 63),
 	RANGE(153,"townminpopulationsnow", CFG_TOWNMINPOPULATIONSNOW, HOUSESTOWNS, "NewTownGrowthSwitches", noswitch, AUTO, U8, FLAGDATA(townminpopulationsnow), 0, 255, 90),
 	RANGE(156,"townminpopulationdesert", CFG_TOWNMINPOPULATIONDESERT, HOUSESTOWNS, "NewTownGrowthSwitches", noswitch, AUTO, U8, FLAGDATA(townminpopulationdesert), 0, 255, 60),
+	YESNO(157,"newobjects", CFG_NEWOBJECTS, INFST, "", newobjects),
+
 
 //
 // Here follows the switch order list
@@ -513,3 +515,5 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	stationsize,
 	adjacentstation,
 	newsignals,
+	newobjects,
+

@@ -511,6 +511,7 @@ SWITCHTEXT(tracerestrict, "Enables train routetracing to be restricted", "")
 SWITCHTEXT(stationsize, "Set maximum rail station size (still limited by station spread)", "")
 SWITCHTEXT(adjacentstation, "Adjacent station building and remote merging with other stations", "")
 SWITCHTEXT(newsignals, "New signal graphics", "")
+SWITCHTEXT(newobjects, "Enable new objects", "")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -891,6 +892,7 @@ SETTEXT(CFG_TRACERESTRICT, "%s (%s) enables train routetracing to be restricted 
 SETTEXT(CFG_STATIONSIZE, "%s (%s) changes the maximum railway station size to the specified value, note stations are still limited by the spread switch. Range 1..255 default 255. Options: on/off/number")
 SETTEXT(CFG_ADJSTATIONS, "%s (%s) allows new station facilities to be merged to any station in range, even if it is adjacent to an existing station.")
 SETTEXT(CFG_NEWSIGNALS, "`%s' (%s) enables new graphics for signals.")
+SETTEXT(CFG_NEWOBJECTS, "`%s' (%s) enables new objects.")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

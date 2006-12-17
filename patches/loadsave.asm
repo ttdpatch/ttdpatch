@@ -18,6 +18,8 @@
 #include <house.inc>
 #include <newvehdata.inc>
 #include <airport.inc>
+#include <idf.inc>
+#include <objects.inc>
 
 extern LoadWindowSizesFinish,SaveWindowSizesPrepare
 extern actionhandler,activatedefault,animarraysize,calcaccel
@@ -91,7 +93,8 @@ varw knownextrachunkids
 	dw 0x800e	// Landscape8 Array
 	dw 0x800f	// Restriction Object Arrays
 	dw 0x8010	// Persistent GRF data
-
+	dw 0x8011	// New objects ID map
+	
 knownextrachunknum equ (addr($)-knownextrachunkids)/2
 
 endvar
@@ -125,7 +128,8 @@ vard knownextrachunkloadfns
 	dd addr(loadlandscape8array)
 	dd addr(loadrobjarray)
 	dd loadpersgrfdata
-
+	dd loadobjectidmap
+	
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkloadfns)/4
 	%error "Inconsistent number of chunk functions"
@@ -163,6 +167,7 @@ vard knownextrachunksavefns
 	dd addr(savelandscape8array)
 	dd addr(saverobjarray)
 	dd savepersgrfdata
+	dd saveobjectidmap
 
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunksavefns)/4
@@ -203,6 +208,7 @@ vard knownextrachunkqueryfns
 	dd addr(canhavelandscape8array)
 	dd addr(canhaverobjarray)
 	dd canhavepersgrfdata
+	dd canhaveobjectidmap
 
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkqueryfns)/4
@@ -250,6 +256,8 @@ uvarw loadremovedsfxs	// ... and this many pseudo-/special vehicles
 
 %assign LOADED_X3_L8ARRAY		0x1
 %assign LOADED_X3_ROBJARRAY		0x2
+%assign LOADED_X3_OBJECTDATAID	0x4
+
 
 %define SKIPGUARD 1			// the variables get cleaned by a dword.. 
 uvarb extrachunksloaded1		// a combination of LOADED_X1_*
@@ -1031,6 +1039,14 @@ newloadtitleproc:
 	call clearrobjarrays
 .robj_loadend:
 
+	testflags newobjects
+	jnc .nonewobjects
+	test byte [extrachunksloaded3],LOADED_X3_OBJECTDATAID
+	jnz .haveobjectsdataids
+	extcall clearobjectdataids
+.haveobjectsdataids:
+.nonewobjects:
+
 	call updategamedata
 	
 	// looks like it's all. Whew!
@@ -1612,7 +1628,7 @@ loadlandscape7array:
 	jne .notoldformat
 	mov dword [l7switches],L7_HIGHERBRIDGES
 	xchg eax,ecx
-	jmp short loadsavelandscape7array.oldformat
+	jmp loadsavelandscape7array.oldformat
 
 .notoldformat:
 	cmp eax,0x10000+4
@@ -2134,6 +2150,28 @@ loadsavenewairporttypes:
 	or byte [extrachunksloaded2],LOADED_X2_NEWAIRPORTLIST
 	ret
 
+canhaveobjectidmap:
+	testflags newobjects
+	ret
+
+loadobjectidmap:
+	cmp eax,idf_dataid_data_size*NOBJECTS
+	jne badchunk
+	jmp short loadsaveobjectidmap
+
+saveobjectidmap:
+	mov eax,idf_dataid_data_size*NOBJECTS
+	call savechunkheader
+
+loadsaveobjectidmap:
+	xchg ecx,eax
+	extern objectsdataiddata
+	mov esi,objectsdataiddata
+	call ebp
+	or byte [extrachunksloaded3],LOADED_X3_OBJECTDATAID
+	ret
+
+	
 //
 // End of extra chunk load/save/query functions
 //

@@ -12,7 +12,7 @@ totalsprites equ 0x131a+6*WINTTDX	// Windows TTD has six more (for Fish UK logo 
 #define MAXGRFVERSION 7
 
 	// number of GRF features supported for actions 0, 1, 2, 3 etc.
-%define NUMFEATURES 15
+%define NUMFEATURES 16
 
 %assign NBRIDGES	11
 
@@ -39,8 +39,9 @@ totalsprites equ 0x131a+6*WINTTDX	// Windows TTD has six more (for Fish UK logo 
 %assign GRM_EXTRA_INDUSTRIES GRM_EXTRA_INDUSTILES+1	// industries
 %assign GRM_EXTRA_PERSTEXTS GRM_EXTRA_INDUSTRIES+1	// persistent GRF texts
 %assign GRM_EXTRA_GRFIDS GRM_EXTRA_PERSTEXTS+1		// GRFIDs
+%assign GRM_EXTRA_OBJECTS GRM_EXTRA_GRFIDS+1		// object ids
 
-%assign GRM_EXTRA_NUM GRM_EXTRA_GRFIDS+1
+%assign GRM_EXTRA_NUM GRM_EXTRA_OBJECTS+1
 
 
 maxstationclasses equ 32

@@ -57,6 +57,7 @@ vard exsfeaturemaxspritesperblock
 	dd 0					// 12 sounds
 	dd EXTBASE_OTHER+ EXTCOUNT_OTHER 	// 13 airports
 	dd 0				 	// 14 signals
+	dd EXTBASE_OTHER+ EXTCOUNT_OTHER	// 15 objects
 	checkfeaturesize exsfeaturemaxspritesperblock, 4
 endvar
 
@@ -76,6 +77,7 @@ vard exsfeaturetospritebaseoffsets
 	dd 0			// 12 sounds
 	dd EXTBASE_OTHER	// 13 airports
 	dd 0			// 14 signals
+	dd EXTBASE_OTHER	// 15 objects
 	checkfeaturesize exsfeaturetospritebaseoffsets, 4
 endvar
 
@@ -96,6 +98,7 @@ varb exsnumactspritesindex
 	db -1	// 12 sounds
 	db 0	// 13 airports
 	db -1	// 14 signals
+	db 0	// 15 objects
 	checkfeaturesize exsnumactspritesindex,1
 endvar
 
