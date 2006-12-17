@@ -1926,7 +1926,7 @@ vard varavailability
 	dd 0,7<<29,		0,7<<29			// sounds
 	dd 0,7<<29,		0,7<<29			// airports
 	dd 0,7<<29,		0,7<<29			// signals
-	dd 0,3<<30,		0,3<<30			// objects
+	dd 0,7<<29,		0,7<<29			// objects
 
 checkfeaturesize varavailability, (4*2*2)
 
