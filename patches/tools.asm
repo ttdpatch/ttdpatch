@@ -592,6 +592,7 @@ global createvehentry
 createvehentry:
 	push eax
 	mov word [esi+veh.nextunitidx],-1
+	mov byte [esi+veh.subclass],0
 	mov ax,[esi+veh.idx]
 	mov [esi+veh.engineidx],ax
 // Don't generate random numbers for pseudo-vehicles because they might not be created
