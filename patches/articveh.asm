@@ -152,7 +152,7 @@ newbuyroadvehicle:
 	push	ecx
 	mov	cx, word [esi+veh.idx]
 	mov	word [edi+veh.nextunitidx], cx			// initialise to a trailer, set basic params.
-	mov	byte [esi+veh.subclass], 0x02
+	mov	byte [esi+veh.subclass], 0x02			//futile?
 	mov	byte [esi+veh.parentmvstat], 0xFF
 	mov	byte [esi+0x6E], 0xFF
 	mov	edi, dword [vehicleToAttachTo]			//grab the parent again
@@ -1109,7 +1109,10 @@ drawAllTrailersInRVList:
 global RVDepotScrXYtoVehSkipTrailers
 RVDepotScrXYtoVehSkipTrailers:
 	add	edi, 80h				//overwritten
-	cmp	byte [edi+veh.subclass], 0x00
+	push	ebx
+	movzx	ebx, word [edi+veh.engineidx]
+	cmp	bx, word [edi+veh.idx]
+	pop	ebx
 	jne	RVDepotScrXYtoVehSkipTrailers		//trailer? add another vehicle.
 	retn
 
@@ -1355,11 +1358,17 @@ global changePtrToParentVehicleIfTrailer
 changePtrToParentVehicleIfTrailer:
 	mov	edi, dword [rvCollisionFoundVehicle]		//overwritten
 	mov	edi, [edi]
-	cmp	byte [esi+veh.subclass], 0x00
+	push	ebx
+	movzx	ebx, word [esi+veh.engineidx]
+	cmp	bx, word [esi+veh.idx]
+	pop	ebx
 	jne	.dontAdjustPtr					//it's a trailer, don't change anything
 	cmp	word [esi+veh.nextunitidx], 0xFFFF
 	jne	.dontAdjustPtr					//it's a trailer, don't change anything
-	cmp	byte [edi+veh.subclass], 0x00
+	push	ebx
+	movzx	ebx, word [edi+veh.engineidx]
+	cmp	bx, word [edi+veh.idx]
+	pop	ebx
 	je	.dontAdjustPtr					//it's trying to overtake an engine, don't adjust
 	movzx	edi, word [edi+veh.engineidx]			//trying to overtake trailer, shift in parent.
 	shl	di, 7
@@ -1377,7 +1386,10 @@ cancelBlockIfArticulated:
 	push	edi
 	mov	edi, dword [movingVehicle]
 	mov	edi, [edi]
-	cmp	byte [edi+veh.subclass], 0
+	push	ebx
+	movzx	ebx, word [edi+veh.engineidx]
+	cmp	bx, word [edi+veh.idx]
+	pop	ebx
 	jne	.dontTouchTrailer
 	cmp	word [edi+veh.nextunitidx], 0xFFFF
 	jne	.dontTouchTrailer
