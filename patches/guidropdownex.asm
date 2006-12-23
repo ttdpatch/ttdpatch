@@ -571,6 +571,10 @@ GenerateDropDownEx_clickhandler:
 	js .done
 	mov ax, bx
 	mov bx, word [DropDownExListItemHeight]
+	bt word [DropDownExFlags], 1
+	jnc .nodivider
+	add bx, 2
+.nodivider:	
 //can we have a overflow here?
 	div bl
 	movzx eax, al
