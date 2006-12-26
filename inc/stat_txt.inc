@@ -297,3 +297,4 @@ stxt_cont db ", ",0x81
 stxt_cont dw ourtext(tr_landinfotext)
 stxt_cont db 0
 
+stxt extradetailswagons, 0x95,0x84,"  ",0x7E,0
