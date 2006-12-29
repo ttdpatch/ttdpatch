@@ -10,6 +10,8 @@
 #include <bitvars.inc>
 #include <idf.inc>
 #include <objects.inc>
+#include <window.inc>
+#include <imports/gui.inc>
 
 extern failpropwithgrfconflict
 extern curspriteblock,grfstage
@@ -22,6 +24,7 @@ extern objectsdataidtogameid
 extern objectsgameiddata
 extern objectsgameidcount
 extern curgrfobjectgameids
+extern RefreshWindowArea
 
 global objectidf
 vard objectidf
@@ -127,4 +130,106 @@ exported clearobjectdataids
 	ret
 
 
+
+
+// Select window
+%assign win_objectgui_id 111
+
+%assign win_objectgui_width 200
+%assign win_objectgui_height 300
+%assign win_objectgui_padding 10 
+%assign win_objectgui_dropwidth 12 
+%assign win_objectgui_dropheight 12
+%assign win_objectgui_previewheight 60
+
+varb win_objectgui_elements
+db cWinElemTextBox,cColorSchemeDarkGreen
+dw 0, 10, 0, 13, 0x00C5
+db cWinElemTitleBar,cColorSchemeDarkGreen
+dw 11, win_objectgui_width-1, 0, 13, ourtext(grfstatcaption)
+db cWinElemSpriteBox,cColorSchemeDarkGreen
+dw 0, win_objectgui_width-1, 14, win_objectgui_height-1, 0
+// Dropdown
+db cWinElemSpriteBox,cColorSchemeGrey
+dw win_objectgui_padding, win_objectgui_width-1-win_objectgui_padding-win_objectgui_dropwidth-1
+dw 20, 20+win_objectgui_dropheight
+dw 0
+db cWinElemTextBox,cColorSchemeGrey
+dw win_objectgui_width-1-win_objectgui_padding-win_objectgui_dropwidth,win_objectgui_width-1-win_objectgui_padding, 
+dw 20, 20+win_objectgui_dropheight,statictext(txtetoolbox_dropdown)
+// Preview
+db cWinElemSpriteBox,cColorSchemeGrey
+dw win_objectgui_padding,win_objectgui_width-1-win_objectgui_padding, 
+dw 40, 40+win_objectgui_previewheight, 0
+db cWinElemLast
+endvar
+
+
+exported win_objectgui_create
+	bts dword [esi+window.activebuttons], 26
+	or byte [esi+window.flags], 7
+	call [RefreshWindowArea]
+	pusha
+	mov cl, 0x2A
+	mov dx, win_objectgui_id // window.id
+	call dword [BringWindowToForeground]
+	test esi,esi
+	jz .noold
+	popa
+	ret
+
+.noold:
+	mov eax, 100 + (100<<16) // x + (y << 16)
+	mov ebx, win_objectgui_width + (win_objectgui_height << 16)
+	mov cx, 0x2A			// window type
+	mov dx, -1				// -1 = direct handler
+	mov ebp, addr(win_objectgui_winhandler)
+	call dword [CreateWindow]
+	mov dword [esi+window.elemlistptr], addr(win_objectgui_elements)
+	mov word [esi+window.id], win_objectgui_id // window.id
+	popa
+	ret
+
+win_objectgui_winhandler:
+	mov bx, cx
+	mov esi, edi
+	cmp dl, cWinEventRedraw
+	jz near win_objectgui_redraw
+	cmp dl, cWinEventClick
+	jz near win_object_clickhandler
+	cmp dl, cWinEventTimer
+	jz win_objectgui_timer
+//	cmp dl, cWinEventSecTick
+//	jz win_signalgui_sectick
+	ret
+win_objectgui_timer:
+	mov dword [esi+window.activebuttons], 0
+	mov al,[esi]
+	mov bx,[esi+window.id]
+	call dword [invalidatehandle]
+//	or byte [esi+window.flags], 7
+	ret
+	
+win_objectgui_redraw:
+	call dword [DrawWindowElements]
+	ret
+	
+win_object_clickhandler:
+	call dword [WindowClicked]
+	jns .click
+	ret
+.click:
+	cmp cl, 0
+	jne .notdestroy
+	jmp [DestroyWindow]
+.notdestroy:
+	cmp cl, 1
+	jne .nottilebar
+	jmp dword [WindowTitleBarClicked]
+.nottilebar:
+	cmp cl, 2
+	jnz .notbackground
+	ret
+.notbackground:
+	ret
 
