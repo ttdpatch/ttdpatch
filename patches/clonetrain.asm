@@ -20,6 +20,7 @@ extern RefreshWindowArea, forceextrahead, isengine, trainplanerefitcost
 extern traindepotwindowhandler.resizewindow, CloneTrainBuild_actionnum
 extern FindWindow, newvehdata, forcenoextrahead, shareorders_actionnum
 extern copyvehordersfn, vehtypedataptr, numguisprites, guispritebase
+extern ForceAttachmentOfUnit
 
 /*
 
@@ -427,12 +428,14 @@ exported CloneTrainBuild
 	push ecx
 	push esi
 	push edi
+	mov byte [ForceAttachmentOfUnit], 1 // Force attachment of the vehicle to stop errors
 	movzx edi, word [edi+veh.idx]
 	mov dx, [CloneTrainLastIdx]
 	mov bl, 1
 	mov esi, 0x90080
 	push ebp
 	call [actionhandler]
+	mov byte [ForceAttachmentOfUnit], 0
 	pop ebp
 	pop edi
 	pop esi

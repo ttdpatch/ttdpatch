@@ -641,6 +641,7 @@ checktracktype:
 // 	al=train length
 // out:	cmp al,maxlen: CF=1 or ZF=1 to disallow (train too long)
 // safe:eax(8:31) esi edi
+uvarb ForceAttachmentOfUnit // for clonetrain to stop grf authors breaking it
 global traintoolong
 traintoolong:
 	push eax
@@ -648,6 +649,9 @@ traintoolong:
 	mov edi,[tempvar+12]			// destination engine
 	or edi,edi
 	jz .good				// detaching is always possible
+
+	cmp byte [ForceAttachmentOfUnit], 1	// Allows the bypassing of checking the grf's attachment
+	je .good				// restrictions and the other checks
 
 	push word [esi+veh.engineidx]
 	mov ax,[edi+veh.engineidx]
