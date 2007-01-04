@@ -12,7 +12,7 @@
 #include <ptrvar.inc>
 
 extern patchflags
-extern drawtextfn, currscreenupdateblock, textrefstack
+extern drawtextfn, currscreenupdateblock
 
 exported extradetailswagon
 	pusha
