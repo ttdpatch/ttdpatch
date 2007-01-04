@@ -43,6 +43,7 @@ ConvertEngineHook:
 	push byte CTRL_ANY + CTRL_MP // Was control held when moving the engine
 	call ctrlkeystate
 	jz .engineconvert
+
 .notgood:
 	stc
 	ret
@@ -50,10 +51,10 @@ ConvertEngineHook:
 .engineconvert:
 	// Reset the control key status incase anything later breaks like moving the new extra head
 #if WINTTDX
-	mov byte [keypresstable+KEY_Ctrl], 1
+	mov byte [keypresstable+KEY_Ctrl], 0x80
 #else
-	mov byte [keypresstable+KEY_RCtrl], 1
-	mov byte [keypresstable+KEY_LCtrl], 1
+	mov byte [keypresstable+KEY_RCtrl], 0x80
+	mov byte [keypresstable+KEY_LCtrl], 0x80
 #endif
 
 	cmp edi, edx // If it's the same train, we cannot convert
@@ -197,9 +198,27 @@ exported ConvertEngineType
 	ret
 
 .revertvehicle: // No code for this yet, might be in future versions
+
+// Move out of current consist (If it is in one)
+// Create schedule pointer and get consist number*
+// Convert engine flags were possible
+// Attach anything left in the depot if possible
+	
 	ret
 
 .onlycalculations: // Costs nothing to the player (since it's just recoupling in real life anyway)
+	test dh, 1
+	jnz .notrevert
+
+// Check if an id is aviable
+// Check if enough order space left
+
+.notrevert:
 	mov ebx, 0
 	ret
+
+.fail:
+	mov ebx, 1<<31
+	ret
+
 

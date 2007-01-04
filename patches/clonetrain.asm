@@ -321,10 +321,10 @@ CloneTrainMain:
 
 	// Reset the Ctrl key status to stop bugs in the cloning code
 #if WINTTDX
-	mov byte [keypresstable+KEY_Ctrl], 1
+	mov byte [keypresstable+KEY_Ctrl], 0x80
 #else
-	mov byte [keypresstable+KEY_RCtrl], 1
-	mov byte [keypresstable+KEY_LCtrl], 1
+	mov byte [keypresstable+KEY_RCtrl], 0x80
+	mov byte [keypresstable+KEY_LCtrl], 0x80
 #endif
 
 	push esi
