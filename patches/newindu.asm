@@ -1323,6 +1323,8 @@ section .text
 // 13	The industry can cause a subsidence (coal mine) 	
 // 14	Automatic production multiplier handing (No industry has this bit set by default.)
 // 15	The production callback gets random bits in var. 10
+// 16	Don't ensure creation during map generation
+// 17	Don't prevent the last instance from closing down
 uvard industryspecialflags,NINDUSTRIES
 
 // The default values for the above special flags, ie. a bit is only set if the unpatched TTD industry would
@@ -2440,6 +2442,9 @@ createinitialindustries:
 .noallowcallback:
 // add probability to the total
 	add dword [industryprobabtotal],eax
+// mandatory generation can be disabled with a special bit
+	test byte [industryspecialflags+(ecx-1)*4+2],1
+	jnz .nextmandatory
 // then create it
 	push ecx
 	mov bl,cl
@@ -5087,7 +5092,12 @@ exported checkindudecprod
 // uses:ebx cx
 preventindustryclosedown:
 	mov ebx,[industryarrayptr]
-	mov cl,[esi+industry.type]
+	movzx ecx,byte [esi+industry.type]
+
+// check if the industry doesn't want to be protected
+	test byte [industryspecialflags+ecx*4+2],2
+	jnz .done
+
 	mov ch,90
 
 .next:
