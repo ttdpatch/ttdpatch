@@ -4044,6 +4044,67 @@ exported getothertypedistance
 	pop ebx
 	ret
 
+exported getindustrytownzoneanddist
+	push ebx
+	mov bx,[esi+industry.XY]
+
+	sar ax,4
+	sar al,4
+	add ah,bh
+	add al,bl
+
+	push ebp
+	push edi
+	push edx
+
+	xor edi,edi
+	mov ebx,2	// find nearest town and zone
+	mov ebp,[ophandler+3*8]
+	call [ebp+4]
+
+	movzx eax,dl	// zone
+	shl eax,16
+	mov ax,bp	// distance
+
+	pop edx
+	pop edi
+	pop ebp
+	pop ebx
+
+	ret
+
+exported getindustrytowndist_euclid
+	push ebx
+	mov bx,[esi+industry.XY]
+
+	sar ax,4
+	sar al,4
+	add ah,bh
+	add al,bl
+
+	push edi
+	push ebp
+	mov ebx,1	// find nearest town
+	mov ebp,[ophandler+3*8]
+	call [ebp+4]
+
+	movzx ebx,al 			// industry X
+	movzx ebp,byte [edi+town.XY]	// town X
+	sub ebx,ebp
+	imul ebx,ebx	// ebx = X diff squared
+	
+	movzx eax,ah			// industry Y
+	movzx ebp,byte [edi+town.XY+1]	// town Y
+	sub eax,ebp
+	imul eax,eax	// eax = Y diff squared
+
+	add eax,ebx	// eax = Euclidian distance squared
+
+	pop ebp
+	pop edi
+	pop ebx
+	ret
+
 // a production instruction returned by the production callback
 // it contains three values to subtract from the three waiting cargo types,
 // two values to add the two outgoing cargo types, plus a boolean telling whether to

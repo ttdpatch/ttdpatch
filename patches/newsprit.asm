@@ -2065,12 +2065,16 @@ vard industryvarhandler
 %endif
 endvar
 
+extern getindustrytownzoneanddist,getindustrytowndist_euclid
+
 vard industryparamvarhandler
 	dd getindutiletypeatoffset
 	dd getindutilerandombits
 	dd getindustilelandslope_industry
 	dd getotherindustileanimstage_industry
 	dd getothertypedistance
+	dd getindustrytownzoneanddist
+	dd getindustrytowndist_euclid
 %ifndef PREPROCESSONLY
 %assign n_industryparamvarhandler (addr($)-industryparamvarhandler)/4
 %endif
