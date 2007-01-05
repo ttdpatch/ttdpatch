@@ -4510,10 +4510,10 @@ newindu_placechkproc:
 	pusha
 
 // first, check whether we need to look for water or dry land, and store the corresponding proc. address in ebp
-	mov ebp,addr(.testwater)
+	mov ebp,findtiledistance.testwater
 	test byte [industryspecialflags+ebx*4],4	// must be built on water?
 	jz .notonwater
-	mov ebp,addr(.testdryland)
+	mov ebp,findtiledistance.testdryland
 .notonwater:
 
 // make fine X and Y from XY
@@ -4529,66 +4529,8 @@ newindu_placechkproc:
 	mov [fakeinduentry+0xa],dl
 
 // now look for the closest water/land tile (closest using Manhattan distance)
-// (edi will contain the current distance)
 
-// check for the selected tile (0 distance)
-	xor edi,edi
-	mov ebx,esi
-	call ebp
-	jz .distfound
-
-// the current tile isn't OK - try increasing the distance gradually, and check all tiles
-// with the current distance until a correct one is found
-// we give up after 512 since that is the largest possible Manhattan distance on a 256x256 map
-.nextdistance:
-	inc edi
-
-// the tiles with a given Manhattan distance are those where |xoffs|+|yoffs|=dist
-// ecx will contain the X offset, and edx the Y offset
-// we start from X=0 and Y=dist, then keep increasing X and decreasing Y until Y goes 0
-	xor ecx,ecx
-	mov edx,edi
-
-.nextoffset:
-
-// when X or Y goes over 255, we'd reference nonexistant tiles
-	or ch,ch
-	jnz .notpresent
-	or dh,dh
-	jnz .notpresent
-
-%macro testtile 2
-// macro to test a tile, given its relative coordinates to esi, and the signs (add/sub) given as parameters
-// it will skip checking tiles out of map
-
-		mov ebx,esi
-		%1 bl,cl
-		jc %%overflow
-		%2 bh,dl
-		jc %%overflow
-		call ebp
-		jz .distfound
-	%%overflow:
-
-%endmacro
-
-// since both xoffs and yoffs can be negative and positive, we have 4 tiles to check in each step
-	testtile add,add
-	testtile add,sub
-	testtile sub,add
-	testtile sub,sub
-
-%undef testtile
-
-.notpresent:
-	inc ecx
-	dec edx
-	jns .nextoffset
-
-	cmp edi,512
-	jb short .nextdistance
-
-.distfound:
+	call findtiledistance
 
 // store the distance we've found
 	mov [fakeinduentry+0xb],di
@@ -4636,6 +4578,78 @@ newindu_placechkproc:
 	clc
 	ret
 
+
+// in:	esi: XY of the tile to be checked
+//	ebp-> test function
+// out:	edi: distance or 512 if nothing found
+// uses: eax,ebx,ecx,edx
+//
+// the test function gets the tile XY in ebx, and must return with ZF set iff the tile is OK
+// it can use eax as a scratch register
+findtiledistance:
+
+// (edi will contain the current distance)
+	xor edi,edi
+
+// check for the selected tile (0 distance)
+	mov ebx,esi
+	call ebp
+	jz .distfound
+
+// the current tile isn't OK - try increasing the distance gradually, and check all tiles
+// with the current distance until a correct one is found
+// we give up after 512 since that is the largest possible Manhattan distance on a 256x256 map
+.nextdistance:
+	inc edi
+
+// the tiles with a given Manhattan distance are those where |xoffs|+|yoffs|=dist
+// ecx will contain the X offset, and edx the Y offset
+// we start from X=0 and Y=dist, then keep increasing X and decreasing Y until Y goes 0
+	xor ecx,ecx
+	mov edx,edi
+
+.nextoffset:
+
+// when X or Y goes over 255, we'd reference nonexistant tiles
+	test ch,ch
+	jnz .notpresent
+	test dh,dh
+	jnz .notpresent
+
+%macro testtile 2
+// macro to test a tile, given its relative coordinates to esi, and the signs (add/sub) given as parameters
+// it will skip checking tiles out of map
+
+		mov ebx,esi
+		%1 bl,cl
+		jc %%overflow
+		%2 bh,dl
+		jc %%overflow
+		call ebp
+		jz .distfound
+	%%overflow:
+
+%endmacro
+
+// since both xoffs and yoffs can be negative and positive, we have 4 tiles to check in each step
+	testtile add,add
+	testtile add,sub
+	testtile sub,add
+	testtile sub,sub
+
+%undef testtile
+
+.notpresent:
+	inc ecx
+	dec edx
+	jns .nextoffset
+
+	cmp edi,512
+	jb short .nextdistance
+
+.distfound:
+	ret
+
 // check for full water tile at bx; zf is set if the tile is OK
 .testwater:
 	mov al,[landscape4(bx)]
@@ -4646,9 +4660,40 @@ newindu_placechkproc:
 .notwater:
 	ret
 
-// check for (partly) dry tile at bx; zf is set if the tile is OK
+// check for dry tile at bx; zf is set if the tile is OK
+// the following classes are assumed "dry": 0, 1, 2, 3, 4
 .testdryland:
-	test byte [landscape4(bx)],0xf0
+	cmp byte [landscape4(bx)],0x4F	// check high nibble without masking out the low one
+	ja .not_dry
+	cmp eax,eax	// set zf
+.not_dry:
+	ret
+
+exported getlandorwaterdistance
+	push ebx
+	push edx
+	push esi
+	push edi
+	push ebp
+
+	movzx eax,byte [esi+industry.type]
+	movzx esi,word [esi+industry.XY]
+
+	mov ebp,findtiledistance.testwater
+	test byte [industryspecialflags+eax*4],4	// must be built on water?
+	jz .notonwater
+	mov ebp,findtiledistance.testdryland
+.notonwater:
+
+	call findtiledistance
+
+	mov eax,edi
+
+	pop ebp
+	pop edi
+	pop esi
+	pop edx
+	pop ebx
 	ret
 
 // Auxiliary: call callback 28 and interpret the returned value
