@@ -22,9 +22,15 @@ endcodefragments
 
 varb toolbar_newelements
 db cWinElemSpriteBox, cColorSchemeGrey
-dw 650, 650+21, 0, 21, 4086
+dw 562, 562+21, 0, 21, 4086
 db cWinElemLast
 toolbar_newelements_end:
+endvar
+
+varb toolbar_newelements_small
+db cWinElemSpriteBox, cColorSchemeGrey
+dw 556, 556+17, 0, 21, 4086
+db cWinElemLast
 endvar
 
 %assign MAINTOOLBARBUTTONORG 26
@@ -59,7 +65,35 @@ exported patchobjects
 	dec edi
 	cmp dword [edi-3], 0x0B02D300	// check end marker
 	jne .notfoundelelist
+	
+	extern reswidth
+	cmp word [reswidth], 680
+	ja .big
+	push edi
+	sub edi, 12*8
+	mov ecx, 5
+.nextmovesmall:
+	sub word [edi+2], 6
+	sub word [edi+4], 6
+	add edi, 12
+	dec ecx
+	jnz .nextmovesmall
+	pop edi
+	mov esi, toolbar_newelements_small
+	jmp .small
+.big:
+	push edi
+	sub edi, 12*3
+	mov ecx, 3
+.nextmovebig:
+	add word [edi+2], 22
+	add word [edi+4], 22
+	add edi, 12
+	dec ecx
+	jnz .nextmovebig
+	pop edi
 	mov esi, toolbar_newelements
+.small:
 	mov ecx, toolbar_newelements_end-toolbar_newelements
 	rep movsb
 	

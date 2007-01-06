@@ -136,7 +136,7 @@ exported clearobjectdataids
 %assign win_objectgui_id 111
 
 %assign win_objectgui_width 200
-%assign win_objectgui_height 300
+%assign win_objectgui_height 250
 %assign win_objectgui_padding 10 
 %assign win_objectgui_dropwidth 12 
 %assign win_objectgui_dropheight 12
@@ -161,13 +161,20 @@ dw 20, 20+win_objectgui_dropheight,statictext(txtetoolbox_dropdown)
 db cWinElemSpriteBox,cColorSchemeGrey
 dw win_objectgui_padding,win_objectgui_width-1-win_objectgui_padding, 
 dw 40, 40+win_objectgui_previewheight, 0
+// Dropdown 2
+db cWinElemSpriteBox,cColorSchemeGrey
+dw win_objectgui_padding, win_objectgui_width-1-win_objectgui_padding-win_objectgui_dropwidth-1
+dw 40+win_objectgui_previewheight+20, 40+win_objectgui_previewheight+20+win_objectgui_dropheight
+dw 0
+db cWinElemTextBox,cColorSchemeGrey
+dw win_objectgui_width-1-win_objectgui_padding-win_objectgui_dropwidth,win_objectgui_width-1-win_objectgui_padding, 
+dw 40+win_objectgui_previewheight+20, 40+win_objectgui_previewheight+20+win_objectgui_dropheight,statictext(txtetoolbox_dropdown)
 db cWinElemLast
 endvar
 
 
 exported win_objectgui_create
 	bts dword [esi+window.activebuttons], 26
-	or byte [esi+window.flags], 7
 	call [RefreshWindowArea]
 	pusha
 	mov cl, 0x2A
@@ -175,6 +182,8 @@ exported win_objectgui_create
 	call dword [BringWindowToForeground]
 	test esi,esi
 	jz .noold
+	mov byte [esi+window.data], 26
+	or byte [esi+window.flags], 7
 	popa
 	ret
 
@@ -187,6 +196,8 @@ exported win_objectgui_create
 	call dword [CreateWindow]
 	mov dword [esi+window.elemlistptr], addr(win_objectgui_elements)
 	mov word [esi+window.id], win_objectgui_id // window.id
+	mov byte [esi+window.data], 26
+	or byte [esi+window.flags], 7
 	popa
 	ret
 
@@ -204,11 +215,26 @@ win_objectgui_winhandler:
 	ret
 win_objectgui_timer:
 	mov dword [esi+window.activebuttons], 0
+	
+	cmp byte [esi+window.data], 0
+	jne .toolbar
+
+.ok:
 	mov al,[esi]
 	mov bx,[esi+window.id]
 	call dword [invalidatehandle]
 //	or byte [esi+window.flags], 7
 	ret
+	
+.toolbar:
+	movzx eax, byte [esi+window.data]
+	mov byte [esi+window.data], 0
+	mov cl, 1 // cWinTypeMainToolbar
+	xor dx, dx
+	call [FindWindow]
+	btr dword [esi+window.activebuttons], eax
+	jmp [RefreshWindowArea]
+
 	
 win_objectgui_redraw:
 	call dword [DrawWindowElements]
