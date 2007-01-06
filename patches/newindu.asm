@@ -4044,6 +4044,103 @@ exported getothertypedistance
 	pop ebx
 	ret
 
+extern specialgrfregisters
+exported getothertypecountanddist
+	push ebx
+
+	movzx eax,ah
+	mov ebx,[specialgrfregisters+0*4]
+	test ebx,ebx
+	jnz .notoriginal
+
+	bt [defaultindustries],eax
+	jnc .infinity
+	mov ecx,eax
+	jmp short .gottype
+
+.notoriginal:
+	cmp ebx,-1
+	jne .goodgrfid
+
+	mov ebx,[mostrecentspriteblock]
+	mov ebx,[ebx+spriteblock.grfid]
+
+.goodgrfid:
+	xor ecx,ecx
+.nextslot:
+	cmp ebx,[industrydataidtogameid+ecx*8+industrygameid.grfid]
+	jne .badslot
+	cmp al,[industrydataidtogameid+ecx*8+industrygameid.setid]
+	je .gottype
+
+.badslot:
+	inc ecx
+	cmp cl,NINDUSTRIES
+	jb .nextslot
+
+.infinity:
+	mov eax, 0xFFFF		// count=0, dist=max
+	pop ebx
+	ret
+
+.gottype:
+	push edx
+	push edi
+	push ebp
+	mov edi,[industryarrayptr]
+	xor eax,eax
+	or ebp,byte -1
+	xor ebx,ebx
+	xor edx,edx
+	mov ch,90
+.checknext:
+	cmp word [edi+industry.XY],0
+	je .skip
+	cmp [edi+industry.type],cl
+	jne .skip
+	inc al			// increase count
+	cmp esi,edi
+	je .skip
+
+	movzx bx,[esi+industry.XY]
+	movzx dx,[esi+industry.XY+1]
+	sub bl,[edi+industry.XY]
+	sbb bh,0
+	jns .notnegx
+	neg bx
+.notnegx:
+	sub dl,[edi+industry.XY+1]
+	sbb dh,0
+	jns .notnegy
+	neg dx
+.notnegy:
+
+	add bx,dx
+
+	cmp ebx,ebp
+	ja .skip
+
+	mov ebp,ebx
+
+.skip:
+	add edi, industry_size
+	dec ch
+	jnz .checknext
+
+// now al=count ebp=distance
+
+	shl ebp,16
+	shld eax,ebp,16
+
+// now eax[16..23]=count eax[0..15]=dist
+
+	pop ebp
+	pop edi
+	pop edx
+	pop ebx
+	ret
+
+	
 exported getindustrytownzoneanddist
 	push ebx
 	mov bx,[esi+industry.XY]
