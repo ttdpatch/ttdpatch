@@ -1485,8 +1485,10 @@ endvar
 	ret
 
 .storevar:
-	movzx ecx, cl
+	cmp ecx,NUMGRFREGISTERS
+	jae .notgood
 	mov [advvaraction2varbuff+ecx*4], eax
+.notgood:
 	ret
 
 .copy:
@@ -2196,4 +2198,6 @@ checkfeaturesize specialparamvars, (1*2)
 endvar
 
 global advvaraction2varbuff
-uvard advvaraction2varbuff, 256
+uvard advvaraction2varbuff, NUMGRFREGISTERS
+global specialgrfregisters
+specialgrfregisters equ advvaraction2varbuff+NUMBASEGRFREGISTERS*4
