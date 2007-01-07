@@ -637,7 +637,7 @@ newcargoid:
 .advancedtileid:
 	mov dl,al
 	call .adjusttilesprite
-	jc .invalid
+	jc near .invalid
 
 .nextadvancedtilesprite:
 	call .adjusttilesprite
@@ -680,9 +680,13 @@ newcargoid:
 .industryid:
 	// industry entries don't contain sprite numbers, so check the size only
 	mov dh,INVSP_BADBLOCK
-	or al,al
-	jnz .invalid
+	cmp al,1
+	ja .invalid
+	jne .industryid_oldstyle
 
+	add esi,6-11		//the new style has 6 bytes - the -11 is for compensating the next add
+
+.industryid_oldstyle:
 	add esi,11
 	cmp esi,ebp
 	mov dh,INVSP_OUTOFDATA

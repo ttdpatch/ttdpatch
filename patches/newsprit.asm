@@ -480,7 +480,7 @@ grfcalltable getaction2spritenum
 .getindustries:
 	//industries can have a production data structure as a final action 2
 	//return a pointer to it in eax
-	lea eax,[ebx+4]
+	lea eax,[ebx+3]
 	stc
 	ret
 

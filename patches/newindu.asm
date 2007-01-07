@@ -4207,6 +4207,7 @@ exported getindustrytowndist_euclid
 // two values to add the two outgoing cargo types, plus a boolean telling whether to
 // call the callback again
 struc productioninstruction
+	.version:		resb 1
 	.subtract_in_1:		resw 1
 	.subtract_in_2:		resw 1
 	.subtract_in_3:		resw 1
@@ -4260,48 +4261,100 @@ doproductioncallback:
 	jc near .error
 // now eax-> production instruction
 
+	cmp byte [eax+productioninstruction.version],0
+	jne .new_style
+
+// push the needed values on the stack, in reversed order so pop gives them in the normal order
+	movzx ecx,byte [eax+productioninstruction.call_again]
+	push ecx
+	movzx ecx,word [eax+productioninstruction.add_out_2]
+	push ecx
+	movzx ecx,word [eax+productioninstruction.add_out_1]
+	push ecx
+	movsx ecx,word [eax+productioninstruction.subtract_in_3]
+	push ecx
+	movsx ecx,word [eax+productioninstruction.subtract_in_2]
+	push ecx
+	movsx ecx,word [eax+productioninstruction.subtract_in_1]
+	push ecx
+	jmp short .gotdata
+
+extern advvaraction2varbuff
+.new_style:
+// the new style is simpler - we have six registers for the six needed data
+	mov ecx,6
+.nextvar:
+	movzx ebx,byte [eax+ecx]
+	mov ebx,[advvaraction2varbuff+ebx*4]
+	push ebx
+	dec ecx
+	jnz .nextvar
+
+.gotdata:
 // process the three "in" instructions with a loop
-	mov ecx,3
+	xor ecx,ecx
 .nextininstruction:
 
 // load value...
-// we now support signed values here, so do the calculation on 32 bits and cap the result
-// to an unsigned word afterward
-	movsx ebx,word [eax+productioninstruction.subtract_in_1+(ecx-1)*2]
-// multiply with the division factor to maintain scaling
+	pop eax
+	mov ebx,eax
 	imul ebx,ebp
+	jo .in_overflow
 
-	movzx edx,word [edi+industryincargodata.in_amount1+(ecx-1)*2]
+	movzx edx,word [edi+industryincargodata.in_amount1+ecx*2]
 	sub edx,ebx
+	jno .in_nooverflow
+
+.in_overflow:
+	//there is an overflow - we need the sign of the original value to tell whether
+	//it was too small or too big, and set the according extreme value
+	test eax,eax
+	js .in_max
+	jmp short .in_min
+
+.in_nooverflow:
+	//flags still intact - there was no overflow; if the subtraction gave a negative result, use zero instead
 	jns .notneg
+.in_min:
 	xor edx,edx
 .notneg:
-	cmp edx,0xFFFF
+	// we don't store more than 0x7FFF to avoid display glitches (negative amounts waiting)
+	cmp edx,0x7FFF
 	jbe .nottoomuch
-	or edx,-1
+.in_max:
+	mov dx,0x7FFF
 .nottoomuch:
-	mov [edi+industryincargodata.in_amount1+(ecx-1)*2],dx
-	loop .nextininstruction
+	mov [edi+industryincargodata.in_amount1+ecx*2],dx
+	inc ecx
+	cmp ecx,3
+	jb .nextininstruction
 
 // the same steps for the two "out" instructions, but add instead of subtracting
-	mov cl,2
+	xor ecx,ecx
 .nextoutinstruction:
-	movzx ebx,word [eax+productioninstruction.add_out_1+(ecx-1)*2]
+// load value
+	pop ebx
+	test ebx,ebx
+	js .out_done		// we can't produce a negative amount - just ignore it
+
 	imul ebx,ebp
+	jo .out_overflow	// since we've weeded out negative values, an overflow must be towards positive infinity
 	test ebx,0xffff0000
-	jz .notmuloverflow
-	mov bx,0xffff
-.notmuloverflow:
-	add [esi+industry.amountswaiting+(ecx-1)*2],bx
+	jnz .out_overflow	// adding a value larger than the limit will exceed the limit, so just put the max
+
+	add [esi+industry.amountswaiting+ecx*2],bx
 	jnc .nottoomuch2
-	or word [esi+industry.amountswaiting+(ecx-1)*2],byte -1
+.out_overflow:
+	or word [esi+industry.amountswaiting+ecx*2],byte -1
 .nottoomuch2:
-	loop .nextoutinstruction
+.out_done:
+	xor ecx,1		// we need 0 and 1 only; the second xor will give back 0 and exits the loop
+	jnz .nextoutinstruction
 
 // increase the loop counter for the GRF
 	inc word [callback_extrainfo+1]
 // repeat if the GRF asks so
-	mov al, [eax+productioninstruction.call_again]
+	pop eax
  	mov byte [callback_extrainfo+3],al
 	test al,al
 	pop eax
