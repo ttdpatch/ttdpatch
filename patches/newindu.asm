@@ -4904,6 +4904,8 @@ uvard industry_showchangemsg,1,s	// show industry message in ebx
 
 uvarb prodchange_suppressnewsmsg
 
+uvarw prodchangemsg_custommsg		// custom message for the prod. change event, or 0 if none
+
 // Called in the beginning of the random production change proc
 // Handle callback 29 (random production change) here if enabled
 // in:	ebx: industry type
@@ -4915,6 +4917,7 @@ industryrandomprodchange:
 	mov al,[industryproductionflags+ebx]	// recreation of overwritten code
 // check for the callback
 	mov byte [prodchange_suppressnewsmsg],0
+	and word [prodchangemsg_custommsg],0
 	test byte [industrycallbackflags+ebx],0x10
 	jnz .docallback
 
@@ -4932,15 +4935,37 @@ industryrandomprodchange:
 	mov byte [grffeature],0xa
 	call getnewsprite
 	mov byte [curcallback],0
-	jc .error
+	jnc .goodcallback
+	ret
 
-// bit 7 is set if the news message should be suppressed
+.goodcallback:
+	// bit 7 is set if the news message should be suppressed
 	btr eax,7
 	setc byte [prodchange_suppressnewsmsg]
 
+	test ah,1
+	jz .nocustommsg
+
+	mov ecx,eax
+	mov eax,[mostrecentspriteblock]		// lookuppersistenttextid checks curspriteblock, not mostrecentspriteblock
+	mov [curspriteblock],eax
+	mov eax,[specialgrfregisters+0*4]	// only the low word is used
+	call lookuppersistenttextid
+	mov [prodchangemsg_custommsg],ax
+	mov eax,ecx
+
+.nocustommsg:
+
 // 0 means "do nothing"
 	test al,al
+	jnz .notnothing
+
+	test ah,1		// if there is a custom message, invoke the change message even though there is no change
 	jz .nothing
+
+	jmp [industry_showchangemsg]
+
+.notnothing:
 
 // values above 12 are an error
 	cmp al,12
@@ -5043,6 +5068,7 @@ ovar .oldfn,-4,$,monthlyupdateindustryproc
 
 .docallback:
 	mov byte [prodchange_suppressnewsmsg],0
+	and word [prodchangemsg_custommsg],0
 	mov byte [curcallback],0x35
 	jmp industryrandomprodchange.callit
 
@@ -5051,8 +5077,14 @@ industryprodchange_shownewsmsg:
 	mov [textrefstack+6],ax			// overwritten
 	cmp byte [prodchange_suppressnewsmsg],0
 	jz .nosuppress
-	pop eax
+	pop eax					// remove return address
 .nosuppress:
+
+	mov ax,[prodchangemsg_custommsg]
+	test ax,ax
+	jz .nocustom
+	mov dx,ax				// override message
+.nocustom:
 	ret
 
 // Called while looking for the closest industry accepting a cargo type, when a vehicle unloads cargo

@@ -1485,11 +1485,14 @@ endvar
 	ret
 
 .storevar:
-	cmp ecx,NUMGRFREGISTERS
+	call .make_eax_signed
+	xchg eax,ecx
+	call .make_eax_unsigned
+	cmp eax,NUMGRFREGISTERS
 	jae .notgood
-	mov [advvaraction2varbuff+ecx*4], eax
+	mov [advvaraction2varbuff+eax*4], ecx
 .notgood:
-	ret
+	// fallthrough to .copy
 
 .copy:
 	mov eax, ecx
