@@ -446,7 +446,7 @@ codefragment oldindustryprodchange_shownewsmsg
 codefragment_call newindustryprodchange_shownewsmsg, industryprodchange_shownewsmsg, 6
 
 codefragment oldmonthlyupdateindustryproc,11
-	mov cl,90
+	mov cl,NUMINDUSTRIES
 	cmp word [esi+industry.XY],0
 	jz $+2+9
 	push cx

@@ -3355,7 +3355,7 @@ grfcalltable grfresource
 	ret
 
 .getindustries:
-	mov ah,NINDUSTRIES
+	mov ah,NINDUSTRYTYPES
 	jmp .bitsearch
 
 .getcargos:
@@ -4240,7 +4240,7 @@ checkfeaturesize vehbase, 1
 
 var vehbnum, db NTRAINTYPES,NROADVEHTYPES,NSHIPTYPES,NAIRCRAFTTYPES
 	db 255,255,NBRIDGES,255		// stations,canals,bridges,houses
-	db 255,255,NINDUSTRIES,32	// generic,industiles,industries,cargos
+	db 255,255,NINDUSTRYTYPES,32	// generic,industiles,industries,cargos
 	db 0,NUMNEWAIRPORTS,0		// sounds,airports,signals
 	db 255						// objects
 checkfeaturesize vehbnum, 1
@@ -4374,8 +4374,8 @@ var industrydata
 	dd addr(setindustrymapcolors),industryspecialflags-4	// 19..1a
 	dd industrycreationmsgs-2				// 1b
 	dd industryinputmultipliers-4				// 1c
-	dd (industryinputmultipliers+NINDUSTRIES*4)-4		// 1d
-	dd (industryinputmultipliers+2*NINDUSTRIES*4)-4		// 1e
+	dd (industryinputmultipliers+NINDUSTRYTYPES*4)-4	// 1d
+	dd (industryinputmultipliers+2*NINDUSTRYTYPES*4)-4	// 1e
 	dd industrynames-2					// 1f
 	dd fundchances-4					// 20
 	dd industrycallbackflags-1				// 21
@@ -4449,9 +4449,9 @@ uvard trainuserbits,NTRAINTYPES/4
 uvard canalfeatureids,6
 uvard genericids,NUMFEATURES
 
-uvard industryaction3,NINDUSTRIES
-uvard industryspriteblock,NINDUSTRIES
-uvard substindustries,(NINDUSTRIES+3)/4
+uvard industryaction3,NINDUSTRYTYPES
+uvard industryspriteblock,NINDUSTRYTYPES
+uvard substindustries,(NINDUSTRYTYPES+3)/4
 
 uvard cargoaction3,32
 
@@ -4506,7 +4506,7 @@ uvard lastspriteblocknumsets
 uvard curgrfhouselist,256/4
 uvard curgrftownnames,128
 uvard curgrfindustilelist,256/4
-uvard curgrfindustrylist,NINDUSTRIES/4 + 1
+uvard curgrfindustrylist,NINDUSTRYTYPES/4 + 1
 uvard globalidoffset
 uvard curgrfairportlist,256/4
 uvard curgrfobjectgameids,NOBJECTS/2

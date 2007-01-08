@@ -1814,12 +1814,12 @@ loadsaveindustileidmap:
 	ret
 
 loadindustrymap:
-	cmp eax,8*NINDUSTRIES
+	cmp eax,8*NINDUSTRYTYPES
 	jne badchunk
 	jmp short loadsaveindustrymap
 
 saveindustrymap:
-	mov eax,8*NINDUSTRIES
+	mov eax,8*NINDUSTRYTYPES
 	call savechunkheader
 
 loadsaveindustrymap:
@@ -1907,12 +1907,12 @@ loadsavestation2array:
 	ret
 
 loadinduincargodata:
-	cmp eax,8*90
+	cmp eax,8*NUMINDUSTRIES
 	jne badchunk
 	jmp short loadsaveinduincargodata
 
 saveinduincargodata:
-	mov eax,8*90
+	mov eax,8*NUMINDUSTRIES
 	call savechunkheader
 
 loadsaveinduincargodata:

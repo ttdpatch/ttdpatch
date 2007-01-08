@@ -1,5 +1,6 @@
 
-%assign NINDUSTRIES	37
+%assign NINDUSTRYTYPES	37
+%assign NUMINDUSTRIES  90
 
 // starts at offset given in [7790c] (normally 51766)
 struc industry
@@ -48,48 +49,48 @@ struc industrydatastruc
 // 1	organic
 // 2	processing
 ptrvarofs industryproductionflags,industrydatablock,$
-resb NINDUSTRIES
+resb NINDUSTRYTYPES
 
 // closure messages
 ptrvarofs industryclosuremsgs,industrydatablock,$
-resw NINDUSTRIES
+resw NINDUSTRYTYPES
 
 // production increase messages
 ptrvarofs industryprodincmsgs,industrydatablock,$
-resw NINDUSTRIES
+resw NINDUSTRYTYPES
 
 // production decrease messages
 ptrvarofs industryproddecmsgs,industrydatablock,$
-resw NINDUSTRIES
+resw NINDUSTRYTYPES
 
 // fund cost multipliers
 ptrvarofs industryfundcostmultis,industrydatablock,$
-resb NINDUSTRIES
+resb NINDUSTRYTYPES
 
 // produced cargo types
 ptrvarofs industryproducedcargos,industrydatablock,$
-resw NINDUSTRIES
+resw NINDUSTRYTYPES
 
 // accepted cargo types
 ptrvarofs industryacceptedcargos,industrydatablock,$
-resd NINDUSTRIES
+resd NINDUSTRYTYPES
 
 // production rates
 ptrvarofs industryprod1rates,industrydatablock,$
-resb NINDUSTRIES
+resb NINDUSTRYTYPES
 ptrvarofs industryprod2rates,industrydatablock,$
-resb NINDUSTRIES
+resb NINDUSTRYTYPES
 
 // minimum amounts of cargo distributed from the industry
 ptrvarofs industrymindistramounts,industrydatablock,$
-resb NINDUSTRIES
+resb NINDUSTRYTYPES
 
 // placement check procedures
 ptrvarofs industryplacecheckprocs,industrydatablock,$
-resd NINDUSTRIES
+resd NINDUSTRYTYPES
 
 // pointers to random sound effect lists
 ptrvarofs industryrandomsoundptrs,industrydatablock,$
-resd NINDUSTRIES
+resd NINDUSTRYTYPES
 
 endstruc

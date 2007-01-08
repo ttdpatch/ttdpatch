@@ -65,7 +65,7 @@ limityear:
 	// currentyear is being set back, so decrement variables that are compared to it
 	mov esi,[industryarrayptr]
 	xor ecx,ecx
-	mov cl,90
+	mov cl,NUMINDUSTRIES
 .nextind:
 	dec byte [esi+industry.lastyearprod]
 	add esi,industry_size
