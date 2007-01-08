@@ -603,14 +603,14 @@ initttdpatchdata:
 	mov edi,grfresources+256*4
 	lea esi,[defaultindustriesofclimate+ebx*8]
 	xor ecx,ecx
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 .nextindres:
 	bt [esi],ecx
 	sbb eax,eax
 	and eax,[dummyspriteblock]
 	stosd
 	inc ecx
-	cmp ecx,NINDUSTRIES
+	cmp ecx,NINDUSTRYTYPES
 	jb .nextindres
 
 	// after this follow the cargo IDs

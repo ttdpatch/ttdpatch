@@ -2575,7 +2575,7 @@ gotocheat:
 resetinducheat:
 	call clearindustryincargos
 	mov edi,[industryarrayptr]
-	mov ecx,90
+	mov ecx,NUMINDUSTRIES
 .nextindu:
 	cmp word [edi+industry.XY],0
 	je .skipindu

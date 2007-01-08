@@ -1226,7 +1226,7 @@ redrawindustry:
 
 // points to the beginning of industry data block
 // this block starts at baIndustryProductionFlags and ends at the end of paIndustryRandomSoundEffects
-// (size: 925 bytes, 25*NINDUSTRIES)
+// (size: 925 bytes, 25*NINDUSTRYTYPES)
 // see the IDA DB for details
 //uvard industrydatablockptr,1,s
 
@@ -1240,12 +1240,12 @@ uvard industrydatabackupptr,1,s
 // unpatched TTD doesn't have an industry name table, but instead depends on the fact that the name textID
 // can be found by adding the type number to a fixed base ID. This is no longer true with new industries,
 // so we must supply a name table.
-uvarw industrynames,NINDUSTRIES
+uvarw industrynames,NINDUSTRYTYPES
 
 // slotNum<->setID mapping stored in savegames, allows us to find the according GRF again after loading the game
 // if 0 is stored for a slot that has an old type enabled on this climate, it means the old type is available
 // OTOH, nonzero values mean the old industry is overridden
-uvard industrydataidtogameid,2*NINDUSTRIES
+uvard industrydataidtogameid,2*NINDUSTRYTYPES
 
 struc industrygameid
 	.grfid:		resd 1
@@ -1272,24 +1272,24 @@ uvard defaultindustries,2
 
 // The old code has count/type pairs for initial industry generation. We convert this to
 // an array of probabilities and store that here, since this makes the handling easier.
-// (NINDUSTRIES bytes for each climate)
-uvarb orginitialindustryprobs,4*NINDUSTRIES
+// (NINDUSTRYTYPES bytes for each climate)
+uvarb orginitialindustryprobs,4*NINDUSTRYTYPES
 
 // The old code uses a fixed-size array filled with different type numbers to control the
 // probabilities of the industry types during the game. We convert that to simple probabilities as well.
-// (NINDUSTRIES bytes for each climate)
-uvarb orgingameindustryprobs,4*NINDUSTRIES
+// (NINDUSTRYTYPES bytes for each climate)
+uvarb orgingameindustryprobs,4*NINDUSTRYTYPES
 
 // Counterparts of the above two arrays for the current climate. These arrays are the ones actually read
 // by functions, and can be modified by GRFs
-uvarb initialindustryprobs,NINDUSTRIES
+uvarb initialindustryprobs,NINDUSTRYTYPES
 
-uvarb ingameindustryprobs,NINDUSTRIES
+uvarb ingameindustryprobs,NINDUSTRYTYPES
 
 // The old code had a map color for each industry tile type. This wouldn't work for new industries, since
 // a tile type can be used by more industries at a time. Instead, we have a color per industry type, stored in
 // this array
-uvarb industrymapcolors,NINDUSTRIES
+uvarb industrymapcolors,NINDUSTRYTYPES
 
 // The default industry colors, extracted from the original TTD array.
 varb defaultindustrymapcolors
@@ -1321,7 +1321,7 @@ section .text
 // 13	The industry can cause a subsidence (coal mine) 	
 // 14	Automatic production multiplier handing (No industry has this bit set by default.)
 // 15	The production callback gets random bits in var. 10
-uvard industryspecialflags,NINDUSTRIES
+uvard industryspecialflags,NINDUSTRYTYPES
 
 // The default values for the above special flags, ie. a bit is only set if the unpatched TTD industry would
 // have the special effect
@@ -1333,19 +1333,19 @@ endvar
 
 // The old code has hard-coded creation messages. We introduce an array to store message IDs, so they can be
 // customized
-uvarw industrycreationmsgs,NINDUSTRIES
+uvarw industrycreationmsgs,NINDUSTRYTYPES
 
 // Production multipliers. There's 2 words for every incoming type per industry.
 // The first word tells how much of the first output cargo is generated from a unit of
 // incoming cargo, in 1/256 units. The second word means the same, but for the second output cargo.
-uvard industryinputmultipliers,3*NINDUSTRIES
+uvard industryinputmultipliers,3*NINDUSTRYTYPES
 
 %define industryinputmultipliers1 industryinputmultipliers
-%define industryinputmultipliers2 (industryinputmultipliers+NINDUSTRIES*4)
-%define industryinputmultipliers3 (industryinputmultipliers+2*NINDUSTRIES*4)
+%define industryinputmultipliers2 (industryinputmultipliers+NINDUSTRYTYPES*4)
+%define industryinputmultipliers3 (industryinputmultipliers+2*NINDUSTRYTYPES*4)
 
 // copy of the original prospecting chances in moreindu.asm
-uvard origfundchances, NINDUSTRIES
+uvard origfundchances, NINDUSTRYTYPES
 
 // callback flags
 // Bit	Var. 0C	Callback 	
@@ -1357,14 +1357,14 @@ uvard origfundchances, NINDUSTRIES
 // 5	35	Do production changes every month
 // 6	37	Do cargo subtext callback
 // 7	38	Show additional info in fund window
-uvarb industrycallbackflags,NINDUSTRIES
+uvarb industrycallbackflags,NINDUSTRYTYPES
 
 // callback flags, second set
 // Bit	Var. 0C	Callback
 // 0	3A	Show additional info in industry window
 // 1	3B	control special effects
 // 2	3D	disable cargo acceptance
-uvarb industrycallbackflags2,NINDUSTRIES
+uvarb industrycallbackflags2,NINDUSTRYTYPES
 
 // helper array to hold incoming cargo amounts
 
@@ -1376,9 +1376,9 @@ struc industryincargodata
 endstruc
 
 // amount of cargo accepted, but not processed by industries
-uvard industryincargos,2*90
+uvard industryincargos,2*NUMINDUSTRIES
 
-uvard industrydestroymultis,NINDUSTRIES
+uvard industrydestroymultis,NINDUSTRYTYPES
 
 // Macro to get back the industry ID from its address. It assumes the pointer is actually pointing into the industry array.
 %macro getinduidfromptr 1
@@ -1391,7 +1391,7 @@ uvard industrydestroymultis,NINDUSTRIES
 global clearindustryincargos
 clearindustryincargos:
 	mov edi,industryincargos
-	mov ecx,2*90
+	mov ecx,2*NUMINDUSTRIES
 	xor eax,eax
 	rep stosd
 	ret
@@ -1400,7 +1400,7 @@ clearindustryincargos:
 global clearindustrygameids
 clearindustrygameids:
 	mov edi,industrydataidtogameid
-	mov ecx,2*NINDUSTRIES
+	mov ecx,2*NINDUSTRYTYPES
 	xor eax,eax
 	rep stosd
 	ret
@@ -1423,12 +1423,12 @@ saveindustrydata:
 
 // clear probability arrays, they will be increased later
 	mov edi,orgingameindustryprobs
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	xor eax,eax
 	rep stosd
 
 	mov edi,orginitialindustryprobs
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	xor eax,eax
 	rep stosd
 
@@ -1444,7 +1444,7 @@ saveindustrydata:
 	inc byte [edi+eax]
 	loop .nextingameindustryprob
 	pop ecx
-	add edi,NINDUSTRIES
+	add edi,NINDUSTRYTYPES
 	loop .nextingameclimate
 
 // fill the starting probabilities - increase probabilities according to the
@@ -1463,13 +1463,13 @@ saveindustrydata:
 	jmp short .nextinitialindustryprob
 
 .nextinitialclimate:
-	add edi,NINDUSTRIES
+	add edi,NINDUSTRYTYPES
 	loop .initialclimateloop	
 
 // save the old funding chances to a safe place so we can restore them later
 	mov esi,fundchances
 	mov edi,origfundchances
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep movsd
 
 	ret
@@ -1490,7 +1490,7 @@ restoreindustrydata:
 // default industry names are the consecutive textIDs starting from 0x4802
 	mov edi,industrynames
 	mov eax,0x4802
-	mov ecx,NINDUSTRIES
+	mov ecx,NINDUSTRYTYPES
 .nextname:
 	stosw
 	inc eax
@@ -1499,56 +1499,56 @@ restoreindustrydata:
 // the default creation message is 0x482d for every type except temperate forests, where it's 0x482e
 	mov edi,industrycreationmsgs
 	mov ax,0x482d
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep stosw
 	inc word [industrycreationmsgs+3*2]		// forest
 
 // load original initial probabilities...
 	movzx eax,byte [climate]
-	imul eax,NINDUSTRIES
+	imul eax,NINDUSTRYTYPES
 	lea esi,[orginitialindustryprobs+eax]
 	mov edi,initialindustryprobs
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep movsb
 
 // ...in-game probabilities...
 	lea esi,[orgingameindustryprobs+eax]
 	mov edi,ingameindustryprobs
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep movsb
 
 // ...map colors...
 	mov esi,defaultindustrymapcolors
 	mov edi,industrymapcolors
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep movsb
 
 // ...special flags...
 	mov esi,defaultindustryspecialflags
 	mov edi,industryspecialflags
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep movsd
 
 // ...and funding chances
 	mov esi,origfundchances
 	mov edi,fundchances
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep movsd
 
 // all callback flags are zero by default
 	mov edi,industrycallbackflags
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	xor al,al
 	rep stosb
 
 	mov edi,industrycallbackflags2
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep stosb
 
 // all multipliers are (1, 0)...
 	mov edi,industryinputmultipliers
 	mov eax,0x00000100
-	mov cl,3*NINDUSTRIES
+	mov cl,3*NINDUSTRYTYPES
 	rep stosd
 
 // ...except for temperate banks, where it's (0, 0)
@@ -1559,7 +1559,7 @@ restoreindustrydata:
 // all destroy multipliers are 1000 by default
 	mov edi,industrydestroymultis
 	mov eax,1000
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep stosd
 
 // ...default industries of the climate
@@ -1617,8 +1617,8 @@ getindunameaxesi:
 		%error copyindudata invoked with wrong param
 	%endif
 	
-	add esi,NINDUSTRIES*%1
-	add edi,NINDUSTRIES*%1
+	add esi,NINDUSTRYTYPES*%1
+	add edi,NINDUSTRYTYPES*%1
 %endmacro
 
 // copy the basic properties of an industry type to a new place
@@ -1678,7 +1678,7 @@ reloadoldindustry:
 
 // copy probabilities...
 	movzx ecx,byte [climate]
-	imul ecx,NINDUSTRIES
+	imul ecx,NINDUSTRYTYPES
 	add ecx,eax
 	mov dl,[orginitialindustryprobs+ecx]
 	mov dh,[orgingameindustryprobs+ecx]
@@ -1824,7 +1824,7 @@ setsubstindustry:
 	je .foundid
 .nextid:
 	inc ecx
-	cmp cl,NINDUSTRIES
+	cmp cl,NINDUSTRYTYPES
 	jb .findid
 // the ID isn't in the list yet - try to find an empty slot for it
 	xor ecx,ecx
@@ -1837,7 +1837,7 @@ setsubstindustry:
 	jz .foundemptyid
 .nextid2:
 	inc ecx
-	cmp cl,NINDUSTRIES
+	cmp cl,NINDUSTRYTYPES
 	jb .findemptyid
 
 	pop ecx
@@ -1864,7 +1864,7 @@ setsubstindustry:
 // set the substitute industry type
 	xor eax,eax
 	lodsb
-	cmp al,NINDUSTRIES
+	cmp al,NINDUSTRYTYPES
 	jae .invalid_pop
 	mov [substindustries+ecx],al
 	pusha
@@ -1886,7 +1886,7 @@ setsubstindustry:
 
 .turnoff:
 	inc esi
-	cmp ebx, NINDUSTRIES	// is this a valid slot id?
+	cmp ebx, NINDUSTRYTYPES	// is this a valid slot id?
 	jae .loopend
 	cmp dword [industrydataidtogameid+ebx*8+industrygameid.grfid],0
 	jnz .loopend		// the industry is already overridden
@@ -1902,7 +1902,7 @@ setsubstindustry:
 .alreadyhasoffset:
 // this isn't the first prop. 8 setting - just set the substitute type and be done with it
 	lodsb
-	cmp al,NINDUSTRIES
+	cmp al,NINDUSTRYTYPES
 	jae .invalid
 	mov [substindustries+edx-1],al
 .loopend:
@@ -1926,7 +1926,7 @@ setindustryoverride:
 	or edx,edx
 	jz .ignore		// undefined ID
 	dec edx
-	cmp al,NINDUSTRIES
+	cmp al,NINDUSTRYTYPES
 	jae .invalid		// invalid destination industry
 	cmp dword [industrydataidtogameid+eax*8+industrygameid.grfid],0
 	jnz .ignore		// the industry is already overridden
@@ -2342,7 +2342,7 @@ setconflindustry:
 	or al,al
 	js .newtype
 // an old type - ignore if isn't active at the current climate
-	cmp al,NINDUSTRIES
+	cmp al,NINDUSTRYTYPES
 	jae .ignore
 	bt [defaultindustries],eax
 	jc .writeit
@@ -2404,7 +2404,7 @@ createinitialindustries:
 
 	and dword [industryprobabtotal],0
 	xor ecx,ecx
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 .mandatoryloop:
 	movzx eax,byte [initialindustryprobs+ecx-1]
 
@@ -2470,7 +2470,7 @@ createinitialindustries:
 	sub edx,ebx
 	js .gotit
 	inc eax
-	cmp eax,NINDUSTRIES
+	cmp eax,NINDUSTRYTYPES
 	jmp short .nexttype
 
 .gotit:
@@ -2500,7 +2500,7 @@ ingamerandomindustry:
 // compute the sum of probabilities (in edx) and find available types
 	xor edx,edx
 	xor ecx,ecx
-	mov cl,NINDUSTRIES-1
+	mov cl,NINDUSTRYTYPES-1
 .probabsumloop:
 	movzx ax,byte [ingameindustryprobs+ecx]
 	or ax,ax
@@ -2930,10 +2930,10 @@ industryproducecargo:
 	add eax,industryinputmultipliers
 	cmp ch,[edi+industry.accepts]
 	je .gotit
-	add eax,4*NINDUSTRIES
+	add eax,4*NINDUSTRYTYPES
 	cmp ch,[edi+industry.accepts+1]
 	je .gotit
-	add eax,4*NINDUSTRIES
+	add eax,4*NINDUSTRYTYPES
 	cmp ch,[edi+industry.accepts+2]
 	je .gotit
 
@@ -3081,7 +3081,7 @@ openfundindustrywindow:
 	inc byte [esi+window.itemstotal]
 .noinc:
 	inc eax
-	cmp eax,NINDUSTRIES
+	cmp eax,NINDUSTRYTYPES
 	jb .nexttypeslot
 
 // set up some other fields
@@ -3306,7 +3306,7 @@ induwindow_redraw:
 
 .skip:
 	inc ebx
-	cmp ebx,NINDUSTRIES
+	cmp ebx,NINDUSTRYTYPES
 	jb .nextindustry
 .finishlist:
 // if nothing is selected, we're done
@@ -3628,7 +3628,7 @@ induwindow_click:
 
 .skip:
 	inc ebx
-	cmp ebx,NINDUSTRIES
+	cmp ebx,NINDUSTRYTYPES
 	jb .nextindustry
 // the user clicked on an empty element below the end of the list - do nothing
 	ret
@@ -3963,7 +3963,7 @@ exported getothertypedistance
 
 .badslot:
 	inc ecx
-	cmp cl,NINDUSTRIES
+	cmp cl,NINDUSTRYTYPES
 	jb .nextslot
 
 .infinity:
@@ -3978,7 +3978,7 @@ exported getothertypedistance
 	or eax,byte -1
 	xor ebx,ebx
 	xor edx,edx
-	mov ch,90
+	mov ch,NUMINDUSTRIES
 .checknext:
 	cmp word [edi+industry.XY],0
 	je .skip
@@ -4925,7 +4925,7 @@ getindustryslot:
 
 	add esi,industry_size
 	inc al
-	cmp al,90
+	cmp al,NUMINDUSTRIES
 	jb .checknext
 
 	mov word [operrormsg2],ourtext(toomanyindustries)
@@ -5063,7 +5063,7 @@ exported checkindudecprod
 preventindustryclosedown:
 	mov ebx,[industryarrayptr]
 	mov cl,[esi+industry.type]
-	mov ch,90
+	mov ch,NUMINDUSTRIES
 
 .next:
 	cmp word [ebx+industry.XY],0
@@ -5198,7 +5198,7 @@ getnumindustries:
 	push esi
 	push ecx
 	mov esi, [industryarrayptr]
-	mov ecx, 90
+	mov ecx, NUMINDUSTRIES
 .countloop:
 	cmp word [esi], 0
 	je .empty
