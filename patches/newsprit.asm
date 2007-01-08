@@ -1778,7 +1778,7 @@ getspecparamvar:
 	ja .grfparam
 	cmp al,0x1C
 	je .persistentreg
-	jb .varbuff
+	ja .varbuff
 
 	mov ah,cl
 	movzx ecx,byte [grfvarfeature]
