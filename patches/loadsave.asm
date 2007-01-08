@@ -94,6 +94,7 @@ varw knownextrachunkids
 	dw 0x800f	// Restriction Object Arrays
 	dw 0x8010	// Persistent GRF data
 	dw 0x8011	// New objects ID map
+	dw 0x8012	// Industry2 array
 	
 knownextrachunknum equ (addr($)-knownextrachunkids)/2
 
@@ -129,6 +130,7 @@ vard knownextrachunkloadfns
 	dd addr(loadrobjarray)
 	dd loadpersgrfdata
 	dd loadobjectidmap
+	dd loadindustry2array
 	
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkloadfns)/4
@@ -168,6 +170,7 @@ vard knownextrachunksavefns
 	dd addr(saverobjarray)
 	dd savepersgrfdata
 	dd saveobjectidmap
+	dd saveindustry2array
 
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunksavefns)/4
@@ -209,6 +212,7 @@ vard knownextrachunkqueryfns
 	dd addr(canhaverobjarray)
 	dd canhavepersgrfdata
 	dd canhaveobjectidmap
+	dd canhaveindustry2array
 
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkqueryfns)/4
@@ -257,7 +261,7 @@ uvarw loadremovedsfxs	// ... and this many pseudo-/special vehicles
 %assign LOADED_X3_L8ARRAY		0x1
 %assign LOADED_X3_ROBJARRAY		0x2
 %assign LOADED_X3_OBJECTDATAID	0x4
-
+%assign LOADED_X3_INDUSTRY2ARRAY	0x8
 
 %define SKIPGUARD 1			// the variables get cleaned by a dword.. 
 uvarb extrachunksloaded1		// a combination of LOADED_X1_*
@@ -941,6 +945,13 @@ newloadtitleproc:
 	call clearindustryincargos
 
 .hasincargo:
+
+extern clearindustry2array
+
+	test byte [extrachunksloaded3],LOADED_X3_INDUSTRY2ARRAY
+	jnz .hasindustry2
+	call clearindustry2array
+.hasindustry2:
 .nonewindus:
 
 	mov byte [lastextraindustiledata],0
@@ -1784,6 +1795,7 @@ loadsavenewshistory:
 canhaveindustrymap:
 canhaveindustileidmap:
 canhaveinduincargodata:
+canhaveindustry2array:
 
 	testflags newindustries
 	ret
@@ -1921,6 +1933,24 @@ loadsaveinduincargodata:
 	call ebp
 
 	or byte [extrachunksloaded2],LOADED_X2_INDUINCARGO	// meaningless when saving
+	ret
+
+loadindustry2array:
+	cmp eax,NUMINDUSTRIES*industry2_size
+	jne badchunk
+	jmp short loadsaveindustry2array
+
+saveindustry2array:
+	mov eax,NUMINDUSTRIES*industry2_size
+	call savechunkheader
+
+loadsaveindustry2array:
+	xchg ecx,eax
+extern industry2arrayptr
+	mov esi,[industry2arrayptr]
+	call ebp
+
+	or byte [extrachunksloaded3],LOADED_X3_INDUSTRY2ARRAY
 	ret
 
 canhavenewcargotypes:

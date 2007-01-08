@@ -2590,6 +2590,8 @@ gotocheat:
 
 resetinducheat:
 	call clearindustryincargos
+extern clearindustry2array
+	call clearindustry2array
 	mov edi,[industryarrayptr]
 	mov ecx,NUMINDUSTRIES
 .nextindu:

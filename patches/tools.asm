@@ -857,6 +857,8 @@ initializeveharray:
 	mov byte [lastindustiledataid],0
 	call clearindustrygameids
 	call clearindustryincargos
+extern clearindustry2array
+	call clearindustry2array
 	cmp dword [stationarray2ptr],0
 	je .no_station2
 	call station2clear

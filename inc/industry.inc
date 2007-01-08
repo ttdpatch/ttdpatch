@@ -39,6 +39,14 @@ struc industry
 	.unused3:	resw 1	// 34h:unused by TTD, initialized to 0
 endstruc
 
+struc industry2
+	.grfpersistent:	resd 16	// 00h: 16*4=64 bytes for GRFs to use freely
+			resb 2*industry_size-$	// pad it to make it twice the size of
+						// the normal industry struc
+endstruc
+
+%assign GRFPERSISTENTINDUREGS 16
+
 ptrvardec industrydatablock
 
 struc industrydatastruc

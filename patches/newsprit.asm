@@ -1344,7 +1344,7 @@ dwordsize:
 vard calcoperators
 	dd addr(.add),addr(.sub),addr(.signed_min),addr(.signed_max),addr(.unsigned_min),addr(.unsigned_max)
 	dd addr(.signed_divmod),addr(.signed_divmod),addr(.unsigned_divmod),addr(.unsigned_divmod)
-	dd addr(.multiply),addr(.and),addr(.or),addr(.xor),addr(.storevar),addr(.copy)
+	dd addr(.multiply),addr(.and),addr(.or),addr(.xor),addr(.storevar),addr(.copy),addr(.storepers)
 numcalcoperators equ ($-calcoperators)/4
 
 endvar
@@ -1497,6 +1497,19 @@ endvar
 .copy:
 	mov eax, ecx
 	ret
+
+.storepers:
+	test esi,esi
+	jz .badstore
+	call .make_eax_signed
+	xchg eax,ecx
+	call .make_eax_unsigned
+	xchg eax,ecx
+	movzx ebp, byte [grffeature]
+	jmp [writepersistentreg+ebp*4]
+
+.badstore:
+	ud2
 
 uvard lastcalcresult
 
@@ -1763,8 +1776,9 @@ getspecparamvar:
 	cmp al,0x1e
 	je .grffncall
 	ja .grfparam
-	cmp al,0x1D
-	je .varbuff
+	cmp al,0x1C
+	je .persistentreg
+	jb .varbuff
 
 	mov ah,cl
 	movzx ecx,byte [grfvarfeature]
@@ -1797,6 +1811,11 @@ getspecparamvar:
 
 .done:
 	ret
+
+.persistentreg:
+	movzx eax, byte [grfvarfeature]
+	movzx ecx,cl
+	jmp [readpersistentreg+eax*4]
 
 .varbuff:
 	movzx ecx, cl
@@ -1851,6 +1870,86 @@ getspecparamvar:
 	pop edx
 	pop dword [curgrfsprite]
 	pop ebx
+	ret
+
+// in:	ecx: register number
+// out:	eax: value of register
+grfcalltable readpersistentreg
+
+.gettrains:
+.getrvs:
+.getships:
+.getplanes:
+.getstations:
+.getairports:
+.getcanals:
+.getbridges:
+.getgeneric:
+.getcargos:
+.getsounds:
+.getsignals:
+.gethouses:
+	ud2		// not supported yet
+
+.getindustiles:
+	cmp byte [isother],0
+	jnz .getindustries
+	ud2		// not supported for tiles, just for industries
+
+extern industry2arrayptr
+
+.getindustries:
+	cmp ecx,GRFPERSISTENTINDUREGS
+	jae .bad
+	mov eax,esi
+	sub eax,[industryarrayptr]
+	add eax,eax
+
+	add eax,[industry2arrayptr]
+	// now eax points to the industry2 slot
+	mov eax,[eax+industry2.grfpersistent+ecx*4]
+	ret
+
+.bad:
+	xor eax,eax
+	ret
+
+// in:	eax: value to store
+//	ecx: number of register
+// out:	eax: value to store, unchanged
+// safe: ebp
+grfcalltable writepersistentreg
+
+.gettrains:
+.getrvs:
+.getships:
+.getplanes:
+.getstations:
+.getairports:
+.getcanals:
+.getbridges:
+.getgeneric:
+.getcargos:
+.getsounds:
+.getsignals:
+.gethouses:
+	ud2		// not supported yet
+
+.getindustiles:
+	cmp byte [isother],0
+	jnz .getindustries
+	ud2		// not supported for tiles, just for industries
+
+.getindustries:
+	cmp ecx,GRFPERSISTENTINDUREGS
+	jae .bad
+	mov ebp,esi
+	sub ebp,[industryarrayptr]
+	add ebp,ebp
+	add ebp,[industry2arrayptr]
+	// now ebp points to the industry2 slot
+	mov [ebp+industry2.grfpersistent+ecx*4],eax
+.bad:
 	ret
 
 #ifndef RELEASE

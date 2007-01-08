@@ -529,7 +529,14 @@ endcodefragments
 
 ext_frag oldindustryclosedown
 
+extern industry2arrayptr
+
 patchnewindustries:
+	// allocate the industry2 array
+	push dword NUMINDUSTRIES*industry2_size
+	call malloccrit
+	pop dword [industry2arrayptr]
+
 	// these two are needed for the prospecting code, so it works even with moreindustriesperclimate disabled
 	storeaddress findCreateNewRandomIndustry,1,1,CreateNewRandomIndustry
 	mov dword [fundcostmultipliers],industryfundcostmultis
