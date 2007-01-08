@@ -4285,8 +4285,7 @@ extern advvaraction2varbuff
 	mov ecx,6
 .nextvar:
 	movzx ebx,byte [eax+ecx]
-	mov ebx,[advvaraction2varbuff+ebx*4]
-	push ebx
+	push dword [advvaraction2varbuff+ebx*4]
 	dec ecx
 	jnz .nextvar
 
