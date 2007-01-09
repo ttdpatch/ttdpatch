@@ -36,7 +36,7 @@ struc industry
 				// 1 - created in-game either by a player or by the random routine
 				// 2 - created during random map creation
 				// 3 - created in the scenario editor
-	.unused3:	resw 1	// 34h:unused by TTD, initialized to 0
+	.lastcargodate:	resw 1	// 34h: the date when cargo was last accepted
 endstruc
 
 struc industry2

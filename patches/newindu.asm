@@ -2924,6 +2924,10 @@ newindumessage:
 // safe: eax, ebx, ecx, edx, esi
 global industryproducecargo
 industryproducecargo:
+// update the date of last cargo acceptance
+	mov ax,[currentdate]
+	mov [edi+industry.lastcargodate],ax
+
 	movzx eax,byte [edi+industry.type]
 
 // activate the "new cargo arrives" random and animation triggers

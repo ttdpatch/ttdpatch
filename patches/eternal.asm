@@ -67,7 +67,19 @@ limityear:
 	xor ecx,ecx
 	mov cl,NUMINDUSTRIES
 .nextind:
-	dec byte [esi+industry.lastyearprod]
+	sub byte [esi+industry.lastyearprod],1
+	adc byte [esi+industry.lastyearprod],0		// don't go negative
+
+	sub word [esi+industry.consdate],bx
+	jnc .consdateok
+	and word [esi+industry.consdate],0
+.consdateok:
+
+	sub word [esi+industry.lastcargodate],bx
+	jnc .cargodateok
+	and word [esi+industry.lastcargodate],0
+.cargodateok:
+
 	add esi,industry_size
 	loop .nextind
 
