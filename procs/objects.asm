@@ -16,7 +16,12 @@ codefragment findmaintoolbarclicktable, 12
 codefragment findmaintoolbartooltiptable, 13
 	js $+6+0x16A
 	movzx ebx, cx
-
+	
+codefragment newobjectsdefandclassnames
+	extern objectsdefandclassnames
+	nop
+	mov esi, [objectsdefandclassnames+eax*4]
+	
 endcodefragments
 
 
@@ -35,6 +40,19 @@ endvar
 
 %assign MAINTOOLBARBUTTONORG 26
 exported patchobjects
+	// change the textid table for class a to support new objects
+	extern ophandler
+	mov eax,[ophandler+0xA*8]
+	mov esi,[eax+8]
+	mov esi,[esi+4]
+	mov edi, objectsdefandclassnames
+	// copy the old data
+	mov ecx,8
+	rep movsd
+	// store the new fragment
+	mov edi,[eax+8]
+	storefragment newobjectsdefandclassnames
+			
 	stringaddress findmaintoolbartooltiptable
 	mov eax, edi
 	mov esi, [eax]

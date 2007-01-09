@@ -19,6 +19,10 @@ extern curspriteblock,grfstage
 uvard objectsdataiddata,256*idf_dataid_data_size
 uvard objectsdataidcount
 
+global objectsdefandclassnames
+uvard objectsdefandclassnames, 512
+
+
 
 extern objectsdataidtogameid
 extern objectsgameiddata
@@ -258,4 +262,6 @@ win_object_clickhandler:
 	ret
 .notbackground:
 	ret
+
+
 

@@ -4003,7 +4003,7 @@ defvehdata specairportdata
 defvehdata spclairportdata, F,F,B,B,B,B,t			// 08..0d
 
 defvehdata specobjectdata
-defvehdata spclobjectdata, F						// 08
+defvehdata spclobjectdata, F,t,t						// 08
 
 %undef defvehdata
 
@@ -4403,7 +4403,7 @@ var airportdata
 	dd airportspecialflags,airportweight,airporttypenames		//0c..0e
 	
 var objectdata
-	dd addr(setobjectclass)						// 08
+	dd addr(setobjectclass), objectclassnames, objectnames 	// 08..0A
 	
 uvard grfvarreinitstart,0
 %define SKIPGUARD 1
@@ -4459,6 +4459,9 @@ uvard cargoaction3,32
 uvard objectsdataidtogameid, NOBJECTS/2
 uvard objectsgameiddata, NOBJECTS*idf_gameid_data_size
 uvard objectsgameidcount
+
+uvard objectclassnames, NOBJECTS/2
+uvard objectnames, NOBJECTS/2
 
 	// other variables
 uvard newstationnum
