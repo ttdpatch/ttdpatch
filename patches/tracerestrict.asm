@@ -15,7 +15,7 @@
 
 extern CreateWindow,DrawWindowElements,WindowClicked,DestroyWindow,WindowTitleBarClicked,GenerateDropDownMenu,BringWindowToForeground,invalidatehandle,setmousetool,getnumber,errorpopup
 global robjgameoptionflag,robjflags
-extern cargotypes,newcargotypenames, cargobits
+extern cargotypes,newcargotypenames,cargobits,invalidatetile
 
 global tr_siggui_btnclick
 
@@ -1189,6 +1189,7 @@ ret
 	push eax
 	movzx eax, WORD [curxypos]
 	or BYTE [landscape3+1+eax*2], 0x10
+	call refreshtile
 	mov ecx, robjnum-1
 	mov ebx, robjs+robj_size
 	.sbl1:
@@ -1602,6 +1603,8 @@ ret
 	push esi
 	movzx esi, WORD [curxypos]
 	call delrobjsignal
+	mov eax, esi
+	call refreshtile.goteax
 	pop esi
 	xor edx,edx
 	mov [robjidindex], dx
@@ -1703,10 +1706,10 @@ delrobjsignal:
 	btr WORD [esi*2+landscape3],12
 	jnc NEAR .end
 	pusha
-	mov ebx,esi
-	shr bh,6
-	shl bx,2
-	mov bl,[landscape7+esi]
+	mov ebx, esi
+	shr bh, 6
+	shl bx, 2
+	mov bl, [landscape7+esi]
 	
 	xor eax,eax
 	mov [landscape7+esi], al
@@ -2314,6 +2317,7 @@ ret
 .share:
 	mov BYTE [landscape7+eax], cl
 	or BYTE [landscape3+1+eax*2], 0x10
+	call refreshtile
 	mov [edx], bx
 	mov [robjid], bx
 	shl ebx, 3
@@ -2323,6 +2327,7 @@ ret
 	jnz NEAR .ret
 	//error too many shared
 	and BYTE [landscape3+1+eax*2], ~0x10
+	call refreshtile
 	xor eax, eax
 	mov [robjidindex], ax
 	mov [edx], ax
@@ -2387,6 +2392,7 @@ ret
 	mov cl, [robjidindex]
 	mov BYTE [landscape7+eax], cl
 	or BYTE [landscape3+1+eax*2], 0x10
+	call refreshtile
 .ret:
 	pop esi
 	and BYTE [esi+window.activebuttons+1], ~3
@@ -2418,3 +2424,18 @@ error:
 	call dword [errorpopup]
 	popa
 ret
+
+refreshtile:	//tile=[curxypos]
+	pusha
+	movzx eax, WORD [curxypos]
+.in:
+	xor ecx, ecx
+	xchg ah, cl
+	shl eax, 4
+	shl ecx, 4
+	call DWORD [invalidatetile]
+	popa
+ret
+.goteax:
+	pusha
+	jmp .in
