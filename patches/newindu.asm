@@ -2039,6 +2039,7 @@ setindustrylayout:
 	lodsb
 
 	cmp byte [curgrfindustilelist+eax],0
+	mov dl,INVSP_INVINDUSTILE
 	jz .error	// industry tile not defined
 	push ebx
 	push ecx
@@ -2090,6 +2091,7 @@ setindustrylayout:
 	add eax,ecx
 	add eax,4	// +4 because the length bytes don't count into the size
 	cmp eax,esi
+	mov dl,INVSP_INVLAYOUTSIZE
 	jne .error_onepop
 .nocheck:
 // everything is OK - we can update the layout pointer in the layout table
@@ -2107,6 +2109,7 @@ setindustrylayout:
 	pop eax
 .error_onepop:
 	pop eax
+	shrd eax,edx,16		// set eax(16:23)=dl
 	mov ax,ourtext(invalidsprite)
 	stc
 	ret

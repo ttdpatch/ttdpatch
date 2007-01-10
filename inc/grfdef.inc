@@ -99,6 +99,8 @@ foundationtypes equ 14+8
 #define INVSP_NOTINBLOCK 26	// range crosses block boundary
 #define INVSP_INVPROPVAL 27	// invalid property value
 #define INVSP_INVTEST 28	// invalid condition type in action 7/9
+#define INVSP_INVINDUSTILE 29	// invalid industry tile in layout
+#define INVSP_INVLAYOUTSIZE 30	// invalid industry layout size
 
 #endif	// ndef __GRF_INC__
 
