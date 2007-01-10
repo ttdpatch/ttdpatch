@@ -357,6 +357,7 @@ proc processnewinfo
 	// out:	esi->after data
 	//	carry clear if successful
 	//	carry set if error, then ax=error message
+	//		  if ax=invalid sprite error, eax(16:23) holds the error code
 	// safe:eax ebx ecx edx edi ebp
 
 .specialfunction:

@@ -14,6 +14,7 @@
 
 #include <std.inc>
 #include <textdef.inc>
+#include <grfdef.inc>
 
 extern bridgespritetables
 
@@ -60,7 +61,7 @@ alterbridgespritetable:
 	ret
 .bad:
 	pop ecx
-	mov ax, ourtext(invalidsprite)
+	mov eax,(INVSP_BADID<<16)+ourtext(invalidsprite)
 	stc
 	ret
 

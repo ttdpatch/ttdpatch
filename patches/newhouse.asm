@@ -123,7 +123,7 @@ setsubstbuilding:
 	jmp failpropwithgrfconflict
 
 .invalid:
-	mov ax,ourtext(invalidsprite)
+	mov eax,(INVSP_INVPROPVAL<<16)+ourtext(invalidsprite)
 	stc
 	ret
 

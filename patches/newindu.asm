@@ -143,7 +143,7 @@ setsubstindustile:
 	jmp failpropwithgrfconflict
 
 .invalid:
-	mov ax,ourtext(invalidsprite)
+	mov eax,(INVSP_INVPROPVAL<<16)+ourtext(invalidsprite)
 	stc
 	ret
 
@@ -1847,7 +1847,7 @@ setsubstindustry:
 .invalid_pop:
 	pop ecx
 .invalid:
-	mov ax,ourtext(invalidsprite)
+	mov eax,(INVSP_INVPROPVAL<<16)+ourtext(invalidsprite)
 	stc
 	ret
 
@@ -1965,7 +1965,7 @@ setindustryoverride:
 	ret
 
 .invalid:
-	mov ax,ourtext(invalidsprite)
+	mov eax,(INVSP_INVPROPVAL<<16)+ourtext(invalidsprite)
 	stc
 	ret
 

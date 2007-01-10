@@ -134,7 +134,7 @@ setsoundvolume:
 	ret
 
 .error:
-	mov ax,ourtext(invalidsprite) 
+	mov eax,(INVSP_BADID<<16)+ourtext(invalidsprite) 
 	stc
 	ret
 
@@ -160,7 +160,7 @@ setsoundpriority:
 	ret
 
 .error:
-	mov ax,ourtext(invalidsprite) 
+	mov eax,(INVSP_BADID<<16)+ourtext(invalidsprite) 
 	stc
 	ret
 
@@ -188,7 +188,7 @@ overrideoldsound:
 	ret
 
 .error:
-	mov ax,ourtext(invalidsprite) 
+	mov eax,(INVSP_BADID<<16)+ourtext(invalidsprite) 
 	stc
 	ret
 
