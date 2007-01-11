@@ -14,9 +14,7 @@
 */
 
 typedef unsigned long ulong;
-typedef unsigned int uint;
-
-
+typedef unsigned  int uint;
 
 #define NOBMP /* undefining this requires
 compliation as C++ as BMP is a class */
@@ -28,9 +26,17 @@ compliation as C++ as BMP is a class */
 typedef struct {
 
 	float** data; /* data array */
-    ulong size_x; /* size of the array */
-    ulong size_y; /* size of the array */
+        
+        ulong size_x; /* size of the array */
+        ulong size_y; /* size of the array */
 } gridArray;
+
+#ifdef __GNUC__
+	#define INLINE static inline
+	#define INLINE_DEF
+#else
+	#define INLINE
+#endif
 
 void snipArray (gridArray* source_,ulong  size_x_,ulong  size_y_,gridArray** this_);
 /* copy constructor for creating the array from another
@@ -48,7 +54,7 @@ void mulArray(gridArray* source_,gridArray* this_);
 void mulScalar (float scalar, gridArray* this_);
 /* scalar multiply operator */
 
-void addArray(gridArray* source_, gridArray* this_);
+void addArray(gridArray* _source, gridArray* this_);
 /* addition of two arrays */
 
 void addScalar(float scalar, gridArray* this_);
@@ -75,7 +81,7 @@ void ttMap(ulong cutDown, ulong cutUp, gridArray* this_);
 /* change the map to fulfill the Transport
    Tycoon requirements for the vertex data */
 
-void ttDesert(gridArray** this_);
+void ttDesert(gridArray* target, ulong min, ulong max, ulong rfmin, ulong range, gridArray* this_);
 /* make TT desert */
 
 void print (gridArray* this_);
@@ -91,9 +97,10 @@ void shift_y (int dir, ulong row, gridArray* this_);
 else shift hi->lo */
 
 
-/*stomp a circle of normal terrain to make a shoreline green
-for desert creation */
-void shoreStomp(ulong i_x, ulong i_y,gridArray* geometry, gridArray* this_);
+int recursiveTest(ulong range, ulong x, ulong y, gridArray* this_);
+/* recursive test of whether a tile can be a desert tile
+	 needs an improvement to seek a circual pattern and not
+	 a 'star' like currently */
 
 /*
 *
@@ -101,7 +108,8 @@ void shoreStomp(ulong i_x, ulong i_y,gridArray* geometry, gridArray* this_);
 *
 */
 
-static inline ulong size_x(gridArray* this_)
+#ifdef INLINE_DEF
+INLINE ulong size_x(gridArray* this_)
 {
   return this_->size_x;
 }
@@ -112,7 +120,7 @@ static inline ulong size_x(gridArray* this_)
 *
 */
 
-static inline ulong size_y(gridArray* this_)
+INLINE ulong size_y(gridArray* this_)
 {
   return this_->size_y;
 }
@@ -123,11 +131,11 @@ static inline ulong size_y(gridArray* this_)
 *
 */
 
-static inline float val (ulong i_x, ulong i_y, gridArray* this_)
+INLINE float val (ulong i_x, ulong i_y, gridArray* this_)
 {
 
   if (size_x(this_) <= i_x || size_y(this_) <= i_y)
-    return 0.0;
+    return -1000000.0;
 
   return this_->data[i_x][i_y];
 }
@@ -138,7 +146,7 @@ static inline float val (ulong i_x, ulong i_y, gridArray* this_)
 *
 */
 
-static inline void insert (float val,ulong i_x, ulong i_y, gridArray* this_)
+INLINE void insert (float val,ulong i_x, ulong i_y, gridArray* this_)
 {
   if (size_x(this_) > i_x && size_y(this_) > i_y)
     this_->data[i_x][i_y] = val;
@@ -150,7 +158,7 @@ static inline void insert (float val,ulong i_x, ulong i_y, gridArray* this_)
 *
 */
 
-static inline void adjust (ulong i_x, ulong i_y, ulong j_x, ulong j_y, int raise, gridArray* this_)
+INLINE void adjust (ulong i_x, ulong i_y, ulong j_x, ulong j_y, int raise, gridArray* this_)
 {
   long current = (long)(val(i_x,i_y,this_));
   long prev    = (long)(val(j_x,j_y,this_));
@@ -175,7 +183,7 @@ static inline void adjust (ulong i_x, ulong i_y, ulong j_x, ulong j_y, int raise
 *
 */
 
-static inline int dist(ulong otherSize, ulong other, ulong mySize, ulong indice, gridArray* this_) {
+INLINE int dist(ulong otherSize, ulong other, ulong mySize, ulong indice, gridArray* this_) {
 
   float len = 0.0;
   float my = indice *1.0 /mySize;
@@ -184,47 +192,23 @@ static inline int dist(ulong otherSize, ulong other, ulong mySize, ulong indice,
   len = (ot-my)*mySize*1.0;
   return (len < 1.0);
 }
+#else
+INLINE ulong size_x(gridArray* this_);
+INLINE ulong size_y(gridArray* this_);
+INLINE float val (ulong i_x, ulong i_y, gridArray* this_);
+INLINE void insert (long float val,ulong i_x, ulong i_y, gridArray* this_);
+INLINE void test (long* current, long* prev);
+INLINE int dist(ulong otherSize, ulong other, ulong mySize, ulong indice, gridArray* this_);
+#endif
 
+/*
+*
+* Stencils
+*
+*/
 
-void cellularAutomata(ulong pop1, ulong pop2, ulong iters, gridArray** this_);
-void infest(gridArray* source, ulong i_x, ulong i_y, gridArray* this_);
+void stencil (float stencil_data[16][16], gridArray** this_);
 
-inline static void normalizePoint(ulong i_x, ulong i_y, double low, double hi, double range, gridArray* this_) 
-{
-    insert((val(i_x,i_y,this_)-low)*(range/hi),i_x,i_y,this_);
-}
-
-inline static void ttDesertBelow(int level, gridArray* source, gridArray** this_)
-{
-    ulong i_x = 0;
-    ulong i_y = 0;
-    ulong limit_x = size_x(source);
-    ulong limit_y = size_y(source);
-    
-    makeArray(limit_x, limit_y, NULL, this_);
-    mulScalar(0.0,*this_);
-       
-    for (i_x = 0;i_x < limit_x;++i_x)
-    {
-        for (i_y = 0;i_y < limit_y;++i_y)
-        {
-            if (val(i_x,i_y,source) > level)
-            {
-              insert(2.0,i_x,i_y,*this_);
-            } else if (val(i_x,i_y,source) > 0 && val(i_x,i_y,source) < level-2)
-            {
-              insert(1.0,i_x,i_y,*this_);
-            }
-        }
-    }
-    
-    for (i_x = 0;i_x < limit_x;++i_x)
-      {
-      for (i_y = 0;i_y < limit_y;++i_y)
-        {
-          shoreStomp(i_x,i_y,source,*this_);
-        }
-      }
-}
+extern float valley_data[16][16];
 
 #endif

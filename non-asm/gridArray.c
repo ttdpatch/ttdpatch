@@ -10,14 +10,11 @@
 * 'this_' pointer
 */
 
-
-
+#define INLINE_DEF
 #include "gridArray.h"
+#undef INLINE_DEF
 #include "cwrap.h"
-#include <stdint.h>
 #include <ttdvar.h>
-
-extern uint32_t (*randomfn)(void) asm("randomfn");
 
 #ifndef NOBMP
   #include "bmp.h"
@@ -413,6 +410,7 @@ void normalize(float hi,gridArray* this_) {
 
 //    1. find largest value
     float largest = -1.0;
+    float inValue = 0.0;
     ulong limit_x = size_x(this_);
     ulong limit_y = size_y(this_);
     ulong i_x = 0;
@@ -435,7 +433,15 @@ for (i_x = 0;i_x < limit_x;++i_x)
 {
     for (i_y = 0;i_y < limit_y;++i_y)
     {
-        normalizePoint(i_x,i_y,0.0,largest,hi,this_);
+        inValue = val(i_x,i_y,this_)/largest * hi;
+        if (inValue < 0.0)
+        {
+            insert(0.0,i_x,i_y,this_);
+        }
+        else
+        {
+            insert(inValue,i_x,i_y,this_);
+        }
     }
 }
 
@@ -482,7 +488,7 @@ void image(const char* filename,gridArray* this_) {
 *
 */
 
-static inline void constrain(int raise, gridArray* this_) {
+INLINE void constrain(int raise, gridArray* this_) {
   ulong limit_x = size_x(this_);
   ulong limit_y = size_y(this_);
 
@@ -529,8 +535,12 @@ void ttMap(ulong cutDown, ulong cutUp, gridArray* this_) {
     ulong i_x = 0;
     ulong i_y = 0;
 
+/* check for sensibility of the arguments */
+
+    if (cutUp < cutDown) return;
+
 /* normalize to the proper range and subtract the cutDown */
-      
+
     normalize(cutUp+13+cutDown/4,this_);
     addScalar((cutUp* -1.0),this_);
     normalize(cutDown,this_);
@@ -539,7 +549,7 @@ void ttMap(ulong cutDown, ulong cutUp, gridArray* this_) {
 
     constrain(1, this_);
 
-/* zero two outmost vertices */
+/* zero two outmost vertices to 0.0 */
 
     for (i_x = 0;i_x < limit_x;++i_x) {
         insert(0.0,i_x,        0,this_);
@@ -565,7 +575,7 @@ void ttMap(ulong cutDown, ulong cutUp, gridArray* this_) {
         for (i_y = 0; i_y < limit_y;++i_y)
         {
             if (val(i_x,i_y,this_) > 15.0) insert (15.0, i_x, i_y, this_);
-            if (val(i_x,i_y,this_) <  0.0) insert (0.0, i_x, i_y, this_);
+            if (val(i_x,i_y,this_) <  0.0)  insert (0.0, i_x, i_y, this_);
         }
     }
 
@@ -577,15 +587,32 @@ void ttMap(ulong cutDown, ulong cutUp, gridArray* this_) {
 *
 */
 
-void ttDesert(gridArray** this_) {
+void ttDesert(gridArray* target, ulong min, ulong max, ulong rfmin, ulong range, gridArray* this_) {
 
-     cellularAutomata(randomfn()%5+3,randomfn()%5+2, 65, this_);
-     
-     filter(3,this_);
-     scale(128,128,this_);
-     filter(3,this_);
-     scale(256,256,this_);
-     filter(3,this_);    
+    ulong limit_x = size_x(this_) - range;
+    ulong limit_y = size_y(this_) - range;
+    ulong i_x = 0;
+    ulong i_y = 0;
+
+    ulong rBonus = 2;
+
+    mulScalar(0.0,target); // zero the array
+
+    scale(limit_x,limit_y,&this_);
+
+    for (i_x = range+rBonus;i_x < limit_x-rBonus;++i_x)
+    {
+        for (i_y = range+rBonus;i_y < limit_y-rBonus;++i_y)
+        {
+            if (val(i_x,i_y,this_) > rfmin)
+                insert(2.0,i_x,i_y,target);
+            else if ( val(i_x,i_y,this_) < max && val(i_x,i_y,this_) > min)
+            {
+                if ( recursiveTest(range,i_x,i_y,this_) )
+                  insert(1.0,i_x,i_y,target);
+            }
+        }
+    }
 }
 
 /*
@@ -594,36 +621,21 @@ void ttDesert(gridArray** this_) {
 *
 */
 
-void shoreStomp(ulong i_x, ulong i_y,gridArray* geometry, gridArray* this_)
+int recursiveTest(ulong range, ulong x, ulong y, gridArray* this_)
 {
-    int j_x = 0;
-    int j_y = 0;
-    
-    int c_x = 0;
-    int c_y = 0;
-    
-    static float tab [7][7] = {
-                         { 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0 },
-                         { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 },
-                         { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-                         { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-                         { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
-                         { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0 },
-                         { 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0 }
-                       };
-                       
-    if (val(i_x,i_y,geometry) < 1.05f)
-    {
-      for (j_x = 0;j_x < 7;++j_x)
-        {
-        for (j_y = 0;j_y < 7;++j_y)
-         {
-           c_x = i_x + j_x - (randomfn()%2 + 3);
-           c_y = i_y + j_y - (randomfn()%2 + 3);
-           insert(val(c_x,c_y,this_)*tab[j_x][j_y], c_x, c_y, this_);
-         } 
-        }
-      }
+  if (range == 0)
+  {
+      return val(x,y,this_) > 0.0;
+  }
+      return val (x+range, y+range, this_) > 0.0 &&
+             val (x-range, y-range, this_) > 0.0 &&
+             val (x+range, y-range, this_) > 0.0 &&
+             val (x-range, y+range, this_) > 0.0 &&
+             val (x      , y+range, this_) > 0.0 &&
+             val (x      , y-range, this_) > 0.0 &&
+             val (x+range, y      , this_) > 0.0 &&
+             val (x-range, y      , this_) > 0.0 &&
+             recursiveTest(range - 1, x, y, this_);
 }
 
 /*
@@ -631,6 +643,33 @@ void shoreStomp(ulong i_x, ulong i_y,gridArray* geometry, gridArray* this_)
 * destroy array
 *
 */
+
+void Array(gridArray* source_,gridArray* this_) {
+
+    ulong limit_x = 0;
+    ulong limit_y = 0;
+    ulong i_x = 0;
+    ulong i_y = 0;
+
+    // check if the array sizes match
+    if (size_x(this_) != size_x(source_) && size_y(this_) != size_y(source_))
+    {
+        return;
+    }
+
+    // do the addition
+
+    limit_x = size_x(this_);
+    limit_y = size_y(this_);
+ 
+    for (i_x = 0;i_x < limit_x;++i_x)
+    {
+        for (i_y = 0;i_y < limit_y;++i_y)
+        {
+            this_->data[i_x][i_y] += val(i_x,i_y,source_);
+        }
+    }
+}
 
 void destroyArray(gridArray** this_) {
 
@@ -653,8 +692,6 @@ void mulArray(gridArray* source_,gridArray* this_) {
     ulong limit_y = 0;
     ulong i_x = 0;
     ulong i_y = 0;
-    float val1 = 0.0;
-    float val2 = 0.0;
 
     // check if the array sizes match
     if (size_x(this_) != size_x(source_) && size_y(this_) != size_y(source_))
@@ -662,7 +699,7 @@ void mulArray(gridArray* source_,gridArray* this_) {
         return;
     }
 
-    // do the multiplication
+    // do the addition
 
     limit_x = size_x(this_);
     limit_y = size_y(this_);
@@ -671,14 +708,61 @@ void mulArray(gridArray* source_,gridArray* this_) {
     {
         for (i_y = 0;i_y < limit_y;++i_y)
         {
-            val1 = val(i_x,i_y,this_);
-            val2 = val(i_x,i_y,source_);
-            this_->data[i_x][i_y] =  val1 * val2;
+            this_->data[i_x][i_y] *= val(i_x,i_y,source_);
         }
     }
 }
 
-/* move a given rown one place */
+/*
+*
+* Stencils
+*
+*/
+
+float valley_data[16][16] = {
+    {  0.4, 0.55, 0.65,  0.7,    0.75, 0.8, 0.85, 1.0,     1.0,  0.85, 0.8,  0.75,  0.7, 0.65, 0.6, 0.55},
+    {  0.45, 0.55, 0.65,  0.7,    0.75, 0.8, 0.85, 1.0,     1.0,  0.85, 0.8,  0.75,  0.7, 0.65, 0.6, 0.55},
+    {  0.45, 0.6, 0.65,  0.7,    0.75, 0.8, 0.85, 1.0,     1.0,  0.85, 0.8,  0.75,  0.7, 0.65, 0.6, 0.55},
+    {  0.45, 0.6, 0.65,  0.7,    0.75, 0.8, 0.85, 1.0,     1.0,  0.85, 0.8,  0.75,  0.7, 0.65, 0.6, 0.55},
+    
+    {  0.55, 0.6, 0.65,  0.6,    0.65, 0.75, 0.85, 1.0,     1.0,  0.85, 0.8,  0.75,  0.7, 0.65, 0.6, 0.55},
+    {  0.55, 0.6, 0.65,  0.6,    0.65, 0.75, 0.85, 1.0,     1.0,  0.85, 0.8,  0.75,  0.7, 0.65, 0.6, 0.55},
+    {  0.55, 0.6, 0.65,  0.7,    0.65, 0.75, 0.85, 1.0,     1.0,  0.85, 0.8,  0.75,  0.7, 0.65, 0.6, 0.55},
+    {  0.55, 0.6, 0.65,  0.7,    0.65, 0.75, 0.85, 1.0,     1.0,  0.85, 0.8,  0.75,  0.7, 0.65, 0.6, 0.55},
+    
+    {  0.55, 0.6, 0.65,  0.7,    0.65, 0.75, 0.85, 1.0,     1.0,  0.85, 0.8,  0.75,  0.7, 0.65, 0.6, 0.55},
+    {  0.55, 0.6, 0.65,  0.7,    0.65, 0.75, 0.85, 1.0,     1.0,  0.85, 0.8,  0.75,  0.7, 0.65, 0.6, 0.55},
+    {  0.55, 0.6, 0.65,  0.6,    0.65, 0.75, 0.85, 1.0,     1.0,  0.85, 0.8,  0.75,  0.7, 0.65, 0.6, 0.55},
+    {  0.55, 0.6, 0.65,  0.6,    0.65, 0.75, 0.85, 1.0,     1.0,  0.85, 0.8,  0.75,  0.7, 0.65, 0.6, 0.55},
+    
+    {  0.55, 0.6, 0.65,  0.7,    0.75, 0.8, 0.85, 1.0,     1.0,  0.85, 0.8,  0.75,  0.7, 0.65, 0.6, 0.55},
+    {  0.55, 0.6, 0.65,  0.7,    0.75, 0.8, 0.85, 1.0,     1.0,  0.85, 0.8,  0.75,  0.7, 0.65, 0.6, 0.55},
+    {  0.55, 0.6, 0.65,  0.7,    0.75, 0.8, 0.85, 1.0,     1.0,  0.85, 0.8,  0.75,  0.7, 0.65, 0.6, 0.55},   
+};
+
+void stencil (float stencil_data[16][16], gridArray** this_)
+{
+     ulong i_x = 0;
+     ulong i_y = 0;
+     ulong scaleFactor = 16;
+
+     makeArray(16,16,NULL,this_);
+     
+     for (i_x = 0;i_x < 16;++i_x)
+     {
+        for (i_y = 0;i_y < 16; ++i_y)
+        {
+            insert(stencil_data[i_x][i_y],i_x,i_y,(*this_));
+        }
+     }
+
+     while (scaleFactor < 256) {
+       scaleFactor *= 2;
+       scale(scaleFactor,scaleFactor,this_);
+       filter(2,this_);
+    }
+}
+
 
 void shift_x (int dir, ulong row, gridArray* this_) {
      
@@ -735,110 +819,5 @@ void shift_y (int dir, ulong row, gridArray* this_) {
        }
        this_->data[row][0] = tmp;
      }
+     
 }
-
-/* cellular automata */
-
-void infest(gridArray* source, ulong i_x, ulong i_y, gridArray* this_)
-{
-    if (val (i_x, i_y, source) != 0.0)
-        return;
-
-    int neiCount = 0;
-    float neiVal = 0.0f;
-
-    neiVal = val(i_x+1,i_y,source);
-    if (neiVal == -1.0f)
-       neiCount += 1;
-    if (neiVal == 1.0f)
-       neiCount -= 1;
-    
-    neiVal = val(i_x-1,i_y,source);
-    if (neiVal == -1.0f)
-       neiCount += 1;
-    if (neiVal == 1.0f)
-       neiCount -= 1;
-    
-    neiVal = val(i_x,i_y+1,source);
-    if (neiVal == -1.0f)
-       neiCount += 1;
-    if (neiVal == 1.0f)
-        neiCount -= 1;
-    
-    neiVal = val(i_x,i_y-1,source);
-    if (neiVal == -1.0f)
-       neiCount += 1;
-    if (neiVal == 1.0f)
-       neiCount -= 1;
-
-    neiCount *= 25;
-
-    if (neiCount > 0)
-       {
-           if (randomfn()%100 < neiCount)
-           insert(-1.0f,i_x,i_y,this_);
-           else
-           neiCount = 0;
-       }
- 
-    if (neiCount < 0)
-       {
-           if (randomfn()%100 < -neiCount)
-           insert(1.0f,i_x,i_y,this_);
-           else
-           neiCount = 0;
-       }
-
-    if (neiCount == 0)
-       {
-           insert(0.0f,i_x,i_y,this_);
-       }
-}
-
-#define SOURCE_SIZE 64
-
-void cellularAutomata(ulong pop1, ulong pop2, ulong iters, gridArray** this_)
-{
-
-     
-     ulong posX = 0;
-     ulong posY = 0;
-     ulong limit_x = SOURCE_SIZE;
-     ulong limit_y = SOURCE_SIZE;
-     ulong i_x = 0;
-     ulong i_y = 0;
-     ulong changed = 0;
-     mulScalar(0.0,*this_);
-     gridArray* tmp = NULL;
-     snipArray(*this_,limit_x,limit_y,&tmp);
-     
-     for (changed = 0; changed < pop1;++changed) {
-       posX = randomfn()%SOURCE_SIZE;
-       posY = randomfn()%SOURCE_SIZE;
-       insert(-1.0,posX,posY,*this_);
-     }
-     
-     for (changed = 0; changed < pop1;++changed) {
-       posX = randomfn()%SOURCE_SIZE;
-       posY = randomfn()%SOURCE_SIZE;
-       insert(1.0,posX,posY,*this_);
-     }
-     
-     changed = 0;
-     
-     while (changed < iters)
-     {
-     changed++;
-
-     for (i_x = 0;i_x < limit_x;++i_x)
-         {
-         for (i_y = 0;i_y < limit_y;++i_y)
-             {
-               infest(*this_,i_x,i_y,tmp);
-             }
-         }
-     destroyArray(this_);
-     *this_ = NULL;
-     snipArray(tmp,limit_x,limit_y,this_);
-     }
- }
