@@ -152,6 +152,7 @@ var otherCompanyManageWindowElemList
 varw companywintooltips
 	dw 0x018B
 	dw 0x018C
+	dw 0
 	dw 0x7030
 	dw 0x7031
 	dw 0x7032
@@ -159,7 +160,6 @@ varw companywintooltips
 	dw 0x7070
 	dw 0x7079
 	dw 0x707A
-	dw 0
 	dw ourtext(statistics_tooltip)
 endvar	
 
