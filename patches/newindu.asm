@@ -1385,7 +1385,7 @@ uvard industryincargos,2*NUMINDUSTRIES
 uvard industrydestroymultis,NINDUSTRYTYPES
 
 // pointer to the industry2 array - currently used for persistent storage for GRFs only
-svard industry2arrayptr
+uvard industry2arrayptr
 
 // Macro to get back the industry ID from its address. It assumes the pointer is actually pointing into the industry array.
 %macro getinduidfromptr 1
@@ -1415,9 +1415,12 @@ clearindustrygameids:
 // clear the industry2 array
 exported clearindustry2array
 	mov edi,[industry2arrayptr]
+	test edi,edi
+	jz .done			// no array - nothing to clear
 	mov ecx,NUMINDUSTRIES*industry2_size
 	xor eax,eax
 	rep stosb
+.done:
 	ret
 
 // make a backup of all original industry arrays before overwriting them, and fill some other
