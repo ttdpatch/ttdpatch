@@ -4,7 +4,7 @@
 #include <window.inc>
 #include <ptrvar.inc>
 
-extern createrailstactionhook,createrailstactionhook.oldfn,patchflags
+extern createrailstactionhook,createrailstactionhook.oldfn,patchflags,createairportactionhook,createdockactionhook
 extern createbusstactionhook,createlorrystactionhook,busstcheckadjtilehookfunc,lorrystcheckadjtilehookfunc
 extern class5vehenterleavetilestchngecheckpatch,buslorrystationbuilt
 
@@ -56,12 +56,49 @@ push    dx
 push    di
 db 0xE8 //call    sub_402031
 
+codefragment oldcreateairport1, -10
+push    ax
+push    bx
+push    cx
+rol     cx, 8
+mov     di, cx
+rol     cx, 8
+or      di, ax
+ror     di, 4
+mov     ax, di
+db 0x8B, 0x2D	//mov     ebp, ppOpClass3
+
+codefragment oldcreatedocks1, -23
+loc_150E82 equ $+0x150E82-0x150E51
+pop     bx
+xor     dl, dl
+cmp     di, 3
+jz      short loc_150E82
+inc     dl
+cmp     di, 9
+jz      short loc_150E82
+inc     dl
+cmp     di, 0Ch
+jz      short loc_150E82
+inc     dl
+cmp     di, 6
+jz      short loc_150E82
+db 0x66, 0xC7
+
 codefragment newcheckadjsttilebus1
 icall busstcheckadjtilehookfunc
 setfragmentsize 6+WINTTDX*2
 
 codefragment newcheckadjsttilelorry1
 icall lorrystcheckadjtilehookfunc
+setfragmentsize 6+WINTTDX*2
+
+codefragment newcheckadjsttileairport1
+icall airportstcheckadjtilehookfunc
+setfragmentsize 6+WINTTDX*2
+
+codefragment newcheckadjsttiledocks1
+icall dockstcheckadjtilehookfunc
 setfragmentsize 6+WINTTDX*2
 
 codefragment newclass5vehenterleavetilestchngecheckfunc1
@@ -71,6 +108,7 @@ setfragmentsize 6+WINTTDX*1
 codefragment newbuslorrystationbuiltcondfunc1
 icall buslorrystationbuiltcondfunc
 setfragmentsize 7
+
 
 codefragment oldbuslorrystationbuilt1
 dw 0
@@ -89,14 +127,26 @@ patchadjst:
 
 stringaddress oldcreatestfrag1
 chainfunction createrailstactionhook,.oldfn
+
 stringaddress oldcreatelorrybusstation1, 1, 2
 storerelative edi, createbusstactionhook
 add edi, 0xE5+WINTTDX*2
 storefragment newcheckadjsttilebus1
+
 stringaddress oldcreatelorrybusstation1, 2, 2
 storerelative edi, createlorrystactionhook
 add edi, 0xE5+WINTTDX*2
 storefragment newcheckadjsttilelorry1
+
+stringaddress oldcreateairport1
+storerelative edi, createairportactionhook
+add edi, 0x189+WINTTDX*2
+storefragment newcheckadjsttileairport1
+
+stringaddress oldcreatedocks1
+storerelative edi, createdockactionhook
+add edi, 0x198+WINTTDX*2
+storefragment newcheckadjsttiledocks1
 
 mov eax, [ophandler+5*8]
 mov edi, [eax+40]

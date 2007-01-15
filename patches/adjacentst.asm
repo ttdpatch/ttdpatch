@@ -10,14 +10,14 @@
 #include <player.inc>
 
 extern convertplatformsinremoverailstation,newstationspread,ishumanplayer,patchflags,stationarray2ofst,errorpopup,fixstationplatformslength
-extern RefreshWindows,maxrstationspread
+extern RefreshWindows,maxrstationspread, airportdimensions, canbuilddockhere
 
 global adjflags
 
 uvard adjflags
 //bits: 0: attatch to station, 1: new station, 2: normal, 16-31: station id
 uvard adjflags2
-//bits: 0: cancel BusLorryStationBuilt, autoclear, 1: is in fact a railway station
+//bits: 0: cancel BusLorryStationBuilt, autoclear, 1: is in fact a railway station, 4=is airport, 8=is dock
 
 uvard adjfunc
 uvard adjblock,64
@@ -26,7 +26,7 @@ uvard adjdim
 uvard adjtile
 uvard adjaction
 uvarw adjoperrormsg1
-uvard adjtmp1
+uvard adjtmp1	//1=call buslorrystationbuilt
 
 uvard stlist,256
 //bits: 0-15=num of station, 16-23=displayidx, 24-31=type: 1=station, 2=norm, 3=new, 4=cancel
@@ -594,11 +594,39 @@ ret
 
 uvard stmodflags, (numstations+31)>>5
 
+global createdockactionhook
+createdockactionhook:
+	mov DWORD [adjaction], 0x90028
+	and DWORD [adjflags2], ~7
+	or DWORD [adjflags2], 8
+	mov WORD [adjoperrormsg1], 0x9802
+	mov DWORD [adjtmp1], 0
+/*	push DWORD .err
+	call canbuilddockhere
+	add esp, 4*/
+	
+	//fudge
+	mov dx, 0x101
+
+	jmp createrailstactionhook.nocheckirr
+/*.err:
+	add esp, 4
+ret*/
+global createairportactionhook
+createairportactionhook:
+	movzx esi, bh
+	mov dx, [airportdimensions+esi*2]
+	mov DWORD [adjaction], 0x20028
+	and DWORD [adjflags2], ~11
+	or DWORD [adjflags2], 4
+	mov WORD [adjoperrormsg1], 0xA001
+	mov DWORD [adjtmp1], 0
+	jmp createrailstactionhook.nocheckirr
 global createbusstactionhook
 createbusstactionhook:
 	mov dx, 0x101
 	mov DWORD [adjaction], 0x50028
-	and DWORD [adjflags2], ~3
+	and DWORD [adjflags2], ~15
 	mov WORD [adjoperrormsg1], 0x1808
 	mov DWORD [adjtmp1], 1
 	jmp createrailstactionhook.nocheckirr
@@ -606,7 +634,7 @@ global createlorrystactionhook
 createlorrystactionhook:
 	mov dx, 0x101
 	mov DWORD [adjaction], 0x60028
-	and DWORD [adjflags2], ~3
+	and DWORD [adjflags2], ~15
 	mov WORD [adjoperrormsg1], 0x1809
 	mov DWORD [adjtmp1], 1
 	jmp createrailstactionhook.nocheckirr
@@ -615,7 +643,7 @@ createrailstactionhook:
 	testflags irrstations
 	jnc .end
 	mov DWORD [adjaction], 0x28
-	and DWORD [adjflags2], ~1
+	and DWORD [adjflags2], ~13
 	or DWORD [adjflags2], 2
 	mov WORD [adjoperrormsg1], 0x100F
 	mov DWORD [adjtmp1], 0
@@ -673,7 +701,7 @@ adjstrailstfunc:
 	mov [adjflags], esi
 .fudge:
 //ugly hack approaching...
-//make sure that irrcheckistrainstation/buslorry code gets called by fudging temporarily L5 value
+//make sure that irrcheckistrainstation/buslorry/airport/dock code gets called by fudging temporarily L4 value
 	mov cl, [landscape4(ax,1)-0x101]
 	push ecx
 	and cl,0xF
@@ -780,6 +808,16 @@ adjstrailstfunc:
 	mov DWORD [adjflags], 0
 .ret:
 ret
+
+global dockstcheckadjtilehookfunc
+dockstcheckadjtilehookfunc:
+	mov ah, 0x4B
+jmp lorrystcheckadjtilehookfunc.busin
+
+global airportstcheckadjtilehookfunc
+airportstcheckadjtilehookfunc:
+	mov ah, 8
+jmp lorrystcheckadjtilehookfunc.busin
 
 global busstcheckadjtilehookfunc
 busstcheckadjtilehookfunc:
