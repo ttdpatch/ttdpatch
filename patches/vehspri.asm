@@ -1763,7 +1763,7 @@ getvehtypeflags:
 	movzx eax, byte [eax+vehtype.flags] ; Get the flags
 
 	cmp si, 0 ; This should only be used when the vehicle exists
-	je .notvehicle
+	je .buylist
 
 	push edx ; Get the flag for if the train was built in the testing peroid
 	mov dx, [esi+veh.modflags]
@@ -1771,8 +1771,12 @@ getvehtypeflags:
 	shr dx, 1
 	or ax, dx
 	pop edx
+	ret
 
-.notvehicle:
+.buylist:
+	mov ah, al ; This should return whether its in the testing phase or not
+	and ah, 2
+	shr ah, 1
 	ret ; Return eax to be tested in action2
 
 	// 60: count occurence of vehicle ID in consist
