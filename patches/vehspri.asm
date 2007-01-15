@@ -1750,8 +1750,9 @@ getvehiclecargo:
 	ret
 
 	// 48: vehtype flags
-	// out: xxxxxxff
-	//	xxxxxx = undefined
+	// out: xxxxxvff
+	//	xxxxx = undefined
+	//	v = Vehicle flag, built in test phase
 	//	ff = flags such as 'is aviable to all companies'
 	// can be called in purchase list; esi may be 0
 global getvehtypeflags
@@ -1760,6 +1761,18 @@ getvehtypeflags:
 	imul eax, vehtype_size ; Multiple by the size of each entry
 	add eax, vehtypearray ; Move to veh type array
 	movzx eax, byte [eax+vehtype.flags] ; Get the flags
+
+	cmp si, 0 ; This should only be used when the vehicle exists
+	je .notvehicle
+
+	push edx ; Get the flag for if the train was built in the testing peroid
+	mov dx, [esi+veh.modflags]
+	and dx, 1<<MOD_PROTYPE
+	shr dx, 1
+	or ax, dx
+	pop edx
+
+.notvehicle:
 	ret ; Return eax to be tested in action2
 
 	// 60: count occurence of vehicle ID in consist
