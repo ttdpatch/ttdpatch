@@ -1021,7 +1021,7 @@ proc newbuyrailvehicle
 	add eax, vehtypearray
 	test byte [eax+vehtype.flags], 2
 	jz .nottest
-	bts word [edi+veh.modflags], MOD_PROTYPE
+	bts word [edi+veh.modflags], MOD_PROTOTYPE
 .nottest:
 
 	// do we build an articulated engine?
