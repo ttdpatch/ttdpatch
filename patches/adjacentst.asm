@@ -17,7 +17,7 @@ global adjflags
 uvard adjflags
 //bits: 0: attatch to station, 1: new station, 2: normal, 16-31: station id
 uvard adjflags2
-//bits: 0: cancel BusLorryStationBuilt, autoclear, 1: is in fact a railway station, 4=is airport, 8=is dock
+//bits: 0: cancel BusLorryStationBuilt, autoclear, 1: is in fact a railway station, 4=is airport, 8=is dock, 16=buoy
 
 uvard adjfunc
 uvard adjblock,64
@@ -594,10 +594,73 @@ ret
 
 uvard stmodflags, (numstations+31)>>5
 
+
+global createbuoyactionhook,createbuoyactionhook.oldfn
+createbuoyactionhook:
+	mov DWORD [adjaction], 0xB0028
+	and DWORD [adjflags2], ~15
+	or DWORD [adjflags2], 16
+	mov WORD [adjoperrormsg1], 0x9802
+	mov DWORD [adjtmp1], 0
+	mov dx, 0x101
+jmp createrailstactionhook.nocheckirr
+
+.exit:
+	jmp DWORD $
+ovar .oldfn, -4, $,createbuoyactionhook
+
+global createbuoymergehook
+createbuoymergehook:
+	ror di, 4
+	mov ax, di
+	//end old code
+	test DWORD [adjflags], 1
+	jz .exit
+	movzx esi, WORD [adjflags+2]
+	imul esi, station_size
+	add esi, stationarray
+	cmp WORD [esi+station.XY], 0
+	je .exit
+	test BYTE [esi+station.facilities], 16	//dock
+	jnz .fail
+	pop edi
+	add edi, 0x4D
+	add esp, 4
+	pop cx
+	pop bx
+	movzx ebx, ax
+	pop ax
+	push ebx
+	push esi
+	movzx ebx, BYTE [esi+station.owner]
+	push ebx
+	mov bl, 1
+	call edi
+	xchg ebx, [esp+8]
+	ror eax, 16
+	mov al, [adjflags+2]
+	mov [landscape2+ebx], al
+	ror eax, 16
+	pop ebx
+	mov [esi+station.owner], bl
+	pop esi
+	pop ebx
+.exit:
+ret
+.fail:
+	add esp, 4
+	pop esi
+	pop cx
+	pop bx
+	pop ax
+	mov WORD [operrormsg2], 0x304C
+	mov ebx, 0x80000000
+ret
+
 global createdockactionhook
 createdockactionhook:
 	mov DWORD [adjaction], 0x90028
-	and DWORD [adjflags2], ~7
+	and DWORD [adjflags2], ~23
 	or DWORD [adjflags2], 8
 	mov WORD [adjoperrormsg1], 0x9802
 	mov DWORD [adjtmp1], 0
@@ -617,7 +680,7 @@ createairportactionhook:
 	movzx esi, bh
 	mov dx, [airportdimensions+esi*2]
 	mov DWORD [adjaction], 0x20028
-	and DWORD [adjflags2], ~11
+	and DWORD [adjflags2], ~27
 	or DWORD [adjflags2], 4
 	mov WORD [adjoperrormsg1], 0xA001
 	mov DWORD [adjtmp1], 0
@@ -626,7 +689,7 @@ global createbusstactionhook
 createbusstactionhook:
 	mov dx, 0x101
 	mov DWORD [adjaction], 0x50028
-	and DWORD [adjflags2], ~15
+	and DWORD [adjflags2], ~31
 	mov WORD [adjoperrormsg1], 0x1808
 	mov DWORD [adjtmp1], 1
 	jmp createrailstactionhook.nocheckirr
@@ -634,7 +697,7 @@ global createlorrystactionhook
 createlorrystactionhook:
 	mov dx, 0x101
 	mov DWORD [adjaction], 0x60028
-	and DWORD [adjflags2], ~15
+	and DWORD [adjflags2], ~31
 	mov WORD [adjoperrormsg1], 0x1809
 	mov DWORD [adjtmp1], 1
 	jmp createrailstactionhook.nocheckirr
@@ -643,7 +706,7 @@ createrailstactionhook:
 	testflags irrstations
 	jnc .end
 	mov DWORD [adjaction], 0x28
-	and DWORD [adjflags2], ~13
+	and DWORD [adjflags2], ~29
 	or DWORD [adjflags2], 2
 	mov WORD [adjoperrormsg1], 0x100F
 	mov DWORD [adjtmp1], 0
@@ -672,13 +735,22 @@ createrailstactionhook:
 	jle .delay
 	popa
 .end:
+	test DWORD [adjflags2], 16
+	jnz createbuoyactionhook.exit
 	jmp DWORD $
 ovar .oldfn, -4, $,createrailstactionhook
 .delay:
 	popa
-	or BYTE [adjflags2], 1
 	xor ebx, ebx
+	or BYTE [adjflags2], 1
 	add esp, 4
+	test DWORD [adjflags2], 16
+	jnz .popbx
+ret
+.popbx:
+	//pop bx
+	//xor ebx, ebx
+	add esp, 2
 ret
 
 adjstrailstfunc:

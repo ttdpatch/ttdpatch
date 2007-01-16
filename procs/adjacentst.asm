@@ -3,10 +3,12 @@
 #include <patchproc.inc>
 #include <window.inc>
 #include <ptrvar.inc>
+#include <station.inc>
 
 extern createrailstactionhook,createrailstactionhook.oldfn,patchflags,createairportactionhook,createdockactionhook
 extern createbusstactionhook,createlorrystactionhook,busstcheckadjtilehookfunc,lorrystcheckadjtilehookfunc
-extern class5vehenterleavetilestchngecheckpatch,buslorrystationbuilt
+extern class5vehenterleavetilestchngecheckpatch,buslorrystationbuilt, createbuoyactionhook,createbuoyactionhook.oldfn
+extern createbuoymergehook
 
 begincodefragments
 
@@ -85,6 +87,41 @@ cmp     di, 6
 jz      short loc_150E82
 db 0x66, 0xC7
 
+codefragment oldcreatebuoy1, -86-WINTTDX*2
+/*
+or      esi, esi
+jnz     short loc_150BEF
+retn    
+loc_150BEF:
+push    ax
+push    bx
+push    cx
+push    esi
+rol     cx, 8
+mov     di, cx
+rol     cx, 8
+or      di, ax
+ror     di, 4
+mov     ax, di
+db 0x8B		//mov     ebp, ppOpClass3         ; Towns
+*/
+
+
+mov     ebx, 1
+call    dword [ebp+4]       // FindNearestTown
+pop     esi
+pop     cx
+pop     bx
+pop     ax
+mov     [esi+station.townptr], edi
+mov     BYTE [esi+station.namewidth], 0
+rol     cx, 8
+mov     di, cx
+rol     cx, 8
+or      di, ax
+ror     di, 4
+db 0xC6
+
 codefragment newcheckadjsttilebus1
 icall busstcheckadjtilehookfunc
 setfragmentsize 6+WINTTDX*2
@@ -109,6 +146,9 @@ codefragment newbuslorrystationbuiltcondfunc1
 icall buslorrystationbuiltcondfunc
 setfragmentsize 7
 
+codefragment newbuoymergehookfrag1
+icall createbuoymergehook
+setfragmentsize 7
 
 codefragment oldbuslorrystationbuilt1
 dw 0
@@ -147,6 +187,11 @@ stringaddress oldcreatedocks1
 storerelative edi, createdockactionhook
 add edi, 0x198+WINTTDX*2
 storefragment newcheckadjsttiledocks1
+
+stringaddress oldcreatebuoy1
+chainfunction createbuoyactionhook, .oldfn
+add edi, 0x49+WINTTDX*2
+storefragment newbuoymergehookfrag1
 
 mov eax, [ophandler+5*8]
 mov edi, [eax+40]
