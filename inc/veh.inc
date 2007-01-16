@@ -111,6 +111,7 @@ struc veh
 #define MOD_ISFULL 7		//	bit 7=train is done loading even with full load set
 #define MOD_REVERSE 8		//	bit 8=toggled whenever train reverses
 #define MOD_HASRESERVED 9	//	bit 9=this vehicle has reserved its cargo type and is loading (FIFO)
+#define MOD_PROTOTYPE 10	//	bit 10=the vehicle was built during the testing phase
 
 	.modflags: 	resw 1	// 7eh:above flags, bitcoded.
 endstruc

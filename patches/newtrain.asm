@@ -1029,6 +1029,14 @@ proc newbuyrailvehicle
 
 	mov dword [%$numheadsbase],numheads
 
+	movzx eax, byte [%$vehtype+1]
+	imul eax, vehtype_size
+	add eax, vehtypearray
+	test byte [eax+vehtype.flags], 2
+	jz .nottest
+	bts word [edi+veh.modflags], MOD_PROTOTYPE
+.nottest:
+
 	// do we build an articulated engine?
 	movzx eax,byte [%$vehtype+1]
 //	cmp byte [buildingroadvehicle], 1
