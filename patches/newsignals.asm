@@ -3,9 +3,10 @@
 #include <textdef.inc>
 #include <bitvars.inc>
 #include <signals.inc>
+#include <grf.inc>
 
 extern advvaraction2varbuff,getnewsprite,curcallback,grffeature,miscgrfvar,callback_extrainfo,newspriteyofs,gettileterrain
-extern gettileinfoshort
+extern gettileinfoshort,mostrecentspriteblock
 
 global newsignalson
 uvarb newsignalson
@@ -13,6 +14,8 @@ uvard newsignalsfeaturebits
 uvard AddSpriteToDisplay
 uvard newsignalspritenum
 uvard newsignalspritebase
+uvard vnewsignalspritenum
+uvard vnewsignalspritebase
 
 uvard curtilecoord
 
@@ -116,8 +119,8 @@ newsignalsdraw:
 	mov ah, [landscape3+esi*2]
 	mov al, [landscape5(si)]
 	mov DWORD [callback_extrainfo], eax
-	xor esi,esi
 	mov eax, 0x10E
+	xor esi, esi
 	call getnewsprite
 	xor esi, esi
 	mov [miscgrfvar], esi
@@ -129,7 +132,17 @@ newsignalsdraw:
 	test eax, 1
 	jz NEAR .fret
 	shr eax, 1
+	mov edi, [mostrecentspriteblock]
+	mov esi, [edi+spriteblock.nsigact5data+4]
+	mov edi, [edi+spriteblock.nsigact5data]
+	or edi, edi
+	jnz .notplainact5
 	mov edi, [newsignalspritebase]
+	mov esi, [newsignalspritenum]
+.notplainact5:
+	mov [vnewsignalspritebase], edi
+	mov [vnewsignalspritenum], esi
+	xor esi, esi
 	or edi, edi
 	jz NEAR .fret
 	cmp edi, 0xFFFF
@@ -137,12 +150,12 @@ newsignalsdraw:
 	btr eax, 4
 	jnc .norecolour
 	mov esi, [advvaraction2varbuff+0x30*4]
-	cmp esi, [newsignalspritenum]
+	cmp esi, [vnewsignalspritenum]
 	jae NEAR .fret
 	add esi, edi
 	shl esi, 16
 	or esi, 0x8000
-	.norecolour:
+.norecolour:
 	add esi, edi
 	and eax, 0xF
 	jz NEAR .fret
@@ -161,7 +174,7 @@ newsignalsdraw:
 	
 	btr ebx, 13
 	jnc .noaddrel
-	add esi, [newsignalspritebase]
+	add esi, [vnewsignalspritebase]
 	add esi, esi
 	add esi, [newspriteyofs]
 	mov di, [esi]
@@ -200,7 +213,7 @@ newsignalsdraw:
 
 	mov ebx, edi
 	shr ebx, 16
-	cmp ebx, [newsignalspritenum]
+	cmp ebx, [vnewsignalspritenum]
 	jae .dontdraw
 	add ebx, [esp+8]
 	mov di, 1

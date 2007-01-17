@@ -38,6 +38,7 @@ struc spriteblock
 				// bit 2: did reserve extra action A sprites
 				// bit 3: needs to import sounds from other GRF
 				// bit 4: loaded automatically (not in newgrf(w).cfg)
+	.nsigact5data:	resd 2	// act5 feature 0E, base sprite and num sprites
 endstruc
 
 %macro checkfeaturesize 2.nolist

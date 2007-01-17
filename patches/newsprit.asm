@@ -169,8 +169,12 @@ grfcalltable getaction3, dd addr(getaction3.generic)
 
 .getgeneric:
 .getsounds:
-.getsignals:
 	ud2
+	
+.getsignals:
+	mov eax,[genericids+0xE*4]
+	xor edx, edx
+	ret
 
 .getairports:
 	mov eax,[airportaction3+eax*4]
@@ -485,7 +489,10 @@ grfcalltable getaction2spritenum
 	ret
 
 .getsignals:
-	ud2
+	movzx eax,word [ebx+5]
+	xor ebx, ebx
+	// carry clear here
+	ret
 
 .getgeneric:
 .getsounds:

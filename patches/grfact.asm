@@ -2119,7 +2119,7 @@ activatenewgraphics:
 	mov ebx,[newgraphicsspritebases+ecx-4*4]
 
 	bt [newgraphicssetsenabled],eax
-	jnc skipnewgraphicsblock
+	jnc skipnewgraphicsblock_chk
 
 	cmp dword [edx+spriteblock.grfid],byte -1
 	je .notnormalid
@@ -2131,7 +2131,7 @@ activatenewgraphics:
 .notnormalid:
 	// ID is -1, only use this set if no regular ID has set it yet
 	bt [newgraphicswithgrfid],eax
-	jc skipnewgraphicsblock
+	jc skipnewgraphicsblock_chk
 
 .useset:
 	push esi
@@ -2151,6 +2151,15 @@ activatenewgraphics:
 	mov word [esi-2-2], ax		// esi is on pseudspritedata+2
 	mov [ebx],ax
 	ret
+
+skipnewgraphicsblock_chk:
+	cmp eax, 0xE
+	jne skipnewgraphicsblock
+	push esi
+	call getextendedbyte
+	mov [edx+spriteblock.nsigact5data+4], eax
+	lea ebx, [edx+spriteblock.nsigact5data]
+	jmp activatenewgraphics.nonum
 
 skipnewgraphicsblock:
 	call getextendedbyte
