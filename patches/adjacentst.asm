@@ -633,6 +633,7 @@ createbuoymergehook:
 	push ebx
 	push esi
 	movzx ebx, BYTE [esi+station.owner]
+	mov bh, [esi+station.flags]
 	push ebx
 	mov bl, 1
 	call edi
@@ -643,6 +644,7 @@ createbuoymergehook:
 	ror eax, 16
 	pop ebx
 	mov [esi+station.owner], bl
+	mov [esi+station.flags], bh
 	pop esi
 	pop ebx
 .exit:
