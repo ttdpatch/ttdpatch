@@ -131,6 +131,7 @@ cheatentry "GRFDEBUG",grfdebugcheat,0
 #endif
 
 cheatentry "LANDINFO",landinfocheat,0 // No longer a DEBUG sign cheat
+cheatentry "PURGEHOUSES",purgehousescheat,0
 
 #if 1 && DEBUG
 cheatentry "LANDD", landdispcheat,0
@@ -2666,5 +2667,36 @@ landgencheat:
 	or eax,edx
 .done:
 	mov [landgen_forceparam],eax
+	clc
+	ret
+
+extern cleanuphousedataids	// in newhouse.asm
+extern housedataidtogameid,lasthousedataid
+
+purgehousescheat:
+	mov esi,housedataidtogameid
+	sub esp,256			// create the mapping array on stack
+	mov ebx,esp
+	mov dl,[lasthousedataid]
+	call cleanuphousedataids
+	mov [lasthousedataid],dl
+
+	xor esi,esi
+.nexttile:
+	mov al,[landscape4(si)]
+	shr al,4
+	cmp al,3
+	jne .skiptile
+
+	mov al,[landscape3+2*esi+1]	// old dataid
+	xlatb
+	mov [landscape3+2*esi+1],al
+
+.skiptile:
+	inc si
+	jnz .nexttile
+
+	add esp,256			// free mapping array
+
 	clc
 	ret

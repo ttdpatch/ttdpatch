@@ -49,7 +49,12 @@ struc housegameid
 	.grfid:		resd 1
 	.setid:		resb 1
 	.gameid:	resb 1
+			resb 8-$
 endstruc
+
+%if housegameid_size <> 8
+	%error "The size of housegameid must be 8 bytes!"
+%endif
 
 uvard lasthousedataid		// it's a byte really, but saved as dword in the houseid chunk
 
@@ -333,6 +338,82 @@ clearhousedataids:
 .loop:
 	mov byte [housedataidtogameid+(ecx-1)*8+housegameid.gameid],0
 	loop .loop
+	ret
+
+// clean up a dataid->gameid mapping (housedataidtogameid or industiledataidtogameid)
+// by removing entries that don't have their GRFs activated
+// NOTE: this depends on the housegameid and industilegameid structs being identical - if
+// any of those change, check all calls to this function and fix them as needed
+// in:	ebx->a 256-byte array that will get the dataid mapping (the Nth byte says what the Nth ID changed into)
+//	dl: the number of the last valid slot
+//	esi-> dataid->gameid mapping
+// out:	buffer at ebx filled
+//	dl: new number of the last valid slot
+// preserves: ebx,ebp
+exported cleanuphousedataids
+// start with an empty mapping
+	xor eax,eax
+	mov ecx,256
+	mov edi,ebx
+	rep stosb
+
+	test dl,dl
+	jz .exit	// no IDs defined - the empty mapping is OK
+
+	push ebx
+
+// the first slot is special, it should always be free, so start from slot 1
+	add esi,byte housegameid_size
+	mov edi,esi
+	mov cx,0x0101
+	inc ebx
+
+// we're ready to compact the array, leaving out entries currently unused
+// no insertions are made, so we can compact in-place
+// now esi->"from" slot, edi->"to" slot, cl="from" index, ch="to" index
+// ebx->"from" slot in the map
+
+.nextslot:
+	cmp byte [esi+housegameid.gameid],0
+	je .unused
+
+// the slot is used, copy it to the current "to" slot
+
+	movsd
+	movsd
+	mov [ebx],ch		// remember where the ID goes in the mapping
+	inc ch
+	jmp short .doneslot
+
+.unused:
+// unused slot, skip over it
+	add esi,byte housegameid_size
+	// leve the default 0 mapping, meaning that it must be reverted to its substitute
+
+.doneslot:
+	inc ebx		// increase "from" slot
+
+	cmp cl,dl
+	je .done	// this was the last "from" slot
+
+	inc cl
+	jmp short .nextslot
+
+.done:
+// ch is now the number of the first unused slot, we need the number of the last used one
+	dec ch
+	mov dl,ch
+
+// clean up the "leftover" between the new last slot and the previous last slot, so it can be compressed better
+	sub cl,ch
+	// cl is now the number of slots to clean
+	xor eax,eax
+	movzx ecx,cl
+	add ecx,ecx	// one slot is 8 bytes, we need two stosd per slot
+	rep stosd
+
+	pop ebx		// restore ebx to what the caller gave us
+.exit:
 	ret
 
 %macro copyarray 2

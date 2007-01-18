@@ -66,7 +66,13 @@ struc industilegameid
 	.grfid:		resd 1
 	.setid:		resb 1
 	.gameid:	resb 1
+			resb 8-$
 endstruc
+
+%if industilegameid_size <> 8
+	%error "The size of industilegameid must be 8 bytes!"
+%endif
+
 
 // index of the last valid entry of the above array
 uvard lastindustiledataid	// it seems to be aswell be loaded/saved as dword (Oskar)
