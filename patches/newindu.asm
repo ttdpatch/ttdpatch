@@ -1259,7 +1259,12 @@ uvard industrydataidtogameid,2*NINDUSTRYTYPES
 struc industrygameid
 	.grfid:		resd 1
 	.setid:		resb 1
+			resb 8-$
 endstruc
+
+%if industrygameid_size<>8
+	%error "The size of industrygameid must be 8!"
+%endif
 
 // helper bitmasks, containing the old industry types enabled on the current climate
 // this is necessary so we can reuse unused slots for new industries
@@ -1278,6 +1283,10 @@ vard defaultindustriesofclimate
 section .text
 
 uvard defaultindustries,2
+
+// Bit mask of new industry types whose data is currently available (i.e. the corresponding GRF is active)
+// For old types that aren't overridden, the corresponding bit is clear
+uvard activenewindustries,2
 
 // The old code has count/type pairs for initial industry generation. We convert this to
 // an array of probabilities and store that here, since this makes the handling easier.
@@ -1598,6 +1607,9 @@ restoreindustrydata:
 	mov [defaultindustries],ecx
 	mov [defaultindustries+4],eax
 
+	and dword [activenewindustries],0
+	and dword [activenewindustries+4],0
+
 	ret
 
 // Various versions to get an industry text ID (instead of "add foo,0x4802")
@@ -1890,6 +1902,8 @@ setsubstindustry:
 	mov [curgrfindustrylist+ebx],cl
 	inc byte [curgrfindustrylist+ebx]
 
+	bts [activenewindustries],ecx
+
 // set the substitute industry type
 	xor eax,eax
 	lodsb
@@ -1955,19 +1969,25 @@ setindustryoverride:
 	lodsb
 	mov dl,[curgrfindustrylist+ebx]
 	or edx,edx
-	jz .ignore		// undefined ID
+	jz near .ignore		// undefined ID
 	dec edx
 	cmp al,NINDUSTRYTYPES
-	jae .invalid		// invalid destination industry
+	jae near .invalid	// invalid destination industry
 	cmp dword [industrydataidtogameid+eax*8+industrygameid.grfid],0
 	jnz .ignore		// the industry is already overridden
 // modify the associated gameid
 	mov [curgrfindustrylist+ebx],al
 	inc byte [curgrfindustrylist+ebx]
+
+	btr [activenewindustries],edx
+	bts [activenewindustries],eax
+
 	pusha
 // copy all data to the new place
 	mov ebx,eax
 	mov eax,edx
+// there may be industries of this type already on the map, change their type
+	call changeindustrytype
 	call copynewindustrydata
 // if the old slot was an active industry, restore the original state
 // otherwise, just zero its probabilities so it won't appear at all
@@ -1991,13 +2011,105 @@ setindustryoverride:
 	mov [industrydataidtogameid+eax*8+industrygameid.setid],dl
 .ignore:
 	inc ebx
-	loop .next
+	dec ecx
+	jnz near .next
 	clc
 	ret
 
 .invalid:
 	mov eax,(INVSP_INVPROPVAL<<16)+ourtext(invalidsprite)
 	stc
+	ret
+
+// Auxiliary: change all industries of type <eax> to type <ebx>
+// preserves everything
+changeindustrytype:
+	push esi
+	push ecx
+
+	mov ecx,NUMINDUSTRIES
+	mov esi,[industryarrayptr]
+.nextindustry:
+	cmp word [esi+industry.XY],0
+	je .notgood
+	cmp byte [esi+industry.type],al
+	jne .notgood
+	mov byte [esi+industry.type],bl
+.notgood:
+	add esi,industry_size
+	loop .nextindustry
+
+	pop ecx
+	pop esi
+	ret
+
+// remove all industry types that are present in the type list, but aren't currently active
+exported cleanupindustrytypes
+// the two dwords on stack will contain the mask of types to remove
+	push 0
+	push 0
+
+// find the types that aren't currently active, and remove them from the mapping
+// if the type hasn't overridden anything, we mark it for removal from the map
+// types that overrode something will revert to the original type they've overridden
+	xor ecx,ecx
+.clean_unused:
+	cmp dword [industrydataidtogameid+ecx*8+industrygameid.grfid],0
+	je .skip_unused
+	bt [activenewindustries],ecx
+	jc .skip_unused
+	and dword [industrydataidtogameid+ecx*8],0
+	and dword [industrydataidtogameid+ecx*8+4],0
+	bt [defaultindustries],ecx
+	jc .skip_unused
+	bts [esp],ecx
+.skip_unused:
+	inc ecx
+	cmp ecx,NINDUSTRYTYPES
+	jb .clean_unused
+
+// remove industries whose bits are set in the mask
+	mov ecx,NUMINDUSTRIES
+	mov edi,[industryarrayptr]
+.removeindustries:
+	cmp word [edi+industry.XY],0
+	je .skip_remove
+	movzx eax,byte [edi+industry.type]
+	bt [esp],eax
+	jnc .skip_remove
+
+	push ecx
+	push edi
+	mov ebx,3		// class 8 function 3 - remove industry
+	mov ebp,[ophandler+0x8*8]
+	call [ebp+4]
+	pop edi
+	pop ecx
+
+.skip_remove:
+	add edi,byte industry_size
+	loop .removeindustries
+
+	add esp,8		// remove mask from stack
+
+// finally, clean up the mask of disabled types
+// if no custom type is loaded into the slot, allow the original to appear again
+// by removing the corresponding type from the disabled types
+// The fate of the slot is decided during the next activation - if some GRF
+// disables it, it will get back to the disabled list; if, however, the disabling
+// GRF is no longer active, the old industry type will appear again
+	xor ecx,ecx
+.clear_disabled:
+	cmp dword [industrydataidtogameid+ecx*8+industrygameid.grfid],0
+	jne .skip_disabled
+
+	btr [landscape3+ttdpatchdata.disableddefindustries],ecx
+
+.skip_disabled:
+	inc ecx
+	cmp ecx,NINDUSTRYTYPES
+	jb .clear_disabled
+
 	ret
 
 // layout format: numlayouts(b) layoutlength(d) layout...

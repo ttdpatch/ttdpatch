@@ -132,6 +132,7 @@ cheatentry "GRFDEBUG",grfdebugcheat,0
 
 cheatentry "LANDINFO",landinfocheat,0 // No longer a DEBUG sign cheat
 cheatentry "PURGEHOUSES",purgehousescheat,0
+cheatentry "PURGEINDUSTRIES",purgeindustriescheat,0
 
 #if 1 && DEBUG
 cheatentry "LANDD", landdispcheat,0
@@ -2686,6 +2687,39 @@ purgehousescheat:
 	mov al,[landscape4(si)]
 	shr al,4
 	cmp al,3
+	jne .skiptile
+
+	mov al,[landscape3+2*esi+1]	// old dataid
+	xlatb
+	mov [landscape3+2*esi+1],al
+
+.skiptile:
+	inc si
+	jnz .nexttile
+
+	add esp,256			// free mapping array
+
+	clc
+	ret
+
+extern cleanupindustrytypes	// in newindu.asm
+extern industiledataidtogameid,lastindustiledataid
+
+purgeindustriescheat:
+	call cleanupindustrytypes
+
+	mov esi,industiledataidtogameid
+	sub esp,256			// create the mapping array on stack
+	mov ebx,esp
+	mov dl,[lastindustiledataid]
+	call cleanuphousedataids
+	mov [lastindustiledataid],dl
+
+	xor esi,esi
+.nexttile:
+	mov al,[landscape4(si)]
+	shr al,4
+	cmp al,8
 	jne .skiptile
 
 	mov al,[landscape3+2*esi+1]	// old dataid
