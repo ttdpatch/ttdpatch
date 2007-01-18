@@ -8,6 +8,7 @@
 #include <town.inc>
 #include <grf.inc>
 #include <ptrvar.inc>
+#include <patchdata.inc>
 
 extern BringWindowToForeground,CreateTooltip,CreateWindowRelative
 extern DestroyWindow,DrawWindowElements,RefreshWindowArea,WindowClicked
@@ -1581,9 +1582,13 @@ restoreindustrydata:
 	rep stosd
 
 // ...default industries of the climate
-	movzx eax,byte [climate]
-	mov ecx,[defaultindustriesofclimate+8*eax]
-	mov eax,[defaultindustriesofclimate+8*eax+4]
+	mov ecx,[landscape3+ttdpatchdata.disableddefindustries]
+	mov eax,[landscape3+ttdpatchdata.disableddefindustries+4]
+	not ecx
+	not eax
+	movzx edi,byte [climate]
+	and ecx,[defaultindustriesofclimate+8*edi]
+	and eax,[defaultindustriesofclimate+8*edi+4]
 	mov [defaultindustries],ecx
 	mov [defaultindustries+4],eax
 
@@ -1910,6 +1915,8 @@ setsubstindustry:
 	jnz .loopend		// the industry is already overridden
 
 	btr [defaultindustries],ebx	// free the slot for future use
+	// defaultindustries isn't saved, so we must remember the disabled state in a separate bitmask as well
+	bts [landscape3+ttdpatchdata.disableddefindustries],ebx
 
 	// reset probabilities so the industry doesn't appear
 	mov byte [initialindustryprobs+ebx],0
