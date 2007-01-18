@@ -1016,9 +1016,11 @@ proc newbuyrailvehicle
 
 	mov dword [%$numheadsbase],numheads
 
-	movzx eax, byte [%$vehtype+1]
-	imul eax, vehtype_size
+;	int3 ; Was for testing purposes
+	movzx eax, byte [%$vehtype+1]	// This handles Trains and aRVs
+	imul eax, vehtype_size		// for adding the testing phase bit
 	add eax, vehtypearray
+	and word [edi+veh.modflags], 1<<MOD_PROTOTYPE // doesn't reset itself
 	test byte [eax+vehtype.flags], 2
 	jz .nottest
 	bts word [edi+veh.modflags], MOD_PROTOTYPE
