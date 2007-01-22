@@ -22,14 +22,19 @@ extern resheight
 // you need esi = window  ecx = element nr that is calling
 // call GenerateDropDownExPrepare		// this will result carry if a DropDownEx is already open
 // ...
-// mov [DropDownExList+ecx*2], eax		// where eax is text id to be filled, ecx is position
+// mov [DropDownExList+ecx*4], eax		// where eax is text id to be filled, ecx is position
 // ... 
 // bts [DropDownExListDisabled], ecx	// will disable an entry
 // ...
-// mov [DropDownExList+ecx*2], 0xFFFF	// terminate the last entry
+// mov [DropDownExList+ecx*4], -1	// terminate the last entry
 // ...
 // call GenerateDropDownExPrepare		// open the DropDownEx window, needs:
 //										// esi = window, ecx = ele, dx = selected item
+// DropDownExFlags:
+//  bit 0 = change size so to have no dummy places (auto shrink)
+//  bit 1 = show devider between the items
+//  bit 2 = use textpointers instead of the default textids
+
 
 // Needs to be filled after prepare
 uvarw DropDownExListItemHeight
@@ -38,7 +43,7 @@ uvard DropDownExListItemDrawCallback
 uvarw DropDownExMaxItemsVisible			// max 255
 uvarw DropDownExFlags
 
-uvarw DropDownExList, DropDownExMax+1
+uvard DropDownExList, DropDownExMax+1
 uvarb DropDownExListDisabled, DropDownExMax/8+1
 
 
@@ -186,14 +191,6 @@ proc GenerateDropDownEx
 	sub bx, word [edi+windowbox.y1]
 	mov word [%$parentheight], bx	// need to know if window doesn't fit anymore
 
-#if 0	
-	movzx ebx, word [edi+windowbox.x2]
-	add bx, word [esi+window.x]
-	mov word [%$newxy], bx
-	
-	movzx ebx, word [edi+windowbox.x2]
-	sub bx, word [edi+windowbox.x1]
-#else 
 	movzx ebx, word [edi+windowbox.x1-0x0C]
 	add bx, word [esi+window.x]
 	mov word [%$newxy], bx
@@ -201,16 +198,21 @@ proc GenerateDropDownEx
 	movzx ebx, word [edi+windowbox.x2]
 	sub bx, word [edi+windowbox.x1-0x0C]
 	sub bx, word [DropDownExListItemExtraWidth]
-#endif
 
 	// calculate the width of the texts, unsafe local vars!
 	push ebp
 	mov ebp, DropDownExList
 .nexttext:
-	movzx eax, word [ebp]
-	cmp ax, 0xFFFF
+	mov eax, dword [ebp]
+	cmp eax, -1
 	je .nomoretext
-	
+
+	bt word [DropDownExFlags], 2
+	jnc .textid
+	mov [specialtext1], eax
+	mov eax, statictext(special1)
+.textid:
+
 	mov edi, tmpbuffer1
 	pusha
 	call [ttdtexthandler]
@@ -224,7 +226,7 @@ proc GenerateDropDownEx
 	jl .okay
 	movzx ebx, cx
 .okay:
-	add ebp, 2
+	add ebp, 4
 	jmp .nexttext
 .nomoretext:
 	mov ecx, ebp
@@ -234,7 +236,7 @@ proc GenerateDropDownEx
 
 	// how many items do we have?
 	sub ecx, DropDownExList
-	shr ecx, 1
+	shr ecx, 2
 	mov dword [%$itemstotal], ecx
 
 	bt word [DropDownExFlags], 0
@@ -486,12 +488,12 @@ GenerateDropDownEx_redraw:
 	add ebp, ebx
 
 .start:
-	cmp word [DropDownExList+ebx*2], 0xFFFF
+	cmp word [DropDownExList+ebx*4], -1
 	je near .done
 	cmp ebp, ebx
 	je near .done
 	
-	cmp word [DropDownExList+ebx*2], 0
+	cmp word [DropDownExList+ebx*4], 0
 	je near .next
 		
 	mov al, 0x10	//cTextColorBlack
@@ -526,7 +528,12 @@ GenerateDropDownEx_redraw:
 	sub bp, 10
 	shr bp, 1
 	add dx, bp
-	movzx ebx, word [DropDownExList+ebx*2]
+	movzx ebx, word [DropDownExList+ebx*4]
+	bt word [DropDownExFlags], 2
+	jnc .textid
+	mov [specialtext1], ebx
+	mov ebx, statictext(special1)
+.textid:
 	call [drawtextfn]
 	popa
 	

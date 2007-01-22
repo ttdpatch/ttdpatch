@@ -354,9 +354,9 @@ exported makestationclassdropdown
 	cmp al, MAXDROPDOWNEXENTRIES
 	jae .done
 	
-	mov cx, 0xc000
+	mov ecx, 0xc000
 	mov cl, al
-	mov word [DropDownExList+2*eax],cx
+	mov dword [DropDownExList+4*eax],ecx
 
 	push eax
 	movzx eax,al
@@ -373,7 +373,7 @@ exported makestationclassdropdown
 	jb .loop
 
 .done:
-	mov word [DropDownExList+2*eax],-1	// terminate it
+	mov dword [DropDownExList+4*eax],-1	// terminate it
 	movzx dx,byte [curselclass]		// current selection
 	pop ecx
 	mov byte [DropDownExMaxItemsVisible], 16 // Changed the word to a byte to match var size (Lakie)
@@ -412,9 +412,10 @@ exported makestationseldropdown
 
 	call isstationavailable
 	jc .next
-
-	mov [DropDownExList+eax*2],dl
-	mov byte [DropDownExList+1+eax*2],0xc1
+	
+	mov dword [DropDownExList+eax*4],0xc100
+	mov byte [DropDownExList+eax*4],dl
+	
 	mov [stationdropdownnums+eax],dl
 
 	cmp dl,[curselstation]
@@ -433,7 +434,7 @@ exported makestationseldropdown
 	jbe .loop
 
 .done:
-	mov word [DropDownExList+2*eax],-1	// terminate it
+	mov dword [DropDownExList+4*eax],-1	// terminate it
 	movzx edx,bh		// current selection
 	extjmp GenerateDropDownEx
 
@@ -3015,7 +3016,7 @@ exported periodicstationupdate
 
 exported setrailstationrvrouteing
 .nexstationid:
-	CALLINT3			// prevent the use of this feature by grfauthors until the feature is complete
+	//CALLINT3			// prevent the use of this feature by grfauthors until the feature is complete
 	lodsd
 	test eax, 0xF0F0F0F0	// prevent the use of the upper 4 bits
 	jnz .bad 
