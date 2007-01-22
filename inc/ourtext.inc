@@ -363,6 +363,8 @@ defourtext adjstnewsttxt
 
 ; CRC f0f2aac5 (check to make sure that the order above is unchanged)
 
+defourtext adjstnewstbuoy
+defourtext adjstnewenhbuoy
 
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 

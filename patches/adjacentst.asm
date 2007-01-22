@@ -29,7 +29,7 @@ uvarw adjoperrormsg1
 uvard adjtmp1	//1=call buslorrystationbuilt
 
 uvard stlist,256
-//bits: 0-15=num of station, 16-23=displayidx, 24-31=type: 1=station, 2=norm, 3=new, 4=cancel
+//bits: 0-15=num of station, 16-23=displayidx, 24-31=type: 1=station, 2=norm, 3=new/enhbuoy, 4=cancel
 uvard numinlist
 
 uvard buslorrystationbuilt
@@ -480,7 +480,7 @@ drawhandler:
 	shr eax, 24
 	dec eax
 	mov bx, statictext(empty)
-	js .print
+	js NEAR .print
 	jne .notst
 	imul ebp, station_size
 	add ebp, stationarray
@@ -498,12 +498,22 @@ drawhandler:
 .notst:
 	dec eax
 	jne .notnorm
+	test BYTE [adjflags2], 16
+	jnz .buoynew
 	mov bx, ourtext(adjstnormstmergealgtxt)
+	jmp .print
+.buoynew:
+	mov bx, ourtext(adjstnewstbuoy)
 	jmp .print
 .notnorm:
 	dec eax
 	jne .notnew
+	test BYTE [adjflags2], 16
+	jnz .buoynewenh
 	mov bx, ourtext(adjstnewsttxt)
+	jmp .print
+.buoynewenh:
+	mov bx, ourtext(adjstnewenhbuoy)
 	jmp .print
 .notnew:
 	dec eax
