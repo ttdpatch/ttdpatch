@@ -389,6 +389,10 @@ presaveadjust:
 	call copybackcargodata
 	or byte [landscape3+ttdpatchdata.flags],2
 .nonewcargos:
+	testflags fifoloading
+	jnc .nofifo
+	extcall buildfifoidx
+.nofifo:
 
 	ret
 
@@ -1068,7 +1072,11 @@ extern clearindustry2array
 
 	call infoapply
 	call updatevehvars
+
+	testflags fifoloading
+	jnc .nofifo
 	extcall buildloadlists
+.nofifo:
 
 	// finally make sure all vehicles have correct new sprites
 	// in case newgrf.txt has changed
