@@ -625,8 +625,8 @@ isittooold:
 	// out:	CF|ZF=1 (cc=NA) if obsolete, cc=A otherwise
 	// uses:AX,EBX
 isvehicleobsolete:
-	cmp byte [currentyear],2049-1920
-	jae .gotit	// nothing is obsolete after 2049 since vehtypes won't be updated
+	cmp byte [currentyear],(2049-1920)-1	// check one less, so 2049 is the first year cc=A
+	ja .gotit	// nothing is obsolete after 2049 since vehtypes won't be updated
 
 	movzx ebx,word [esi+veh.vehtype]
 	mov al,[vehphase2dec+ebx]
