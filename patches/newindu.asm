@@ -4776,6 +4776,15 @@ enddrawindustrywindow:
 	mov [curmiscgrf],eax
 	add dx,30
 	push esi
+
+// copy the first 8 special GRF registers onto the text ref. stack,
+// so messages can have calculated data in them
+	push edi
+	mov esi,specialgrfregisters
+	mov edi,textrefstack
+	times 8 movsd
+	pop edi
+
 	call [drawtextfn]
 	pop esi
 
