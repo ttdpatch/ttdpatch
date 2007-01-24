@@ -291,6 +291,10 @@ defourtext grfdebugmsg
 
 defourtext firstpasstramarrives
 defourtext firstfreighttramarrives
+
+defourtext newgame
+defourtext newgamewindow
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

@@ -6,6 +6,7 @@
 #include <flags.inc>
 #include <textdef.inc>
 #include <human.inc>
+#include <window.inc>
 
 extern ctrlkeystate,patchflags
 
@@ -26,22 +27,36 @@ diskmenuselection:
 	or dl,dl
 	jz short .keepdx
 	inc dl
-.keepdx:
-	cmp dl,2
-	jb short .done		// 0, 1 -> don't touch
-	je short .loadmenu	// 2 -> load
-	cmp dl,3
-	jne short .done	// 4 -> don't touch
 
-	// was 3
-	mov dl,2
+.keepdx:
+	mov byte [newgameyesno], 0
+	cmp dl, 2
+	jb .done
+	je .loadmenu
+
+	cmp dl, 4
+	jb .done
+
+	or bl, bl
+	jnz .editor
+
+	cmp dl, 4
+	je .newgame
+.editor:
+	dec dl
+	cmp dl, 4
+	je .abandon
+	dec dl
 
 .done:
 	clc
 	ret
 
+.newgame:
+	mov esi, 0x10038 // Abandon game
+	mov byte [newgameyesno], 1
+	jmp .doload
 
-// set carry flag for "load game"
 .loadmenu:
 	mov esi,0x40038	// "load game" dialog
 	or bl,bl	// are we in the editor?
@@ -59,7 +74,46 @@ diskmenuselection:
 	mov dl,0
 	stc
 	ret
+
+.abandon:
+	mov dl, 2
+	jmp .done
+
 ; endp diskmenuselection 
+
+// Changes the text string to use based off addition variables
+uvarb newgameyesno
+global changeabandontext
+changeabandontext:
+	cmp byte [gamemode], 2
+	je .editor
+	mov bx, 0x160
+	cmp byte [newgameyesno], 1
+	jne .done
+	mov bx, ourtext(newgamewindow)
+
+.done:
+	ret
+
+.editor:
+	mov bx, 0x29B
+	ret
+
+// Changes the action to be done
+global changeabandonaction
+changeabandonaction:
+	cmp byte [newgameyesno], 1
+	je .newgame
+
+	mov dl, 2
+	mov esi, 0x10038
+	ret
+
+.newgame:
+	mov dl, byte [climate]
+	mov byte [newgameclimate], dl
+	mov esi, 0x00060
+	ret
 
 // called to determine the next disk menu entry, stored in bx
 // bx=15c..15f: save/quit game/empty/quit to dos
@@ -77,33 +131,46 @@ diskmenuselection:
 // old: 292/293/294/295/296
 // new: 292/293/xxx/294/296	(xxx=load game or savegame, depending on Ctrl)
 diskmenustrings:
-	//test si,1
-	//jz short .noinc
-	//inc ebx
+	test byte [gamemode], 2
+	jnz .editor
 
-//.noinc:
-	cmp bx,0x15d
-	jb short .done		// 15c or below; don't touch
-	je short .load		// 15d
+	cmp bx, 0x15d
+	jb .done
+	je .load
 
-	cmp bx,0x295
-	ja short .done		// 296 or above; don't touch
-	je short .notempty	// 295
+	cmp bx, 0x15f
+	jb .done
+	je .newgame
 
-	cmp bx,0x294
-	je short .loadorsave
+	cmp bx, 0x161
+	ja .done
+	je .notabandon
+	dec bx
+.notabandon:
+	sub bx, 2
 
-	cmp bx,0x15e
-	ja short .done		// 15e or above; don't touch
-
-		// 15e->15d or 295h->294h
-.notempty:
-	dec bl
 .done:
 	ret
 
-.load:
-	mov bx,ourtext(loadgame)
+.newgame:
+	mov bx, ourtext(newgame)
+	ret
+
+.editor:
+	cmp bx, 0x298
+	ja .done
+
+	cmp bx, 0x294
+	jb .done
+	je .loadorsave
+
+	cmp bx, 0x295
+	je .done
+	dec bx
+
+	cmp bx, 0x296
+	je .done
+	dec bx
 	ret
 
 .loadorsave:
@@ -113,6 +180,9 @@ diskmenustrings:
 	mov bx,0x15c
 	ret
 
+.load:
+	mov bx,ourtext(loadgame)
+	ret
 ; endp diskmenustrings
 
 
@@ -128,6 +198,17 @@ toolbardropdown:
 	shl ebx,16
 	ret
 
+global tooldiskbardropdown
+tooldiskbardropdown:
+	mov eax, [toolbarelemlisty2]
+	mov ecx, 2 // 2 new items to add
+	add ecx, 4 // 5 orginal items
+	imul ebx,ecx,10
+	inc ebx
+	mov [eax],bx
+	inc ebx
+	shl ebx,16
+	ret
 
 // Will be called if a dropdown menu will be drawn
 
@@ -144,9 +225,9 @@ dropdownmenustrings:
 	mov ebx,[esp+12+4+4]
 	mov bx,[ebx+0x30]
 	cmp bx,0x2C3	// tool menu drop down?
-	je  .doToolMenu
-	cmp	bx, 180Ah
-	je	.doRoadMenu
+	je .doToolMenu
+	cmp bx, 180Ah
+	je .doRoadMenu
 	pop ebx
 	jmp	.done
 
