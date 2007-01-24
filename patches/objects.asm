@@ -15,6 +15,7 @@
 
 extern failpropwithgrfconflict
 extern curspriteblock,grfstage
+extern RefreshWindowArea
 
 uvard objectsdataiddata,256*idf_dataid_data_size
 uvard objectsdataidcount
@@ -23,12 +24,13 @@ global objectsdefandclassnames
 uvard objectsdefandclassnames, 512
 
 
-
+// objects id management
 extern objectsdataidtogameid
 extern objectsgameiddata
 extern objectsgameidcount
+
+// objects id management per grf
 extern curgrfobjectgameids
-extern RefreshWindowArea
 
 global objectidf
 vard objectidf
@@ -44,14 +46,16 @@ istruc idfsystem
 iend
 endvar
 
+// Properties for objects (gameid based)
+extern objectclass				// a word id to the actuall objectclasses
+extern objectnames				// a TextID
 
-%define objectclassesmax 255	// how many classes we can totally
-uvard numobjectclasses			// how many classes we have have loaded already
-uvard objectclasses, 256		// the actual defined classes
+// Properties for classes of objects
+extern objectclasses			// the actual defined classes
+extern objectclassesnames		// the TextID for the name
+extern objectclassesnamesprptr	// the spriteblockptr for this TextID
+extern numobjectclasses			// how many classes we have have loaded already
 
-uvard lastobjectdataid
-
-uvard lastobjectgameid
 
 // special functions to handle special object properties
 //
@@ -64,21 +68,24 @@ uvard lastobjectgameid
 //	carry clear if successful
 //	carry set if error, then ax=error message
 // safe:eax ebx ecx edx edi
-	
+
+uvard curobjectclass
 exported setobjectclass
 .nextdefine:
-
 	push ecx
 // first we define the class, if the class fails to load, we can't select the object anyway,
 // so storeing and resolveing gameid isn't need either.
 .loadclass:
 	lodsd
+	
 	mov ecx,[numobjectclasses]
 	mov edi,objectclasses
+	test ecx, ecx
+	jz .createnewclass
 	repne scasd
 	je .classalreadydefined
 	
-	cmp dword [numobjectclasses], objectclassesmax
+	cmp dword [numobjectclasses], NOBJECTSCLASSES
 	jb .createnewclass 
 	
 .nomoreclasses:
@@ -88,15 +95,19 @@ exported setobjectclass
 	
 .createnewclass:
 	// edi points to end of objectclasses
-	stosd
+	mov dword [edi], eax
 	inc dword [numobjectclasses]
+	
 .classalreadydefined:
-
+	sub edi, objectclasses
+	shr edi, 2
+	mov [curobjectclass], edi
+	
 // creates a new gameid:
 // in: ebx = action id,  edx = feature in framework
 // out: 
 // carry set = error, al = code why:  0 = already defined  1 = no more gameids free
-// ax = gameid
+// eax = gameid
 	mov edx, objectidf
 	extcall idf_createnewgameid
 	jnc .ok
@@ -112,7 +123,8 @@ exported setobjectclass
 	stc
 	ret
 .ok:
-
+	mov ecx, [curobjectclass]
+	mov word [objectclass+eax*2], cx
 .endofthisdefine:
 	pop ecx
 	inc ebx
@@ -133,8 +145,31 @@ exported clearobjectdataids
 	popa
 	ret
 
-
-
+// special functions to handle station properties
+//
+// in:	eax=special prop-num
+//	ebx=offset (objectid)
+//	ecx=num-info
+//	esi=>data
+// out:	esi=>after data
+//	carry clear if successful
+//	carry set if error, then ax=error message
+exported setobjectclasstexid
+.nextobjectclass:
+	lodsw
+	movzx edx, word [objectclass+ebx*2]
+	mov word [objectclassesnames+edx*2], ax
+	mov eax, [curspriteblock]
+	mov dword [objectclassesnamesprptr+edx*4], eax
+	inc ebx
+	loop .nextobjectclass
+	clc
+	ret
+.fail:
+	mov ax, ourtext(invalidsprite)
+	stc
+	ret
+	
 
 // Select window
 %assign win_objectgui_id 111
@@ -262,6 +297,7 @@ win_object_clickhandler:
 	ret
 .notbackground:
 	ret
+
 
 
 

@@ -12,7 +12,7 @@ extern curspriteblock,grfstage
 // edx = idf structure for the feature
 // out:
 // carry set = error, al = code why:  0 = already defined  1 = no more gameids free
-// ax = gameid
+// eax = gameid
 // uses eax, edi
 global idf_createnewgameid
 proc idf_createnewgameid
@@ -30,13 +30,13 @@ proc idf_createnewgameid
 	cmp ax, word [edx+idfsystem.gameidcount]
 	jb .foundgameid					// we still have gameids free
 .toomany:
-	mov ax, 1
+	mov eax, 1
 	stc
 	_ret
 	
 // reassign a gameid?
 .alreadyhasgameid:
-	mov ax, 0
+	mov eax, 0
 	stc
 	_ret
 
@@ -82,7 +82,7 @@ proc idf_createnewgameid
 	
 .nomoredataids:
 	pop ecx
-	mov ax, 2
+	mov eax, 2
 	stc
 	_ret
 	
@@ -93,6 +93,7 @@ proc idf_createnewgameid
 	mov edi, dword [edx+idfsystem.gameid_dataptr]
 	mov word [edi+idf_gameid_data.dataid], cx
 .done:
+	mov eax, dword [%$gameid]
 	pop ecx
 	clc
 	_ret

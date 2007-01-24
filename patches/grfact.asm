@@ -71,7 +71,7 @@ extern airportweight,airporttypenames
 extern setrailstationrvrouteing
 extern longintrodate,longintrodatebridges
 extern newsignalspritenum,newsignalspritebase
-extern setobjectclass
+extern setobjectclass,setobjectclasstexid
 
 uvarb action1lastfeature
 
@@ -4013,7 +4013,7 @@ defvehdata specairportdata
 defvehdata spclairportdata, F,F,B,B,B,B,t			// 08..0d
 
 defvehdata specobjectdata
-defvehdata spclobjectdata, F,t,t						// 08
+defvehdata spclobjectdata, F,F,t						// 08
 
 %undef defvehdata
 
@@ -4413,7 +4413,7 @@ var airportdata
 	dd airportspecialflags,airportweight,airporttypenames		//0c..0e
 	
 var objectdata
-	dd addr(setobjectclass), objectclassnames, objectnames 	// 08..0A
+	dd addr(setobjectclass), addr(setobjectclasstexid), objectnames 	// 08..0A
 	
 uvard grfvarreinitstart,0
 %define SKIPGUARD 1
@@ -4465,13 +4465,20 @@ uvard substindustries,(NINDUSTRYTYPES+3)/4
 
 uvard cargoaction3,32
 
-	// objects
+// objects id management
 uvard objectsdataidtogameid, NOBJECTS/2
 uvard objectsgameiddata, NOBJECTS*idf_gameid_data_size
 uvard objectsgameidcount
 
-uvard objectclassnames, NOBJECTS/2
-uvard objectnames, NOBJECTS/2
+// Properties for objects (gameid based)
+uvard objectclass, NOBJECTS/2						// a word id to the actuall objectclasses
+uvard objectnames, NOBJECTS/2						// a TextID
+
+// Properties for classes of objects
+uvard objectclasses, NOBJECTSCLASSES				// the actual defined classes
+uvard numobjectclasses								// how many classes we have have loaded already
+uvard objectclassesnames, NOBJECTSCLASSES/2			// the TextID for the name
+uvard objectclassesnamesprptr, NOBJECTSCLASSES/2	// the spriteblockptr for this TextID
 
 	// other variables
 uvard newstationnum
