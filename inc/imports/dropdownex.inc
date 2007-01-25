@@ -5,5 +5,6 @@ extern DropDownExListItemExtraWidth
 extern DropDownExListItemDrawCallback
 extern DropDownExMaxItemsVisible
 extern DropDownExFlags
+extern DropDownExListGrfPtr
 extern GenerateDropDownExPrepare
 extern GenerateDropDownEx

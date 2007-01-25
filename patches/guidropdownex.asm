@@ -44,6 +44,7 @@ uvarw DropDownExMaxItemsVisible			// max 255
 uvarw DropDownExFlags
 
 uvard DropDownExList, DropDownExMax+1
+uvard DropDownExListGrfPtr, DropDownExMax+1
 uvarb DropDownExListDisabled, DropDownExMax/8+1
 
 
@@ -125,6 +126,11 @@ exported GenerateDropDownExPrepare
 	mov ecx, DropDownExMax/8
 	mov edi, DropDownExListDisabled
 	rep stosb
+	
+	mov ecx, DropDownExMax
+	mov edi, DropDownExListGrfPtr
+	rep stosd
+	
 	mov word [DropDownExListItemHeight], 10
 	mov word [DropDownExListItemExtraWidth], 0
 	mov dword [DropDownExListItemDrawCallback], 0
@@ -528,6 +534,11 @@ GenerateDropDownEx_redraw:
 	sub bp, 10
 	shr bp, 1
 	add dx, bp
+	
+	extern curmiscgrf
+	mov esi, [DropDownExListGrfPtr+ebx*4]
+	mov [curmiscgrf], esi
+	
 	movzx ebx, word [DropDownExList+ebx*4]
 	bt word [DropDownExFlags], 2
 	jnc .textid
