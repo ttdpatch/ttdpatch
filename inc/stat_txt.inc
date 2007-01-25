@@ -220,6 +220,10 @@ stxt opengrfstatus, 0x98,0x81
 stxt_cont	dw ourtext(grfstatusmenu)
 stxt_cont	db 0
 
+stxt newgametitle, 0x94, 0x81
+stxt_cont	dw ourtext(newgame)
+stxt_cont	db 0
+
 stxt microtext, 0x0e, 0x80, 0
 
 stxt whitedword, 0x94,0x7B,0
