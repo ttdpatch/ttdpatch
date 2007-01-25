@@ -8,8 +8,10 @@
 #include <human.inc>
 #include <window.inc>
 
-extern ctrlkeystate,patchflags
+extern ctrlkeystate, patchflags, DestroyWindow, FindWindow
 
+uvard FlashWindow
+uvard SearchAndDestoryWindow
 
 // handle the four entries in the disk menu
 // in:	dx=menu entry
@@ -42,8 +44,9 @@ diskmenuselection:
 
 	cmp dl, 4
 	je .newgame
-.editor:
 	dec dl
+
+.editor:
 	cmp dl, 4
 	je .abandon
 	dec dl
@@ -113,6 +116,65 @@ changeabandonaction:
 	mov dl, byte [climate]
 	mov byte [newgameclimate], dl
 	mov esi, 0x00060
+	ret
+
+// Closes any windows of commonly reconised yes / no type when opened
+global closeyesnowindows
+closeyesnowindows:
+	cmp cl, 22
+	jne .yesno
+
+	mov cl, 23
+	xor dx, dx
+	call [SearchAndDestoryWindow]
+
+	mov cl, 22
+	xor dx, dx
+	call [FlashWindow]
+	ret
+
+.yesno:
+	mov cl, 22
+	xor dx, dx
+	call [SearchAndDestoryWindow]
+
+	mov cl, 23
+	xor dx, dx
+	call [FindWindow]
+	jz .noyesno
+
+	mov ah, byte [newgameyesno]
+	cmp ah, byte [esi+window.data]
+	je .flash
+	call [DestroyWindow]
+
+.flash:
+	mov cl, 23
+	xor dx, dx
+	call [FlashWindow]
+
+.noyesno:
+	ret
+
+// Changes the element title on opening
+global changeelementlist, abandonelemlist
+changeelementlist:
+	mov eax, dword 0
+ovar abandonelemlist
+
+	mov [esi+window.elemlistptr], eax
+	lea eax, [eax+(12+10)]
+
+	cmp byte [newgameyesno], 1
+	je .newgame
+
+	mov word [eax], 0x161
+	mov byte [esi+window.data], 0
+	ret
+
+.newgame:
+	mov word [eax], ourtext(newgametitle)
+	mov byte [esi+window.data], 1
 	ret
 
 // called to determine the next disk menu entry, stored in bx

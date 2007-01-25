@@ -70,6 +70,7 @@ extern num_powersoften,powersoften_last
 extern initializecargofn
 extern CheckForVehiclesInTheWay
 extern MakeTempScrnBlockDesc
+extern FlashWindow, SearchAndDestoryWindow
 
 begincodefragments
 
@@ -1422,6 +1423,10 @@ codefragment findMakeTempScrnBlockDesc, 13
 codefragment findrandomindtypetables,-4
 	mov edi,randomindustrytypes
 
+codefragment findFlashWindow, 6
+	mov cl, 23
+	xor dx, dx
+
 endcodefragments
 
 ptrvarall industrydatablock
@@ -2077,6 +2082,8 @@ dogeneralpatching:
 	storefunctionaddress findCreateWindow,1,2,CreateWindow
 	storefunctionaddress findWindowClicked,1,1,WindowClicked
 	storefunctionaddress findDestroyWindow,1,1,DestroyWindow
+	storefunctionaddress findFlashWindow, 1, 2, FlashWindow
+	storefunctionaddress findFlashWindow, 2, 2, SearchAndDestoryWindow
 	storefunctionaddress findWindowTitleBarClicked,1,1,WindowTitleBarClicked
 	storefunctionaddress findDrawWindowElements,1,2,DrawWindowElements
 	storefunctionaddress findCreateTextInputWindow,1,1,CreateTextInputWindow

@@ -4,6 +4,7 @@
 global patchdiskmenu
 
 extern tooldiskbardropdown, changeabandontext, changeabandonaction
+extern changeelementlist, abandonelemlist, closeyesnowindows
 
 begincodefragments
 
@@ -57,6 +58,26 @@ codefragment newchangeabandonaction
 	icall changeabandonaction
 	setfragmentsize 7
 
+codefragment findopenyesnowindows
+	mov eax, 230 + (205 << 16)
+	mov ebx, 180 + (92 << 16)
+
+codefragment oldclosepoint, 2
+	mov cl, 23
+	xor dx, dx
+
+codefragment oldclosepoint2, 2
+	mov cl, 22
+	xor dx, dx
+
+codefragment newclosepoint
+	icall closeyesnowindows
+	setfragmentsize 8
+
+codefragment opennewgamewindow
+	icall changeelementlist
+	setfragmentsize 7
+
 endcodefragments
 
 patchdiskmenu:
@@ -75,4 +96,13 @@ patchdiskmenu:
 
 	patchcode oldchangeabandontext, newchangeabandontext
 	patchcode oldchangeabandonaction, newchangeabandonaction, 1, 2
+
+	stringaddress findopenyesnowindows, 2, 4
+	lea edi, [edi+28]
+	mov eax, [edi+3]
+	mov [abandonelemlist], eax
+	storefragment opennewgamewindow	
+
+	patchcode oldclosepoint, newclosepoint, 1, 2
+	patchcode oldclosepoint2, newclosepoint, 1, 2
 	ret

@@ -294,6 +294,7 @@ defourtext firstfreighttramarrives
 
 defourtext newgame
 defourtext newgamewindow
+defourtext newgametitle
 
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
