@@ -173,7 +173,7 @@ ovar abandonelemlist
 	ret
 
 .newgame:
-	mov word [eax], ourtext(newgametitle)
+	mov word [eax], statictext(newgametitle)
 	mov byte [esi+window.data], 1
 	ret
 
