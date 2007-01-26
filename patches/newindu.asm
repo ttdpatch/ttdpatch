@@ -4475,11 +4475,10 @@ extern advvaraction2varbuff
 .in_min:
 	xor edx,edx
 .notneg:
-	// we don't store more than 0x7FFF to avoid display glitches (negative amounts waiting)
-	cmp edx,0x7FFF
+	cmp edx,0xFFFF
 	jbe .nottoomuch
 .in_max:
-	mov dx,0x7FFF
+	or edx,-1	// fill dx with FFFFh
 .nottoomuch:
 	mov [edi+industryincargodata.in_amount1+ecx*2],dx
 	inc ecx
