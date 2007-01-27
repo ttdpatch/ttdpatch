@@ -1,6 +1,7 @@
 #include <defs.inc>
 #include <frag_mac.inc>
 #include <ptrvar.inc>
+#include <vehtype.inc>
 
 extern dailyvehproc,dailyvehproc.oldaircraft,drawsplittextfn
 extern vehtickproc.oldaircraft
@@ -64,6 +65,35 @@ codefragment newhelitakeoffsound
 	icall helitakeoffsound
 	setfragmentsize 10
 
+codefragment oldaicheckheli
+	test ch,1
+	jnz $+2+9
+	cmp bx,253
+
+// called when the AI looks for a usable aircraft type
+// the old code identified helicopters using their type ID, but this
+// doesn't work when aircraft types can be changed
+// in:	bx: type ID
+//	ch=1 if we need a heli, 0 otherwise
+//	edx->vehtype struc for the current type
+// out: cf clear if type is OK
+// safe: ebp, ???
+codefragment newaicheckheli
+// extend type into ebp so we can use bl
+	movzx ebp,bx
+	mov bl,[dword 0+(ebp-AIRCRAFTBASE)]
+noglobal ovar planesubclassarrofst,-4
+// now bl=0 for helis, bl=2 otherwise
+	shr bl,1
+	xor bl,ch
+// now bl=1 if type is OK; shift this into CF
+	shr bl,1
+// invert CF to get the needed meaning
+	cmc
+// restore bx
+	mov ebx,ebp
+	setfragmentsize 19
+
 endcodefragments
 
 patchnewplanes:
@@ -93,4 +123,11 @@ patchnewplanes:
 	patchcode oldshipplanestartsound,newvehstartsound,3-2*WINTTDX,3
 	patchcode touchdownsound
 	patchcode helitakeoffsound
+
+extern specificpropertybase
+	mov eax,[specificpropertybase+3*4]
+	add eax,NAIRCRAFTTYPES
+	add [planesubclassarrofst],eax
+	patchcode aicheckheli
+
 	ret
