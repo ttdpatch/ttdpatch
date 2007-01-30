@@ -2320,7 +2320,7 @@ skipspriteif:
 	mov bh,ah		// bh=1 if externalvar, 0 if param
 
 	// a value test
-	mov eax,[esi]
+	mov eax, [esi]
 //	add esi,ecx
 
 	shl ecx,3
@@ -2364,15 +2364,15 @@ endvar
 	jmp short .dont		// "jmp" isn't short by default... stupid...
 
 .notequal:	// 3 = not equal
-	jne .skipit
+	jne near .skipit
 	jmp short .dont
 
 .greater:	// 4 = greater
-	ja .skipit
+	ja near .skipit
 	jmp short .dont
 
 .less:		// 5 = less
-	jb .skipit
+	jb near .skipit
 	jmp short .dont
 
 .isactive:	// 6 = GRFID is active
@@ -2426,11 +2426,19 @@ endvar
 			// grf isn't active *yet*
 
 .keepfuture:
-	cmp eax,[edx+spriteblock.grfid]
+	mov ebp, [edx+spriteblock.grfid]
+
+	cmp byte [esi-2], 8 // Varsize, always 8 bytes for masking
+	jne .nomask
+	and ebp, [esi+4] // Mask, +4 bytes from value gives the mask
+
+.nomask:
+	cmp eax, ebp
 	mov edx,[edx+spriteblock.next]
 	jne .findgrfid
 
 .gotstate:
+	mov ebp, [curspriteblock]
 	cmp bl,bh
 	je .skipit
 
