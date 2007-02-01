@@ -788,6 +788,24 @@ codefragment newfloodbridgetile
 	setfragmentsize 10
 #endif
 
+codefragment oldDistributeIndustryCargo_recession
+	jg .norecession
+	inc ah
+	shr ah,1
+.norecession:
+	movzx cx,ah
+
+// the above code gives 0 instead of 80h when ah=FFh, that needs to be fixed
+codefragment newDistributeIndustryCargo_recession
+	// cx=ah when we reach this point, so we can calculate with cx instead of ah
+	// cx<=FFh, so the inc can't overflow
+	jg .norecession
+	inc cx
+	shr cx,1
+	mov ah,cl
+	setfragmentsize 10
+.norecession:
+
 endcodefragments
 
 patchgeneralfixes:
@@ -1241,6 +1259,8 @@ patchgeneralfixes:
 	patchcode olddisplaytrainindepot,newdisplaytrainindepot,1,1
 	patchcode oldchoosetrainvehindepot,newchoosetrainvehindepot,1,1
 	mov word [edi+lastediadj-18],0xc38b	// mov eax,ebx instead of mov al,bl
+
+	multipatchcode DistributeIndustryCargo_recession,2
 	ret
 
 // shares some code fragments
