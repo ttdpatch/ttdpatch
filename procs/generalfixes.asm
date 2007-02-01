@@ -833,6 +833,23 @@ codefragment newDrawRoadDepot
 	icall	drawTramOrRoadDepot
 	setfragmentsize 7
 
+codefragment oldDistributeIndustryCargo_recession
+	jg .norecession
+	inc ah
+	shr ah,1
+.norecession:
+	movzx cx,ah
+
+// the above code gives 0 instead of 80h when ah=FFh, that needs to be fixed
+codefragment newDistributeIndustryCargo_recession
+	// cx=ah when we reach this point, so we can calculate with cx instead of ah
+	// cx<=FFh, so the inc can't overflow
+	jg .norecession
+	inc cx
+	shr cx,1
+	mov ah,cl
+	setfragmentsize 10
+.norecession:
 
 endcodefragments
 
@@ -1330,6 +1347,7 @@ patchgeneralfixes:
 	patchcode oldDrawRoadDepot, newDrawRoadDepot, 3, 4
 #endif
 
+	multipatchcode DistributeIndustryCargo_recession,2
 	ret
 
 // shares some code fragments
