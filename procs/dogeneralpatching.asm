@@ -11,6 +11,7 @@
 #include <patchproc.inc>
 
 patchproc sharedorders, patchsharedorders
+patchproc newsignals, patchnewsignals
 
 extern BringWindowToForeground,CreateTooltip,CreateWindow
 extern CreateWindowRelative,DestroyWindow,DistributeProducedCargo
@@ -69,6 +70,9 @@ extern fncheckvehintheway,languageid,origlanguageid
 extern num_powersoften,powersoften_last
 extern initializecargofn
 extern CheckForVehiclesInTheWay
+extern MakeTempScrnBlockDesc
+extern sellroadvehicle
+extern FlashWindow, SearchAndDestoryWindow
 
 begincodefragments
 
@@ -170,6 +174,7 @@ codefragment findgetymd,-2
 reusecodefragment oldprintdate,findgetymd,-3
 
 codefragment newprintdate
+	movzx eax,ax
 	call runindex(getyear4fromdate)
 	add eax,1920		// over the entire 32-bit range
 	sub ax,1920		// both date printing functions do ADD AX,1920 later
@@ -180,6 +185,8 @@ codefragment newgetymd
 getymd.wordyearentryoffset equ $-fragmentstart
 	push addr(reduceyeartoword)	// same here
 getymd.fullyearentryoffset equ $-fragmentstart
+	movzx eax,ax
+getymd.longdateentryoffset equ $-fragmentstart
 	call runindex(getyear4fromdate)
 	setfragmentsize 24,1
 
@@ -632,6 +639,13 @@ codefragment newdisplay1steng
 codefragment newdisplay1steng_noplayer
 	call runindex(display1stengine_noplayer)
 	setfragmentsize 17
+
+#if WINTTDX
+codefragment oldsetmousecursorspritedata
+	mov [mousecursorspritedata],eax
+
+codefragment_call newsetmousecursorspritedata,setmousecursorspritedata,5
+#endif
 
 codefragment olddecidesmoke
 	bt word [esi+veh.vehstatus],4
@@ -1399,6 +1413,26 @@ codefragment findCheckForVehiclesInTheWay,1
 	pusha
 	db 0xC6,5
 
+codefragment finddrawwindowelementslist,7
+	movzx ebx, byte [ebp+windowbox.type]
+	db 0xff // jmp ...
+
+codefragment findMakeTempScrnBlockDesc, 13
+	mov bx, 469
+	mov cx, 358
+	mov bp, 11
+
+codefragment findSellRoadVehicle, 4
+	shr     ebx, 5
+	retn
+
+codefragment findrandomindtypetables,-4
+	mov edi,randomindustrytypes
+
+codefragment findFlashWindow, 6
+	mov cl, 23
+	xor dx, dx
+
 endcodefragments
 
 ptrvarall industrydatablock
@@ -1412,6 +1446,11 @@ vard vehclassspecptr, trainpower_ptr, rvspeed_ptr, shipsprite_ptr, planesprite_p
 
 global dogeneralpatching
 dogeneralpatching:
+	imul eax,[newvehicles],byte veh2_size
+	push eax
+	call malloccrit
+	pop dword [veh2ptr]
+	// don't init here yet, it'll mess up searching...
 
 	// this variable is sometimes not initialized properly
 	// it should be the current mouse cursor, but sometimes the
@@ -1501,6 +1540,7 @@ dogeneralpatching:
 
 	storeaddress findgetymd,3,3,getymd
 	mov [getfullymd],edi
+	mov [getlongymd],edi
 
 	call initializekeymap
 
@@ -1548,6 +1588,7 @@ dogeneralpatching:
 	storeaddress initializecargofn
 
 	storefunctionaddress vehicleToDepotOld, 1, 2, findroadvehicledepot
+	storeaddress findSellRoadVehicle, 2, 4, sellroadvehicle
 
 	storeaddresspointer findstatusbarnewsitem,1,1,statusbarnewsitem
 	storeaddresspointer brakeindex,1,1,brakespeedtable
@@ -1703,6 +1744,27 @@ dogeneralpatching:
 
 .nonewindus:
 
+	// This code also needs to run before initializegraphics, otherwise the newindustries
+	// save code would save the old incorrect values
+
+	stringaddress findrandomindtypetables,1,1
+	testflags generalfixes
+	test byte [miscmodsflags],MISCMODS_DONTFIXTROPICBANKS
+	jnz .tropicbanksdone
+	mov edi,[edi]
+	mov edi,[edi+2*4]
+	mov cl,32		// (ECX was 0 after stringaddress)
+	mov al,0xc		// search for industry type: temperate-climate bank
+
+.tropicbanksloop:
+	repne scasb
+	jne .tropicbanksdone
+	mov byte [edi-1],0x10	// replacement industry type: arctic/tropical-climate bank
+	jecxz .tropicbanksdone
+	jmp .tropicbanksloop
+
+.tropicbanksdone:
+
 	stringaddress findgraphicsroutines,1,1
 
 	storefunctiontarget 12,openfilefn
@@ -1845,6 +1907,11 @@ dogeneralpatching:
 	patchcode olddisplay1steng,newdisplay1steng,1,2
 	patchcode olddisplay1steng,newdisplay1steng_noplayer,1,0
 
+#if WINTTDX
+	// prevent mouse cursor sprite from overflowing buffer
+	patchcode setmousecursorspritedata
+#endif
+
 	call infosave
 
 	patchcode olddecidesmoke,newdecidesmoke,1,1
@@ -1982,8 +2049,11 @@ dogeneralpatching:
 	storeaddress findplanttree,1,3,treeplantfn
 
 	stringaddress skipnonprintingchars,1,1
+	mov byte [edi-6],0x60
 	mov byte [edi],0x7b
+	mov byte [edi+0x68],0x40
 	mov byte [edi+0x6f],0x5b
+	mov byte [edi+0xd7],0x20
 	mov byte [edi+0xde],0x3b
 	add edi,byte -0x60
 	mov [setcharwidthtablefn],edi
@@ -1999,11 +2069,14 @@ dogeneralpatching:
 	storeaddress findmakesubsidy,1,1,subsidyfn
 	storeaddress findsearchcollidingvehs,1,1,searchcollidingvehs
 	
+	storefunctionaddress findMakeTempScrnBlockDesc,1,1,MakeTempScrnBlockDesc
 	// find some GUI functions in TTD
 	storefunctionaddress findBringWindowToForeground,1,1,BringWindowToForeground
 	storefunctionaddress findCreateWindow,1,2,CreateWindow
 	storefunctionaddress findWindowClicked,1,1,WindowClicked
 	storefunctionaddress findDestroyWindow,1,1,DestroyWindow
+	storefunctionaddress findFlashWindow, 1, 2, FlashWindow
+	storefunctionaddress findFlashWindow, 2, 2, SearchAndDestoryWindow
 	storefunctionaddress findWindowTitleBarClicked,1,1,WindowTitleBarClicked
 	storefunctionaddress findDrawWindowElements,1,2,DrawWindowElements
 	storefunctionaddress findCreateTextInputWindow,1,1,CreateTextInputWindow
@@ -2080,12 +2153,6 @@ dogeneralpatching:
 
 	multipatchcode oldshowvehstat,newshowvehstat,4
 
-	imul eax,[newvehicles],byte veh2_size
-	push eax
-	call malloccrit
-	pop dword [veh2ptr]
-	// don't init here yet, it'll mess up searching...
-
 	patchcode cleartile
 
 	// fix some slider bugs
@@ -2149,6 +2216,18 @@ dogeneralpatching:
 
 	stringaddress findCheckForVehiclesInTheWay
 	storeaddress CheckForVehiclesInTheWay // Stores the address of this
+
+	stringaddress finddrawwindowelementslist
+	extern winelemdrawptrs
+	mov esi,winelemdrawptrs
+	xchg esi,[edi]
+	mov edi,winelemdrawptrs
+	mov ecx, 11
+	rep movsd
+	mov eax,[winelemdrawptrs+4*cWinElemText]
+	lea edi,[eax+110]
+	extern DrawCenteredTextWithColor
+	storerelative edi,DrawCenteredTextWithColor
 	ret
 
 global newsavename
@@ -2173,6 +2252,9 @@ patcheternalgame:
 	mov edi,[getymd]
 	lea eax,[edi+getymd.fullyearentryoffset]
 	mov [getfullymd],eax
+	lea eax,[edi+getymd.longdateentryoffset]
+	extern getlongymd
+	mov [getlongymd],eax
 	storefragment newgetymd
 	patchcode oldisnewyear,newisnewyear,1,1
 	patchcode oldgetdisasteryear,newgetdisasteryear,1,1
@@ -2233,4 +2315,8 @@ patchsignals:
 
 	or byte [newgraphicssetsenabled],1 << 4
 .nopresignals:
+	ret
+	
+patchnewsignals:
+	or byte [newgraphicssetsenabled+1],1 << (0xE-8)
 	ret

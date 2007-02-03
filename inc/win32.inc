@@ -11,6 +11,7 @@ ExitProcess		equ 0x42344c
 GetModuleHandleA	equ 0x423384
 GetProcAddress		equ 0x4233c8
 LoadLibrary		equ 0x4233A0
+GetSystemInfo		equ 0x4233e4
 GetTickCount		equ 0x4233e8
 PeekMessage		equ 0x423480
 midiOutGetVolume	equ 0x423538
@@ -18,6 +19,7 @@ midiOutSetVolume	equ 0x42353c
 mciSendString		equ 0x423540
 DirectPlayEnumerate	equ 0x423314
 DirectPlayCreate	equ 0x423318
+VirtualFree			equ 0x423414
 VirtualAlloc		equ 0x423424
 CreateFile		equ 0x4233b8
 WriteFile		equ 0x4233c0
@@ -43,5 +45,23 @@ WideCharToMultiByte	equ 0x423430
 DPlayInterface equ 0x420254	// D: pointer to an IDirectPlay interface
 RemotePlayerID equ 0x4198c8	// D: DPlay ID of the remote player (target of outgoing packets)
 LocalPlayerID equ 0x4198c4	// D: DPlay ID of the local player
+
+// used for GetSystemInfo API call
+struc SYSTEM_INFO
+	// union
+	.dwOemID:
+	.wProcessorArchitecture: resw 1
+	.wReserved: resw 1
+	// end union
+	.dwPageSize resd 1
+	.lpMinimumApplicationAddress: resd 1
+	.lpMaximumApplicationAddress: resd 1
+	.dwActiveProcessorMaskPtr: resd 1
+	.dwNumberOfProcessors: resd 1
+	.dwProcessorType: resd 1
+	.dwAllocationGranularity: resd 1
+	.wProcessorLevel: resw 1
+	.wProcessorRevision: resw 1
+endstruc
 #endif
 

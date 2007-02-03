@@ -2,7 +2,7 @@
 #include <frag_mac.inc>
 #include <patchproc.inc>
 
-patchproc locomotiongui,enhancegui, patchlandscapemarkers
+patchproc newairports, locomotiongui, enhancegui, patchlandscapemarkers
 
 begincodefragments
 

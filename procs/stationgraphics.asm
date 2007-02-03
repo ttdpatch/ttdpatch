@@ -4,7 +4,7 @@
 
 extern drawstationtile
 extern ttdstationspritelayout
-
+extern drawstationimageinrailselectwin
 
 ext_frag newgetstationtracktrl
 
@@ -30,6 +30,14 @@ codefragment newgetstationdisplayspritelayout
 	call runindex(getstationdisplayspritelayout)
 	setfragmentsize 7
 
+codefragment olddrawstationimageinrailselectwin, 10
+	add cx, 39
+	add dx, 42
+	mov bl, 2
+
+codefragment newdrawstationimageinrailselectwin
+	icall drawstationimageinrailselectwin
+	setfragmentsize 36
 
 endcodefragments
 
@@ -50,4 +58,5 @@ patchstationgraphics:
 	mov dword [getnewstationsprite_noelrails_indirect],addr(drawstationtile)
 
 .notelectrified:
+	patchcode drawstationimageinrailselectwin
 	ret

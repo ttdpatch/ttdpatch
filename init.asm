@@ -5,13 +5,7 @@
 // and initializations etc.
 //
 
-// To prevent the div overflow handlers being made externs
-#define realoverflowreturn _realoverflowreturn_
-#define overflowhandler _overflowhandler_
 #include <defs.inc>
-#undef realoverflowreturn
-#undef overflowhandler
-
 #include <var.inc>
 #include <flags.inc>
 #include <textdef.inc>
@@ -48,6 +42,8 @@ extern user32hnd,vehsorttable,heapstart,heapptr
 extern oldveharraysize,varheap,Sleep
 extern initourtextptr,initnoregist
 extern hexdwords
+// For GUARDS:
+extern __varlist_start, __varlist_end
 
 ext_frag oldfixcommandaddr
 
@@ -297,6 +293,18 @@ initialize:
 
 #if WINTTDX
 	call dorelocations	// only do this once
+#endif
+
+#if MAKEGUARD
+	mov esi, dword __varlist_start
+	.nextguard:
+	cmp esi, dword __varlist_end
+	jae .guardend
+	lodsd
+	mov dword [eax-8], 'TTDP'
+	mov dword [eax-4], 'ATCH'
+	jmp .nextguard
+	.guardend:
 #endif
 
 .notagain:
@@ -1009,6 +1017,7 @@ proc applypatches
 	push esi
 	xor edi,edi
 	call eax
+	CHECKMEM
 	pop esi
 	pop ebp
 

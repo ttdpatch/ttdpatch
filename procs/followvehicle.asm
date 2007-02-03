@@ -5,8 +5,11 @@
 patchproc followvehicle, patchfollowvehicle
 
 
-extern tooltiptextlocPlane,tooltiptextlocRV,tooltiptextlocShip
-extern tooltiptextlocTrain
+extern tooltiptextlocs
+#define tooltiptextlocTrain (tooltiptextlocs+0)
+#define tooltiptextlocRV (tooltiptextlocs+4)
+#define tooltiptextlocShip (tooltiptextlocs+8)
+#define tooltiptextlocPlane (tooltiptextlocs+12)
 extern variabletofind
 
 begincodefragments

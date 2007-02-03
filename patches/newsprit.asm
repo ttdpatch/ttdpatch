@@ -11,6 +11,7 @@
 #include <industry.inc>
 #include <ptrvar.inc>
 #include <house.inc>
+#include <proc.inc>
 
 extern acttriggers,cachevehvar40x,canalfeatureids,cargoaction3,curcallback
 extern curgrffile,curgrfsprite,curstationtile,curtriggers,ecxcargooffset
@@ -34,6 +35,9 @@ extern getindustilelandslope_industry,hexdigits,int21handler
 extern getotherindustileanimstage,getotherindustileanimstage_industry
 extern getstationanimframe,getnearbystationanimframe,getothertypedistance
 extern airportaction3,getaircraftvehdata,getaircraftdestination
+extern substindustile,substindustries
+extern convertplatformsinecx
+extern getsigtiledata
 
 uvard grffeature
 uvard curgrffeature,1,s		// must be signed to indicate "no current feature"
@@ -42,22 +46,37 @@ uvard curaction3info
 uvard mostrecentspriteblock
 uvarb mostrecentgrfversion
 
+uvard grfvarfeature		// feature to use for 40+x etc. variable handlers
+uvard grfvarfeature_set_add	// set to feature when using grfvarfeature, then to -1 when done
+uvard grfvarfeature_set_and,1,s	// set to zero when using grfvarfeature, then to -1 when done
+
 uvard curstationcargo
+
+#ifndef RELEASE
+uvard grfdebug_feature
+uvard grfdebug_id
+uvard grfdebug_callback
+uvard grfdebug_active
+uvarb grfdebug_current
+#endif
 
 
 // find action 3 and spriteblock for each feature
 //
 // in:	eax=vehicle (etc.) ID
 // out:	eax->action 3
+//	edx=ID in grf file (for translated ones)
 // 	on error eax=0
 
-grfcalltable getaction3, dd addr(getaction3_table.generic)
+grfcalltable getaction3, dd addr(getaction3.generic)
 
 .generic:
+	mov edx,eax
 	mov eax,[genericids+(eax-0x100)*4]
 	ret
 
 .gettrains:
+	mov edx,eax
 	cmp byte [wagonoverride+eax],1
 	jb .nooverride
 
@@ -85,6 +104,7 @@ grfcalltable getaction3, dd addr(getaction3_table.generic)
 	ret
 
 .getplanes:
+	mov edx,eax
 	cmp byte [wagonoverride+eax],1
 	jb .nooverride
 
@@ -107,41 +127,54 @@ grfcalltable getaction3, dd addr(getaction3_table.generic)
 .nooverride:
 .getrvs:
 .getships:
+	mov edx,eax
 	mov eax,[vehids+eax*4]
 	ret
 
 .gethouses:
+	movzx edx,byte [substbuilding+eax]
 	mov eax,[extrahousegraphdataarr+eax*4] //8+housegraphdata.act3]
 	ret
 	
 .getindustiles:
+	movzx edx,byte [substindustile+eax]
 	mov eax,[extraindustilegraphdataarr+eax*4]
 	ret
 
 .getcanals:
+	mov edx,eax
 	mov eax,[canalfeatureids+eax*4]
 	ret
 
 .getbridges:
+	mov edx,eax
 	xor eax,eax	// no data
 	ret
 
 .getstations:
+	movzx edx,byte [stsetids+eax*stsetid_size+stsetid.setid]
 	or dword [curstationcargo],byte -1
 	mov eax,[stsetids+eax*stsetid_size+stsetid.act3info]
 	ret
 
 .getindustries:
+	movzx edx,byte [substindustries+eax]
 	mov eax,[industryaction3+eax*4]
 	ret
 
 .getcargos:
+	mov edx,eax
 	mov eax,[cargoaction3+eax*4]
 	ret
 
 .getgeneric:
 .getsounds:
 	ud2
+	
+.getsignals:
+	mov eax,[genericids+0xE*4]
+	xor edx, edx
+	ret
 
 .getairports:
 	mov eax,[airportaction3+eax*4]
@@ -186,6 +219,7 @@ grfcalltable getaction3cargo
 .getindustries:
 .getcargos:
 .getairports:
+.getsignals:
 
 .default:
 	movzx eax,word [ecx+action3info.defcid]
@@ -196,6 +230,7 @@ grfcalltable getaction3cargo
 	movzx eax,word [ecx+action3info.nodefcargoid]
 	test eax,eax		// if cargo type FE defined, prevent the default from being used
 	je .default
+	mov [curstationcargo],ebx	// if we get here, ebx is zero
 	ret
 
 .getstations:
@@ -239,6 +274,11 @@ grfcalltable getaction3cargo
 	movzx ebx,word [esi+station.cargos+ebx+stationcargo.amount]
 	and ebx,[stationcargowaitingmask]
 	jz .nextstationcargo
+
+	cmp ebx,0x0fff
+	jbe .gotcargo
+
+	mov ebx,0x0fff
 
 .gotcargo:
 	mov [curstationcargo],ebx
@@ -370,6 +410,8 @@ grfcalltable getaction2spritenum
 	push edx
 	push ecx
 	movzx ecx,byte [esi+station.platforms]
+	call convertplatformsinecx
+/*
 	mov edx,ecx	// XXX when stat var 40+x cached, use var 49 here
 	and cl,0x87
 	and dl,0x78
@@ -378,6 +420,10 @@ grfcalltable getaction2spritenum
 	jb .istoosmall
 	sub cl, (80h - 8h)
 .istoosmall:
+*/
+	movzx edx, ch
+	movzx ecx, cl
+	//edx=len, ecx=tracks
 	add ecx,edx
 	xor edx,edx
 	div ecx
@@ -438,8 +484,14 @@ grfcalltable getaction2spritenum
 .getindustries:
 	//industries can have a production data structure as a final action 2
 	//return a pointer to it in eax
-	lea eax,[ebx+4]
+	lea eax,[ebx+3]
 	stc
+	ret
+
+.getsignals:
+	movzx eax,word [ebx+5]
+	xor ebx, ebx
+	// carry clear here
 	ret
 
 .getgeneric:
@@ -495,8 +547,50 @@ getnewsprite:
 	mov [curgrffeature],ecx
 	or edx,ecx
 	call [getaction3+edx*4]
+
+#ifndef RELEASE
+	cmp dword [grfdebug_active],0
+	je .nodebug
+
+	mov cl,[grfdebug_feature]
+	cmp cl,-1
+	je .gotfeature
+	cmp cl,[grffeature]
+	jne .nodebug
+.gotfeature:
+	mov cl,[grfdebug_id]
+	cmp cl,-1
+	je .gotid
+	cmp cl,dl
+	jne .nodebug
+.gotid:
+	mov ecx,[grfdebug_callback]
+	cmp ecx,byte -1
+	je .gotcb
+	cmp ecx,[curcallback]
+	jne .nodebug
+
+.gotcb:
+	mov byte [grfdebug_current],1
+	mov ecx,[curcallback-2]		// set ecx(16:23)=callback
+	mov cl,[grffeature]
+	mov ch,dl
+	or edx,byte -1
 	test eax,eax
-	jle .baddata
+	jle .noact3
+	mov edx,[eax+action3info.spriteblock]
+	mov edx,[edx+spriteblock.grfid]
+	xchg dl,dh
+	rol edx,16
+	xchg dl,dh
+.noact3:
+	param_call grfdebug_output, dword "GET ",ecx,edx
+
+.nodebug:
+#endif
+
+	test eax,eax
+	jle near .baddata
 
 		// get spriteblock
 .chain:
@@ -537,6 +631,10 @@ getnewsprite:
 #endif
 	xchg eax,ecx
 	mov eax,[grffeature]
+	mov ebx,eax
+	and ebx,[grfvarfeature_set_and]
+	add ebx,[grfvarfeature_set_add]
+	mov [grfvarfeature],ebx
 	call [getaction3cargo+eax*4]
 
 //.gotcargo:
@@ -548,6 +646,15 @@ getnewsprite:
 	// we reach a real cargo ID
 	//
 .gotaction2:
+#ifndef RELEASE
+	cmp byte [grfdebug_current],0
+	je .nosprdebug
+
+	param_call grfdebug_output, dword "ACT2",ebx,0
+
+.nosprdebug:
+#endif
+
 	mov eax,[edx+spriteblock.spritelist]
 	mov ebx,[eax+ebx*4]
 	mov eax,[ebx-8]
@@ -562,12 +669,25 @@ getnewsprite:
 	jns .gotaction2
 
 .callbackresult:
+#ifndef RELEASE
+	cmp byte [grfdebug_current],0
+	je .noresdebug
+
+	param_call grfdebug_output, dword "RSLT",ebx,0
+
+.noresdebug:
+#endif
+
 	cmp byte [curcallback],0	// was it really a callback?
 	je .baddata
+
+	btr ebx,16			// calculated callback results always use new-style
+	jc .alwaysnewstyle
 
 	add bh,1
 	adc bh,-1			// map ff -> 00 (old style result)
 
+.alwaysnewstyle:
 	// got valid callback result
 	xchg eax,ebx
 	pop ebx
@@ -625,6 +745,18 @@ getnewsprite:
 	mov ecx,[grffeature]
 	or dword [tscvar],byte -1
 	call checktsc
+	popf
+#endif
+#ifndef RELEASE
+	pushf
+	cmp byte [grfdebug_current],0
+	je .nooutdebug
+
+	mov byte [grfdebug_current],0
+	movzx ecx,ax
+	param_call grfdebug_output, dword "SPRT",ecx,0
+
+.nooutdebug:
 	popf
 #endif
 
@@ -730,7 +862,10 @@ checkoverride:
 #endif
 
 uvard isother			// 0 if the action refers to the vehicle/tile/whatever, 1 if to the "other thing"
+
 uvarb nostructvars		// 1 if in a callback that must not use 40+x or type 82/83
+				// 2 if in a callback that may use 40+x/60+x with custom handler
+uvard structvarcustomhnd	// handler for nostructvars=2
 
 badaction2var:
 	ud2
@@ -739,7 +874,7 @@ badaction2var:
 //
 // in:	al=type-80
 //	ebx=current sprite data
-// out:	ebx=new sprite number
+// out:	ebx=new sprite number; bit 16 set for calculated callback results
 // safe:eax ecx edx
 getrandomorvariational:
 	push esi
@@ -754,7 +889,7 @@ getrandomorvariational:
 	cmp byte [nostructvars],0
 	jne badaction2var
 
-	mov ecx,[grffeature]
+	mov ecx,[grfvarfeature]
 	call [getother+ecx*4]
 
 .noother:
@@ -802,12 +937,23 @@ getrandom:	// random cargo ID
 	or [septriggerbits+4*edx],eax
 
 .nottriggeredyet:
-	mov eax,[grffeature]
+	mov eax,[grfvarfeature]
 	call [getrandombits+eax*4]
+#ifndef RELEASE
+	mov edx,eax
+#endif
 	shr eax,cl
 	movzx eax,al
 	and al,[ebx+6]
 .gotrandom:
+#ifndef RELEASE
+	cmp byte [grfdebug_current],0
+	je .nornddebug
+
+	param_call grfdebug_output, dword "RND ",edx,eax
+
+.nornddebug:
+#endif
 	movzx ebx,word [ebx+7+eax*2]
 	pop edx
 	pop esi
@@ -854,6 +1000,7 @@ grfcalltable getrandombits
 .norandom:
 .getsounds:
 .getairports:
+.getsignals:
 	ret
 
 .gethouses:
@@ -892,6 +1039,7 @@ grfcalltable getrandomtriggers
 	mov al,[esi+station.newrandom]
 	ret
 
+.getsignals:
 .getcanals:
 .getbridges:
 .getgeneric:
@@ -919,7 +1067,7 @@ getvariationalvariable:
 	movzx eax,byte [ebx]	// variable
 	test al,0xc0
 	js .structvar		// 80+x
-	jz .externalvar		// x
+	jz near .externalvar	// x
 
 	bt eax,5		// check for 60+x variable
 	adc ebx,0		// advance ebx if it is one
@@ -928,8 +1076,9 @@ getvariationalvariable:
 	test esi,esi
 	jz .checkvaravail
 
-	cmp byte [nostructvars],0
-	jne badaction2var
+	cmp byte [nostructvars],1
+	je badaction2var
+	ja .custom
 
 .usevar:
 	test al,0x20		// check for 0x6x variables
@@ -938,8 +1087,21 @@ getvariationalvariable:
 	call getspecialvar	// 40+x
 	jmp short .gotval
 
+.custom:
+	// call custom var 40+x/60+x handler
+	// in:	eax=var
+	//	cl=parameter for 60+x
+	//	esi->80+x data or 0 if none
+	// out:	eax=var value
+	//	CF=0 var was ok
+	//	CF=1 invalid variable
+	// safe:ecx
+	call [structvarcustomhnd]
+	jc badaction2var
+	jmp short .gotval
+
 .checkvaravail:			// variable available even without structure?
-	movzx esi,byte [grffeature]
+	movzx esi,byte [grfvarfeature]
 	add esi,esi
 	add esi,[isother]
 	bt [varavailability-0x40/8+esi*8],eax
@@ -955,7 +1117,7 @@ getvariationalvariable:
 	test esi,esi
 	jz .novar
 
-	movzx ecx,byte [grffeature]
+	movzx ecx,byte [grfvarfeature]
 	shl ecx,1
 	add cl,[isother]
 	add al,[featurevarofs+ecx]
@@ -999,6 +1161,10 @@ getvariationalvariable:
 %endmacro
 
 %macro make_var_adjust 1
+#ifndef RELEASE
+	push ebp
+	mov ebp,eax
+#endif
 	auto_size {and al,[ebx+2]}, {and ax,[ebx+2]}, {and eax,[ebx+2]}
 	auto_size {add ebx,3}, {add ebx,4}, {add ebx,6}
 
@@ -1010,7 +1176,7 @@ getvariationalvariable:
 	auto_size {}, {push edx}, {push edx}
 	auto_size {cbw}, {cwd}, {cdq}
 
-	auto_size {mov cl,[ebx+1]}, {mov cx,[ebx+1]}, {mov ecx,[ebx+1]}
+	auto_size {mov cl,[ebx+1]}, {mov cx,[ebx+2]}, {mov ecx,[ebx+4]}
 	auto_size {test cl,cl}, {test cx,cx}, {test ecx,ecx}
 	jz %%nodiv
 	auto_size {idiv cl}, {idiv cx}, {idiv ecx}
@@ -1025,6 +1191,15 @@ getvariationalvariable:
 	auto_size {mov al,ah}, {mov ax,cx}, {mov eax,ecx}	// get remainder
 
 %%gotvaladjust:
+#ifndef RELEASE
+	cmp byte [grfdebug_current],0
+	je %%novaldebug
+
+	param_call grfdebug_output, dword "VAR ",ebp,eax
+
+%%novaldebug:
+	pop ebp
+#endif
 %endmacro
 
 %macro makevaract2handler 1
@@ -1106,6 +1281,7 @@ getvariationalvariable:
 .callback:
 	movzx ebx,ax
 	or bh,0x80
+	bts ebx,16
 	jmp .gotvalue
 
 %endmacro
@@ -1175,7 +1351,7 @@ dwordsize:
 vard calcoperators
 	dd addr(.add),addr(.sub),addr(.signed_min),addr(.signed_max),addr(.unsigned_min),addr(.unsigned_max)
 	dd addr(.signed_divmod),addr(.signed_divmod),addr(.unsigned_divmod),addr(.unsigned_divmod)
-	dd addr(.multiply),addr(.and),addr(.or),addr(.xor)
+	dd addr(.multiply),addr(.and),addr(.or),addr(.xor),addr(.storevar),addr(.copy),addr(.storepers)
 numcalcoperators equ ($-calcoperators)/4
 
 endvar
@@ -1315,6 +1491,33 @@ endvar
 	pop edx
 	ret
 
+.storevar:
+	call .make_eax_signed
+	xchg eax,ecx
+	call .make_eax_unsigned
+	cmp eax,NUMGRFREGISTERS
+	jae .notgood
+	mov [advvaraction2varbuff+eax*4], ecx
+.notgood:
+	// fallthrough to .copy
+
+.copy:
+	mov eax, ecx
+	ret
+
+.storepers:
+	test esi,esi
+	jz .badstore
+	call .make_eax_signed
+	xchg eax,ecx
+	call .make_eax_unsigned
+	xchg eax,ecx
+	movzx ebp, byte [grffeature]
+	jmp [writepersistentreg+ebp*4]
+
+.badstore:
+	ud2
+
 uvard lastcalcresult
 
 // get the "other" variable for random 83 or variational 82
@@ -1343,6 +1546,7 @@ grfcalltable getother
 .getgeneric:
 .getcargos:
 .getsounds:
+.getsignals:
 	ret
 
 .gethouses:
@@ -1518,7 +1722,7 @@ exported savevar40x
 // safe:ecx
 getspecialvar:
 	sub eax,0x40
-	movzx ecx,byte [grffeature]
+	movzx ecx,byte [grfvarfeature]
 	cmp al,0x1f
 	je .getrandomtriggers
 
@@ -1569,17 +1773,22 @@ getspecialvar:
 // get special parametrized variable for variational sprites
 //
 // in:	eax=special variable
+//	ebx->var.action 2 variable data (i.e. the bytes <var=60+eax> <param=cl>)
 //	cl=parameter
 //	esi->struct
 // out:	eax=variable content
 // safe: ecx
 getspecparamvar:
 	sub eax,0x60
-	cmp al,0x1f
-	je .grfparam
+	cmp al,0x1e
+	je .grffncall
+	ja .grfparam
+	cmp al,0x1C
+	je .persistentreg
+	ja .varbuff
 
 	mov ah,cl
-	movzx ecx,byte [grffeature]
+	movzx ecx,byte [grfvarfeature]
 	shl ecx,1
 	add cl,[isother]
 	cmp al,[specialparamvars+ecx]
@@ -1610,6 +1819,16 @@ getspecparamvar:
 .done:
 	ret
 
+.persistentreg:
+	movzx eax, byte [grfvarfeature]
+	movzx ecx,cl
+	jmp [readpersistentreg+eax*4]
+
+.varbuff:
+	movzx ecx, cl
+	mov eax, [advvaraction2varbuff+ecx*4]
+	ret
+
 .grfparam:
 	movzx ecx,cl
 	mov eax,[mostrecentspriteblock]
@@ -1622,6 +1841,156 @@ getspecparamvar:
 .noparam:
 	xor eax,eax
 	ret
+
+.grffncall:
+	push ebx
+	mov ebx,[curgrfsprite]
+	push ebx
+	movzx ebx,bx
+	push edx
+	push dword [isother]
+	mov edx,[mostrecentspriteblock]
+	mov eax,[edx+spriteblock.spritelist]
+	mov ebx,[eax+(ebx-1)*4]		// ebx is one too high
+	mov ebx,[ebx-4]			// read offset to var.action 2 copy with resolved procedure sprite numbers
+	add ebx,[esp+12]
+	movzx ebx,word [ebx-1]
+
+.gotaction2:
+	mov eax,[edx+spriteblock.spritelist]
+	mov ebx,[eax+ebx*4]
+	mov eax,[ebx-8]
+	mov [curgrfsprite],eax
+
+	mov al,[ebx+3]
+	sub al,0x80
+	jb .gotfn			// this'll give us a semi-random value, but it's invalid to do this anyway
+
+	call getrandomorvariational
+	test bh,bh			// got callback result?
+	jns .gotaction2
+
+.gotfn:
+	and ebx,0x7fff
+	mov eax,ebx
+	pop dword [isother]
+	pop edx
+	pop dword [curgrfsprite]
+	pop ebx
+	ret
+
+// in:	ecx: register number
+// out:	eax: value of register
+grfcalltable readpersistentreg
+
+.gettrains:
+.getrvs:
+.getships:
+.getplanes:
+.getstations:
+.getairports:
+.getcanals:
+.getbridges:
+.getgeneric:
+.getcargos:
+.getsounds:
+.getsignals:
+.gethouses:
+	ud2		// not supported yet
+
+.getindustiles:
+	cmp byte [isother],0
+	jnz .getindustries
+	ud2		// not supported for tiles, just for industries
+
+extern industry2arrayptr
+
+.getindustries:
+	cmp ecx,GRFPERSISTENTINDUREGS
+	jae .bad
+	mov eax,esi
+	sub eax,[industryarrayptr]
+	add eax,eax
+
+	add eax,[industry2arrayptr]
+	// now eax points to the industry2 slot
+	mov eax,[eax+industry2.grfpersistent+ecx*4]
+	ret
+
+.bad:
+	xor eax,eax
+	ret
+
+// in:	eax: value to store
+//	ecx: number of register
+// out:	eax: value to store, unchanged
+// safe: ebp
+grfcalltable writepersistentreg
+
+.gettrains:
+.getrvs:
+.getships:
+.getplanes:
+.getstations:
+.getairports:
+.getcanals:
+.getbridges:
+.getgeneric:
+.getcargos:
+.getsounds:
+.getsignals:
+.gethouses:
+	ud2		// not supported yet
+
+.getindustiles:
+	cmp byte [isother],0
+	jnz .getindustries
+	ud2		// not supported for tiles, just for industries
+
+.getindustries:
+	cmp ecx,GRFPERSISTENTINDUREGS
+	jae .bad
+	mov ebp,esi
+	sub ebp,[industryarrayptr]
+	add ebp,ebp
+	add ebp,[industry2arrayptr]
+	// now ebp points to the industry2 slot
+	mov [ebp+industry2.grfpersistent+ecx*4],eax
+.bad:
+	ret
+
+#ifndef RELEASE
+proc grfdebug_output
+	arg text,val1,val2
+
+	noglobal varb .output, "XXXX ######## ########",13,10,0
+
+	_enter
+	pusha
+
+	mov eax,[%$text]
+	mov [.output],eax
+	mov eax,[%$val1]
+	lea edi,[.output+5]
+	extern hexnibbles
+	mov cl,8
+	call hexnibbles
+	mov eax,[%$val2]
+	inc edi
+	mov cl,8
+	call hexnibbles
+
+	mov ah,0x40
+	mov bx,[grfdebug_active]
+	mov ecx,24
+	mov edx,.output
+	CALLINT21
+
+	popa
+	_ret
+endproc
+#endif
+
 
 
 // The following tables have two entries per feature, the first for the default thing, the second for "the other"
@@ -1643,7 +2012,8 @@ varb featurevarofs
 	db 0, 0			// cargos don't have structures
 	db 0, 0			// sounds neither
 	db -0x80+0x10, -0x80	// airports: same as stations
-
+	db 0,0			// signals: no structures
+	db 0, -0x80		// objects
 checkfeaturesize featurevarofs, 2
 
 endvar
@@ -1652,20 +2022,22 @@ endvar
 	// even without a structure; once for 81+x and once for 82+x
 	// (all 60+x must set bit 15, which is special!)
 vard varavailability
-	dd 100001000b,1<<31,	100001000b,1<<31	// veh.vars 43, 48
-	dd 100001000b,1<<31,	100001000b,1<<31	// veh.vars 43, 48
-	dd 100001000b,1<<31,	100001000b,1<<31	// veh.vars 43, 48
-	dd 100001000b,1<<31,	100001000b,1<<31	// veh.vars 43, 48
-	dd 1000b,1<<31,		0,1<<31			// station var 43, towns
-	dd 0,1<<31,		0,1<<31			// canals
-	dd 0,1<<31,		0,1<<31			// bridges
-	dd 0,1<<31,		0,1<<31			// houses, bridges
-	dd 0,1<<31,		0,1<<31			// generic variables
-	dd 0,1<<31,		0,1<<31			// industry tiles, industries
-	dd 0,1<<31,		0,1<<31			// industries, towns
-	dd 0,1<<31,		0,1<<31			// cargos
-	dd 0,1<<31,		0,1<<31			// sounds
-	dd 0,1<<31,		0,1<<31			// airports
+	dd 100001000b,7<<29,	100001000b,7<<29	// veh.vars 43, 48
+	dd 100001000b,7<<29,	100001000b,7<<29	// veh.vars 43, 48
+	dd 100001000b,7<<29,	100001000b,7<<29	// veh.vars 43, 48
+	dd 100001000b,7<<29,	100001000b,7<<29	// veh.vars 43, 48
+	dd 1000b,7<<29,		0,7<<29			// station var 43, towns
+	dd 0,7<<29,		0,7<<29			// canals
+	dd 0,7<<29,		0,7<<29			// bridges
+	dd 0,7<<29,		0,7<<29			// houses, bridges
+	dd 0,7<<29,		0,7<<29			// generic variables
+	dd 0,7<<29,		0,7<<29			// industry tiles, industries
+	dd 0,7<<29,		0,7<<29			// industries, towns
+	dd 0,7<<29,		0,7<<29			// cargos
+	dd 0,7<<29,		0,7<<29			// sounds
+	dd 0,7<<29,		0,7<<29			// airports
+	dd 0,7<<29,		0,7<<29			// signals
+	dd 0,7<<29,		0,7<<29			// objects
 
 checkfeaturesize varavailability, (4*2*2)
 
@@ -1770,9 +2142,12 @@ vard industilesvarhandler
 %endif
 endvar
 
+extern getindutiletypeatoffset_tile
+
 vard industilesparamvarhandler
 	dd getindustilelandslope
 	dd getotherindustileanimstage
+	dd getindutiletypeatoffset_tile
 %ifndef PREPROCESSONLY
 %assign n_industilesparamvarhandler (addr($)-industilesparamvarhandler)/4
 %endif
@@ -1792,14 +2167,20 @@ vard townparamvarhandler
 %endif
 endvar
 
+extern getlandorwaterdistance
+
 vard industryvarhandler
 	dd addr(getincargo)
 	dd addr(getincargo)
 	dd addr(getincargo)
+	dd getlandorwaterdistance
 %ifndef PREPROCESSONLY
 %assign n_industryvarhandler (addr($)-industryvarhandler)/4
 %endif
 endvar
+
+extern getindustrytownzoneanddist,getindustrytowndist_euclid
+extern getothertypecountanddist
 
 vard industryparamvarhandler
 	dd getindutiletypeatoffset
@@ -1807,6 +2188,9 @@ vard industryparamvarhandler
 	dd getindustilelandslope_industry
 	dd getotherindustileanimstage_industry
 	dd getothertypedistance
+	dd getindustrytownzoneanddist
+	dd getindustrytowndist_euclid
+	dd getothertypecountanddist
 %ifndef PREPROCESSONLY
 %assign n_industryparamvarhandler (addr($)-industryparamvarhandler)/4
 %endif
@@ -1825,6 +2209,13 @@ vard airportparamvarhandler
 
 endvar
 
+vard signalsparamvarhandler
+	dd getsigtiledata
+%ifndef PREPROCESSONLY
+%assign n_signalsparamvarhandler (addr($)-signalsparamvarhandler)/4
+%endif
+endvar
+
 vard specialvarhandlertable
 	dd vehvarhandler,vehvarhandler
 	dd vehvarhandler,vehvarhandler
@@ -1840,7 +2231,8 @@ vard specialvarhandlertable
 	dd 0,0
 	dd 0,0
 	dd airportvarhandler,townvarhandler
-
+	dd 0,0
+	dd 0,0						//objects					
 checkfeaturesize specialvarhandlertable, (4*2)
 
 endvar
@@ -1862,6 +2254,8 @@ vard specialvars
 	db 0,0
 	db 0,0
 	db n_airportvarhandler,n_townvarhandler
+	db 0,0
+	db 0,0						//objects
 %endif
 
 checkfeaturesize specialvars, (1*2)
@@ -1883,7 +2277,8 @@ vard specialparamvarhandlertable
 	dd 0,0
 	dd 0,0
 	dd airportparamvarhandler,townparamvarhandler
-
+	dd signalsparamvarhandler,0
+	dd 0,0							// objects
 checkfeaturesize specialparamvarhandlertable, (4*2)
 
 endvar
@@ -1905,8 +2300,15 @@ varb specialparamvars
 	db 0,0
 	db 0,0
 	db n_airportparamvarhandler,n_townparamvarhandler
+	db n_signalsparamvarhandler,0
+	db 0,0							// objects
 %endif
 
 checkfeaturesize specialparamvars, (1*2)
 
 endvar
+
+global advvaraction2varbuff
+uvard advvaraction2varbuff, NUMGRFREGISTERS
+global specialgrfregisters
+specialgrfregisters equ advvaraction2varbuff+NUMBASEGRFREGISTERS*4

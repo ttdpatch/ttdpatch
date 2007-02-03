@@ -37,6 +37,8 @@ struc spriteblock
 				// bit 1: off because of resource conflict
 				// bit 2: did reserve extra action A sprites
 				// bit 3: needs to import sounds from other GRF
+				// bit 4: loaded automatically (not in newgrf(w).cfg)
+	.nsigact5data:	resd 2	// act5 feature 0E, base sprite and num sprites
 endstruc
 
 %macro checkfeaturesize 2.nolist
@@ -52,16 +54,13 @@ endstruc
 %endmacro
 
 %macro grfcalltable 1-2+.nolist	// params: name[,databeforedefinition...]
-
-	[section .datad]
-	align 4
+	noglobal vard %1_before_table
 		%2 ;
-	vard %1
-	%1_table:
+	%1:
 		dd addr(.gettrains),addr(.getrvs),addr(.getships),addr(.getplanes)
 		dd addr(.getstations),addr(.getcanals),addr(.getbridges),addr(.gethouses)
 		dd addr(.getgeneric),addr(.getindustiles),addr(.getindustries),addr(.getcargos),addr(.getsounds)
-		dd addr(.getairports)
+		dd addr(.getairports),addr(.getsignals)
 	endvar
 %endmacro
 

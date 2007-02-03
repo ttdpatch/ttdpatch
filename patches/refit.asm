@@ -968,9 +968,7 @@ calcplanetrainrefitcap:
 
 	// refitting to just one cargo type, so add mail cap. too
 	movzx eax,byte [edx+veh.vehtype]
-	add eax,9*NAIRCRAFTTYPES-AIRCRAFTBASE
-	add eax,[specificpropertybase+3*4]
-	movzx eax,byte [eax]
+	movzx eax,byte [planemailcap+eax-AIRCRAFTBASE]
 	add eax,eax		// 1 mail = 2 pass
 .gotamount:
 	add bp,ax
@@ -1124,6 +1122,7 @@ setnewcargo:
 	lea eax,[currefitlist+eax*refitinfo_size]
 	mov [currefitinfoptr],eax
 
+.loopNextVehicle:
 	movzx eax,byte [edx+veh.vehtype]
 	test byte [callbackflags+eax],8
 	jz .nocapacallback
@@ -1162,6 +1161,17 @@ setnewcargo:
 	mov esi,edx
 	call consistcallbacks
 
+	cmp byte [edx+veh.class],0x11
+	jne .noMoreTrailers	// not a road vehicle
+
+	cmp word [edx+veh.nextunitidx], 0xFFFF
+	je .noMoreTrailers
+	movzx edx, word [edx+veh.nextunitidx]
+	shl edx, 7
+	add edx, [veharrayptr]
+	jmp .loopNextVehicle
+
+.noMoreTrailers:
 	// redraw depot window
 	mov al,0x12
 	mov bx,[edx+veh.XY]

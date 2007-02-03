@@ -16,9 +16,9 @@ extern startflagdata
 
 
 #if !WINTTDX && !LINTTDX
-#	include "../versiond.h"
+#	include <versiond.h>
 #else
-#	include "../versionw.h"
+#	include <versionw.h>
 #endif
 
 
@@ -748,7 +748,7 @@ hexbytes:
 ; endp hexbytes 
 
 	// print ebx word values from ds:esi, advancing esi by four each time
-hexwords:
+exported hexwords
 	mov cl,2
 	call checkbounds
 .nextword:
@@ -830,6 +830,7 @@ var gpffno,	db "###.TXT",0
 var gpftext,	db "TTD V"
 var gpfttdv,	db      "######## Crash Log by"
 var ttdpatchversion, db			     " TTDPatch ",TTDPATCHVERSION,13,10,13,10
+var ttdpatchversion_end
 
 		db "Exception "
 #if WINTTDX

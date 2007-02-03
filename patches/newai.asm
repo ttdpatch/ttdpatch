@@ -18,7 +18,7 @@ extern callbackflags,cargotypes,curcallback
 extern currefitlist,curselstationid,featurevarofs,getcapacallback
 extern getnewsprite,getrailvehtypecargo,getrefitmask,grffeature,isengine
 extern mostrecentspriteblock,newstationnum,nostructvars
-extern specificpropertybase,stsetids,tracktypes
+extern stsetids,tracktypes
 extern trainplanerefitcost,newvehdata
 
 
@@ -123,7 +123,9 @@ getaiselectioncallback:
 	sub esi,edi
 	mov ah,1
 	mov byte [curcallback],0x18
-	mov byte [nostructvars],1
+	mov byte [nostructvars],2
+	extern structvarcustomhnd
+	mov dword [structvarcustomhnd],cb18_var40xhnd
 	mov [grffeature],al
 
 	call getnewsprite
@@ -133,6 +135,27 @@ getaiselectioncallback:
 	mov bh,al
 .nonewchoice:
 	pop esi
+	ret
+
+// called when CB18 uses var 40+x or 60+x
+//
+// in:	eax=var
+//	cl=parameter for 60+x
+//	esi->80+x data or 0 if none
+// out:	eax=var value
+//	CF=0 var was ok
+//	CF=1 invalid variable
+// safe:ecx
+cb18_var40xhnd:
+	cmp eax,0x41
+	cmc
+	jc .done
+
+	movzx eax,byte [aiselectioninfovar+aiselectioninfo.cargotype]
+	mov ecx,[mostrecentspriteblock]
+	mov ecx,[ecx+spriteblock.cargotransptr]
+	mov al,[ecx+cargotrans.fromslot+eax]
+.done:
 	ret
 
 // find industry type from XY coordinates in ax
@@ -340,8 +363,7 @@ ai_buildroadvehicle:
 .checkcargo:
 	movzx edx,byte [currefitlist+refitinfo.ctype]
 	movzx ebx,bh
-	add ebx,[specificpropertybase+1*4]
-	cmp [ebx-ROADVEHBASE+8*NROADVEHTYPES],dl	// cargo type
+	cmp [rvcargotype+ebx-ROADVEHBASE],dl
 	je .norefit
 
 	pusha

@@ -7,8 +7,9 @@
 #include <veh.inc>
 #include <patchdata.inc>
 #include <industry.inc>
+#include <newvehdata.inc>
 
-extern getfullymd,getymd,patchflags
+extern getlongymd,getfullymd,getymd,patchflags,newvehdata
 
 
 
@@ -64,9 +65,21 @@ limityear:
 	// currentyear is being set back, so decrement variables that are compared to it
 	mov esi,[industryarrayptr]
 	xor ecx,ecx
-	mov cl,90
+	mov cl,NUMINDUSTRIES
 .nextind:
-	dec byte [esi+industry.lastyearprod]
+	sub byte [esi+industry.lastyearprod],1
+	adc byte [esi+industry.lastyearprod],0		// don't go negative
+
+	sub word [esi+industry.consdate],bx
+	jnc .consdateok
+	and word [esi+industry.consdate],0
+.consdateok:
+
+	sub word [esi+industry.lastcargodate],bx
+	jnc .cargodateok
+	and word [esi+industry.lastcargodate],0
+.cargodateok:
+
 	add esi,industry_size
 	loop .nextind
 
@@ -102,20 +115,20 @@ limityear:
 
 
 // Get year, with 4 years precision, from date, including eternalgame adjustment
-// in:	AX = date
+// in:	EAX = date (says since year 0, may be negative)
 // out: EAX = (year - 1920) & ~3
 //	EDX = julian days since the year in EAX (0..1460)
 // uses:EBX
 // note: on return, the high 16 bits of EBX are guaranteed to be zero
+//	unless the original date was negative (before 1920)
 global getyear4fromdate
 getyear4fromdate:
 	xor edx,edx
-	movzx eax,ax
 	add eax,701265			// add days since 'year 0'
 	add eax,[landscape3+ttdpatchdata.daysadd]
 	adc edx,edx			// EDX was 0
 	mov ebx,146097			// 400 years
-	div ebx				// note: can't overflow
+	idiv ebx			// note: can't overflow
 
 	shl eax,2
 	shr ebx,2			// EBX = 36524
@@ -219,15 +232,29 @@ getdisasteryear:
 
 
 // get vehicle type's year of introduction
-// in:	EBX = vehtype
+// in:	EBX = vehtype offset
 //	AX = vehtype.introduced
 // out:	AX = year (full)
 // safe:EBX,EDX,EDI
 global getvehintroyear
 getvehintroyear:
+	movzx eax,ax
+	test eax,eax
+	jz .getlong
+	cmp ax,byte -1
+	jne .notoutofrange
+.getlong:
+	xchg eax,ebx
+	mov bl,vehtype_size
+	div bl
+	mov eax,[vehlongintrodate+eax*4]
+	test eax,eax
+	jz .notoutofrange
+	sub eax,701265	// 1920
+.notoutofrange:
 	xor edi,edi
 	xchg edi,[landscape3+ttdpatchdata.daysadd]	// those years are all below 2070
-	call [getymd]
+	call [getlongymd]
 	xchg edi,[landscape3+ttdpatchdata.daysadd]
 	add ax,1920
 	ret

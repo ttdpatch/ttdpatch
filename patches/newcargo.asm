@@ -20,7 +20,7 @@ extern fillrectangle,getnewsprite,getwincolorfromdoscolor
 extern grffeature,invalidatehandle,isfreight,isfreightmult
 extern malloc,patchflags,pdaTempStationPtrsInCatchArea,randomstationtrigger
 extern cargobits,cargotypes,spriteblockptr,stationarray2ofst
-extern updatestationgraphics,newvehdata,specificpropertybase
+extern updatestationgraphics,newvehdata
 extern callback_extrainfo,curcallback,grfstage,grfresources
 extern statanim_cargotype,stationanimtrigger
 
@@ -313,6 +313,7 @@ movbxcargoshortnames:
 global ecxcargooffset
 ecxcargooffset:
 	add ebx, [stationarray2ofst]
+exported ecxcargooffset_ebx2
 	xor ecx,ecx
 	
 .loop:
@@ -371,6 +372,7 @@ ecxcargooffset_force:
 	mov edx, ecx
 	mov ah, [ebx+station.cargos+ecx+stationcargo.timesincevisit]
 .better:
+	add ecx, 0+stationcargo2_size
 	cmp ecx,12*stationcargo2_size
 	jb .loop3
 
@@ -395,8 +397,10 @@ ecxcargooffset_force:
 	mov edx, ebx
 	add edx, [stationarray2ofst]
 
+	and word [edx+station2.cargos+ecx+stationcargo2.resamt],0
 	or word [edx+station2.cargos+ecx+stationcargo2.curveh],-1
 	mov [edx+station2.cargos+ecx+stationcargo2.type],al
+	mov byte [edx+station2.cargos+ecx+stationcargo2.rescount],0
 
 .done:
 	ret
@@ -1604,4 +1608,91 @@ calcprofit:
 	add dword [esp],48
 
 .error:
+	ret
+
+// called before calculating new ratings for a station cargo slot
+// in:	al: timesincepickedup for current slot
+//	ebx: pointer to slot (slotnum*stationcargo_size)
+//	dx: zero
+//	esi-> station
+//	di: station.lastvehicle
+//	flags from "cmp di,0xffff"
+// out:	after a successful callback
+//		cf set
+//		dx: partial cargo rating
+//	otherwise
+//		cf clear
+//		ax: timesincepickedup, divided by 4 for ships
+//		dx: zero
+// safe: eax, ecx, edi
+extern miscgrfvar
+exported calcstationrating
+	jz .nolastveh
+
+// get vehicle pointer from ID
+	movzx edi,di
+	shl edi,vehicleshift
+	add edi,[veharrayptr]
+	mov ah,[edi+veh.class]
+// check if it's still a valid slot, since TTD doesn't clear it when the vehicle is sold
+	cmp ah,0x10
+	jb .badlastveh
+	cmp ah,0x13
+	jbe .haslastveh
+
+.badlastveh:
+	or word [esi+station.lastvehicle],-1
+.nolastveh:
+	xor ah,ah
+	xor edi,edi
+.haslastveh:
+
+// now edi->last vehicle (or 0 if none), ah=type of last vehicle (or 0 if none)
+// get cargo type of the slot
+	mov ecx,esi
+	add ecx,[stationarray2ofst]
+	movzx ecx,byte [ecx+station2.cargos+ebx+stationcargo2.type]
+
+	test byte [cargocallbackflags+ecx],2
+	jz .nocallback
+	push eax
+// fill var 10 and 18 with some useful info for convenience of GRF coders
+	mov [callback_extrainfo],al
+	mov [miscgrfvar],ah
+	mov ax,[esi+station.cargos+ebx+stationcargo.amount]
+	and ah,0x7f				// Csaboka: Why not "and ax, [stationcargomask]"?
+	mov [callback_extrainfo+1],ax
+	mov al,[esi+station.cargos+ebx+stationcargo.lastspeed]
+	mov [callback_extrainfo+3],al
+
+// do the callback
+	push esi
+	mov byte [grffeature],11
+	mov dword [curcallback],0x145
+	mov eax,ecx
+	xor esi,esi
+	call getnewsprite
+	mov dword [curcallback],0
+	pop esi
+	mov byte [miscgrfvar],0
+	jc .callback_failed
+// copy bit 14 to bit 15 so it can function as sign bit
+	shl ah,1
+	sar ah,1
+
+	add dx,ax
+	pop eax		// we don't need the saved value, but this is smaller than an add esp
+	stc
+	ret
+
+.callback_failed:
+// the callback has failed, restore old timesincepickedup and type
+	pop eax
+.nocallback:
+// divide for ships
+	cmp ah,0x12
+	jne .notship
+	shr al,2
+.notship:
+	clc
 	ret

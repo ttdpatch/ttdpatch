@@ -26,7 +26,8 @@ extern newspritedata,newspritenum,newvehtypeinit,ophandler,patchflags
 extern planttreearea,redrawscreen,redrawtile,resetnewsprites
 extern resetpathsignalling,setmainviewxy,specialerrtext1,specialerrtext2
 extern stationarray2ofst,subsidyfn,traincost,treenum,treestart,vehtypedataptr
-extern yeartodate,trackcheat
+extern yeartodate,trackcheat,isplaneinflight
+extern convertplatformsinremoverailstation
 
 
 %assign cheattext "CHT:"	// gives "CHT:" in little endian
@@ -67,6 +68,13 @@ cht_%2:
 		at cheat.func, dd cht_%2
 	iend
 	%assign cheataliascount cheataliascount+1
+%endmacro
+
+%macro getwriteloc 1 //param: cheatnamelen
+	mov esi,[esp+4]
+	call skipspaces
+	add ebx,%1
+	mov edi,esi
 %endmacro
 
 	// Do not uncomment any of them, or the marking will be incorrect
@@ -114,11 +122,19 @@ cheatentry "DELETEVEH",deletevehcheat,0
 cheatentry "RESETFIFO",resetfifocheat,0
 cheatentry "RELOADINDUSTRIES",resetinducheat,0
 cheatentry "FACE",facecheat,0
+cheatentry "LANDGEN",landgencheat,0
 //cheatentry "ENGINE",enginecheat
 //          12345678901234 (max length of name)
 
+#ifndef RELEASE
+cheatentry "GRFDEBUG",grfdebugcheat,0
+#endif
+
+cheatentry "LANDINFO",landinfocheat,0 // No longer a DEBUG sign cheat
+cheatentry "PURGEHOUSES",purgehousescheat,0
+cheatentry "PURGEINDUSTRIES",purgeindustriescheat,0
+
 #if 1 && DEBUG
-cheatentry "LANDINFO",landinfocheat,0
 cheatentry "LANDD", landdispcheat,0
 //cheatentry "SETSET", morestationsetset,0	// doesn't work anymore
 cheatentry "SOUND", soundeffectcheat,0	// play a certain sound effect for testing
@@ -316,11 +332,30 @@ signcheat:
 
 .notalias:
 	xor ebx,ebx
-	add esi,ecx
+	push esi
+	mov esi,[esp+4]
+.loop:
+	lodsb
+	cmp al,"?"
+	je .checkcosts
+	or al,al
+	jnz .loop
 	movzx edx,byte [edi+cheat.bit]
 	bts [landscape3+ttdpatchdata.chtused],edx
+	pop esi
+.docheat:
+	add esi,ecx
 	call dword [edi+cheat.func]
+	jmp short .cheatdone
 
+.checkcosts: // Cost check requested
+	pop esi
+	cmp byte [edi+cheat.costs],0
+	jne .docheat // Cheat has costs, use cheatfunc
+	xor al,al
+	call showcost
+
+.cheatdone:
 	pop esi
 	popad		// restore registers but keep them saved
 	pushad
@@ -389,6 +424,10 @@ getnumber:
 	jz short .exitgetnumber
 	cmp al," "
 	je short .exitgetnumber
+	cmp al,"."
+	je .nextdigit
+	cmp al,","
+	je .nextdigit
 	sub al,"0"
 	jl short .exitgetnumber
 	cmp al,9
@@ -704,16 +743,18 @@ var hexdigits, db "0123456789ABCDEF"
 
 // show what cheats have been used
 usedcheat:
-	call skipspaces
+	getwriteloc 4
 	mov edx,[landscape3+ttdpatchdata.chtused+4]
-	mov edi,[esp+4]
 	call .showhex
 	mov edx,[landscape3+ttdpatchdata.chtused]
+	cmp dword [edi+ebx-2], " 0h"
+	jne .skipwhite
+	dec ebx
+	jmp short .skipwhite
 .showhex:
-	mov byte [edi+ebx]," "
-	inc ebx
-	mov word [edi+ebx],"  "
-	add ebx,byte 2
+	mov dword [edi+ebx],"   "
+	add ebx,byte 3
+.skipwhite:
 	mov ecx,8
 .nextdigit:
 	rol edx,4
@@ -725,9 +766,14 @@ usedcheat:
 .notzero:
 	mov al,byte [hexdigits+eax]
 	mov [edi+ebx],al
-.skipzero:
 	inc ebx
+.skipzero:
 	loop .nextdigit
+	cmp byte [edi+ebx-1]," "
+	jne .no0
+	mov byte [edi+ebx],"0"
+	inc ebx
+.no0:
 	mov word [edi+ebx],"h"
 	clc
 	ret
@@ -748,8 +794,8 @@ stopallcheat:
 	ja .next
 	jne .stopit
 
-	cmp byte [esi+veh.movementstat],13	// can't stop aircraft in flight
-	jae .next
+	call isplaneinflight	// can't stop aircraft in flight
+	jc .next
 
 .stopit:
 	cmp dword [esi+veh.scheduleptr],byte -1
@@ -1451,14 +1497,13 @@ proc ghoststationcheat
 	or eax,eax
 	jz short .clear	// no coordinates
 
-	mov bl,byte [edi+station.platforms]
-	mov bh,bl
-	and bx,0x7887
-	shr bh,3
-	cmp bl, 80h
-	jb .issmall
-	sub bl, (80h - 8h)
-.issmall:
+	mov ebx, edx
+	mov dl,byte [edi+station.platforms]
+	xchg esi, edi
+	call convertplatformsinremoverailstation
+	xchg esi, edi
+	xchg edx, ebx
+	//bl=tracks, bh=length
 
 	test dl,1	// horizontal or vertical?
 	jnz short .vertical
@@ -1818,7 +1863,138 @@ semaphorecheat:
 	mov [edi+1+ecx*2],al
 	jmp .nextloop
 
-#if 1 && DEBUG
+#ifndef RELEASE
+grfdebugcheat:
+	extern grfdebug_feature,grfdebug_id,grfdebug_callback,grfdebug_active
+	xor eax,eax
+	xchg eax,[grfdebug_active]
+	call getnumber
+	cmp edx,1
+	je .active
+
+	test eax,eax
+	jz .done
+
+	mov bx,ax
+	mov ax,0x3e00
+	CALLINT21
+
+.done:
+	ret
+
+.active:
+	test eax,eax
+	jnz .isopen
+
+	noglobal varb .grfdebugfile, "grfdebug.log",0
+	mov ah,0x3c
+	xor ecx,ecx
+	mov edx,.grfdebugfile
+	CALLINT21
+	jnc .isopen
+
+	noglobal varb .cantopen, 0x98,"failed to create grfdebug.log",0
+	mov dword [specialerrtext1],.cantopen
+	mov bx,statictext(specialerr1)
+	mov dx,-1
+	xor ax,ax
+	xor cx,cx
+	call dword [errorpopup]
+	stc
+	ret
+
+.isopen:
+	mov [grfdebug_active],ax
+
+	call getnumber
+	mov [grfdebug_feature],edx
+
+	call getnumber
+	mov [grfdebug_id],edx
+
+	call getnumber
+	mov [grfdebug_callback],edx
+	clc
+	ret
+#endif
+
+//Shows values of the landscape arrays in the sign text,
+//maybe helps finding out more info about landscape arrays.
+//Without allowing identical signs, this cheat gives you a lot of headache
+//when you try to query two or more identical tiles.
+landinfocheat:
+	call skipspaces
+	mov edi,[esp+4]
+	call getsignxy
+
+	push edi // Makes the need Red Box
+	push ebx
+	mov edi, landdispl
+	mov ebx, 0
+
+	mov dx, si // Adds The XY of the Tile to the Sign
+	xchg dh, dl
+	call writehexbyte
+	dec ebx
+	xchg dh,dl
+	call writehexbyte
+
+	mov dl,[esi+landscape1]
+	call writehexbyte
+	mov dl,[esi+landscape2]
+	call writehexbyte
+	mov edx,[esi*2+landscape3]
+	xchg dh,dl
+	call writehexbyte
+	dec ebx
+	xchg dh,dl
+	call writehexbyte
+	mov dl,[landscape4(si,1)]
+	call writehexbyte
+	mov dl,[landscape5(si,1)]
+	call writehexbyte
+
+	// Please note that if a landscape isn't loaded it has a value of 0x80000000 or 0x0
+	mov edx,landscape6
+	test edx,edx
+	jle .no_l6
+	mov dl,[edx+esi]
+	call writehexbyte
+
+.no_l6:
+	mov edx, landscape7 // Adds L7 information to the sign
+	test edx,edx
+	jle .no_l7
+	mov dl, [edx+esi]
+	call writehexbyte
+
+.no_l7:
+	mov edx, landscape8 // Adds L8 information to the sign
+	test edx,edx
+	jle .no_l8
+	mov dx, [edx+esi*2]
+	xchg dh, dl
+	call writehexbyte
+	dec ebx
+	xchg dh,dl
+	call writehexbyte
+
+.no_l8:
+	mov byte [edi+ebx],0
+
+	mov dword [specialerrtext1],landdisp // Copied from below to make a red box
+	mov bx, statictext(specialerr1)
+	mov dx, -1
+	xor ax, ax
+	xor cx, cx
+	push ebp
+	call dword [errorpopup]
+	pop ebp
+	pop ebx
+	pop edi
+
+	clc
+	ret
 
 writehexbyte:
 	mov al,dl
@@ -1845,42 +2021,10 @@ writehexbyte:
 	add ebx,3
 	ret
 
-//Shows values of the landscape arrays in the sign text,
-//maybe helps finding out more info about landscape arrays.
-//Without allowing identical signs, this cheat gives you a lot of headache
-//when you try to query two or more identical tiles.
-landinfocheat:
-	call skipspaces
-	mov edi,[esp+4]
-	call getsignxy
-	mov dl,[esi+landscape1]
-	call writehexbyte
-	mov dl,[esi+landscape2]
-	call writehexbyte
-	mov edx,[esi*2+landscape3]
-	xchg dh,dl
-	call writehexbyte
-	dec ebx
-	xchg dh,dl
-	call writehexbyte
-	mov dl,[landscape4(si,1)]
-	call writehexbyte
-	mov dl,[landscape5(si,1)]
-	call writehexbyte
-
-	mov edx,landscape6
-	or edx,edx
-	jz .no_l6
-
-	mov dl,[edx+esi]
-	call writehexbyte
-.no_l6:
-	mov byte [edi+ebx],0
-	clc
-	ret
-
 var landdisp, db 94h, "LAND:  "
 var landdispl, times 36 db 0
+
+#if 1 && DEBUG
 
 landdispcheat:
 	call skipspaces
@@ -2448,8 +2592,10 @@ gotocheat:
 
 resetinducheat:
 	call clearindustryincargos
+extern clearindustry2array
+	call clearindustry2array
 	mov edi,[industryarrayptr]
-	mov ecx,90
+	mov ecx,NUMINDUSTRIES
 .nextindu:
 	cmp word [edi+industry.XY],0
 	je .skipindu
@@ -2498,11 +2644,10 @@ facecheat:
 	mov [eax+player.face],edx
 	call redrawscreen
 
+	xor ebx,ebx
 .show:
+	getwriteloc 4
 	mov edx,[eax+player.face]
-	mov ebx,5
-	call skipspaces
-	mov edi,[esp+4]
 	jmp usedcheat.showhex
 
 	extern initializecargofn
@@ -2511,3 +2656,81 @@ resetcargocheat:
 	clc
 	ret
 
+svard landgen_forceparam
+landgencheat:
+	call getnumber
+	xchg eax,edx
+	jc .done
+	call getnumber
+	mov ah,dl
+	call getnumber
+	shl edx,16
+	or eax,edx
+.done:
+	mov [landgen_forceparam],eax
+	clc
+	ret
+
+extern cleanuphousedataids	// in newhouse.asm
+extern housedataidtogameid,lasthousedataid
+
+purgehousescheat:
+	mov esi,housedataidtogameid
+	sub esp,256			// create the mapping array on stack
+	mov ebx,esp
+	mov dl,[lasthousedataid]
+	call cleanuphousedataids
+	mov [lasthousedataid],dl
+
+	xor esi,esi
+.nexttile:
+	mov al,[landscape4(si)]
+	shr al,4
+	cmp al,3
+	jne .skiptile
+
+	mov al,[landscape3+2*esi+1]	// old dataid
+	xlatb
+	mov [landscape3+2*esi+1],al
+
+.skiptile:
+	inc si
+	jnz .nexttile
+
+	add esp,256			// free mapping array
+
+	clc
+	ret
+
+extern cleanupindustrytypes	// in newindu.asm
+extern industiledataidtogameid,lastindustiledataid
+
+purgeindustriescheat:
+	call cleanupindustrytypes
+
+	mov esi,industiledataidtogameid
+	sub esp,256			// create the mapping array on stack
+	mov ebx,esp
+	mov dl,[lastindustiledataid]
+	call cleanuphousedataids
+	mov [lastindustiledataid],dl
+
+	xor esi,esi
+.nexttile:
+	mov al,[landscape4(si)]
+	shr al,4
+	cmp al,8
+	jne .skiptile
+
+	mov al,[landscape3+2*esi+1]	// old dataid
+	xlatb
+	mov [landscape3+2*esi+1],al
+
+.skiptile:
+	inc si
+	jnz .nexttile
+
+	add esp,256			// free mapping array
+
+	clc
+	ret

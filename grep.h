@@ -20,9 +20,6 @@
 
 extern unsigned int grep_blksize;
 
-extern char *grepalloc(unsigned int);
-extern void grepfree(char *);
-
 unsigned int grepmem(
 		const void *memblock,
 		unsigned int memsize,

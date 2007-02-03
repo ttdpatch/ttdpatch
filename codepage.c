@@ -34,7 +34,7 @@ int acp = -1;			// ANSI code page
 // If the buffer cannot be allocated or the conversion fails for any reason,
 // returns 'str'.
 // Special case: if 'str' points to an empty string, buffers are freed.
-const char *converttoACP(const char *str) {
+static const char *converttoACP(const char *str) {
   static int outbufsize, unibufsize;	// initially 0
   static char *outbuf;			// initially NULL
   static LPWSTR unibuf;			// same here
@@ -139,7 +139,7 @@ static void foldunicode_ws(wchar_t *ws)
 
 
 // Get a Windows error message from an error code
-const char *getwinerrormsg(unsigned long err)
+static const char *getwinerrormsg(unsigned long err)
 {
   char *msgptr;
   return FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, err, 0, (LPTSTR)&msgptr, 0, NULL)

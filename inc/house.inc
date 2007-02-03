@@ -52,6 +52,8 @@ resb 256
 
 // Second set of callback flags
 // Bit 0 - use callback 2A to decide the three cargo types accepted
+// Bit 1 - use callback 2E for custom cargo production
+// Bit 2 - use callback 143 to conditionally deny the destruction of the building
 ptrvarofs housecallbackflags2,newhousedatablock,$
 resb 256
 

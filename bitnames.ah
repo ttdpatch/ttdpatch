@@ -69,10 +69,11 @@ defbit MISCMODS_DISPLAYTOWNSIZE,	22 // display town size in the name
 defbit MISCMODS_NOEXTENDSTATIONRANGE,	23 // don't increase the maximum allowed distance between station sign and industry for cargo to be delivered
 defbit MISCMODS_NOOLDVEHICLENEWS,	24 // don't generate news messages when vehicles get old
 defbit MISCMODS_DONTFIXPAYMENTGRAPH,	25 // don't fix the X axis of the cargo payment rate window
-defbit MISCMODS_LOADUNTILGREEN,		26 // keep loading at station until exit signal is green
+//defbit MISCMODS_LOADUNTILGREEN,		26 // keep loading at station until exit signal is green
 defbit MISCMODS_DONTSHOWALTITUDE,	27 // Don't show altitude in tile info window
 defbit MISCMODS_NOGRFIDSINSCREENSHOTS,	28 // Don't show active grfids in screenshots
 defbit MISCMODS_DONTCHANGESNOW,		29 // Don't change how height is calculated for snowiness
+defbit MISCMODS_NOTRANSPARENTDEPOTS,	30 // Don't make road and tram depots transparent in transparent-buildings mode
 enddefbits
 
 
@@ -93,8 +94,12 @@ defbit EXP_SLOWCROSSING,	0 // trains slow down before crossings
 defbit EXP_COOPERATIVE,		1 // cooperative play, very limited
 defbit EXP_MANDATORYGRM,	2 // make GRF Resource Management mandatory for .grf files
 defbit EXP_INCVEHCONSIST,	3 // allows more then 255 train consists...
+defbit EXP_SIGNALGUI,		4 // use a new gui to change signal state...
+defbit EXP_NEWTERRAINGEN,	5 // new terrain generator
+defbit EXP_ENGINECONVERT,	6 // Experimental Engine to multihead converter (maybe the other way too)
+defbit EXP_PREVIEWDD,		7 // Create preview windows for station classes.
+defbit EXP_EXTRADETAILS,	8 // Show more informations in the train detail window.
 enddefbits
-//defbit EXP_PATHBASEDSIGNALLING,	1 // make it possible for trains with non-interfering paths to enter the same signal block
 
 
 defbitvar maskdisasters,disastermask

@@ -105,9 +105,6 @@ codefragment newtownraiselowermaxcost
 	call runindex(townraiselowermaxcost)
 	setfragmentsize 8
 
-codefragment findrandomindtypetables,-4
-	mov edi,randomindustrytypes
-
 codefragment oldgeneratezeppelin,6
 	cmp byte [edi+station.airporttype],1
 
@@ -337,6 +334,13 @@ codefragment newshowstatuscash
 	icall showcompanycash
 	mov bx,statictext(disp64bitcash_white)
 	setfragmentsize 12
+
+codefragment olddeletecompany
+	mov dword [esi+player.cash],100000000
+
+codefragment newdeletecompany
+	icall deletecompany
+	setfragmentsize 7
 
 codefragment oldstartnewcompany
 	mov [esi+player.tracktypes],cl
@@ -682,6 +686,41 @@ codefragment newfindfirstnextfile
 	icall firstnextlongfilename
 #endif
 
+// more filedir entries
+#if WINTTDX
+codefragment oldadddirectoryentry, -4
+	mov [edi], al
+	inc edi
+	lea ebx,[edi+0x0D]
+	
+codefragment olddirectoryentriesinwindow, 9
+	mov ah, 0x3D
+	mul ah
+	movzx edi, ax
+	
+codefragment olddirectoryentriesinwindow2, 10
+	mov ah, bl
+	xor al, al
+	imul bx, 0x3D
+	
+codefragment oldgametitletofilename, -10
+	cmp byte [edi], 3
+	jnz $+2+0x16
+	lea ebx, [edi+0x0E]
+	
+codefragment oldpredefgametitletofilename, -10
+	cmp byte [edi], 5
+	jb $+2+0x16
+	lea ebx, [edi+0x0E]
+	
+codefragment oldsavegamegetdirentries, -10
+	cmp byte [edi], 3
+	jnz $+2+0x3B
+	lea ebx, [edi+1]
+#endif
+
+
+
 codefragment oldgetsnowyheight
 	cmp dl,[snowline]
 	db 0x76		// jbe ...
@@ -785,6 +824,33 @@ codefragment newfloodbridgetile
 	setfragmentsize 10
 #endif
 
+codefragment oldDrawRoadDepot, -7
+	pop	edi
+	pop	cx
+	pop	ax
+	add	edi, 8
+codefragment newDrawRoadDepot
+	icall	drawTramOrRoadDepot
+	setfragmentsize 7
+
+codefragment oldDistributeIndustryCargo_recession
+	jg .norecession
+	inc ah
+	shr ah,1
+.norecession:
+	movzx cx,ah
+
+// the above code gives 0 instead of 80h when ah=FFh, that needs to be fixed
+codefragment newDistributeIndustryCargo_recession
+	// cx=ah when we reach this point, so we can calculate with cx instead of ah
+	// cx<=FFh, so the inc can't overflow
+	jg .norecession
+	inc cx
+	shr cx,1
+	mov ah,cl
+	setfragmentsize 10
+.norecession:
+
 endcodefragments
 
 patchgeneralfixes:
@@ -793,6 +859,43 @@ patchgeneralfixes:
 	stringaddress oldadddirectoryentrydir
 	storefunctioncall adddirectoryentrydir
 	multipatchcode findfirstnextfile,2
+#endif
+
+#if WINTTDX
+	// support for more filelist entries
+	mov eax, 0x3D*220
+	push eax
+	extern malloccrit
+	call malloccrit
+	pop ebx
+	
+	stringaddress oldadddirectoryentry
+	mov [edi], ebx
+	
+	sub edi, 18
+	mov byte [edi+5], 0x90
+	extern adddirectoryentry
+	storefunctioncall adddirectoryentry
+	//mov byte [edi-15], 220
+	
+	stringaddress olddirectoryentriesinwindow,1,2
+	mov [edi], ebx
+	stringaddress olddirectoryentriesinwindow,1,0
+	mov [edi], ebx
+	
+	stringaddress olddirectoryentriesinwindow2,1,2 
+	mov [edi], ebx
+	stringaddress olddirectoryentriesinwindow2,1,0
+	mov [edi], ebx
+	
+	stringaddress oldgametitletofilename,1,1
+	mov [edi], ebx
+	
+	stringaddress oldpredefgametitletofilename,1,1
+	mov [edi], ebx
+	
+	stringaddress oldsavegamegetdirentries,1,1
+	mov [edi], ebx
 #endif
 
 #if WINTTDX
@@ -811,22 +914,6 @@ patchgeneralfixes:
 	mov ebx,[miscmodsflags]
 	patchcode oldamountinlitres,newamountinlitres,1,1,,{test bl,MISCMODS_DONTFIXLITRES},z
 	patchcode oldtownraiselowermaxcost,newtownraiselowermaxcost,1,1,,{test bl,MISCMODS_OLDTOWNTERRMODLIMIT},z
-	stringaddress findrandomindtypetables,1,1
-	test bl,MISCMODS_DONTFIXTROPICBANKS
-	jnz .tropicbanksdone
-	mov edi,[edi]
-	mov edi,[edi+2*4]
-	mov cl,32		// (ECX was 0 after stringaddress)
-	mov al,0xc		// search for industry type: temperate-climate bank
-
-.tropicbanksloop:
-	repne scasb
-	jne .tropicbanksdone
-	mov byte [edi-1],0x10	// replacement industry type: arctic/tropical-climate bank
-	jecxz .tropicbanksdone
-	jmp .tropicbanksloop
-
-.tropicbanksdone:
 	test bl,MISCMODS_DONTFIXHOUSESPRITES
 	jnz .shopsspritesdone
 	mov eax,[housespritetable]
@@ -972,6 +1059,7 @@ patchgeneralfixes:
 	patchcode showcompanynet
 	patchcode showstatuscash
 	patchcode startnewcompany
+	patchcode deletecompany
 
 	patchcode oldgeneratezeppelin,newgeneratezeppelin,1,1,,{test word [miscmodsflags],MISCMODS_NOZEPPELINONLARGEAP},nz
 	multipatchcode oldcheckzeppelincrasharea1,newcheckzeppelincrasharea,2
@@ -1253,6 +1341,13 @@ patchgeneralfixes:
 	patchcode olddisplaytrainindepot,newdisplaytrainindepot,1,1
 	patchcode oldchoosetrainvehindepot,newchoosetrainvehindepot,1,1
 	mov word [edi+lastediadj-18],0xc38b	// mov eax,ebx instead of mov al,bl
+#if WINTTDX
+	patchcode oldDrawRoadDepot, newDrawRoadDepot, 1, 4
+#else
+	patchcode oldDrawRoadDepot, newDrawRoadDepot, 3, 4
+#endif
+
+	multipatchcode DistributeIndustryCargo_recession,2
 	ret
 
 // shares some code fragments

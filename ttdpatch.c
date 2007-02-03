@@ -43,7 +43,7 @@ unsigned int grep_blksize = 4096;
 langinfo *linfo;
 
 
-void saveversion(int wasgood)
+static void saveversion(int wasgood)
 {
   char s1[40], s2[40], verfilename[40];
   FILE *f;
@@ -93,7 +93,7 @@ void saveversion(int wasgood)
 }
 
 
-void getlangdata(langinfo *info)
+static void getlangdata(langinfo *info)
 {
   langinfo_loadcurlangdata(info);
   langinfo_processlangdata(info);

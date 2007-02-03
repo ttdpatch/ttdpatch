@@ -220,6 +220,10 @@ stxt opengrfstatus, 0x98,0x81
 stxt_cont	dw ourtext(grfstatusmenu)
 stxt_cont	db 0
 
+stxt newgametitle, 0x94, 0x81
+stxt_cont	dw ourtext(newgame)
+stxt_cont	db 0
+
 stxt microtext, 0x0e, 0x80, 0
 
 stxt whitedword, 0x94,0x7B,0
@@ -246,3 +250,55 @@ stxt disp64bitcash_white, 0x94, 0x9a, 0x00, 0x00
 stxt disp64bitcash_red, 0x8b, 0x9a, 0x00, 0x00	// must follow disp64bitcash_white
 
 stxt airportsel_typebutton, 0x98,0x80,0
+stxt airportsel_smallairport, 0x9A,0x02,0x81,0x59,0x30,0
+stxt airportsel_largeairport, 0x9A,0x02,0x81,0x5a,0x30,0
+stxt airportsel_heliport, 0x9A,0x02,0x81,0x6b,0x30,0
+
+stxt trdlg_lt,"<",0
+stxt trdlg_gt,">",0
+stxt trdlg_lte,"<=",0
+stxt trdlg_gte,">=",0
+
+stxt trdlg_txt_depot,0x81,
+stxt_cont dw ourtext(gototraindepot)
+stxt_cont db " ",0x81
+stxt_cont dw statictext(trdlg_txt_XY)
+stxt_cont db 0
+
+stxt trdlg_txt_XY, "X:",0x7E," Y:",0x7E,0
+
+stxt trdlg_txt_3,"- ",0x80," ",0x80," ",0x80,0
+//var,op,station name
+//var,op,statictext(printdword)/empty,[dword]
+//var,op,statictext(trdlg_txt_depot)/empty,[depot's town name,x,y]
+//var,is green/is red/empty,statictext(trdlg_txt_XY)/empty,[x,y]
+
+stxt whitetext,0x94,0x80,0
+stxt blacktext, 0x98,0x80,0
+stxt lightbluetext, 0x95,0x80,0
+stxt printdword, 0x7B,0
+stxt printword, 0x7E,0
+stxt dash, "-",0
+
+stxt tr_landinfotext_presig_auto, 0x81
+stxt_cont dw ourtext(presigautomatic)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_landinfotext)
+stxt_cont db 0
+stxt tr_landinfotext_presig_manual, 0x81
+stxt_cont dw ourtext(presigmanual)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_landinfotext)
+stxt_cont db 0
+stxt tr_landinfotext_pbs_auto, 0x81
+stxt_cont dw ourtext(pathbasedauto)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_landinfotext)
+stxt_cont db 0
+stxt tr_landinfotext_pbs_manual, 0x81
+stxt_cont dw ourtext(pathbasedmanual)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_landinfotext)
+stxt_cont db 0
+
+stxt extradetailswagons, 0x95,0x84,"  ",0x98,0x0E,0x7E,0x0F,0

@@ -1,29 +1,69 @@
-
 #include <std.inc>
+#include <flags.inc>
 #include <proc.inc>
-#include <window.inc>
-#include <textdef.inc>
 #include <ptrvar.inc>
+#include <textdef.inc>
+#include <window.inc>
 
 extern BringWindowToForeground,CreateTooltip,DestroyWindow,FindWindow
 extern RefreshWindowArea,TabClicked,TitleBarClicked,currscreenupdateblock
 extern dfree,dmalloc,errorpopup,fillrectangle,redrawscreen
 extern win_newshistory_constraints,win_newshistory_elements
-extern windowstack,CheckBoxClicked
-extern CalcTrainDepotWidth
+extern windowstack,CheckBoxClicked,patchflags
 extern grfmodflags
 
 
-uvard winelemdrawptrs,cWinElemMax+1,s
 uvard windowsizesbufferptr
+
+vard winelemdrawptrs
+	extern DrawWinElemTab,DrawWinElemTabButton
+	extern DrawWinElemCheckBox
+	// first few entries are TTD's procs, will be set in dogeneralpatching
+	dd 0			// 00: dummy box
+	dd 0			// 01: sprite box
+	dd 0			// 02: sprite box next active
+	dd 0			// 03: text box
+	dd 0			// 04: text box next active
+	dd 0			// 05: text
+	dd 0			// 06: pushed in box
+	dd 0			// 07: tiled box
+	dd 0			// 08: slider
+	dd 0			// 09: frame with text
+	dd 0			// 0a: title bar
+	dd 0			// 0b: last
+	// patch draw handlers
+	dd drawresizebox	// 0c: sizer
+	dd drawdummy		// 0d: extra data
+	dd DrawWinElemTab	// 0e: tab
+	dd DrawWinElemTabButton	// 0f: tab button
+	dd DrawWinElemCheckBox	// 10: check box
+	dd DrawWinSetTextColor	// 11: set text color
+%if ($-winelemdrawptrs)/4 <> cWinElemMax+1
+	%error "Wrong number of winelemdrawptrs"
+%endif
+endvar
+
+uvarb curwintextcolor
+
+DrawWinSetTextColor:
+	mov al,[ebp+windowbox.bgcolor]
+	mov [curwintextcolor],al
+	// fall through
+
+drawdummy:
+	jmp [winelemdrawptrs+4*cWinElemDummyBox]
+
+exported DrawCenteredTextWithColor
+	extern drawcenteredtextfn
+	mov al,[curwintextcolor]
+	jmp [drawcenteredtextfn]
 
 uvarw guispritebase,1,s
 var numguisprites, dd 3+12
 
 var depotscalefactor
-	db 0
+	dw 29
 
-global drawresizebox
 drawresizebox:
 	mov word [ebp+windowbox.extra], 682
 	mov ax, [guispritebase]
@@ -178,8 +218,9 @@ BeginResizeWindow:
 	popa
 	ret
 
-uvarw sizewindowprevx
-uvarw sizewindowprevy
+uvarw sizewindowprev, 2
+sizewindowprevx equ sizewindowprev
+sizewindowprevy equ sizewindowprev+2
 uvard realwinsize
 
 global procwindowdragmode
@@ -270,7 +311,7 @@ procwindowdragmode:
 	mov byte [esi+window.itemsoffset], 0
 	mov al, [esi+window.itemstotal]
 	sub al, [esi+window.itemsvisible]
-	js .itemokay
+	jna .itemokay		//note was previously js, caused errorneous movement of the offset to zero when more than 127 items in list.
 	mov [esi+window.itemsoffset], al
 .itemokay:
 	pop ax
@@ -311,6 +352,7 @@ procwindowdragmode:
 //    AX,BX=new width&height of window
 uvarw tmpdx
 uvarw tmpdy
+
 ResizeWindowElements:
 	push esi
 	push edi
@@ -332,6 +374,24 @@ ResizeWindowElements:
 	
 //same as above, only esi is a pointer to the first windowelement, and ax,bx are size changes instead of absolute sizes
 ResizeWindowElementsDelta:
+	push edi
+	push edx
+	mov edi, esi
+	mov dh, cWinDataSizer
+	call FindWindowData.haveelements
+	jc .normal
+	test word [edi+8], 1
+	jz .normal
+	pop edx
+	pop edi
+	jmp ResizeWindowElementsDeltax
+.normal:
+	pop edx
+	pop edi
+	
+;	cmp edi, newdepotwindowconstraints
+;	je near ResizeWindowElementsDeltax
+
 	push ax
 	push bx
 	add ax, [tmpdx]
@@ -354,7 +414,7 @@ ResizeWindowElementsDelta:
 	sar dx, 1
 	pop bx
 	pop ax
-	
+
 .loop:
 	cmp byte [esi+windowbox.type], cWinElemLast
 	je .done
@@ -391,11 +451,137 @@ ResizeWindowElementsDelta:
 	jz .noy2s
 	add [esi+windowbox.y2], dx
 .noy2s:
-	
+
 	add esi, windowbox_size
 	inc edi
 	jmp .loop
 .done:
+	ret
+
+uvarw tmpthird1
+uvarw tmpthird2
+uvarb tmpgood1
+ResizeWindowElementsDeltax:
+	push ebp
+	push eax
+	push ebx
+	add ax, [tmpdx]
+	add bx, [tmpdy]
+	mov word [tmpdx], 0
+	test ax, 1
+	jz .correctdx
+	mov word [tmpdx], 1
+.correctdx:
+	mov word [tmpdy], 0
+	test bx, 1
+	jz .correctdy
+	mov word [tmpdy], 1
+.correctdy:	
+	mov cx, ax
+	and cx, 0xfffe
+	sar cx, 1
+	mov dx, bx
+	and dx, 0xfffe
+	sar dx, 1
+	pop ebx
+	pop eax
+
+	push eax
+	push ebx
+	push ecx
+	push edx
+	mov byte [tmpgood1], 0
+	test ax, ax
+	jl .notgood
+	inc byte [tmpgood1]
+	jmp .gooda
+.notgood:
+	neg ax
+.gooda:
+	xor dx, dx
+	cwde
+	mov bx, 3
+	idiv bx
+	mov cx, ax
+	cmp byte [tmpgood1], 1
+	je .good
+	neg cx
+.good:
+	mov word [tmpthird1], cx
+	shr dx, 4
+	adc ax, ax
+	cmp byte [tmpgood1], 1
+	je .goods
+	neg ax
+.goods:
+	mov word [tmpthird2], ax
+	pop edx
+	pop ecx
+	pop ebx
+	pop eax
+
+.loop:
+	cmp byte [esi+windowbox.type], cWinElemLast
+	je near .done
+
+	test word [edi], 1
+	jz .nox1
+	add [esi+windowbox.x1], ax
+.nox1:
+	test word [edi], 2
+	jz .nox2
+	add [esi+windowbox.x2], ax
+.nox2:
+	test word [edi], 4
+	jz .noy1
+	add [esi+windowbox.y1], bx
+.noy1:
+	test word [edi], 8
+	jz .noy2
+	add [esi+windowbox.y2], bx
+.noy2:
+	test word [edi], 10h
+	jz .nox1s
+	add [esi+windowbox.x1], cx
+.nox1s:
+	test word [edi], 20h
+	jz .nox2s
+	add [esi+windowbox.x2], cx
+.nox2s:
+	test word [edi], 40h
+	jz .noy1s
+	add [esi+windowbox.y1], dx
+.noy1s:
+	test word [edi], 80h
+	jz .noy2s
+	add [esi+windowbox.y2], dx
+.noy2s:
+	test word [edi], 100h
+	jz .lnox1
+	mov bp, [tmpthird1]
+	add [esi+windowbox.x1], bp
+.lnox1:
+	test word [edi], 200h
+	jz .lnox2
+	mov bp, [tmpthird1]
+	add [esi+windowbox.x2], bp
+.lnox2:
+	test word [edi], 400h
+	jz .lnox1s
+	mov bp, [tmpthird2]
+	add [esi+windowbox.x1], bp
+.lnox1s:
+	test word [edi], 800h
+	jz .lnox2s
+	mov bp, [tmpthird2]
+	add [esi+windowbox.x2], bp
+.lnox2s:
+
+	add esi, windowbox_size
+	add edi, 2
+	jmp near .loop
+.done:
+	pop ebp
 	ret
 
 //IN: esi=window, edi=pointer to size constraints, ax,cx=new width and height of window
@@ -447,7 +633,7 @@ HandleSizeConstraints:
 	mov cx, [edi+8+2]
 .heightsenough:
 	cmp byte [edi+8+4], 1
-	jz .heightok
+	jz near .heightok
 	sub cx, [edi+8+6]
 	push ax
 	push edx
@@ -462,7 +648,26 @@ HandleSizeConstraints:
 	div cl
 	cmp edx, -1
 	je .nocount4
+	cmp edi, trainlistwindowsizes
+	je .notnorm1
+	cmp edi, shipairlistwindowsizes
+	je .notnorm1
+	cmp edi, rvlistwindowsizes
+	jne .norm1
+.notnorm1:
+	testflags sortvehlist
+	jnc .norm1
+	push ecx
+	mov cl, [esi+0x33]
+	mov [esi+0x2F], al
+	mov ch, al
+	shr ch, cl
+	mov [esi+window.itemsvisible], ch
+	pop ecx
+	jmp .anorm1
+.norm1:
 	mov [esi+window.itemsvisible], al
+.anorm1:
 	mov [ebp+edx+11], al
 .nocount4:
 	mul cl
@@ -481,9 +686,9 @@ global FindWindowData
 FindWindowData:
 	mov dl, cWinElemExtraData
 	mov edi, [esi+window.elemlistptr]
-
+.haveelements:
 	cmp byte [esi+window.type], 0x12
-	je .raildepot
+	je .isdepot
 
 .loop:
 	cmp byte [edi], cWinElemLast
@@ -498,11 +703,27 @@ FindWindowData:
 	clc
 	ret
 
-.raildepot:
+.isdepot:
+	push edx // Used to work out the sub type of depot
+	movzx edx, word [esi+window.id]
+	mov bl, [landscape4(dx, 1)]
+	and bl, 0xF0
+	cmp bl, 0x10
+	pop edx
+	jne .loop // Is not a rail depot so use old code
+
 	bt dword [grfmodflags], 3
 	jnc .loop
+extern patchflags
+testmultiflags clonetrain
+	jz .noclonetrain
+	mov dword [tmpAddress+2], newdepotwindowconstraints
+	mov dword [tmpAddress+6], newtraindepotwindowsizes32
+	jmp .isclonetrain
+.noclonetrain:
 	mov dword [tmpAddress+2], depotwindowconstraints
 	mov dword [tmpAddress+6], traindepotwindowsizes32
+.isclonetrain:
 	mov edi, tmpAddress
 	jmp .found
 
@@ -971,13 +1192,24 @@ LoadWindowSizesFinish:
 	mov esi, edi
 	mov ebx, eax
 	shr ebx, 16
+	extern reswidth,resheight
+	cmp ax, [reswidth]
+	jbe .nottoowide
+	mov ax, [reswidth]
+.nottoowide:
 	sub ax, [edi+12*13+4]
 	dec ax
+	lea di, [ebx+34]
+	cmp di, [resheight]
+	jbe .nottoohigh
+	mov bx, [resheight]
+	sub bx, 34
+.nottoohigh:
 	cmp bx, 234
 	jae .correctheight
 	mov bx, 234
 .correctheight:
-	sub bx, [edi+12*13+8]
+	sub bx, [esi+12*13+8]
 	dec bx
 	mov edi, mapwindowconstraints
 	call ResizeWindowElementsDelta
@@ -990,6 +1222,22 @@ LoadWindowSizesFinish:
 	mov esi, win_newshistory_elements
 	mov ebx, eax
 	shr ebx, 16
+	lea di, [ebx+34]
+	cmp di, [resheight]
+	jbe .nottoohigh2
+	movzx ebx, word [resheight]
+	sub ebx, 34
+	push eax
+	mov eax, ebx
+	mov bl, 42
+	sub eax, 14
+	div bl
+	mov byte [win_newshistory_elements+12*2+11], al
+	mov ah, 0
+	imul ebx,eax, 42
+	add ebx, 14
+	pop eax
+.nottoohigh2:
 	sub ax, [win_newshistory_elements+12*4+4]
 	dec ax
 	sub bx, [win_newshistory_elements+12*4+8]
@@ -1021,6 +1269,20 @@ var mapwindowsizes
 	dw 248, 2048, 1, 0
 	dw 234, 2048, 1, 0
 
+uvard traininfowindowelementsptr
+
+var traininfosizes
+	dw 370, 370, 1, 0
+	dw 108, 1000
+	db 14, 4
+	dw 80
+var traininfoelemconstraints
+	dw 0000b, 0010b, 0011b
+	dw 0010b, 1010b, 1011b
+	dw 1100b, 1100b, 1110b
+	dw 0000001000001100b, 0000100100001100b, 0000010000001110b
+	dw 1111b, 0000b, 0000b
+	
 var tmpwindowsizes
 	dw 100, 1000, 1, 0
 	dw 100, 1000, 1, 0
@@ -1060,6 +1322,11 @@ var depotwindowconstraints
 	db 00000000b, 00000010b, 00001010b
 	db 00001011b, 00001011b, 00101100b
 	db 00011110b, 00001111b, 0
+var newdepotwindowconstraints
+	dw 0000000000000000b, 00000000000000010b, 0000000000001010b // Close Button, Title, Tile Box
+	dw 0000000000001011b, 00000000000001011b, 0000001000001100b // Sell Button, Scroll Bar, New Vehicle
+	dw 0000010000001110b, 0000100100001100b, 0000000000001111b // Location, Clone Train, Resize
+	dw 0 // End
 var rvdepotwindowsizes
 	dw 315-3*56, 2048//X
 	db 56, 2
@@ -1090,6 +1357,20 @@ var traindepotwindowsizes
 	dw 26
 var traindepotwindowsizes32
 	dw 379-6*32, 2048//X
+	db 32, -1 
+	dw 59
+	dw 110-4*14, 2048//Y
+	db 14 ,2
+	dw 26
+var newtraindepotwindowsizes // These are longer so that the words don't clip
+	dw 349-4*29, 2048//X
+	db 29, -1 
+	dw 1
+	dw 110-4*14, 2048//Y
+	db 14 ,2
+	dw 26
+var newtraindepotwindowsizes32
+	dw 379-4*32, 2048//X
 	db 32, -1 
 	dw 59
 	dw 110-4*14, 2048//Y
@@ -1171,12 +1452,32 @@ drawmapwindow:
 	mov dx, [esi+window.y]
 	ret
 
+global calctraininfoserviceintervalpos
+calctraininfoserviceintervalpos:
+	add cx, 13
+	add dx, [esi+window.height]
+	sub dx, 23
+	ret
+	
+global calctraininforowcount
+calctraininforowcount:
+	jns .next
+	mov ah, [esi+window.itemsvisible]
+	neg ah
+	cmp al, ah
+	jl .next
+	ret
+.next:
+	add dword [esp], 0x54
+	ret
+
 //Functions to make the vehicle lists resizable:
 lastvehdrawn:
 	movzx ax, al
 .hasword:
 	push edx
 	mov dl, [esi+window.itemsvisible]
+.hasdl:
 	neg dl
 	movzx eax, ax
 	cmp bl, dl
@@ -1192,29 +1493,40 @@ lastrailvehdrawn:
 	push eax
 	mov al,0xFF
 ovar railvehoffset,-1
-	jmp lastvehdrawn
+	push edx
+	mov dl, [esi+0x2F]
+	movzx ax, al
+	jmp lastvehdrawn.hasdl
 
 global lastroadvehdrawn
 lastroadvehdrawn:
 	push eax
 	mov al,0xFF
 ovar roadvehoffset,-1
-	jmp lastvehdrawn
+	push edx
+	mov dl, [esi+0x2F]
+	movzx ax, al
+	jmp lastvehdrawn.hasdl
 
 global lastairvehdrawn
 lastairvehdrawn:
 	push eax
 	mov ax, 0xFFFF
 ovar airvehoffset, -2
-	jmp lastvehdrawn.hasword
+	push edx
+	mov dl, [esi+0x2F]
+	jmp lastvehdrawn.hasdl
 
 global lastshipvehdrawn
 lastshipvehdrawn:
 	push eax
 	mov ax, 0xFFFF
 ovar shipvehoffset, -2
-	jmp lastvehdrawn.hasword
+	push edx
+	mov dl, [esi+0x2F]
+	jmp lastvehdrawn.hasdl
 
+#if 0
 global drawtrainlist
 drawtrainlist:
 	add dx, 6
@@ -1223,6 +1535,7 @@ drawtrainlist:
 	mov bl, 29
 	div bl
 	ret
+#endif
 
 //Functions to make the RV depot windows resizable:
 global lastdepotcoldrawn
@@ -1359,19 +1672,20 @@ ovar depotcolumn, -1
 	ret
 
 // Replaced by new one in trainwins.asm
-//
-//global CalcTrainDepotWidth
-//CalcTrainDepotWidth:
-//	mov ax, [esi+window.width]
-//	sub ax, 59
-//	push bx
-//	mov bl, 29
-//	div bl
-//	pop bx
-//
-//	ret
+#if 0
+global CalcTrainDepotWidth
+CalcTrainDepotWidth:
+	mov ax, [esi+window.width]
+	sub ax, 59
+	push bx
+	mov bl, 29
+	div bl
+	pop bx
 
-global traindepotwindowhandler
+	ret
+#endif
+
+global traindepotwindowhandler, traindepotwindowhandler.resizewindow
 traindepotwindowhandler:
 	mov bx, cx
 	mov esi, edi

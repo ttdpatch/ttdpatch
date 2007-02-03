@@ -4,8 +4,8 @@ SECTIONS
 	/* loader header and code */
   .phead 0xec636 : SUBALIGN(1)
   {
-	/* pROTcODE marker */
-	LONG(0x544F5270);
+	/* lOADcODE marker */
+	LONG(0x44414F6C);
 	LONG(0x45444F63);
 
 	/* Size of the loader */
@@ -20,6 +20,8 @@ SECTIONS
 	/* main patch code and data */
   .ptext __image_base__ -8 :
   {
+	/* pROTcODE marker is prepended after gzipping*/
+
 	/* The code size, with and without bss */
 	LONG(__psbss_end - __ptext_start)
 	LONG(__ptext_end - __ptext_start)
@@ -45,7 +47,14 @@ SECTIONS
 	/* and the .text and .data of the remaining files */
 	*/*.*po(.text)
 
+	. = ALIGN(16);
+	__varlist_start = .;
+	*(.varlist)
+	__varlist_end = .;
+
 	*(.datad)
+	non-asm/*.*po(.data)
+	non-asm/*.*po(.rdata)
 	*(.dataw)
 	*(.datab)
 	. = ALIGN(4);
@@ -61,6 +70,7 @@ SECTIONS
 	__pbss_start = .;
 	*.*po(.bss)
 	*/*.*po(.bss)
+	*(COMMON)
 	*(.bss2)
 	*(.bss1)
 	. = ALIGN(4);

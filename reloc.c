@@ -16,4 +16,5 @@ RELOC(industrydatablock)
 RELOC(bTempRaiseLowerDirection)
 RELOC(bTempRaiseLowerCorner)
 RELOC(player2ofs)
+RELOC(landscape8)
 

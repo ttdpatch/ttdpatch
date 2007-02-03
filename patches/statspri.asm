@@ -11,9 +11,12 @@
 #include <veh.inc>
 #include <misc.inc>
 #include <ptrvar.inc>
+#include <newvehdata.inc>
+#include <imports/dropdownex.inc>
+#include <bitvars.inc>
 
 extern GenerateDropDownMenu,actionhandler
-extern actionnewstations_actionnum,cantrainenterstattile,cleartilefn
+extern actionnewstations_actionnum,cantrainenterstattile,canrventerrailstattile,cleartilefn
 extern curcallback,curgrfstationlist,curselclass,curselclassid,curselstation
 extern curselstationid,curspriteblock,disallowedlengths,disallowedplatforms
 extern ecxcargooffset,fixednumber_addr,getdesertmap,geteffectivetracktype
@@ -32,10 +35,52 @@ extern lookuptranslatedcargo_usebit,gettileterrain
 extern failpropwithgrfconflict,lastextragrm,curextragrm,setspriteerror
 extern generatesoundeffect,redrawtile,stationanimtriggers,callback_extrainfo
 extern miscgrfvar,irrgetrailxysouth,getirrplatformlength
+extern DrawStationImageInSelWindow,MakeTempScrnBlockDesc
+extern convertplatformsinecx,convertplatformsincargoacceptlist,convertplatformsinremoverailstation
 
 // bits in L7:
 %define L7STAT_PBS 1		// is station tile in a PBS block?
 %define L7STAT_BLOCKED 2	// is station tile blocked (can't be entered)?
+
+	//	in:	esi=window
+	//		al=tracktype
+	//		ax,cx = position
+	global drawstationimageinrailselectwin
+drawstationimageinrailselectwin:
+	push edi
+	// create temp screen description
+	pusha
+	mov edi, baTempBuffer1
+	mov byte [edi], 0
+	//	DX,BX = X,Y CX,BP = width,height
+	mov dx, [esi+window.x]
+	mov bx, [esi+window.y]
+	add dx, 7
+	add bx, 26
+	mov cx, 134 //66
+	mov bp, 48
+
+	call [MakeTempScrnBlockDesc]
+	popa 
+	jz .invalid
+	mov edi, baTempBuffer1
+
+	push cx
+	push dx
+	push esi
+	mov al, [currconstrtooltracktype]
+	call [DrawStationImageInSelWindow]
+	pop esi
+	pop dx
+	pop cx
+	
+	add cx, 68
+	mov bl, 3
+	mov al, [currconstrtooltracktype]
+	call [DrawStationImageInSelWindow] 
+.invalid:
+	pop edi
+	ret
 
 	// get sprite set for display in station construction window
 	//
@@ -263,9 +308,11 @@ isstationavailable:
 .done:
 	mov dh,0
 	ret
-
+	
+#if 0
 global makestationclassdropdown
 makestationclassdropdown:
+	jmp makestationclassdropdownex
 	mov eax,0xc000
 	xor ebx,ebx
 .loop:
@@ -293,7 +340,146 @@ makestationclassdropdown:
 	movzx dx,byte [curselclass]		// current selection
 	jmp [GenerateDropDownMenu]
 
-uvarb stationdropdownnums,32
+#else
+
+exported makestationclassdropdown
+	extcall GenerateDropDownExPrepare
+	jnc .noolddrop
+	ret
+.noolddrop:
+	push ecx
+	xor eax,eax
+	xor ebx,ebx
+.loop:
+	cmp al, MAXDROPDOWNEXENTRIES
+	jae .done
+	
+	mov ecx, 0xc000
+	mov cl, al
+	mov dword [DropDownExList+4*eax],ecx
+
+	push eax
+	movzx eax,al
+	call findstationforclass
+	pop eax
+	jnc .gotstation
+	bts [DropDownExListDisabled], eax	// mark as disabled, no stations available
+	
+.gotstation:
+	inc eax
+	cmp al, MAXDROPDOWNEXENTRIES
+	jae .done
+	cmp al,[numstationclasses]
+	jb .loop
+
+.done:
+	mov dword [DropDownExList+4*eax],-1	// terminate it
+	movzx dx,byte [curselclass]		// current selection
+	pop ecx
+	mov byte [DropDownExMaxItemsVisible], 16 // Changed the word to a byte to match var size (Lakie)
+	extjmp GenerateDropDownEx
+#endif
+	
+	
+uvarb stationdropdownnums,255
+#if 1
+exported makestationseldropdown
+	extcall GenerateDropDownExPrepare
+	jnc .noolddrop
+	ret
+.noolddrop:
+	test byte [expswitches],EXP_PREVIEWDD
+	jnz .preview
+	mov byte [DropDownExMaxItemsVisible], 12
+	jmp .setupdone
+.preview:
+	mov word [DropDownExListItemExtraWidth], 38
+	mov word [DropDownExListItemHeight], 23
+	mov byte [DropDownExMaxItemsVisible], 7
+	mov word [DropDownExFlags], 11b
+	mov dword [DropDownExListItemDrawCallback], makestationseldropdown_callback
+.setupdone:
+	xor eax,eax
+	mov bl,[curselclass]
+	mov bh,-1
+	xor edx,edx
+.loop:
+	cmp al,MAXDROPDOWNEXENTRIES
+	jae .done
+
+	cmp [stationclass+edx],bl
+	jne .next
+
+	call isstationavailable
+	jc .next
+	
+	mov dword [DropDownExList+eax*4],0xc100
+	mov byte [DropDownExList+eax*4],dl
+	
+	mov [stationdropdownnums+eax],dl
+
+	cmp dl,[curselstation]
+	jne .notcur
+
+	mov bh,al
+
+.notcur:
+	inc eax
+
+.next:
+	cmp al,MAXDROPDOWNEXENTRIES
+	jae .done
+	inc edx
+	cmp edx,[newstationnum]
+	jbe .loop
+
+.done:
+	mov dword [DropDownExList+4*eax],-1	// terminate it
+	movzx edx,bh		// current selection
+	extjmp GenerateDropDownEx
+
+// in cx, dx (x,y)
+makestationseldropdown_callback:
+	push edi
+	// create temp screen description
+	add cx, 1
+	pusha
+	mov edi, baTempBuffer1
+	mov byte [edi], 0
+	//	DX,BX = X,Y CX,BP = width,height
+	mov ebx, edx
+	mov edx, ecx
+	mov cx, 64/2
+	mov bp, 46/2
+
+	call [MakeTempScrnBlockDesc]
+	popa
+	jz .invalid
+	mov edi, baTempBuffer1
+	mov word [edi+scrnblockdesc.zoom], 1
+	shl word [edi+scrnblockdesc.x], 1
+	shl word [edi+scrnblockdesc.y], 1
+	shl word [edi+scrnblockdesc.width], 1
+	shl word [edi+scrnblockdesc.height], 1
+	pusha
+	mov al, byte [curselstation]
+	push eax
+	mov bl, byte [stationdropdownnums+ebx]
+	mov byte [curselstation], bl
+	mov bl, 2
+	mov al, [currconstrtooltracktype]
+	add cx, 16
+	add dx, 8
+	shl cx, 1
+	shl dx, 1
+	call [DrawStationImageInSelWindow]
+	pop eax
+	mov byte [curselstation], al
+	popa
+.invalid:
+	pop edi
+	ret
+#else
 
 global makestationseldropdown
 makestationseldropdown:
@@ -335,6 +521,7 @@ makestationseldropdown:
 	movzx edx,bh		// current selection
 	xor ebx,ebx		// everything available
 	jmp [GenerateDropDownMenu]
+#endif
 
 global stationseldropdownclick
 stationseldropdownclick:
@@ -963,6 +1150,16 @@ newstationtile:
 	mov [edi+eax*8+stationid.gameid],cl
 	mov [edi+eax*8+stationid.setid],dl
 
+	// also set stationnonenter and stationrventer
+	extern persgrfdata
+	mov bl,[cantrainenterstattile+ecx]
+	mov [stationnonenter+eax],bl
+	
+	mov ebx,[canrventerrailstattile+ecx*8]
+	mov [stationrventer+eax*8],ebx
+	mov ebx,[canrventerrailstattile+ecx*8+4]
+	mov [stationrventer+eax*8+4],ebx
+
 .gotit:
 	inc word [edi+eax*8+stationid.numtiles]
 	xchg eax,ecx
@@ -1177,6 +1374,19 @@ alteraddlandscape3tracktype:
 	call [ebp+4]
 	popa
 
+	// if old tile was station tile, adjust the appropriate .numtiles
+	mov bl,[landscape4(di,1)]
+	and bl,0xf0
+	cmp bl,0x50
+	jne .notoverbuild
+
+	movzx ebx,byte [landscape3+edi*2+1]
+	test ebx,ebx
+	jz .notoverbuild
+
+	dec word [stationidgrfmap+ebx*stationid_size+stationid.numtiles]
+
+.notoverbuild:
 	movzx ebx,byte [curplayer]
 	mov ah,[curselstationid+ebx]
 	call newstationtile
@@ -1425,9 +1635,9 @@ checktrainenterstationtile:
 	cmp al,0
 	jne .old
 
+	extern newvehdata
 	movzx eax,byte [landscape3+edi*2+1]
-	movzx eax,byte [stationidgrfmap+eax*8+stationid.gameid]
-	mov ah,[cantrainenterstattile+eax]
+	mov ah,[stationnonenter+eax]
 	mov al,[landscape5(di,1)]
 	add al,8
 	bt eax,eax	// really bt ah,tiletype
@@ -1461,8 +1671,7 @@ doestrainstopatstationtile:
 	jnz .done       // wrong 
 	
 	movzx esi,byte [landscape3+esi*2+1]
-	movzx esi,byte [stationidgrfmap+esi*8+stationid.gameid]
-	mov dh,[cantrainenterstattile+esi]
+	mov dh,[stationnonenter+esi]
 	add dl,8
 	bt edx,edx	// really bt dh,tiletype
 //	jc .stop
@@ -1492,6 +1701,7 @@ doestrainstopatstationtile:
 //	 P position along this platform (0 for beginning)
 //	 p position counted from end (0 for end)
 //
+// ecx=NNLLCCPP
 global getplatforminfo,getplatforminfo.getccpp
 getplatforminfo:
 	mov byte [.checkdirection],0	// direction doesn't matter
@@ -1505,16 +1715,11 @@ getplatforminfo:
 .hastrainfacility:
 	mov ecx,[curstationtile]
 	testmultiflags irrstations
-	jnz .irregular
+	jnz NEAR .irregular
 
-	mov ah,[esi+station.platforms]
-	mov al,ah
-	and ax, 8778h 	// Bitmask: 10000111 1111000
-	shr al, 3
-	cmp ah, 80h
-	jb .istoosmall
-	sub ah, (80h - 8h)
-.istoosmall:
+	mov al,[esi+station.platforms]
+	call convertplatformsincargoacceptlist
+	xchg al, ah
 	// now al = length, ah = tracks
 	shl eax,16
 	mov ax,cx
@@ -1525,17 +1730,59 @@ getplatforminfo:
 	xchg ah,al
 .getccpp:
 	// here eax=NNLLCCPP
+	push eax
+	mov ecx, eax
+	shr ecx, 16	// now cx=NNLL
+	sub cx, ax	// now cx=ccpp
+	sub cx,0x0101
+	test cx, 0xf0f0
+	jnz .saturate
+	test eax, 0xf0f0f0f0
+	jnz .saturate2
+.saturate_done:
+	// here eax=0N0L0C0P
+	// here ecx=00000c0p
+	shl ecx,4
+	or eax,ecx	// now eax=0N0LcCpP
 	ror eax,16
 	mov ecx,eax
 	shr ax,4
-	or al,cl
+	or al,cl	//now eax=cCpP00NL
 	or ah,[curstattiletype]
-	rol eax,16	// now cx=NNLL, eax=0TNLCCPP
-	sub cx,ax	// now cx=ccpp
-	sub cx,0x0101
-	shl cx,4
-	or ax,cx
+	rol eax,16	// now eax=0TNLcCpP
+	pop ecx
 	ret
+.saturate:
+	test cl, 0xf0
+	jz .saturate1
+	mov cl, 0x0f
+.saturate1:
+	test ch, 0xf0
+	jz .saturate2
+	mov ch, 0x0f
+.saturate2:
+	shl ecx, 16
+	test al, 0xf0
+	setz cl
+	dec cl
+	or al, cl
+	test ah, 0xf0
+	setz cl
+	dec cl
+	or ah, cl
+	rol eax, 16
+	test al, 0xf0
+	setz cl
+	dec cl
+	or al, cl
+	test ah, 0xf0
+	setz cl
+	dec cl
+	or ah, cl
+	rol eax, 16
+	and eax, 0x0f0f0f0f
+	shr ecx, 16
+	jmp .saturate_done
 
 .irregular:
 	// ecx=tile
@@ -2192,13 +2439,8 @@ updatestationgraphics:
 	
 .noirrstations:
 	mov dh,[esi+station.platforms]
-	mov dl,dh
-	and dx, 8778h 	// Bitmask: 10000111 1111000
-	shr dl, 3
-	cmp dh, 80h
-	jb .istoosmall
-	sub dh, (80h - 8h)
-.istoosmall:
+	call convertplatformsinremoverailstation
+	xchg dh, dl
 	// now dl = length, dh = tracks
 	test byte [landscape5(ax,1)],1	// orientation
 	jz .notflip
@@ -2286,7 +2528,7 @@ stationplatformtrigger:
 	mov ebx,eax
 	mov esi,eax
 	call getplatforminfo
-	and ah,0x0f
+	mov ah, cl
 	mov al,[esp+0x24]
 	or ah,0x40	// force redraw
 	call randomstationtrigger
@@ -2582,8 +2824,11 @@ exported stationplatformanimtrigger
 	jc .irregular
 
 	mov cl,[esi+station.platforms]
-	and cl,0x78
-	shr cl,3
+	call convertplatformsinecx
+	shr ecx, 8
+	mov ch,1
+	
+	//cl=length, ch=tracks
 
 	test byte [landscape5(bx)],1
 	jnz .ydir
@@ -2626,15 +2871,9 @@ exported stationanimtrigger
 	testflags irrstations
 	jc .irregular
 
-	mov ch,[esi+station.platforms]
-	mov cl,ch
-	and ch, 0x87
-	and cl, 0x78
-	shr cl, 3
-	test ch,0x80
-	jz .notlarge
-	add ch,8-0x80
-.notlarge:
+	mov cl,[esi+station.platforms]
+	call convertplatformsinecx
+	xchg cl, ch
 
 	test byte [landscape5(bx)],1
 	jz .gotposandsize
@@ -2759,4 +2998,38 @@ exported periodicstationupdate
 	mov edx,6
 	call stationanimtrigger
 	clc
+	ret
+
+	
+	
+// Functions dealing with RV on rail station by eis_os
+
+// special functions to handle station properties
+//
+// in:	eax=special prop-num
+//	ebx=offset (stationid)
+//	ecx=num-info
+//	esi=>data
+// out:	esi=>after data
+//	carry clear if successful
+//	carry set if error, then ax=error message
+
+exported setrailstationrvrouteing
+.nexstationid:
+	//CALLINT3			// prevent the use of this feature by grfauthors until the feature is complete
+	lodsd
+	test eax, 0xF0F0F0F0	// prevent the use of the upper 4 bits
+	jnz .bad 
+	mov [canrventerrailstattile+ebx*8], eax
+	lodsd
+	test eax, 0xF0F0F0F0
+	jnz .bad 
+	mov [canrventerrailstattile+ebx*8+4], eax
+	inc ebx
+	loop .nexstationid
+	clc	// no error
+	ret
+.bad:
+	mov ax, ourtext(invalidsprite)
+	stc
 	ret

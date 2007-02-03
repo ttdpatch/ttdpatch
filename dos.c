@@ -12,6 +12,7 @@
 #include <process.h>
 #include <dos.h>
 #include <conio.h>
+#include <io.h>
 
 #ifdef __BORLANDC__
 #include <dir.h>
@@ -21,6 +22,7 @@
 #include <malloc.h>
 #endif
 
+#include "zlib.h"
 #define IS_DOS_CPP
 #include "error.h"
 #include "exec.h"
@@ -107,7 +109,7 @@ void checkpatch(void)
   fread(&initialize1ptr, 4, 1, f);
   fread(&auxdataptr, 4, 1, f);
 
-  if (!findattachment(AUX_PROTCODE, &pcofs, &prcode))
+  if (!findattachment(AUX_LOADER, &pcofs, &prcode))
 	error(langtext[LANG_INTERNALERROR], 7);
 
   fseek(prcode, pcofs, SEEK_SET);
@@ -388,6 +390,26 @@ int copyfiledata(long size, FILE *from, FILE *to, char *buffer, long bufsize)
   return 1;
 }
 
+int copygzfiledata(long size, gzFile from, FILE *to, char *buffer, long bufsize)
+{
+  long towrite, written;
+  while (size > 0) {
+	if (size > bufsize)
+		towrite = bufsize;
+	else
+		towrite = size;
+	written = gzread(from, buffer, towrite);
+	if (written != towrite)
+		return 0;
+
+	written = fwrite(buffer, 1, towrite, to);
+	if (written != towrite)
+		return 0;
+
+	size -= written;
+  }
+  return 1;
+}
 //
 // write protected mode code into the given file
 //
@@ -400,18 +422,19 @@ int writepatchdata(FILE *dat)
 
   u32 ofs;
   FILE *f;
+  gzFile gz;
   char *data;
 
   if (!findattachment(AUX_PROTCODE, &ofs, &f))
 	error(langtext[LANG_INTERNALERROR], 8);
 
   fseek(f, ofs, SEEK_SET);
-  fread(&patchmemsize, 4, 1, f);	// loader size
-  fseek(f, patchmemsize, SEEK_CUR);
 
-  fread(&patchmemsize, 4, 1, f);
-  fread(&patchdatsize, 4, 1, f);
-  fseek(f, sizeof(paramset), SEEK_CUR);	// skip flags
+  gz = gzdopen(dup(fileno(f)), "rb");
+
+  gzread(gz, &patchmemsize, 4);
+  gzread(gz, &patchdatsize, 4);
+  gzseek(gz, sizeof(paramset), SEEK_CUR);	// skip flags
 
   fwrite(&patchmemsize, 4, 1, dat);
   fwrite(&patchdatsize, 4, 1, dat);
@@ -424,8 +447,10 @@ int writepatchdata(FILE *dat)
 	// second dword in protectedcode is initialized size to write
 
   // write in chunks of at most 16 KB
-  if (!copyfiledata(patchdatsize, f, dat, data, 16384))
+  if (!copygzfiledata(patchdatsize, gz, dat, data, 16384))
 	error(langtext[LANG_INTERNALERROR], 10);
+
+  gzclose(gz);
 
   if (curversion->h.numoffsets) {
 	fileversize = totversize = sizeof(versionheader) + 4 * curversion->h.numoffsets;
@@ -513,7 +538,9 @@ int runttd(const char *program, char *options, langinfo **linfo)
     (void)_heapmin();	// BCC complains if return code not used
     #endif
 
-    if (willswap)	{	// we need to swap out to make enough memory
+    if (debug_flags.norunttd) {
+	warning(lang_runerror, program, "DEBUG SWITCH");
+    } else if (willswap) {	// we need to swap out to make enough memory
 	result = do_exec((char *)program, options, 0x17, 0xffff, NULL);
 	if (result > 0x100) {
 		char reason[8];

@@ -10,6 +10,7 @@
 #include <systexts.inc>
 #include <bitvars.inc>
 #include <flagdata.inc>
+#include <house.inc>
 
 extern calloc,copyspriteinfofn,curfileofsptr,curspriteblock,decodespritefn
 extern dummygrfid,exscurfeature,exsfeaturemaxspritesperblock
@@ -40,6 +41,16 @@ var defnewgrfcfg
 	db "newgrf.cfg",0
 #endif
 var defnewgrfcfg_end
+
+varb basegrfname
+#if WINTTDX
+	db "newgrf/ttdpbasew.grf",0
+#else
+	db "newgrf/ttdpbase.grf",0
+#endif
+endvar
+%define BASEGRF_VERCODE 0xBD25
+%define BASEGRF_VERNUM 2
 
 
 uvard dummyspriteblock
@@ -92,6 +103,7 @@ proc initializegraphics
 
 	// process newgrf(w).cfg
 	call processnewgrf
+	testflags canmodifygraphics,bts
 
 .none:
 
@@ -395,7 +407,10 @@ endproc initializegraphics
 
 #define PRESPRITESIZE 8
 
-// in:	edx=pointer to filename
+// in:	eax=number of parameters
+//	edx=pointer to filename
+//	edi->parameter data (0 if none)
+// out:	esi=number of sprites loaded (0 or less if failed)
 proc readgrffile
 	local sprite,spriteptr,len,numsprites,filename,numparam,paramofs,pseudo,curptr
 	local fileoffset
@@ -407,11 +422,10 @@ proc readgrffile
 	mov [curgrffile],edx
 	mov [%$paramofs],edi
 	call dword [openfilefn]
+	mov esi,0		// clear esi without disturbing flags
 	jc near .fail		// file open failed
 
 	mov [tempspritefilehandle],bx
-
-	xor esi,esi
 
 	mov [curfileblocksize],si	//0
 
@@ -550,7 +564,6 @@ proc readgrffile
 	jl .fail
 
 	add [totalnewsprites],esi
-	testflags canmodifygraphics,bts
 
 .fail:
 	and dword [curgrffile],0
@@ -559,6 +572,7 @@ proc readgrffile
 endproc // readgrffile
 
 #ifdef DEBUGSPRITESTORE
+#include <win32.inc>
 proc log_spritestore
 	arg num,len,addr
 
@@ -586,6 +600,8 @@ log_sprite:
 	cmp dword [.hnd],0
 	jne .gothnd
 
+	extern hexdwords,hexwords
+
 	push 0			// hTemplateFile
 	push 128		// dwFlagsandAttributes = FILE_ATTRIBUTE_NORMAL
 	push 2			// dwCreationDisposition = CREATE_ALWAYS
@@ -609,6 +625,7 @@ log_sprite:
 	or ecx,byte -1
 	repne scasb
 	neg ecx
+	dec ecx
 	dec ecx
 
 	push 0
@@ -641,18 +658,18 @@ log_sprite:
 	popa
 	_ret 0
 
-var .filename, db "spriteio.log",0
-uvard .hnd
-uvard .written
+noglobal varb .filename, "spriteio.log",0
+noglobal uvard .hnd
+noglobal uvard .written
 
-var .text
+noglobal varb .text
 	db ": "
-var .type
-	db "####ing sprite "
-var .sprite, db		  "#### size "
-var .size, db 			    "#### at "
-var .addr, db				    "########",13,10
-var .end
+.type:	db "####ing sprite "
+.sprite:db		  "#### size "
+.size:	db 			    "#### at "
+.addr:	db				    "########",13,10
+.end:
+endvar
 endproc
 #endif
 
@@ -687,6 +704,7 @@ makespriteblock:
 //
 // in:	eax(0:15)=error text
 //	eax(16:31)=error parameter (currently only used by "invalid sprite" message)
+//	ebx->error parameter (for grfbefore/grfafter message)
 //	edi->first byte in sprite generating error
 // out:	eax->spriteblock
 //
@@ -718,6 +736,15 @@ settempspriteerror:
 	mov [edx+spriteblock.errparam+2],ax
 	pop eax
 
+	cmp ax,ourtext(grfbefore)
+	je .beforeafter
+	cmp ax,ourtext(grfafter)
+	jne .notbeforeafter
+
+.beforeafter:
+	mov [edx+spriteblock.errparam],ebx
+
+.notbeforeafter:
 	push ax
 	cmp dword [spriteerror],0
 	jne .alreadyhaveerror
@@ -780,10 +807,76 @@ resolvesprites:
 	call procallsprites
 	mov eax,PROCALL_INITIALIZE
 	call procallsprites
-
-.done:
 	popa
 	ret
+
+	// no base graphics loaded, try adding file to the list or else complain
+exported forceloadbasegrf
+	pusha
+
+	// see if we can open the file
+	mov ax,0x3d40
+	mov edx,basegrfname
+	CALLINT21
+	jc .notloaded
+
+	// close it again
+	mov bx,ax
+	mov ah,0x3e
+	CALLINT21
+
+	xor eax,eax
+	mov edx,basegrfname
+	xor edi,edi
+	call readgrffile
+
+	cmp esi,1
+	jl .notloaded
+
+	// need to to the LOADED and INITIALIZE stages for this file only
+	mov edx,[curspriteblock]
+	or byte [edx+spriteblock.flags],1<<4
+	xchg edx,[spriteblockptr]
+	push edx
+	call resolvesprites
+	pop esi
+	xchg esi,[spriteblockptr]
+	mov edx,esi
+
+	test byte [grfmodflags+3],0x80
+	jnz .done
+	mov ax,ourtext(wronggrfversion)
+	jmp short .notvalid
+
+.notloaded:
+	call makespriteblock
+	mov ax,ourtext(filenotfound)
+	or byte [esi+spriteblock.flags],1<<4
+.notvalid:
+	mov edx,esi
+	and dword [spriteerror],0		// this error overrides all others
+	mov dword [esi+spriteblock.filenameptr],basegrfname
+	call setspriteerror
+
+.done:
+	// move to beginning of list
+	mov eax,edx				// eax=edx=base grf
+	mov ebx,[spriteblockptr]
+	xchg eax,[ebx+spriteblock.next]		// now eax=original first link
+	xchg eax,[edx+spriteblock.next]		// store as base grf's next, get original next
+	mov ebx,edx
+.next:						// then find end of chain
+	cmp [ebx+spriteblock.next],edx
+	je .found
+	mov ebx,[ebx+spriteblock.next]
+	test ebx,ebx
+	jg .next
+	ud2					// this can't happen
+.found:
+	mov [ebx+spriteblock.next],eax		// store base grf's original next at end of chain
+	popa
+	ret
+
 
 // set all grf files to "will be (in)active
 global setwillbeactive
@@ -808,6 +901,7 @@ uvard lastskip
 uvard lastsprite
 
 uvard spritehandlertable
+uvard procallclear
 
 uvarb procallsprites_noreset
 uvarb procallsprites_replaygrm
@@ -816,12 +910,14 @@ uvard procall_type
 global procallsprites
 procallsprites:
 	mov [procall_type],eax
+	mov edx,[procall_clear+eax*4]
+	mov [procallclear],edx
 	mov eax,[procall_handlers+eax*4]
 	mov [spritehandlertable],eax
 	mov edx,[spriteblockptr]
 
 	test edx,edx
-	jle .done
+	jle near .done
 
 	mov edi,grfvarreinitalwaysstart
 	mov ecx,numgrfvarreinitalways
@@ -851,13 +947,29 @@ procallsprites:
 	mov ecx,GRM_EXTRA_NUM
 	rep movsd
 
-	call procgrffile
+	mov edi,[procallclear]
+	test edi,edi
+	jz .noclearproc
 
-	cmp dword [edx+spriteblock.grfid],0
-	jne .nextblock
+	call edi
+
+.noclearproc:
+	mov edi,[grfmodflags]
+	push edi
+	call procgrffile
+	pop edi
 
 	cmp byte [edx+spriteblock.active],0x80	// had other errors?
 	je .nextblock
+
+	xor edi,[grfmodflags]	// if bit 31 has changed, grf claims to
+	jns .notbasegrf		// be our base grf, validate that
+
+	call checkbasegrf
+
+.notbasegrf:
+	cmp dword [edx+spriteblock.grfid],0
+	jne .nextblock
 
 	mov eax,[spritehandlertable]
 	cmp dword [eax+spritegrfidcheckofs],byte -1
@@ -881,6 +993,68 @@ procallsprites:
 
 extern PROCALL_HANDLERS
 vard procall_handlers, PROCALL_HANDLERS
+vard procall_clear, PROCALL_CLEAR
+
+	// called before every infoapply, and once for each file
+	// during initialization
+exported resetgrm
+	pusha
+
+	extern clearstationgameids,clearhousedataids,lastextrahousedata
+	extern disabledoldhouses,lasthousedataid,lastindustiledataid
+	extern clearindustiledataids,lastextraindustiledata,industileoverrides
+
+	call clearstationgameids	// clear station game ids; they'll get
+					// the right value by infoapply
+	testflags newhouses
+	jnc .nonewhouses
+	call clearhousedataids
+	mov byte [lastextrahousedata],0
+	xor eax,eax			// clear house overrides
+	mov edi,houseoverrides
+	lea ecx,[eax+110]
+	rep stosb
+
+	and dword [disabledoldhouses+0],0
+	and dword [disabledoldhouses+4],0
+	and dword [disabledoldhouses+8],0
+	and dword [disabledoldhouses+12],0
+.nonewhouses:
+
+	call clearindustiledataids
+	mov byte [lastextraindustiledata],0
+	xor eax,eax			// clear industry tile overrides
+	mov edi,industileoverrides
+	lea ecx,[eax+0xAF]
+	rep stosb
+
+	cmp dword [procall_type],PROCALL_INITIALIZE
+	ja .noidreset
+	mov byte [lasthousedataid],0
+	mov byte [lastindustiledataid],0
+.noidreset:
+	popa
+	ret
+
+extern grfmodflags
+checkbasegrf:
+	cmp dword [edx+spriteblock.grfid],byte -1
+	jne .notvalid
+	cmp byte [edx+spriteblock.numparam],4
+	jb .notvalid
+	mov edi,[edx+spriteblock.paramptr]
+	cmp word [edi+4*4+2],BASEGRF_VERCODE
+	jne .notvalid
+	cmp word [edi+4*4],BASEGRF_VERNUM
+	jae .done
+
+.notvalid:
+	and dword [spriteerror],0		// this error overrides all others
+	mov ax,ourtext(wronggrfversion)
+	call setspriteerror
+	and byte [grfmodflags+3],~0x80		// clear bit, grf was not right
+.done:
+	ret
 
 
 global procgrffile
@@ -1015,11 +1189,9 @@ pseudospriteaction:
 .good:
 	lodsb
 
-	cmp ecx,5
-	jnb .always	// non-vehicle specific actions are always carried out
-
-	dec ecx		// always do action 1 to skip the sprites
-	jz short .always
+	extern docheckfeature
+	bt [docheckfeature],ecx
+	jnc .always	// non-vehicle specific actions are always carried out
 
 	cmp eax,0x48
 	mov cl,INVSP_BADFEATURE
@@ -1136,6 +1308,8 @@ insertactivespriteblockaction1:
 // in:	al=GRM_EXTRA_* code
 // out:	returns appropriately for grf handler
 exported failwithgrfconflict
+	cmp dword [procall_type],PROCALL_INITIALIZE
+	jbe .badness
 	call setgrfconflict
 	jnz .haveit
 
@@ -1144,9 +1318,13 @@ exported failwithgrfconflict
 .haveit:
 	or edi,byte -1
 	ret
+.badness:
+	ud2
 
 // same as above, but to be called from an action 0 prop handler
 exported failpropwithgrfconflict
+	cmp dword [procall_type],PROCALL_INITIALIZE
+	jbe .badness
 	call setgrfconflict
 	mov ax,ourtext(toomanysprites)
 	jz .haveit
@@ -1154,6 +1332,8 @@ exported failpropwithgrfconflict
 .haveit:
 	stc
 	ret
+.badness:
+	ud2
 
 setgrfconflict:
 	movzx eax,al
@@ -1387,6 +1567,9 @@ setspriteinfo:
 	call log_spriteread
 #endif
 
+	test ecx,ecx
+	js .pseudo
+
 	xor eax,eax
 	lodsb			// skip sprite type (compression code)
 	lodsb
@@ -1404,6 +1587,7 @@ setspriteinfo:
 
 	lodsw
 	mov [ebx+edi*2],ax	// set y offset
+.pseudo:
 	ret
 
 

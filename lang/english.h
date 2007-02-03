@@ -186,7 +186,6 @@ TEXTARRAY(halflines,) =
 	  "-D:  Dynamite can destroy more items",
 	  "-E:  Move red error popups",
 	  "-F:  Full load means any cargo type",
-	  "-G:  Selectable station goods",
 	  "-H:  Custom bridge heads",
 	  "-I:  Turn off inflation",
 	  "-J:  Allow more airports per city",
@@ -222,7 +221,6 @@ TEXTARRAY(halflines,) =
 	  "-XE: Electrified railways",
 	  "-XF: Enable experimental features",
 	  "-XH: Save+display news history",
-	  "-XI: Enable path based signalling",
 	  "-XL: Show profit in vehicle list",
 	  "-XO: Enabled shared/copied orders",
 	  "-XP: New aircraft models",
@@ -234,7 +232,6 @@ TEXTARRAY(halflines,) =
 	  "-Yb: Building more things on slopes",
 	  "-Yc: Track types have different cost",
 	  "-Yd: New bridges",
-	  "-Yg: Changeable gamespeed",
 	  "-Yh: Allow higher bridges",
 	  "-Ym: Allow manual track conversion",
 	  "-Yn: Enable new station graphics",
@@ -248,8 +245,30 @@ TEXTARRAY(halflines,) =
 	  "-YH: More/new hotkeys",
 	  "-YL: Speed limits for train wagons",
 	  "-YN: Enable new town name schemes",
-	  "-YP: Planes fly at the indicated speed",
 	  "-YS: Semaphore signals before 1975",
+
+	  "-Zc: Enable new cargo types",
+	  "-Zd: New station cargo distribution",
+	  "-Ze: Allow rails on rail tunnel",
+	  "-Zf: Allow main view to follow vehicle",
+	  "-Zi: Enable new industries",
+	  "-Zj: Enable shorter road vehicles",
+	  "-Zo: Enable building one-way roads",
+	  "-Zu: Enable articulated road vehicles",
+
+	  "-ZA: Enable new airports",
+	  "-ZC: Enable AI transport type chances",
+	  "-ZD: Enables the cloning of trains",
+	  "-ZI: Enable irregular stations",
+	  "-ZM: Collect more company statistics",
+	  "-ZN: Enables newRoutes",
+	  "-ZO: Allow landscaping under objects",
+	  "-ZR: Prevent towns from building roads",
+	  "-ZS: Enable new sound effects",
+	  "-ZT: Allow buildings tramways",
+	  "-ZX: Enable adjacent stations",
+	  "-ZZ: Enable route tracing restrictions",
+	  "-ZW: Enable new signal graphics",
 
 	  NULL
 	};
@@ -263,6 +282,8 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-x #:    Extend the vehicle array to 850*#. Read the documentation!\n"
 	  "-mc #:   New mountain or curve handling, respectively\n"
 	  "-trpb #: Increase number of trains, road vehicles, planes or ships, resp.\n"
+	  "-A #:    Enable autoreplace for vehicles with given minimum reliability\n"
+	  "-G #:    Selectable station goods. # is days before cargo disappears again.\n"
 	  "-M #:    Allow multi-headed trains, set speed increase in percent.\n"
 	  "-U #:    Enable the new locomotion-like gui. 1 for new gui without ctrl.\n"
 	  "-Xa #:   Automatically renew vehicles # months after end of their life span\n"
@@ -273,6 +294,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-Xz #:   Snap windows together\n"
 	  "-XC #:   Allow more currencies,  and set currency display options\n"
 	  "-XD #:   Choose which disasters may occur\n"
+	  "-XI #:   Enable path based signalling\n"
 	  "-XN #:   TTD newspaper in color after the given year\n"
 	  "-XM #:   Combine monorail and maglev track systems\n"
 	  "-XT #:   Set one out of how many towns grows faster and larger\n"
@@ -281,6 +303,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-XW #:   Stretch TTD's window to this size in pixels (Windows version only)\n"
 	  "-X1 #, -X2 #: Max. time train waits at red one-way resp. two-way signal in days\n"
 	  "-Yf #:   Make freight trains more massive by the given factor\n"
+	  "-Yg #:   Changeable gamespeed. # is speed at game start\n"
 	  "-Yl #:   Enable mouse wheel support and set options (Windows version only)\n"
 	  "-Yo #:   Control some features of other switches (see the documentation)\n"
 	  "-Yp #:   Allow planting many trees, choose plant mode\n"
@@ -290,9 +313,20 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-YM #:   Show more (or fewer) steam plumes, value sets amount\n"
 	  "-YG #:   Enhance the user interface, choose option with parameter\n"
 	  "-YO #:   Enable the snow line in the temperate climate and set its height\n"
+	  "-YP #:   Planes fly at #/4 times their indicated speed.\n"
 	  "-YR #:   Override map refresh frequency to # ticks\n"
 	  "-YT #:   Set town growth rate algorithm\n"
 	  "-YW #:   Set maximum allowed window count\n"
+	  "-Za #:   Enable more animation (sets number of animated tiles)\n"
+	  "-Zb #:   Set probability for town road branches\n"
+	  "-Zg #:   Force initial game options\n"
+	  "-Zh #, -Zw #: Set screen resolution height and width\n"
+	  "-Zn #:   Set network timeout in seconds\n"
+	  "-Zx #, -Zy #, -Zz #: Set chance for AI to build rail/road/air route\n"
+	  "-Zp #, -Zr #, -Zs #, -Zt #: Warn about lost aircraft, road vehicles, ships and\n"
+	  "         trains after this many days\n"
+	  "-ZF #:   Enable certain game features in the Toyland climate\n"
+	  "-ZY #:   Set maximum rail station size (still limited by station spread)\n"
 	  "\n"
 	  "-C cfg-file:  Read this configuration file instead of ttdpatch.cfg\n"
 	  "-W cfg-file:  Creates a configuration file with the current configuration\n"
@@ -468,7 +502,16 @@ SWITCHTEXT(followvehicle, "Follow vehicle motion in main map", "")
 SWITCHTEXT(trams, "Enable trams on Roads", "")
 SWITCHTEXT(enhancetunnels, "Allows building track on top of tunnel entrances", "")
 SWITCHTEXT(forcegameoptions, "Allows you to force game options","")
+SWITCHTEXT(shortrvs, "Enabled Shortened (or lengthened) RVs", "")
+SWITCHTEXT(articulatedrvs, "Enabled Articulated RVs", "")
 SWITCHTEXT(newairports, "Allows using new airport types","")
+SWITCHTEXT(newroutes, "Allows the changing of Rails and Roads through grf files", "")
+SWITCHTEXT(clonetrain, "Allows the cloning of a train through the depot window.", "")
+SWITCHTEXT(tracerestrict, "Enables train routetracing to be restricted", "")
+SWITCHTEXT(stationsize, "Set maximum rail station size (still limited by station spread)", "")
+SWITCHTEXT(adjacentstation, "Adjacent station building and remote merging with other stations", "")
+SWITCHTEXT(newsignals, "New signal graphics", "")
+SWITCHTEXT(newobjects, "Enable new objects", "")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -511,10 +554,11 @@ BIT(displaytownsize,       "display town size in the name")
 BIT(noextendstationrange,  "don't increase the maximum allowed distance between station sign and industry for cargo to be delivered")
 BIT(nooldvehiclenews,      "don't generate news messages when vehicles get old")
 BIT(dontfixpaymentgraph,   "don't fix the X axis of the cargo payment rate window")
-BIT(loaduntilgreen,        "keep loading at station until exit signal is green")
+//BIT(loaduntilgreen,        "keep loading at station until exit signal is green")
 BIT(dontshowaltitude,      "Don't show altitude in tile info window")
 BIT(nogrfidsinscreenshots, "Don't show active grfids in screenshots")
 BIT(dontchangesnow,        "Don't change how height is calculated for snowiness")
+BIT(notransparentdepots,   "Don't make road and tram depots transparent in transparent-buildings mode")
 
 // Description for morebuildoptions bits
 BITSWITCH(morebuildoptions)
@@ -533,6 +577,12 @@ BIT(slowcrossing, "trains slow down before crossings")
 BIT(cooperative,  "cooperative play, very limited")
 BIT(mandatorygrm, "make GRF Resource Management mandatory for .grf files")
 BIT(incvehconsist, "build even more then 255 trains per company (very experimental)")
+BIT(signalgui,     "alter signals with the signal window (very experimental)")
+BIT(newterraingen, "new terrain generator for random landscapes")
+BIT(engineconvert, "converts an engine to a extra head (very experimental)")
+BIT(previewdd,     "Show previews in the station drop down")
+BIT(extradetails,  "Show more specs in the vehicle details window")
+
 
 // Description for maskdisasters bits
 BITSWITCH(maskdisasters)
@@ -650,6 +700,9 @@ SETTEXT(CFG_INTRO,
 // Line before previously unset switches
 SETTEXT(CFG_NEWSWITCHINTRO, "**** New switches ****")
 
+// Line before previously unset bits in bit switches
+SETTEXT(CFG_NEWBITINTRO, "**** New bits ****")
+
 // For switches which have no command line equivalent
 SETTEXT(CFG_NOCMDLINE, "no command line switch")
 
@@ -692,7 +745,7 @@ SETTEXT(CFG_LOWMEMORY, "`%s' (%s) allows TTDPatch to run with approx. 3.5MB of m
 SETTEXT(CFG_GENERALFIXES, "`%s' (%s) fixes various little things, see the docs for more info on what exactly it does.")
 SETTEXT(CFG_MOREAIRPORTS, "`%s' (%s) allows building more airports than the normal two per city.")
 SETTEXT(CFG_BRIBE, "`%s' (%s) adds a `bribe' option to the local authority menu.")
-SETTEXT(CFG_PLANECRCTRL, "`%s' (%s) allows you to control when planes are allowed to crash.  Bitcoded value, default 1.")
+SETTEXT(CFG_PLANECRCTRL, "`%s' (%s) allows you to control when planes are allowed to crash.")
 SETTEXT(CFG_SHOWSPEED, "`%s' (%s) shows the current speed for all vehicles in the status bar of their window.")
 SETTEXT(CFG_AUTORENEW, "`%s' (%s) renews engines when serviced this number of months after they get very old.  Range %ld..%ld.  Default %ld.")
 SETTEXT(CFG_CHEATSCOST, "`%s' (%s) makes sign cheats cost money when used.")
@@ -708,7 +761,7 @@ SETTEXT(CFG_GRADUALLOADING, "`%s' (%s) changes the way vehicles are loaded to a 
 SETTEXT(CFG_MOVEERRORPOPUP, "`%s' (%s) moves all red error popups to the top-right corner of the screen.")
 SETTEXT(CFG_SIGNAL1WAITTIME, "`%s' (%s) changes the number of days after which a train waiting on a 1-way signal turns around.  Range 0..254, or 255 to wait forever.")
 SETTEXT(CFG_SIGNAL2WAITTIME, "`%s' (%s) changes the number of days after which a train waiting on a 2-way signal turns around.  Range 0..254, or 255 to wait forever.")
-SETTEXT(CFG_DISASTERS, "`%s' (%s) allows you to choose which disasters may occur.  Bitcoded value, default 255 (all disasters).")
+SETTEXT(CFG_DISASTERS, "`%s' (%s) allows you to choose which disasters may occur.")
 SETTEXT(CFG_FORCEAUTORENEW, "`%s' (%s) forces servicing of vehicles when it is time for the auto-renewal (see `autorenew').")
 SETTEXT(CFG_MORENEWS, "`%s' (%s) generates messages/news reports on more events, see the docs for more information.")
 SETTEXT(CFG_UNIFIEDMAGLEV, "`%s' (%s) makes it possible to buy monorail engines in maglev depots or vice versa.  Mode: 1 - convert all maglev engines to monorail; 2 - convert all monorail engines to maglev; 3 - keep separate monorail and maglev.")
@@ -724,14 +777,14 @@ SETTEXT(CFG_STARTYEAR, "`%s' (%s) sets the default start year for random games a
 SETTEXT(CFG_ERRORPOPUPTIME, "`%s' (%s) changes the time after which red error popup windows automatically close.  Range 1..255 (in seconds), or 0 for a very long time.  Default 10.")
 SETTEXT(CFG_TOWNGROWTHLIMIT, "`%s' (%s) changes the factor that limits the maximum possible extent of towns.  Range %ld..%ld.  Default %ld.")
 SETTEXT(CFG_LARGERTOWNS, "`%s' (%s) makes each one out of a given number of towns grow faster and larger (also applying `towngrowthlimit' selectively).  Range %ld..%ld.  Default %ld (one out of four towns).")
-SETTEXT(CFG_MISCMODS, "`%s' (%s) makes it posible to modify the working of some other switches, see the docs on more info.  Bitcoded value, default 0 (no modifications).")
+SETTEXT(CFG_MISCMODS, "`%s' (%s) makes it posible to modify the working of some other switches, see the docs on more info.")
 SETTEXT(CFG_LOADALLGRAPHICS, "`%s' (%s) forces TTDPatch to always load all .grf files in newgrf(w).cfg, regardless of whether they were used previously in a loaded game (etc.) or not.")
 SETTEXT(CFG_SAVEOPTDATA, "`%s' (%s) makes TTDPatch save and load additional (optional) data at the end of savegames.")
-SETTEXT(CFG_MOREBUILDOPTIONS, "`%s' (%s) enables more build options.  Bitcoded value.")
+SETTEXT(CFG_MOREBUILDOPTIONS, "`%s' (%s) enables more build options.")
 SETTEXT(CFG_SEMAPHORES, "`%s' (%s) turns new signals built before 1975 into semaphore signals.")
 SETTEXT(CFG_MOREHOTKEYS, "`%s' (%s) enables new hotkeys.")
-SETTEXT(CFG_MANYTREES, "`%s' (%s) allows planting many trees at once.  Bitcoded value: 1 - can plant more than one tree on a square; 2 - plant trees over a rectangular area with 'Ctrl'; 4 - more than one tree on a square in the rectangular planting mode.  Default 3.")
-SETTEXT(CFG_MORECURRENCIES,"`%s' (%s) enables more currencies and the Euro.  Bitcoded value.  Default 0.")
+SETTEXT(CFG_MANYTREES, "`%s' (%s) allows planting many trees at once.")
+SETTEXT(CFG_MORECURRENCIES,"`%s' (%s) enables more currencies and the Euro.")
 SETTEXT(CFG_MANCONVERT,"`%s' (%s) allows manual track type conversion by placing new tracks over existing tracks.")
 SETTEXT(CFG_NEWAGERATING, "`%s' (%s) makes station ratings more tolerant to vehicle ages.  Now wagons can be up to 21 instead of 3 years old.")
 SETTEXT(CFG_ENHANCEGUI,"`%s' (%s) enhances the user interface.  Change the settings from the entry in TTD's toolbox menu.")
@@ -787,14 +840,14 @@ SETTEXT(CFG_SHIPLOSTTIME, "`%s' (%s) gives a warning about lost ships after the 
 SETTEXT(CFG_AIRCRAFTLOSTTIME, "`%s' (%s) gives a warning about lost aircraft after the given number of days.  Range %ld..%ld.  Default %ld.")
 SETTEXT(CFG_MAPREFRESH, "`%s' (%s) overrides the frequency TTD updates the map window.  Lower numbers mean faster refresh and more CPU usage.  TTD's default is 64.  Range %ld..%ld.  Default %ld.")
 SETTEXT(CFG_NETWORKTIMEOUT, "`%s' (%s) disconnects a network game if there is no response for the given number of seconds.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TOYLANDFEATURES, "`%s' (%s) enables landscape features that are normally disabled in random games in the toyland climate, such as lighthouses.  Bitcoded value.")
+SETTEXT(CFG_TOYLANDFEATURES, "`%s' (%s) enables landscape features that are normally disabled in random games in the toyland climate, such as lighthouses.")
 SETTEXT(CFG_STRETCHWINDOW, "`%s' (%s) stretches the TTD window to this horizontal size in pixels (only for the Windows version of TTD in windowed mode).  Range %ld..%ld.  Default %ld.")
 SETTEXT(CFG_CANALS, "`%s' (%s) allows building canals and locks using the `buy land' tool from the dock construction menu.")
 SETTEXT(CFG_FREIGHTTRAINS, "`%s' (%s) multiplies the cargo carried by cargo trains with the given factor, to simulate very long freight trains.  This only affects train acceleration, the trains do not actually transport more.  Range %ld..%ld.  Default %ld.")
 SETTEXT(CFG_GAMESPEED, "`%s' (%s) Makes the gamespeed changeable. This requires the hotkeys patch. Press 'q' to speed up the game by a factor 2 (to a max of 8x speed) and 'w' to slow it down.  Parameter is the initial setting.  Range %ld..%ld.  Default %ld.")
 SETTEXT(CFG_HIGHERBRIDGES, "`%s' (%s) allows building of higher bridges.")
 SETTEXT(CFG_NEWGRFCFG, "`%s' (%s) chooses the configuration file for new graphics sets.")
-SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s) enables using the mouse wheel in the Windows version. 0 means original zooming with wheel (center stays), 1 means OpenTTD-style zooming (point under mouse cursor stays if possible). Add 2 to enable 'safe' zooming (two rollings trigger zoom). Add 4 for legacy wheel support (needed for some drivers and Win95). Range %ld..%ld. Default %ld.")
+SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s) enables using the mouse wheel in the Windows version.")
 SETTEXT(CFG_MOREWINDOWS, "`%s' (%s) allows more windows to be open on the screen. TTD's default is 10, but 3 slots are always occupied (main toolbar, main view, status bar), so the actual maximum count is 7. Drop-down menus and news messages count as windows as well. Range %ld..%ld. Default %ld.")
 SETTEXT(CFG_ENHANCEDDIFFICULTYSETTINGS, "'%s' (%s) makes it possible to select 'none' for the number of industries in the difficulty settings.")
 SETTEXT(CFG_NEWBRIDGES, "`%s' (%s) enables new graphics for bridges.")
@@ -831,7 +884,17 @@ SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) allows the main view to follow a vehicle w
 SETTEXT(CFG_TRAMS, "`%s' (%s) allows trams to be built.")
 SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) allows to build track on top of tunnel entrances")
 SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) allows you to force game options.")
+SETTEXT(CFG_SHORTRVS, "`%s' (%s) enable shortened (or lengthened) RVs")
+SETTEXT(CFG_ARTICULATEDRVS, "`%s' (%s) enable articulated RVs")
 SETTEXT(CFG_NEWAIRPORTS, "`%s' (%s) allows using new airport types supplied by GRFs")
+SETTEXT(CFG_NEWROUTES, "`%s' (%s) allows the changing of rails and roads though GRF files")
+SETTEXT(CFG_AUTOSIGDISTANCE, "`%s' (%s) sets the separation of signals placed by the autosignal tool.  The / and \\ directions count as 4, the others as 3, so a value of 12 places signals every 3 resp. 4 tiles.  Range 4..255, default 12.")
+SETTEXT(CFG_CLONETRAIN, "`%s' (%s) allows the cloning of a train through the depot window.")
+SETTEXT(CFG_TRACERESTRICT, "%s (%s) enables train routetracing to be restricted according to user criteria")
+SETTEXT(CFG_STATIONSIZE, "%s (%s) changes the maximum railway station size to the specified value, note stations are still limited by the spread switch. Range 1..255 default 255. Options: on/off/number")
+SETTEXT(CFG_ADJSTATIONS, "%s (%s) allows new station facilities to be merged to any station in range, even if it is adjacent to an existing station.")
+SETTEXT(CFG_NEWSIGNALS, "`%s' (%s) enables new graphics for signals.")
+SETTEXT(CFG_NEWOBJECTS, "`%s' (%s) enables new objects.")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

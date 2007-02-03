@@ -165,9 +165,9 @@ addgroundspritewithbounds:
 	
 	push	di			//remember old vals..
 	push	si
-	mov	di, 10h			// \
-	mov	si, 10h			// |--> sets up bounding box.
-	mov	dh, 1h			// /
+	mov	di, 10h			//
+	mov	si, 10h			// --> sets up bounding box.
+	mov	dh, 1h			//
 	push	ebp
 	call	[addsprite]		//this used to be addgroundsprite which doesnt
 	pop	ebp			//care for bounding boxen

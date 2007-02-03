@@ -1,6 +1,12 @@
 
 ; definitions of ourtext text IDs
 
+; hack to ignore file contents when included by C preprocessor, and to ignore
+; this hack when parsed by nasm
+%if 0
+#ifndef MAKEDEP_HACK
+%endif
+
 %macro defourtext 1.nolist
 	%assign ourtext_%1 ourtext_base+ourtext_num
 	%assign ourtext_num ourtext_num+1
@@ -283,16 +289,91 @@ defourtext statistics_tooltip
 defourtext conflict_itself
 defourtext conflict_preexist
 
-; CRC 28b34087 (check to make sure that the order above is unchanged)
-
 defourtext grfstatdebug
 defourtext grfdebughint
 defourtext grfdebugmsg
 
+defourtext firstpasstramarrives
+defourtext firstfreighttramarrives
+
 defourtext airporttype
 defourtext unnamedairporttype
+
+defourtext txtclonedepotbutton
+defourtext txtclonetooltip
+defourtext txtcloneerrortop
+defourtext txtclonebadcash
+defourtext txtcloneerror_company
+defourtext txtcloneerror_unavail
+defourtext txtcloneerror_nothead
+defourtext txtcloneerror_notrail
+defourtext txtcloneerror_unknown
+
+defourtext grfbefore
+defourtext grfafter
+
+defourtext tr_trainlen
+defourtext tr_maxspeed_kph
+defourtext tr_curorder
+defourtext tr_curdeporder
+defourtext tr_totalpower
+defourtext tr_totalweight
+defourtext tr_restricttitle
+defourtext tr_valuebtn
+defourtext tr_andbtn
+defourtext tr_orbtn
+defourtext tr_xorbtn
+defourtext tr_error1
+defourtext tr_siggui_text
+defourtext tr_enternumber
+
+defourtext tr_copy
+defourtext tr_share
+defourtext tr_end
+defourtext tr_endshare
+defourtext tr_landinfotext
+defourtext tr_sigval_sw
+defourtext tr_sigval_se
+defourtext tr_sigval_nw
+defourtext tr_sigval_ne
+defourtext tr_sigval_is_green
+defourtext tr_sigval_is_red
+defourtext tr_sigval_is_g
+defourtext tr_sigval_is_r
+
+defourtext tr_maxspeed_mph
+defourtext tr_nextorder
+defourtext tr_lastvisitstation
+defourtext tr_carriescargo
+defourtext tr_distancefromsig
+
+defourtext tr_vartxt
+defourtext tr_optxt
+
+defourtext directoryoverflow
+
+defourtext trdlg_eq
+defourtext trdlg_neq
+defourtext tr_nextdeporder
+
+defourtext adjsttitle
+defourtext adjstnumstsinrange
+defourtext adjstnormstmergealgtxt
+defourtext adjstnewsttxt
+
+; CRC f0f2aac5 (check to make sure that the order above is unchanged)
+
+defourtext adjstnewstbuoy
+defourtext adjstnewenhbuoy
+
+defourtext newgame
+defourtext newgamewindow
 
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
+
+%if 0
+#endif
+%endif
 

@@ -68,7 +68,7 @@ uvard newvehicles,1,z        	// maximum number of vehicles
 uvard newspecialvehicles,1,z	// Special, reserved slots for vehicles
 uvard newnormalvehicles,1,z	// Normal, player-usable vehicles
 uvarw newstationpos,1,z		// New position for train station extension
-uvarb newstationtracks,1,z	// new length & number of tracks
+uvarw newstationtracks,1,z	// new length & number of tracks
 uvard currrmsignalcost,1,s	// cost of removing a signal, or 0 if just removing pre-signal setup
 uvard isengine, (totalvehtypes+31)/32
 				// Bit array of whether a vehtype is an engine (bit set) or a waggon (bit clear)
@@ -87,22 +87,26 @@ uvard scenedactiveptr,1,s	// 1=Scenario editor active; 0=not
 uvard aicargovehinittables,1,s	// pointers to tables used to init aicargovehtable for each climate
 // curtooltracktypeptr,1,s	// Offset to where the current tool's track type is stored (now in grfload.asm)
 //uvard cargoweightfactors,1,s	// Array for factor of cargo weights (times amount shr 4)
-// the following twelve uvars must stay next to each other, in this order
-uvard housepartflags,1,s 	// offset to house part flags, bitcoded: 8=main part,
-				// 4=has part in Y dir., 2=has part in X dir., 1=has part in XY dir. [b]
-uvard houseflags,1,s		// ...and to house type flags, bitcoded: 2=only on flat land,
-				// 20h=has animated part, 4/8/10h=dimensions 2x1/1x2/2x2 [b]
-uvard houseavailyears,1,s	// ...and the availability years: first, last [b*2]
-uvard housepopulations,1,s	// Array of population values for town buildings
 
-uvard housemailgen,1,s		// ...and the average mail generation rate [b]
-uvard houseacceptpass,1,s	// ...and the passengers acceptance [b]
-uvard houseacceptmail,1,s	// ...and the mail acceptance [b]
-uvard houseacceptgoods,1,s	// ...and the goods (if positive) or food (if negative) acceptance [b]
-uvard housermrating,1,s		// ...and the LA rating penalty for house removal [w]
-uvard housermcost,1,s		// ...and the removal cost multiplier [b]
-uvard housename,1,s		// ...and the name (text ID) [w]
-uvard houseavailflags,1,s	// ...and the zone/climate availability, bitcoded: bits 0..4=town zones,
+noglobal uvard _hvars,12,s
+global housepartflags,houseflags,houseavailyears,housepopulations,housemailgen
+global houseacceptpass,houseacceptmail,houseacceptgoods,housermrating,housermcost
+global housename,houseavailflags
+
+housepartflags equ _hvars+0 	// offset to house part flags, bitcoded: 8=main part,
+				// 4=has part in Y dir., 2=has part in X dir., 1=has part in XY dir. [b]
+houseflags equ _hvars+4		// ...and to house type flags, bitcoded: 2=only on flat land,
+				// 20h=has animated part, 4/8/10h=dimensions 2x1/1x2/2x2 [b]
+houseavailyears equ _hvars+8	// ...and the availability years: first, last [b*2]
+housepopulations equ _hvars+12	// Array of population values for town buildings
+housemailgen equ _hvars+16	// ...and the average mail generation rate [b]
+houseacceptpass equ _hvars+20	// ...and the passengers acceptance [b]
+houseacceptmail equ _hvars+24	// ...and the mail acceptance [b]
+houseacceptgoods equ _hvars+28	// ...and the goods (if positive) or food (if negative) acceptance [b]
+housermrating equ _hvars+32	// ...and the LA rating penalty for house removal [w]
+housermcost equ _hvars+36	// ...and the removal cost multiplier [b]
+housename equ _hvars+40		// ...and the name (text ID) [w]
+houseavailflags equ _hvars+44	// ...and the zone/climate availability, bitcoded: bits 0..4=town zones,
 				// 800h=arctic above snow line, 1000h=temperate, 2000h=arctic below snow line,
 				// 4000h=tropical, 8000h=toyland [w]
 // end of house data uvars
@@ -126,6 +130,7 @@ uvard MPtimeout,1,s
 
 uvard getymd,1,s		// Index to function getymd. In ax=[0]; Out al=Y-1920, dl=M, bl=D
 uvard getfullymd,1,s		// Alt. entry point to get uncapped Y-1920 in EAX with eternalgame
+uvard getlongymd,1,s		// Same but with full 32-bit date in EAX
 uvard loadchunkfn,1,s		// Load a chunk of game data
 uvard savechunkfn,1,s		// Save a chunk of game data
 uvard calcprofitfn,1,s		// Function to calculate cargo transit profit
@@ -162,6 +167,8 @@ uvard drawsplitcenteredtextfn,1,s // draw split centered text on screen:
 uvard splittextlines,1,s	// split text into lines of given width by inserting NULs at the right places
 uvard fillrectangle,1,s
 uvard drawrectangle,1,s		// AX,BX,CX,DX=screen X1,X2,Y1,Y2, EDI->scr. blk. desc., BP=color scheme,SI=flags
+
+uvard MakeTempScrnBlockDesc,1,s	// EDI=descriptor buffer, DX,BX = X,Y, CX,BP = width,height
 
 uvard addsprite,1,s		// add sprite to draw list: EBX=sprite&flags, AX:CX:DL(safe)=X:Y:Z, DI:SI:DH=X:Y:Z extents
 uvard addlinkedsprite,1,s	// add sprite linked to previous sprite
@@ -213,6 +220,7 @@ uvard addrailfence8,1,s //adds the EAST fence on flat tile SE->NW
 
 uvard getroutemap,1,s		// map of possible routes on tile: in EDI=XY, AX=0/2/4 for rail/road/water; out EAX=bitcoded
 uvard rvcheckovertake,1,s    //check if an RV can overtake, no idea how it works... ask Josef :)
+uvard sellroadvehicle,1,s	//Sell road vehicle
 uvard generatesoundeffect,1,s	// generate sound effect; eax=sound number, ESI=>vehicle or ESI=-1, BX,CX=landscape X,Y or ESI=-2, EBP=(pixel Y << 16)+pixel X
 uvard tunnelotherendfn,1,s	// find the other end of a tunnel
 uvard setmainviewxy,1,s		// in AX,CX = landscape X,Y; out cf clear if changed, set if not changed
@@ -291,9 +299,6 @@ uvard bridgespritetables,1,s		// Bridge Sprite Tables
 
 uvarw newmaglevbridgespeeds,4,z	// new max. speeds on two highest-speed monorail and maglev bridge types
 
-// how much airports "weigh" - i.e. how many of the allowed points they use up
-varb airportweight, 2,3,1,0
-
 //	align 4
 //
 //uvarw newplatformarray, 8*2, s
@@ -363,6 +368,7 @@ varb tracktypes, 0,2,3	// by default: regular, monorail, maglev
 uvard stationarray2ptr
 // Offset from the station array to the secondary station array, 0 if not available
 uvard stationarray2ofst
+uvard stationarray2endptr
 
 vard cachevehvar40x, cachevehvar40x_def	// bitmask of actually cacheable 40+x vars
 

@@ -9,10 +9,8 @@
 extern CreateTooltip,GetMainViewWindow,WindowClicked,setmainviewxy
 
 
-uvard tooltiptextlocTrain
-uvard tooltiptextlocRV
-uvard tooltiptextlocPlane
-uvard tooltiptextlocShip
+// pointers to tool tip text IDs; order: trains, RVs, ships, planes
+uvard tooltiptextlocs,4
 uvard followvehicleidx,1,s
 
 
@@ -56,7 +54,7 @@ followvehiclefunc:						//run on right-click of ANY vehicle window eye-click
 	shl 	edi,vehicleshift
 	add 	edi,[veharrayptr]
 	movzx	edi,byte [edi+veh.class]
-	mov	edi,[tooltiptextlocTrain+(edi-0x10)*4]
+	mov	edi,[tooltiptextlocs+(edi-0x10)*4]
 	movzx 	ebx,cx							//cx is the button clicked returned from WindowClicked
 	mov 	ax, [edi+ebx*2]					//add the offset to the correct text string
 	jmp	[CreateTooltip]					//show it

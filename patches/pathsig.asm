@@ -442,7 +442,7 @@ checksignal:
 	//	ebp=old direction
 	// out:	 di=next tile XY
 	//	ebp=new direction
-getnextdirandtile:
+exported getnextdirandtile
 	test dl,0x3c	// hor/ver direction?
 	jz .keepdir	// no, go straight
 
@@ -496,15 +496,15 @@ markrailroute:
 	// ebp= direction of travel
 	// dl = track pieces to choose from (only a single piece allowed here)
 
-	mov esi,finaltracert
+	mov ecx,finaltracert
 	mov byte [ignorereservedpieces],1
-	and dword [esi],0
-	call tracepath
+	and dword [ecx],0
+	call tracepath //pass veh pointer to tracepath
 
 	cmp byte [currouteallowredtwoway],0	// trying the best to find *any* path?
 	jne .trymark
 
-	mov ah,[esi+finalrt.type]
+	mov ah,[ecx+finalrt.type]
 	test ah,ah
 	jz .bad		// no route found at all
 
@@ -513,16 +513,16 @@ markrailroute:
 	// if so, we wait till we can use it
 
 	mov al,[currouteclosest]
-	push dword [esi]
+	push dword [ecx]
 	push dword [curtracertdist]
-	and dword [esi],0
-	mov byte [esi+finalrt.norecord],1
-	call tracepath
+	and dword [ecx],0
+	mov byte [ecx+finalrt.norecord],1
+	call tracepath //pass veh pointer to tracepath
 	add byte [currouteclosest],5
 	sub [currouteclosest],al	// new route at least 5 tiles shorter?
-	sbb ah,[esi+finalrt.type]	// new route has higher quality?
+	sbb ah,[ecx+finalrt.type]	// new route has higher quality?
 	pop dword [curtracertdist]
-	pop dword [esi]
+	pop dword [ecx]
 	jb .bad		// new route is better or shorter, so wait for it to become clear
 
 	// nope, also just getting as close, let's try it and hope for the best
@@ -561,10 +561,11 @@ markrailroute:
 tracepath:
 	pusha
 	bsf ebx,edx
-	xor edx,edx
 
-	mov esi,[railroutestepfnarg]
-	mov dword [esi],addr(chksignalpathtarget)	// use our step function
+	mov edx,[railroutestepfnarg]
+	mov dword [edx],addr(chksignalpathtarget)	// use our step function
+
+	xor edx,edx
 
 	dec edx
 	mov [curtracertdist],edx
@@ -575,6 +576,9 @@ tracepath:
 //	mov [sigtracertdist],edx
 .norecord:
 	inc edx
+
+	//JGR: pass veh ptr in esi to trainchoosedirection
+
 	call [trainchoosedirection]		// then call the regular path finding
 	mov byte [ignorereservedpieces],0
 
@@ -956,7 +960,7 @@ activatestationpbstrigger:
 	mov ebx,eax
 	mov esi,eax
 	call getplatforminfo
-	and ah,0x0f
+	mov ah, cl
 	mov al,0x20
 	or edx,byte -1
 	call randomstationtrigger
@@ -1603,7 +1607,7 @@ clearpathtile:
 	and bl,0x3f
 
 .clearbit:
-	test [edi+ebp],bl
+	and bl,[edi+ebp]
 	jz .donenz
 
 	mov [curcleartileptr],edi
@@ -1905,12 +1909,16 @@ cleartrainsignalpath:
 
 	mov ah,[landscape4(di,1)]
 	and ah,0xf0
+	cmp ah,0x90
+	je .jct		// might be a custom bridge head with multiple pieces
+
 	cmp ah,0x10
 	jne .notjct	// can only have one matching track piece
 
 	test byte [landscape5(di,1)],0xc0
 	jg .notjct	// signal means there's only one track piece in al now
 
+.jct:
 //	mov ecx,[landscape6ptr]
 	and al,[landscape6+edi]	// else find out which one it is that's reserved
 	jz .done		// none -> end of path
@@ -2467,7 +2475,7 @@ chktrainleavedepot:
 	call [ebp+4]	// FunctionHandler
 	pop esi
 
-	cmp byte [waspbsblock],0
+	test byte [waspbsblock],1
 	je .done	// no path based signalling block
 
 	mov ax,[esi+veh.XY]
@@ -2479,7 +2487,13 @@ chktrainleavedepot:
 	jz .notY
 	mov byte [esi+veh.movementstat],2
 .notY:
+	mov byte [onlycheckpath],1
 	call forcemarksignalpath.havepbs
+	mov byte [onlycheckpath],0
+	jc .cantreserve
+	call forcemarksignalpath.havepbs
+
+.cantreserve:
 	sbb al,al
 	mov byte [esi+veh.movementstat],0x80	// restore to original value
 

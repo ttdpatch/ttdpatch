@@ -21,6 +21,7 @@ extern invalidatetile,locationtoxy,locomotionguibits,makestationclassdropdown
 extern makestationseldropdown,numsiggraphics,patchflags,pbssettings
 extern presignalspritebase,semaphoredate,setmousecursor,setmousetool
 extern signaloffsets,signalsprites,stationdropdownnums,unimaglevmode
+extern CheckAirportTile
 
 #include "railgui.ah"
 
@@ -2456,6 +2457,7 @@ collectlandscapemarkers:
 .noskipcaller:
 
 	call CheckDiagonalSelection
+	call CheckAirportTile
 
 	test word [mouseflags], 1100b
 	ret

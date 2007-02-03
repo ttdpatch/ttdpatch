@@ -18,6 +18,7 @@
 #include <textdef.inc>
 #include <misc.inc>
 #include <vehtype.inc>
+#include <bitvars.inc>
 
 extern	RefreshWindows,  gettileinfo, gettileinfoshort, addsprite, addgroundsprite
 extern	newvehdata, invalidatetile, demolishroadflag, checkroadremovalconditions
@@ -31,6 +32,8 @@ extern paStationbusstop1, paStationbusstop2, paStationtruckstop1, paStationtruck
 extern bridgedrawrailunder, displayfoundation
 
 extern addrailfence1,addrailfence2,addrailfence3,addrailfence4,addrailfence5,addrailfence6,addrailfence7,addrailfence8
+
+extern miscmodsflags
 
 uvard	tramVehPtr,1,s
 uvard	RVMovementArrayPtr
@@ -51,6 +54,7 @@ uvard	bTempNewBridgeDirection
 uvard	tramTracksSWNE
 uvard	tramTracksNWSE
 uvard	paRoadConstrWinClickProcs,1,s
+uvard	paRoadDepotSpriteTable
 uvarw	tmpDI,1,s
 var	numtramtracks, dd 107
 var	tramfrontwiresprites,	db 0h, 37h, 37h, 3Fh, 37h, 37h, 43h, 37h, 37h, 3Fh, 37h, 37h, 3Fh, 37h, 37h, 37h
@@ -201,50 +205,64 @@ noOneWaySetTramTurnAround:
 
 global insertTramTrackL3Value
 insertTramTrackL3Value:
-	call	[gettileinfo]
+	call	[gettileinfo]			//the original call
 	push	bx
 	xor	bx, bx
 	mov	bl, byte [human1]
-	cmp	byte [curplayer], bl
+	cmp	byte [curplayer], bl		//check that we are player 1
 	pop	bx
 	jne	.dontLoadTramArray
-	cmp	byte [editTramMode], 0
+	cmp	byte [editTramMode], 0		//are we building trams?
 	jz	.dontLoadTramArray
 	push	dx
 	and	dh, 10h
 	cmp	dh, 10h
 	pop	dx
-	je	.dontLoadTramArray
+	je	.levelCrossing			//we have a level crossing
+	cmp	bl, 08h				//this is rail we are trying to apply trams to!
+	je	.levelCrossing			//we have a level crossing
 
-	test	byte [landscape5(si)], 20h
+	test	byte [landscape5(si)], 20h	//DEPOT! skip... this fixed $4mil bug
 	jne	.dontLoadTramArray
 
 	cmp	bl, 0x48		//check if it's a bridge and DON'T insert tram tracks
 	je	.dontLoadTramArray
 
-	mov	byte dh, [landscape3+esi*2]
+	mov	byte dh, [landscape3+esi*2]	//move in tram track data...
+
+.levelCrossing:
+	;bleh... do something if we're placing tram tracks on a level crossing here
+	;see 00148761 and hack to move the tram bits to the correct spot.
+	;actually... just let this go and then patch later after it's converted the tile to a rail crossing.
 
 .dontLoadTramArray:
 	cmp	bl, 10h
 	retn
 
+global tramLevelCrossing
+tramLevelCrossing:
+	;placeholder number 2... somewhere here we need to work out if we're working on trams and then shift
+	;in the correct tram bits depending on whether road exists or not....
+	;start with just tram bits and screw 'just road crossings'
+	mov	word [landscape3+esi*2], dx
+	retn
 
 global insertTramTrackIntoRemove
 insertTramTrackIntoRemove:
-	call	[gettileinfo]
+	call	[gettileinfo]			;get the standard tile info
 	push	bx
 	xor	bx, bx
 	mov	bl, byte [human1]
-	cmp	byte [curplayer], bl
+	cmp	byte [curplayer], bl		;check if we're player one
 	pop	bx
 	jne	.dontLoadTramArray
-	cmp	byte [demolishroadflag],1
-	je	.dontLoadTramArray
-	cmp	byte [editTramMode], 0
+	cmp	byte [demolishroadflag],1	;are we dynamiting? or removing?
+	je	.dontLoadTramArray		;if we're dynamiting, then just continue, all gets removed
+	cmp	byte [editTramMode], 0		;removing... trams or roads?
 	jz	.dontLoadTramArray
-	mov	byte dh, [landscape3+esi*2]
+	mov	byte dh, [landscape3+esi*2]	;trams... move in the current tram tracks
 .dontLoadTramArray:
-	cmp	bl, 48h
+	cmp	bl, 48h				;original code.
 	retn
 
 global newSendVehicleToDepot
@@ -255,6 +273,7 @@ newSendVehicleToDepot:
 	mov	dword [tramVehPtr], 0FFFFFFFFh
 	retn
 
+;called by the 'system' as opposed to a user request.
 global newSendVehicleToDepotAuto
 newSendVehicleToDepotAuto:
 	mov	dword [tramVehPtr], esi
@@ -273,17 +292,16 @@ shiftTramBytesIntoL5:
 	jne	near .dontMakeTramTracks
 	cmp	byte [editTramMode], 0
 	je	near .dontMakeTramTracks
-	or	byte [landscape3+esi*2], bh
+	or	byte [landscape3+esi*2], bh		;this is where the tram tracks are stored
 	//now lets check if we are next to a bridge
-
-	call	invalidateBridgeIfExists
 	jmp	short .dontMakeRoads
 
 .dontMakeTramTracks:
-	or	byte [landscape5(si)], bh		//we want to move this into landscape3 now
+	or	byte [landscape5(si)], bh		;this is where the roads are stored.
 
 .dontMakeRoads:
-	mov	byte [landscape2+esi], 0
+	call	invalidateBridgeIfExists		;this should be called on both circumstances
+	mov	byte [landscape2+esi], 0		;original code.
 	retn
 
 
@@ -595,32 +613,49 @@ updateTramStopSpriteLayout:
 	mov	cx, 38h
 	add	cx, word [tramtracks]
 	mov	dword [paStationtramfreightstop2+30], ecx
+//tram depot window cons
+	xor	ecx,ecx
+	mov	cx, 35h
+	add	cx, word [tramtracks]
+	mov	dword [tramdepotorient1+4], ecx
+	sub	cx, 3
+	mov	dword [tramdepotorient2+12], ecx
+	sub	cx, 1
+	mov	dword [tramdepotorient2+4], ecx
+	add	cx, 3
+	mov	dword [tramdepotorient3+12], ecx
+	sub	cx, 1
+	mov	dword [tramdepotorient3+4], ecx
+	add	cx, 3
+	mov	dword [tramdepotorient4+4], ecx
 	pop	ecx
 	retn
 
 global stopTramOvertaking
 stopTramOvertaking:
-	cmp	dword [tramVehPtr], 0FFFFFFFFh
-	je	.dontLetTramsOvertake
-	push	esi
+;	cmp	dword [tramVehPtr], 0FFFFFFFFh
+;	je	.dontLetTramsOvertake
+;	push	esi
 	push	edx
-	mov	esi, [tramVehPtr]
+;	mov	esi, [tramVehPtr]
 	movzx	edx, byte [esi+veh.vehtype]
 	test	byte [vehmiscflags+edx], VEHMISCFLAG_RVISTRAM
 	pop	edx
-	pop	esi
+;	pop	esi
 	jnz	.dontLetTramsOvertake
-	call	[rvcheckovertake]
+	cmp	word [esi+veh.nextunitidx], 0xFFFF
+	jne	.dontLetTramsOvertake
+	jmp	[rvcheckovertake]
 .dontLetTramsOvertake:
 	retn
 
-uvarb	lastselection,1,s
+uvarb	lastroadmenuselection
 global createRoadConstructionWindow
 createRoadConstructionWindow:
 
 	cmp	al, 0FFh
 	jne	.dontShiftInLastValue
-	mov	al, byte [lastselection]
+	mov	al, byte [lastroadmenuselection]
 .dontShiftInLastValue:
 	cmp	al, 1
 	jne	near .moveInZero
@@ -652,7 +687,7 @@ createRoadConstructionWindow:
 	pop	edi
 	pop	eax
 .movedInData:
-	mov	byte [lastselection], al
+	mov	byte [lastroadmenuselection], al
 	mov	eax, 356 + (22 << 16)
 	mov	ebx, 284 + (36 << 16)
 	mov	cx, 3h
@@ -823,6 +858,8 @@ drawTramOrRoadDepot:
 	mov     dh, 14h
 .finishDrawing:
 	test	byte [displayoptions], 10h
+	jne	.notTransparent
+	test	byte [miscmodsflags+3], MISCMODS_NOTRANSPARENTDEPOTS>>24
 	jne	.notTransparent
 	and	ebx, 3FFFh
 	or	ebx, 3224000h
@@ -1300,7 +1337,7 @@ drawNormalSlopeAndAddTrams:
 	and	cl, 0xF0
 	cmp	cl, 0x20
 	pop	cx
-	jz	.nextbit
+	jz	.checkLevelCrossing
 	push	cx
 	xor	ecx,ecx
 	mov 	cl, byte [landscape4(di)]
@@ -1317,9 +1354,16 @@ drawNormalSlopeAndAddTrams:
 	jz	.checkfortunnel
 	jmp	.dontdraw
 
+.checkLevelCrossing:
+	test	dword [landscape5(di)], 16		//skip level crossings.
+	jne	near .dontdraw				//these have been causing big issues.
+	jmp	.nextbit
+
 .checkfortunnel:
 	test	byte [landscape5(di)], 80h
 	jnz	.playitagainsam
+	test	byte [landscape5(di)], 12
+	jz	.playitagainsam				// not road tunnel
 	call	gettunnelotherendmystyle		//get the other end preserving everything else BUT EDI
 	jmp	.playitagainsam
 
@@ -1466,17 +1510,21 @@ drawTramBridgeMiddlePart:
 .setoffset:
 	//RIGHT HERE...!! TEST FOR CUSTOM BRIDGEHEAD
 	//IF bridge head
-	test word [landscape3+2*edi], 3 << 13
-	jz .notacustombridgehead
+	push	ax
+	mov	ax, word [landscape3+2*edi]
+	and	ax, 0FA0h
+	cmp	ax, 0
+	pop	ax
+	je	.notacustombridgehead
 	xor	ecx, ecx
 	movzx	ecx,word [landscape3+edi*2]
 	shr	ecx,8		//check for trams
 	and	ecx,0x0f
 	test	cl, byte [midshouldbe+esi]
-	jz	near .notacustombridgehead
+	jz	near .cleanup
 	xor	ecx, ecx
 	movzx	ecx,word [landscape3+edi*2]
-	shr	ecx,4		//check for trams
+	shr	ecx,4		//check for roads
 	and	ecx,0x0f
 	test	cl, byte [midshouldbe+esi]
 	jz	.changestyledir
@@ -1503,8 +1551,18 @@ drawTramBridgeMiddlePart:
 	and	cl, 0xF0
 	cmp	cl, 0x50
 	pop	cx
-	jz	.setoffset
+	jnz	.checkNext
+	//check for road station
+	cmp 	byte [landscape5(di)], 0x43	//first of original bus stops
+	jl	.checkNext
+	cmp 	byte [landscape5(di)], 0x4A	//last of original truck stops (which are directly after bus stops)
+	jle	.setoffset
+	cmp 	byte [landscape5(di)], 0x53	//first of new tram stops
+	jl	.checkNext
+	cmp 	byte [landscape5(di)], 0x5A	//last of new tramfreight stops
+	jle	.setoffset
 
+.checkNext:
 	push	cx
 	xor	ecx,ecx
 	mov 	cl, byte [landscape4(di)]
@@ -2035,5 +2093,114 @@ checkIfTramDepot5:
 global resetL3DataToo
 resetL3DataToo:
 	mov	byte [landscape2 + esi], 0
-	and	word [landscape3 + esi * 2], ~1111b
+	and word [nosplit landscape3+esi*2], ~0xFF // Reset the lower byte since thats used for owner of crossings
+	retn
+
+global updateRoadMenuSelection
+updateRoadMenuSelection:
+	push	eax
+	movzx	ax, byte [lastroadmenuselection]
+	mov	word [esi+window.data+2], ax
+	pop	eax
+	retn
+
+global checkIfDepotIsTramDepot
+checkIfDepotIsTramDepot:
+	cmp	dword [tramVehPtr], 0FFFFFFFFh
+	je	.isRoadVehicle
+	push	esi
+	mov	esi, [tramVehPtr]
+	movzx	esi, byte [esi+veh.vehtype]
+	test	byte [vehmiscflags+esi], VEHMISCFLAG_RVISTRAM
+	pop	esi
+	jz	.isRoadVehicle
+	push	ebx
+	add	ebx, edi
+	cmp	byte [landscape3 + ebx * 2], 1
+	pop	ebx
+	je	.normalDepotCheck
+	mov	al, 0
+	retn
+.isRoadVehicle:
+	push	ebx
+	add	ebx, edi
+	cmp	byte [landscape3 + ebx * 2], 0
+	pop	ebx
+	je	.normalDepotCheck
+	mov	al, 0
+	retn
+.normalDepotCheck:
+	push	ebx
+	add	ebx, edi
+	mov	al, byte [landscape5(bx)]
+	pop	ebx
+	and	al, 0F0h
+	retn
+
+vard paTramDepotSpriteTable, tramdepotorient1, tramdepotorient2, tramdepotorient3, tramdepotorient4
+var tramdepotorient1,	dd 2634
+			dd 8000h+1412
+			db 0, 0Fh, 10h, 1
+			dd 0
+var tramdepotorient2,	dd 2634
+			dd 1408
+			db 0, 0, 1, 10h
+			dd 8000h+1409
+			db 0Fh, 0, 1, 10h
+			dd 0
+var tramdepotorient3,	dd 2634
+			dd 1410
+			db 0, 0, 10h, 1
+			dd 8000h+1411
+			db 0, 0Fh, 10h, 1
+			dd 0
+var tramdepotorient4,	dd 2634
+			dd 8000h+1413
+			db 0Fh, 0, 1, 10h
+			dd 0
+
+;paRoadDepotSpriteTable is the original
+
+global throwInTramDepots
+throwInTramDepots:
+	push	eax
+	cmp	byte [editTramMode], 0
+	jne	.insertTramDepots
+	mov	eax, [paRoadDepotSpriteTable]
+	jmp	short .continueDrawing
+.insertTramDepots:
+	mov	eax, paTramDepotSpriteTable
+.continueDrawing:
+	mov	ebx, [eax+ebx]
+	pop	eax
+	retn
+
+global updateFirstBusArrivesNewsItem
+updateFirstBusArrivesNewsItem:
+	push	esi
+	movzx	esi, byte [esi+veh.vehtype]
+	test	byte [vehmiscflags+esi], VEHMISCFLAG_RVISTRAM
+	pop	esi
+	jz	.isRoadVehicle
+	mov	bx, 0A02h
+	mov	dx, ourtext(firstpasstramarrives)
+	retn
+.isRoadVehicle:
+	mov	bx, 0A02h
+	mov	dx, 0x902F
+	retn
+
+global updateFirstTruckArrivesNewsItem
+updateFirstTruckArrivesNewsItem:
+	push	esi
+	movzx	esi, byte [esi+veh.vehtype]
+	test	byte [vehmiscflags+esi], VEHMISCFLAG_RVISTRAM
+	pop	esi
+	jz	.isRoadVehicle
+	mov	bx, 0A02h
+	mov	dx, ourtext(firstfreighttramarrives)
+	retn
+.isRoadVehicle:
+	mov	bx, 0A02h
+	mov	dx, 0x9030
 	retn

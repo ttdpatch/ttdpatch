@@ -387,6 +387,15 @@ codefragment oldcalcprofit,14
 	cmp ch,0xa
 	jne $+2+9
 
+codefragment oldcalcstationrating,15
+	mov al,[ebx+esi+station.cargos+stationcargo.timesincevisit]
+	mov di,[esi+station.lastvehicle]
+
+codefragment newcalcstationrating
+	icall calcstationrating
+	jc near fragmentstart+0x8a
+	jmp short fragmentstart+0x16
+
 codefragment_call newcalcprofit,calcprofit,5
 
 
@@ -550,6 +559,7 @@ patchnewcargos:
 	and dword [stationcargowaitingnotmask],0x8000
 
 	patchcode calcprofit
+	patchcode calcstationrating
 	ret
 
 // Enable adding new house types

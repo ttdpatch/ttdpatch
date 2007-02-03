@@ -23,7 +23,6 @@ extern invalidatehandle,ishumanplayer,isrealhumanplayer,isscheduleshared
 extern needsmaintcheck.always,numvehshared,orderhints,patchflags
 extern redrawscreen,resetorders_actionnum,cargotypes
 extern saverestorevehdata_actionnum,savevehordersfn,shareorders_actionnum
-extern specificpropertybase
 extern vehcallback
 
 
@@ -158,6 +157,16 @@ checkgotostation:
 	ret
 
 .planeorstation:
+// allow hangars only for planes - we can get here with other vehicle types as well
+// if the station has other parts besides the airport
+	push ebx
+	movzx ebx,word [esi+window.id]	// get the current vehicle from the window data
+	shl ebx,vehicleshift
+	add ebx,[veharrayptr]
+	cmp byte [ebx+veh.class],0x13
+	pop ebx
+	jne .nodepot
+
 	cmp ah,0x41
 	je short .hangar
 
@@ -580,34 +589,22 @@ arriveatdepot:
 	ret 4
 
 .byorder:
-	movzx eax,ah
-
 	// is this the right depot?
 	cmp byte [esi+veh.class],0x13
 	je .airport
 
+	movzx eax,ah
 	imul eax,byte depot_size
 	mov ax,[depotarray+eax+depot.XY]
-	jmp short .gotloc
-
-.airport:
-	mov ah,station_size
-	mul ah
-	add eax,[stationarrayptr]
-	cmp byte [eax+station.airporttype],1
-	mov ax,[eax+station.airportXY]
-	je .large
-
-	add al,3	// hangar is at X+3 for small airport
-	jmp short .gotloc
-
-.large:
-	add al,5	// and X+5 for large
-
-.gotloc:
 	sub ax,[esi+veh.XY]
 	jnz .done
+	jmp short .goodloc
 
+.airport:
+	cmp ah,[esi+veh.targetairport]
+	jne .done
+
+.goodloc:
 	testmultiflags losttrains,lostrvs,lostships,lostaircraft
 	jz .noreset
 	and word [esi+veh.traveltime],0
@@ -638,6 +635,8 @@ advanceorders:
 // out:	dl=new command
 global skipbutton
 skipbutton:
+	mov esi, edi
+	extcall removeconsistfromqueue // No-op if consist is not queued or if fifo is off.
 	cmp dl,byte [edi+veh.totalorders]
 	jb short .nottoolarge
 	mov dl,0
@@ -1308,8 +1307,17 @@ adjustorders:
 	ret
 
 .shared:
-	mov dl,[edi+veh.totalorders]	// adjust totalorders
-	mov [esi+veh.totalorders],dl
+	mov al,[edi+veh.totalorders]	// adjust totalorders
+	cmp al,[esi+veh.totalorders]
+	mov [esi+veh.totalorders],al
+	ja .nodequeue			// we're adding orders, not deleting them.
+	sub edx,ebp
+	shr edx,1
+	// dl is now the arithmetic inverse of [ebp]'s order index
+	add dl,[esi+veh.currorderidx]
+	jnz .nodequeue
+	extcall removeconsistfromqueue
+.nodequeue:
 	pop edx				// get our return address
 	push edx
 	pusha
@@ -1356,7 +1364,16 @@ deletepressed:
 
 .deny:
 	clc
+	ret
 .end:
+	// But before exiting, some FIFO accounting: dequeue/unreserve if current order was deleted
+	cmp al,[edi+veh.currorderidx]
+	jne .nodequeue
+	xchg esi, edi
+	call removeconsistfromqueue
+	xchg esi, edi
+.nodequeue:
+	stc
 	ret
 
 uvarb skipsharingcheck	// if nonzero, shared orders are saved like non-shared ones (new veh. won't be shared)
@@ -1376,8 +1393,14 @@ resetorders:
 	pusha
 	call makeordercopy
 	popa
+	
+	jmp short .nodequeue
 
 .notunshare:
+	mov esi, edi
+	call removeconsistfromqueue
+
+.nodequeue:
 	mov edx,edi
 	call dword [delvehschedule]	// delete old orders (the function handles shared orders properly)
 	mov ebx,[scheduleheapfree]	// create the terminator order
@@ -1626,7 +1649,7 @@ dorestorevehorders:
 	call getrefitmask
 	pop edx
 	bt edx,ecx
-	jnc .nocapaadjust
+	jnc near .nocapaadjust
 
 	mov [esi+veh.cargotype],al
 	mov [esi+veh.refitcycle],ah
@@ -1643,6 +1666,16 @@ dorestorevehorders:
 	jc .nocapacallback
 
 	mov [esi+veh.capacity],ax
+
+	// remove mail capacity for non-passenger planes
+	cmp byte [esi+veh.class],0x13
+	jne .nocapaadjust
+	cmp byte [esi+veh.cargotype],0
+	je .nocapaadjust
+	movzx eax,word [esi+veh.nextunitidx]
+	shl eax,7
+	add eax,[veharrayptr]
+	mov word [eax+veh.capacity],0
 	jmp short .nocapaadjust
 
 .nocapacallback:
@@ -1656,9 +1689,7 @@ dorestorevehorders:
 
 	// one cargo type only
 	movzx eax,byte [esi+veh.vehtype]
-	add eax,9*NAIRCRAFTTYPES-AIRCRAFTBASE
-	add eax,[specificpropertybase+3*4]
-	movzx eax,byte [eax]
+	movzx eax,byte [planemailcap+eax-AIRCRAFTBASE]
 	add eax,eax			// 1 mail = 2 pass
 	add [esi+veh.capacity],ax
 	movzx eax,word [esi+veh.nextunitidx]

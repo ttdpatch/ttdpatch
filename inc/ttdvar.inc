@@ -45,6 +45,7 @@ ttdvar(datastart,0x0)			// only useful for the Windows version, where it points 
 ttdvar(landscape1,0x4cba)
 ttdvar(landscape2,0x14cba)
 ttdvar(landscape3,0x24cba)
+ttdvar(desertmap,0x44cba)
 
 #if WINTTDX
 	ttdvar(landscape4base,0xb12b3)
@@ -57,6 +58,10 @@ ttdvar(landscape3,0x24cba)
 	%define landscape4(reg,large) (landscape4base+ e %+ reg)
 	%define landscape5(reg) (landscape5base+ e %+ reg)
 	%define landscape5(reg,large) (landscape5base+ e %+ reg)
+	%define landscape4_2(reg,reg2) (landscape4base+ e %+ reg + e %+ reg2)
+	%define landscape4_2(reg,reg2,large) (landscape4base+ e %+ reg + e %+ reg2)
+	%define landscape5_2(reg,reg2) (landscape5base+ e %+ reg + e %+ reg2)
+	%define landscape5_2(reg,reg2,large) (landscape5base+ e %+ reg + e %+ reg2)
 
 	%define searchend __image_base__	// where to stop searching
 #else
@@ -64,6 +69,10 @@ ttdvar(landscape3,0x24cba)
 	%define landscape4(reg,large) fs:e %+ reg
 	%define landscape5(reg) gs:reg
 	%define landscape5(reg,large) gs:e %+ reg
+	%define landscape4_2(reg,reg2) fs:reg+reg2
+	%define landscape4_2(reg,reg2,large) fs:e %+ reg + e %+ reg2
+	%define landscape5_2(reg,reg2) gs:reg+reg2
+	%define landscape5_2(reg,reg2,large) gs:e %+ reg + e %+ reg2
 
 	%define searchend [ttdmemsize]
 #endif
@@ -142,6 +151,8 @@ ttdvar(snowline,0x77134)			// B: altitude of the snow line in the arctic climate
 ttdvar(randomindustrytypes,0x77135)	// B[32]: table of industry types to be randomly created
 ttdvar(noftowns,0x77112)			// W: Number of towns to generate
 ttdvar(interestrate,0x77118)		// W: Interest rate in percent
+ttdvar(terraintype, 0x77126)		// The Type of land to generate
+ttdvar(quantityofwater, 0x77128)	// The 'amount' of sea to be on the map
 ttdvar(economy,0x7712a)			// W: Economy difficulty setting
 ttdvar(disasters,0x7712e)		// W: Disasters difficulty setting
 ttdvar(currency,0x770fb)			// B: currency used in display: 0=pound, 1=dollar, ...
@@ -178,9 +189,13 @@ ttdvar(newsitemparam,0x778ea)		// W: used by the news message function
 ttdvar(customtxtptr,0x7793c)		// P: pointer to area where custom strings are stored
 ttdvar(ttdsystriggers,0x7f9c4)		// W: trigger TTD functions: bit 1="Quit" window, bit 2=autosave, bit 3=pause
 ttdvar(curmousecursor,0x771b0)		// D:sprite data for current mouse cursor
-ttdvar(curmousetooltype,0x771c0)		// B: current mouse tool type
-ttdvar(curmousetoolwintype,0x771c1)		// B: current mouse tool window type
+ttdvar(curmousetooltype,0x771c0)	// B: current mouse tool type
+ttdvar(curmousetoolwintype,0x771c1)	// B: current mouse tool window type
+ttdvar(curmousetoolwinid, 0x771c2)	// W: current mouse tool window id
+
+ttdvar(mousecursorspritedata,0x9f17a)	// B/B/W: first 4 bytes of sprite info
 ttdvar(selectedtool,0x771cc)		// W: current tool
+ttdvar(mousetoolclicklocxy,0x771c8)	// W: XY location of mouse click
 ttdvar(mousetoolclicklocfinex,0x771ca)	// B: fine x location of mouse click
 ttdvar(mouseflags,0x771be)		// W: bit 0: mouse installed, bit 1: view drag mode, bit 2: landsacpe markers area, bit 3: dot landscape markers, bit 4: red landscape marker
 
@@ -225,6 +240,8 @@ ttdvar(curdecoderuntype,0x9c581)		// B: current LZ77 run type
 ttdvar(curfileblocksize,0x7722e)		// W: size of current file buffer
 
 ttdvar(keypresstable,0x9c476)		// Array for all keys; 0=pressed, 80h=not pressed
+ttdvar(shiftedkeyasciitable,0x9f70f)	// Array of ASCII codes to generate for each key, with shift
+ttdvar(regkeyasciitable,0x9f78f)	// Array of ASCII codes to generate for each key, without shift
 ttdvar(curplayer,0x9ea35)		// B: Current player
 ttdvar(displayoptions,0x9ea37)		// B: Bits for each of the display options
 ttdvar(gamesemaphore,0x9ea38)		// B: Game progress semaphore, nonzero=paused

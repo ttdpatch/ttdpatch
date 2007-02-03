@@ -1,0 +1,10 @@
+extern DropDownExList
+extern DropDownExListDisabled
+extern DropDownExListItemHeight
+extern DropDownExListItemExtraWidth
+extern DropDownExListItemDrawCallback
+extern DropDownExMaxItemsVisible
+extern DropDownExFlags
+extern DropDownExListGrfPtr
+extern GenerateDropDownExPrepare
+extern GenerateDropDownEx

@@ -246,13 +246,13 @@ DropDownMenuResetActiveButtons:
 
 .tab:
 	push edi // Used to store the location of memory to change the bit of
-	pop edi // Restore Registor
 	dec ch // Decrease ch for this
 	movzx edi, ch // Move the current tab to edi
 	imul edi, 8 // There are 2 dwords per tab
 	add edi, dword [esi+window.data] // Add the pointer for the actual data
 	xor ch, ch // Clear the tab bit
 	btr [edi], ecx // Reset the bit
+	pop edi // Restore Registor
 	pop ecx // Restore the tab number
 	ret
 //btr [esi+window.activebuttons], ecx
@@ -281,13 +281,13 @@ DropDownMenuSetActiveButtons:
 
 .tab:
 	push edi // Used to store the location of memory to change the bit of
-	pop edi // Restore Registor
 	dec ch // Decrease ch for this
 	movzx edi, ch // Move the current tab to edi
 	imul edi, 8 // There are 2 dwords per tab
 	add edi, dword [esi+window.data] // Add the pointer for the actual data
 	xor ch, ch // Clear the tab bit
 	bts [edi], ecx // Reset the bit
+	pop edi // Restore Registor
 	pop ecx // Restore the tab number
 	ret
 //bts [esi+window.activebuttons], ecx

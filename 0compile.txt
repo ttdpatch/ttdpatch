@@ -36,9 +36,10 @@ the following software:
 
 - The Cygwin distribution, from http://www.cygwin.com/
   In particular, you need GNU Make (3.80 or higher), gcc, the binutils 
-  (version 2.16 or higher), the coreutils, grep, nasm (but use nasm.exe from
-  the nasm/ directory!), Perl 5.8.0 or higher, upx (optional; see below),
-  and perhaps some other Cygwin packages.
+  (version 2.16 or higher, but not the 20060817 package which is broken),
+  the coreutils, grep, nasm (but use nasm.exe from the nasm/ directory!),
+  Perl 5.8.0 or higher, upx (optional; see below), and perhaps some other
+  Cygwin packages.
   Of course you also need the prerequisites for each of the above packages.
   Let me know if you find you need another package that I haven't listed.
 - A Subversion client. The cygwin svnclient package works fine, but some

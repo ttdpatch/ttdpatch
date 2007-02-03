@@ -22,7 +22,6 @@ extern const s32 filesizebase;
 extern const s32 filesizeshr;
 
 void checkpatch(void);
-void versiontotext(s32 version, s32 filesize, int shorttype, char *dest);
 void versioninfototext(pversioninfo version, int shorttype, char *dest);
 
 u32 checkexe(FILE **f, const char *exenames[], u32 thisneid, const char *thistype);

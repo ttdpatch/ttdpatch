@@ -10,8 +10,14 @@
 
 #include <string.h>
 #include <windows.h>
-#include <unistd.h>
+#ifndef _MSC_VER
+#	include <unistd.h>
+#else
+#	include <io.h>
+#	define R_OK 4
+#endif
 
+#include "zlib.h"
 #define IS_WINDOWS_CPP
 #include "osfunc.h"
 #include "types.h"
@@ -26,13 +32,12 @@ const s32 filesizeshr = 8;
 
 extern char *patchedfilename;
 
-extern pversioninfo versions[];
-
-const char *ttd_winexenames[] = {
+static const char *ttd_winexenames[] = {
 	"GAMEGFX.EXE",
 	NULL,
 	NULL };
 
+int __errno;
 
 // Function pointers to deal with the registry, these may
 // be redirected to noregist.c's fake_* functions if needed
@@ -45,7 +50,7 @@ t_RegCloseKey *_RegCloseKey = RegCloseKey;
 typedef LONG WINAPI t_RegOpenKey(HKEY key, LPCSTR subkey, PHKEY result);
 t_RegOpenKey *_RegOpenKey = RegOpenKey;
 
-const char *def_noregistry =
+static const char *def_noregistry =
 	"[HKLM_Software_FISH_Technology_Group_Transport_Tycoon_Deluxe]\n"
 	"DisplayModeNumber=D1\n"
 	"ForceDIBSection=D1\n"
@@ -60,7 +65,7 @@ const char *def_noregistry =
 	"UpdateMode=D1\n";
 
 
-void sysfnerror(const char *fnname, DWORD error)
+static void sysfnerror(const char *fnname, DWORD error)
 {
   LPVOID msgbuf;
   DWORD n = FormatMessageA(
@@ -87,13 +92,14 @@ void checkpatch(void)
   u32 ourcode, codelen;
   FILE *f, *prcode;
 
-  ttd_winexenames[1] = langtext[LANG_WINDEFLANGEXE];
-  u32 newexepos = checkexe(&f, ttd_winexenames, maketwochars('P','E'), "Windows");
+  u32 newexepos;
   u32 section;
   u32 sectionaddr = 0;
   u32 sectionsize;
   u32 sectionalign;
   char sectname[9], *oldcode, *newcode;
+  ttd_winexenames[1] = langtext[LANG_WINDEFLANGEXE];
+  newexepos = checkexe(&f, ttd_winexenames, maketwochars('P','E'), "Windows");
 
   // Ensure that enough memory is available for the large vehicle array
   setseglen(newexepos + 0x50, 0x16, 0x20, 0x80, 0x80);
@@ -169,7 +175,7 @@ void checkpatch(void)
   getval(0, 4);	// skip 4 bytes
   ourcode += getval(0, 4);		// + .exe offset = same location in .exe file
 
-  if (!findattachment(AUX_PROTCODE, &flen, &prcode))
+  if (!findattachment(AUX_LOADER, &flen, &prcode))
 	error(langtext[LANG_INTERNALERROR], 7);
 
   fseek(prcode, flen, SEEK_SET);
@@ -217,7 +223,7 @@ void checkpatch(void)
   loadingamestrings(flen);
 }
 
-int trynoregistry()
+static int trynoregistry(void)
 {
   // functions in noregist.c
   t_RegQueryValueEx *fake_RegQueryValueEx;
@@ -226,6 +232,7 @@ int trynoregistry()
   t_RegOpenKey *fake_RegOpenKey;
   typedef char *t_getreginifilename();
   t_getreginifilename *getreginifilename;
+  char *inifile;
 
   HANDLE patchdll = LoadLibrary("ttdpatch.dll");
   if (!patchdll)
@@ -241,7 +248,7 @@ int trynoregistry()
   IMPORT(fake_RegCloseKey, t_RegCloseKey, "fake_RegCloseKey@4");
   IMPORT(fake_RegOpenKey, t_RegOpenKey, "fake_RegOpenKeyA@12");
 
-  char *inifile = (*getreginifilename)();
+  inifile = (*getreginifilename)();
   printf(langtext[LANG_TRYINGNOREGIST], inifile);
 
   if (access(inifile, R_OK)) {
@@ -269,7 +276,7 @@ int trynoregistry()
 
 // fix the HDPath in the registry, to not end in NULL
 // and to be a 8.3 pathname and to end with a backslash
-void fixregistry(void)
+static void fixregistry(void)
 {
   HKEY hkey;
   int modified;
@@ -368,7 +375,7 @@ void fixregistry(void)
 
 }
 
-u32 getdllstamp(FILE *f, u32 baseofs)
+static u32 getdllstamp(FILE *f, u32 baseofs)
 {
   u32 newexepos, stamp;
   char b[4] = {0, 0, 0, 0};
@@ -392,19 +399,20 @@ u32 getdllstamp(FILE *f, u32 baseofs)
 }
 
 // extract ttdpatch.dll if it doesn't exist
-void check_patchdll()
+static void check_patchdll(void)
 {
   const char *filename = "ttdpatch.dll";
   u32 ofs, size, oldstamp = 0, newstamp = 1;
   FILE *f;
   char *buf;
+  int ret;
 
   f = fopen(filename, "rb");
   if (f) {
 	oldstamp = getdllstamp(f, 0);	// get time stamp of existing .dll
 	fclose(f);
   }
-  int ret = findattachment(AUX_PATCHDLL, &ofs, &f);
+  ret = findattachment(AUX_PATCHDLL, &ofs, &f);
   if (!ret)
 	error(langtext[LANG_INTERNALERROR], 10);
   if (ret == 2)
@@ -440,16 +448,11 @@ void check_patchdll()
 }
 
 
-void prepare_exec()
-{
-}
-
-
 static size_t ncustomsystexts, *customsystextlen;
 static u32 *customsystextoffset;
 static WCHAR **customsystextw;
 
-unsigned long preparesystexts(void) {
+static unsigned long preparesystexts(void) {
   size_t n;
   unsigned long totalcustomsystextlen = 0;
 
@@ -493,7 +496,7 @@ unsigned long preparesystexts(void) {
 }
 
 
-void chkipcerror(
+static void chkipcerror(
 		HANDLE h,
 		const char *fnname,
 		const char *program,
@@ -522,7 +525,7 @@ void chkipcerror(
 int runttd(const char *program, char *options, langinfo **info)
 {
   HANDLE shmem, ipcevent;
-  void *shdata;
+  char *shdata;
   STARTUPINFO siStartInfo = {
 		sizeof(STARTUPINFO), 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0,
@@ -538,11 +541,12 @@ int runttd(const char *program, char *options, langinfo **info)
 
   u32 ofs;
   FILE *f;
+  gzFile gz;
 
   check_patchdll();
   fixregistry();
 
-  cmdlength = strlen(options) + strlen(program) + 1;
+  cmdlength = strlen(options) + 1 + strlen(program) + 1;
   commandline = (char*) malloc(cmdlength);
   if (!commandline)
 	error(langtext[LANG_NOTENOUGHMEM], "commandline", cmdlength/1024+1);
@@ -550,7 +554,7 @@ int runttd(const char *program, char *options, langinfo **info)
   strcpy(commandline, program);
   if (strlen(options)) {
 	strcat(commandline, " ");
-	strcat(commandline, ttdoptions);
+	strcat(commandline, options);
   }
 
   printf(langtext[LANG_RUNTTDLOAD], commandline, "", "");
@@ -569,11 +573,18 @@ int runttd(const char *program, char *options, langinfo **info)
 	error(langtext[LANG_INTERNALERROR], 8);
 
   fseek(f, ofs, SEEK_SET);
-  fread(&patchmemsize, 4, 1, f);	// loader size
-  fseek(f, patchmemsize, SEEK_CUR);
 
-  fread(&patchmemsize, 4, 1, f);
-  fread(&patchdatsize, 4, 1, f);
+  //printf("gzdopening\n");
+  gz = gzdopen(dup(fileno(f)), "rb");
+  if (!gz)
+	error(langtext[LANG_NOTENOUGHMEM], "gzdopen", 8);
+
+  //printf("gzreading\n");
+
+  gzread(gz, &patchmemsize, 4);
+  gzread(gz, &patchdatsize, 4);
+
+  //printf("Read sizes: %ld/%ld\n", patchmemsize, patchdatsize);
 
   if (curversion->h.numoffsets) {
 	versionsize[0] = versionsize[1] = sizeof(versionheader) + 4 * curversion->h.numoffsets;
@@ -605,7 +616,12 @@ int runttd(const char *program, char *options, langinfo **info)
 
   ((u32 *)shdata)[0] = patchmemsize;
   ((u32 *)shdata)[1] = patchdatsize;
-  fread(shdata + 8, 1, patchdatsize, f);
+
+  //printf("Read %d of %ld bytes\n",
+  gzread(gz, shdata + 8, patchdatsize);
+  //patchdatsize);
+
+  gzclose(gz);
 
   memcpy(shdata + 8, flags, sizeof(paramset));
 
@@ -644,7 +660,9 @@ int runttd(const char *program, char *options, langinfo **info)
 
   // Now create the child process
 
-  if (!CreateProcessA(NULL,
+  if (debug_flags.norunttd) {
+	error(langtext[LANG_RUNERROR], program, "DEBUG SWITCH");
+  } else if (!CreateProcessA(NULL,
 		commandline,	// command line
 		NULL,		// process security attributes
 		NULL,		// primary thread security attributes
@@ -822,7 +840,7 @@ void addgrffiles(FILE *f)
 
 #define MAX_SAVE_CONSOLE_TITLE	1024
 
-void iconproc(UINT msg, HICON bigin, HICON smallin, HICON *bigout, HICON *smallout)
+static void iconproc(UINT msg, HICON bigin, HICON smallin, HICON *bigout, HICON *smallout)
 {
   HICON smallico, bigico;
   static HWND hConsole;
@@ -864,9 +882,10 @@ void iconproc(UINT msg, HICON bigin, HICON smallin, HICON *bigout, HICON *smallo
   if (smallout) *smallout = smallico;
 }
 
-HICON oldbigicon, oldsmallicon;
+static HICON oldbigicon;
+static HICON oldsmallicon;
 
-void restoreicon(void)
+static void restoreicon(void)
 {
   iconproc(WM_SETICON, oldbigicon, oldsmallicon, 0, 0);
 }

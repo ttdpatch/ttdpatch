@@ -4,7 +4,7 @@
 #include <station.inc>
 #include <patchproc.inc>
 
-patchproc newstations, patchnewstations
+patchproc newstations,trams, patchnewstations
 
 extern checktrainenterstationtile,checktrainenterstationtile.oldfn
 extern createrailwaystation,createrailwaystation.oldfn
@@ -70,7 +70,13 @@ codefragment newbadstationintransportzone
 	call runindex(badstationintransportzone)
 	setfragmentsize 8
 
-codefragment oldupdatestationwindow
+codefragment oldupdatestationwindowpart1, 4
+	movzx bx, dl
+	mov al,0x11
+	db 0xe8		// call redrawhandle
+
+codefragment oldupdatestationwindowpart2, 1
+	db 0x07
 	mov al,0x11
 	db 0xe8		// call redrawhandle
 
@@ -153,15 +159,18 @@ patchnewstations:
 	patchcode oldsetupstationstruct,newsetupstationstruct,2,3
 	patchcode oldsetuprailwaystation,newsetuprailwaystation,1,1
 	patchcode oldbadstationintransportzone,newbadstationintransportzone,1,1
-#if WINTTDX
-	patchcode oldupdatestationwindow,newupdatestationwindow,1,3
-	patchcode oldupdatestationwindow,newcargoinstation,1,2
-	//one of the instances is invalidated, but not overwritten by the new load/unload code
-#else
-	patchcode oldupdatestationwindow,newcargoinstation,1,3
-	//one of the instances is invalidated, but not overwritten by the new load/unload code
-	patchcode oldupdatestationwindow,newupdatestationwindow,2,2
-#endif
+
+	patchcode oldupdatestationwindowpart1,newcargoinstation,1,1
+	patchcode oldupdatestationwindowpart2,newupdatestationwindow,1,1
+;#if WINTTDX
+;	patchcode oldupdatestationwindowpart1,newupdatestationwindow,1,1
+;	patchcode oldupdatestationwindowpart2,newcargoinstation,1,1
+;	//one of the instances is invalidated, but not overwritten by the new load/unload code
+;#else
+;	patchcode oldupdatestationwindowpart1,newcargoinstation,1,1
+;	//one of the instances is invalidated, but not overwritten by the new load/unload code
+;	patchcode oldupdatestationwindowpart2,newupdatestationwindow,1,1
+;#endif
 	patchcode oldstationquery,newstationquery
 	patchcode oldaibuildrailstation,newaibuildrailstation
 	patchcode oldaipickconstructionobject,newaipickconstructionobject,1,4

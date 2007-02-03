@@ -38,7 +38,7 @@
 extern const char **bitnames[];
 
 // add new languages here; english must always be first in languagedata[]
-typedef void langproc(void);
+typedef FILE* langproc(int);
 extern langproc
 #ifdef TESTMAKELANG
 	english;
@@ -49,7 +49,7 @@ extern langproc
 	italian, norwegia, polish, russian, spanish, catalan;
 #endif
 
-langproc *languagedata[] = {
+static langproc * const languagedata[] = {
 #ifdef SINGLELANG
 	&SINGLELANG,
 #else
@@ -61,11 +61,12 @@ langproc *languagedata[] = {
 #endif
 	};
 
-u32 nlang;
-u32 tcomp = 0, tucomp = 0, tucoverhead = 0, tcoverhead = 0;
-u32 overheadstats[8];
-int nocomp = 0;
-langinfo *linfo;int acp;	// to make switches.c happy
+static u32 nlang;
+static u32 tcomp = 0, tucomp = 0, tucoverhead = 0, tcoverhead = 0;
+static u32 overheadstats[8];
+static int nocomp = 0;
+langinfo *linfo;
+int acp;	// to make switches.c happy
 
 #define BUFBLOCKS 128	// size increments in which buffer size is increased
 
@@ -123,7 +124,7 @@ void warning(const char s[], ...)
 }
 
 #ifdef __POWERPC__
-inline u32 littleendian(u32 in, int size)
+static inline u32 littleendian(u32 in, int size)
 {
   u8 *inp = (u8*) &in;
   u8 outp[4];
@@ -139,7 +140,7 @@ inline u32 littleendian(u32 in, int size)
   return in;
 }
 
-inline int vfwrite_(u32 v, int size, FILE *f)
+static inline int vfwrite_(u32 v, int size, FILE *f)
 {
   if (size == 4) {
 	u32 l = littleendian(v, 4);
@@ -154,13 +155,13 @@ inline int vfwrite_(u32 v, int size, FILE *f)
   error("Can't vfwrite variable of size %d\n", size);
 }
 #else
-inline u32 littleendian(u32 in, int size) { return in; }
+static inline u32 littleendian(u32 in, int size) { return in; }
 #define vfwrite_(v, s, f) fwrite(&v, s, 1, f)
 #endif
 
 #define vfwrite(v, f) vfwrite_(v, sizeof(v), f)
 
-void ensurebuflen(u32 newlen, char **buf, u32 *buflen, u32 bufend)
+static void ensurebuflen(u32 newlen, char **buf, u32 *buflen, u32 bufend)
 {
   while (newlen > *buflen) {
     if (!*buf)
@@ -176,7 +177,7 @@ void ensurebuflen(u32 newlen, char **buf, u32 *buflen, u32 bufend)
   memset(*buf+bufend, 0, *buflen-bufend);
 }
 
-const char *strname(s16 code)
+static const char *strname(s16 code)
 {
   static char strnamebuf[128];
 
@@ -209,7 +210,7 @@ const char *strname(s16 code)
   return "(unknown)";
 }
 
-char *untranslated(s16 code)
+static char *untranslated(s16 code)
 {
   static char untransbuf[32];
   char name;
@@ -242,7 +243,7 @@ char *untranslated(s16 code)
   return untransbuf;
 }
 
-int checkdups = 0;
+static int checkdups = 0;
 void checkmult(const char *prev, const char *name1, const char *name2)
 {
   if (checkdups && prev && prev != UNTRANSLATED)
@@ -260,7 +261,7 @@ void checkmult(const char *prev, const char *name1, const char *name2)
 	*bufofsvar += len; }
 
 
-void addarraysize(u16 arraysize, char **buf, u32 *buflen, u32 *bufofs)
+static void addarraysize(u16 arraysize, char **buf, u32 *buflen, u32 *bufofs)
 {
   u16 len = sizeof(arraysize);
   u32 newofs = *bufofs + (u32) len;
@@ -275,9 +276,9 @@ void addarraysize(u16 arraysize, char **buf, u32 *buflen, u32 *bufofs)
   tcoverhead += sizeof(arraysize);
 }
 
-s16 oldcode;
+static s16 oldcode;
 
-void addstring(s16 code, const char *str, char **buf, u32 *buflen, u32 *bufofs)
+static void addstring(s16 code, const char *str, char **buf, u32 *buflen, u32 *bufofs)
 {
   char display[30];
   size_t i;
@@ -368,7 +369,7 @@ void addstring(s16 code, const char *str, char **buf, u32 *buflen, u32 *bufofs)
   oldcode = code;
 }
 
-void addarray(const char **array, u16 arraysize, s16 code, s16 nextcode,
+static void addarray(const char **array, u16 arraysize, s16 code, s16 nextcode,
 	char **buf, u32 *buflen, u32 *bufofs)
 {
   int i;
@@ -388,7 +389,7 @@ void addarray(const char **array, u16 arraysize, s16 code, s16 nextcode,
   printf("Wrote codes %x to %x (%d=%d-%d)\n", code, curcode, delta,code,nextcode);
 }
 
-void unicodecheckstring(s16 code, const char ** const strp, int warn)
+static void unicodecheckstring(s16 code, const char ** const strp, int warn)
 {
   if (*strp && *strp != UNTRANSLATED) {
 	const char *escs = *strp;
@@ -422,7 +423,7 @@ void unicodecheckstring(s16 code, const char ** const strp, int warn)
   }
 }
 
-void unicodecheckarray(const char ** const array, u16 arraysize, s16 code, s16 nextcode, int warn)
+static void unicodecheckarray(const char ** const array, u16 arraysize, s16 code, s16 nextcode, int warn)
 {
   int i;
   s16 delta = nextcode - code;
@@ -437,7 +438,7 @@ void unicodecheckarray(const char ** const array, u16 arraysize, s16 code, s16 n
   }
 }
 
-void unicodecheck(int warn)
+static void unicodecheck(int warn)
 {
   int i;
 
@@ -466,7 +467,7 @@ const char *patchedfilename = "";
 #define NOCMDSWITCHES (4*SWITCHBLOCK)
 #define TOTALSWITCHES (NOCMDSWITCHES+128)
 
-int switchid(int ch)
+static int switchid(int ch)
 {
   int orgch = ch;
   int ind = 0;
@@ -518,7 +519,7 @@ int switchid(int ch)
   return ind;
 }
 
-int getswitchid(const char **str)
+static int getswitchid(const char **str)
 {
   int ind, ext, ch;
   const char *orgstr = *str;
@@ -543,7 +544,7 @@ int getswitchid(const char **str)
 extern u8 switchorder[];
 extern int numswitchorder;
 
-void errorcheck(void)
+static void errorcheck(void)
 {
   // check that the special stuff is OK
   // halflines: at least one line starting with the
@@ -558,7 +559,7 @@ void errorcheck(void)
   int inorder[lastbitdefaultoff+1];
 
   // these switches are not in the -h display, remove them from the list
-  const char *notlisted = "hVX2";
+  const char *notlisted = "hV";
 
   printf("Error checking");
   memset(cmdchars, -1, sizeof(cmdchars));
@@ -612,17 +613,23 @@ void errorcheck(void)
 
   while (line) {
 	if (line[0] == '-') {
-		const char *orgline = line;
-		line++;
+		const char *orgline = ++line;
 
 		while ( (line[0] != ' ') && ((ind = getswitchid(&line)) >= 0) ) {
 			if (!cmdchars[ind])
-				fprintf(stderr, "%s: duplicate switch entry: %s\n",
+				fprintf(stderr, "%s: duplicate switch entry: -%12.12s\n",
 					langname, orgline);
 			if (cmdchars[ind] < 0)
-				fprintf(stderr, "%s: switch entry for nonexistent switch: %6.6s\n",
+				fprintf(stderr, "%s: switch entry for nonexistent switch: -%12.12s\n",
 					langname, orgline);
 			cmdchars[ind] = 0;
+			if (line[0] == ' ') {
+				line += strcspn(line, "\n-:");
+				if (line[0] != '-' || line[-1] != ' ')
+					break;
+				line++;
+			}
+			orgline = line;
 		}
 	}
 
@@ -691,7 +698,7 @@ void errorcheck(void)
 
 }
 
-u32 assemblebuffer(char **buf, u32 *buflen)
+static u32 assemblebuffer(char **buf, u32 *buflen)
 {
   u32 bufofs=0;
   int i;
@@ -724,8 +731,10 @@ u32 assemblebuffer(char **buf, u32 *buflen)
   return bufofs;
 }
 
-u32 writelanguages(FILE *dat)
+static u32 writelanguages(FILE *dat)
 {
+  FILE*err;
+  char errbuf[128]; // more than enough space for langmerge's error lines.
   int i, j, result;
   u32 lang;
   u32 thisofs, thisccofs, nextofs, uncompsize, maxuncompsize=0;
@@ -777,7 +786,16 @@ u32 writelanguages(FILE *dat)
 		}
 
 	checkdups = 1;
-	languagedata[lang]();
+	err = languagedata[lang](1);
+	if (!err && lang) //Don't kill the build just because english.err is missing. Any problems with english.h will appear elsewhere too.
+		warning("%s: Could not open error log generated by langmerge.pl.",langname);
+	else if (err) {
+		while (fgets(errbuf,128,err)){
+			errbuf[strlen(errbuf)-1] = 0; // warning provides the \n.
+			warning("%s: %s", langname, errbuf);
+		}
+		fclose(err);
+	}
 	unicodecheck(1);
 	errorcheck();		// for error checking, keep untranslated strings empty
 	assemblebuffer(&ucbuf, &ucbuflen);
@@ -788,8 +806,8 @@ u32 writelanguages(FILE *dat)
 	// english strings as default
 
 	checkdups = 0;
-	languagedata[0]();		// english
-	languagedata[lang]();	// override all defined strings with this language
+	languagedata[0](0);		// english
+	languagedata[lang](0);	// override all defined strings with this language
 	unicodecheck(0);
 
 
@@ -869,7 +887,7 @@ u32 writelanguages(FILE *dat)
   return nextofs;
 }
 
-u32 writeingametexts(FILE *dat, u32 baseofs)
+static u32 writeingametexts(FILE *dat, u32 baseofs)
 {
   int result;
   u32 i, j, nextofs, dataofs;

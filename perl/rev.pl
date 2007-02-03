@@ -3,7 +3,7 @@
 $_ = <STDIN>;
 my ($old) = (/(\d+E?)/, 0);
 $_ = $ENV{REV};
-my ($new) = (/:(\d+M?)\D*$/, /(\d+M?)\D*$/m, 0);
+my ($new) = (/:(\d+M?)[^\d']*$/, /(\d+M?)[^\d']*$/m, 0);
 my @lines = split /\n/;
 $new .= "M" if @lines > 3 and $lines[3] !~ /:/;
 

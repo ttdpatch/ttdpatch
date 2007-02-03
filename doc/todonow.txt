@@ -6,8 +6,6 @@
 - fix large ships tip not being drawn properly; check ship motion and
   redrawing of the main window; should have the size calculation there
 
-- make hotkeys work for ship and aircraft tools too (and maybe others?)
-
 - make planting more than one tree in a square affect city ratings, but
   perhaps not as much
 
@@ -53,13 +51,9 @@
 
 - change msg if messageboxw not avail to show error loc or something
 
-- make overload stop work without fullloadany; also adjust it in some way?
-
 - flag for "station is really depot"
 
 - newstations flags to build fences for +x/+y and -x/-y sides
-
-- grf option to turn on catenary for third set (japanese set -> shinkansen)
 
 - change realistic curves to use constant drag force instead
   e.g. each curve = 25 kN, but how to handle single loco & short trains?
@@ -92,9 +86,6 @@
 - reset vehicles should also reset track types available, and large airport?
   or maybe the latter should be taken care of by cht: year
 
-- fix additional pillar heights for higher bridges, they check the height of
-  the wrong corner
-
 - add AI airport selection
 
 - grftrans can't translate new station names
@@ -106,17 +97,10 @@
 
 - morecurrencies overwrites default curr selection (not GBP in BE version)
 
-- fix sprite sorter problems on bridge with elrails
-  -> requires changing sprite coordinates and requires elrails.grf with
-     different offsets
-  -> also ships under bridges (see alpha discussion thread)
-
 - provide support for long train vehicles composed of two vehicles?  maybe
   emulate bogeys like Locomotion has them
 
 - tie heliport&large airport intro dates to first heli and jet?
-
-- allow AI to build paper routes in temperate (tries to deliver to town)
 
 - remove set name from grf stat status box; add sprite&mem info?
 
@@ -144,8 +128,6 @@
 
 - allow resizing train info windows (number of wagons shown)
 
-- show loading speed in wagon info (and other vehicle types too?)
-
 - no loading states for planes?
 
 - faster loading/unloading at bus stops
@@ -168,11 +150,7 @@
 
 - problem selling part of articulated loco with Ctrl (doesn't sell whole veh)
 
-- support artic vehs with capacity in additional vehicles
-
 - don't split artic vehs over multiple lines in depot
-
-- make the sep of wagons in depot equal to sep in main view
 
 - crash when building higher bridge, http://www.tt-forums.net/viewtopic.php?p=265905#265905
 
@@ -185,8 +163,6 @@
 - in grf status window in scen ed, add state "do not save", make this default
 
 - crash with newstations 0.4, see http://www.tt-forums.net/viewtopic.php?p=278809#278809
-
-- Oracle reports duplicate town names when using custom town name set
 
 - save is-in-PBS-block for station, and also prop 15 (in tileproc, 256 ticks=3.5 days)
 
@@ -224,8 +200,6 @@
 - allow dividers in GRF stat wnd, use e.g. +<text> in newgrf.cfg, make
   unselectable and in different colour, or better, with ----- <text> -----
 
-- gamespeed setting is written to ttdpatch.cfg as unsigned variable, not signed
-
 - PBS bug?: http://www.tt-forums.net/viewtopic.php?p=338775#338775
 
 - change pers.eng. to bit switch for each vehicle type
@@ -262,12 +236,8 @@
   http://www.tt-forums.net/viewtopic.php?p=354169#354169
   -> see bTempNewHouseAllowedOnBareLand
 
-- cht: newai
-
 - make Cht: tracks, renew, clearpresig, nounload, semaphores, etc. also affect
   subsidiaries
-
-- lomo station gui highlight bug: http://www.tt-forums.net/viewtopic.php?p=355109#355109
 
 - livery changes in 2070: http://www.tt-forums.net/viewtopic.php?p=355121#355121
 
@@ -289,8 +259,6 @@
 
 - station buoy should attach to adjacent station
 
-- news history occasionally has wrong number of entries
-
 - callback for station names, http://www.tt-forums.net/viewtopic.php?p=355861#355861
 
 - access to current game speed
@@ -298,9 +266,6 @@
 - crash in ECS, http://new.tt-forums.net/viewtopic.php?p=369786#369786
 
 - action 1/2/3 feature type check doesn't work for var/random action 2?
-
-- irr station pathfinding still looking for north tile first:
-  http://www.tt-forums.net/viewtopic.php?p=372921#372921
 
 - add RPN to action D and adv.var.action 2
 
@@ -312,22 +277,15 @@
 - PBS pathfinding problems,
   http://www.tt-forums.net/viewtopic.php?p=374039#374039
 
-- nsignals has miscoded realsprite, get new from MB site
-
 - when removing irrstation tiles, check that ends are not on holes
 
 - revisit George's crash, http://www.tt-forums.net/viewtopic.php?p=374512#374512
-
-- retirement of wagons broken?
 
 - PBS crash, train activates wrong PBS signal
   http://www.tt-forums.net/viewtopic.php?p=375985#375985
 
 - PBS crash, train out of depot
   http://www.tt-forums.net/viewtopic.php?p=379123#379123
-
-- XXX fixed crash when newcargodistribution was on but newcargos was off
-  http://www.tt-forums.net/viewtopic.php?p=378684#378684
 
 - station var 41 not counting right:
   http://www.tt-forums.net/viewtopic.php?p=381568#381568
@@ -343,8 +301,6 @@
   ID 05 is the "EE Type 1", ID 0D is the "Sulzer Type 2"
   some consist vars not getting set? http://www.tt-forums.net/viewtopic.php?p=387369#387369
 
-- make tram depots respect transparent buildings settings
-
 - custom 2cc gui tab sprites with sprite limit extender
 
 - action 11 sound effects don't work without callback
@@ -359,9 +315,6 @@
 - problem unreserving tracks on custom bridge heads
   http://www.tt-forums.net/viewtopic.php?p=395362#395362
 
-- writing bit switches with all bits off turns off switch too
-  http://www.tt-forums.net/viewtopic.php?p=395391#395391
-
 - crash with higherbridges
   http://www.tt-forums.net/viewtopic.php?p=395527#395527
 
@@ -370,18 +323,9 @@
 - when non-GRM grf tries to overwrite GRM-reserved ID, show error
   if user overrides (ctrl-click on flag?), still show warning
 
-- version info broken in DOS
-  http://www.tt-forums.net/viewtopic.php?p=397963#397963 and email
-  also http://www.tt-forums.net/viewtopic.php?p=400168#400168
-
 - when changing 2nd cc, sprites in veh window get offsets (?)
 
 - George reports lost stations, see emails
-
-- cht:face doesn't work but cht: face does
-
-- cht: resetpbs sometimes misses some signals
-  http://www.tt-forums.net/viewtopic.php?p=400886#400886
 
 - bugs in plane refitting
   http://www.tt-forums.net/viewtopic.php?p=402035
@@ -414,16 +358,6 @@
 - PBS pathfinding against one-way signal
   http://www.tt-forums.net/viewtopic.php?p=412075#412075
 
-- 16-tick check broken for anything that moves more than once per tick
-
-- in coop mode, AI still buys out other companies and takes up loan
-
-- higherbridges over track on foundation displays no foundation, and
-  track at wrong altitude and/or slope -> fixed by steven_h ?
-
-- enhtunnels ignore coop? also crash if loading game while train in tunnel
-  of other company
-
 - store station prop 15 in newvehdatastruc
 
 - enhancetunnels on/manualconvert off crashes; checkvehintheway not defined
@@ -453,12 +387,6 @@
 
 - bus acceleration problem? http://www.tt-forums.net/viewtopic.php?p=440474#440474
 
-- combine blue graphics + canals into single grf
-  * elrails/trkfound/nsignals/canals?/gui/dualcc/oneway/trams
-  * parameter for trkfound from Szappy?
-  * add basetunnels? with grf parameter to enable it?
-  * add glyphs for 7B..7F (maybe others?) from glyphs.grf on server
-
 - add LRV V4 to patch graphics http://george.zernebok.net/newgrf/downloads.html#dlv4
 
 - change ttdpatch.txt to wiki manual
@@ -473,7 +401,20 @@
 
 - savegame crashes in tunnel code http://www.tt-forums.net/viewtopic.php?p=455534#455534
 
-- train cargo amount display doesn't show freight factor
+- rotating tracks in station? http://www.tt-forums.net/viewtopic.php?p=458939#458939 
+
+- add aircraft state to var 44
+  need states: in flight, in holding pattern, early approach, late approach,
+  braking, taxiing: after landing, before takeoff, other, in hangar, on pad,
+  accelerating for take off, ascent
+
+- resolution 640x480 causes giantscreenshot patch to fail, see
+  http://www.tt-forums.net/viewtopic.php?p=487192#487192
+  should move that patch before resolution patches?
+
+- use one bit per signal for PBS state to allow two-way single-side-PBS signals
+
+- new string code to choose normal size
 
 ==== Rather urgent =====
 
@@ -520,13 +461,7 @@
 
 - check for duplicate grfs and show warning if GRFID exists already
 
-- use zlib to compress ttdprot?.bin; ideally keep header+loader uncompressed
-  and compress only rest; otherwise uncompress header+loader separately
-
 - town stats with growth mode 2: maybe show growth rate if debugging?
-
-- elrails: for crossings/connections between elrail and reg. rail don't
-  show pylons and wire for track pieces that go to reg. rail
 
 - lowering/raising land removes exclusive land use signs?
 
@@ -568,14 +503,8 @@
 
 - Makefile: make install dirs an environment parameter in .bat files
 
-- make Cht: XXXX ? always show cost even for cheats that don't cost
-- make Cht: XXXX ? not set the bit in Cht: Used
-
 - DOS version: save interrupt vectors before calling TTD, restore afterwards,
   so that the DOS version doesn't lock up/crash/catch fire when TTD crashes
-
-- translation compiler, auto-add new switches to the help display for lang's
-  where they're not defined yet
 
 - signals in tunnels & on bridge.
   could work like this: when last waggon leaves bridge ramp/tunnel entrance,
@@ -596,13 +525,15 @@
 - make "build signal" button a toggle, then count squares and build signal
   every "signalevery x" squares
 
-- make some grf errors nonfatal warnings; but if real error after warning
-  show that instead!
-
 - support train prop 21=06 or 07, problem is @16046b, the cmp al/cl,2/-2,
   won't trigger right if prior vehicle is too short
 
 - in orders menu, make skip change to "skip to" when an order is selected
+
+- redraw screen after processing key [2]/[8] in the scenario editor's Land
+  generation window
+
+- UTF-8 colour codes broken, http://www.tt-forums.net/viewtopic.php?p=489083#489083
 
 =====  Not so urgent  =====
 
@@ -610,13 +541,8 @@
 
 - Cht to reset "will not get exclusive offers" flag
 
-- make bank production dependent on town population, e.g. pop/40 = bags/month
-
 - when building tunnel, not only try lowering one corner of other side but
   also try raising other corner; do what's cheapest of the two
-
-- add sound effects for diesel, electric and monorail/maglev trains entering
-  a tunnel
 
 - allow trains to go backwards: fake it by reversing the order, and copying
   all engine data from the real engine to the new first wagon; make sure to
@@ -701,8 +627,6 @@
 
 - Larger tile sizes in the editor.
 
-- cht: money 1,000,000 (i.e. ignore commas and/or decimal points for better legibility)
-
 - add option in menu to jump between editor and playing
 
 - some hydroplanes that land on water and use the boat docks?
@@ -734,8 +658,71 @@ CHANGELOG
 
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-
-2.5 beta 7
+2.6 alpha 1
+- by steven_h
+  * new switch "shortrvs on" to allow shorter road vehicles
+  * new switch "articulatedrvs on" to allow articulated road vehicles
+- by Csaba:
+  * initial work on new airports feature (enable with "newairports on")
+- added -Z extended command line switches for all but town growth switches
 - by Oskar:
-  * fixed display of dikes with seelevel canals and cliffs
-  * make enhancetunnels depend on higherbridges to avoid jumping vehicles at tunnels
+  * (devel) added memory guard system to find memory overflows (GUARD=1)
+  * added new signal gui popup window (experimentalfeatures.signalgui) for changeing presignal/pbs status
+  * (devel) added code ideas for newmaparray
+  * fixed giant screenshot function with resolution patch
+  * added pre-code for station property 19 road routeing on rail stations
+  * added code to allow 240 entries per directory/savegame listing, 
+    warn user if outside the limit, should fix problems that savegame doesn't show fail error
+- by Lakie:
+  * add Support for irregular airports using blank tiles
+  * added a Landscape 8 which is a word in size.
+  * new switch "newroutes" which currently only loads Landscape8 Array
+  * updated cht:landinfo to give the value of Landscape 8
+  * fixed the changes to the airport selection gui not respecting the switch 'keepsmallairports'
+  * added new feature for cloning rail vehicles (clonetrain)
+  * allow converting train engines to additional heads, enable by turning on
+    experimentalfeatures.engineconvert
+- by DaleStan
+  * add the depots-obey-transparency fix to generalfixes
+  * add a miscmods bit to disable the depots-obey-transparency fix
+  * elrails: for crossings/connections between elrail and reg. rail don't
+    show pylons and wire for track pieces that go to reg. rail
+  * elrails: Allow grfs turn on catenary above the third rail type.
+  * make hotkeys work for ship and aircraft tools, and for road and land
+    tools in the scenario editor.
+  * (devel) Make ttdprotw.exe compilable (and thus debuggable) with MSVC.
+  * (devel) Make TTDPatch error out when a switch with an unknown variable
+    size is encountered.
+  * Make sign cheats ignore commas and decimal points in numeric arguments.
+  * Check all on/off states, not just those attached to on/off switches.
+  * Make new switches get automatically added to the -h display when the
+    description is not yet translated.
+  * Improve FIFO loading to allow multiple consists to load simultaneously.
+- added autosignals to new signal gui, build two-way signals every 3/4 tiles
+  (use `autosignaldistance n' or -ZL to set desired signal separation)
+- by Tron:
+  * (devel) make C functions and variables static where possible
+  * (devel) remove some dead code
+  * (devel) fix buffer overrun and use correct variables
+- added generic feature 0C (newsounds) callback for new ambient sounds
+- allow unlimited var.action 2 procedure calls in one var.action 2
+- implement action 13 to allow translating D000/DC00 texts of another grf
+- add generic "must be loaded before/after" messages to action B
+- by JGR:
+  * show more than 255 trains/ships/rvs/planes in vehicle list
+  * allow stations larger than 15x15, enable with "stationsize <maxsize>"
+  * implement signal restrictions, enable with "tracerestrict on" and
+    access from new signal gui ("signalgui on")
+  * Make TTDPatch mark new bits in bitswitches when writing ttdpatch.cfg.
+- store some persistent grf properties in savegame (includes "non enter"
+  station tiles to prevent stations from breaking when loaded without their
+  grf file present
+- implement window element to set default text color
+- by Uzurpator: new terrain generator, enable with
+  "experimentalfeatures.newterraingen on"
+- by Mek: allow resizing the train info window
+
+
+
+
+2.5 beta 10

@@ -524,7 +524,7 @@ proc dorenewconsist
 	je .buynew
 	shl eax,7
 	add eax,[veharrayptr]
-	cmp byte [eax+veh.currorderidx],0xfd
+	cmp byte [eax+veh.artictype],0xfd
 	mov esi,eax
 	jae .deltrainveh
 	mov ax,[eax+veh.idx]
@@ -586,7 +586,7 @@ proc dorenewconsist
 	je .articdone
 	shl eax,7
 	add eax,[veharrayptr]
-	cmp byte [eax+veh.currorderidx],0xfd
+	cmp byte [eax+veh.artictype],0xfd
 	jnb .nextartic
 .articdone:
 	pop eax
@@ -625,8 +625,8 @@ isittooold:
 	// out:	CF|ZF=1 (cc=NA) if obsolete, cc=A otherwise
 	// uses:AX,EBX
 isvehicleobsolete:
-	cmp byte [currentyear],2049-1920
-	jae .gotit	// nothing is obsolete after 2049 since vehtypes won't be updated
+	cmp byte [currentyear],(2049-1920)-1	// check one less, so 2049 is the first year cc=A
+	ja .gotit	// nothing is obsolete after 2049 since vehtypes won't be updated
 
 	movzx ebx,word [esi+veh.vehtype]
 	mov al,[vehphase2dec+ebx]

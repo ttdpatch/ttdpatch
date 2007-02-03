@@ -88,13 +88,28 @@ newvehtypeinit:
 	push ds
 	pop es
 	mov [activatetype],ah
-	call initveh2
+
+	testflags fifoloading
+	jnc .nosavefifo
+	
+	test ah, ah
+	jz .nosavefifo
+
+	extcall buildfifoidx	// inforeset destroys the FIFO linked lists in veh2, so copy that data to veh
 	call inforeset		// reset all vehtype data
+	call initveh2
+	extcall buildloadlists	// ... and restore it
+	jmp short .donereset
+.nosavefifo:
+	call inforeset		// reset all vehtype data
+	call initveh2
+
+.donereset:
 	mov [activatedefault],al	// new game -> activate all graphics
 					// but not for Cht: ResetVehicles
 	test ah,ah
 	jnz .dontresetgraphics
-    mov byte [editTramMode], 0h
+	mov byte [editTramMode], 0h
 	mov al,[grfstat_titleclimate]
 	cmp al,[climate]
 	je .usegrflist
@@ -104,41 +119,22 @@ newvehtypeinit:
 	mov edi,stationidgrfmap
 	lea ecx,[eax+256/4]
 	rep stosd
+	extern persgrfdata
+	mov edi,persgrfdata
+	add ecx,persgrfdatastruc_size/4
+	rep stosd
 
 .dontresetgraphics:
+	extern resetgrm
+	call resetgrm		// reset house and industry substitions
 
-//	cmp [activatedefault],0
-//	jz .dontresethouses
-//	xor eax,eax
-//	mov byte [lasthousedataid],0	// this needs to be done before grfs are applied
-// .dontresethouses:
+	cmp byte [activatedefault],0
+	jne .notnewgame2
 
-	call clearstationgameids	// clear station game ids; they'll get
-					// the right value by infoapply
-	testflags newhouses
-	jnc .nonewhouses
-	call clearhousedataids
-	mov byte [lastextrahousedata],0
-	xor eax,eax			// clear house overrides
-	mov edi,houseoverrides
-	lea ecx,[eax+110]
-	rep stosb
+	extern updategamedata
+	call updategamedata
 
-	and dword [disabledoldhouses+0],0
-	and dword [disabledoldhouses+4],0
-	and dword [disabledoldhouses+8],0
-	and dword [disabledoldhouses+12],0
-.nonewhouses:
-
-	call clearindustiledataids
-	mov byte [lastextraindustiledata],0
-	xor eax,eax			// clear industry tile overrides
-	mov edi,industileoverrides
-	lea ecx,[eax+0xAF]
-	rep stosb
-
-	call clearairportdata
-
+.notnewgame2:
 	call infoapply		// and apply newgrf and other modifications
 
 	pop es
@@ -418,6 +414,7 @@ inforeset:
 	call initttdpatchdata
 	call undogentextnames
 	call restorebridgespriteinfo
+	call setwagonmaxage
 	popa
 	ret
 
@@ -432,8 +429,11 @@ infoapply:
 	mov dword [numactsprites],baseoursprites
 	call exsresetspritecounts
 
+	extern grfstage
 	mov eax,PROCALL_RESERVE
+	mov byte [grfstage+1],1
 	call procallsprites
+	mov byte [grfstage+1],0
 	call postinforeserve
 
 	// reset "(in)active" to "will be (in)active"
@@ -442,7 +442,9 @@ infoapply:
 	mov byte [procallsprites_replaygrm],1
 	mov byte [procallsprites_noreset],1
 	mov eax,PROCALL_ACTIVATE
+	mov byte [grfstage+1],2
 	call procallsprites
+	mov byte [grfstage+1],0
 
 	call postinfoapply
 	popa
@@ -584,17 +586,15 @@ initttdpatchdata:
 
 	// also clear various TTDPatch arrays
 	mov edi,[veh2ptr]
-
-	// eax is zero already
-	mov ecx,[newvehicles]
-.nextsortvar:
-	mov [edi+veh2.sortvar],eax
-	loop .nextsortvar
-
-.nosortvar:
-	mov edi,[veh2ptr]
 	imul ecx,[newvehicles],byte veh2_size
 	rep stosb	// al is still zero
+
+	mov edi,[veh2ptr]
+	mov ecx,[newvehicles]
+.nextaircraft:
+	mov dword [edi+veh2.curraircraftact],AIRCRAFTACT_UNKNOWN
+	add edi, veh2_size
+	loop .nextaircraft
 
 	and word [lastperfcachereset],0		// this will be simply ignored if the corresponding switches aren't set
 	mov byte [savedvehclass],0
@@ -628,14 +628,14 @@ initttdpatchdata:
 	mov edi,grfresources+256*4
 	lea esi,[defaultindustriesofclimate+ebx*8]
 	xor ecx,ecx
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 .nextindres:
 	bt [esi],ecx
 	sbb eax,eax
 	and eax,[dummyspriteblock]
 	stosd
 	inc ecx
-	cmp ecx,NINDUSTRIES
+	cmp ecx,NINDUSTRYTYPES
 	jb .nextindres
 
 	// after this follow the cargo IDs
@@ -949,7 +949,29 @@ preinfoapply:
 
 	or dword [languagesettings], byte -1
 	btr dword [grfmodflags], 3 // Clear this flag so that it needs the actual grf to be active (32px depots)
+
+	testflags newairports
+	jnc .noclearairportdata
+	call clearairportdata
+.noclearairportdata:
 	ret
+
+// set default wagons to have a max age of FF (available forever)
+setwagonmaxage:
+	call initisengine
+	mov esi,[vehtypedataptr]
+	xor ecx,ecx
+.setnext:
+	bt [isengine],ecx
+	jc .nextveh
+	mov byte [esi+vehtypeinfo.basedurphase2],0xff
+.nextveh:
+	add esi,0+vehtypeinfo_size
+	inc cl
+	jnz .setnext
+	ret
+	
+	
 
 var cargowagonspeedlimit, db 0,96,0,96,80,120,96,96,96,96,120,120
 
@@ -978,6 +1000,7 @@ postinfoapply:
 	jne .nottitle
 	mov byte [grfstat_titleclimate],-1
 .nottitle:
+	CHECKMEM
 
 	mov al,[temp_snowline]
 	mov [snowline],al
@@ -1437,8 +1460,6 @@ postinfoapply:
 
 .notoldformat:
 	xor edx,edx
-//	mov esi,[enginepowerstable]
-	mov ebx,[specificpropertybase+1*4]
 .nextc0:
 	mov al,[edi]
 	cmp al,0
@@ -1447,11 +1468,11 @@ postinfoapply:
 	cmp dl,NTRAINTYPES
 	jb .trainspeed
 
-	movzx eax,byte [rvhspeed+edx-NTRAINTYPES]
+	movzx eax,byte [rvhspeed+edx-ROADVEHBASE]
 	shl eax,maxrvspeedshift
 	jnz .gotspeed
 
-	mov al,[ebx+edx-NTRAINTYPES]
+	mov al,[rvspeed+edx-ROADVEHBASE]
 	jmp short .gotspeed
 
 .trainspeed:
@@ -1517,9 +1538,12 @@ postinfoapply:
 	inc edx
 	call setbasecostmult
 
+extern recalctownpopulations
+
 	testflags newhouses
 	jnc .nohousecountrecalc
 	call recalchousecounts
+	call recalctownpopulations
 .nohousecountrecalc:
 
 	testflags tempsnowline
@@ -1588,6 +1612,45 @@ postinfoapply:
 	// Disable 32px depots completely (no enhancegui active) until I can workout some fragments.
 	btr dword [grfmodflags], 3
 .lendofdepots:
+
+testmultiflags clonetrain
+	jz .noclonetrain
+extern CloneTrainChangeGrfSprites
+	call CloneTrainChangeGrfSprites
+
+.noclonetrain:
+
+	// Set persgrfdata.statnonenter and statrventer
+	mov esi,stationidgrfmap
+	xor ecx,ecx
+.nextnonenter:
+	mov ax,0
+	xor edx, edx
+	xor edi, edi
+	cmp word [esi+ecx*stationid_size+stationid.numtiles],0
+	je .nostationdata	// ID not in use, reset it
+
+	movzx ebx,byte [esi+ecx*stationid_size+stationid.gameid]
+	test ebx,ebx
+	jz .nogameid		// ID in use but grf missing, keep values
+
+	extern cantrainenterstattile
+	mov al,[cantrainenterstattile+ebx]
+	
+	extern canrventerrailstattile
+	mov edx,[canrventerrailstattile+ebx*8]
+	mov edi,[canrventerrailstattile+ebx*8+4]
+	
+.nostationdata:
+	mov [stationnonenter+ecx],al
+	mov [stationrventer+ecx*8],edx
+	mov [stationrventer+ecx*8+4],edi
+
+.nogameid:
+	inc cl
+	jnz .nextnonenter
+
+	CHECKMEM
 	ret
 
 // List of vehicles the should be made eternal

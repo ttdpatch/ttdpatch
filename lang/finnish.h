@@ -43,18 +43,17 @@ SETTEXT(LANG_KNOWNVERSION, "T„ss„ ohjelman versiossa on tunnetut osoitteet.\n")
 // Warning if the version isn't recognized.  Be sure *not* to use tabs
 // in the text.  All but the last lines should end in ...\n"
 SETTEXT(LANG_WRONGVERSION, "\n"
-"VAROITUS! Ohjelman versiota ei pystytty tunnistamaan. Se voidaan t„st„ huoli-"
-"	  matta k„ynnist„„ ja m„„ritt„„ tarvittavat tiedot, mutta jos"
-"	  toimenpide ep„onnistuu, TTD ilmoittaa suojausvirheest„ ja lopettaa."
+"VAROITUS! Ohjelman versiota ei pystytty tunnistamaan. Se voidaan t„st„ huoli-\n"
+"	  matta k„ynnist„„ ja m„„ritt„„ tarvittavat tiedot, mutta jos\n"
+"	  toimenpide ep„onnistuu, TTD ilmoittaa suojausvirheest„ ja lopettaa.\n"
 "\n"
-"	  Riippuen siit„, kuinka hyvin k„ytt”j„rjestelm„si k„sittelee yleisi„"
-"	  suojausvirheit„, se saattaa aiheuttaa tietokoneen jumittumisen ja"
-"	  tiedon katoamista. "
-/***/	"          Please read\n"
-/***/	"          the \"Version Trouble\" section in the TTDPatch manual for more\n"
-/***/	"          information.\n"
+"	  Riippuen siit„, kuinka hyvin k„ytt”j„rjestelm„si k„sittelee yleisi„\n"
+"	  suojausvirheit„, se saattaa aiheuttaa tietokoneen jumittumisen ja\n"
+"	  tiedon katoamista. \n"
+"	  Lue \"Version Trouble\" kappale TTDPatch k„sikirjasta jos haluat\n"
+"	  lis„„ tietoa.\n"
 "\n"
-"Vastaa 'k' vain, jos todella tied„t mit„ olet tekem„ss„. SINUA ON VAROITETTU!"
+"Vastaa 'k' vain, jos todella tied„t mit„ olet tekem„ss„. SINUA ON VAROITETTU!\n"
 "Haluatko t„st„ huolimatta k„ynnist„„ TTD:n? ")
 
 // Keys which continue loading after the above warning. *MUST* be lower case.
@@ -78,11 +77,11 @@ SETTEXT(LANG_WARNVERSION, "VAROITUS: Tunnistamaton versio!\n")
 // TTDLOAD.OVL doesn't exist
 SETTEXT(LANG_OVLNOTFOUND, " ei ole l”ydett„viss„, etsit„„n alkuper„isi„ tiedostoja:\n")
 
-// (DOS) neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
+// neither do the original files (two %s are two filenames)
 SETTEXT(LANG_NOFILESFOUND, "Kumpaakaan tiedostoa, %s tai %s, ei l”ytynyt.\n")
 
-// (Windows) neither does GameGFX.exe.  %s is GameGFX.EXE
-SETTEXT(LANG_NOFILEFOUND, "%s ei l”ytynyt.\n")
+// default Windows language executable (american/english/french/german/spanish).exe
+SETTEXT(LANG_WINDEFLANGEXE, "AMERICAN.EXE");
 
 // Shown when copying tycoon.exe or ttdx.exe (first %s) to ttdload.ovl (2nd %s)
 SETTEXT(LANG_SHOWCOPYING, "Kopioidaan: %s -> %s")
@@ -157,10 +156,6 @@ SETTEXT(LANG_LOADCUSTOMTEXTS, "Lataa omat pelitekstit.\n")
 // ttdpttxt.dat is not in a valid format
 SETTEXT(LANG_CUSTOMTXTINVALID, "%s on v„„r„ tiedosto formaatti.\n")
 
-SETTEXT(LANG_CUSTOMTXTWRONGVER,
-	"%s pit„„ uusia t„lle versiolle TTDPatchia.\n"
-	"Imuroi ja aja uusin mkpttxt.exe ohjelma.\n")
-
 
 //-----------------------------------------------
 //   COMMAND LINE HELP (-h)
@@ -183,18 +178,18 @@ TEXTARRAY(halflines,) =
 	  "-n:  Uudenlainen non-stop",
 	  "-q:  Paranneltu lataus-/purkualgoritmi",
 	  "-s:  Salli kylttihuijauskoodit",
+	  "-u:  Paranneltu monipelaaja peli",
 	  "-v:  N„yt„ k„ytetyt m„„ritteet",
-	  "-w:  Salli pre-signal -liikennevalot",
-	  "-y:  Ohita tuntemattoman version kysely",
+	  "-w:  Salli esi-opastimet",
+	  "-y:  Žl„ kysy tuntematonta versiota",
 	  "-z:  Mammuttijunat (126 vaunua)",
-
-	  "-2:  Windows 2000 p„ivityksi„",
-
-	  "-B:  Salli pitemm„t sillat",
+	  "-2:  Windows 2000/XP tuki",
+	  "-B:  Salli pidemm„t sillat",
 	  "-D:  Dynamiitilla voi tuhota enemm„n",
 	  "-E:  Siirr„ error pop-upit",
 	  "-F:  T„ysi lataus=joku tavara t„ynn„",
 	  "-G:  Aseman tavarat valittavissa",
+	  "-H:  Muunneltavat sillan p„„dyt",
 	  "-I:  Inflaatio pois",
 	  "-J:  Kaupunkiin enemm„n lentokentti„",
 	  "-L:  Suurin laina/maksu 'Ctrl':lla",
@@ -204,41 +199,56 @@ TEXTARRAY(halflines,) =
 	  "-R:  Autot jonottavat jos asema t„ynn„",
 	  "-S:  Uusia laivoja",
 	  "-T:  Uusia junia",
-	  "-Z:  V„h„muistinen versio (3.5MB)",
 
 	  "-Xb: Lahjo optio kauunki menuun",
 	  "-Xd: Lis„„ depotit kulkureitteihin",
 	  "-Xe: Ikuinen peli vuoden 2070 j„lkeen",
 	  "-Xf: Unload j„tt„„ tavarat aina",
 	  "-Xg: Tasainen lastaus (5 kerrallaan)",
+	  "-Xh: Uudet kaupunkirakennukset",
 	  "-Xi: Tehtaat eiv„t sulkeadu",
-	  "-Xm: Lataa peli mahdollisuus peliss„",
+ 	  "-Xl: Rakenna kanavia ja lukkoja",
+	  "-Xm: Lataa peli-mahdollisuus peliss„",
 	  "-Xo: Huijaukset maksavat rahaa",
+ 	  "-Xp: Uusi tehokkuuslaskenta",
 	  "-Xr: TTDLOAD.OVL uusitaan aina",
 	  "-Xs: N„ytt„„ ajonopeuden",
-	  "-Xw: Lis„tyt pre-signal asetukset",
+	  "-Xw: Lis„tyt esi-opastin asetukset",
 	  "-Xx: Tallentaa & lataa lis„tietoja",
 
 	  "-XA: Pakotettu uusiminen -Xa:n kanssa",
+ 	  "-XB: Salli rakentaminen paussin aikana",
 	  "-XE: S„hk”istetyt rautatiet",
-	  "-XF: Enable experimental features",
-	  "-XG: Lataa kaikki uudet grafiikat",
+	  "-XF: K„yt„ kokeellisia ominaisuuksia",
+	  "-XH: Tallenna+n„yt„ uutis historia",
+	  "-XI: Salli reittipohjaiset opastimet",
+	  "-XL: N„yt„ tuotto ajoneuvo listassa",
+ 	  "-XO: Jatetut/kopioitavat m„„r„ykset",
 	  "-XP: Uusia lentokoneita",
 	  "-XR: Uusia busseja/rekkoja",
 	  "-XS: Voit pelata AI-pelaajaa",
+	  "-XZ: V„h„muistinen versio (3.5MB)",
 
 	  "-Ya: Ratings more tolerant to veh.ages",
 	  "-Yb: Rakentaa enemm„n juttuja m„ille",
 	  "-Yc: Ratatyypeill„ on eri hinnat",
-	  "-Ym: Sallii manuaalisen rata-vaihdon",
-	  "-Ys: Junavalot ajopuolella",
-	  "-Yt: N„ytt„„ enem. asioita kaupungeista",
+	  "-Yd: Uudet sillat",
+	  "-Yg: Vaihdettava pelinopeus",
+ 	  "-Yh: Salli korkeammat sillat",
+	  "-Ym: Salli manuaalisen rata-vaihdon",
+	  "-Yn: Uudet asema grafiikat",
+	  "-Ys: Opastimet ajopuolella",
+	  "-Yt: N„ytt„ enem. asioita kaupungeista",
 	  "-Yw: Nopeampi vaunujen myynti",
 
-	  "-YC: Rakentaa rannoille",
+	  "-YC: Rakentaminen rannoille",
+	  "-YD: Paranneltu vaikeusasetukset",
+	  "-YF: FIFO lastaus",
 	  "-YH: Enemm„n/uusia pikan„pp„imi„",
+	  "-YL: Nopeusrajoitukset junavaunuille",
+	  "-YN: K„yt„ uusia kaupinkinimi teemoja",
 	  "-YP: Lentokoneet lent„v„t IAS nopeutta",
-	  "-YS: Vanhat junavalot ennen 1975",
+	  "-YS: Vanhat opastimet ennen 1975",
 
 	  NULL
 	};
@@ -253,28 +263,40 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	"-mc #:   Aseta yl„m„kien (-m) tai mutkien (-c) vaikutus ajoneuvojen nopeuteen.\n"
 	"-trpb #: Kasvata junien (-t), autojen (-r), lentokoneiden (-p) tai laivojen\n"
 	"         (-b) maksimim„„r„„.\n"
-	"-A #:    Paranna teko„ly„ m„„r„ll„ #. K„yt„ vain pieni„ arvoja.\n"
 	  "-M #:    Salli moniveturiset junat.\n"
-	"-Xa #:   Automaattisesti uusi ajoneuvot # kk:ta ennen niiden vanhentumista\n"
-	"-Xc #:   Kontrolloi lento-onnettomuuksi\n"
+	  "-U #:    Aktivoi uusi locomotion-tyylinen k„ytt”liittym„. Jos haluat ilman Ctrl niin aseta 1.\n"
+	  "-Xa #:   Automaattisesti uusi ajoneuvot # kk:ta ennen niiden vanhentumista\n"
+	  "-Xc #:   Kontrolloi lento-onnettomuuksi\n"
 	  "-Yr #:   Modifoi junien/autojen rikkoontumisia (1/2)\n"
 	  "-Xt #:   Kuinka suureksi kaupunki voi kasvaa\n"
+	  "-Xv #:   J„rjest„ ajoneuvo listat ja aseta aika p„ivitysten v„lill„\n"
+	  "-Xz #:   Naksauta ikkunat yhteen\n"
 	  "-XC #:   Enemm„n eri rahoja (esim Euro)\n"
-	"-XD #:   Valitsee mit„ onnettomuuksia tapahtuu\n"
+	  "-XD #:   Valitsee mit„ onnettomuuksia tapahtuu\n"
+	  "-XN #:   Sanomalehdess„ v„ri„ annetun vuoden j„lkeen\n"
 	  "-XM #:   Yhdist„„ Monorailin ja Maglevin\n"
 	  "-XT #:   Kuinka moni kaupunki yhdest„ kasvaa nopeammin suuremmksi\n"
 	  "-XX #:   Uudet monorail ja maglev siltanopeudet, prosenttia max nopeudesta\n"
 	  "-XY #:   Uusien pelien aloitusvuosi\n"
-	"-X1 # / -X2 #: Max. aika mit„ juna odottaa yksi-/kaksipuolisissa valoissa (p„ivin„)\n"
-	  "-Yo #:   Control some features of other switches (see the documentation)\n"
-	  "-Yp #:   Sallii monien puiden istuttamisen\n"
+	  "-XW #:   Laajenna TTD:n ikkuna t„m„nkokoiseksi pikselein„ (ainoastaan Windows versio) \n"
+	  "-X1 # / -X2 #: Max. aika mit„ juna odottaa yksi-/kaksipuolisissa valoissa (p„ivin„)\n"
+	  "-Yf #:   Suurenna tavarajunien massaa annetulla kertoimella\n"
+	  "-Yl #:   Mahdollista hiirirullan k„ytt” and aseta asetukset (ainoastaan Windows versio)\n"
+	  "-Yo #:   Hallitse joitakin toisten asetuksien ominaisuuksia (katso dokumentoinnista)\n"
+	  "-Yp #:   Salli monien puiden istuttamisen\n"
+	  "-YA #:   K„ytt„m„tt”m„t tiet menett„„ niiden omistajat, valitse tila parametrilla\n"
 	  "-YB #:   Enemm„n rakennettavaa, control options with parameter\n"	
 	  "-YE #:   Kuinka kauan punaiset varoitukset ovat p„„ll„ (sekunneissa)\n"
+	  "-YM #:   N„yt„ enemm„n (tai v„hemm„n) h”yr„y, arvo asettaa m„„r„n\n"
 	  "-YG #:   Enhance the user interface, choose option with parameter\n"	
+	  "-YO #:   Aktivoi lumi lauhkeassa ilmastossa ja aseta sen korkeus\n"
+	  "-YR #:   Aseta kartan p„ivityksen taajuus #:n sykett„\n"
 	  "-YT #:   Kaupunkien kasvualgoritmi\n"
+	  "-YW #:   Aseta suurin sallittu m„„r„ ikkunoita\n"
 	"\n"
 	"-C cfg-tiedosto:  Lue annettu konfiguraatiotiedosto TTDPATCH.CFG:n sijaan\n"
 	"-W cfg-tiedosto:  Luo konfiguraatiotiedosto annetuista m„„ritteist„\n"
+	"-Xn cfg-tiedosto: K„yt„ t„t„ tiedostoa konfiguraatiotiedostona uusille grafiikoille\n"
 	"\n"
 	"Kirjainten koko (iso vai pieni) on merkityksellinen!\n"
 	"\n"
@@ -296,6 +318,9 @@ SETTEXT(LANG_UNKNOWNSTATE, "Varoitus: Tuntematon arvo m„„ritteell„, asetetaan 'o
 
 // switch is unknown.  First %c is '-' or '/' etc, 2nd is the switch char
 SETTEXT(LANG_UNKNOWNSWITCH, "Tuntematon m„„rite '%c%c'. Ohjeita saat kirjoittamalla 'ttdpatch -h'.\n")
+
+// switch bit name is unknown.  First %s is bit name, 2nd is switch name
+SETTEXT(LANG_UNKNOWNSWITCHBIT, "Tuntemation bitti '%s' asetukselle '%s'.\n")
 
 // cfg command %s is unknown
 SETTEXT(LANG_UNKNOWNCFGLINE, "Varoitus: Virheellinen konfiguraatiotiedoston rivi '%s'.\n")
@@ -322,72 +347,264 @@ SWITCHTEXT(morestationtracks, "Laajennettavat asemat", "")
 SWITCHTEXT(longerbridges, "Pidemm„t sillat", "")
 SWITCHTEXT(improvedloadtimes, "Paranneltu latausajan lasku", "")
 SWITCHTEXT(mammothtrains, "Mammuttijunat (pituus 127)", "")
-SWITCHTEXT(presignals, "K„yt„ pre-signal -liikennev.", "")
+SWITCHTEXT(presignals, "K„yt„ esi-opastimia -liikennev.", "")
 SWITCHTEXT(officefood, "Toimistot ottavat ruokaa", "")
 SWITCHTEXT(noinflation, "Ei inflaatiota", "")
 SWITCHTEXT(maxloanwithctrl, "Enimm„islaina/-maksu 'Ctrl':lla", "")
 SWITCHTEXT(persistentengines, "K„ytetyt veturityypit eiv„t huonone", "")
 SWITCHTEXT(fullloadany, "T„ysi lataus=joku tavara t„ynn„", "")
-SWITCHTEXT(selectstationgoods, "Aseman tavarat valittavissa", "")
+SWITCHTEXT(selectstationgoods, "Aseman tavarat valittavissa", " %d p„iv„n aikana")
 SWITCHTEXT(morethingsremovable, "Enemm„n tuhoutuvaa tavaraa", "")
 SWITCHTEXT(multihead, "Moniveturiset junat", "")
 SWITCHTEXT(newlineup, "Jonottavat autot", "")
 SWITCHTEXT(lowmemory, "V„h„muistinen versio (3.5MB)", "")
 SWITCHTEXT(generalfixes, "Yleiskorjauksia (katso ohjeet)", "")
 SWITCHTEXT(moreairports, "Enemm„n lentokentti„/kaupunki", "")
-SWITCHTEXT(bribe, "Show bribe option", "")
-SWITCHTEXT(noplanecrashes, "Plane crash control", ": %d")
-SWITCHTEXT(showspeed, "Show speed in status bars", "")
-SWITCHTEXT(autorenew, "Auto-renew engines", " at %d months")
-SWITCHTEXT(cheatscost, "Sign cheats cost money", "")
-SWITCHTEXT(extpresignals, "Set pre-signals with 'Ctrl'", "")
-SWITCHTEXT(diskmenu, "Show load option in disk menu", "")
-SWITCHTEXT(win2k, "Apply Windows 2000/XP patches", "")
-SWITCHTEXT(feederservice, "Feeder service with forced unload", "")
-SWITCHTEXT(gotodepot, "Add depots to vehicle orders", "")
-SWITCHTEXT(newships, "New ship models", "")
-SWITCHTEXT(subsidiaries, "Manage AI subsidiaries", "")
-SWITCHTEXT(gradualloading, "Gradual loading of vehicles", "")
-SWITCHTEXT(moveerrorpopup, "Move red error popups", "")
-SWITCHTEXT(setsignal1waittime, "New train wait time on signals", ":")
+SWITCHTEXT(bribe, "N„yt„ lahjonta valinta", "")
+SWITCHTEXT(noplanecrashes, "Lentokoneiden t”rm„yksen ohjaus", ": %d")
+SWITCHTEXT(showspeed, "N„yt„ nopeus status palkissa", "")
+SWITCHTEXT(autorenew, "Uusi veturit automaattisesti", " %d:ssa kuukaudessa")
+SWITCHTEXT(cheatscost, "Huijaukset maksavat rahaa", "")
+SWITCHTEXT(extpresignals, "Aseta pre-signaalit Ctrl:n avulla", "")
+SWITCHTEXT(diskmenu, "N„yt„ lataa peli peli menussa", "")
+SWITCHTEXT(win2k, "Aktivoi Windows 2000/XP tuki", "")
+SWITCHTEXT(feederservice, "Sy”tt” palvelu pakotetulla purkamisella", "")
+SWITCHTEXT(gotodepot, "Lis„„ varikot ajoneuvon m„„r„yksiin", "")
+SWITCHTEXT(newships, "Uudet laivat", "")
+SWITCHTEXT(subsidiaries, "Hallitse teko„ly sisaryhti”it„", "")
+SWITCHTEXT(gradualloading, "Vaiheellinen vaunun/kulkuneuvon lastaus", "")
+SWITCHTEXT(moveerrorpopup, "Siir„ punaiset virheilmoitukset", "")
+SWITCHTEXT(setsignal1waittime, "Junien odottamisaika opastimissa", ":")
 SWITCHTEXT(setsignal2waittime, "", "")				// dummy entry
-SWITCHTEXT(maskdisasters, "Mask of disasters", ": %d")
-SWITCHTEXT(forceautorenew, "Force auto-renewal of engines", "")
-SWITCHTEXT(morenews, "News reports on more events", "")
-SWITCHTEXT(unifiedmaglev, "Unified maglev", ", mode %d")
-SWITCHTEXT(newbridgespeeds, "Max. speed on maglev bridges", ": %d%%")
-SWITCHTEXT(eternalgame, "Play forever after 2070", "")
-SWITCHTEXT(showfulldate, "Always show full date", "")
-SWITCHTEXT(newtrains, "New train models", "")
-SWITCHTEXT(newrvs, "New road vehicle models", "")
-SWITCHTEXT(newplanes, "New aircraft models", "")
-SWITCHTEXT(signalsontrafficside, "Signals on 'traffic' side of track", "")
-SWITCHTEXT(electrifiedrail, "Electrified railroads", "")
-SWITCHTEXT(newstartyear, "Default start year", ": %d")
-SWITCHTEXT(newerrorpopuptime, "New error popup timeout", ": %d sec.")
-SWITCHTEXT(newtowngrowthfactor, "Change town growth factor", " to %d")
-SWITCHTEXT(largertowns, "Larger towns", ", each 1 out of %d")
-SWITCHTEXT(miscmods, "Miscellaneous mods", ": %d")
-SWITCHTEXT(loadallgraphics, "Always load all new graphics", "")
-SWITCHTEXT(saveoptdata, "Save and load optional data", "")
-SWITCHTEXT(morebuildoptions, "More build options", ": %d")
-SWITCHTEXT(semaphoresignals, "Semaphores before 1975", "")
-SWITCHTEXT(morehotkeys, "More/new hotkeys", "")
-SWITCHTEXT(plantmanytrees, "Plant many trees", "")
-SWITCHTEXT(morecurrencies, "Enable more currencies", ", flags: %d")
-SWITCHTEXT(manualconvert, "Allow manual track conversion", "")
-SWITCHTEXT(newtowngrowthrate, "New town growth rate algorithm", ": %d")
-SWITCHTEXT(displmoretownstats, "Display more town stats", "")
-SWITCHTEXT(enhancegui, "Enhanced game interface", ": %d")
-SWITCHTEXT(newagerating, "Ratings more tolerant to veh. ages", "")
-SWITCHTEXT(buildonslopes, "Build more things on sloped land", "")
-SWITCHTEXT(buildoncoasts, "Build directly on coasts", "")
-SWITCHTEXT(experimentalfeatures, "Enable latest experimental features", ": %d")
-SWITCHTEXT(tracktypecostdiff, "Track types have different cost", "")
-SWITCHTEXT(planespeed, "Use real plane speed", "")
-SWITCHTEXT(fastwagonsell, "Faster wagon selling", "")
-SWITCHTEXT(newrvcrash, "Change train/rv crashes"," (mode %d)")
-SWITCHTEXT(stableindustry, "Prevent industry closedowns","")		
+SWITCHTEXT(maskdisasters, "Maski onnettomuuksista", ": %d")
+SWITCHTEXT(forceautorenew, "Pakota automaattinen veturien uusinta", "")
+SWITCHTEXT(morenews, "Lis„„ aiheita uutisiin", "")
+SWITCHTEXT(unifiedmaglev, "Yhdistetty maglev", ", tila %d")
+SWITCHTEXT(newbridgespeeds, "Maksiminopeus maglev silloilla", ": %d%%")
+SWITCHTEXT(eternalgame, "Pelaa ikuisuuteen 2070 j„lkeen", "")
+SWITCHTEXT(showfulldate, "N„yt„ aina koko p„iv„m„„r„", "")
+SWITCHTEXT(newtrains, "Uudet junat", "")
+SWITCHTEXT(newrvs, "Uudet autot", "")
+SWITCHTEXT(newplanes, "Uudet lentokoneet", "")
+SWITCHTEXT(signalsontrafficside, "Opastimet rautatien 'liikenne' puolella", "")
+SWITCHTEXT(electrifiedrail, "S„hk”istetyt rautatiet", "")
+SWITCHTEXT(newstartyear, "Oletus aloitusvuosi", ": %d")
+SWITCHTEXT(newerrorpopuptime, "Uusi virheilemoitusten poistumisaika", ": %d sekunttia")
+SWITCHTEXT(newtowngrowthfactor, "Aseta kaupunkien kasvukerroin", " %d")
+SWITCHTEXT(largertowns, "Suuret kaupungit", ", yksi %d:st„")
+SWITCHTEXT(miscmods, "Sekalaiset muutokset", ": %ld")
+SWITCHTEXT(loadallgraphics, "Lataa aina kaikki uudet grafiikat", "")
+SWITCHTEXT(saveoptdata, "Tallenna ja lataa valintaiset tiedot", "")
+SWITCHTEXT(morebuildoptions, "Lis„„ rakentamismahdollisuuksia", ": %d")
+SWITCHTEXT(semaphoresignals, "Siipiopastimia ennen 1975", "")
+SWITCHTEXT(morehotkeys, "Lis„„/uusia pikan„pp„imi„", "")
+SWITCHTEXT(plantmanytrees, "Istuta useita puuita kerralla", "")
+SWITCHTEXT(morecurrencies, "K„yt„ lis„„ valuuttoja", ", lippuja: %d")
+SWITCHTEXT(manualconvert, "Salli manuaalinen rautatien konvertointi", "")
+SWITCHTEXT(newtowngrowthrate, "Uusi kaupunkien kasvualgoritmi", ": %d")
+SWITCHTEXT(displmoretownstats, "N„yt„ lis„„ tietoa kaupungeista", "")
+SWITCHTEXT(enhancegui, "Paranneltu k„ytt”littyym„", "")
+SWITCHTEXT(newagerating, "Arvioinnit enemm„n suvaitsevia ajoneuvojen i„lle", "")
+SWITCHTEXT(buildonslopes, "Rakenna kallistuneella maastolla", "")
+SWITCHTEXT(buildoncoasts, "Rakenna suoraan rantoihin", "")
+SWITCHTEXT(experimentalfeatures, "Aktivoi viimeisimm„t kokeelliset ominaisuudet", ": %u")
+SWITCHTEXT(tracktypecostdiff, "Eri rautatietyyppit ovat eri hintaisia", "")
+SWITCHTEXT(planespeed, "K„yt„ oikeata lentokoneiden nopeuksia", ": %d/4")
+SWITCHTEXT(fastwagonsell, "Nopeampi vaunujen myynti", "")
+SWITCHTEXT(newrvcrash, "Muuta junien/autojen t”rm„yksi„"," (moodi %d)")
+SWITCHTEXT(stableindustry, "Est„ teollisuuksien sulkeutumiset","")
+SWITCHTEXT(newperformance, "Uusi tehokkuus laskenta", "")
+SWITCHTEXT(sortvehlist, "J„rjest„ ajoneuvo listat", ", viive: %d")
+SWITCHTEXT(showprofitinlist, "N„yt„ voitto ajoneuvolistassa", "")
+SWITCHTEXT(newspapercolour, "Sanomalehdet ovat v„rillis„", " vuoden %d j„lkeen")
+SWITCHTEXT(sharedorders, "Aktivoi jaetut/kopioidut m„„r„ykset", "")
+SWITCHTEXT(moresteam, "N„yt„ enemm„n h”yty„", ": %x")
+SWITCHTEXT(abandonedroads, "K„ytt„m„tt”m„t tiet menett„v„t omistajansa", ", tila %d")
+SWITCHTEXT(newstations, "Aktivoi uudet asema grafiikat", "")
+SWITCHTEXT(buildwhilepaused, "Salli rakentaminen paussin aikana", "")
+SWITCHTEXT(losttrains, "Variouts eksyneist„ junista", " %d:n p„iv„n j„lkeen")
+SWITCHTEXT(lostrvs, "WVariouts eksyneist„ road autoista", " %d:n p„iv„n j„lkeen")
+SWITCHTEXT(lostships, "Variouts eksyneist„ laivoista", " %d:n p„iv„n j„lkeen")
+SWITCHTEXT(lostaircraft, "Variouts eksyneist„ lentokoneista", " %d:n p„iv„n j„lkeen")
+SWITCHTEXT(maprefresh, "Uusi kartan p„ivitt„mistaajuus", ": %d syk„yst„")
+SWITCHTEXT(disconnectontimeout, "Pura yhteys verkkopeliin jos ei tule vastausta", " %d:n sekunttiin")
+SWITCHTEXT(moretoylandfeatures, "Aktivoit joitakin randomeita ominaisuuksia lelumaassa", ": %d")
+SWITCHTEXT(stretchwindow, "Laajenna TTD'n ikkunaa", " %d:n pikseliin")
+SWITCHTEXT(canals, "Rakenna kanavia ja lukkoja", "")
+SWITCHTEXT(higherbridges, "Salli korkeampia siltoja", "")
+SWITCHTEXT(gamespeed, "vaihdettava pelinopeus", ", alussa %d")
+SWITCHTEXT(freighttrains, "Tee tavarajunista painavampia", " (x%d)")
+SWITCHTEXT(mousewheel, "Aktivoi hiirirulla",", astus: %d")
+SWITCHTEXT(morewindows, "Salli enemm„n ikkunoita", " %d:hen asti")
+SWITCHTEXT(enhanceddiffsettings, "Parannellut vaikeusasetukset", "")
+SWITCHTEXT(newbridges, "Uusia siltoja", "")
+SWITCHTEXT(newhouses, "Uudet kaupunkirakennukset", "")
+SWITCHTEXT(newtownnames,"Uudet kaupunkinimien tyylit","")
+SWITCHTEXT(moreanimation, "Salli lis„„ animoituja ruutuja",", %d:n asti")
+SWITCHTEXT(newshistory, "Historia uutisita", "")
+SWITCHTEXT(wagonspeedlimits, "Nopeusrajoitukset junavaunuille", "")
+SWITCHTEXT(pathbasedsignalling, "Aktivoi reittipohjainen signalointi", "")
+SWITCHTEXT(aichoosechances, "Aseta mitk„ todenn„k”isyydet teko„lyll„ on tehd„ mik„kin kuljetusmuoto", "")
+SWITCHTEXT(custombridgeheads, "Muunneltavat sillan p„„dyt", "")
+SWITCHTEXT(townbuildnoroads, "Kaupungit eiv„t rakenna teit„", "")
+SWITCHTEXT(newcargodistribution, "Paranneltu tuotteiden jaakminen", "")
+SWITCHTEXT(windowsnap, "Ikkunat liitty toisiinsa", " kun ovat l„hemp„n„ kun %d pikseli„")
+SWITCHTEXT(resolutionwidth, "Resoluutio korkeus", " %d pikseli„")
+SWITCHTEXT(resolutionheight, "Resoluutio leveys", " %d pikseli„")
+SWITCHTEXT(newindustries, "Uudet teollisuudet", "")
+SWITCHTEXT(locomotiongui, "Aktivoi locomotion tyylinen k„ytt”liittym„", "")
+SWITCHTEXT(fifoloading, "Aktivoi FIFO lastaus", "");
+SWITCHTEXT(tempsnowline, "Aktivoi lumi lauhkeassa ilmastossa", "")
+SWITCHTEXT(townroadbranchprob, "Kaupungin teiden risteystodenn„k”isyys", " on %d")
+SWITCHTEXT(newcargos, "Salli uudet tavaratyypit", "")
+SWITCHTEXT(enhancemultiplayer, "Paranneltu monipelaaja peli (salli enemm„n pelaajia)", "")
+SWITCHTEXT(newsounds, "Salli uusien „„nien lis„„minen", "")
+SWITCHTEXT(morestats, "Aktivoi lis„tilastojen ker„„minen", "")
+SWITCHTEXT(onewayroads, "Aktivoi yksisuuntaiset tien Ctrl:in avulla", "")
+SWITCHTEXT(irrstations, "Salli ep„s„„nn”llisten asemien rakentaminen", "")
+SWITCHTEXT(autoreplace, "Vaihda ajoneuvot kun ne tulevat vanhaksi", "; v„hint„„n %d%% luotettavuutta")
+SWITCHTEXT(autoslope, "Salli maaston muokkaaminen without ilman rakennusten poistamista", "")
+SWITCHTEXT(followvehicle, "Seuraa ajoneuvoa p„„kartassa", "")
+SWITCHTEXT(trams, "Aktivoi raitiovaunut", "")
+SWITCHTEXT(enhancetunnels, "Salli rautateiden rakentaminen tunnelin p„iden p„„ll„", "")
+SWITCHTEXT(forcegameoptions, "Sallii sinun pakottaa peli asetuksia","")
+
+//---------------------------------------
+//  BIT SWITCH DESCRIPTIONS
+//---------------------------------------
+
+// Description for noplanecrashes bits
+BITSWITCH(noplanecrashes)
+BIT(normdis,      "normaalit lentokone onnettomuudet jos tapaturmat pois p„„lt„")
+BIT(jetsdis,      "pienien lentokoneiden onnettomuudet pienill„ lentokentill„ jos tapaturmat pois p„„lt„")
+BIT(normbrdown,   "normaalit lentokoneiden onnettomuudet vain hajonneille koneille, kerroin * 4")
+BIT(jetssamerate, "sama onnettomuus kerroin jeteille pienill„ lentokentill„ ja normaalit onnettomuudet")
+BIT(normoff,      "normaalit lentokone onnettomuudet pois p„„lt„")
+BIT(jetsoff,      "jettien onnettomuudet pienlentokentill„ pois p„„lt„")
+
+// Description for miscmods bits
+BITSWITCH(miscmods)
+BIT(nobuildonbanks,        "kaupungit eiv„t rakenna rannoille/joenrannoille")
+BIT(servintonlyhuman,      "servint asetus ei vaikuta tietokone pelaajia")
+BIT(noroadtakeover,        "kaupungit eiv„t ota haltuun kaikkia teit„ kartta editorissa")
+BIT(gradualloadbywagon,    "vaiheellinen lataus lataa vaunu per vaunu ensin")
+BIT(dontfixlitres,         "„l„ muuta litroja niin ett„ 1000 l on tonni sen sijaan 100 l on tonni")
+BIT(dontfixtropicbanks,    "„l„ korjaa pankki tyyppej„ sub-trooppisessa ilmastossa")
+BIT(dontfixhousesprites,   "„l„ korjaa toimistojen n„ytt„mist„ kirkkoina")
+BIT(oldtownterrmodlimit,   "„l„ muuta yl„rajaa maaston muokkaamiselle hinnalle kaupunkeja varten")
+BIT(nozeppelinonlargeap,   "est„ Zeppeliinej„ putoamasta isoilla lentokentill„")
+BIT(nodefaultoldtracktype, "„l„ k„yt„ edellist„ ratatyyppi„ oletuksena")
+BIT(usevehnnumbernotname,  "„l„ muuta uutisviestej„ k„ytt„m„„n kulkuneuvo nimi„")
+BIT(norescalecompanygraph, "„l„ uudelleen skaalaa yhti” taulukkoa kun yhti” deselektoidaan")
+BIT(noyearlyfinances,      "„l„ n„yt„ vuosittaisia talous katsauksia Tammikuun Ensimm„inen„")
+BIT(notimegiveaway,        "„l„ yrit„ antaa pois aika siivuja tehokkuuden parantamiseksi")
+BIT(nodesynchwarning,      "„l„ varoita moninpelien ep„synchronisaatiosta")
+BIT(noworldedgeflooding,   "„l„ anna kartan reunan tulvia")
+BIT(doshowintro,           "n„yt„ pelin introa („l„ skippaa sit„)")
+BIT(nonewspritesorter,     "„l„ k„yt„ uutta sprite j„rjestely algoritmia")
+BIT(nodiagonalflooding,    "„l„ k„yt„ vinoja tulvia ja kulma rantoja")
+BIT(noenhancedcomp,        "„l„ paranna tallennettujen pelien kompressio algoritmia")
+BIT(breakdownatsignal,     "„l„ korjaa junien rikkoutumista punaisella opastimella")
+BIT(smallspritelimit,      "„l„ suurenna sprite rajoitusta")
+BIT(displaytownsize,       "n„yt„ kaupungin suuruus nimess„")
+BIT(noextendstationrange,  "„l„ suurenna maximi v„li„ aseman kyltin ja teollisuuden v„lill„")
+BIT(nooldvehiclenews,      "„l„ tuota uutisia kun kulkuneuvo tulee vanhaksi")
+BIT(dontfixpaymentgraph,   "„l„ korjaa tavara maksu taulukon  X keskiviivaa")
+//BIT(loaduntilgreen,        "lastaa asemalla kunnes poistumis opastin on vihre„")
+BIT(dontshowaltitude,      "Žl„ n„yt„ korkeutta ruudun info ikkunassa")
+BIT(nogrfidsinscreenshots, "Žl„ n„yt„ aktiivisia grfidta kuvissa")
+BIT(dontchangesnow,        "Žl„ muuta kuinka korkeus lasketaan lumisuudelle")
+
+// Description for morebuildoptions bits
+BITSWITCH(morebuildoptions)
+BIT(ctunnel,         "salli riste„v„t tunnelit")
+BIT(oilrefinery,     "salli ”ljyn jalostamot kaikkialla")
+BIT(moreindustries,  "salli enemm„n kuin yhden samaa teollisuus tyyppi„ l„hekk„in")
+BIT(removeobjects,   "salli patsaiden, majakoiden, ja l„hettimien poisto")
+BIT(removeindustry,  "salli teollisuuden poistaminen")
+BIT(closeindustries, "salli samanlaiset teollisuus tyypit l„hekk„in")
+BIT(enhancedbuoys,   "salli poijut jotka toimivat kun normaalit asemat")
+BIT(bulldozesignals, "automaattisesti puskutraktoroi opastimet radalla")
+
+// Description for experimentalfeatures bits
+BITSWITCH(experimentalfeatures)
+BIT(slowcrossing, "junat hidastavat ennen tasoristeyst„")
+BIT(cooperative,  "yhteispeli, todella rajallinen")
+BIT(mandatorygrm, "tee GRF Resurssien hallitseminen pakkoliseksi .grf tiedostoja varte")
+
+// Description for maskdisasters bits
+BITSWITCH(maskdisasters)
+BIT(zeppelincrash,      "Salli zeppelinin putoaminen")
+BIT(smallufo,           "Salli pieni UFO")
+BIT(refineryexplosion,  "Salli jalostamon r„j„ht„minen")
+BIT(factoryexplosion,   "Salli tehtaan r„j„ht„minen")
+BIT(largeufo,           "Salli suuri UFO")
+BIT(smallsubmarine,     "Salli pieni sukellusvene")
+BIT(largesubmarine,     "Salli suuri sukellusvene")
+BIT(coalminesubsidence, "Salli hiilikaivoksen sortuminen")
+
+// Description for mousewheel bits
+BITSWITCH(mousewheel)
+BIT(cursorzoom, "Zoomaa kursorin paikalla ruudun keskustan sijaan")
+BIT(safezoom,   "Zoomaa ainoastaan kahden vierityksen j„lkeen")
+BIT(legacy,     "K„yt„ tukea vanhemmille (legacy) k„ytt”j„rjestelmille ja ajureille (ei normaalisti tarvita)")
+
+// Description for plantmanytrees bits
+BITSWITCH(plantmanytrees)
+BIT(morethanonepersquare,   "Salli istuttaa enemm„n kuin yksi puu joka ruudulle")
+BIT(rectangular,            "Salli istutus suorakulmaiselle alueelle 'Ctrl' avulla")
+BIT(morethanonerectangular, "Enemm„n kuin yksi puu joka ruudule suorakulmaisella istutus tyypill„")
+
+// Description for moretoylandfeatures bits
+BITSWITCH(moretoylandfeatures)
+BIT(lighthouses, "Salli majakat merenrannoilla Lelumaailmassa")
+BIT(woodlands,   "Salli mets„maa (joukko puita) Lelumaailmassa")
+
+// Description for locomotiongui bits
+BITSWITCH(locomotiongui)
+BIT(usenewgui,      "Salli uusi k„ytt”liittym„")
+BIT(defaultnewgui,  "K„yt„ uutta k„ytt”liittym„„ oletuksena (jos t„m„ on pois p„„lt„ p„„see uuteen k„ytt”liittym„„n ctrl napin avulla, jos p„„ll„ ctrl napin avulla vanhaa k„ytt”liittym„„ k„ytet„„n.)")
+BIT(defaultstation, "Pist„ aseman rakennus nappula avaamaan locomotion tyylisen k„ytt”liittym„n.")
+
+// Description for pathbasedsignalling bits
+BITSWITCH(pathbasedsignalling)
+BIT(autoconvertpresig,    "Muuta esi, poistumis ja combo opastimet suunta pohjaisiksi opastimiksi")
+BIT(manualpbssig,         "Salli manuaalinen suunta pohjaisen opastimen asettaminen")
+BIT(preservemanualpresig, "Žl„ muuta risteyksi„ miss„ on manuaalisesti asetetut opastimet suunta pohjaisiksi opastimiksi")
+BIT(showreservedpath,     "N„yt„ varatut rataosat tummemmalla")
+BIT(shownonjunctionpath,  "N„yt„ varatut rataosat jopa normaalilla rataosuudella(ei risteyksi„)")
+BIT(allowunsafejunction,  "Žl„ pid„ttele junia ep„turvallisill„ suunta pohjaisilla opastimella")
+BIT(allowunsafereverse,   "Žl„ pys„yt„ junia jotka eiv„t voi k„„nty„ turvallisesti")
+
+// Description for newsounds bits
+BITSWITCH(newsounds)
+BIT(highfrequency, "(DOS ainoastaan) Mixaa „„net 22KHz taajudella tavallisen 11KHz taajuuden sijaan. Mahdollistaa oikean soittamisen 22KHz „„nitteille.")
+
+// Description for morecurrencies bits
+BITSWITCH(morecurrencies)
+BIT(symbefore, "Valuutta symboli aina n„ytet„„n ennen numeroa")
+BIT(symafter,  "Valuutta symboli aina n„ytet„„n numeron j„lkeen")
+BIT(noeuro,    "Žl„ tutustuta euroa")
+BIT(comma,     "Aina k„yt„ pilkkua erottamaan tuhannet")
+BIT(period,    "Aina k„yt„ pistett„ erottamaan tuhannet")
+
+// Description for forcegameoptions bits
+BITSWITCH(forcegameoptions)
+BIT(trafficleft,	"Pakota tien ajosuunta olemaan vasen")
+BIT(trafficright,	"Pakota tien ajosuunta olemaan oikea")
+BIT(imperial,		"Pakota imperiaalisten (mailien) pituus yksik”iden k„ytt”")
+BIT(metric,		"Pakota metristen (kilometri) pituus yksik”iden k„ytt”")
+BIT(townsenglish,	"Aseta kaupungin nimi tyyli englanniksi")
+BIT(townsfrench,	"Aseta kaupungin nimi tyyli ranskaksi")
+BIT(townsgerman,	"Aseta kaupungin nimi tyyli saksaksi")
+BIT(townsamerican,	"Aseta kaupungin nimi tyyli amerikkalaiseksi")
+BIT(townslatin,		"Aseta kaupungin nimi tyyli latinalaiseksi amerikaksi")
+BIT(townssilly,		"Aseta kaupungin nimi tyyli hupsuksi")
+BIT(autosavedisabled,	"Aseta autotallenus pois p„„lt„")
+BIT(autosave3months,	"Aseta autotallenus kolmeksi kuukaudeksi")
+BIT(autosave6months,	"Aseta autotallenus kuudeksi kuukaudeksi")
+BIT(autosave12months,	"Aseta autotallenus kahdeksitoista kuukaudeksi")
+
 
 // A cfg file (%s) could not be found and is ignored.
 SETTEXT(LANG_CFGFILENOTFOUND, "Konfiguraatiotiedostoa '%s' ei l”ydy. Jatketaan ilman.\n")
@@ -436,7 +653,7 @@ SETTEXT(CFG_NEWSWITCHINTRO, "**** New switches ****")
 // For switches which have no command line equivalent
 SETTEXT(CFG_NOCMDLINE, "ei komentolinjam„„ritett„")
 
-// Definitions of the cfg file comments.
+// 
 // All can have a place holder %s to stand for the actual setting name,
 // and all but CFG_CDPATH can have a second %s *after* the %s for the command
 // line switch.
@@ -461,13 +678,12 @@ SETTEXT(CFG_PRESIGNALS,         "'%s' (%s) sallii asemien k„sittely„ parantavien
 SETTEXT(CFG_MOREVEHICLES,       "'%s' (%s) asettaa kulkuneuvojen yhteenlasketuksi m„„r„ksi arvo*850. Arvov„li %ld..%ld, oletus %ld.")
 SETTEXT(CFG_MAMMOTHTRAINS,      "'%s' (%s) sallii mammuttijunat (enint„„n 126 vaunua).")
 SETTEXT(CFG_FULLLOADANY,        "'%s' (%s) muuttaa junien 'full load'-k„ytt„ytymist„ siten, ett„ juna l„htee asemalta, kun jotakin rahtityyppi„ on t„ysi lasti.")
-SETTEXT(CFG_SELECTGOODS,        "'%s' (%s): tietty„ tavaraa alkaa tulla asemalle vasta, kun sit„ aletaan vied„ sielt„.")
+SETTEXT(CFG_SELECTGOODS,        "'%s' (%s): tietty„ tavaraa alkaa tulla asemalle vasta, kun sit„ aletaan vied„ sielt„, ja poistuu annetun m„„r„n p„ivien j„lkeen jos palvelu loppuu.  2 tarkoittaa ett„ tavara ei koskaan katoa.  Arvov„li: %ld..%ld.  Default: %ld.")
 SETTEXT(CFG_DEBTMAX,            "'%s' (%s) sallii enimm„ism„„r„n lainaamisen/maksamisen, kun 'Ctrl'-nappi on alhaalla.")
 SETTEXT(CFG_OFFICEFOOD,         "'%s' (%s): toimistorakennukset ottavat ruokaa vastaan (trooppiset/arktiset maat).")
 SETTEXT(CFG_ENGINESPERSIST,     "'%s' (%s) pit„„ kulkuneuvotyypit kunnossa niin kauan, kun samaa tyyppi„ k„ytet„„n peliss„.")
 SETTEXT(CFG_CDPATH,             "'%s' (%s) asettaa CD-aseman polun.")
 SETTEXT(CFG_KEEPSMALLAP,        "'%s' (%s) sallii pienten lentokenttien ostamisen my”hemminkin peliss„.")
-SETTEXT(CFG_AIBOOST,            "'%s' (%s) asettaa teko„lyn rekursiotason.")
 SETTEXT(CFG_LONGBRIDGES,        "'%s' (%s) sallii jopa 127 ruutua pitk„t sillat.")
 SETTEXT(CFG_DYNAMITE,           "'%s' (%s) tekee useimmista asioista dynamiitilla poistettavia.")
 SETTEXT(CFG_MULTIHEAD,          "'%s' (%s) sallii useampia vetureita yhdess„ junassa. Ylim„„r„iset veturit ostetaan 'Ctrl'-nappi pohjassa.")
@@ -476,87 +692,145 @@ SETTEXT(CFG_LOWMEMORY,          "'%s' (%s) asettaa TTDPatchin k„ytt„m„n muistin 
 SETTEXT(CFG_GENERALFIXES,       "'%s' (%s) korjaa useita pieni„ bugeja. T„st„ tarkemmin dokumentaatiossa.")
 SETTEXT(CFG_MOREAIRPORTS,       "'%s' (%s) sallii useamman kuin kahden lentokent„n rakentamisen yhteen kaupunkiin.")
 SETTEXT(CFG_BRIBE, "`%s' (%s) Lis„„ `bribe' (lahjo) napin aluevirainomais (local authority) menuun.")
-SETTEXT(CFG_PLANECRCTRL, "`%s' (%s) Antaa sinun p„„tt„„ milloin ja miten lentokoneet tuhoutuvat. Bittikoodattu arvo (osa %ld.%ld ohjeissa), oletus %ld.")
+SETTEXT(CFG_PLANECRCTRL, "`%s' (%s) Antaa sinun p„„tt„„ milloin ja miten lentokoneet tuhoutuvat.")
 SETTEXT(CFG_SHOWSPEED, "`%s' (%s) n„ytt„„ jokaisen kulkuneuvon t„m„nhetkisen nopeuden niiden \"status\" ikkunassa.")
 SETTEXT(CFG_AUTORENEW, "`%s' (%s) Uudistaa veturit n„in monta kuukautta ennen kuin ne tulevat todella vanhoiksi.  Arvov„li %ld..%ld.  Oletus %ld.")
 SETTEXT(CFG_CHEATSCOST, "`%s' (%s) tekee kylttihuijauskoodit maksullisiksi.")
-SETTEXT(CFG_EXTPRESIGNALS, "`%s' (%s) antaa vaihtaa \"pre-signal\" tyylej„ (pre- combi- ja exitsingalit) 'Ctrl' napin kanssa.")
+SETTEXT(CFG_EXTPRESIGNALS, "`%s' (%s) antaa vaihtaa \"esi opastin\" tyylej„ (esi- combo- ja poistumis opastimet) 'Ctrl' napin kanssa.")
 SETTEXT(CFG_FORCEREBUILDOVL, "`%s' (%s) pist„„ TTDPatchin tekem„„n uuden TTDLOAD.OVL tai TTDLOADW.OVL joka kerta kun se k„ynnistet„„n.")
 SETTEXT(CFG_DISKMENU, "`%s' (%s) Lis„„ \"lataa\" valinnan disketti menuun, ja lataa peli (tai tallenna peli 'Ctrl' napin kanssa) Scenario Editoriin.")
 SETTEXT(CFG_WIN2K, "`%s' (%s) Tekee TTD'n Windows version of TTD yhteensopivan Windows 2000/XP kanssa.")
 SETTEXT(CFG_FEEDERSERVICE, "`%s' (%s) Muuttaa unload komentoi niin, ett„ tavara j„tet„„n asemalle, eik„ siit„ tule rahaa (kuten \"en-route\").")
-SETTEXT(CFG_GOTODEPOT, "`%s' (%s) allows you to add depots to vehicles' orders.")		
-SETTEXT(CFG_NEWSHIPS, "`%s' (%s) changes the ship models to a bigger variety, with more refitting options.")
-SETTEXT(CFG_SUBSIDIARIES, "`%s' (%s) allows you to manage AI companies if you own 75%%.")
-SETTEXT(CFG_GRADUALLOADING, "`%s' (%s) changes the way vehicles are loaded to a more realistic gradual loading (also activates `loadtime').")
-SETTEXT(CFG_MOVEERRORPOPUP, "`%s' (%s) moves all red error popups to the top-right corner of the screen.")
-SETTEXT(CFG_SIGNAL1WAITTIME, "`%s' (%s) changes the number of days after which a train waiting on a 1-way signal turns around.  Range 0..254, or 255 to wait forever.")
-SETTEXT(CFG_SIGNAL2WAITTIME, "`%s' (%s) changes the number of days after which a train waiting on a 2-way signal turns around.  Range 0..254, or 255 to wait forever.")
-SETTEXT(CFG_DISASTERS, "`%s' (%s) allows you to choose which disasters may occur.  Bitcoded value, default 255 (all disasters).")
-SETTEXT(CFG_FORCEAUTORENEW, "`%s' (%s) forces servicing of vehicles when it is time for the auto-renewal (see `autorenew').")
-SETTEXT(CFG_MORENEWS, "`%s' (%s) generates messages/news reports on more events, see the docs for more information.")
-SETTEXT(CFG_UNIFIEDMAGLEV, "`%s' (%s) makes it possible to buy monorail engines in maglev depots or vice versa.  Mode: 1 - convert all maglev engines to monorail; 2 - convert all monorail engines to maglev; 3 - keep separate monorail and maglev.")
-SETTEXT(CFG_BRIDGESPEEDS, "`%s' (%s) changes the speed limits on tubular monorail and maglev bridges to this percentage of the highest maximum engine speed in the class.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_ETERNALGAME, "`%s' (%s) allows you to keep playing forever, the date isn't reset after 2070.")
-SETTEXT(CFG_SHOWFULLDATE, "`%s' (%s) always show the full date in the status, not only when the game is paused.")
-SETTEXT(CFG_NEWTRAINS, "`%s' (%s) activates new train models with new graphics.")
-SETTEXT(CFG_NEWRVS, "`%s' (%s) activates new road vehicle models with new graphics.")
-SETTEXT(CFG_NEWPLANES, "`%s' (%s) activates new aircract models with new graphics.")
-SETTEXT(CFG_SIGNALSONTRAFFICSIDE, "`%s' (%s) displays railroad signals on the same side of track road vehicles drive on.")
-SETTEXT(CFG_ELECTRIFIEDRAIL, "`%s' (%s) removes one of the magnetic track systems (Monorail or MagLev) and replaces it with an electrified railroad system.")
-SETTEXT(CFG_STARTYEAR, "`%s' (%s) sets the default start year for random games and allows greater choice of starting years in the scenario editor.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_ERRORPOPUPTIME, "`%s' (%s) changes the time after which red error popup windows automatically close.  Range 1..255 (in seconds), or 0 for a very long time.  Default 10.")
-SETTEXT(CFG_TOWNGROWTHLIMIT, "`%s' (%s) changes the factor that limits the maximum possible extent of towns.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_LARGERTOWNS, "`%s' (%s) makes each one out of a given number of towns grow faster and larger (also applying `towngrowthlimit' selectively).  Range %ld..%ld.  Default %ld (one out of four towns).")
-SETTEXT(CFG_MISCMODS, "`%s' (%s) makes it posible to modify the working of some other switches, see the docs on more info.  Bitcoded value, default 0 (no modifications).")
-SETTEXT(CFG_LOADALLGRAPHICS, "`%s' (%s) forces TTDPatch to always load all .grf files in newgrf(w).cfg, regardless of whether they were used previously in a loaded game (etc.) or not.")
-SETTEXT(CFG_SAVEOPTDATA, "`%s' (%s) makes TTDPatch save and load additional (optional) data at the end of savegames.")
-SETTEXT(CFG_MOREBUILDOPTIONS, "`%s' (%s) enables more build options. Bitcoded value, range %ld..%ld. Default %ld.")
-SETTEXT(CFG_SEMAPHORES, "`%s' (%s) turns new signals built before 1975 into semaphore signals.")
-SETTEXT(CFG_MOREHOTKEYS, "`%s' (%s) enables new hotkeys.")
-SETTEXT(CFG_MANYTREES, "`%s' (%s) allows planting more than one tree on a square, or over a rectangular area with Ctrl.")
-SETTEXT(CFG_MORECURRENCIES,"`%s' (%s) enables more currencies and the Euro.  Parameter: 0 - curr. symbols at default place; 1 - curr. symbols before numbers; 2 - curr. symbols after numbers.  Add 4 to the above value to disable the Euro.")
-SETTEXT(CFG_MANCONVERT,"`%s' (%s) allows manual track type conversion by placing new tracks over existing tracks.")
-SETTEXT(CFG_NEWAGERATING, "`%s' (%s) makes station ratings more tolerant to vehicle ages.  Now wagons can be up to 21 instead of 3 years old.")
-SETTEXT(CFG_ENHANCEGUI,"`%s' (%s) enhances the user interface.")
-SETTEXT(CFG_TOWNGROWTHRATEMODE, "`%s' (%s) makes it possible to define rules for the calculation of the growth rate for towns.  Mode: 0 - TTD original, 1 - TTD extended, 2 - custom.  See the docs for more information.")
-SETTEXT(CFG_TOWNGROWTHRATEMIN, "`%s' (%s) defines the minimum growth rate of towns, in new houses per century.  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TOWNGROWTHRATEMAX, "`%s' (%s) defines the maximum growth rate of towns, in new houses per century.  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRACTSTATIONEXIST, "`%s' (%s) defines how much the existence of active stations increases the growth rate of a town (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRACTSTATIONS, "`%s' (%s) defines how much each active station increases the growth rate of a town (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRACTSTATIONSWEIGHT, "`%s' (%s) defines how effectively active stations contribute to the growth rate of a town (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRPASSOUTWEIGHT, "`%s' (%s) defines how effectively transported passengers contribute to the growth rate of a town (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRMAILOUTWEIGHT, "`%s' (%s) defines how effectively transported mail contributes to the growth rate of a town (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRPASSINMAX, "`%s' (%s) defines the maximum number of incoming passengers that can affect growth of a town (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRPASSINWEIGHT, "`%s' (%s) defines how effectively incoming passengers contribute to the growth rate of a town (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRMAILINOPTIM, "`%s' (%s) defines the optimum population per each 2 bags of incoming mail (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRMAILINWEIGHT, "`%s' (%s) defines how effectively incoming mail contributes to the growth rate of a town (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRGOODSINOPTIM, "`%s' (%s) defines the optimum population per each 2 crates of incoming goods (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRGOODSINWEIGHT, "`%s' (%s) defines how effectively incoming goods contribute to the growth rate of a town (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRFOODINMIN, "`%s' (%s) defines the minimum food requirement of towns in snow-covered or desert areas, in population per 2 tons of incoming food (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRFOODINOPTIM, "`%s' (%s) defines the optimum population per each 2 tons of incoming food (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRFOODINWEIGHT, "`%s' (%s) defines how effectively incoming food contributes to the growth rate of a town (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRWATERINMIN, "`%s' (%s) defines the minimum water requirement of towns in desert areas, in population per 2 tons (2,000 liters) of incoming water (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRWATERINOPTIM, "`%s' (%s) defines the optimum population per each 2 tons (2,000 liters) of incoming water in the sub-tropical climate (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRWATERINWEIGHT, "`%s' (%s) defines how effectively incoming water contributes to the growth rate of a town in the sub-tropical climate (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRSWEETSINOPTIM, "`%s' (%s) defines the optimum population per each 2 bags of incoming candy (sweets) in the toyland climate (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRSWEETSINWEIGHT, "`%s' (%s) defines how effectively incoming candy (sweets) contributes to the growth rate of a town in the toyland climate (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRFIZZYDRINKSINOPTIM, "`%s' (%s) defines the optimum population per each 2 incoming fizzy drinks in the toyland climate (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRFIZZYDRINKSINWEIGHT, "`%s' (%s) defines how effectively incoming fizzy drinks contribute to the growth rate of a town in the toyland climate (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRTOWNSIZEBASE, "`%s' (%s) defines the base number of town buildings for the calculation involving `tgrtownsizefactor' (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TGRTOWNSIZEFACTOR, "`%s' (%s) defines how much the size of a town influences its growth rate (see the docs for more information).  Active only if `towngrowthratemode' is set to 2.  Range %ld..%ld.  Default %ld (i.e. 25%% influence).")
-SETTEXT(CFG_TOWNMINPOPULATIONSNOW, "`%s' (%s) defines the minimum population to which towns in snow-covered areas can grow even without food supplies.  Active if `towngrowthratemode', `towngrowthlimit' or `generalfixes' is enabled.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_TOWNMINPOPULATIONDESERT, "`%s' (%s) defines the minimum population to which towns in desert areas can grow even without food and water supplies.  Active if `towngrowthratemode', `towngrowthlimit' or `generalfixes' is enabled.  Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_MORETOWNSTATS, "With `%s' (%s) additional statistics are displayed in town information windows.")
-SETTEXT(CFG_BUILDONSLOPES, "`%s' (%s) makes it possible to build tracks, roads and stations on sloped land, on a foundation like houses.")
-SETTEXT(CFG_BUILDONCOASTS, "`%s' (%s) makes it possible to build on coasts or riverbanks without having to use the dynamite tool first.")
-SETTEXT(CFG_TRACKTYPECOSTDIFF, "`%s' (%s) makes different track types have different cost.")
-SETTEXT(CFG_CUSMULTIPLIER, "`%s' (%s) sets the exchange ratio for custom currency CUS * 1000.  Default is 1000 (1 CUS = 1 pound).  Active only if `morecurrencies' is enabled.")
-SETTEXT(CFG_EXPERIMENTALFEATURES, "`%s' (%s) enables the latest experimental features.")
-SETTEXT(CFG_PLANESPEED, "`%s' (%s) makes planes fly at their indicated speed, not a quarter thereof, and reduces speed to 5/8 in case of a breakdown.")
-SETTEXT(CFG_FASTWAGONSELL, "`%s' (%s) allows faster wagon selling with Ctrl")
-SETTEXT(CFG_NEWRVCRASH,"`%s' (%s) changes train/road vehicle crashes. 1 makes the train break down after the crash. 2 disables train/road vehicle crashes at all. Default: type 1.");
-SETTEXT(CFG_STABLEINDUSTRY,"`%s' (%s) prevents industries from closing down if Economy is set to Steady in Difficulty settings");
+SETTEXT(CFG_GOTODEPOT, "`%s' (%s) Antaa lis„t„ varikot kulkuneuvon ohjeisiin.")		
+SETTEXT(CFG_NEWSHIPS, "`%s' (%s) Antaa sinun muutta laivamalleja newgrf tiedostojen avulla.")
+SETTEXT(CFG_SUBSIDIARIES, "`%s' (%s) antaa sinun hallita tietokone yhti”it„ jos omistat 75%%.")
+SETTEXT(CFG_GRADUALLOADING, "`%s' (%s) muuttaa tapaa mill„ kulkuneuvot lastataan enemm„n realistiseksi vaiheelliseksi lataukseksi (my”s aktivoi `loadtime').")
+SETTEXT(CFG_MOVEERRORPOPUP, "`%s' (%s) liikuttaa kaikki punaiset virheilmoitukset oikeaan yl„kulmaan.")
+SETTEXT(CFG_SIGNAL1WAITTIME, "`%s' (%s) muuttaa p„ivien m„„r„„ mink„ j„lkeen juna k„„ntyy yksi-suuntaisella opastimella takaisin.  Range 0..254, tai 255 ett„ juna odottaa ikuisesti.")
+SETTEXT(CFG_SIGNAL2WAITTIME, "`%s' (%s) muuttaa p„ivien m„„r„„ mink„ j„lkeen juna k„„ntyy kaksi-suuntaisella opastimella takaisin.  Range 0..254, tai 255 ett„ juna odottaa ikuisesti.")
+SETTEXT(CFG_DISASTERS, "`%s' (%s) antaa sinun valita mitk„ tapaturmat tapahtuvat.")
+SETTEXT(CFG_FORCEAUTORENEW, "`%s' (%s) pakottaa  kulkuneuvon huollossa k„ynnin kun on aika automaattiselle kulkuneuvon uudistukselle (katso `autorenew').")
+SETTEXT(CFG_MORENEWS, "`%s' (%s) tuottaa enemm„n viestej„/uutisia useammissa tapahtumissa, katso dokumentaatio tiedostoja jos haluat lis„„ tietoa.")
+SETTEXT(CFG_UNIFIEDMAGLEV, "`%s' (%s) tekee mahdolliseksi ostaa monorail vetureita maglev varikoilla tai toisin p„in.  Mode: 1 - muuta kaikki maglev veturit monorailille; 2 - muuta kaikki monorail veturit magleville; 3 - pid„ erillinen monorail ja maglev.")
+SETTEXT(CFG_BRIDGESPEEDS, "`%s' (%s) muuttaa nopeusrajoitukset tubular monorail and maglev silloilla t„h„n prosenttiin nopeimman veturin sen luokan(monorail, maglev) nopeudesta.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_ETERNALGAME, "`%s' (%s) antaa sinun pelata ikuisesti, p„iv„m„„r„ ei palaudu alkuun vuoden 2070 j„lkeen.")
+SETTEXT(CFG_SHOWFULLDATE, "`%s' (%s) aina n„yt„ kokonainen p„iv„m„„r„, mutta ei ainoastaan kun peli on pys„ytetty.")
+SETTEXT(CFG_NEWTRAINS, "`%s' (%s) antaa sinun muuttaa vetureita ja vaunuja newgrf tiedostojen avulla.")
+SETTEXT(CFG_NEWRVS, "`%s' (%s) antaa sinun muuttaa autoja newgrf tiedostojen avulla.")
+SETTEXT(CFG_NEWPLANES, "`%s' (%s) antaa sinun muuttaa lentokoneita newgrf tiedostojen avulla.")
+SETTEXT(CFG_SIGNALSONTRAFFICSIDE, "`%s' (%s) n„ytt„„ opastimet samalla puolella mik„ on autojen ajopuoli(oikea tai vasen).")
+SETTEXT(CFG_ELECTRIFIEDRAIL, "`%s' (%s) poistaa yhden magneettisista rata tyypeist„ (Monorail tai MagLev) ja korvaa sen s„hk”istetyll„ rautatiell„.")
+SETTEXT(CFG_STARTYEAR, "`%s' (%s) asettaa aloitusvuoden satunnais peleille ja antaa sinun valita suuremman m„„r„n aloitusvuosia skenaario editorissa.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_ERRORPOPUPTIME, "`%s' (%s) muuttaa aikarajaa mink„ j„lkeen punaiset virheilmoitukset sulkeutuvat.  Range 1..255 (sekunneissa), tai 0 todella pitk„lle ajalle.  Oletus 10.")
+SETTEXT(CFG_TOWNGROWTHLIMIT, "`%s' (%s) muuttaa kerrointa mik„ rajoittaa kaupunkien kasvamista.  RangeArvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_LARGERTOWNS, "`%s' (%s) pist„„ yhden kaupungin annetusta numerosta kasvamaan nopeammin ja isommaksi (my”s k„ytt„„ `towngrowthlimit' valitsevasti).  Arvov„li %ld..%ld.  Oletus %ld (1 kaupunki nelj„st„).")
+SETTEXT(CFG_MISCMODS, "`%s' (%s) tekee mahdolliseksi muuttaa toisten asetusten toimintaa, katso dokumentaatiota jos haluat lis„„ tietoa.")
+SETTEXT(CFG_LOADALLGRAPHICS, "`%s' (%s) pakoittaa TTDPatchin aina lataamaan kaikki .grf tiedostot newgrf(w).cfg, riippumatta siit„ onko niit„ k„ytetty edellisiss„ peleiss„ vai ei.")
+SETTEXT(CFG_SAVEOPTDATA, "`%s' (%s) pakoittaa TTDPatchin tallentamaan ja lataamaan lis„tietoa tallennettujen pelien lopussa.")
+SETTEXT(CFG_MOREBUILDOPTIONS, "`%s' (%s) sallii enemm„n rakennus mahdollisuuksia.")
+SETTEXT(CFG_SEMAPHORES, "`%s' (%s) muuttaa uudet opastimet jotka on rakennettu ennen 1975 siipiopastimiksi.")
+SETTEXT(CFG_MOREHOTKEYS, "`%s' (%s) sallii uudet pikan„pp„imet.")
+SETTEXT(CFG_MANYTREES, "`%s' (%s) sallii enemm„n kuin yhden puun istuttamisen ruudulle, tai isolle suorakulmaiselle alueelle Ctrl n„pp„imell„.")
+SETTEXT(CFG_MORECURRENCIES,"`%s' (%s) sallii enemm„n valuuttoja ja Euron.")
+SETTEXT(CFG_MANCONVERT,"`%s' (%s) sallii manuaalisen ratatyypin muutoksen rakentamalla uutta rataa vanhan radan p„„lle.")
+SETTEXT(CFG_NEWAGERATING, "`%s' (%s) tekee asema arvosanat suopeammiksi kulkuneuvojen i„lle.  Nyt vaunut voivat olla 21 vuotta vuoden vanhoja kolmen vuoden sijaan.")
+SETTEXT(CFG_ENHANCEGUI,"`%s' (%s) parantaa k„ytt„j„liittym„„.")
+SETTEXT(CFG_TOWNGROWTHRATEMODE, "`%s' (%s) tekee mahdolliseksi asettaa s„„nn”t kaupunki kasvun laskulle.  Mode: 0 - TTD alkuper„inen, 1 - TTD jatkettu, 2 - custom.  Katso dokumentaatiota jos haluat lis„„ tietoa.")
+SETTEXT(CFG_TOWNGROWTHRATEMIN, "`%s' (%s) asettaa pienimm„n kaupunki kasvamis nopeuden, uusissa taloissa joka vuosisata.  P„„ll„ ainoastaan jos `towngrowthratemode' on 2 asetuksella.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TOWNGROWTHRATEMAX, "`%s' (%s) asettaa suurimman kaupunki kasvamis nopeuden, uusissa taloissa joka vuosisata.  P„„ll„ ainoastaan jos `towngrowthratemode' on 2 asetuksella.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRACTSTATIONEXIST, "`%s' (%s) m„„ritt„„ kuinka paljon aktiivisen aseman olemassaolo vaikutta kaupungin kasvuun (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on 2 asetuksella.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRACTSTATIONS, "`%s' (%s) m„„ritt„„ kuinka paljon jokainen aktiivinen asema lis„„ kaupungin kasvu nopeutta (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on 2 asetuksella.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRACTSTATIONSWEIGHT, "`%s' (%s) m„„ritt„„ kuinka tehokkaasti aktiiviset asemat vaikuttavat kaupungin kasvu nopeuteen (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on 2 asetuksella. Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRPASSOUTWEIGHT, "`%s' (%s) m„„ritt„„ kuinka tehokkaasti kuljetetut matkustajat vaikuttavat kaupungin kasvu nopeuteen (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on 2 asetuksella.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRMAILOUTWEIGHT, "`%s' (%s) m„„ritt„„ kuinka tehokkaasti kuljetettu posti vaikuttaa kaupungin kasvamis nopeuteen (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on 2 asetuksella.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRPASSINMAX, "`%s' (%s) m„„ritt„„ maximi m„„r„n tulevia matkustajia jotka voivat vaikutta kaupungin kasvu nopeuteen (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on 2 asetuksella.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRPASSINWEIGHT, "`%s' (%s) m„„ritt„„ kuinka tehokkaasti tulevat matkustajat vaikuttavat kaupungin kasvu nopeuteen (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on 2 asetuksella.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRMAILINOPTIM, "`%s' (%s) m„„ritt„„ optimaali asukasm„„r„n joka kahta kassia tulevaa postia kohti (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on 2 asetuksella.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRMAILINWEIGHT, "`%s' (%s) m„„ritt„„ kuinka tehokkaasti tuleva posti vaikuttaa kaupungin kasvamis nopeuteen (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on 2 asetuksella.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRGOODSINOPTIM, "`%s' (%s) m„„ritt„„ optimaalisen asukasm„„r„n jokaista kahta laatikkoa tulevan tavaraa mukaan (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on asetettu 2 asetukselle.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRGOODSINWEIGHT, "`%s' (%s) m„„ritt„„ kuinka tehokkaasti tuleva tavara vaikuttaa kaupungin kasvamis nopeuteen (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on asetettu 2 asetukselle.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRFOODINMIN, "`%s' (%s) m„„ritt„„ minimi ruoka tarpeen kaupungeille lumi tai aavikko alueilla asukasm„„r„ss„ per kahden tonnin tulevan ruuan mukaan (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on asetettu 2 asetukselle.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRFOODINOPTIM, "`%s' (%s) m„„ritt„„ optimaalisen asukasm„„r„n joka kahden tonnin tulenvan ruuan mukaan (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on asetettu 2 asetukselle.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRFOODINWEIGHT, "`%s' (%s) m„„ritt„„ kuinka tehokkaasti tuleva ruoka ottaa osaa kaupungin kasvamis nopeuteen (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on asetettu 2 asetukselle.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRWATERINMIN, "`%s' (%s) m„„ritt„„ minimi vesi vaatimuksen joka kaupungille aavikko alueilla asukasm„„r„ss” per kahden tonnin (2.000 litran) tulevan veden mukaan (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on asetettu 2 asetukselle.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRWATERINOPTIM, "`%s' (%s) m„„ritt„„ optimaalisen asukasm„„r„n joka kahden tonnin (2.000 litran) tulevaa vett„ kohti sub-trooppisessa ilmastossa (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on asetettu 2 asetukselle.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRWATERINWEIGHT, "`%s' (%s) m„„ritt„„ kuinka tehokkaasti tuleva vesi ottavat osaa kaupungin kasvamis nopeuteen lelumaailma ilmastossa (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on asetettu 2 asetukselle.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRSWEETSINOPTIM, "`%s' (%s) m„„ritt„„ optimaalisen asukasm„„r„n joka kahden tulevan fizzy juoman mukaan lelumaailma ilmastossa (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on asetettu 2 asetukselle.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRSWEETSINWEIGHT, "`%s' (%s) m„„ritt„„ kuinka tehokkaasti tulevat karkit ottavat osaa kaupungin kasvamis nopeuteen lelumaailma ilmastossa (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on asetettu 2 asetukselle.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRFIZZYDRINKSINOPTIM, "`%s' (%s) m„„ritt„„ optimaalisen asukasm„„r„n joka kahden tulevan karkkipussin mukaan lelumaailma ilmastossa (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on asetettu 2 asetukselle.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRFIZZYDRINKSINWEIGHT, "`%s' (%s) m„„ritt„„ kuinka tehokkaasti tulevat fizzy juomat ottavat osaa kaupungin kasvamis nopeuteen lelumaailma ilmastossa (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on asetettu 2 asetukselle.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRTOWNSIZEBASE, "`%s' (%s) m„„ritt„„ perus m„„r„n kaupunkirakennuksille jotka vaikuttavat laskulle johon liittyy `tgrtownsizefactor' (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on asetettu 2 asetukselle.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TGRTOWNSIZEFACTOR, "`%s' (%s) m„„ritt„„ kuinka paljon kaupungin koko vaikuttaa sen kasvamis nopeutta (katso dokumentaatiota jos haluat lis„„ tietoa).  P„„ll„ ainoastaan jos `towngrowthratemode' on asetettu 2 asetukselle.  Arvov„li %ld..%ld.  Oletus %ld (i.e. 25%% vaikutus).")
+SETTEXT(CFG_TOWNMINPOPULATIONSNOW, "`%s' (%s) asettaa pienimm„n asukasm„„r„n mihin asti kaupungit lumipeite alueella voivat kasvaa jopa ilman ruokaa.  P„„ll„ jos `towngrowthratemode', `towngrowthlimit' tai `generalfixes' on p„„ll„.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TOWNMINPOPULATIONDESERT, "`%s' (%s) asettaa pienimm„n asukasm„„r„n mihin asti kaupungit aavikolla voivat kasvaa jopa ilman ruokaa ja vett„.  P„„ll„ jos `towngrowthratemode', `towngrowthlimit' tai `generalfixes' on p„„ll„.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_MORETOWNSTATS, "`%s' (%s) Enemm„n statistiikkoja n„ytet„„n kaupunki informaatio ruudussa.")
+SETTEXT(CFG_BUILDONSLOPES, "`%s' (%s) tekee mahdoliseksi rakentaa kiskoja, teit„ ja asemia kallistuneelle maalle, samanlaiselle perustalle kun talot.")
+SETTEXT(CFG_BUILDONCOASTS, "`%s' (%s) tekee mahdolliseksi rakentaa rannoille tai joenrannoille ilman ett„ pit„„ k„ytt„„ dynamiitti ty”kalua ensin.")
+SETTEXT(CFG_TRACKTYPECOSTDIFF, "`%s' (%s) joka rata tyyppi maksaa erinlaisen summan rakentaa.")
+SETTEXT(CFG_EXPERIMENTALFEATURES, "`%s' (%s) sallii kokeelliset ominaisuudet.")
+SETTEXT(CFG_PLANESPEED, "`%s' (%s) pist„„ lentokoneet lent„m„„n ilmoitetulla nopeudella, ei nelj„sosaa siit„, ja v„hent„„ nopeuden 5/8 hajoamisen tapauksessa.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_FASTWAGONSELL, "`%s' (%s) sallii nopeamman vaunun myynnin CTRL n„pp„imen avulla")
+SETTEXT(CFG_NEWRVCRASH,"`%s' (%s) muuttaa juna/auto t”rm„yksi„. 1 pist„„ junan rikkoutumaan t”rm„yksen j„lkeen. 2 poistaa juna/auto t”rm„ykset kokonaan. Oletus: asetus 1.");
+SETTEXT(CFG_STABLEINDUSTRY,"`%s' (%s) est„„ teollisuutta sulkeutumasta jos Ekonomia on asetettu Tasaiselle vaikeusasetuksissa");
+SETTEXT(CFG_NEWPERF, "`%s' (%s) k„ytt„„ reilumpaa laskenta tapaa suorituksen laskemissa.")
+SETTEXT(CFG_SORTVEHLIST, "`%s' (%s) j„rjestele kulkuneuvot kulkuneuvo listassa. T„m„ asetus asettaa kuinka kauan aikaa kuluu kahden uudistamisen v„lill„. Pienemm„t asetukset tarvitsevat enemm„n prosessori aikaa, mutta pit„„ listat enemm„n ajan tasalla. 10 Asetus tarkoittaa melkein TTD'n p„iv„„. Arvov„li %ld..%ld. Oletus %ld.")
+SETTEXT(CFG_NEWSPAPERCOLOUR, "`%s' (%s) muuttaa uutiset v„rillisiksi annettuna vuonna.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_SHAREDORDERS, "`%s' (%s) sallii jaetut tai kopioidut ohjeet.")
+SETTEXT(CFG_SHOWPROFITINLIST, "`%s' (%s) n„ytt„„ v„rikoodatut tuotot kulkuneuvo listassa.")
+SETTEXT(CFG_MORESTEAM, "`%s' (%s) n„ytt„„ enemm„n (tai v„hemm„n) h”yry vanoja. Asetuksella on kaksi numeroa, ensinmm„inen on h”yry vanan pituudelle, toinen kuinka usein, 2 on TTD'n oletus.  Lis„„m„ll„/v„hent„m„ll„ yhden numeron tuplaat/puolitat pituuden tai useuden.  Arvov„li %02lx..%02lx.  Oletus %02lx.")
+SETTEXT(CFG_ABANDONEDROADS, "`%s' (%s) tiet menett„v„t omistajansa jos niit„ ei k„ytet„, ett„ voit poistaa ne jos ne eiv„t ole k„yt”ss„. Saat my”s k„ytt„m„tt”mien teiden omistuksen jos sinun kulkuneuvot niit„ k„ytt„v„t. 0 asetuksella, kaikki tiet menett„v„t omistajansa, 1 asetuksella, tiet jotka ovat kaunpunkien l„hell„ menett„v„t omistajansa jos niit„ ei k„ytet„, 2 asetuksella ne menett„v„t omistajansa heti.")
+SETTEXT(CFG_NEWSTATIONS, "`%s' (%s) sallii uudet asema grafiikat newgrf tiedostojen avulla.")
+SETTEXT(CFG_BUILDWHILEPAUSED, "`%s' (%s) sallii kaikki rakennus mahdollisuudet vaikka peli on pys„ytetty.")
+SETTEXT(CFG_TRAINLOSTTIME, "`%s' (%s) antaa varoituksen eksyneest„ junasta asetetun ajan p„„st„.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_RVLOSTTIME, "`%s' (%s) antaa varoituksen eksyneest„ autosta asetetun ajan p„„st„.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_SHIPLOSTTIME, "`%s' (%s) antaa varoituksen eksyneest„ laivasta asetetun ajan p„„st„.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_AIRCRAFTLOSTTIME, "`%s' (%s) antaa varoituksen eksyneest„ lentokoneesta asetetun ajan p„„st„.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_MAPREFRESH, "`%s' (%s) muuttaa nopeutta mill„ nopeudella TTD uudistaa kartta ikkunaa.  Pienemm„t numerot tarkoittavat nopeampaa uudellenpiirt„mis nopeutta ja suurempaa prosessorin k„ytt”„.  TTDn oletus on 64.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_NETWORKTIMEOUT, "`%s' (%s) lopettaa verkkopelin jos ei ole vastausta tietyn sekunti m„„r„n j„lkeen.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_TOYLANDFEATURES, "`%s' (%s) sallii maisema ominaisuudet jotka ovat normaalisti pois k„yt”st„ satunnais peleiss„ lelumaailma ilmastossa, kuten majakat.")
+SETTEXT(CFG_STRETCHWINDOW, "`%s' (%s) venytt„„ TTD'n ikkunan t„h„n kokoon pikseleiss„ (ainoastaan TTD'n Windows versiota varten ikkuna muodossa).  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_CANALS, "`%s' (%s) antaa sinun rakentaa kanaaleja and lukkoja k„ytt„m„ll„ `osta maata' ty”kalua sataman rakennus valikosta.")
+SETTEXT(CFG_FREIGHTTRAINS, "`%s' (%s) moninkertaistaa kuorman m„„r„n mit„ vaunut kuljettavat, t„m„ simuloi todella pitki„ tavarajunia.  T„m„ ainoastaan vaikuttaa junan kiihdytyst„, junat eiv„t oikeasti kanna enemm„n.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_GAMESPEED, "`%s' (%s) Tekee pelin nopeuden muunneltavaksi. T„m„ vaatii pikan„pp„in asetuksen p„„ll„ olemista. Paina 'q' nopeuttaaksesi kahden kertoimella (max 8x nopeus) ja 'w' hidastaaksesi sit„.  Arvo on alkuasetus.  Arvov„li %ld..%ld.  Oletus %ld.")
+SETTEXT(CFG_HIGHERBRIDGES, "`%s' (%s) antaa sinun rakentaa korkeampia siltoja.")
+SETTEXT(CFG_NEWGRFCFG, "`%s' (%s) valitsee konfiguraatio tiedoston newgrf grafiikoille.")
+SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s) sallii vieritys n„pp„imen k„yt”n Windows versiossa.")
+SETTEXT(CFG_MOREWINDOWS, "`%s' (%s) sallii useamman ikkunan aukiolon ruudulla. TTD'n oletus on 10, mutta 3 paikkaa on aina k„yt”ss„ (p„„ valikko, p„„ n„kokulma, p„„ tilannevalikko), joten oikea maximi on 7. Tiputus valikot ja uutisviestit lasketaan ikkunoina my”s. Arvov„li %ld..%ld. Oletus %ld.")
+SETTEXT(CFG_ENHANCEDDIFFICULTYSETTINGS, "'%s' (%s) tekee mahdolliseksi valita 'ei mit„„n' teollisuuden m„„r„lle vaikeusasetuksissa.")
+SETTEXT(CFG_NEWHOUSES, "`%s' (%s) sallii uudet talo grafiikat newgrf tiedostojen avulla.")
+SETTEXT(CFG_NEWBRIDGES, "`%s' (%s) sallii uudet silta grafiikat newgrf tiedostojen avulla.")
+SETTEXT(CFG_NEWTOWNNAMES, "`%s' (%s) sallii uusien kaupunki nimi teemojen asettamis satunnais peleihin newgrf tiedostojen avulla.")
+SETTEXT(CFG_MOREANIMATION, "`%s' (%s) sallii suuremman luvun ruutuja olla animoituja. TTD'n oletus on 256. Arvov„li %ld..%ld. Oletus %ld.")
+SETTEXT(CFG_NEWSHISTORY, "`%s' (%s) sallii uutishistorian ker„„misen ja n„ytt„misen.")
+SETTEXT(CFG_WAGONSPEEDLIMITS, "`%s' (%s) sallii nopeusrajoitukset vaunuille.")
+SETTEXT(CFG_PATHBASEDSIGNALLING, "`%s' (%s) sallii suunta pohjaiset opastimet. Ennenkuin yrit„t k„ytt„„, ole hyv„ ja lue manuaali, t„t„ ominaisuutta on vaikea k„ytt„„.")
+SETTEXT(CFG_CUSTOMBRIDGEHEADS, "`%s' (%s) sallii sillanp„iden muuntelun.")
+SETTEXT(CFG_TOWNBUILDNOROADS, "`%s' (%s) kaupungit eiv„t rakenna teit„.")
+SETTEXT(CFG_NEWCARGODISTRIBUTION, "`%s' (%s) paranneltu tavaran jakelu.")
+SETTEXT(CFG_WINDOWSNAP, "`%s' (%s) let ikkunat napsahtavat yhteen. Arvov„li %ld..%ld. Oletus %ld.")
+SETTEXT(CFG_RESOLUTIONWIDTH, "`%s' (%s) sallii ja asettaa resoluution leveyden.")
+SETTEXT(CFG_RESOLUTIONHEIGHT, "`%s' (%s) sallii ja asettaa resoluution korkeuden.")
+SETTEXT(CFG_AICHOOSECHANCES, "`%s' (%s) aseta mitk„ mahdollisuudet tietokoneella on rakentaa mink„kin kuljetusmuodon reitti (laiva reitin rakentamisen mahdollisuus on 1-rautatie mahdollisuus-aut mahdollisuus-ilma mahdollisuus).")
+SETTEXT(CFG_AIBUILDRAILCHANCE, "`%s' (%s) mahdollisuus mill„ tek”„ly rakentaa rautatie reittej„ kun se haluaa rakentaa uuden reitin. Arvov„li %ld..%ld, 0=0%%, 65535=100%%. Oletus %ld.")
+SETTEXT(CFG_AIBUILDRVCHANCE, "`%s' (%s) mahdollisuus mill„ tek”„ly rakentaa auto reittej„ kun se haluaa rakentaa uuden reitin. Arvov„li %ld..%ld, 0=0%%, 65535=100%%. Oletus %ld.")
+SETTEXT(CFG_AIBUILDAIRCHANCE, "`%s' (%s) mahdollisuus mill„ tek”„ly rakentaa ilma reittej„ kun se haluaa rakentaa uuden reitin. Arvov„li %ld..%ld, 0=0%%, 65535=100%%. Oletus %ld.")
+SETTEXT(CFG_NEWINDUSTRIES, "`%s' (%s) sallii enemm„n teollisuusrakennus tyyppej„.")
+SETTEXT(CFG_LOCOMOTIONGUI, "`%s' (%s) salli uusi locomotion tyylinen k„ytt”liittym„.")
+SETTEXT(CFG_FIFOLOADING, "`%s' (%s) salli FIFO lastaus.")
+SETTEXT(CFG_TEMPSNOWLINE, "`%s' (%s) sallii lumilinjan temperate ilmastossa (tarvitsee oikean GRF tiedoston n„ytt„„kseen lunta)")
+SETTEXT(CFG_TOWNROADBRANCHPROB, "`%s' (%s) muuttaa todenn„k”isyytt„ milloin kaupunki rakentaa tien haaran. 0 tarkoittaa melkein ei yht„„n tien haaraa, 65535 tarkoittaa tien haarat ovat mahdollisia joka puolella. TTD'n oletus on 26214. Arvov„li %ld..%ld. Oletus %ld.")
+SETTEXT(CFG_NEWCARGOS, "`%s' (%s) sallii enemm„n tavara tyyppej„.")
+SETTEXT(CFG_ENHMULTI, "`%s' (%s) parantaa moninpeli„ sallimalla enemm„n ihmispelaajia.")
+SETTEXT(CFG_ONEWAYROADS, "`%s' (%s) sallii yksisuuntaiset tiet")
+SETTEXT(CFG_NEWSOUNDS, "`%s' (%s) antaa sinun lis„t„ uusia „„ni„ newgrf tiedostojen avulla.")
+SETTEXT(CFG_IRRSTATIONS, "`%s' (%s) antaa sinun rakentaa ep„suorakulmaisia asemia.")
+SETTEXT(CFG_MORESTATS, "`%s' (%s) sallii enemm„n statistiikkoja ker„tt„v„n (toimii ainoastaan jos enhancegui on kytketty p„„lle).")
+SETTEXT(CFG_AUTOREPLACE, "`%s' (%s) uudistaa kulkuneuvot parhaaksi olemassa olevaksi malliksi, pienimm„n luotettavuus tason avulla joka on prosentteina.  Arvov„li 1..100, oletus 80.")
+SETTEXT(CFG_AUTOSLOPE, "`%s' (%s) antaa sinun muuttaa maata ilman rakennusten tuhoamista.")
+SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) antaa p„„ nak”kulman seurata kulkuneuvoa oikealla hiiren n„pp„in painalluksella Keskit„ N„kokulma ajoneuvon ikkunassa.")
+SETTEXT(CFG_TRAMS, "`%s' (%s) antaa sinun rakentaa raitiovaunuja.")
+SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) antaa sinun rakentaa kiskoja tunneleiden p„„lle")
+SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) antaa sinun pakoittaa peli vaihtoehtoja.")
 
 
 //----------------------------------------------------
@@ -564,7 +838,7 @@ SETTEXT(CFG_STABLEINDUSTRY,"`%s' (%s) prevents industries from closing down if E
 //----------------------------------------------------
 
 // Wait for a key before displaying the switches
-SETTEXT(LANG_SWWAITFORKEY, "\nEnter ajaa TTD:n, Esc lopettaa, muu n„ytt„„ asetukset.")		
+SETTEXT(LANG_SWWAITFORKEY, "\nEnter aloittaa TTD:n, Esc lopettaa, muu n„ytt„„ asetukset.")		
 
 // Introduction
 SETTEXT(LANG_SHOWSWITCHINTRO, "    M„„ritteet:   (%c p„„ll„, %c pois)\n")
@@ -581,9 +855,15 @@ SETTEXT(LANG_SWTWOWAY, "Kaksisuunta: ")
 SETTEXT(LANG_TIMEDAYS, "%d p„iv„(„)")
 SETTEXT(LANG_INFINITETIME, "loputon")
 
+// Shows the keys to scroll the verbose switch table
+SETTEXT(LANG_SCROLLKEYS, " N„pp„imet: Up Down PgUp PgDown Home End ")
+
+// ... and to abort TTDPatch
+SETTEXT(LANG_SCROLLABORTKEY, " Escape = lopeta ")
+
 // Shows the load options for ttdload.  %s is the given parameters to be passed to ttdload
-SETTEXT(LANG_SWSHOWLOAD, "Paina mit„ tahansa n„pp„int„ jatkaaksesi komennon \"TTDLOAD %s\" k„sittely„\n"
-			 "(Esc peruuttaa).")
+SETTEXT(LANG_SWSHOWLOAD, "Enter/Space = aloita \"TTDLOAD %s\""
+			 "Enter/Space = aloita \"TTDLOAD %s\"")
 
 SETTEXT(LANG_SWABORTLOAD, "\nOhjelman lataus keskeytetty k„ytt„j„n pyynn”st„.\n")
 
@@ -593,22 +873,23 @@ SETTEXT(LANG_SWABORTLOAD, "\nOhjelman lataus keskeytetty k„ytt„j„n pyynn”st„.\n"
 //---------------------------------------
 
 // Internal error in TTDPatch (%d is error number)
-SETTEXT(LANG_INTERNALERROR, "*** Sis„ine TTDPatch virhe #%d ***\n")
+SETTEXT(LANG_INTERNALERROR, "*** Sis„inen TTDPatch virhe #%d ***\n")
 
 // Error fixing the Windows version HDPath registry entry
 SETTEXT(LANG_REGISTRYERROR, "TTD ei ole asennettu oikein (rekisteri virhe %d)\n")
 
-// DOS reports no memory available
-SETTEXT(LANG_NOTENOUGHMEM, "Muisti ei riit„ (%s), tarvitaan %d Kb lis„„.\n")
+// Trying no-registry file
+SETTEXT(LANG_TRYINGNOREGIST, "Yritet„„n lukea no-registry tietoa %s:st„\n")
 
-// ...for starting TTD
-SETTEXT(LANG_TOSTARTTTD, "TTD:n k„ynnist„miseen")
+// no-registry file failed
+SETTEXT(LANG_NOREGISTFAILED, "no-registry tieto ei ole saatavilla.\n")
 
-// Protected mode code exceeds 32kb
-SETTEXT(LANG_PROTECTEDTOOLARGE, "Suojatun tilan koodi on liian suuri!\n")
+// DOS reports not enough memory available to start TTD
+SETTEXT(LANG_NOTENOUGHMEMTTD, "Muisti ei riit„ (to start TTD), tarvitaan %d Kb lis„„.\n")
 
-// Show where the code was stored, %p is the location
-SETTEXT(LANG_CODESTOREDAT, "Suojatun tilan koodi tallennettu osoitteeseen %lX.\n")
+// Other out-of-memory messages
+// %s is a function or variable name to identify where the memory allocation failed
+SETTEXT(LANG_NOTENOUGHMEM, "%s: Ei voitu varata lis„„ muistia, tarvitaan %d Kt lis„„.\n")
 
 // Swapping TTDPatch out
 SETTEXT(LANG_SWAPPING, "Swapataan ulos.\n")
@@ -621,11 +902,31 @@ SETTEXT(LANG_RUNTTDLOAD, "K„ynnistet„„n %s%s%s\n")
 // Error executing ttdload.  1st %s is ttdload.ovl, 2nd %s is the error message from the OS
 SETTEXT(LANG_RUNERROR, "Ei voida suorittaa ohjelmaa %s: %s\n")
 
+// Failed to create the new process for ttdloadw.ovl
+SETTEXT(LANG_CRPROCESSFAIL, "Prosessin luominen ep„onnistui")
+
+// Interprocess communication error: TTDPatchW seems to be already running
+/***/SETTEXT(LANG_IPCEXISTS, "Another instance of TTDPatch is already running!\n")
+
+// Failed to convert language strings to Unicode
+SETTEXT(LANG_STRINGCONVFAIL, "Tapahtui virhe kun valmisteltiin TTDPatch:in dataa!\n")
+
 // Show the result after after running, %s is one of the following strings
 SETTEXT(LANG_RUNRESULT, "Tulos: [%s]\n")
 SETTEXT(LANG_RUNRESULTOK, "OK")
 SETTEXT(LANG_RUNRESULTERROR, "Virhe!")
 
-// Messages about the graphics file ttdpatch.grf
-SETTEXT(LANG_NOTTDPATCHGRF, "Graafiikoita %s ei l”ytynyt, luodaan tyhj„ tiedosto.\n")
-SETTEXT(LANG_ERRORCREATING, "Virhe %s luomisessa: %s\n")
+
+
+//---------------------------------------
+//  MESSAGES DISPLAYED BY TTDLOAD
+//---------------------------------------
+
+// Messages in this category will have "TTDPatch: " prefixed and "\r\n" suffixed
+// when displayed by the DOS version.
+
+// Out of memory (in protected mode)
+SETTEXT(LANG_PMOUTOFMEMORY, "Ei ole tarpeeksi vapaata muistia!")
+
+// Interprocess communication failed (WinTTDX only)
+SETTEXT(LANG_PMIPCERROR, "Prosessien v„linen kommunikaatio ep„onnistui")

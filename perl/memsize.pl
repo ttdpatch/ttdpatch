@@ -13,8 +13,9 @@ my $found = 0;
 while(<>) {
 	next unless /TTDPATCH/;
 	$found++;
+	tr/\n\r//d;
 	print "// Output from mem /c:";
-	print "// $_";
+	print "// $_\n";
 	my $size = (split " ", $_)[1];
 	$size =~ tr/,.//d;
 	print "#define TTDPATCHSIZE $size";

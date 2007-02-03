@@ -12,7 +12,7 @@ totalsprites equ 0x131a+6*WINTTDX	// Windows TTD has six more (for Fish UK logo 
 #define MAXGRFVERSION 7
 
 	// number of GRF features supported for actions 0, 1, 2, 3 etc.
-%define NUMFEATURES 14
+%define NUMFEATURES 16
 
 %assign NBRIDGES	11
 
@@ -20,27 +20,32 @@ totalsprites equ 0x131a+6*WINTTDX	// Windows TTD has six more (for Fish UK logo 
 
 %define NUMCARGOS 32		// if newcargos is on
 
+%assign NUMBASEGRFREGISTERS 256
+%assign NUMSPECIALGRFREGISTERS 16
+%assign NUMGRFREGISTERS NUMBASEGRFREGISTERS+NUMSPECIALGRFREGISTERS 
+
 // GRM IDs
 %define GRM_TRAINS TRAINBASE
 %define GRM_RVS ROADVEHBASE
 %define GRM_SHIPS SHIPBASE
 %define GRM_PLANES AIRCRAFTBASE
-%define GRM_INDUSTRIES 256
-%define GRM_CARGOS GRM_INDUSTRIES+NINDUSTRIES	// cargo IDs
+%define GRM_CARGOS totalvehtypes		// cargo IDs
 %define GRM_CARGOBITS GRM_CARGOS+NUMCARGOS	// cargo bits
 
 %define GRM_NUM GRM_CARGOBITS+NUMCARGOS		// this will be the next used ID
 
 // aggregate resources that aren't allocated by ID
 // (one for each extended sprite block, for stations, houses, tiles and industries)
-%define GRM_EXTRA_SPRITES 0				// extended sprite blocks
-%define GRM_EXTRA_STATIONS NUMSPRITEBLOCKS		// station IDs
-%define GRM_EXTRA_HOUSES GRM_EXTRA_STATIONS+1		// house IDs
-%define GRM_EXTRA_INDUSTILES GRM_EXTRA_HOUSES+1		// industry tiles
-%define GRM_EXTRA_INDUSTRIES GRM_EXTRA_INDUSTILES+1	// industries
-%define GRM_EXTRA_PERSTEXTS GRM_EXTRA_INDUSTRIES+1	// persistent GRF texts
+%assign GRM_EXTRA_SPRITES 0				// extended sprite blocks
+%assign GRM_EXTRA_STATIONS NUMSPRITEBLOCKS		// station IDs
+%assign GRM_EXTRA_HOUSES GRM_EXTRA_STATIONS+1		// house IDs
+%assign GRM_EXTRA_INDUSTILES GRM_EXTRA_HOUSES+1		// industry tiles
+%assign GRM_EXTRA_INDUSTRIES GRM_EXTRA_INDUSTILES+1	// industries
+%assign GRM_EXTRA_PERSTEXTS GRM_EXTRA_INDUSTRIES+1	// persistent GRF texts
+%assign GRM_EXTRA_GRFIDS GRM_EXTRA_PERSTEXTS+1		// GRFIDs
+%assign GRM_EXTRA_OBJECTS GRM_EXTRA_GRFIDS+1		// object ids
 
-%define GRM_EXTRA_NUM GRM_EXTRA_PERSTEXTS+1
+%assign GRM_EXTRA_NUM GRM_EXTRA_OBJECTS+1
 
 
 maxstationclasses equ 32
@@ -61,6 +66,9 @@ foundationtypes equ 14+8
 
 	// handlers for the above, in the right order
 %define PROCALL_HANDLERS spritesloadedaction, spriteinitializeaction, spritereserveaction, spriteactivateaction, spritetestactaction,
+
+	// and routines to call between grf files for each of them
+%define PROCALL_CLEAR 0,resetgrm,0,0,0
 
 	// invalid sprite error codes
 #define INVSP_ISREAL 1		// using real sprite where pseudo sprite expected
@@ -91,6 +99,8 @@ foundationtypes equ 14+8
 #define INVSP_NOTINBLOCK 26	// range crosses block boundary
 #define INVSP_INVPROPVAL 27	// invalid property value
 #define INVSP_INVTEST 28	// invalid condition type in action 7/9
+#define INVSP_INVINDUSTILE 29	// invalid industry tile in layout
+#define INVSP_INVLAYOUTSIZE 30	// invalid industry layout size
 
 #endif	// ndef __GRF_INC__
 

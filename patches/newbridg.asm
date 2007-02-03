@@ -14,6 +14,7 @@
 
 #include <std.inc>
 #include <textdef.inc>
+#include <grfdef.inc>
 
 extern bridgespritetables
 
@@ -60,6 +61,33 @@ alterbridgespritetable:
 	ret
 .bad:
 	pop ecx
-	mov ax, ourtext(invalidsprite)
+	mov eax,(INVSP_BADID<<16)+ourtext(invalidsprite)
 	stc
+	ret
+
+	// prop 0F: long introduction date
+exported longintrodatebridges
+	extern specificpropertybase
+	mov edi,[specificpropertybase+6*4]
+	add edi,ebx
+
+.next:
+	lodsd
+	sub eax,701265	// 1920
+	jge .notbefore
+
+	xor eax,eax
+
+.notbefore:
+	cmp eax,93503	// 256 years minus one day
+	jb .ok
+
+	mov eax,93503
+
+.ok:
+	extern getfullymd
+	call [getfullymd]
+	stosb
+	loop .next
+	clc
 	ret

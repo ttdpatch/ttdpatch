@@ -35,6 +35,8 @@ extern roadmenudropdown,roadmenuelemlisty2,roadDropdownCode,createRoadConstructi
 
 extern checkdepot3jump, checkdepot4jump, checkdepot3return, checkdepot4return, checkdepot5jump, checkdepot5return
 
+extern paRoadDepotSpriteTable
+
 begincodefragments
 	codefragment olddrawgroundspriteroad, 9
 		cmp dh, 1
@@ -185,6 +187,11 @@ begincodefragments
 		mov	bx,160
 		push	ecx
 		setfragmentsize 19
+
+	reusecodefragment oldroadmenuselection, oldroadmenudropdown, 47
+
+	codefragment newroadmenuselection
+		icall	updateRoadMenuSelection
 
 	codefragment newsetroadmenunum
 		pop ecx
@@ -424,6 +431,53 @@ begincodefragments
 		icall	resetL3DataToo
 		setfragmentsize 7
 
+	codefragment oldDrawBuildDepot, -6
+		add	cx, 21h
+		add	dx, 11h
+
+	codefragment newDrawBuildDepot
+		icall	throwInTramDepots
+
+#if WINTTDX
+	codefragment oldRVFindDepot, -13
+		add	bx, di
+		movzx	edx, bx
+	codefragment newRVFindDepot
+		icall	checkIfDepotIsTramDepot
+		setfragmentsize 9
+#else
+	codefragment oldRVFindDepot, -10
+		add	bx, di
+		movzx	edx, bx
+	codefragment newRVFindDepot
+		icall	checkIfDepotIsTramDepot
+#endif
+
+	codefragment oldInsertLevelCrossing, -14
+		pop	ebx
+		retn
+		cmp	bl, 48h
+
+	codefragment newInsertLevelCrossing
+		icall	tramLevelCrossing
+		setfragmentsize 8
+
+	codefragment oldFirstBusArrivesNewsMsg
+		mov	bx, 0A02h
+		db	0x66, 0xBA, 0x2F, 0x90
+
+	codefragment newFirstBusArrivesNewsMsg
+		icall	updateFirstBusArrivesNewsItem
+		setfragmentsize 8
+
+	codefragment oldFirstTruckArrivesNewsMsg
+		mov	bx, 0A02h
+		db	0x66, 0xBA, 0x30, 0x90
+
+	codefragment newFirstTruckArrivesNewsMsg
+		icall	updateFirstTruckArrivesNewsItem
+		setfragmentsize 8
+
 endcodefragments
 
 patchtrams:
@@ -535,6 +589,7 @@ patchtrams:
 
 	patchcode oldCreateRoadConsWindow,newCreateRoadConsWindow,1,1
 
+	patchcode oldroadmenuselection, newroadmenuselection, 1, 1
 	stringaddress oldroadmenudropdown,1,1
 	mov eax,[edi+3]
 	mov [roadmenuelemlisty2],eax
@@ -545,6 +600,20 @@ patchtrams:
 
 	patchcode oldSetRoadXPieceTool,newSetRoadXPieceTool,1,1
 	patchcode oldSetRoadYPieceTool,newSetRoadYPieceTool,1,1
+
+	stringaddress oldDrawBuildDepot, 2-WINTTDX, 2
+	push	eax
+	mov	eax, [edi+2]
+	mov	dword [paRoadDepotSpriteTable], eax
+	pop	eax
+	patchcode oldDrawBuildDepot, newDrawBuildDepot, 2-WINTTDX, 2
+
+	patchcode oldRVFindDepot, newRVFindDepot, 1, 1
+	
+	patchcode oldFirstBusArrivesNewsMsg, newFirstBusArrivesNewsMsg, 1, 1
+	patchcode oldFirstTruckArrivesNewsMsg, newFirstTruckArrivesNewsMsg, 1, 1
+
+	patchcode oldInsertLevelCrossing, newInsertLevelCrossing, 1, 1
 
 	or byte [newgraphicssetsenabled+1],1 << (11 - 8)
 	retn

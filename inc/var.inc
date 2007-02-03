@@ -42,8 +42,19 @@
 		%push VAR
 		%xdefine %$VAR_START __File__:__Line__
 	%endif
+	#if MAKEGUARD
+	%ifndef SKIPGUARD
+	[section .varlist]
+	dd %1
+	%endif
+	#endif
 	[section .datab]
 	GLOBALVAR %1
+	#if MAKEGUARD
+	%ifndef SKIPGUARD
+	db "TTDPATCH"
+	%endif
+	#endif
 	%if %0>1
 		%1: db %2
 		endvar
@@ -56,9 +67,20 @@
 		%push VAR
 		%xdefine %$VAR_START __File__:__Line__
 	%endif
+	#if MAKEGUARD
+	%ifndef SKIPGUARD
+	[section .varlist]
+	dd %1
+	%endif
+	#endif
 	[section .dataw]
 	GLOBALVAR %1
 	align 2
+	#if MAKEGUARD
+	%ifndef SKIPGUARD
+	db "TTDPATCH"
+	%endif
+	#endif
 	%if %0>1
 		%1: dw %2
 		endvar
@@ -71,9 +93,20 @@
 		%push VAR
 		%xdefine %$VAR_START __File__:__Line__
 	%endif
+	#if MAKEGUARD
+	%ifndef SKIPGUARD
+	[section .varlist]
+	dd %1
+	%endif
+	#endif
 	[section .datad]
 	GLOBALVAR %1
 	align 4
+	#if MAKEGUARD
+	%ifndef SKIPGUARD
+	db "TTDPATCH"
+	%endif
+	#endif
 	%if %0>1
 		%1: dd %2
 		endvar
@@ -116,8 +149,19 @@
 %define sectname_4s .sbss
 %macro sdef 3.nolist		; params bss-type, varname, varnum
 	%define %%sectname sectname_%1
+	#if MAKEGUARD
+	%ifndef SKIPGUARD
+	[section .varlist]
+	dd %2
+	%endif
+	#endif
 	[section %%sectname]
 	GLOBALVAR %2
+	#if MAKEGUARD
+	%ifndef SKIPGUARD
+	resb 8
+	%endif
+	#endif
 	%2: %3
 	__SECT__
 %endmacro

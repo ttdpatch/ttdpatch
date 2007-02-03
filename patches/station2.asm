@@ -4,6 +4,7 @@
 #include <station.inc>
 #include <bitvars.inc>
 #include <loadsave.inc>
+#include <veh.inc>
 
 extern clearfifodata,miscmodsflags,patchflags,station2switches
 extern stationarray2ptr
@@ -26,9 +27,58 @@ station2init:
 	pusha
 	testflags fifoloading
 	jnc .no_fifo
-	test dword [station2switches],S2_FIFOLOADING
+	test byte [station2switches],S2_FIFOLOADING2
 	jnz .fifo_good
-	call clearfifodata
+.fifo_old:
+// Clear the FIFO data in the vehicle array
+	mov esi, [veharrayptr]
+.vehloop_init:
+	mov byte [esi+veh.slfifoidx],1
+	sub esi,byte -veh_size
+	cmp esi,[veharrayendptr]
+	jb .vehloop_init
+
+	test byte [station2switches],S2_FIFOLOADING
+	jz .fifo_clear		// Game contains no FIFO info; just clear the remainder.
+
+// Now set it appropriately
+
+	mov eax, [stationarray2ptr]
+.stationloop:
+
+	xor ecx, ecx
+	mov cl, 11*8
+.cargoloop:
+	movzx esi, word [eax+station2.cargos+ecx+stationcargo2.curveh]
+	cmp si, 0-1
+	je .nextcargo_old
+
+	cvivp
+	mov dl, [eax+station2.cargos+ecx+stationcargo2.type]
+.vehloop:
+	cmp dl, [esi+veh.cargotype]
+	jne .nextveh
+	mov byte [esi+veh.slfifoidx], 0
+.nextveh:
+	movzx esi, word [esi+veh.nextunitidx]
+	cmp si, 0-1
+	je .nextcargo_old
+	cvivp
+	jmp short .vehloop
+
+.nextcargo_old:
+	sub ecx, 0+stationcargo2_size
+	jnc .cargoloop
+
+	add eax, station2_size
+extern stationarray2endptr
+	cmp eax, [stationarray2endptr]
+	jb .stationloop
+
+	// FIFO data has been moved to veh.slfifoidx; clear the station info
+.fifo_clear:
+	call	clearfifodata
+
 .fifo_good:
 .no_fifo:
 	testflags generalfixes

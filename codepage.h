@@ -17,8 +17,6 @@
 #	define langstr(s) s
 #endif
 
-const char *converttoACP(const char *str);
-const char *getwinerrormsg(unsigned long err);
 void convertescapedstring(char *str);
 
 #endif

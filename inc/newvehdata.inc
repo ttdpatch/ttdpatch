@@ -57,6 +57,14 @@ struc newvehdatastruc
 	.cargoclasses:	resw 256			// E20..101F
 	.cargonotclasses:resw 256			// 1020..121F
 	.cargolabels:	resd NUMCARGOS			// 1220..129F
+	.longintrodate:	resd 256			// 12A0..169F
+endstruc
+
+// similar to the above, but not cleared when reinitializing graphics/loading game
+struc persgrfdatastruc
+	.statnonenter:	resb 256
+	.statrventer: resd 256*2
+//	.statrvzcorrect: resd 256 
 endstruc
 
 #define VEHMISCFLAG_TRAINTILT		1	// Trains: train is tilting and can run faster in curves
@@ -71,6 +79,7 @@ endstruc
 %define vehmiscflags (newvehdata+newvehdatastruc.vehmiscflags)
 %define vehcargoclasses (newvehdata+newvehdatastruc.cargoclasses)
 %define vehnotcargoclasses (newvehdata+newvehdatastruc.cargonotclasses)
+%define vehlongintrodate (newvehdata+newvehdatastruc.longintrodate)
 
 %define traintractiontype (newvehdata+newvehdatastruc.traintractiontype)
 %define trainvehlength (newvehdata+newvehdatastruc.trainvehlength)
@@ -116,6 +125,10 @@ endstruc
 %define planephase2dec (newvehdata+newvehdatastruc.vehphase2dec+AIRCRAFTBASE)
 %define globalcargolabels (newvehdata+newvehdatastruc.cargolabels)
 
+%define stationnonenter (persgrfdata+persgrfdatastruc.statnonenter)
+%define stationrventer (persgrfdata+persgrfdatastruc.statrventer)
+//%define stationrvzcorrect (persgrfdata+persgrfdatastruc.statrvzcorrect)
+	
 // related variable (also set by action 0) but not stored in newvehdata
 %define traincallbackflags (callbackflags)
 %define rvcallbackflags (traincallbackflags+NTRAINTYPES)

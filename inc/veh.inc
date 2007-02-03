@@ -85,13 +85,16 @@ struc veh
 				//     rv:10h=overtaking
 			resb 1	// 67h:rv:overtaking counter (0..23h); ??
 			resw 1	// 68h:rv:??
-			resb 1	// 6ah:rv:?? (some kind of counter)
+			resb 1	// 6ah:rv:turn-around counter
 				// So far it's the last entry identified as used by TTD.
-			resb 0x6F-$
-  .prevmovementstat: resb 1 //6Fh: the previous movementstat (used for RV trailers and Plane accel/decel)
+			resb 0x6E-$
+	.slfifoidx:	resb 1	// 6Eh:the index of this vehicle in the fifo queue (save/load only)
+	.prevmovementstat:	// 6Fh:the previous movementstat (used for RV trailers and Plane accel/decel)
+	.parentmvstat	resb 1	//     the next turn for Articulated RVs (so that they follow the leader)
 	.traveltime:	resw 1	// 70h:number of days travelling since last load/unload
 	.refitcycle:	resb 1	// 72h:how often refitted to same cargo
-	.shortened:	resb 1	// 73h:how much shorter is the wagon (+0x80)
+	.shortened:		// 73h:how much shorter is the wagon (+0x80)
+	.aircraftnode:	resb 1	//     current node when on newairports
 	.speedlimit:	resw 1	// 74h:current top speed (b/o bridge, curve etc.), 0 if unlimited
 	.veh2ptr:	resd 1	// 76h:pointer to veh2 entry of this vehicle
 	.random:	resb 1	// 7ah:random bits, changed according to sprite data
@@ -107,6 +110,8 @@ struc veh
 #define MOD_NOTELECTRICHERE 6	// 	bit 6=mixed power train is on non-electric tile
 #define MOD_ISFULL 7		//	bit 7=train is done loading even with full load set
 #define MOD_REVERSE 8		//	bit 8=toggled whenever train reverses
+#define MOD_HASRESERVED 9	//	bit 9=this vehicle has reserved its cargo type and is loading (FIFO)
+#define MOD_PROTOTYPE 10	//	bit 10=the vehicle was built during the testing phase
 
 	.modflags: 	resw 1	// 7eh:above flags, bitcoded.
 endstruc
@@ -163,8 +168,42 @@ struc veh2
 	.var40x:	resd numvehvar40x	// cache of vehicle variables 40+x for action 2
 	.motion:	resd 1	// motion counter (256 increase = 1 unit of motion)
 	.colormap:	resd 1	// color translation sprite
+	.curraircraftact: resb 6	// raw movement data needed by AircraftMovement
+	.userbits:	resb 1	// user bits (train prop 25)
+	.pad:		resb 1
+	.prevptr:	resd 1	// linked list of vehicles queued-for-reserving
+	.nextptr:	resd 1	// pointers point to veh2 struct
+		align 4,resb 1
 endstruc
 
 #define VEH2_MIXEDPOWERTRAIN 0	// set if train has mix of electric/nonelectric engines
 #define VEH2_MUSTCHECKTILE 1	// if set, mixed power train just moved onto a new tile
 
+#define AIRCRAFTACT_UNKNOWN 0x80008000	// signals that .curraircraftact isn't valid and needs
+					// to be recalculated
+ 
+// convert vehicle index to vehicle pointer 
+%macro cvivp 0-1 esi // param: register containing index
+	%tostr %%1 %1
+	%strlen %%len %%1
+	%if %%len == 2
+		%substr %%x %%1 2
+		%ifidn %%x,'x'	 //[abcd]x
+		%elifidn %%x,'i' //[sd]i
+		%elifidn %%x,'p' //[sb]p
+		%else
+			%error "cvivp requires a word or dword register."
+		%endif
+		movzx	e%1, %1
+		shl	e%1, vehicleshift
+		add	e%1, [veharrayptr]
+	%else
+		shl	%1, vehicleshift
+		add	%1, [veharrayptr]
+	%endif
+%endmacro
+
+%macro cvivp 2 //params: destination register, source word
+	movzx %1, word %2
+	cvivp %1
+%endmacro

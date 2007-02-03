@@ -39,11 +39,11 @@
 
 int showswitches = 0;
 //int writeverfile = 0;
-u16 startyear = 1950;
+static u16 startyear = 1950;
 char ttdoptions[128+1024*WINTTDX];
-int cfgfilespecified = 0;
+static int cfgfilespecified = 0;
 int forcerebuildovl = 0;
-int mcparam[2] = {0, 0};
+static int mcparam[2] = {0, 0};
 
 extern char *patchedfilename;
 extern langinfo *linfo;
@@ -76,7 +76,7 @@ static int snprintf(char *buf, size_t count, const char *format, ... ) {
 }
 #endif
 
-const char snprintf_error[] =
+static const char snprintf_error[] =
 #if DEBUG
 			      "[snprintf() error]";
 #else
@@ -90,7 +90,7 @@ struct lineprintbuf {
 
 
 
-void givehelp(void)
+static void givehelp(void)
 {
   int i, total;
 
@@ -114,7 +114,7 @@ void givehelp(void)
 }
 
 
-void copyflagdata(void)
+static void copyflagdata(void)
 {
   // copy switch variables we handle specially to the flag data
   int i, p;
@@ -130,28 +130,47 @@ void copyflagdata(void)
   }
 }
 
-
+#define WANTBITNUMS
 #include "bitnames.h"
 
+#ifndef _MAKEDEP
 #if BITSWITCHNUM != BITSWITCHNUM_DEF
 #error "BITSWITCHNUM is incorrect in language.h"
+#endif
 #endif
 
 #define OBSOLETE ((void*)-1L)
 
-int radix[4] = { 0, 8, 10, 16 };
+static int radix[4] = { 0, 8, 10, 16 };
 
-#define YESNO(ch, txt, comment, cat, sw) \
-	{ ch, txt, comment, sw,  0, 0, CAT_ ## cat, {-1, -1, -1}, 0, NULL, -1 }
+#define YESNO(ch, txt, comment, cat, manpage, sw) \
+	{ ch, txt, comment, manpage, sw,  0, 0, CAT_ ## cat, {-1, -1, -1}, 0, NULL, -1 }
 
-#define SPCL(ch, txt, comment, cat, var) \
-	{ ch, txt, comment, -1,  0, 2, CAT_ ## cat, {-1, -1, -1}, 0, var, -1 }
+#define SPCL(ch, txt, comment, cat, manpage, var) \
+	{ ch, txt, comment, manpage, -1,  0, 2, CAT_ ## cat, {-1, -1, -1}, 0, var, -1 }
 
-#define RANGE(ch, txt, comment, cat, sw, radix, varsize, var, low, high, default) \
-	{ ch, txt, comment, sw, radix, varsize, CAT_ ## cat, {low, high, default}, 0, var, -1 }
+#define RANGE(ch, txt, comment, cat, manpage, sw, radix, varsize, var, low, high, default) \
+	{ ch, txt, comment, manpage, sw, RADIX_ ## radix, VARSIZE_ ## varsize, CAT_ ## cat, {low, high, default}, 0, var, -1 }
 
-#define BITS(ch, txt, comment, cat, sw, varsize, var, default) \
-	{ ch, txt, comment, sw, 0, varsize, CAT_ ## cat, {0, 0x7fffffff, default}, 0, var, BITSWITCH_ ## sw }
+#define BITS(ch, txt, comment, cat, manpage, sw, varsize, var, default) \
+	{ ch, txt, comment, manpage, sw, 0, VARSIZE_ ## varsize, CAT_ ## cat, {0, 0x7fffffff, default}, 0, var, BITSWITCH_ ## sw }
+
+#define VARSIZE_U8	0
+#define VARSIZE_U16	1
+#define VARSIZE_S16	2
+#define VARSIZE_S32	3
+#define VARSIZE_S8	4
+
+#define RADIX_AUTO	0
+#define RADIX_OCT	1
+#define RADIX_DEC	2
+#define RADIX_HEX	3
+#define RADIX_MASK	3
+#define RADIX_INVERT	4
+#define RADIX_AUTO_I	RADIX_AUTO|RADIX_INVERT
+#define RADIX_OCT_I	RADIX_OCT |RADIX_INVERT
+#define RADIX_DEC_I	RADIX_DEC |RADIX_INVERT
+#define RADIX_HEX_I	RADIX_HEX |RADIX_INVERT
 
 
 #define noswitch -2
@@ -159,10 +178,10 @@ int radix[4] = { 0, 8, 10, 16 };
 #include "sw_lists.h"
 #undef noswitch
 
-int overridesconfigfile = 0;
+static int overridesconfigfile = 0;
 
-int readcfgfile(const char *filename);
-int writecfgfile(const char *filename);
+static int readcfgfile(const char *filename);
+static int writecfgfile(const char *filename);
 
 
 // Parameters for the on/off switches, case is ignored.  *MUST* be unique.
@@ -170,13 +189,13 @@ int writecfgfile(const char *filename);
 // The first value is what is printed by the -W switch.
 // e.g. "presignals yes" or "presignals off" etc.
 
-const char *const switchonofftext[] =
+static const char *const switchonofftext[] =
 	{ "on", "yes", "y", NULL,
 	  "off", "no", "n", NULL };
 
-const char *switchofftext = "off";
+static const char *switchofftext = "off";
 
-void _fptr *getswitchvarptr(int switchid)
+static void _fptr *getswitchvarptr(int switchid)
 {
   void _fptr *ptr = switches[switchid].var;
 
@@ -186,67 +205,74 @@ void _fptr *getswitchvarptr(int switchid)
   return (void _fptr*) ptr;
 }
 
-void setswitchvar(int switchid, s32 value)
+static u32 setbits[BITSWITCHNUM];
+
+static void setswitchvar(int switchid, s32 value)
 {
   void _fptr *ptr = getswitchvarptr(switchid);
 
-  if (switches[switchid].radix & 4)
+  if (switches[switchid].radix & RADIX_INVERT)
 	value = ~value;
 
   switch (switches[switchid].varsize) {
-	case 0:
+	case VARSIZE_U8:
 		*( (u8 _fptr *) ptr) = value;
 		break;
-	case 1:
+	case VARSIZE_U16:
 		*( (u16 _fptr *) ptr) = value;
 		break;
-	case 2:
+	case VARSIZE_S16:
 		*( (s16 _fptr *) ptr) = value;
 		break;
-	case 3:
+	case VARSIZE_S32:
 		*( (s32 _fptr *) ptr) = value;
 		break;
-	case 4:
+	case VARSIZE_S8:
 		*( (s8 _fptr *) ptr) = value;
 		break;
+	default:  // Unknown .varsize
+		error(langtext[LANG_INTERNALERROR], 12);
   }
 }
 
-s32 getswitchvar(int switchid)
+static s32 getswitchvar(int switchid)
 {
   s32 value, mask;
   void _fptr *ptr = getswitchvarptr(switchid);
 
   switch (switches[switchid].varsize) {
-	case 0:
+	case VARSIZE_U8:
 		value = *( (u8 _fptr *) ptr);
 		mask = 0xff;
 		break;
-	case 1:
+	case VARSIZE_U16:
 		value = *( (u16 _fptr *) ptr);
 		mask = 0xffff;
 		break;
-	case 2:
+	case VARSIZE_S16:
 		value = *( (s16 _fptr *) ptr);
 		mask = 0xffff;
 		break;
-	default:				// case 3 really
+	case VARSIZE_S32:
 		value = *( (s32 _fptr *) ptr);
 		mask = 0xffffffff;
 		break;
-	case 4:
+	case VARSIZE_S8:
 		value = *( (s8 _fptr *) ptr);
 		mask = 0xff;
 		break;
+	default:  // Unknown .varsize
+		error(langtext[LANG_INTERNALERROR], 13);
+		return 0; // Can't get here, but it makes gcc happy
   }
 
-  if (switches[switchid].radix & 4)
+  if (switches[switchid].radix & RADIX_INVERT)
 	value = (~value & mask);
 
   return value;
 }
 
-void setswitchbit(int switchid, const char *bitname, int swon)
+static void setswitchbit(int switchid, const char *bitname, int swon)
 {
   int i;
   const char **names;
@@ -261,6 +287,7 @@ void setswitchbit(int switchid, const char *bitname, int swon)
 		var &= ~(((s32)1)<<i);
 		var |= (((s32)swon)<<i);
 		setswitchvar(switchid, var);
+		setbits[switches[switchid].bitswitchid] |= (((u32)1)<<i);
 		return;
 	}
   }
@@ -269,7 +296,7 @@ void setswitchbit(int switchid, const char *bitname, int swon)
 }
 
 
-void initvalues(int preferred)
+static void initvalues(int preferred)
 {
   int i;
 
@@ -346,8 +373,9 @@ void allswitches(int reallyall, int swon)
 
 }
 
+static void parse_debug_switches(const char *sw);
 
-int setreallyspecial(int switchid, int swon, const char *cfgpar, int onlycheck)
+static int setreallyspecial(int switchid, int swon, const char *cfgpar, int onlycheck)
 {
   int parused = 0;
 
@@ -369,6 +397,11 @@ int setreallyspecial(int switchid, int swon, const char *cfgpar, int onlycheck)
 	case 'W':
 		if (!onlycheck)
 			writecfgfile(cfgpar);
+		parused = 1;
+		break;
+	case 154:	// debug switches
+		if (!onlycheck)
+			parse_debug_switches(cfgpar);
 		parused = 1;
 		break;
 	case 155:	// CD Path
@@ -395,10 +428,13 @@ int setreallyspecial(int switchid, int swon, const char *cfgpar, int onlycheck)
   return parused;
 }
 
-int lastswitchorder = 0;
+
+static const char *cmdswitchstr(int ch, const char *defstr);
+
+static int lastswitchorder = 0;
 int numswitchorder = sizeof(switchorder)/sizeof(switchorder[0]);
 
-int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int swon, int onlycheck)
+static int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int swon, int onlycheck)
 {
   int parused = 0;
   char *endptr;
@@ -409,12 +445,13 @@ int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int swon, in
 
   if (swon < 0) {	// not yet determined
 	swon = 1;	// switch given, implies default "on"
-	if (cfgpar &&
+	if (cfgpar && (cfgsub || ( // parameter present and switch.bit or (in last two lines) on/off switch
+	    (switches[switchid].cmdline != 154) &&	// ignore debug switches
 	    (switches[switchid].cmdline != 155) &&	// ignore CDPath
 	    (switches[switchid].cmdline != 'W') &&	// and -W / writecfg
 	    (switches[switchid].cmdline != maketwochars('X','n')) &&	// and -Xn / newgrfcfg
 	    (switches[switchid].range[0] == -1) &&
-	    (switches[switchid].range[1] == -1) ) {
+	    (switches[switchid].range[1] == -1) ) ) ) {
 		// check if a non-ranged switch has a value
 		parvalue = strtol(cfgpar, &endptr, 0);
 		if (*endptr == 0)
@@ -445,17 +482,24 @@ int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int swon, in
   } else if (!onlycheck) {	// not special
 	if ( (switches[switchid].range[0] != -1) ||
 	     (switches[switchid].range[1] != -1) ) {	// with a range (value)
+		int bitswid = switches[switchid].bitswitchid, i=0;
 		if (cfgpar == NULL || *cfgpar == 0)
 			parvalue = switches[switchid].range[2];	//default
 		else {
 			if (*cfgpar == '#') { // We have bin format
 			cfgpar++;
 			parvalue = strtol(cfgpar, &endptr, 2);
+				if (bitswid >= 0)
+					for (i=(endptr-cfgpar); i; )
+						setbits[bitswid] |= ((u32)1)<<(--i);
 
 			} else {
 			parvalue = strtol(cfgpar, &endptr,
-					radix[switches[switchid].radix & 3]);
-
+					radix[switches[switchid].radix & RADIX_MASK]);
+				if (*endptr) {
+					warning(langtext[LANG_UNKNOWNSTATE], cfgpar);
+					swon = 0;
+				}
 			}
 			if (*endptr == 0) {
 				int offrange = -1;
@@ -483,11 +527,16 @@ int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int swon, in
 				parvalue = switches[switchid].range[2];
 		}
 
-		if (switches[switchid].bitswitchid >= 0 && cfgsub && swon >= 0) {
+		if (bitswid >= 0 && cfgsub && swon >= 0) {
 			setswitchbit(switchid, cfgsub, swon);
-			swon |= getf(switches[switchid].bit);
-		} else
+			swon = 1; // Setting switch.bit always sets switch on
+		} else {
 			setswitchvar(switchid, parvalue);
+			if (bitswid >= 0 && parvalue)
+				do {
+					setbits[bitswid] |= ((u32)1)<<(i++);
+				} while (parvalue >>= 1);
+		}
 	}
 
 	if (switches[switchid].bit >= 0)
@@ -498,7 +547,7 @@ int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int swon, in
 
 // command line is parsed twice, first to only check if there is a '-C' switch
 // second pass is for real
-int processswitch(int switchchar, const char *cfgswline, int swon, int onlycheck)
+static int processswitch(int switchchar, const char *cfgswline, int swon, int onlycheck)
 {
 
   int i, k, l, switchid = -1;
@@ -535,6 +584,7 @@ int processswitch(int switchchar, const char *cfgswline, int swon, int onlycheck
 			if (switchonofftext[k]) {
 				if (stricmp(cfgpar, switchonofftext[k]) == 0) {
 					swon = l;
+					cfgpar = NULL; // recognized param; bypass checks in setswitch
 					break;
 				}
 			} else {
@@ -574,7 +624,7 @@ int processswitch(int switchchar, const char *cfgswline, int swon, int onlycheck
   return 1 + setswitch(switchid, cfgpar, cfgsub, swon, onlycheck);
 }
 
-int readcfgfile(const char *filename)
+static int readcfgfile(const char *filename)
 {
 #define CFGLINEMAXLEN 256
   char cfgline[CFGLINEMAXLEN + 2], cfglineorg[CFGLINEMAXLEN + 2];
@@ -611,8 +661,10 @@ int readcfgfile(const char *filename)
 		continue;	// skip empty lines
 
 	if (isalpha(cfgline[linepos])) {	// all lines starting with a-z are options
-		if (linetoolong)
-			warning(langtext[LANG_CFGLINETOOLONG], CFGLINEMAXLEN);
+		if (linetoolong) {
+			if (!strstr(cfgline, "//"))	// if there's a comment, the part after it being too long can be ignored
+				warning(langtext[LANG_CFGLINETOOLONG], CFGLINEMAXLEN);
+		}
 
 		{
 		  char *eol = strchr(cfgline, '\n');
@@ -630,7 +682,7 @@ int readcfgfile(const char *filename)
   return 1;
 }
 
-int writereallyspecial(int switchid, const char **const formatstring, s32 *parvalue)
+static int writereallyspecial(int switchid, const char **const formatstring, s32 *parvalue)
 {
   switch (switches[switchid].cmdline) {
 	case 155:	// CD Path
@@ -650,12 +702,16 @@ int writereallyspecial(int switchid, const char **const formatstring, s32 *parva
   return 1;
 }
 
-void writebitswitch(int switchid, FILE *cfg)
+static void writebitswitch(int switchid, FILE *cfg)
 {
 	  int i, bitswid;
   const char *cfgcmd;
   const char **names;
+  int newbits[32];
+  int j=0;
   s32 val;
+
+  memset( newbits, 0, sizeof(newbits) );
 
   bitswid = switches[switchid].bitswitchid;
   cfgcmd = switches[switchid].cfgcmd;
@@ -664,15 +720,27 @@ void writebitswitch(int switchid, FILE *cfg)
 
   for (i=0; names[i]; i++) {
 	if (!strcmp(names[i], "(reserved)")) continue;
-	if (i) fputs("\n", cfg);
-	fprintf(cfg, "%s.%s %s   // %s",
+	if (setbits[bitswid] & 1<<i){
+		if (i) fputs("\n", cfg);
+		fprintf(cfg, "%s.%s %s   // %s",
 		cfgcmd, names[i],
 		val & (((s32)1) << i) ? switchonofftext[0] : switchofftext,
 		langstr(bitswitchdesc[bitswid][i]));
+	} else
+		newbits[j++] = i;
+  }
+  if (j && i != j ) fprintf(cfg, "\n" CFG_COMMENT "%s\n", langcfg(CFG_NEWBITINTRO) );
+  else if (j && switches[switchid].order ) fprintf(cfg, CFG_COMMENT "%s\n", langcfg(CFG_NEWBITINTRO) );
+  for (i=0; i<j; i++) {
+		if (i) fputs("\n", cfg);
+		fprintf(cfg, "%s.%s %s   // %s",
+		cfgcmd, names[newbits[i]],
+		val & (((s32)1) << newbits[i]) ? switchonofftext[0] : switchofftext,
+		langstr(bitswitchdesc[bitswid][newbits[i]]));
   }
 }
 
-void writerangedswitch(int switchid, const char **const formatstring, s32 *parvalue)
+static void writerangedswitch(int switchid, const char **const formatstring, s32 *parvalue)
 {
   if ((switches[switchid].bit >= 0) && !getf(switches[switchid].bit)) {
 	*formatstring = "%s %s";
@@ -680,11 +748,11 @@ void writerangedswitch(int switchid, const char **const formatstring, s32 *parva
   } else {
 	tempstr[0] = 0;
 	*formatstring = tempstr;
-	switch (switches[switchid].radix & 3) {
-		case 1:
+	switch (switches[switchid].radix & RADIX_MASK) {
+		case RADIX_OCT:
 			strcat(tempstr, "%s %lo");
 			break;
-		case 3:
+		case RADIX_HEX:
 			strcat(tempstr, "%s %lx");
 			break;
 		default:
@@ -695,7 +763,7 @@ void writerangedswitch(int switchid, const char **const formatstring, s32 *parva
   }
 }
 
-void writeswitch(FILE *cfgfile, int switchid)
+static void writeswitch(FILE *cfgfile, int switchid)
 {
   s32 parvalue;
   const char *formatstring = "%s %ld";
@@ -747,6 +815,7 @@ char *dchartostr(int ch)
   if (firstchar(ch) < 128) {
   dcharstr[0] = firstchar(ch);
   dcharstr[1] = secondchar(ch);
+  dcharstr[2] = 0;
   } else {
 	snprintf(dcharstr, sizeof(dcharstr)-1, "\\%d", firstchar(ch));
   }
@@ -754,9 +823,9 @@ char *dchartostr(int ch)
   return dcharstr;
 }
 
-char *cfg_nocmdline = NULL;
+static char *cfg_nocmdline = NULL;
 
-const char *cmdswitchstr(int ch, const char *defstr)
+static const char *cmdswitchstr(int ch, const char *defstr)
 {
   static char dcharstr[4] = "-";
 
@@ -781,7 +850,7 @@ static void writeswitchcomment(FILE *cfgfile, int switchid)
 		switches[switchid].range[2]);
 }
 
-int writecfgfile(const char *filename)
+static int writecfgfile(const char *filename)
 {
   FILE *cfgfile;
   int switchid;
@@ -868,7 +937,7 @@ int writecfgfile(const char *filename)
   return 1;
 }
 
-const char *defaultcmdline[] = { NULL, "-a", "-W", DEFAULTCFGFILE };
+static const char *defaultcmdline[] = { NULL, "-a", "-W", DEFAULTCFGFILE };
 
 void commandline(int argc, const char *const *argv)
 {
@@ -880,6 +949,7 @@ void commandline(int argc, const char *const *argv)
   memset(&flags->data, 0, sizeof(flags->data));
   flags->datasize = (s32) ( offsetof(paramset, data.flags_byte_end) + sizeof(flags->data.flags_byte_end) - offsetof(paramset, data));
  // sizeof(flags->data);
+  memset(setbits, 0, sizeof(setbits) );
   initvalues(0);
 
   for (i=0; i<nflagssw; i++)
@@ -939,7 +1009,7 @@ void commandline(int argc, const char *const *argv)
 
 	} else for (p=1; s[p]; p++) {
 		switchchar = s[p];
-		if ( (switchchar == 'X') || (switchchar == 'Y') ) {
+		if ( (switchchar == 'X') || (switchchar == 'Y') || (switchchar == 'Z') ) {
 			p++;
 			if (!s[p])
 				error(langtext[LANG_UNKNOWNSWITCH], s[0], dchartostr(switchchar));
@@ -1047,6 +1117,7 @@ void commandline(int argc, const char *const *argv)
 
     if (!getf(multihead)) {
 	flags->data.multihdspeedup = 0;
+	flags->data.expswitches &= ~(1<<engineconvert_NUM); // If it's not on, then disable this since it requires it
     }
 
 #if 0
@@ -1058,6 +1129,12 @@ void commandline(int argc, const char *const *argv)
 //    if (!getf(electrifiedrail)) {
 //	clearf(enhancetunnels);
 //    }
+
+    if (getf(clonetrain)) {
+	setf1(multihead);
+	setf1(newtrains);
+    } 
+
   }
 
   copyflagdata();
@@ -1070,7 +1147,7 @@ void commandline(int argc, const char *const *argv)
 // switchorder[] array now in sw_lists.h
 
 
-char switchnotshown(int bit) {
+static char switchnotshown(int bit) {
   switch (bit) {
 	case setsignal1waittime:
 	case setsignal2waittime:
@@ -1086,7 +1163,7 @@ char switchnotshown(int bit) {
   return 0;
 }
 
-int findswitch(int bit) {
+static int findswitch(int bit) {
   int i;
 
   for (i=0; i<sizeof(switches)/sizeof(switches[0]); i++) {
@@ -1098,7 +1175,7 @@ int findswitch(int bit) {
   return -1;
 }
 
-const char *getswitchline(int bit, int state, char *line, size_t maxlen, int *more)
+static const char *getswitchline(int bit, int state, char *line, size_t maxlen, int *more)
 {
   char *lineend = line;
   int i, switchid;
@@ -1145,7 +1222,7 @@ const char *getswitchline(int bit, int state, char *line, size_t maxlen, int *mo
   return line;
 }
 
-int addbitname(char *line, const char *bit, size_t maxlen) {
+static int addbitname(char *line, const char *bit, size_t maxlen) {
   size_t llen, blen;
 
   llen = strlen(line);
@@ -1164,7 +1241,7 @@ int addbitname(char *line, const char *bit, size_t maxlen) {
 }
 
 // return next set of bit names
-const char *getswitchextra(int bit, int state, char *line, size_t maxlen, int bitline, int *more) {
+static const char *getswitchextra(int bit, int state, char *line, size_t maxlen, int bitline, int *more) {
   const char **names;
   s32 value;
   int i, thisline;
@@ -1195,7 +1272,7 @@ const char *getswitchextra(int bit, int state, char *line, size_t maxlen, int bi
 
 // print train signal wait time message into a buffer
 // return error message or NULL on success
-const char *printwaittime(char **const lineend, size_t *const charsleft, int which) {
+static const char *printwaittime(char **const lineend, size_t *const charsleft, int which) {
   int value = flags->data.signalwaittimes[which];
   int i = snprintf(*lineend, *charsleft, "  %s", langtext[which ? LANG_SWTWOWAY : LANG_SWONEWAY]);
   if (i < 0) return snprintf_error;
@@ -1225,7 +1302,7 @@ static int verbose_display_index;
 
 // return next switch line to display, or NULL if nothing more
 // the line to display is put in lineprintbuffer
-const char *getnextverdispline(const struct lineprintbuf *const pb, int *subline) {
+static const char *getnextverdispline(const struct lineprintbuf *const pb, int *subline) {
   trynextline:
   switch (verbose_display_stage) {
     case VERDISP_DEBUG:
@@ -1483,47 +1560,44 @@ void showtheswitches(const struct consoleinfo *const pcon)
 }
 
 // When adding things here, also add them to categories in switches.h
-const char *category_names[] = {
-	"BASIC",
-	"VEH",
-	"VEH_RAIL",
-	"VEH_ROAD",
-	"VEH_AIR",
-	"VEH_ORDERS",
-	"TERRAIN",
-	"INFST",
-	"INFST_BRIDGE",
-	"INFST_RAIL",
-	"INFST_RAIL_SIGNAL",
-	"INFST_ROADS",
-	"INFST_STATION",
-	"HOUSESTOWNS",
-	"INDUSTRIESCARGO",
-	"FINANCEECONOMY",
-	"DIFFICULTY",
-	"INTERFACE",
-	"INTERFACE_NEWS",
-	"INTERFACE_VEH",
-	"INTERFACE_WINDOW",
+struct st_categoryinfo {
+	categories parent;
+	const char *name;
+	const char *desc;
+	int numsubcategories;
+};
+typedef struct st_categoryinfo categoryinfo;
 
-	"NONE",
+categoryinfo category_info[] = {
+	// Parent category	name (permanent)	description (may change)
+	{ CAT_NONE,		"basic",		"Basic" },
+	{ CAT_NONE,		"vehicles",		"Vehicles" },
+	{ CAT_VEH,		"vehiclesrail",		"Rail" },
+	{ CAT_VEH,		"vehiclesroad",		"Road" },
+	{ CAT_VEH,		"vehiclesaircraft",	"Aircraft" },
+	{ CAT_VEH,		"vehiclesorders",	"Orders" },
+	{ CAT_NONE,		"terrain",		"Terrain" },
+	{ CAT_NONE,		"infrastructure",	"Infrastructure" },
+	{ CAT_INFST,		"infstbridges",		"Bridges" },
+	{ CAT_INFST,		"infstrailways",	"Railways" },
+	{ CAT_INFST_RAIL,	"infstrailsignalling",	"Signalling" },
+	{ CAT_INFST,		"infstroads",		"Roads" },
+	{ CAT_INFST,		"infststations",	"Stations" },
+	{ CAT_NONE,		"housestowns",		"Houses/Towns" },
+	{ CAT_HOUSESTOWNS,	"towngrowthrate",	"Town growth rate" },
+	{ CAT_NONE,		"industriescargo",	"Industries/Cargo" },
+	{ CAT_NONE,		"financeeconomy",	"Finance/Economy" },
+	{ CAT_NONE,		"difficulty",		"Difficulty" },
+	{ CAT_NONE,		"interface",		"Interface" },
+	{ CAT_INTERFACE,	"interfacenewsmessages","News messages" },
+	{ CAT_INTERFACE,	"interfacevehicles",	"Vehicles" },
+	{ CAT_INTERFACE,	"interfacewindows",	"Windows" },
+
+	{ CAT_NONE, NULL, NULL },
 };
 
-/*
-Write switches in XML format
 
-Format:
-<switches version="TTDPatch 2.0.1 alpha 17" ID="020A00AA">
-	<bool name="debtmax" desc="(from cfg") value="1" />
-	<range name="multihead" min="0" max="100" default="35" value="35" />
-	<bitswitch name="experimentalfeatures" desc="(from cfg file)">
-		<bit num="0" name="slowcrossing" desc="slow before crossing">
-	</bitswitch>
-</switches>
-
-*/
-
-void putxmlstr(FILE *f, const char *str)
+static void putxmlstr(FILE *f, const char *str)
 {
   int i;
 
@@ -1541,7 +1615,13 @@ void putxmlstr(FILE *f, const char *str)
   }
 }
 
-void printbits(FILE *f, switchinfo* s)
+static const char *tabs(int num)
+{
+  static const char _tabs[] = "\t\t\t\t\t\t\t\t\t";
+  return _tabs + sizeof(_tabs) - 1 - num;
+}
+
+static void printbits(FILE *f, switchinfo* s, int depth)
 {
   int i;
   const char **names;
@@ -1550,16 +1630,97 @@ void printbits(FILE *f, switchinfo* s)
 
   for (i=0; names[i]; i++) {
 	if (!names[i]) continue;
-	fprintf(f, "\t\t<bit num=\"%d\" name=\"%s\" desc=\"", i, names[i]);
+	fprintf(f, "%s<bit num=\"%d\" name=\"%s\" desc=\"", tabs(depth), i, names[i]);
 	putxmlstr(f, langstr(bitswitchdesc[s->bitswitchid][i]));
 	fputs("\"/>\n", f);
   }
 }
 
-int dumpxmlswitches(void)
+static void dumpxmlcategoryswitches(FILE *f, categories cat, int depth)
+{
+  int i, isbitswitch;
+
+  for (i=0; switches[i].cmdline; i++) {
+	if (!switches[i].comment) continue;
+	if (cat != CAT_NONE && switches[i].category != cat) continue;
+
+	isbitswitch = 0;
+
+	fputs(tabs(depth), f);
+	if ( (switches[i].bit == -1) && (switches[i].var == NULL) )
+		fprintf(f, "<special name=\"%s\"", switches[i].cfgcmd);
+	else if ( (switches[i].range[0] != -1) ||
+	     (switches[i].range[1] != -1) ) { 	// ranged (value)
+	   if (switches[i].bitswitchid >= 0) {
+		isbitswitch = 1;
+		fprintf(f, "<bitswitch name=\"%s\" default=\"%ld\"",
+			switches[i].cfgcmd, switches[i].range[2]);
+	   } else if (switches[i].radix == RADIX_HEX)
+		fprintf(f, "<range name=\"%s\" min=\"%lx\" max=\"%lx\" default=\"%lx\"",
+			switches[i].cfgcmd,
+			switches[i].range[0], switches[i].range[1], switches[i].range[2]);
+	   else
+		fprintf(f, "<range name=\"%s\" min=\"%ld\" max=\"%ld\" default=\"%ld\"",
+			switches[i].cfgcmd,
+			switches[i].range[0], switches[i].range[1], switches[i].range[2]);
+	} else
+		fprintf(f, "<bool name=\"%s\"", switches[i].cfgcmd);
+
+	fprintf(f, " cmdline=\"%s\"", cmdswitchstr(switches[i].cmdline, ""));
+	if (switches[i].cmdline == 155)			// special case for cdpath
+		fprintf(f, " defstate=\"\"");
+	else if (switches[i].cmdline == maketwochars('X', 'n'))		// special case for newgrfcfg
+#if WINTTDX
+		fprintf(f, " defstate=\"newgrfw.cfg\"");
+#else
+		fprintf(f, " defstate=\"newgrf.cfg\"");
+#endif
+	else
+		fprintf(f, " defstate=\"%s\"",
+			(switches[i].bit >= 0) &&
+			(switches[i].bit <= lastbitdefaulton) ? "on" : "off" );
+	if ( (switches[i].bit == usenewcurves) || (switches[i].bit == usenewmountain) )
+		fputs(" validdigits=\"0123\"", f);
+	else if (switches[i].bit == moresteam)
+		fputs(" validdigits=\"012345\"", f);
+	if (switches[i].manpage)
+		fprintf(f, " manpage=\"%s\"", switches[i].manpage);
+	fputs(" desc=\"", f);
+	putxmlstr(f, langcfg(switches[i].comment));
+	if (isbitswitch) {
+		fputs("\">\n", f);
+		printbits(f, &switches[i], depth + 1);
+		fprintf(f, "%s</bitswitch>\n", tabs(depth));
+	} else
+		fputs("\"/>\n", f);
+  }
+}
+
+static int dumpxmlcategory(FILE *f, categories cat, int depth)
+{
+  fprintf(f, "%s<category name=\"%s\" desc=\"%s\">\n",
+	tabs(depth), category_info[cat].name, category_info[cat].desc);
+
+  dumpxmlcategoryswitches(f, cat, depth + 1);
+
+  if (category_info[cat].numsubcategories) {
+	categories subcat = cat + 1, numsub = category_info[cat].numsubcategories;
+	subcat = cat + 1;
+	while (numsub > 0) {
+		categories havesub = dumpxmlcategory(f, subcat, depth + 1);
+		numsub -= havesub;
+		subcat += havesub;
+	}
+  }
+
+  fprintf(f, "%s</category>\n", tabs(depth));
+  return 1 + category_info[cat].numsubcategories;
+}
+
+static int dumpxmlswitches(int type)
 {
   FILE *f;
-  int i, isbitswitch;
+  int i;
 #if WINTTDX
   int isonum, oldacp;
 #endif
@@ -1580,51 +1741,35 @@ int dumpxmlswitches(void)
   fprintf(f, "<?xml version=\"1.0\" encoding=\"%s\"?>\n", linfo->dosencoding);
 #endif
 
+#if DEBUG
+  // Watcom warns that this is unreachable code if the list is ok,
+  // so we turn off this message
+  #if defined(__WATCOMC__) 
+    #pragma disable_message (201)
+  #endif
+  if (sizeof(category_info)/sizeof(category_info[0]) != CAT_NONE + 1)
+    error("Missing category_info entry: %d instead of %d\n",
+	(int) (sizeof(category_info)/sizeof(category_info[0])), CAT_NONE + 1);
+  #if defined(__WATCOMC__) 
+    #pragma enable_message (201)
+  #endif
+#endif
+  for (i=CAT_FIRST; i<CAT_LAST; i++) {
+	categories parent = category_info[i].parent;
+	while (parent != CAT_NONE) {
+		category_info[parent].numsubcategories++;
+		parent = category_info[parent].parent;
+	}
+  }
+
   fprintf(f, "<switches version=\"%s\" ID=\"%08lX\">\n", TTDPATCHVERSION,
 	((long)TTDPATCHVERSIONMAJOR<<24)+
 	((long)TTDPATCHVERSIONMINOR<<20)+
 	((long)TTDPATCHVERSIONREVISION<<16)+
 	 (long)TTDPATCHVERSIONBUILD);
 
-  for (i=0; switches[i].cmdline; i++) {
-	if (!switches[i].comment) continue;
+  for (i=CAT_FIRST; i<CAT_LAST; i+=dumpxmlcategory(f, i, 1));
 
-	isbitswitch = 0;
-
-	if ( (switches[i].bit == -1) && (switches[i].var == NULL) )
-		fprintf(f, "\t<special name=\"%s\"", switches[i].cfgcmd);
-	else if ( (switches[i].range[0] != -1) ||
-	     (switches[i].range[1] != -1) ) { 	// ranged (value)
-	   if (switches[i].bitswitchid >= 0) {
-		isbitswitch = 1;
-		fprintf(f, "\t<bitswitch name=\"%s\" default=\"%ld\"",
-			switches[i].cfgcmd, switches[i].range[2]);
-	   } else if (switches[i].radix == 3)
-		fprintf(f, "\t<range name=\"%s\" min=\"%lx\" max=\"%lx\" default=\"%lx\"",
-			switches[i].cfgcmd,
-			switches[i].range[0], switches[i].range[1], switches[i].range[2]);
-	   else
-		fprintf(f, "\t<range name=\"%s\" min=\"%ld\" max=\"%ld\" default=\"%ld\"",
-			switches[i].cfgcmd,
-			switches[i].range[0], switches[i].range[1], switches[i].range[2]);
-	} else
-		fprintf(f, "\t<bool name=\"%s\"", switches[i].cfgcmd);
-
-	fprintf(f, " cmdline=\"%s\"", cmdswitchstr(switches[i].cmdline, ""));
-	fprintf(f, " defstate=\"%s\"",
-		(switches[i].bit >= 0) &&
-		(switches[i].bit <= lastbitdefaulton) ? "on" : "off" );
-	fprintf(f, " categorynum=\"%d\"", switches[i].category);
-	fprintf(f, " category=\"%s\"", category_names[switches[i].category]);
-	fputs(" desc=\"", f);
-	putxmlstr(f, langcfg(switches[i].comment));
-	if (isbitswitch) {
-		fputs("\">\n", f);
-		printbits(f, &switches[i]);
-		fputs("\t</bitswitch>\n", f);
-	} else
-		fputs("\"/>\n", f);
-  }
   fputs("</switches>\n", f);
   fclose(f);
 #if WINTTDX
@@ -1641,7 +1786,7 @@ int dumpswitches(int type)
   int i;
 
   if (type < 0) {
-	return dumpxmlswitches();
+	return dumpxmlswitches(type);
   }
 
   f = fopen("swtchlst.txt", "wt");
@@ -1701,6 +1846,7 @@ static const struct debug_switch_struct {
 	{ 'R', &debug_flags.relocofsfile },	// R+ load reloc ofs from reloc.bin file
 	{ 'P', &debug_flags.patchdllfile },	// P+ do not touch ttdpatch.dll
 	{ 'n', &debug_flags.noregistry },	// n+ always use registry.ini, n- never use registry.ini
+	{ 'r', &debug_flags.norunttd },		// r+ don't actually run TTD
 	{ 0, NULL }
 };
 
@@ -1711,6 +1857,17 @@ void check_debug_switches(int *const argc, const char *const **const argv)
 	(*argc)--;
 	(*argv)++;
 
+	parse_debug_switches(sw);
+
+	if (debug_flags.runcmdline > 0) {
+		(*argc)--;
+		(*argv)++;
+	}
+  }
+}
+
+static void parse_debug_switches(const char *sw)
+{
 	while (*sw) {
 		const struct debug_switch_struct *swdesc;
 		for (swdesc = debug_switches; swdesc->c; swdesc++) if (swdesc->c == *sw) {
@@ -1720,15 +1877,12 @@ void check_debug_switches(int *const argc, const char *const **const argv)
 					// FALLTHROUGH
 				case '+': sw++;
 			}
-			*swdesc->flag = val;
+			if (*swdesc->flag * val > 0)
+				*swdesc->flag += val;
+			else
+				*swdesc->flag = val;
 			break;
 		}
 		sw++;
 	}
-
-	if (debug_flags.runcmdline > 0) {
-		(*argc)--;
-		(*argv)++;
-	}
-  }
 }

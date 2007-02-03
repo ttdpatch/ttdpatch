@@ -306,6 +306,9 @@ enum langtextids {
 // Line before previously unset switches
 	CFG_NEWSWITCHINTRO,
 
+// Line before previously unset switches
+	CFG_NEWBITINTRO,
+
 // No command line option available
 	CFG_NOCMDLINE,
 
@@ -487,7 +490,17 @@ enum langtextids {
 	CFG_TRAMS,
 	CFG_ENHANCETUNNELS,
 	CFG_FORCEGAMEOPTIONS,
+	CFG_SHORTRVS,
+	CFG_ARTICULATEDRVS,
 	CFG_NEWAIRPORTS,
+	CFG_NEWROUTES,
+	CFG_AUTOSIGDISTANCE,
+	CFG_CLONETRAIN,
+	CFG_TRACERESTRICT,
+	CFG_STATIONSIZE,
+	CFG_ADJSTATIONS,
+	CFG_NEWSIGNALS,
+	CFG_NEWOBJECTS,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS
@@ -506,17 +519,6 @@ enum langtextids {
 
 	// Obsolete strings here, so that they don't causes error messages
 	// when present anyway
-
-	CFG_CUSMULTIPLIER,
-	LANG_CODESTOREDAT,
-	LANG_PROTECTEDTOOLARGE,		// Protected mode code exceeds 32kb
-	LANG_NOTTDPATCHGRF,		// Messages about the graphics file ttdpatch.grf
-	LANG_ERRORCREATING,
-	LANG_TOSTARTTTD,
-	LANG_NOFILEFOUND,		// (Windows) neither does GameGFX.exe
-	CFG_AIBOOST,	
-	CFG_MOREINDUSTRIESPERCLIMATE,
-	LANG_CUSTOMTXTWRONGVER,
 
 	LANG_REALLYLASTSTRING		// Must be the last, used below to determine how many entries we need
 

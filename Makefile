@@ -38,6 +38,9 @@ FORCE:
 # this is a space-separated list without the command line switches 
 # like -d; those will be added later because they differ
 EXTRADEFS = DEBUG=$(DEBUG) 
+ifdef GUARD
+	EXTRADEFS += MAKEGUARD=1
+endif
 
 ifeq ($(NOREV),1)
 	EXTRADEFS += RELEASE=1
@@ -52,6 +55,10 @@ DOSDEFS = $(EXTRADEFS) $(DEFS) ${WDEF_d} LINTTDX=0
 WINDEFS = $(EXTRADEFS) $(DEFS) ${WDEF_w} LINTTDX=0
 LINDEFS = $(EXTRADEFS) $(DEFS) ${WDEF_l} LINTTDX=1
 
+# compiler flags for compiling C files in non-asm
+# (compile without -O2 by running make CASMFLAGS= ...)
+CASMFLAGS = -O2
+
 # temporary response files
 DRSP = $(TEMP)/BCC.RSP
 URSP = $(subst \,\\,$(shell cygpath -w $(DRSP)))
@@ -64,17 +71,18 @@ URSP = $(subst \,\\,$(shell cygpath -w $(DRSP)))
 
 asmmainsrc:=	header.asm loader.asm init.asm patches.asm 
 asmsources:=	$(asmmainsrc) $(wildcard patches/*.asm) $(wildcard procs/*.asm)
-asmcsources:=	$(wildcard patches/*.c) $(wildcard procs/*.c)
+asmcsources:=	$(wildcard non-asm/*.c)
 csources:=	ttdpatch.c error.c grep.c switches.c loadlng.c checkexe.c auxfiles.c
 doscsources:=	$(csources) dos.c
 wincsources:=	$(csources) windows.c codepage.c
-versiondatad:=	versions/111933d7.ver  versions/111939c7.ver  versions/111946c6.ver versions/111933f4.ver  versions/111945d7.ver
-versiondataw:=	versions/20110016.ver  versions/20110024.ver  versions/20110044.ver versions/20110018.ver  versions/20110042.ver
+makelangsrcs:=	makelang.c switches.c codepage.c
+mkpttxtsrcs:=	mkpttxt.c
+mkptincsrcs:=	mkptinc.c
 
 langhsources:=	$(wildcard lang/*.h)
 langobjs:=	$(langhsources:%.h=%.o)
 hostlangobjs:=	$(langhsources:%.h=host/%.o)
-makelangobjs:=	makelang.o switches.o codepage.o texts.o
+makelangobjs:=	${makelangsrcs:%.c=%.o} texts.o
 
 asmdobjs:=	$(asmsources:%.asm=${OTMP}%.dpo) $(asmcsources:%.c=${OTMP}%.dpo)
 asmwobjs:=	$(asmsources:%.asm=${OTMP}%.wpo) $(asmcsources:%.c=${OTMP}%.wpo)
@@ -83,24 +91,59 @@ dosobjs:=	$(doscsources:%.c=%.obj)
 win:	ttdprotw.bin
 winobjs:=	$(wincsources:%.c=%.o) ttdpatchw.res libz.a
 hostwinobjs:=	$(wincsources:%.c=host/%.o)
+mkpttxtobjs:=	$(mkpttxtsrcs:%.c=%.o)
+hostmkpttxtobjs:=$(mkpttxtsrcs:%.c=host/%.o)
+mkptincobjs:=	$(mkptinvsrcs:%.c=%.o)
+hostmkptincobjs:=$(mkptincsrcs:%.c=host/%.o)
+
+ifdef NODOS
+	asmdobjs:=
+	dosobjs:=
+endif
+ifdef NOWIN
+	asmwobjs:=
+	winobjs:=
+endif
+
 
 # =======================================================================
-#           dependencies are in Makefile.dep, include that
+#       include dependency files (they're generated automatically)
 # =======================================================================
-
-Makefile.dep%: .dep-ver
-	${_E} [DEP] $@
-	@touch $@
-	@make -o Makefile.depd -o Makefile.depw -s INCLUDES
-	${_C}$(CPP) -x assembler-with-cpp -Iinc -DMAKEDEP -D${WDEF_$*} -MM $(asmmainsrc) patches/*.asm procs/*.asm ${asmcsources} -I. | perl -pe 's/\.o/.$*po/; s#\w+/\.\./##g; print "${OTMP}" if /^\S/; print "$$1/" if /: (patches|procs)\//' > $@
 
 ${MAKEFILELOCAL}:
 	@echo ${MAKEFILELOCAL} did not exist, using defaults. Please edit it if compilation fails.
 	cp ${MAKEFILELOCAL}.sample $@
 
-include Makefile.dep
--include Makefile.depd
--include Makefile.depw
+-include ${asmdobjs:.dpo=.dpo.d}
+-include ${asmwobjs:.wpo=.wpo.d}
+-include ${doscsources:%.c=%.obj.d}
+-include ${wincsources:%.c=%.o.d}
+-include ${makelangsrcs:%.c=%.o.d} texts.o.d
+-include ${mkpttxtsrcs:%.c=%.o.d}
+-include ${mkptincsrcs:%.c=%.o.d}
+ifneq (${HOSTPATH},)
+-include ${wincsources:%.c=host/%.o.d}
+-include ${makelangsrcs:%.c=host/%.o.d} host/texts.o.d
+-include ${mkpttxtsrcs:%.c=host/%.o.d}
+-include ${mkptincsrcs:%.c=host/%.o.d}
+endif
+
+# =======================================================================
+#        explicit dependencies
+# =======================================================================
+
+# versionX.h is generated below
+versiond.h: version.def .rev
+versionw.h: version.def .rev
+
+texts.lst texts.o host/texts.o texts_f.o texts.asp: texts.asm texts.inc inc/ourtext.inc
+
+ttdpatchw.res:	ttdpatchw.rc versionw.h
+
+# Language compiler files
+lang/%.o host/lang/%.o: lang/%.h
+$(langobjs): proclang.c types.h error.h common.h language.h bitnames.h
+$(hostlangobjs): proclang.c types.h error.h common.h language.h bitnames.h
 
 # =======================================================================
 #           special targets
@@ -123,13 +166,26 @@ win:	ttdprotw.lst${GZIPPED} ttdpatchw.exe
 lin:	ttdprotl.lst${GZIPPED} ttdprotl.bin
 all:	alld allw
 
+ifdef NODOS
+dos: abort
+abort:
+	@echo Invalid target with NODOS
+	@exit 1
+endif
+ifdef NOWIN
+win: abort
+abort:
+	@echo Invalid target with NOWIN
+	@exit 1
+endif
+
 .PHONY: test testd testw
 
 testd: ttdprotd.lst ttdpatch.exe
-	@cp -v -u --remove-destination ttdpatch.exe ${GAMEDIR}/ttdpatch-${VERSION}.exe
+	@cp -v ${CPFLAGS} ttdpatch.exe ${GAMEDIR}/ttdpatch-${VERSION}.exe
 
 testw: ttdprotw.lst ttdpatchw.exe
-	@cp -v -u --remove-destination ttdpatchw.exe ${GAMEDIRW}/ttdpatchw-${VERSION}.exe
+	@cp -v ${CPFLAGS} ttdpatchw.exe ${GAMEDIRW}/ttdpatchw-${VERSION}.exe
 
 test:	testd testw
 
@@ -142,13 +198,14 @@ endif
 
 # remove temporary files
 cleantemp:
-	rm -f *.asp
+	rm -f *.asp patches/*.asp procs/*.asp
 	rm -f *.{o,obj,OBJ}
-	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po
-	rm -f ${OTMP}*.*lst ${OTMP}patches/*.*lst ${OTMP}procs/*.*lst
-	rm -f lang/*.{o,map,exe} lang/language.*
-	rm -f host/*.o host/lang/* host/mkpttxt host/makelang
-	rm -f *.*.lst.gz *.*lst *.LST patches/*.*lst
+	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po ${OTMP}non-asm/*.*po
+	rm -f ${OTMP}*.*lst ${OTMP}patches/*.*lst ${OTMP}procs/*.*lst ${OTMP}non-asm/*.*lst
+	rm -f mkptinc.exe mkpttxt.exe makelang.exe
+	rm -f lang/*.{o,map,exe} lang/language.* lang/*.tmp
+	rm -f host/*.o host/lang/* host/mkptinc host/mkpttxt host/makelang
+	rm -f *.*lst.gz *.*lst *.LST patches/*.*lst procs/*.*lst
 	rm -f ttdload.ovl
 	rm -f reloc*.inc
 	rm -f *.pe
@@ -156,36 +213,35 @@ cleantemp:
 # remove files that depend on compiler flags (DEBUG, etc.)
 remake:
 	rm -f *.{o,obj,OBJ,bin,bil} lang/*.o host/*.o host/lang/*.o
-	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po reloc.a
-	rm -f mkpttxt.exe host/mkpttxt
+	rm -f ${OTMP}*.*po ${OTMP}patches/*.*po ${OTMP}procs/*.*po ${OTMP}non-asm/*.*po reloc.a
+	rm -f mkpttxt.exe host/mkpttxt mkptinc.exe host/mkptinc
 
 # remove temporary files and all compilation results that can be
 # remade with make
 clean:	cleantemp
 	rm -f language.dat
 	rm -f language.ucd
-	rm -f ttdprotd.exe
-	rm -f ttdprotw.exe
-	rm -f lang/*.{new,o}
+	rm -f ttdprotd.exe ttdpatch.exe
+	rm -f ttdprotw.exe ttdpatchw.exe
+	rm -f lang/*.{new,o,inc}
 	rm -f *.{bin,bil}
 	rm -f *.{map,MAP,map.gz}
 	rm -f reloc.a
 	rm -f *.{res,RES}
 	rm -f langerr.h
-	rm -f sw_lists.h
-	rm -f inc/ourtexts.h
+	rm -f sw_lists.h pprocd.h pprocw.h bitnames.h
+	rm -f patchflags.ah
+	rm -f inc/ourtext.h
 	rm -f version{d,w}.h
+	rm -f .rev
 
 # also remove Makefile.dep?, listings and bak files
 mrproper: clean remake
-	rm -f Makefile.dep?
-	rm -f *.{d,w,l}lst patches/*.{d,w,l}lst procs/*.{d,w,l}lst
-	rm -f patches/*.ba* procs/*.ba*
-
-# files that need to be created to check include dependencies
-.PHONY: INCLUDES
-#INCLUDES:	patches/texts.h versiond.h versionw.h
-INCLUDES:	versiond.h versionw.h
+	rm -f ${OTMP}*.*po.d ${OTMP}patches/*.*po.d ${OTMP}procs/*.*po.d ${OTMP}non-asm/*.*po.d
+	rm -f *.o.d *.obj.d host/*.o.d
+	rm -f *.{d,w,l}lst patches/*.{d,w,l}lst procs/*.{d,w,l}lst non-asm/*.{d,w,l}lst
+	rm -f patches/*.ba* procs/*.ba* non-asm/*.ba*
+	rm -f *.err lang/*.err makelang.log
 
 # if a command fails, delete its output
 .DELETE_ON_ERROR:
@@ -220,41 +276,31 @@ endif
 
 %.o : %.c
 	${_E} [CC] $@
-	${_C}$(CC) -c -o $@ $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) $<
+	${_C}$(CC) -c -o $@ $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -MMD -MF $@.d -MT $@ $<
 
 host/%.o : %.c
 	${_E} [HOSTCC] $@
-	${_C}$(HOSTCC) -c -o $@ $(HOSTCFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) $<
+	${_C}$(HOSTCC) -c -o $@ $(HOSTCFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -MMD -MF $@.d -MT $@ $<
 
 # make pre-compiled C file
 %.E : %.c
 	$(CPP) -o $@ $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) $<
 
 %.S : %.c
-	$(CC) -S -o $@ $(CFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) $<
+	$(CC) -S -o $@ $(CFLAGS) -Iinc -I. $(foreach DEF,$(WINDEFS),-D$(DEF)) $<
 
 %.lst : %.S
 	as -a $< -o /dev/null > $@
 
-host/%${HOSTEXE} : %.o
-	${_E} [HOSTLD] $@
-	${_C}$(HOSTLD) -o $@ ${filter host/%,$^} $(HOSTLDFLAGS)
-
-%${EXEW} : %.o
-	${_E} [LD] $@
-	${_C}$(LD) -o $@ $^ $(LDFLAGS)
-
 %.o : %.asm
 	${_E} [NASM] $@
 	${_C}$(NASM) $(NASMOPT) -f coff -dCOFF $(NASMDEF) $< -o $@
-
-%.obj : %.asm
-	${_E} [NASM] $@
-	${_C}$(NASM) $(NASMOPT) -f obj -dOBJ $(NASMDEF) $< -o $@
+	@$(NASM) ${NASMDEF} $< -M -o $@ > $@.d
 
 host/%.o : %.asm
 	${_E} [NASM] $@
 	${_C}$(NASM) $(NASMOPT) $(HOSTNASM) $(NASMDEF) $< -o $@
+	@$(NASM) ${NASMDEF} $< -M -o $@ > $@.d
 
 # -------------------------------------------------------------------------
 #                  The assembly modules
@@ -266,28 +312,38 @@ host/%.o : %.asm
 # line numbers
 
 # set different preprocessor defines for each target
-%.dpo %.dlst:	XASMDEF =  $(foreach DEF,$(DOSDEFS) $(ASMOPT),-D$(DEF))
-%.wpo %.wlst:	XASMDEF =  $(foreach DEF,$(WINDEFS) $(ASMOPT),-D$(DEF))
-%.lpo %.llst:	XASMDEF =  $(foreach DEF,$(LINDEFS) $(ASMOPT),-D$(DEF))
+%.dpo %.dlst %.dpo.d:	XASMDEF =  $(foreach DEF,$(DOSDEFS) $(ASMOPT),-D$(DEF))
+%.wpo %.wlst %.wpo.d:	XASMDEF =  $(foreach DEF,$(WINDEFS) $(ASMOPT),-D$(DEF))
+%.lpo %.llst %.lpo.d:	XASMDEF =  $(foreach DEF,$(LINDEFS) $(ASMOPT),-D$(DEF))
 
 # commands for making object and list files from the asm sources
 # (using a define here because we need the same commands for the 
 # various versions)
 define A-PO-COMMANDS
 	${_E} [CPP/NASM] $@
-	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< | perl perl/lineinfo.pl > $@.asp
-	${_C}$(NASM) -f win32 $@.asp -o $@
+	${_C}$(CPP) ${XASMDEF} -Wcomment -x assembler-with-cpp -Iinc -I. -D__File_${subst /,_,$*}__ -include inc/defs.inc $< -MD -MG -MF $@.d -MT $@ | perl perl/lineinfo.pl > $@.asp
+	${_C}$(NASM) -f win32 $(NASMDEF) $@.asp -o $@
 	@rm -f $@.asp
 endef
 define A-LST-COMMANDS
 	${_E} [CPP/NASM] $@
-	${_C}$(CPP) ${XASMDEF} -x assembler-with-cpp -Iinc $< | perl perl/lineinfo.pl > $@.asp
-	${_C}$(NASM) -f win32 $@.asp -o /dev/null -l $@
+	${_C}$(CPP) ${XASMDEF} -Wcomment -x assembler-with-cpp -Iinc -I.  -D__File_${subst /,_,$*}__ -include inc/defs.inc $< | perl perl/lineinfo.pl > $@.asp
+	${_C}$(NASM) -f win32 $(NASMDEF) $@.asp -o /dev/null -l $@
 	@rm -f $@.asp
 endef
 define C-PO-COMMANDS
 	${_E} [CC] $@
-	${_C}$(CC) ${XASMDEF} -c -o $@ $< -Iinc
+	${_C}$(CC) ${XASMDEF} -Wall $(CASMFLAGS) -c -o $@ $< -Iinc -I. -MD -MG -MF $@.d -MT $@
+endef
+define C-A-D-COMMANDS
+	${_E} [CPP DEP] $@
+	${_C} if [ -e $*.asm ]; then \
+		$(CPP) ${XASMDEF} -DMAKEDEP -x assembler-with-cpp -Iinc -I. -D__File_${subst /,_,$*}__ -include inc/defs.inc $*.asm -M -MG -MF $@ -MT ${subst po.d,po,$@}; \
+	elif [ -e $*.c ]; then \
+		$(CC) ${XASMDEF} -M -MG -MF $@ -MT ${subst .d,,$@} $*.c -Iinc -I.; \
+	else \
+		echo Don\'t know how to make $@.; exit 1; \
+	fi
 endef
 
 ${OTMP}%.dpo : %.asm
@@ -304,6 +360,41 @@ ${OTMP}%.dpo : %.c
 	${C-PO-COMMANDS}
 ${OTMP}%.wpo : %.c
 	${C-PO-COMMANDS}
+
+# Dependency file generation
+# these rules have no dependency themselves so they're only invoked
+# if the file is missing, since the regular compilation rules recreate the
+# .d files anyway (except for DOS .obj.d files)
+${OTMP}%.dpo.d:
+	${C-A-D-COMMANDS}
+${OTMP}%.wpo.d:
+	${C-A-D-COMMANDS}
+
+host/%.o.d:
+	${_C} if [ -e $*.asm ]; then \
+		${_En} [NASM DEP] $@ ; \
+		$(NASM) ${NASMDEF} $*.asm -M -o ${subst .d,,$@} > $@; \
+	elif [ -e $*.c ]; then \
+		${_En} [HOSTCC DEP] $@ ; \
+		$(HOSTCC) -c $(HOSTCFLAGS) -D_MAKEDEP $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null; \
+	else \
+		echo Don\'t know how to make $@.; exit 1; \
+	fi
+
+%.o.d:
+	${_C} if [ -e $*.asm ]; then \
+		${_En} [NASM DEP] $@ ; \
+		$(NASM) ${NASMDEF} $*.asm -M -o ${subst .d,,$@} > $@; \
+	elif [ -e $*.c ]; then \
+		${_En} [CC DEP] $@ ; \
+		$(CC) -c $(CFLAGS) -D_MAKEDEP $(foreach DEF,$(WINDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $*.c -o /dev/null; \
+	else \
+		echo Don\'t know how to make $@.; exit 1; \
+	fi
+
+%.obj.d : %.c
+	${_E} [CC DEP] $@
+	${_C}$(CC) -c $(CFLAGS) -D_MAKEDEP $(foreach DEF,$(DOSDEFS),-D$(DEF)) -MM -MG -MF $@ -MT ${subst .d,,$@} $< -o /dev/null
 
 # link all assembly modules into ttdprot?.pe
 ttdprotd.pe ttdprotd.map: $(asmdobjs) reloc.a
@@ -326,9 +417,13 @@ ttdprot%.pe ttdprot%.map:
 	${_E} [LDEXP] $@
 	${_C}$(LDEXP) $(LDEXPFLAGS) -Map ttdprot$*.map -o ttdprot$*.pe $^ ${LD_NO_INFO_${V}}
 
-ttdprot%.bin: ttdprot%.pe
+ttdcode%.bin: ttdprot%.pe
 	${_E} [OBJCOPY] $@
 	${_C}$(OBJCOPY) -O binary -j .ptext $< $@
+
+ttdprot%.bin: ttdprot.asm ttdcode%.bin.gz
+	${_E} [NASM] $@
+	${_C}$(NASM) $(NASMOPT) -f bin $(NASMDEF) -dINCFILE=\"$(filter %.gz,$^)\" $< -o $@	
 
 loader%.bin: ttdprot%.pe
 	${_E} [OBJCOPY] $@
@@ -366,6 +461,10 @@ bitnames.h:	bitnames.ah
 	${_E} [PERL] $@
 	${_C}perl perl/bitnames.pl < $< > $@
 
+patchflags.ah:	common.h
+	${_E} [PERL] $@
+	${_C}perl perl/flags.pl < $< > $@
+
 # generate relocations
 reloc%.inc:	ttdprot%.map
 	${_E} [PERL] $@
@@ -393,7 +492,7 @@ patchdll.bin:	patchdll.asm patchdll/ttdpatch.dll
 
 patchdll/ttdpatch.dll: $(wildcard patchdll/*.h) $(wildcard patchdll/*.c*)
 	${_E} [MAKE] $@
-	${_C} make -C patchdll
+	${_C} ${MAKE} -C patchdll
 
 # ---------------------------------------------------------------------
 #               Language data
@@ -409,23 +508,40 @@ host/makelang${HOSTEXE}:	LDLIBS = -lz
 makelang${EXEW}:		${makelangobjs} $(langobjs)
 host/makelang${HOSTEXE}:	${makelangobjs:%.o=host/%.o} $(hostlangobjs)
 
-lang/%.o:	lang/%.h
-	${_E} [CC] $@
+lang/%.o:	lang/%.h lang/english.h
+	${_E} [PERL/CC] $@
+	${_C}perl perl/langmerge.pl lang/english.h $< > lang/$*.tmp 2> lang/$*.err || (tail -5 lang/$*.err; false)
 	${_C}$(CC) -c -o $@ $(CFLAGS) -DLANGUAGE=$* proclang.c
+	@rm -f lang/$*.tmp
 
-host/lang/%.o:	lang/%.h
-	${_E} [HOSTCC] $@
+host/lang/%.o:	lang/%.h lang/english.h
+	${_E} [PERL/HOSTCC] $@
+	${_C}perl perl/langmerge.pl lang/english.h $< > lang/$*.tmp 2> lang/$*.err || (tail -5 lang/$*.err; false)
 	${_C}$(HOSTCC) -c -o $@ $(HOSTCFLAGS) -DLANGUAGE=$* proclang.c
+	@rm -f lang/$*.tmp
 
 # test versions of makelang with a single language: make lang/<language> and run
 # the executable to make a single-language language.dat file
-lang/%:		makelang.c lang/%.o switches.o codepage.o texts.o
+lang/%${EXEW}:		makelang.c lang/%.o switches.o codepage.o texts.o
 	${_E} [CC] $@
-	${_C}$(CC) -o $@ $(CFLAGS) $(LDOPT) $(foreach DEF,$(WINDEFS),-D$(DEF)) -DSINGLELANG=${patsubst lang/%,%,$@} $^ -L. -lz
+	${_C}$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -DSINGLELANG=$* $^ -L. -lz
+
+host/lang/%${HOSTEXE}:	makelang.c host/lang/%.o host/switches.o host/codepage.o host/texts.o
+	${_E} [HOSTCC] $@
+	${_C}$(HOSTCC) -o $@ $(HOSTCFLAGS) $(HOSTLDFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -DSINGLELANG=$* $^ -lz
 
 mkpttxt.o host/mkpttxt.o:       mkpttxt.c # patches/texts.h
-mkpttxt${EXEW}:  mkpttxt.o texts.o
-host/mkpttxt${HOSTEXE}:  host/mkpttxt.o host/texts.o
+mkpttxt${EXEW}:  ${mkpttxtobjs} texts.o
+host/mkpttxt${HOSTEXE}:  ${hostmkpttxtobjs} host/texts.o
+
+mkptinc${EXEW}:  ${mkptincobjs}
+host/mkptinc${HOSTEXE}:  ${hostmkptincobjs}
+
+lang/%.inc: ${HOSTPATH}mkptinc${HOSTEXE} lang/%.txt lang/american.txt
+	${_E} [MKPTINC]	$@
+	${_C} ./$< $* > lang/$*.inc.err
+	@cat lang/*.inc.err > mkptinc.err
+	@if grep "american:" $@.err; then false; else true; fi;
 
 # ----------------------------------------------------------------------
 #               Resource file for Windows version
@@ -440,6 +556,13 @@ host/mkpttxt${HOSTEXE}:  host/mkpttxt.o host/texts.o
 #               The executables
 # ----------------------------------------------------------------------
 
+%${EXEW} : %.o
+	${_E} [LD] $@
+	${_C}$(LD) -o $@ $^ $(LDFLAGS)
+
+host/%${HOSTEXE} : host/%.o
+	${_E} [HOSTLD] $@
+	${_C}$(HOSTLD) -o $@ ${filter host/%,$^} $(HOSTLDFLAGS)
 
 # make both uncompressed (for testing) and compressed language data
 # if an error occurs, show last 5 lines of makelang.err
@@ -457,17 +580,17 @@ ttdprotd${EXED} ttdprotd${EXED}.map:	$(dosobjs)
 	@echo $^ 			>> $(DRSP)
 	@echo zlib_bc$(MODEL).lib	>> $(DRSP)
 	@echo exec_bc$(MODEL).lib	>> $(DRSP)
-	${_C}$(LDD) -m$(MODEL) -e$@	@$(URSP)
+	${_C}$(LDD) -m$(MODEL) -ettdprotd${EXED}	@$(URSP)
 else
 # for OpenWatcom wlink, files need to be comma-separated, so we'll use sed to s/ /,/
 ttdprotd${EXED} ttdprotd${EXED}.map:	$(dosobjs)
 	${_E} [LDD] $@
-	${_C}$(LDD) ${LDFLAGSD} name $@ file `echo $^|sed "s/ /,/g"` lib zlib_ow$(MODEL).lib,exec_ow$(MODEL).lib
+	${_C}$(LDD) ${LDFLAGSD} name ttdprotd${EXED} file `echo $^|sed "s/ /,/g"` lib zlib_ow$(MODEL).lib,exec_ow$(MODEL).lib
 endif
 
 ttdprotw${EXEW} ttdprotw${EXEW}.map:	$(winobjs)
 	${_E} [LD] $@
-	${_C}$(LD) -o $@ $^ $(LDFLAGS)
+	${_C}$(LD) -o ttdprotw${EXEW} $^ $(LDFLAGS)
 
 # compress it, and link the language data to it too
 ttdpatch.exe:	ttdprotd${EXED} language.dat
@@ -513,6 +636,10 @@ versions/%.ver: $(wildcard procs/*.asm)
 	${_C}cp	versions/empty.dat $@
 
 # automatically gzip files
+%.bin.gz : %.bin
+	${_E} [GZIP] $@
+	${_C} gzip -f9n $<
+
 %.gz : %
 	${_E} [GZIP] $@
 	${_C} gzip -f $<

@@ -13,6 +13,7 @@
 #include <newvehdata.inc>
 #include <grf.inc>
 #include <ptrvar.inc>
+#include <refit.inc>
 
 extern cargoamountnnamesptr,cargoclass,curgrfid
 extern cargotypes,deftwocolormaps,exscurfeature
@@ -600,11 +601,38 @@ shiptopspeed:
 	//	ecx=num-info
 	//	edx->feature specific data offset
 	//	esi=>data
+	//	ebp=feature
 	// out:	esi=>after data
 	//	carry clear if successful
 	//	carry set if error, then ax=error message
-	// safe:eax ebx ecx edx edi
+	// safe:eax ebx ecx edx edi ebp
 
+exported longintrodate
+	extern vehtypedataptr,vehbase
+	movzx edx,byte [vehbase+ebp]
+	add ebx,edx
+	imul edx,ebx,vehtypeinfo_size
+	add edx,[vehtypedataptr]
+	lea edi,[vehlongintrodate+ebx*4]
+.next:
+	lodsd
+	stosd
+	sub eax,701265	// 1920
+	jge .notbefore
+
+	xor eax,eax
+
+.notbefore:
+	cmp eax,0xb000	// 2044
+	jb .ok
+
+	mov ax,0xb000
+
+.ok:
+	mov [edx],ax
+	add edx,vehtypeinfo_size
+	loop .next
+	ret
 
 global shuffletrainveh
 shuffletrainveh:	// shuffle vehicle
@@ -767,6 +795,7 @@ exported resetvehsprite
 
 	call setveh2cache
 	call setvehcallbacks
+	call setveh2cache	// redo because callbacks may change variable values
 
 	// find the right sprite number
 
@@ -833,19 +862,46 @@ ovar .oldfn,-4,$,resetplanesprite
 // safe:eax edx
 global setplanecargotype
 setplanecargotype:
-	mov byte [esi+veh.cargotype],0
-	mov byte [edi+veh.cargotype],2
 	mov al,[esi+veh.class]
 	shl eax,16
-	mov al,[esi+veh.vehtype]
+	mov al,bl
 	push eax
 	call getrefitmask
 	pop eax
-	test al,1
-	jnz .passok
+
 	bsf eax,eax
 	mov [esi+veh.cargotype],al
+	mov byte [edi+veh.cargotype],2
+
+	test byte [planecallbackflags+ebx-AIRCRAFTBASE],8
+	jz .nocallback
+
+	push esi
+	mov al,bl
+	mov ah,0x15
+	xor esi,esi
+	call vehtypecallback
+	pop esi
+	jc .nocallback
+
+	mov [esi+veh.capacity],ax
+
+.nocallback:
+	cmp byte [esi+veh.cargotype],0
+	je .passok
+
+	// adjust capacity
+	push ebx
+	mov ax,[edi+veh.capacity]	// mail cap
+	add ax,ax			// 1 mail = 2 pass
+	add ax,[esi+veh.capacity]
+	push eax
+	lea ebx,[esi+veh.cargotype-refitinfo.ctype]
+	call adjustcapacity
+	pop eax
+	mov [esi+veh.capacity],ax
 	mov word [edi+veh.capacity],0
+	pop ebx
 .passok:
 	ret
 
@@ -877,6 +933,10 @@ shownewplaneinfo:
 	call getrefitmask
 	pop eax
 	bsf eax,eax
+	extern currefitlist
+	mov [currefitlist+refitinfo.ctype],al
+	mov byte [currefitlist+refitinfo.cycle],0
+	push ebx
 	mov ebx,[cargoamountnnamesptr]
 	cmp eax,1
 	mov ax,[ebx+eax*2]
@@ -886,6 +946,37 @@ shownewplaneinfo:
 	mov ax,statictext(onecargotype)
 	adc ax,0
 	mov [esi+6],ax
+	pop ebx
+
+	test byte [planecallbackflags+ebx-AIRCRAFTBASE],8
+	jz .nocallback
+
+	push esi
+	mov al,bl
+	mov ah,0x15
+	xor esi,esi
+	call vehtypecallback
+	pop esi
+	jc .nocallback
+
+	mov [esi+0xa],ax
+
+.nocallback:
+	// convert cargo amount from pass->freight if necessary
+	mov ebx,currefitlist
+	cmp byte [ebx+refitinfo.ctype],0
+	je .noadjust
+
+	movzx eax,word [esi+0xe]	// mail amount
+	add eax,eax			// 1 mail = 2 pass
+	add ax,[esi+0xa]		// pass amount
+	push eax
+	extern adjustcapacity
+	call adjustcapacity
+	pop eax
+	mov [esi+0xa],ax
+
+.noadjust:
 	ret
 
 // show plane stats in depot window
@@ -1102,7 +1193,9 @@ vehtickproc:
 	call [generatesoundeffect]
 
 .nomotion:
-	test byte [edi+veh.cycle],15
+	mov al,[animcounter]
+	add al,[edi+veh.idx]	// randomize it a little for different vehicles
+	test al,15
 	jnz .nocyclesound
 
 	cmp word [edi+veh.loadtime],1
@@ -1193,6 +1286,7 @@ global dailyvehproc.oldrail,dailyvehproc.oldrv,dailyvehproc.oldships,dailyvehpro
 struc callbackinfo	// for lists of cached callbacks
 	.bit:	resb 1	// bit in vehicle properties, must be first byte here
 	.num:	resb 1	// number in action 2
+	.arg:	resb 1	// argument, stored in miscgrfvar
 	.ofs:	resb 1	// offset into veh2 struct for cache
 	.defvar:resd 1	// pointer to variable with vehtype defaults (0x80000000 if none)
 endstruc
@@ -1218,12 +1312,16 @@ setvehcallbacks:
 
 .checkcallback:
 	movzx eax,byte [ebx+callbackinfo.bit]
-	cmp al,0xff
-	je .done
+	cmp al,0xfe
+	je .alwayson
+	ja .done
 
 	bt ecx,eax
 	jnc .nextcallback
 
+.alwayson:
+	mov al,[ebx+callbackinfo.arg]
+	mov [miscgrfvar],al
 	mov al,[ebx+callbackinfo.num]
 	call vehcallback
 	jnc .ok
@@ -1242,6 +1340,7 @@ setvehcallbacks:
 	jmp .nextcallback
 
 .done:
+	mov byte [miscgrfvar],0
 	ret
 
 
@@ -1259,6 +1358,7 @@ consistcallbacks:
 	add esi,[veharrayptr]
 	call setveh2cache
 	call setvehcallbacks
+	call setveh2cache	// redo because callbacks may change variable values
 	movzx esi,word [esi+veh.nextunitidx]
 	cmp si,byte -1
 	jne .nextveh
@@ -1415,13 +1515,8 @@ getconsistcargo:
 	or al,[cargoclass+ecx*2]	// discards higher 8 bits, sadly
 
 .nocargo:
-	push eax
-	movzx eax,byte [esi+veh.vehtype]
-	mov cl,[trainuserbits+eax]
-	mov ah,0x25
-	call GetCallBack36
-	mov dl,al
-	pop eax
+	mov edx,[esi+veh.veh2ptr]
+	movzx edx,byte [edx+veh2.userbits]
 	shl edx,24
 	or eax,edx
 
@@ -1806,44 +1901,40 @@ uvarb defvehsprites,256
 uvard curcallback
 uvard callbackflags,256/4
 
-#if 0	// now in veh2 struct
-uvard trainpowercacheptr
-uvard loadamountcacheptr
-
-var validvehcallbacks, db 15,4,4,4	// valid callback bits for the four classes
-#endif
-
 var cachedvehcallbacks			// lists of callbacks that must be
 	dd traincachedcallbacks		// reset when loading game or moving
 	dd rvcachedcallbacks		// vehicle in depot
 	dd shipcachedcallbacks
 	dd planecachedcallbacks
 
-%macro cachedcallback 4.nolist	// params: bit,number,cacheptr
+%macro cachedcallback 5.nolist	// params: bit,number,arg,offset,defvar
 	istruc callbackinfo
 		at callbackinfo.bit, db %1
 		at callbackinfo.num, db %2
-		at callbackinfo.ofs, db %3
-		at callbackinfo.defvar, dd %4
+		at callbackinfo.arg, db %3
+		at callbackinfo.ofs, db %4
+		at callbackinfo.defvar, dd %5
 	iend
 %endmacro
 
-var traincachedcallbacks
-	cachedcallback 0,0x10,veh2.viseffect,trainviseffect
-	cachedcallback 2,0x12,veh2.loadamount,loadamount
+varb traincachedcallbacks
+	cachedcallback 0,0x10,0,veh2.viseffect,trainviseffect
+	cachedcallback 2,0x12,0,veh2.loadamount,loadamount
+	cachedcallback 0xfe,0x36,0x25,veh2.userbits,trainuserbits
 	db 0xff
 
-var rvcachedcallbacks
-	cachedcallback 2,0x12,veh2.loadamount,loadamount
+varb rvcachedcallbacks
+	cachedcallback 2,0x12,0,veh2.loadamount,loadamount
 	db 0xff
 
-var shipcachedcallbacks
-	cachedcallback 2,0x12,veh2.loadamount,loadamount
+varb shipcachedcallbacks
+	cachedcallback 2,0x12,0,veh2.loadamount,loadamount
 	db 0xff
 
-var planecachedcallbacks
-	cachedcallback 2,0x12,veh2.loadamount,loadamount
+varb planecachedcallbacks
+	cachedcallback 2,0x12,0,veh2.loadamount,loadamount
 	db 0xff
+endvar
 
 global oldshiprefitlist,oldplanerefitlist
 oldshiprefitlist equ 0x1FFEFFF6	// TTD default for all refittable ship types

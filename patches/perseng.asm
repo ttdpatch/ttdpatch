@@ -9,10 +9,12 @@
 #include <vehtype.inc>
 #include <newvehdata.inc>
 #include <ptrvar.inc>
+#include <human.inc>
 
 extern checkrefittable,isengine,patchflags
 extern vehtypedataptr,newvehdata
 extern TrainSpeedNewVehicleHandler.lnews
+extern ishumanplayer
 
 // Find what vehicles are currently in use
 // With persistentengines on:
@@ -58,6 +60,12 @@ findusedengines:
 	jae short .vehicleloop
 
 .notaplane:
+	mov ah,[esi+veh.owner]
+	mov al,PL_PLAYER+PL_ORG+PL_NOTTEMP
+	push eax
+	call ishumanplayer
+	jnz .vehicleloop	// only count human players' vehicles
+
 	mov cl,byte [esi+veh.vehtype]
 	bts [.engineuse],ecx	// cool, bts automatically calculates the dword offset!
 

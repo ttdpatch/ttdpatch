@@ -1,14 +1,11 @@
 //
 // Basic setup of the assembly environment
 //
-// *Every* asm file must include either this or std.inc at the very top
+// Automatically included by every asm file
 //
 
-//#if !WINTTDX && !LINTTDX
-//#	include "versiond.h"
-//#else
-//#	include "versionw.h"
-//#endif
+#ifndef HAVE_DEFS_INC
+#define HAVE_DEFS_INC
 
 ; TTDPatch TTDPATCHVERSION
 
@@ -65,6 +62,7 @@ section .datad align=4
 section .indrct align=4		// holds list of indirect call/jmp pointers
 section .pproc align=1		// holds list of patchproc definitions
 section .relocv align=4		// holds order of ptrvar definitions
+section .varlist align=4
 
 // default section
 section .text align=4
@@ -88,8 +86,12 @@ section .text align=4
 
 #include <opimm8.inc>
 
-// Macros for catching division-by-zero
+// Make overflow handlers extern except in init.asm
+#ifndef __File_init__
 extern overflowhandler,realoverflowreturn
+#endif
+
+// Macros for catching division-by-zero
 %macro div 1-2.nolist 1
 	%if %2
 		%ifndef overflowreturn_abs
@@ -127,3 +129,23 @@ extern overflowhandler,realoverflowreturn
 	%1:
 %endmacro
 
+#if MAKEGUARD
+%macro CHECKMEM 0.nolist 
+	extern checkmemoryconsistency
+	call checkmemoryconsistency
+%endmacro
+#else
+%define CHECKMEM ;
+#endif
+
+%macro extcall 1.nolist
+	extern %1
+	call %1
+%endmacro
+
+%macro extjmp 1.nolist
+	extern %1
+	jmp %1
+%endmacro
+
+#endif // HAVE_DEFS_INC

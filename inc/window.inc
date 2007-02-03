@@ -41,7 +41,8 @@
 %define cWinElemTab		0Eh
 %define cWinElemTabButton	0Fh
 %define cWinElemCheckBox	10h
-%define cWinElemMax		cWinElemCheckBox
+%define cWinElemSetTextColor	11h
+%define cWinElemMax		cWinElemSetTextColor
 
 %define cWinDataSizer		0
 %define cWinDataTabs		1

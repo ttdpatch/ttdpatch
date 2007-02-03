@@ -10,7 +10,7 @@
 extern actionhandler,checkpathsigblock,curplayerctrlkey,currrmsignalcost
 extern patchflags
 extern pbssettings
-
+extern altersignalsbygui_flags
 
 	align 4
 var signalchangeopptr, dd -1	// Index to signal change operation. 0=set green, 1=set red
@@ -1019,8 +1019,10 @@ drawsignal:
 	mov esi,[esp+4]		// landscape offset
 
 	// show pre-signal or semaphore graphics
-	mov dh,6+8
+	mov dh,6+8+16
 	and dh,[landscape3+1+esi*2]
+	add dh, 16
+	and dh, ~16
 
 	testflags pathbasedsignalling
 	jnc .gotbits
@@ -1053,11 +1055,23 @@ drawsignal:
 
 .gotbits:
 	movzx esi,dh
+	testflags newsignals
+	jnc .nonewsignals
+	EXTERN newsignalson
+	//cmp BYTE [newsignalson], 0
+	EXTERN newsignalsdraw
+	//jz .nonewsignals
+	call newsignalsdraw
+	jc .nonewsignals
+	pop esi		//swallow return address to original DrawSignal func
+	pop esi
+	pop edx
+	ret
+.nonewsignals:
 	and esi,[numsiggraphics]
 	jz .nopresignal
 
 	movzx ebx,bx
-
 	// ebx-4fbh=org signal state, esi*8-16=(type of signal)*16
 	lea ebx,[ebx-0x4fb+esi*8-16]
 	add ebx,[presignalspritebase]
@@ -1125,8 +1139,11 @@ modifysignals:
 	testmultiflags extpresignals
 	jz .regularsig
 
+	cmp byte [altersignalsbygui_flags], 0
+	jne .altersignalsbygui
+	
 	cmp byte [curplayerctrlkey],1
-	jz short .isctrl
+	jz near .isctrl
 
 .regularsig:
 	and [edi],bh
@@ -1155,7 +1172,33 @@ ovar semaphoredate, -2
 .noinvert:
 	mov [edi],al
 	jmp .done
-
+	
+.altersignalsbygui:
+	// we want to switch signal type by gui
+	mov edi,[esp+4]
+	mov al, [landscape3+edi*2+1]
+	mov bl, [altersignalsbygui_flags]
+	test bl, 8
+	jz .nosemaphoretoggle
+	xor al, 8
+.nosemaphoretoggle:
+	test bl, 32
+	jz .noonlysemp
+	mov [landscape3+edi*2+1], al
+	jmp .notpbs
+.noonlysemp:
+	and byte [landscape6+edi], ~8
+	test bl, 16
+	jz .nopbstoggle
+	or byte [landscape6+edi],8
+.nopbstoggle: 	
+	and bl, 110b
+	and al, ~110b
+	or al, bl
+	or al, 0x81
+	mov [landscape3+edi*2+1], al
+	jmp .notpbs
+	
 .isctrl:
 	// we want to switch normal=>pre=>exit=>combined=>normal
 
@@ -1300,7 +1343,7 @@ showtrackinfo:
 .nopbs:
 	mov al,0x22	// signals
 	mov ch,[nosplit edi*2+landscape3+1]
-	test cx,0x8708
+	test cx,0x9708
 	jz short .done
 
 	// we have pre-signals
@@ -1310,6 +1353,10 @@ showtrackinfo:
 	shr cl,2
 	or cl,ch
 	mov ch,0
+
+	test al, 0x10	//trace restrict signal
+	jnz .tr_signal
+
 
 	and eax,byte 0x6
 	jnz short .notplain
@@ -1322,6 +1369,9 @@ showtrackinfo:
 	mov ax,0x1022
 	jmp .done
 
+.tr_signal:
+	and eax,byte 0x6
+	add cx, statictext(tr_landinfotext_presig_auto)-ourtext(presigautomatic)
 .notplain:
 	add cx,ourtext(presigautomatic)
 	shl ecx,16	// store that in the higher 16 bits

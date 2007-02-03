@@ -89,8 +89,15 @@ reusecodefragment oldadjustenginereliab,oldmonthlyengineloop,17
 
 codefragment newadjustenginereliab
 	bt [isengine],cx
-	jb $+2+26
+	jmp $+2+26	// was jb
 	jmp $+2+37
+
+codefragment oldsetdurphase2
+	imul bx,12
+
+codefragment newsetdurphase2
+	icall setdurphase2
+	setfragmentsize 11
 
 codefragment oldairankcheck,5
 	mov al,[ailastairank]
@@ -135,6 +142,7 @@ patchrailvehiclelist:
 	mov eax,[edi+2]
 	mov [airankcheck.bestrankofs],eax
 	storefragment newairankcheck
+	patchcode setdurphase2
 	ret
 
 

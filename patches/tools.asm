@@ -29,7 +29,12 @@ extern searchcollidingvehs,specialtext1,station2clear,station2init
 extern stationarray2ptr,tmpbuffer1,ttdpatchactions,ttdtexthandler
 extern varheap,exitcleanup,player2clear,player2array,newvehdata
 extern cargobits,cargoid,maxtextwidth,gettextwidthunicode,hasaction12
-
+extern clearairportdataids, landscape8_ptr, landscape8clear,landscape8init
+#if MAKEGUARD
+extern guardalloc, guardallocchangesize
+global lastmallocofs
+#endif
+extern currtownname,currtownnametitle
 
 #define __no_extern_vars__ 1
 #include <win32.inc>
@@ -232,7 +237,9 @@ malloc:
 	mov eax,[esp+0x24]
 	add eax,byte 3
 	and eax,byte ~3
-
+#if MAKEGUARD
+	call guardallocchangesize
+#endif
 	mov esi,[heapptr]
 
 .trynext:
@@ -253,6 +260,9 @@ malloc:
 	mov [lastmallocofs],eax
 
 .return:
+#if MAKEGUARD
+	call guardalloc
+#endif
 	mov [esp+0x24],eax
 
 	popa
@@ -327,6 +337,8 @@ malloc:
 	jmp short .trynext
 
 .reserve:
+	cmp ecx,1
+	jbe .fail
 
 	// find end of heap chain to append this chunk to
 	mov eax,[heapptr]
@@ -339,12 +351,12 @@ malloc:
 
 	// now esi=last valid heap structure
 
-	// reserve in 2 MB chunks
+	// reserve in 4 MB chunks
 	push ecx
 
 	push byte 4		// PAGE_READWRITE
 	push 0x2000		// AllocateType MEM_RESERVE
-	push 0x200000		// Reserve (without committing) a 2 MB chunk
+	push 0x400000		// Reserve (without committing) a 4 MB chunk
 	push 0			// Address
 	call dword [VirtualAlloc]
 	pop ecx
@@ -580,6 +592,7 @@ global createvehentry
 createvehentry:
 	push eax
 	mov word [esi+veh.nextunitidx],-1
+	mov byte [esi+veh.subclass],0
 	mov ax,[esi+veh.idx]
 	mov [esi+veh.engineidx],ax
 // Don't generate random numbers for pseudo-vehicles because they might not be created
@@ -656,7 +669,7 @@ detachveh:
 
 	shl edi,7
 	add edi,[veharrayptr]
-	cmp byte [edi+veh.currorderidx],0xff
+	cmp byte [edi+veh.artictype],0xff
 	je .nextartic
 
 .gotit:
@@ -704,7 +717,7 @@ insertveh:
 
 	shl edx,7
 	add edx,[veharrayptr]
-	cmp byte [edx+veh.currorderidx],0xfe
+	cmp byte [edx+veh.artictype],0xfe
 	jae .next
 
 .gotit:
@@ -719,7 +732,7 @@ insertveh:
 
 	shl eax,7
 	add eax,[veharrayptr]
-	cmp byte [eax+veh.currorderidx],0xfe
+	cmp byte [eax+veh.artictype],0xfe
 	jae .next2
 
 .gotit2:
@@ -844,6 +857,8 @@ initializeveharray:
 	mov byte [lastindustiledataid],0
 	call clearindustrygameids
 	call clearindustryincargos
+extern clearindustry2array
+	call clearindustry2array
 	cmp dword [stationarray2ptr],0
 	je .no_station2
 	call station2clear
@@ -864,6 +879,20 @@ initializeveharray:
 	jnc .nohousecountreset
 	call recalchousecounts
 .nohousecountreset:
+
+	testflags newairports
+	jnc .nonewairports
+	call clearairportdataids
+.nonewairports:
+
+	cmp dword [landscape8_ptr],0
+	jle .no_l8
+	call landscape8clear	// new game -> init landscape8 if present
+	call landscape8init
+.no_l8:
+
+	mov eax,[currtownnametitle]
+	mov [currtownname],eax
 
 	popa
 	ret
@@ -1390,9 +1419,9 @@ drawtextlen:
 .done:
 	popa
 
-	mov bx, statictext(special1)
-	mov dword [specialtext1], tmpbuffer1
-	jmp [drawtextfn]
+	mov esi, tmpbuffer1
+	extern drawstringfn
+	jmp [drawstringfn]
 
 global getwincolorfromdoscolor
 getwincolorfromdoscolor:

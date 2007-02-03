@@ -992,10 +992,11 @@ dodeductvehruncost:
 //	edx->player struc
 //	flags from subtraction
 // out:	--
-// safe:edx
+// safe:---
 global doaddexpenses
 doaddexpenses:
 	push eax
+	push edx
 
 	mov eax,ebx
 	mov ebx,edx
@@ -1061,6 +1062,7 @@ doaddexpenses:
 
 .done:
 	mov ebx,eax	// restore cost
+	pop edx
 	pop eax
 	ret
 
@@ -1104,6 +1106,17 @@ companyvalue:
 	jno .done
 	mov eax,0x7fffffff
 .done:
+	ret
+
+// When deleting a company, set its cash amount to be spent clearing tiles
+//
+// in:	esi->company
+// out:	set cash
+// safe:esi
+exported deletecompany
+	mov dword [esi+player.cash],100000000
+	mov dword [esi+player2ofs+player2.cash],100000000
+	and dword [esi+player2ofs+player2.cash+4],0
 	ret
 
 // fill textrefstack for the profit display in the vehicle list window
@@ -2556,7 +2569,7 @@ checkdiagonalflood:
 	mov dl, bl // First tile
 	xor ebp, ebp
 	mov bx, [landscape3+edx*2] // Is it a canal
-	mov bh, [landscape4(dx)] // Get the tile type
+	mov bh, [landscape4(dx,1)] // Get the tile type
 	and bx, 0xF00F // Only want the next part
 	cmp bx, 0x6000 // Is it just plain water
 	je .movenexta // Yes, so flood
@@ -2565,19 +2578,19 @@ checkdiagonalflood:
 	mov edx, edi
 	mov dh, bh // second tile
 	mov bx, [landscape3+edx*2] // Is it a canal
-	mov bh, [landscape4(dx)] // Get the tile type
+	mov bh, [landscape4(dx,1)] // Get the tile type
 	and bx, 0xF00F // Only want the next part
 	cmp bx, 0x6000 // Is it just plain water
 	je .movenextc // No, so don't flood
 	add ebp, 1
 .movenextc:
-	mov bh, [landscape4(ax)+esi] // Check the corners
+	mov bh, [landscape4(ax,1)+esi] // Check the corners
 	and bh, 0x0F
 	cmp bh, 0x01
 	jb .movenextb
 	xor ebp, 0x10 // make sure if both are raised it can still flood
 .movenextb:
-	mov bh, [landscape4(cx)+esi]
+	mov bh, [landscape4(cx,1)+esi]
 	and bh, 0x0F
 	cmp bh, 0x01
 	jb .movenextd
@@ -2603,7 +2616,7 @@ checkflatflood:
 	xor ebp, ebp
 .looppoint:
 	mov cx, [landscape3+edx*2] // Is it a canal
-	mov ch, [landscape4(dx)] // Get the tile type
+	mov ch, [landscape4(dx,1)] // Get the tile type
 	and cx, 0xF00F // Only want the next part
 	cmp cx, 0x6000 // Is it just plain water
 	jne .movenext // No, so don't flood
@@ -2625,6 +2638,32 @@ checkflatflood:
 	popa
 	ret
 
+
+// Fix mouse cursor sprite data overflowing the buffer: limit y size
+//
+// in:	eax=first 4 bytes of sprite info (YYYYXXCC)
+// out:	--- (set mousecursorspritedata)
+// safe:eax
+exported setmousecursorspritedata
+	push ebx
+	mov [mousecursorspritedata],eax
+	movzx ebx,ah
+	shr eax,16
+	add ebx,8
+	imul eax,ebx
+	cmp eax,80*80	// size of mouse cursor sprite buffer
+	jb .ok
+	
+	// too big, reduce y size
+	mov ax,80*80
+	push dx
+	xor dx,dx
+	div bx
+	pop dx
+	mov [mousecursorspritedata+2],ax
+.ok:
+	pop ebx
+	ret
 
 
 // Handles getting the sprites for the coasts, since 8 new types have appeared
@@ -2994,6 +3033,11 @@ cleartile:
 	jle .nol7
 	mov byte [ebx+esi],0
 .nol7:
+	mov ebx,landscape8
+	test ebx,ebx
+	jle .nol8
+	mov word [nosplit ebx+esi*2],0
+.nol8:
 	ret
 
 // a small tweak in the RLE encoding code to allow saving some disk space
@@ -3275,6 +3319,25 @@ vehexpireearly:
 	pop eax
 	ret
 
+// Set durphase2
+// in:	esi->vehtypeinfo
+//	edi->vehtype
+//	ax=base amount for durphase2
+//	bx=durphase2 in years
+// out:	ax=durphase2 in months
+exported setdurphase2
+	cmp bl,0xff
+	je .forever
+
+	imul bx,12	// overwritten code
+	add ax,bx
+	sub ax,0x60
+	ret
+
+.forever:
+	mov ax,10000	// anything > (2050-1920)*12 is safe
+	ret
+
 
 // Automatically adjust width of drop-down menu's to fit the longest text.
 global calcdropdownmenuwidth
@@ -3308,7 +3371,7 @@ calcdropdownmenuwidth:
 	call [gettextwidth]
 	pop bx
 	cmp cx, bx
-	jb .okay
+	jl .okay
 	mov bx, cx
 .okay:
 	add ebp, 2
@@ -3446,12 +3509,14 @@ exported calcboxz
 
 #if WINTTDX
 // longer file support
-
+extern convertfilenameunicode,hasaction12
 uvarb fullfilename, 260+1 // MaxPath+1
 exported adddirectoryentrydir
 	mov esi, fullfilename
 	mov byte [esi], '\'
 	mov byte [esi+34], 0
+	cmp byte [hasaction12],0
+	jne convertfilenameunicode
 	ret
 exported firstnextlongfilename
 	lea esi, [ebp-0x114]
@@ -3461,4 +3526,20 @@ exported firstnextlongfilename
 	mov al, [ebp-0x140]	// overwritten
 	ret
 #endif
+
+exported adddirectoryentry
+	cmp di, 240 // see procs generalfixes
+	jnb .fail
+	ret
+.fail:
+	pusha
+	mov bx,ourtext(directoryoverflow)
+	mov edx, -1
+	xor eax, eax
+	xor ecx, ecx
+	call dword [errorpopup]
+	popa
+	add esp, 4
+	ret
+
 

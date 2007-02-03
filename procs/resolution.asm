@@ -319,6 +319,30 @@ codefragment findscreenshotsize, 3
 codefragment newaddscreenmode
 	icall addscreenmode
 
+	
+// gigant screenshots:	
+codefragment findgiantscreenshotpcxheader, 3
+	mov dword [edi+8], 59F077Fh
+
+codefragment findgiantscreenshotsize, 1
+	mov ecx, 2A3000h	//1920x1440
+
+codefragment findgiantscreenshotsizeqx, 2
+	imul edx, 0E1000h	//640x1440
+
+codefragment findgiantscreenshotwritetotmp, 1
+	mov ecx, 4B000h
+	mov ah, 40h
+
+codefragment findgiantscreenshotreadfromtmp, 1
+	mov ecx, 4B000h
+	mov ah, 3Fh
+	
+codefragment findgiantscreenshotmovepointer, 6
+	mov ax, 4201h
+	mov dx, 500h
+	xor cx, cx
+
 endcodefragments
 
 patchresolution:	
@@ -660,23 +684,34 @@ patchresolution:
 	
 	// Disable Gigantscreenshot so it always failures,
 	// sometimes it's good that WinTTD has redirects...
-#if 1	
+#if 0	
 	mov dword [0x401FAA], 0x9090C3F9
 	mov byte [0x401FAA+4], 0x90
-#else		
-	mov ebx, eax	
+#else
+	mov ebx, eax
 	stringaddress findgiantscreenshotwritetotmp, 1, 1
 	mov dword [edi], ebx
 	stringaddress findgiantscreenshotreadfromtmp, 1, 2
 	mov dword [edi], ebx
+	mov dword [edi+18], ebx
 	stringaddress findgiantscreenshotreadfromtmp, 1, 1
 	mov dword [edi], ebx
+	mov dword [edi+18], ebx
 
 	xor eax, eax
 	xor ebx, ebx
 	mov ax, word [dxmaxx]
 	mov bx, word [dxmaxy]
-
+	
+	push eax
+	stringaddress findgiantscreenshotmovepointer
+	pop eax
+	
+	push eax
+	shl eax, 1
+	mov word [edi], ax
+	pop eax
+	
 	// height * 3
 	push edx
 	imul bx, bx, 3

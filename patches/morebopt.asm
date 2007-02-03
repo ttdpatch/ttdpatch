@@ -199,9 +199,12 @@ industryallowedtobuild:
 ;endp industryallowedtobuild
 
 global placebuoy
+extern adjflags
 placebuoy:
 	cmp byte [curplayerctrlkey],1
 	je .special
+	test BYTE [adjflags], 2
+	jnz .special
 	mov byte [esi+station.owner],0x10	// overwritten
 	xor al,al				// ditto
 	ret

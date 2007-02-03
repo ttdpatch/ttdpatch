@@ -187,9 +187,12 @@ win_grfstat_setgrfactivation:
 	jz .bad
 
 	// now go through all .grf files and check whether they would activate
+	extern grfstage
 	call setactivegrfs
+	mov byte [grfstage+1],4
 	mov eax,PROCALL_TEST
 	call procallsprites
+	mov byte [grfstage+1],0
 
 	// and set the real activation back, keep the new one
 	call win_grfstat_swapnewactive
@@ -302,8 +305,10 @@ actiongrfstat:
 .titleapply:
 	mov byte [activatedefault],1
 	call setactivegrfs
+	mov byte [grfstage+1],4
 	mov eax,PROCALL_TEST
 	call procallsprites
+	mov byte [grfstage+1],0
 	call win_grfstat_swapnewactive
 	xor ebx,ebx
 	ret
@@ -856,6 +861,15 @@ win_grfstat_geterrorinfo:
 	mov word [textrefstack],statictext(special1)
 	mov ebx,[eax+spriteblock.errparam]
 	mov [textrefstack+4],ebx
+	cmp dx,ourtext(grfbefore)
+	je .beforeafter
+	cmp dx,ourtext(grfafter)
+	jne .notbeforeafter
+
+.beforeafter:	// for before/after messages, error param is a string pointer
+	mov word [textrefstack+2],statictext(special2)
+	mov [specialtext2],ebx
+.notbeforeafter:
 	mov ebx,edx
 	ret
 .actionberror:
@@ -1041,6 +1055,15 @@ grfstatuscreatedebug:
 	CALLINT21
 	jc near .done
 	mov [grfstatusdebugfilehandle],ax
+
+	extern ttdpatchversion,ttdpatchversion_end
+	mov esi,grfstatusdebugtextcom
+	call grfstatuscreatedebugstrout
+	mov al,0
+	xchg al,[ttdpatchversion_end]
+	mov esi,ttdpatchversion
+	call grfstatuscreatedebugstrout
+	mov [ttdpatchversion_end],al
 
 	mov ebp,[spriteblockptr]
 	mov ebp,[ebp+spriteblock.next]

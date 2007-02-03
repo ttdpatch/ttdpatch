@@ -14,7 +14,8 @@
 
 extern checkvehiclesinthewayfn,cleartilefn,curplayerctrlkey,ishumanplayer
 extern locationtoxy,newstationpos,newstationtracks,patchflags
-extern stationarray2ofst,stationidgrfmap
+extern stationarray2ofst,stationidgrfmap,newstationspread
+extern maxrstationspread
 
 
 // in:	bl = action flags
@@ -24,12 +25,27 @@ extern stationarray2ofst,stationidgrfmap
 global irrcheckistrainstation
 proc irrcheckistrainstation
 	slocal orientation, byte
+	
+	extern adjflags
+	test BYTE [adjflags], 2
+	jnz .newst
+	test BYTE [adjflags], 1
+	jnz .istrainstation
 
 	mov al,[landscape5(di)]
 	cmp al,8
 	jbe short .istrainstation
 
 	// return, and combine this train station with the existing station
+	stc
+	ret
+.joinstnorailexist:
+	popa
+	mov cl, [adjflags+2]
+	leave
+.newst:
+	sub DWORD [esp], 8
+.ret:
 	stc
 	ret
 .istrainstation:
@@ -58,18 +74,32 @@ proc irrcheckistrainstation
 	push byte PL_RETURNCURRENT
 	call ishumanplayer
 	jne near .donebad
+	
+	mov esi, [adjflags]
+	test esi, 1
+	jz .nostjoin
+	shr esi, 16
+	imul esi, station_size
+	add esi, stationarray
+	test BYTE [esi+station.facilities], 1
+	jz near .joinstnorailexist		//no train station
+	cmp cl, [esi+station.owner]
+	jne near .donebad
+	jmp .gotstptr
+.nostjoin:
 
 	cmp byte [landscape1+edi],cl
 	jne near .donebad
-
-	// did we check this new station already?
-	or al,[newstationlengthplatforms]	// this does really test [%$org.dx],80h
-	js near .donegood	//.isgoodextension
 
 	movzx esi,byte [landscape2+edi]
 	imul esi,station_size
 	add esi,stationarray
 	// now esi = old station
+
+.gotstptr:
+	// did we check this new station already?
+	or al,[newstationlengthplatforms]	// this does really test [%$org.dx],80h
+	js near .donegood	//.isgoodextension
 
 	call getstationdimplatformslength
 
@@ -124,30 +154,34 @@ proc irrcheckistrainstation
 
 	// now cx most south
 	mov word [newstationxysouth], cx
-	
-	sub cl, al
-	cmp cl, 14
-	ja .donebad
-	
-	sub ch, ah
-	cmp ch, 14
-	ja .donebad
 
+	sub cl, al
+	sub ch, ah
 
 	add cx, 0x101
+
+	cmp cl, [maxrstationspread]
+	ja .donebad
+	cmp ch, [maxrstationspread]
+	ja .donebad
+
+	cmp cl, [newstationspread]
+	ja .donebad
+	cmp ch, [newstationspread]
+	ja .donebad
 
 	// now check what direction our new station should get
 	mov word [newstationpos],ax
 	
 	test byte [%$orientation],1	// orientation
-	jz .notflipped2
+	jnz .notflipped2
 	xchg ch,cl
 .notflipped2:
 
-	// cl platform length
-	// ch number of platforms 
+	// ch platform length
+	// cl number of platforms 
 
-	shl cl,stationlengthshift
+/*	shl cl,stationlengthshift
 	// for realbigstations
 	cmp ch, 8
 	jb .dontneedextrabit
@@ -155,11 +189,15 @@ proc irrcheckistrainstation
 .dontneedextrabit:
 
 	or ch,cl
-	mov byte [newstationtracks],ch	
+	*/
+//	xchg cl, ch
+	mov [newstationtracks],cx
 	
 
 	or byte [newstationlengthplatforms],0x80
-.donegood: 
+.donegood:
+	test BYTE [adjflags], 1
+	jnz NEAR .joinstnorailexist
 	stc
 	jmp short .leave
 .donebad:
@@ -389,14 +427,16 @@ proc fixstationplatformslength
 
 	sub bl, dl
 	sub bh, dh
-	and bx, 0x0F0F
-	add bx, 0x0101	
-
+	add bx, 0x0101
+	
 	mov dx, word [%$dir]
 	cmp dl, dh
 	jae .noswitch
 	xchg bl, bh
 .noswitch:
+
+	test bx, 0xF0F0
+	jnz .bigstation
 
 	mov dl, bl
 	shl dl, stationlengthshift
@@ -406,13 +446,22 @@ proc fixstationplatformslength
 .dontneedextrabit2:
 	or dl, bh
 	mov byte [esi+station.platforms], dl
-	
+	and BYTE [esi+station.flags], ~0x80
 	jmp short .done
 	
+.bigstation:
+	or BYTE [esi+station.flags], 0x80
+	mov eax, [stationarray2ofst]
+	add eax, esi
+	xchg bl, bh
+	mov [eax+station2.platforms], bx
+	jmp short .done
+
 .notilesleft:
 	mov word [esi+station.railXY], 0
 	and byte [esi+station.facilities], 0xFE
 	mov byte [esi+station.platforms], 0
+	and BYTE [esi+station.flags], ~0x80
 .done:
 	_ret
 	ret

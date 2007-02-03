@@ -1074,7 +1074,24 @@ dropdownhandler:
 	imul eax, player2_size // Increase by the number of bytes per entry
 	add eax, [player2array] // Move to the player2 array
 	push ecx // Back up the element list
+
+	push eax
+	mov ch, [esp+(4*3)+1] // Get back the number of tabs
 	sub cl, bh // Remove the extra elements form the value
+	xor eax, eax // Blank these for the subroutine
+	xor bh, bh
+.moreoffset:
+	cmp al, ch // Add up the bits on tabs before it
+	je .notoffset
+	add bh, [twoccguitabrows+eax]
+	inc al
+	jmp .moreoffset
+
+.notoffset:
+	add bh, bh // Double this, 2 elements a row
+	add cl, bh // Fix the cl offset further
+	pop eax
+	movzx ecx, cl // Allow this to be used as a pointer
 	movzx dx, byte [eax+player2.specialcol+ecx]
 	pop ecx
 	pop eax // Restore this registor

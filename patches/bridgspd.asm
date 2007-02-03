@@ -6,6 +6,7 @@
 #include <flags.inc>
 #include <vehtype.inc>
 #include <ptrvar.inc>
+#include <veh.inc>
 
 extern curtooltracktypeptr,isengine,newbridgespeedpc,newmaglevbridgespeeds
 extern patchflags
@@ -92,6 +93,9 @@ bridgespeedlimit:
 	movzx edx,word [dword -1+esi*2]	// overwritten by runindex call
 ovar .limittable,-4,$,bridgespeedlimit
 	call getbridgespeedlimit
+	movzx edi,word [edi+veh.engineidx]
+	shl edi,7
+	add edi,[veharrayptr]
 	ret
 ; endp bridgespeedlimit
 
@@ -188,3 +192,70 @@ calcnewbridgespeedlimits:
 	mov [edi+(ebx-1)*4],ax
 	ret
 ; endp calcnewbridgespeedlimits
+
+// called when vehicle moves on bridge (just before limiting speed)
+//
+// in:	bx=XY
+//	esi=L2 value
+//	edi->vehicle
+// out:	esi=bridge type
+// safe:eax ebx ecx edx
+uvard lastbridgeconsist
+exported vehonbridge
+	and esi,0xf0
+	shr esi,4
+
+	extern genericids
+	cmp dword [genericids+6*4],0
+	jg .havecallback
+
+.dontplay:
+	ret
+
+.havecallback:
+	// new consist?
+	mov dx,[edi+veh.engineidx]
+	cmp dx,[lastbridgeconsist]
+	jne .isnew
+
+	// or new engine tick?
+	mov dl,[animcounter]
+	cmp dl,[lastbridgeconsist+2]
+	je .dontplay	// if same consist in same tick, don't play again
+
+.isnew:
+	mov dx,[edi+veh.engineidx]
+	mov [lastbridgeconsist],dx
+	mov dl,[animcounter]
+	mov [lastbridgeconsist+2],dl
+
+	extern grfvarfeature_set_add,grfvarfeature_set_and,grffeature
+	extern getnewsprite,miscgrfvar,callback_extrainfo,curcallback
+	xchg esi,edi
+	push eax
+	mov al,[esi+veh.class]
+	sub al,0x10
+	mov [grfvarfeature_set_add],al
+	inc dword [grfvarfeature_set_and]
+	mov byte [miscgrfvar],10
+	mov [callback_extrainfo],edi
+
+	mov eax,0x106	// generic callback for feature 6 (bridges)
+	mov [grffeature],al
+	mov byte [curcallback],0x33
+	call getnewsprite
+	jc .nosound
+
+	extern generatesoundeffect
+	call [generatesoundeffect]
+
+.nosound:
+	dec dword [grfvarfeature_set_and]
+	mov byte [grfvarfeature_set_add],0
+	mov byte [miscgrfvar],0
+	mov byte [curcallback],0
+
+	pop eax
+	xchg esi,edi
+	ret
+

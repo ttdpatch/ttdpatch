@@ -8,6 +8,7 @@
 #include <town.inc>
 #include <grf.inc>
 #include <ptrvar.inc>
+#include <patchdata.inc>
 
 extern BringWindowToForeground,CreateTooltip,CreateWindowRelative
 extern DestroyWindow,DrawWindowElements,RefreshWindowArea,WindowClicked
@@ -65,10 +66,16 @@ struc industilegameid
 	.grfid:		resd 1
 	.setid:		resb 1
 	.gameid:	resb 1
+			resb 8-$
 endstruc
 
+%if industilegameid_size <> 8
+	%error "The size of industilegameid must be 8 bytes!"
+%endif
+
+
 // index of the last valid entry of the above array
-uvarb lastindustiledataid
+uvard lastindustiledataid	// it seems to be aswell be loaded/saved as dword (Oskar)
 
 // this array contains 0 for non-overridden old types and
 // the corresponding new type for overridden ones
@@ -77,9 +84,11 @@ uvarb industileoverrides,0xAF
 // Three accepted cargoes for the tile. The high byte contains
 // the amount, the low byte the type
 // these three must remain next to each other, in this order
+%define SKIPGUARD 1
 uvarw industileaccepts1,256
 uvarw industileaccepts2,256
 uvarw industileaccepts3,256
+%undef SKIPGUARD
 
 // land shape flags, see IDA DB for meaning of bits
 // except bit 5, that means "allowed on both land and water"
@@ -143,7 +152,7 @@ setsubstindustile:
 	jmp failpropwithgrfconflict
 
 .invalid:
-	mov ax,ourtext(invalidsprite)
+	mov eax,(INVSP_INVPROPVAL<<16)+ourtext(invalidsprite)
 	stc
 	ret
 
@@ -922,8 +931,8 @@ getindustileanimframe:
 global getindustilelandslope
 getindustilelandslope:
 	pusha
-.gotesi:
-	mov ebp,esi		// save XY to a safe place
+	movzx ebp,byte [landscape2+esi]	// get industry ID
+.got_esi_ebp:
 
 // get fine X and Y coordinates from XY (plus the offsets), for GetTileTypeHeightInfo
 
@@ -952,7 +961,7 @@ getindustilelandslope:
 	cmp bx,8*8		// is it a class 8 tile?
 	jne .notpart
 
-	mov al,[landscape2+ebp]
+	mov eax,ebp
 	cmp al,[landscape2+esi]	// esi is now the offset of the asked tile
 	sete byte [esp+29]	// byte 2 of saved eax
 .notpart:
@@ -977,8 +986,8 @@ getindustilelandslope:
 exported getotherindustileanimstage
 	push ebx
 	mov ebx,esi
-.gotebx:
-	mov ecx,ebx
+	mov cl,[landscape2+ebx]		// get industry ID of current tile
+.got_ebx_cl:
 	sar ax,4
 	sar al,4
 	add bh,ah
@@ -989,8 +998,7 @@ exported getotherindustileanimstage
 	cmp al,0x80
 	jne .notpart
 
-	mov al,[landscape2+ecx]
-	cmp al,[landscape2+ebx]
+	cmp cl,[landscape2+ebx]
 	jne .notpart
 
 	movzx eax,byte [landscape3+ebx*2]
@@ -1227,7 +1235,7 @@ redrawindustry:
 
 // points to the beginning of industry data block
 // this block starts at baIndustryProductionFlags and ends at the end of paIndustryRandomSoundEffects
-// (size: 925 bytes, 25*NINDUSTRIES)
+// (size: 925 bytes, 25*NINDUSTRYTYPES)
 // see the IDA DB for details
 //uvard industrydatablockptr,1,s
 
@@ -1241,17 +1249,22 @@ uvard industrydatabackupptr,1,s
 // unpatched TTD doesn't have an industry name table, but instead depends on the fact that the name textID
 // can be found by adding the type number to a fixed base ID. This is no longer true with new industries,
 // so we must supply a name table.
-uvarw industrynames,NINDUSTRIES
+uvarw industrynames,NINDUSTRYTYPES
 
 // slotNum<->setID mapping stored in savegames, allows us to find the according GRF again after loading the game
 // if 0 is stored for a slot that has an old type enabled on this climate, it means the old type is available
 // OTOH, nonzero values mean the old industry is overridden
-uvard industrydataidtogameid,2*NINDUSTRIES
+uvard industrydataidtogameid,2*NINDUSTRYTYPES
 
 struc industrygameid
 	.grfid:		resd 1
 	.setid:		resb 1
+			resb 8-$
 endstruc
+
+%if industrygameid_size<>8
+	%error "The size of industrygameid must be 8!"
+%endif
 
 // helper bitmasks, containing the old industry types enabled on the current climate
 // this is necessary so we can reuse unused slots for new industries
@@ -1271,26 +1284,30 @@ section .text
 
 uvard defaultindustries,2
 
+// Bit mask of new industry types whose data is currently available (i.e. the corresponding GRF is active)
+// For old types that aren't overridden, the corresponding bit is clear
+uvard activenewindustries,2
+
 // The old code has count/type pairs for initial industry generation. We convert this to
 // an array of probabilities and store that here, since this makes the handling easier.
-// (NINDUSTRIES bytes for each climate)
-uvarb orginitialindustryprobs,4*NINDUSTRIES
+// (NINDUSTRYTYPES bytes for each climate)
+uvarb orginitialindustryprobs,4*NINDUSTRYTYPES
 
 // The old code uses a fixed-size array filled with different type numbers to control the
 // probabilities of the industry types during the game. We convert that to simple probabilities as well.
-// (NINDUSTRIES bytes for each climate)
-uvarb orgingameindustryprobs,4*NINDUSTRIES
+// (NINDUSTRYTYPES bytes for each climate)
+uvarb orgingameindustryprobs,4*NINDUSTRYTYPES
 
 // Counterparts of the above two arrays for the current climate. These arrays are the ones actually read
 // by functions, and can be modified by GRFs
-uvarb initialindustryprobs,NINDUSTRIES
+uvarb initialindustryprobs,NINDUSTRYTYPES
 
-uvarb ingameindustryprobs,NINDUSTRIES
+uvarb ingameindustryprobs,NINDUSTRYTYPES
 
 // The old code had a map color for each industry tile type. This wouldn't work for new industries, since
 // a tile type can be used by more industries at a time. Instead, we have a color per industry type, stored in
 // this array
-uvarb industrymapcolors,NINDUSTRIES
+uvarb industrymapcolors,NINDUSTRYTYPES
 
 // The default industry colors, extracted from the original TTD array.
 varb defaultindustrymapcolors
@@ -1322,7 +1339,9 @@ section .text
 // 13	The industry can cause a subsidence (coal mine) 	
 // 14	Automatic production multiplier handing (No industry has this bit set by default.)
 // 15	The production callback gets random bits in var. 10
-uvard industryspecialflags,NINDUSTRIES
+// 16	Don't ensure creation during map generation
+// 17	Don't prevent the last instance from closing down
+uvard industryspecialflags,NINDUSTRYTYPES
 
 // The default values for the above special flags, ie. a bit is only set if the unpatched TTD industry would
 // have the special effect
@@ -1334,19 +1353,19 @@ endvar
 
 // The old code has hard-coded creation messages. We introduce an array to store message IDs, so they can be
 // customized
-uvarw industrycreationmsgs,NINDUSTRIES
+uvarw industrycreationmsgs,NINDUSTRYTYPES
 
 // Production multipliers. There's 2 words for every incoming type per industry.
 // The first word tells how much of the first output cargo is generated from a unit of
 // incoming cargo, in 1/256 units. The second word means the same, but for the second output cargo.
-uvard industryinputmultipliers,3*NINDUSTRIES
+uvard industryinputmultipliers,3*NINDUSTRYTYPES
 
 %define industryinputmultipliers1 industryinputmultipliers
-%define industryinputmultipliers2 (industryinputmultipliers+NINDUSTRIES*4)
-%define industryinputmultipliers3 (industryinputmultipliers+2*NINDUSTRIES*4)
+%define industryinputmultipliers2 (industryinputmultipliers+NINDUSTRYTYPES*4)
+%define industryinputmultipliers3 (industryinputmultipliers+2*NINDUSTRYTYPES*4)
 
 // copy of the original prospecting chances in moreindu.asm
-uvard origfundchances, NINDUSTRIES
+uvard origfundchances, NINDUSTRYTYPES
 
 // callback flags
 // Bit	Var. 0C	Callback 	
@@ -1358,14 +1377,14 @@ uvard origfundchances, NINDUSTRIES
 // 5	35	Do production changes every month
 // 6	37	Do cargo subtext callback
 // 7	38	Show additional info in fund window
-uvarb industrycallbackflags,NINDUSTRIES
+uvarb industrycallbackflags,NINDUSTRYTYPES
 
 // callback flags, second set
 // Bit	Var. 0C	Callback
 // 0	3A	Show additional info in industry window
 // 1	3B	control special effects
 // 2	3D	disable cargo acceptance
-uvarb industrycallbackflags2,NINDUSTRIES
+uvarb industrycallbackflags2,NINDUSTRYTYPES
 
 // helper array to hold incoming cargo amounts
 
@@ -1377,9 +1396,12 @@ struc industryincargodata
 endstruc
 
 // amount of cargo accepted, but not processed by industries
-uvard industryincargos,2*90
+uvard industryincargos,2*NUMINDUSTRIES
 
-uvard industrydestroymultis,NINDUSTRIES
+uvard industrydestroymultis,NINDUSTRYTYPES
+
+// pointer to the industry2 array - currently used for persistent storage for GRFs only
+uvard industry2arrayptr
 
 // Macro to get back the industry ID from its address. It assumes the pointer is actually pointing into the industry array.
 %macro getinduidfromptr 1
@@ -1392,7 +1414,7 @@ uvard industrydestroymultis,NINDUSTRIES
 global clearindustryincargos
 clearindustryincargos:
 	mov edi,industryincargos
-	mov ecx,2*90
+	mov ecx,2*NUMINDUSTRIES
 	xor eax,eax
 	rep stosd
 	ret
@@ -1401,9 +1423,20 @@ clearindustryincargos:
 global clearindustrygameids
 clearindustrygameids:
 	mov edi,industrydataidtogameid
-	mov ecx,2*NINDUSTRIES
+	mov ecx,2*NINDUSTRYTYPES
 	xor eax,eax
 	rep stosd
+	ret
+
+// clear the industry2 array
+exported clearindustry2array
+	mov edi,[industry2arrayptr]
+	test edi,edi
+	jz .done			// no array - nothing to clear
+	mov ecx,NUMINDUSTRIES*industry2_size
+	xor eax,eax
+	rep stosb
+.done:
 	ret
 
 // make a backup of all original industry arrays before overwriting them, and fill some other
@@ -1424,12 +1457,12 @@ saveindustrydata:
 
 // clear probability arrays, they will be increased later
 	mov edi,orgingameindustryprobs
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	xor eax,eax
 	rep stosd
 
 	mov edi,orginitialindustryprobs
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	xor eax,eax
 	rep stosd
 
@@ -1445,7 +1478,7 @@ saveindustrydata:
 	inc byte [edi+eax]
 	loop .nextingameindustryprob
 	pop ecx
-	add edi,NINDUSTRIES
+	add edi,NINDUSTRYTYPES
 	loop .nextingameclimate
 
 // fill the starting probabilities - increase probabilities according to the
@@ -1464,13 +1497,13 @@ saveindustrydata:
 	jmp short .nextinitialindustryprob
 
 .nextinitialclimate:
-	add edi,NINDUSTRIES
+	add edi,NINDUSTRYTYPES
 	loop .initialclimateloop	
 
 // save the old funding chances to a safe place so we can restore them later
 	mov esi,fundchances
 	mov edi,origfundchances
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep movsd
 
 	ret
@@ -1487,10 +1520,11 @@ restoreindustrydata:
 	mov edi,[industrylayouttableptr]
 	mov ecx,296
 	rep movsb
+
 // default industry names are the consecutive textIDs starting from 0x4802
 	mov edi,industrynames
 	mov eax,0x4802
-	mov ecx,NINDUSTRIES
+	mov ecx,NINDUSTRYTYPES
 .nextname:
 	stosw
 	inc eax
@@ -1499,56 +1533,56 @@ restoreindustrydata:
 // the default creation message is 0x482d for every type except temperate forests, where it's 0x482e
 	mov edi,industrycreationmsgs
 	mov ax,0x482d
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep stosw
 	inc word [industrycreationmsgs+3*2]		// forest
 
 // load original initial probabilities...
 	movzx eax,byte [climate]
-	imul eax,NINDUSTRIES
+	imul eax,NINDUSTRYTYPES
 	lea esi,[orginitialindustryprobs+eax]
 	mov edi,initialindustryprobs
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep movsb
 
 // ...in-game probabilities...
 	lea esi,[orgingameindustryprobs+eax]
 	mov edi,ingameindustryprobs
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep movsb
 
 // ...map colors...
 	mov esi,defaultindustrymapcolors
 	mov edi,industrymapcolors
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep movsb
 
 // ...special flags...
 	mov esi,defaultindustryspecialflags
 	mov edi,industryspecialflags
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep movsd
 
 // ...and funding chances
 	mov esi,origfundchances
 	mov edi,fundchances
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep movsd
 
 // all callback flags are zero by default
 	mov edi,industrycallbackflags
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	xor al,al
 	rep stosb
 
 	mov edi,industrycallbackflags2
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep stosb
 
 // all multipliers are (1, 0)...
 	mov edi,industryinputmultipliers
 	mov eax,0x00000100
-	mov cl,3*NINDUSTRIES
+	mov cl,3*NINDUSTRYTYPES
 	rep stosd
 
 // ...except for temperate banks, where it's (0, 0)
@@ -1559,15 +1593,22 @@ restoreindustrydata:
 // all destroy multipliers are 1000 by default
 	mov edi,industrydestroymultis
 	mov eax,1000
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 	rep stosd
 
 // ...default industries of the climate
-	movzx eax,byte [climate]
-	mov ecx,[defaultindustriesofclimate+8*eax]
-	mov eax,[defaultindustriesofclimate+8*eax+4]
+	mov ecx,[landscape3+ttdpatchdata.disableddefindustries]
+	mov eax,[landscape3+ttdpatchdata.disableddefindustries+4]
+	not ecx
+	not eax
+	movzx edi,byte [climate]
+	and ecx,[defaultindustriesofclimate+8*edi]
+	and eax,[defaultindustriesofclimate+8*edi+4]
 	mov [defaultindustries],ecx
 	mov [defaultindustries+4],eax
+
+	and dword [activenewindustries],0
+	and dword [activenewindustries+4],0
 
 	ret
 
@@ -1617,8 +1658,8 @@ getindunameaxesi:
 		%error copyindudata invoked with wrong param
 	%endif
 	
-	add esi,NINDUSTRIES*%1
-	add edi,NINDUSTRIES*%1
+	add esi,NINDUSTRYTYPES*%1
+	add edi,NINDUSTRYTYPES*%1
 %endmacro
 
 // copy the basic properties of an industry type to a new place
@@ -1650,6 +1691,8 @@ copyindustryprops:
 
 %undef copyinduprop
 
+extern industryaction3
+
 // restore every property of an old type from backup to the given slot
 reloadoldindustry:
 // first, copy basic properties
@@ -1665,6 +1708,10 @@ reloadoldindustry:
 	movsd
 	movsd
 
+// no action3 and no sprite block
+	and dword [industryaction3+ebx*4],0
+	and dword [industryspriteblock+ebx*4],0
+
 // original name = 0x4802 + type
 	mov si,0x4802
 	add si,ax
@@ -1672,7 +1719,7 @@ reloadoldindustry:
 
 // copy probabilities...
 	movzx ecx,byte [climate]
-	imul ecx,NINDUSTRIES
+	imul ecx,NINDUSTRYTYPES
 	add ecx,eax
 	mov dl,[orginitialindustryprobs+ecx]
 	mov dh,[orgingameindustryprobs+ecx]
@@ -1735,6 +1782,16 @@ copynewindustrydata:
 	lea esi,[esi+eax*8]
 	movsd
 	movsd
+
+// ...substitute type....
+	mov dl,[substindustries+eax]
+	mov [substindustries+ebx],dl
+
+// ...sprite block and action 3...
+	mov edx,[industryspriteblock+eax*4]
+	mov [industryspriteblock+ebx*4],edx
+	mov edx,[industryaction3+eax*4]
+	mov [industryaction3+ebx*4],edx
 
 // ...industry name...
 	mov si,[industrynames+2*eax]
@@ -1808,7 +1865,7 @@ setsubstindustry:
 	je .foundid
 .nextid:
 	inc ecx
-	cmp cl,NINDUSTRIES
+	cmp cl,NINDUSTRYTYPES
 	jb .findid
 // the ID isn't in the list yet - try to find an empty slot for it
 	xor ecx,ecx
@@ -1821,7 +1878,7 @@ setsubstindustry:
 	jz .foundemptyid
 .nextid2:
 	inc ecx
-	cmp cl,NINDUSTRIES
+	cmp cl,NINDUSTRYTYPES
 	jb .findemptyid
 
 	pop ecx
@@ -1831,7 +1888,7 @@ setsubstindustry:
 .invalid_pop:
 	pop ecx
 .invalid:
-	mov ax,ourtext(invalidsprite)
+	mov eax,(INVSP_INVPROPVAL<<16)+ourtext(invalidsprite)
 	stc
 	ret
 
@@ -1845,34 +1902,41 @@ setsubstindustry:
 	mov [curgrfindustrylist+ebx],cl
 	inc byte [curgrfindustrylist+ebx]
 
-// store the sprite block of the industry (needed for newsounds)
-	mov eax,[curspriteblock]
-	mov [industryspriteblock+ecx*4],eax
+	bts [activenewindustries],ecx
 
 // set the substitute industry type
 	xor eax,eax
 	lodsb
-	cmp al,NINDUSTRIES
+	cmp al,NINDUSTRYTYPES
 	jae .invalid_pop
 	mov [substindustries+ecx],al
 	pusha
 // load all properties of the substitute industry into this slot
 	mov ebx,ecx
 	call reloadoldindustry
+
 // replace the placement-check function with our special one that prepares things for callback 22
 	mov dword [industryplacecheckprocs+ebx*4],addr(newindu_placechkproc)
 	popa
+
+// store the sprite block of the industry (needed for newsounds)
+// this must be after reloadoldindustry because it resets industryspriteblock
+	mov eax,[curspriteblock]
+	mov [industryspriteblock+ecx*4],eax
+
 	pop ecx
 	jmp short .loopend
 
 .turnoff:
 	inc esi
-	cmp ebx, NINDUSTRIES	// is this a valid slot id?
+	cmp ebx, NINDUSTRYTYPES	// is this a valid slot id?
 	jae .loopend
 	cmp dword [industrydataidtogameid+ebx*8+industrygameid.grfid],0
 	jnz .loopend		// the industry is already overridden
 
 	btr [defaultindustries],ebx	// free the slot for future use
+	// defaultindustries isn't saved, so we must remember the disabled state in a separate bitmask as well
+	bts [landscape3+ttdpatchdata.disableddefindustries],ebx
 
 	// reset probabilities so the industry doesn't appear
 	mov byte [initialindustryprobs+ebx],0
@@ -1883,7 +1947,7 @@ setsubstindustry:
 .alreadyhasoffset:
 // this isn't the first prop. 8 setting - just set the substitute type and be done with it
 	lodsb
-	cmp al,NINDUSTRIES
+	cmp al,NINDUSTRYTYPES
 	jae .invalid
 	mov [substindustries+edx-1],al
 .loopend:
@@ -1905,19 +1969,25 @@ setindustryoverride:
 	lodsb
 	mov dl,[curgrfindustrylist+ebx]
 	or edx,edx
-	jz .ignore		// undefined ID
+	jz near .ignore		// undefined ID
 	dec edx
-	cmp al,NINDUSTRIES
-	jae .invalid		// invalid destination industry
+	cmp al,NINDUSTRYTYPES
+	jae near .invalid	// invalid destination industry
 	cmp dword [industrydataidtogameid+eax*8+industrygameid.grfid],0
 	jnz .ignore		// the industry is already overridden
 // modify the associated gameid
 	mov [curgrfindustrylist+ebx],al
 	inc byte [curgrfindustrylist+ebx]
+
+	btr [activenewindustries],edx
+	bts [activenewindustries],eax
+
 	pusha
 // copy all data to the new place
 	mov ebx,eax
 	mov eax,edx
+// there may be industries of this type already on the map, change their type
+	call changeindustrytype
 	call copynewindustrydata
 // if the old slot was an active industry, restore the original state
 // otherwise, just zero its probabilities so it won't appear at all
@@ -1941,13 +2011,105 @@ setindustryoverride:
 	mov [industrydataidtogameid+eax*8+industrygameid.setid],dl
 .ignore:
 	inc ebx
-	loop .next
+	dec ecx
+	jnz near .next
 	clc
 	ret
 
 .invalid:
-	mov ax,ourtext(invalidsprite)
+	mov eax,(INVSP_INVPROPVAL<<16)+ourtext(invalidsprite)
 	stc
+	ret
+
+// Auxiliary: change all industries of type <eax> to type <ebx>
+// preserves everything
+changeindustrytype:
+	push esi
+	push ecx
+
+	mov ecx,NUMINDUSTRIES
+	mov esi,[industryarrayptr]
+.nextindustry:
+	cmp word [esi+industry.XY],0
+	je .notgood
+	cmp byte [esi+industry.type],al
+	jne .notgood
+	mov byte [esi+industry.type],bl
+.notgood:
+	add esi,industry_size
+	loop .nextindustry
+
+	pop ecx
+	pop esi
+	ret
+
+// remove all industry types that are present in the type list, but aren't currently active
+exported cleanupindustrytypes
+// the two dwords on stack will contain the mask of types to remove
+	push 0
+	push 0
+
+// find the types that aren't currently active, and remove them from the mapping
+// if the type hasn't overridden anything, we mark it for removal from the map
+// types that overrode something will revert to the original type they've overridden
+	xor ecx,ecx
+.clean_unused:
+	cmp dword [industrydataidtogameid+ecx*8+industrygameid.grfid],0
+	je .skip_unused
+	bt [activenewindustries],ecx
+	jc .skip_unused
+	and dword [industrydataidtogameid+ecx*8],0
+	and dword [industrydataidtogameid+ecx*8+4],0
+	bt [defaultindustries],ecx
+	jc .skip_unused
+	bts [esp],ecx
+.skip_unused:
+	inc ecx
+	cmp ecx,NINDUSTRYTYPES
+	jb .clean_unused
+
+// remove industries whose bits are set in the mask
+	mov ecx,NUMINDUSTRIES
+	mov edi,[industryarrayptr]
+.removeindustries:
+	cmp word [edi+industry.XY],0
+	je .skip_remove
+	movzx eax,byte [edi+industry.type]
+	bt [esp],eax
+	jnc .skip_remove
+
+	push ecx
+	push edi
+	mov ebx,3		// class 8 function 3 - remove industry
+	mov ebp,[ophandler+0x8*8]
+	call [ebp+4]
+	pop edi
+	pop ecx
+
+.skip_remove:
+	add edi,byte industry_size
+	loop .removeindustries
+
+	add esp,8		// remove mask from stack
+
+// finally, clean up the mask of disabled types
+// if no custom type is loaded into the slot, allow the original to appear again
+// by removing the corresponding type from the disabled types
+// The fate of the slot is decided during the next activation - if some GRF
+// disables it, it will get back to the disabled list; if, however, the disabling
+// GRF is no longer active, the old industry type will appear again
+	xor ecx,ecx
+.clear_disabled:
+	cmp dword [industrydataidtogameid+ecx*8+industrygameid.grfid],0
+	jne .skip_disabled
+
+	btr [landscape3+ttdpatchdata.disableddefindustries],ecx
+
+.skip_disabled:
+	inc ecx
+	cmp ecx,NINDUSTRYTYPES
+	jb .clear_disabled
+
 	ret
 
 // layout format: numlayouts(b) layoutlength(d) layout...
@@ -2005,6 +2167,7 @@ setindustrylayout:
 	lodsb
 
 	cmp byte [curgrfindustilelist+eax],0
+	mov dl,INVSP_INVINDUSTILE
 	jz .error	// industry tile not defined
 	push ebx
 	push ecx
@@ -2056,6 +2219,7 @@ setindustrylayout:
 	add eax,ecx
 	add eax,4	// +4 because the length bytes don't count into the size
 	cmp eax,esi
+	mov dl,INVSP_INVLAYOUTSIZE
 	jne .error_onepop
 .nocheck:
 // everything is OK - we can update the layout pointer in the layout table
@@ -2073,6 +2237,7 @@ setindustrylayout:
 	pop eax
 .error_onepop:
 	pop eax
+	shrd eax,edx,16		// set eax(16:23)=dl
 	mov ax,ourtext(invalidsprite)
 	stc
 	ret
@@ -2323,7 +2488,7 @@ setconflindustry:
 	or al,al
 	js .newtype
 // an old type - ignore if isn't active at the current climate
-	cmp al,NINDUSTRIES
+	cmp al,NINDUSTRYTYPES
 	jae .ignore
 	bt [defaultindustries],eax
 	jc .writeit
@@ -2385,7 +2550,7 @@ createinitialindustries:
 
 	and dword [industryprobabtotal],0
 	xor ecx,ecx
-	mov cl,NINDUSTRIES
+	mov cl,NINDUSTRYTYPES
 .mandatoryloop:
 	movzx eax,byte [initialindustryprobs+ecx-1]
 
@@ -2419,6 +2584,9 @@ createinitialindustries:
 .noallowcallback:
 // add probability to the total
 	add dword [industryprobabtotal],eax
+// mandatory generation can be disabled with a special bit
+	test byte [industryspecialflags+(ecx-1)*4+2],1
+	jnz .nextmandatory
 // then create it
 	push ecx
 	mov bl,cl
@@ -2451,7 +2619,7 @@ createinitialindustries:
 	sub edx,ebx
 	js .gotit
 	inc eax
-	cmp eax,NINDUSTRIES
+	cmp eax,NINDUSTRYTYPES
 	jmp short .nexttype
 
 .gotit:
@@ -2481,7 +2649,7 @@ ingamerandomindustry:
 // compute the sum of probabilities (in edx) and find available types
 	xor edx,edx
 	xor ecx,ecx
-	mov cl,NINDUSTRIES-1
+	mov cl,NINDUSTRYTYPES-1
 .probabsumloop:
 	movzx ax,byte [ingameindustryprobs+ecx]
 	or ax,ax
@@ -2887,6 +3055,10 @@ newindumessage:
 // safe: eax, ebx, ecx, edx, esi
 global industryproducecargo
 industryproducecargo:
+// update the date of last cargo acceptance
+	mov ax,[currentdate]
+	mov [edi+industry.lastcargodate],ax
+
 	movzx eax,byte [edi+industry.type]
 
 // activate the "new cargo arrives" random and animation triggers
@@ -2911,10 +3083,10 @@ industryproducecargo:
 	add eax,industryinputmultipliers
 	cmp ch,[edi+industry.accepts]
 	je .gotit
-	add eax,4*NINDUSTRIES
+	add eax,4*NINDUSTRYTYPES
 	cmp ch,[edi+industry.accepts+1]
 	je .gotit
-	add eax,4*NINDUSTRIES
+	add eax,4*NINDUSTRYTYPES
 	cmp ch,[edi+industry.accepts+2]
 	je .gotit
 
@@ -3062,7 +3234,7 @@ openfundindustrywindow:
 	inc byte [esi+window.itemstotal]
 .noinc:
 	inc eax
-	cmp eax,NINDUSTRIES
+	cmp eax,NINDUSTRYTYPES
 	jb .nexttypeslot
 
 // set up some other fields
@@ -3287,7 +3459,7 @@ induwindow_redraw:
 
 .skip:
 	inc ebx
-	cmp ebx,NINDUSTRIES
+	cmp ebx,NINDUSTRYTYPES
 	jb .nextindustry
 .finishlist:
 // if nothing is selected, we're done
@@ -3609,7 +3781,7 @@ induwindow_click:
 
 .skip:
 	inc ebx
-	cmp ebx,NINDUSTRIES
+	cmp ebx,NINDUSTRYTYPES
 	jb .nextindustry
 // the user clicked on an empty element below the end of the list - do nothing
 	ret
@@ -3753,6 +3925,18 @@ initnewindustry:
 	getinduidfromptr eax
 	and dword [industryincargos+8*eax],0
 	and dword [industryincargos+8*eax+4],0
+
+	mov eax,esi
+	sub eax,[industryarrayptr]
+	add eax,eax
+	add eax,[industry2arrayptr]
+	mov ecx,industry2_size
+.clearindu2:
+	mov byte [eax],0
+	inc eax
+	dec ecx
+	jnz .clearindu2
+
 	ret
 
 varw getincargo_div, 1
@@ -3795,6 +3979,7 @@ getindutiletypeatoffset:
 	shr ch,4
 	add cx,[esi+industry.XY]
 
+.got_esi_ecx:
 // check if it's an industry tile
 	mov al,[landscape4(cx,1)]
 	and al,0xF0
@@ -3867,6 +4052,25 @@ getindutiletypeatoffset:
 	mov eax,0xFFFE
 	ret
 
+// like the previous one, but for industry tiles, taking the
+// current tile as the point of reference, instead of the north corner, and
+// the offsets are signed
+exported getindutiletypeatoffset_tile
+	sar ax,4
+	sar al,4
+	mov ecx,esi
+	add ch,ah
+	add cl,al
+
+	push esi
+	movzx esi,byte [landscape2+esi]
+	imul esi,industry_size
+	add esi,[industryarrayptr]
+
+	call getindutiletypeatoffset.got_esi_ecx
+	pop esi
+	ret
+
 global getindutilerandombits
 getindutilerandombits:
 // get the XY of the tile by adding the given offset to industry.XY
@@ -3906,13 +4110,17 @@ getindutilerandombits:
 global getindustilelandslope_industry
 getindustilelandslope_industry:
 	pusha
+	mov ebp,esi
+	getinduidfromptr ebp
 	movzx esi,word [esi+industry.XY]
-	jmp getindustilelandslope.gotesi
+	jmp getindustilelandslope.got_esi_ebp
 
 exported getotherindustileanimstage_industry
 	push ebx
 	movzx ebx,word [esi+industry.XY]
-	jmp getotherindustileanimstage.gotebx
+	mov ecx,esi
+	getinduidfromptr ecx
+	jmp getotherindustileanimstage.got_ebx_cl
 
 exported getothertypedistance
 	push ebx
@@ -3940,7 +4148,7 @@ exported getothertypedistance
 
 .badslot:
 	inc ecx
-	cmp cl,NINDUSTRIES
+	cmp cl,NINDUSTRYTYPES
 	jb .nextslot
 
 .infinity:
@@ -3955,7 +4163,7 @@ exported getothertypedistance
 	or eax,byte -1
 	xor ebx,ebx
 	xor edx,edx
-	mov ch,90
+	mov ch,NUMINDUSTRIES
 .checknext:
 	cmp word [edi+industry.XY],0
 	je .skip
@@ -3994,11 +4202,170 @@ exported getothertypedistance
 	pop ebx
 	ret
 
+extern specialgrfregisters
+exported getothertypecountanddist
+	push ebx
+
+	movzx eax,ah
+	mov ebx,[specialgrfregisters+0*4]
+	test ebx,ebx
+	jnz .notoriginal
+
+	bt [defaultindustries],eax
+	jnc .infinity
+	mov ecx,eax
+	jmp short .gottype
+
+.notoriginal:
+	cmp ebx,-1
+	jne .goodgrfid
+
+	mov ebx,[mostrecentspriteblock]
+	mov ebx,[ebx+spriteblock.grfid]
+
+.goodgrfid:
+	xor ecx,ecx
+.nextslot:
+	cmp ebx,[industrydataidtogameid+ecx*8+industrygameid.grfid]
+	jne .badslot
+	cmp al,[industrydataidtogameid+ecx*8+industrygameid.setid]
+	je .gottype
+
+.badslot:
+	inc ecx
+	cmp cl,NINDUSTRYTYPES
+	jb .nextslot
+
+.infinity:
+	mov eax, 0xFFFF		// count=0, dist=max
+	pop ebx
+	ret
+
+.gottype:
+	push edx
+	push edi
+	push ebp
+	mov edi,[industryarrayptr]
+	xor eax,eax
+	or ebp,byte -1
+	xor ebx,ebx
+	xor edx,edx
+	mov ch,NUMINDUSTRIES
+.checknext:
+	cmp word [edi+industry.XY],0
+	je .skip
+	cmp [edi+industry.type],cl
+	jne .skip
+	inc al			// increase count
+	cmp esi,edi
+	je .skip
+
+	movzx bx,[esi+industry.XY]
+	movzx dx,[esi+industry.XY+1]
+	sub bl,[edi+industry.XY]
+	sbb bh,0
+	jns .notnegx
+	neg bx
+.notnegx:
+	sub dl,[edi+industry.XY+1]
+	sbb dh,0
+	jns .notnegy
+	neg dx
+.notnegy:
+
+	add bx,dx
+
+	cmp ebx,ebp
+	ja .skip
+
+	mov ebp,ebx
+
+.skip:
+	add edi, industry_size
+	dec ch
+	jnz .checknext
+
+// now al=count ebp=distance
+
+	shl ebp,16
+	shld eax,ebp,16
+
+// now eax[16..23]=count eax[0..15]=dist
+
+	pop ebp
+	pop edi
+	pop edx
+	pop ebx
+	ret
+
+	
+exported getindustrytownzoneanddist
+	push ebx
+	mov bx,[esi+industry.XY]
+
+	sar ax,4
+	sar al,4
+	add ah,bh
+	add al,bl
+
+	push ebp
+	push edi
+	push edx
+
+	xor edi,edi
+	mov ebx,2	// find nearest town and zone
+	mov ebp,[ophandler+3*8]
+	call [ebp+4]
+
+	movzx eax,dl	// zone
+	shl eax,16
+	mov ax,bp	// distance
+
+	pop edx
+	pop edi
+	pop ebp
+	pop ebx
+
+	ret
+
+exported getindustrytowndist_euclid
+	push ebx
+	mov bx,[esi+industry.XY]
+
+	sar ax,4
+	sar al,4
+	add ah,bh
+	add al,bl
+
+	push edi
+	push ebp
+	mov ebx,1	// find nearest town
+	mov ebp,[ophandler+3*8]
+	call [ebp+4]
+
+	movzx ebx,al 			// industry X
+	movzx ebp,byte [edi+town.XY]	// town X
+	sub ebx,ebp
+	imul ebx,ebx	// ebx = X diff squared
+	
+	movzx eax,ah			// industry Y
+	movzx ebp,byte [edi+town.XY+1]	// town Y
+	sub eax,ebp
+	imul eax,eax	// eax = Y diff squared
+
+	add eax,ebx	// eax = Euclidian distance squared
+
+	pop ebp
+	pop edi
+	pop ebx
+	ret
+
 // a production instruction returned by the production callback
 // it contains three values to subtract from the three waiting cargo types,
 // two values to add the two outgoing cargo types, plus a boolean telling whether to
 // call the callback again
 struc productioninstruction
+	.version:		resb 1
 	.subtract_in_1:		resw 1
 	.subtract_in_2:		resw 1
 	.subtract_in_3:		resw 1
@@ -4052,45 +4419,98 @@ doproductioncallback:
 	jc near .error
 // now eax-> production instruction
 
+	cmp byte [eax+productioninstruction.version],0
+	jne .new_style
+
+// push the needed values on the stack, in reversed order so pop gives them in the normal order
+	movzx ecx,byte [eax+productioninstruction.call_again]
+	push ecx
+	movzx ecx,word [eax+productioninstruction.add_out_2]
+	push ecx
+	movzx ecx,word [eax+productioninstruction.add_out_1]
+	push ecx
+	movsx ecx,word [eax+productioninstruction.subtract_in_3]
+	push ecx
+	movsx ecx,word [eax+productioninstruction.subtract_in_2]
+	push ecx
+	movsx ecx,word [eax+productioninstruction.subtract_in_1]
+	push ecx
+	jmp short .gotdata
+
+extern advvaraction2varbuff
+.new_style:
+// the new style is simpler - we have six registers for the six needed data
+	mov ecx,6
+.nextvar:
+	movzx ebx,byte [eax+ecx]
+	push dword [advvaraction2varbuff+ebx*4]
+	dec ecx
+	jnz .nextvar
+
+.gotdata:
 // process the three "in" instructions with a loop
-	mov ecx,3
+	xor ecx,ecx
 .nextininstruction:
 
 // load value...
-	movzx ebx,word [eax+productioninstruction.subtract_in_1+(ecx-1)*2]
-// multiply with the division factor to maintain scaling
+	pop eax
+	mov ebx,eax
 	imul ebx,ebp
-// cap the result to 64K
-	test ebx,0xffff0000
-	jz .notmuloverflow
-	mov bx,0xffff
-.notmuloverflow:
-// subtract amount, but don't go negative
-	sub [edi+industryincargodata.in_amount1+(ecx-1)*2],bx
-	jnc .nottoofew
-	and word [edi+industryincargodata.in_amount1+(ecx-1)*2],0
-.nottoofew:
-	loop .nextininstruction
+	jo .in_overflow
+
+	movzx edx,word [edi+industryincargodata.in_amount1+ecx*2]
+	sub edx,ebx
+	jno .in_nooverflow
+
+.in_overflow:
+	//there is an overflow - we need the sign of the original value to tell whether
+	//it was too small or too big, and set the according extreme value
+	test eax,eax
+	js .in_max
+	jmp short .in_min
+
+.in_nooverflow:
+	//flags still intact - there was no overflow; if the subtraction gave a negative result, use zero instead
+	jns .notneg
+.in_min:
+	xor edx,edx
+.notneg:
+	cmp edx,0xFFFF
+	jbe .nottoomuch
+.in_max:
+	or edx,-1	// fill dx with FFFFh
+.nottoomuch:
+	mov [edi+industryincargodata.in_amount1+ecx*2],dx
+	inc ecx
+	cmp ecx,3
+	jb .nextininstruction
 
 // the same steps for the two "out" instructions, but add instead of subtracting
-	mov cl,2
+	xor ecx,ecx
 .nextoutinstruction:
-	movzx ebx,word [eax+productioninstruction.add_out_1+(ecx-1)*2]
+// load value
+	pop ebx
+	test ebx,ebx
+	js .out_done		// we can't produce a negative amount - just ignore it
+
 	imul ebx,ebp
+	jo .out_overflow	// since we've weeded out negative values, an overflow must be towards positive infinity
 	test ebx,0xffff0000
-	jz .notmuloverflow2
-	mov bx,0xffff
-.notmuloverflow2:
-	add [esi+industry.amountswaiting+(ecx-1)*2],bx
-	jnc .nottoomuch
-	or word [esi+industry.amountswaiting+(ecx-1)*2],byte -1
-.nottoomuch:
-	loop .nextoutinstruction
+	jnz .out_overflow	// adding a value larger than the limit will exceed the limit, so just put the max
+
+	add [esi+industry.amountswaiting+ecx*2],bx
+	jnc .nottoomuch2
+.out_overflow:
+	or word [esi+industry.amountswaiting+ecx*2],byte -1
+.nottoomuch2:
+.out_done:
+	xor ecx,1		// we need 0 and 1 only; the second xor will give back 0 and exits the loop
+	jnz .nextoutinstruction
 
 // increase the loop counter for the GRF
 	inc word [callback_extrainfo+1]
 // repeat if the GRF asks so
-	mov al, [eax+productioninstruction.call_again]
+	pop eax
  	mov byte [callback_extrainfo+3],al
 	test al,al
 	pop eax
@@ -4355,6 +4775,15 @@ enddrawindustrywindow:
 	mov [curmiscgrf],eax
 	add dx,30
 	push esi
+
+// copy the first 6 special GRF registers onto the text ref. stack,
+// so messages can have calculated data in them
+	push edi
+	mov esi,specialgrfregisters
+	mov edi,textrefstack
+	times 6 movsd
+	pop edi
+
 	call [drawtextfn]
 	pop esi
 
@@ -4396,10 +4825,10 @@ newindu_placechkproc:
 	pusha
 
 // first, check whether we need to look for water or dry land, and store the corresponding proc. address in ebp
-	mov ebp,addr(.testwater)
+	mov ebp,findtiledistance.testwater
 	test byte [industryspecialflags+ebx*4],4	// must be built on water?
 	jz .notonwater
-	mov ebp,addr(.testdryland)
+	mov ebp,findtiledistance.testdryland
 .notonwater:
 
 // make fine X and Y from XY
@@ -4415,66 +4844,8 @@ newindu_placechkproc:
 	mov [fakeinduentry+0xa],dl
 
 // now look for the closest water/land tile (closest using Manhattan distance)
-// (edi will contain the current distance)
 
-// check for the selected tile (0 distance)
-	xor edi,edi
-	mov ebx,esi
-	call ebp
-	jz .distfound
-
-// the current tile isn't OK - try increasing the distance gradually, and check all tiles
-// with the current distance until a correct one is found
-// we give up after 512 since that is the largest possible Manhattan distance on a 256x256 map
-.nextdistance:
-	inc edi
-
-// the tiles with a given Manhattan distance are those where |xoffs|+|yoffs|=dist
-// ecx will contain the X offset, and edx the Y offset
-// we start from X=0 and Y=dist, then keep increasing X and decreasing Y until Y goes 0
-	xor ecx,ecx
-	mov edx,edi
-
-.nextoffset:
-
-// when X or Y goes over 255, we'd reference nonexistant tiles
-	or ch,ch
-	jnz .notpresent
-	or dh,dh
-	jnz .notpresent
-
-%macro testtile 2
-// macro to test a tile, given its relative coordinates to esi, and the signs (add/sub) given as parameters
-// it will skip checking tiles out of map
-
-		mov ebx,esi
-		%1 bl,cl
-		jc %%overflow
-		%2 bh,dl
-		jc %%overflow
-		call ebp
-		jz .distfound
-	%%overflow:
-
-%endmacro
-
-// since both xoffs and yoffs can be negative and positive, we have 4 tiles to check in each step
-	testtile add,add
-	testtile add,sub
-	testtile sub,add
-	testtile sub,sub
-
-%undef testtile
-
-.notpresent:
-	inc ecx
-	dec edx
-	jns .nextoffset
-
-	cmp edi,512
-	jb short .nextdistance
-
-.distfound:
+	call findtiledistance
 
 // store the distance we've found
 	mov [fakeinduentry+0xb],di
@@ -4522,6 +4893,78 @@ newindu_placechkproc:
 	clc
 	ret
 
+
+// in:	esi: XY of the tile to be checked
+//	ebp-> test function
+// out:	edi: distance or 512 if nothing found
+// uses: eax,ebx,ecx,edx
+//
+// the test function gets the tile XY in ebx, and must return with ZF set iff the tile is OK
+// it can use eax as a scratch register
+findtiledistance:
+
+// (edi will contain the current distance)
+	xor edi,edi
+
+// check for the selected tile (0 distance)
+	mov ebx,esi
+	call ebp
+	jz .distfound
+
+// the current tile isn't OK - try increasing the distance gradually, and check all tiles
+// with the current distance until a correct one is found
+// we give up after 512 since that is the largest possible Manhattan distance on a 256x256 map
+.nextdistance:
+	inc edi
+
+// the tiles with a given Manhattan distance are those where |xoffs|+|yoffs|=dist
+// ecx will contain the X offset, and edx the Y offset
+// we start from X=0 and Y=dist, then keep increasing X and decreasing Y until Y goes 0
+	xor ecx,ecx
+	mov edx,edi
+
+.nextoffset:
+
+// when X or Y goes over 255, we'd reference nonexistant tiles
+	test ch,ch
+	jnz .notpresent
+	test dh,dh
+	jnz .notpresent
+
+%macro testtile 2
+// macro to test a tile, given its relative coordinates to esi, and the signs (add/sub) given as parameters
+// it will skip checking tiles out of map
+
+		mov ebx,esi
+		%1 bl,cl
+		jc %%overflow
+		%2 bh,dl
+		jc %%overflow
+		call ebp
+		jz .distfound
+	%%overflow:
+
+%endmacro
+
+// since both xoffs and yoffs can be negative and positive, we have 4 tiles to check in each step
+	testtile add,add
+	testtile add,sub
+	testtile sub,add
+	testtile sub,sub
+
+%undef testtile
+
+.notpresent:
+	inc ecx
+	dec edx
+	jns .nextoffset
+
+	cmp edi,512
+	jb short .nextdistance
+
+.distfound:
+	ret
+
 // check for full water tile at bx; zf is set if the tile is OK
 .testwater:
 	mov al,[landscape4(bx)]
@@ -4532,9 +4975,40 @@ newindu_placechkproc:
 .notwater:
 	ret
 
-// check for (partly) dry tile at bx; zf is set if the tile is OK
+// check for dry tile at bx; zf is set if the tile is OK
+// the following classes are assumed "dry": 0, 1, 2, 3, 4
 .testdryland:
-	test byte [landscape4(bx)],0xf0
+	cmp byte [landscape4(bx)],0x4F	// check high nibble without masking out the low one
+	ja .not_dry
+	cmp eax,eax	// set zf
+.not_dry:
+	ret
+
+exported getlandorwaterdistance
+	push ebx
+	push edx
+	push esi
+	push edi
+	push ebp
+
+	movzx eax,byte [esi+industry.type]
+	movzx esi,word [esi+industry.XY]
+
+	mov ebp,findtiledistance.testwater
+	test byte [industryspecialflags+eax*4],4	// must be built on water?
+	jz .notonwater
+	mov ebp,findtiledistance.testdryland
+.notonwater:
+
+	call findtiledistance
+
+	mov eax,edi
+
+	pop ebp
+	pop edi
+	pop esi
+	pop edx
+	pop ebx
 	ret
 
 // Auxiliary: call callback 28 and interpret the returned value
@@ -4648,6 +5122,8 @@ uvard industry_showchangemsg,1,s	// show industry message in ebx
 
 uvarb prodchange_suppressnewsmsg
 
+uvarw prodchangemsg_custommsg		// custom message for the prod. change event, or 0 if none
+
 // Called in the beginning of the random production change proc
 // Handle callback 29 (random production change) here if enabled
 // in:	ebx: industry type
@@ -4659,6 +5135,7 @@ industryrandomprodchange:
 	mov al,[industryproductionflags+ebx]	// recreation of overwritten code
 // check for the callback
 	mov byte [prodchange_suppressnewsmsg],0
+	and word [prodchangemsg_custommsg],0
 	test byte [industrycallbackflags+ebx],0x10
 	jnz .docallback
 
@@ -4676,15 +5153,37 @@ industryrandomprodchange:
 	mov byte [grffeature],0xa
 	call getnewsprite
 	mov byte [curcallback],0
-	jc .error
+	jnc .goodcallback
+	ret
 
-// bit 7 is set if the news message should be suppressed
+.goodcallback:
+	// bit 7 is set if the news message should be suppressed
 	btr eax,7
 	setc byte [prodchange_suppressnewsmsg]
 
+	test ah,1
+	jz .nocustommsg
+
+	mov ecx,eax
+	mov eax,[mostrecentspriteblock]		// lookuppersistenttextid checks curspriteblock, not mostrecentspriteblock
+	mov [curspriteblock],eax
+	mov eax,[specialgrfregisters+0*4]	// only the low word is used
+	call lookuppersistenttextid
+	mov [prodchangemsg_custommsg],ax
+	mov eax,ecx
+
+.nocustommsg:
+
 // 0 means "do nothing"
 	test al,al
+	jnz .notnothing
+
+	test ah,1		// if there is a custom message, invoke the change message even though there is no change
 	jz .nothing
+
+	jmp [industry_showchangemsg]
+
+.notnothing:
 
 // values above 12 are an error
 	cmp al,12
@@ -4787,6 +5286,7 @@ ovar .oldfn,-4,$,monthlyupdateindustryproc
 
 .docallback:
 	mov byte [prodchange_suppressnewsmsg],0
+	and word [prodchangemsg_custommsg],0
 	mov byte [curcallback],0x35
 	jmp industryrandomprodchange.callit
 
@@ -4795,8 +5295,14 @@ industryprodchange_shownewsmsg:
 	mov [textrefstack+6],ax			// overwritten
 	cmp byte [prodchange_suppressnewsmsg],0
 	jz .nosuppress
-	pop eax
+	pop eax					// remove return address
 .nosuppress:
+
+	mov ax,[prodchangemsg_custommsg]
+	test ax,ax
+	jz .nocustom
+	mov dx,ax				// override message
+.nocustom:
 	ret
 
 // Called while looking for the closest industry accepting a cargo type, when a vehicle unloads cargo
@@ -4902,7 +5408,7 @@ getindustryslot:
 
 	add esi,industry_size
 	inc al
-	cmp al,90
+	cmp al,NUMINDUSTRIES
 	jb .checknext
 
 	mov word [operrormsg2],ourtext(toomanyindustries)
@@ -5039,8 +5545,13 @@ exported checkindudecprod
 // uses:ebx cx
 preventindustryclosedown:
 	mov ebx,[industryarrayptr]
-	mov cl,[esi+industry.type]
-	mov ch,90
+	movzx ecx,byte [esi+industry.type]
+
+// check if the industry doesn't want to be protected
+	test byte [industryspecialflags+ecx*4+2],2
+	jnz .done
+
+	mov ch,NUMINDUSTRIES
 
 .next:
 	cmp word [ebx+industry.XY],0
@@ -5175,7 +5686,7 @@ getnumindustries:
 	push esi
 	push ecx
 	mov esi, [industryarrayptr]
-	mov ecx, 90
+	mov ecx, NUMINDUSTRIES
 .countloop:
 	cmp word [esi], 0
 	je .empty

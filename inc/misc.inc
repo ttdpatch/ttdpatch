@@ -115,7 +115,7 @@ endstruc
 %assign maxrvspeedshift 2
 
 %assign MAXDROPDOWNENTRIES	19	// maximum number of entries in a dropdown list
-
+%assign MAXDROPDOWNEXENTRIES 100 // maximum number of entries in a DropDownEx list
 
 // Structure for managing the heap
 // [heapptr] is a pointer to the first in the linked list of these structures

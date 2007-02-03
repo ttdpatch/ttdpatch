@@ -114,7 +114,7 @@ defbyte(planespeedfactor)	// factor for planespeed switch
 defbyte(pbssettings)		// bit settings for PBS
 defbyte(newsoundsettings)	// bit settings for newsounds
 defbyte(replaceminreliab)	// minimum reliability for autoreplace
-
+defbyte(stationsizevalue)	// maximum size of a railway station complex (as well as station spread)
 
 #define flags_ubyte_end replaceage
 

@@ -33,6 +33,8 @@ struc ttdpatchdata
 	.remoteplayers:	resb 1	// 0xff00*2+1dh: bit mask of remote human players
 	.orighumanplayers:
 			resb 1	// 0xff00*2+1eh: bit mask of original human companies
+	.disableddefindustries:
+			resd 2	// 0xff00*2+1fh: bit mask of default industries disabled via prop 8 value FF
 			resb 0x10000*2-0x100-$ // unused
 	// Reserved for other tools
 	.ttdxeditor:	resd 1	// 0xff00*2+100h: reserved for TTDX Editor

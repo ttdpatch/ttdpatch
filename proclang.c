@@ -78,11 +78,12 @@
 	checkmult(bitswitchdesc[curbitswitch][num ## _NUM], curbitswname, #num); \
 	bitswitchdesc[curbitswitch][num ## _NUM] = text;
 
-#define LANGFILE(name) MAKESTRING(lang/name.h)
+#define LANGFILE(name) MAKESTRING(lang/name.tmp)
+#define LANGERR(name) MAKESTRING(lang/name.err)
 
 void checkmult(const char *prev, const char *name1, const char *name2);
 
-void LANGUAGE(void)
+FILE* LANGUAGE(int doopen)
 {
   u32 wincodepage, editorcodepage;
   int curbitswitch;
@@ -94,5 +95,7 @@ void LANGUAGE(void)
 	error("Error: DOS code page is %ld but editor code page is %ld (Win: %ld)\n",
 		codepage, editorcodepage, wincodepage);
 
-  return;
+  if(doopen)return fopen(LANGERR(LANGUAGE),"rt");
+
+  return NULL;
 }

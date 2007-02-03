@@ -34,9 +34,9 @@ extern u32 ingamelang_num;
 extern pingame ingamelang_ptr[];
 #endif
 
-int allocsize = 32768;
+static int allocsize = 32768;
 
-void error(const char s[], ...)
+static void error(const char s[], ...)
 {
   va_list args;
 
@@ -48,7 +48,7 @@ void error(const char s[], ...)
 }
 
 #ifdef __POWERPC__
-inline u32 littleendian(u32 in, int size)
+static inline u32 littleendian(u32 in, int size)
 {
   u8 *inp = (u8*) &in;
   u8 outp[4];
@@ -64,22 +64,22 @@ inline u32 littleendian(u32 in, int size)
   return in;
 }
 #else
-inline u32 littleendian(u32 in, int size) { return in; }
+static inline u32 littleendian(u32 in, int size) { return in; }
 #endif
 
-char *data;
-char *entries[TXT_last+1];
-int lengths[TXT_last+1];
-int defined[TXT_last+1];
-int txtindex, linelen;
-pingame defstr;
+static char *data;
+static char *entries[TXT_last+1];
+static int lengths[TXT_last+1];
+static int defined[TXT_last+1];
+static int txtindex, linelen;
+static pingame defstr;
 
 static const char *txtname = "ttdpttxt.txt";
 static const char *datname = "ttdpttxt.dat";
 static const char *tmpname = "ttdpttxt.tmp";
 static const char *newname = "ttdpttxt.new";
 
-void store(void)
+static void store(void)
 {
   if (txtindex == -1) {
 	linelen = 0;
@@ -98,7 +98,7 @@ void store(void)
   txtindex = -1;
 }
 
-void printdefault(FILE *txt, int txtindex, int withname)
+static void printdefault(FILE *txt, int txtindex, int withname)
 {
   int i;
   unsigned char c;
@@ -119,7 +119,10 @@ void printdefault(FILE *txt, int txtindex, int withname)
 	return;
   }
 
-  fprintf(txt, withname ? "; %s=\"" : "\"", ingametextnames[txtindex]);
+  if (!defined[txtindex] && withname) {
+	fprintf(txt, "; ");
+  }
+  fprintf(txt, withname ? "%s=\"" : "\"", ingametextnames[txtindex]);
 
   prefix = "";
   linelen=strlen(ingametextnames[txtindex])+2;
@@ -152,7 +155,7 @@ void printdefault(FILE *txt, int txtindex, int withname)
   fprintf(txt, "\"\n");
 }
 
-int findsize(const char *filename)
+static int findsize(const char *filename)
 {
   FILE *exe;
   long exesize;
@@ -175,7 +178,7 @@ int findsize(const char *filename)
   return -1;
 }
 
-void showids()
+static void showids(void)
 {
   int i;
   for (i=0; i<TXT_last; i++) {

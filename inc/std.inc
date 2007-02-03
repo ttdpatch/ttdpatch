@@ -1,11 +1,11 @@
-// replaces defs.inc, also includes standard variable definitions
+// include standard variable definitions
 
-#include <defs.inc>
 #include <var.inc>
 #include <ttdvar.inc>
 
 ptrvardec landscape6
 ptrvardec landscape7
+ptrvardec landscape8
 
 %ifndef param_call
 // call a procedure with parameters on the stack

@@ -1,0 +1,2 @@
+%assign NOBJECTS	256
+%assign NOBJECTSCLASSES	256

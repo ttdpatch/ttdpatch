@@ -5,22 +5,19 @@
 extern aircraftdepotwindowsizes,airvehoffset,calloccrit
 extern depotwindowconstraints,malloccrit,mapwindowconstraints
 extern mapwindowelementsptr,mapwindowsizes,newgraphicssetsenabled
+extern traininfowindowelementsptr,traininfosizes,traininfoelemconstraints
 extern railvehoffset,roadvehoffset,rvdepotwindowsizes,shipdepotwindowsizes
 extern shipvehoffset,temp_windowclicked_element,traindepotwindowsizes
 extern variabletofind,variabletowrite,vehlistwinsizesptr,windowsizesbufferptr
-extern winelemdrawptrs,drawresizebox,DrawWinElemCheckBox
 
 #include <window.inc>
+#include <textdef.inc>
 
 ext_frag findvariableaccess,newvariable
 
 global patchwindowsizer
 
 begincodefragments
-
-codefragment finddrawwindowelementslist,7
-	movzx ebx, byte [ebp+windowbox.type]
-	db 0xff // jmp ...
 
 codefragment oldwindowclicked, 5
 	db 0xEB, 0xAA
@@ -64,6 +61,9 @@ codefragment newwindowclickedelement
 codefragment findmapwindowelements, -12
 	db cWinElemTitleBar, cColorSchemeBrown
 	dw 11, 233
+
+codefragment findtraininfowindowelements, -20
+	dw 13, 0x8802
 
 codefragment oldmapwindowdragmode, -13
 	cmp cx, 0xFE0
@@ -258,23 +258,25 @@ depottotalsizex equ $-1
 codefragment newcalcdepottotalitems
 	icall calcdepottotalitems
 
+codefragment olddrawtraininfoserviceinterval
+	add cx, 13
+	add dx, 141
+
+codefragment newdrawtraininfoserviceinterval
+	icall calctraininfoserviceintervalpos
+	setfragmentsize 9
+
+codefragment olddrawtraininfocalcrowcount,18
+	mov al, [esi+window.itemsoffset]
+	movzx edi, word [esi+window.id]
+
+codefragment newdrawtraininfocalcrowcount
+	icall calctraininforowcount
+	setfragmentsize 6
 
 endcodefragments
 
 patchwindowsizer:
-	//first patch the code to make resizing possible at all
-	stringaddress finddrawwindowelementslist
-	push edi
-	mov esi, [edi]
-	mov edi, winelemdrawptrs
-	mov ecx, 11*4
-	rep movsb
-	pop edi
-	mov dword [edi], winelemdrawptrs
-	mov dword [winelemdrawptrs+4*cWinElemSizer], addr(drawresizebox)
-	mov dword [winelemdrawptrs+4*cWinElemCheckBox], addr(DrawWinElemCheckBox)
-	mov eax, [winelemdrawptrs+4*cWinElemDummyBox]
-	mov dword [winelemdrawptrs+4*cWinElemExtraData], eax
 	stringaddress oldwindowclicked
 	mov eax, [edi+2]
 	mov [temp_windowclicked_element], eax
@@ -315,6 +317,7 @@ patchwindowsizer:
 	mov word [edi+12*14+0], cWinElemExtraData + (cWinDataSizer << 8)
 	mov dword [edi+12*14+2], mapwindowconstraints
 	mov dword [edi+12*14+6], mapwindowsizes
+	mov word [edi+12*14+10], 0
 	mov word [edi+12*15+0], cWinElemSpriteBox + (cColorSchemeBrown << 8)
 	mov dword [edi+12*15+2], 226 + (247 << 16)
 	mov dword [edi+12*15+6], 168 + (189 << 16)
@@ -341,20 +344,69 @@ patchwindowsizer:
 	storefragment newopenmapwindowyadjust
 	patchcode olddrawmapwindow,newdrawmapwindow,1,1
 
+	// train info window
+	push dword 12*12+1+ 4*12
+	call malloccrit
+	pop dword [traininfowindowelementsptr]
+	stringaddress findtraininfowindowelements
+	push edi
+	mov esi, edi
+	mov edi, [traininfowindowelementsptr]
+	mov ecx, 12*12+1
+	rep movsb
+	
+	mov edi, [traininfowindowelementsptr]
+	;9, 10, 11 == cargo/info/capa
+	mov ax, [edi+12*11+ windowbox.x2]
+	inc ax
+	mov word [traininfosizes], ax
+	mov word [traininfosizes+2], ax
+	dec ax
+	sub word [edi+12*11+ windowbox.x2],11
+	sub word [edi+12*11+ windowbox.x1],7
+	sub word [edi+12*10+ windowbox.x2],7
+	sub word [edi+12*10+ windowbox.x1],4
+	sub word [edi+12* 9+ windowbox.x2],4
+
+	mov byte [edi+14*12+windowbox.type], cWinElemLast
+	mov byte [edi+12*12+windowbox.type], cWinElemSizer
+	mov byte [edi+12*12+windowbox.bgcolor], cColorSchemeGrey
+	mov word [edi+12*12+windowbox.x2], ax
+	sub ax, 10
+	mov word [edi+12*12+windowbox.x1], ax
+	mov word [edi+12*12+windowbox.y1], 152
+	mov word [edi+12*12+windowbox.y2], 163
+	mov byte [edi+13*12+windowbox.type], cWinElemExtraData
+	mov byte [edi+13*12+1], cWinDataSizer
+	mov dword [edi+13*12+2], traininfoelemconstraints
+	mov dword [edi+13*12+6], traininfosizes
+	mov word [edi+13*12+10], 1
+
+	mov dword [variabletowrite], edi
+	pop edi
+	mov [variabletofind], edi
+        patchcode findvariableaccess,newvariable
+
+	patchcode olddrawtraininfoserviceinterval,newdrawtraininfoserviceinterval
+	patchcode olddrawtraininfocalcrowcount,newdrawtraininfocalcrowcount, 1,1,,{testmultiflags newtrains},z
+
 	//then the vehicle-lists (most of this code is patched in the sortvehlist patchproc)
+	
 	stringaddress oldlast7vehdrawn,1,2
-	mov al, [edi+5]
-	mov [railvehoffset], al
-	storefragment newlastrailvehdrawn
-	stringaddress oldlast7vehdrawn,1,1
 	mov al, [edi+5]
 	mov [roadvehoffset], al
 	storefragment newlastroadvehdrawn
-	stringaddress oldlast4vehdrawn,3,4
+	stringaddress oldlast7vehdrawn,1,1
+	mov al, [edi+5]
+	mov [railvehoffset], al
+	storefragment newlastrailvehdrawn
+	//previously these above were in the opposite (and incorrect) order, fixed by JGR
+	
+	stringaddress oldlast4vehdrawn,1+2*WINTTDX,4
 	mov ax, [edi+5]
 	mov [shipvehoffset], ax
 	storefragment newlastshipvehdrawn
-	stringaddress oldlast4vehdrawn,2,3
+	stringaddress oldlast4vehdrawn,3-WINTTDX,3
 	mov ax, [edi+5]
 	mov [airvehoffset], ax
 	storefragment newlastairvehdrawn
@@ -405,6 +457,45 @@ patchwindowsizer:
 	call .patchdepotwindow
 
 	//and the train-depot, but this one is a bit more complicated
+	push edx
+	mov bl, 7
+	mov ax, 338
+	mov cx, 98
+
+extern newDepotWinElemList, newdepotwindowconstraints, newtraindepotwindowsizes
+	mov esi, [newDepotWinElemList]
+
+extern patchflags
+testmultiflags clonetrain
+	jz .noclonetrain
+	mov edi, newdepotwindowconstraints // Special versions of these for clone trains on
+	mov edx, newtraindepotwindowsizes
+	add bl, 1
+	jmp .isclonetrain
+
+.noclonetrain:
+	mov edi, depotwindowconstraints // Special versions of these for clone trains on
+	mov edx, traindepotwindowsizes
+
+.isclonetrain:
+	call .addsizer
+	testmultiflags clonetrain
+	jz .noclonetrain2
+	mov word [esi+ebx+1*12+10],1
+.noclonetrain2:
+	pop edx
+	sub word [esi+6*12+windowbox.x2], 11
+
+	mov byte [negdepotsize],-6
+	stringaddress oldlastdepotrowdrawn,1,1
+	mov al, [edi+5]
+	mov [depotjmpoffset], al
+	storefragment newlastdepotrowdrawn
+	patchcode oldlasttraindepotrowdrawn,newlasttraindepotrowdrawn,1,1
+	patchcode oldtraindepotclick,newtraindepotclick,1,1
+	ret
+
+#if 0
 	mov word [greywinelemx1], 11
 	mov word [greywinelemx2], 348
 	stringaddress findgreywinelemlist
@@ -417,6 +508,7 @@ patchwindowsizer:
 	mov ecx, 7*12+1
 	rep movsb
 	pop esi
+
 	push edx
 	mov bl, 7
 	mov ax, 338
@@ -426,10 +518,12 @@ patchwindowsizer:
 	call .addsizer
 	pop edx
 	sub word [esi+6*12+windowbox.x2], 11
-	mov [variabletowrite], esi
 	pop edi
+
+	mov [variabletowrite], esi
 	mov [variabletofind], edi
 	patchcode findvariableaccess,newvariable,1,1
+
 	mov byte [negdepotsize],-6
 	stringaddress oldlastdepotrowdrawn,1,1
 	mov al, [edi+5]
@@ -439,9 +533,36 @@ patchwindowsizer:
 //	patchcode olddrawtrainindepot,newdrawtrainindepot,1,1
 //	patchcode olddrawtrainwagonsindepot,newdrawtrainwagonsindepot,1,1
 	patchcode oldtraindepotclick,newtraindepotclick,1,1
-	patchcode oldtraindepotwindowhandler,newtraindepotwindowhandler,1,1
+//	patchcode oldtraindepotwindowhandler,newtraindepotwindowhandler,1,1
 
 	ret
+
+
+global patchwindowsizer.addforclonetrain
+
+.addforclonetrain:
+	push edx
+	mov bl, 8
+	mov ax, 338
+	mov cx, 98
+extern newDepotWinElemList, newdepotwindowconstraints, newtraindepotwindowsizes
+	mov esi, [newDepotWinElemList]
+	mov edi, newdepotwindowconstraints // Special versions of these for clone trains on
+	mov edx, newtraindepotwindowsizes
+	call .addsizer
+	pop edx
+	sub word [esi+6*12+windowbox.x2], 11
+
+	mov byte [negdepotsize],-6
+	stringaddress oldlastdepotrowdrawn,1,1
+	mov al, [edi+5]
+	mov [depotjmpoffset], al
+	storefragment newlastdepotrowdrawn
+	patchcode oldlasttraindepotrowdrawn,newlasttraindepotrowdrawn,1,1
+	patchcode oldtraindepotclick,newtraindepotclick,1,1
+
+	ret
+#endif
 
 .patchdepotwindow:
 	mov al, [depottotalsizex]
@@ -509,6 +630,7 @@ patchwindowsizer:
 	patchcode olddepotwindowxytoveh_calcoffset,newdepotwindowxytoveh_calcoffset,1,1
 	patchcode oldcalcdepottotalitems,newcalcdepottotalitems,1,1
 	ret
+
 //IN: bl==index of last window element
 //    esi==windowelemlistptr
 //    ax,cx==x,y of sizer
@@ -530,4 +652,5 @@ patchwindowsizer:
 	mov byte [esi+ebx+1*12+1], cWinDataSizer
 	mov dword [esi+ebx+1*12+2], edi
 	mov dword [esi+ebx+1*12+6], edx
+	mov word [esi+ebx+1*12+10], 0
 	ret

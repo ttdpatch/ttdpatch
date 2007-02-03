@@ -17,7 +17,7 @@ extern storeutf8char
 extern failpropwithgrfconflict,lastextragrm,curextragrm
 extern restorevehnametexts
 
-uvard ourtext_ptr, ourtext(last)-ourtext(base)
+uvard ourtext_ptr, ourtext(last)-ourtext(base)+1	// +1 otherwise last overwrites the following uvard in memory
 
 uvarb textprocesstodisplay		// set to 1 if the text will be displayed, so the text. ref. stack can be modified
 svarb textrecursionlevel		// -1 = primary call, 0+ = recursive
@@ -52,10 +52,17 @@ newtexthandler:
 
 	movzx esi,ah
 	and eax,0x7ff
-	cmp esi,0xc0
+	shr esi,3
+	cmp esi,0xc0>>3
 	jae short .ourtext
 
-	and esi,byte -8
+	cmp word [textclass_maxid+esi*2],0
+	je .valid
+	cmp ax,[textclass_maxid+esi*2]
+	jae .invalid
+
+.valid:
+	test esi,esi
 	jnz .classtext
 
 .generaltext:
@@ -75,15 +82,19 @@ newtexthandler:
 .strangedec:	// underflow, should be impossible
 	ud2
 
+.invalid:
+	xor esi,esi
+	jmp short .doproc
+
 .ourtext:
-	call texthandler.ourtext
+	call texthandler.ourtext_noshr
 
 .doproc:
 	call textprocessing
 	jmp short .done
 
 .classtext:
-	mov ebp,[ophandler+esi-8]
+	mov ebp,[ophandler+esi*8-8]
 	call [ebp+8]
 
 .done:
@@ -110,6 +121,7 @@ texthandler:
 
 .ourtext:
 	shr esi,3
+.ourtext_noshr:
 	push edi
 	mov edi,eax
 
@@ -226,7 +238,7 @@ textprocessing:
 	// to full latin-1 supplement block (U+00A0..U+00FF)
 	cmp al,0x9e
 	jb .gotchar
-	cmp al,0xb8
+	cmp al,0xbd
 	ja .gotchar
 
 	mov ax,[.chartrl+(eax-0x9e)*2]
@@ -235,9 +247,9 @@ textprocessing:
 	movzx ebx,ah
 	cmp dword [fonttables+ebx*4],0	// check normal font; if it exists all of them do
 	je .badchar
+	jmp short .gotchar
 
-section .dataw
-.chartrl:
+noglobal varw .chartrl
 	dw 0x20AC	// 9E Euro character
 	dw 0x0178	// 9F Capital Y umlaut
 	dw 0xE0A0	// A0 Scroll button up
@@ -254,9 +266,11 @@ section .dataw
 	dw 0xE0B6	// B6 Bus symbol
 	dw 0xE0B7	// B7 Plane symbol
 	dw 0xE0B8	// B8 Ship symbol
-section .text
-
-	jmp short .gotchar
+	dw 0xE0B9	// Superscript -1
+	dw 0xBA,0xBB
+	dw 0xE0BC	// Small scroll button up
+	dw 0xE0BD	// Small scroll button down
+endvar
 
 .badchar:
 	mov eax,' '
@@ -286,6 +300,13 @@ section .text
 	cmp eax,0x9e
 	jb .special
 
+	cmp eax,0x100
+	jae .unicode
+
+	mov ah,0xe0
+	jmp short .store	// E0 is ignored in non-utf8 mode
+
+.unicode:
 	cmp eax,0xe07b
 	jb .store
 
@@ -297,7 +318,7 @@ section .text
 	je .two
 	ja .extspecial
 	cmp al,0x88
-	jnb .store
+	jnb .coloring
 	movzx eax,al
 	mov ebx,[textspechandler]
 	jmp [ebx+(eax-0x7b)*4]
@@ -310,6 +331,10 @@ section .text
 
 .two:
 	inc bl
+
+.coloring:
+	cmp byte [skipcolor],0
+	jne storetextcharacter.skipcolor
 
 .store:
 global storetextcharacter
@@ -326,8 +351,11 @@ storetextcharacter:
 	// copy arguments for codes 01 and 1F
 	movsb
 	jmp .storenext
+.skipcolor:
+	dec byte [skipcolor]
 .resume:
 	jmp [textprocchar]
+
 
 	// this is useful to trap on access to a certain string in memory
 	// and then use this variable to figure out what the text index was
@@ -343,7 +371,7 @@ endvar
 
 // string code 9A handlers
 vard extstringformat
-	dd print64bitcost,print64bitcost
+	dd print64bitcost,print64bitcost,skipnextcolor
 numextstringformat equ ($-extstringformat)/4
 endvar
 
@@ -376,6 +404,11 @@ print64bitcost:
 	extern printcash_64bit
 	jmp printcash_64bit
 
+noglobal uvarb skipcolor
+
+skipnextcolor:
+	inc byte [skipcolor]
+	ret
 
 	// patch text table handlers
 	//

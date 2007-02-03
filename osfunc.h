@@ -22,7 +22,6 @@ int gettextattrib(void);
 void setcursorxy(int x, int y);
 void clrconsole(int startline, int endline, int conwidth, unsigned attrib);
 void restoreconsize(void);
-int trynoregistry(void);
 
 int runttd(const char *program, char *options, langinfo **info);
 void initializewindow(void);

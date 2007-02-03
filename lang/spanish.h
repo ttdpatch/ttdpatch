@@ -113,7 +113,7 @@ SETTEXT(LANG_VERSIONUNCONFIRMED, "No se pudo determinar la versi¢n del programa.
 SETTEXT(LANG_PROGANDVER, "El nombre del programa es %s\nLa versi¢n exacta es %s\n")
 
 // More than three numbers in the version string (not #.#.#)
-SETTEXT(LANG_TOOMANYNUMBERS, "La version tiene demasiados n£meros!\n")
+SETTEXT(LANG_TOOMANYNUMBERS, "La versi¢n tiene demasiados n£meros!\n")
 
 // .EXE is not TTD
 SETTEXT(LANG_WRONGPROGRAM, "Este no es Transport Tycoon Deluxe.\n")
@@ -196,6 +196,7 @@ TEXTARRAY(halflines,) =
 	  "     desconocida",
 	  "-z:  Trenes Mamut (126 vagones)",
 
+	  "-A:  Autorenovaci¢n de veh¡culos.",
 	  "-B:  Permite puentes m s largos",
 	  "-D:  Dinamita destruye m s objetos",
 	  "-E:  Mover mensajes de error",  
@@ -264,6 +265,25 @@ TEXTARRAY(halflines,) =
 	  "-YP: Aviones vuelan a velocidad real",
 	  "-YS: Sem foros antes de 1975",
 
+	  "-Zc: Permite nuevos tipos de carga",
+	  "-Zd: Nueva distribuci¢n de carga",
+	  "-Ze: Permite v¡as en bocas de t£neles",
+	  "-Zf: Permite seguir un veh¡culo",
+	  "-Zi: Permite nuevas industrias",
+	  "-Zj: Permite vehiculos m s cortos",
+	  "-Zo: Carreteras de un solo sentido",
+	  "-Zu: Permite vehiculos articulados",
+
+	  "-ZA: Permite nuevos aeropuertos",
+	  "-ZC: Activa pref. de transporte de IA",
+	  "-ZI: Permite estaciones irregulares",
+	  "-ZM: Muestra m s estad¡sticas",
+	  "-ZO: Permite rellenar bajo objetos",
+	  "-ZR: Previene que ciudades asfalten",
+	  "-ZS: Permite nuevos efectos sonoros",
+	  "-ZT: Permite construir tramvias",
+	  "-ZZ: Permite restricciones de rutas",
+																					  
 	  NULL
 	};
 SETARRAY(halflines);
@@ -307,6 +327,15 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-YT #:   Establece el algoritmo de crecimiento de las ciudades\n"
 	  "-YW #:   Establece el m ximo n£mero de ventanas permitidas\n"
 	  "              doble v¡a, en d¡as\n"
+	  "-Za #:   Activa m s animaciones (establece el n£mero de azulejos animados)\n"
+	  "-Zb #:   Establece la probabilidad para que una ciudad construya carreteras\n"
+	  "-Zg #:   Forza las opciones iniciales\n"
+	  "-Zh #, -Zw #: Establece la anchura y la altura de la resoluci¢n\n"
+	  "-Zn #:   Establece el tiempo de espera en red en segundos\n"
+	  "-Zx #, -Zy #, -Zz #: Establece el modo en que IA construye v¡as/carreteras/rutas a‚reas\n"
+	  "-Zp #, -Zr #, -Zs #, -Zt #: Avisa acerca de aviones, veh¡culos, barcos y trenes despu‚s de ‚stos dias\n"
+	  "-ZF #:   Permite ciertas funcionalidades en el clima Toyland\n"
+	  "-ZY #:   Establece el tama¤o m ximo de estaciones (sigue limitado por la extensi¢n de la estaci¢n)\n"
 	  "\n"
 	  "-C cfg-file:  Lee este archivo de configuraci¢n en lugar de ttdpatch.cfg\n"
 	  "-W cfg-file:  Crea un archivo de configuraci¢n con la conf. actual\n"
@@ -454,7 +483,7 @@ SWITCHTEXT(enhanceddiffsettings, "Configuraci¢n de la dificultad mejorada", "")
 SWITCHTEXT(newbridges, "Nuevos puentes", "")
 SWITCHTEXT(newhouses, "Nuevos edificios", "")
 SWITCHTEXT(newtownnames,"Nuevos estilos de nombres de ciudades","")
-SWITCHTEXT(moreanimation,"Permitir m s azulejos animados",", up to %d")
+SWITCHTEXT(moreanimation,"Permitir m s azulejos animados",", hasta %d")
 SWITCHTEXT(newshistory, "Hist¢rico de noticias", "")
 SWITCHTEXT(wagonspeedlimits, "L¡mites de velocidad para los vagones de tren", "")
 SWITCHTEXT(pathbasedsignalling, "Permitir Se¤ales Basadas en la Trayectoria", "")
@@ -482,6 +511,14 @@ SWITCHTEXT(followvehicle, "Seguir el movimiento del veh¡culo en el mapa principa
 SWITCHTEXT(trams, "Permite tramvias en carreteras", "")
 SWITCHTEXT(enhancetunnels, "Permite construir vias de tren encima de la boca del t£nel", "")
 SWITCHTEXT(forcegameoptions, "Le permite a usted forzar opciones del juego","")
+SWITCHTEXT(shortrvs, "Permite veh¡culos de carretera cortos (o largos)", "")
+SWITCHTEXT(articulatedrvs, "Permite veh¡culos de carretera articulados", "")
+SWITCHTEXT(newairports, "Permite usar nuevos tipos de aeropuertos","")
+SWITCHTEXT(newroutes, "Permite el cambio de railes y carreteras a trav‚s de los archivos grf.", "")
+SWITCHTEXT(clonetrain, "Permite clonar los trenes con la ventana de la cochera.", "")
+SWITCHTEXT(tracerestrict, "Permite restringir las rutas ferroviarias", "")
+SWITCHTEXT(stationsize, "Establece el tama¤o m ximo de estaciones (sigue limitado por la extensi¢n de la estaci¢n)", "")
+
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -499,7 +536,7 @@ BIT(jetsoff,      "accidentes de reactores en aeropuertos peque¤os desactivados"
 // Description for miscmods bits
 BITSWITCH(miscmods)
 BIT(nobuildonbanks,        "las ciudades no contruyen en vados")
-BIT(servintonlyhuman,      "la configuraci¢n del interval de servicio no se aplica a los jugadores IA")
+BIT(servintonlyhuman,      "la configuraci¢n del int‚rvalo de servicio no se aplica a los jugadores IA")
 BIT(noroadtakeover,        "las ciudades no reclaman las carreteras en el editor de escenarios")
 BIT(gradualloadbywagon,    "la carga gradual se carga vagon por vagon")
 BIT(dontfixlitres,         "no cambiar los litros para que 1000 l sea una tonelada, en vez de 100 l")
@@ -511,29 +548,30 @@ BIT(nodefaultoldtracktype, "no usar el anterior tipo de vias por defecto")
 BIT(usevehnnumbernotname,  "no modifica las noticias para usar los nombres de veh¡culos")
 BIT(norescalecompanygraph, "no reescalar los gr ficos de las compa¤ias cuando estas sean deseleccionadas")
 BIT(noyearlyfinances,      "no mostrar las finanzas anuales en el 1ero de Enero")
-BIT(notimegiveaway,        "no intente dar tiempos de ejecuci¢n hacia fuera para tener toda la pot‚ncia")
+BIT(notimegiveaway,        "no intente dar tiempos de ejecuci¢n hacia fuera para tener toda la potencia")
 BIT(nodesynchwarning,      "no avisar cuando las partidas multijugador se desincronicen")
 BIT(noworldedgeflooding,   "evita que la esquina del mapa se inunde")
 BIT(doshowintro,           "mostrar la introducci¢n del juego (no se saltar )")
 BIT(nonewspritesorter,     "no usar el nuevo algoritmo de ordenaci¢n de punteros")
 BIT(nodiagonalflooding,    "deshabilita inundaciones en diagonal y costas en la esquina")
-BIT(noenhancedcomp,        "no mejorar el algoritmo de compresion de guardar partidas")
+BIT(noenhancedcomp,        "no mejorar el algoritmo de compresi¢n de guardar partidas")
 BIT(breakdownatsignal,     "no fijar que los trenes se estropeen cuando esperan en un sem foro en rojo")
 BIT(smallspritelimit,      "no incrementar el l¡mite de punteros")
 BIT(displaytownsize,       "mostrar el tama¤o de la poblaci¢n en el nombre de la misma")
-BIT(noextendstationrange,  "no incrementar la dist ncia m xima permitida entre el r¢tulo de la estaci¢n y la industria para que la mercancia sea mandada")
+BIT(noextendstationrange,  "no incrementar la distancia m xima permitida entre el r¢tulo de la estaci¢n y la industria para que la mercancia sea mandada")
 BIT(nooldvehiclenews,      "no generar avisos cuando los veh¡culos est‚n quedando viejos")
 BIT(dontfixpaymentgraph,   "no fijar el eje de las X en la ventana de tarifas de pago de las mercancias")
-BIT(loaduntilgreen,        "mantener cargando en la estaci¢n hasta que el sem foro de salida est‚ verde")
+//BIT(loaduntilgreen,        "mantener cargando en la estaci¢n hasta que el sem foro de salida est‚ verde")
 BIT(dontshowaltitude,      "no mostrar altitud en la ventana de informaci¢n del azulejo")
 BIT(nogrfidsinscreenshots, "no mostrar los grfids activos en las capturas de pantallas")
 BIT(dontchangesnow,        "no cambiar como la altitud es calculada para las nevadas")
+BIT(notransparentdepots,   "no hacer las cocheras de coches y trenes transparentes en el modo transparente")
 
 // Description for morebuildoptions bits
 BITSWITCH(morebuildoptions)
 BIT(ctunnel,         "permite el cruce de t£neles")
 BIT(oilrefinery,     "permite la refiner¡a donde sea")
-BIT(moreindustries,  "permite mas de una industria del mismo tipo")
+BIT(moreindustries,  "permite m s de una industria del mismo tipo")
 BIT(removeobjects,   "permite eliminar estatuas, faros y repetidores")
 BIT(removeindustry,  "permite demoler industrias")
 BIT(closeindustries, "permite a industrias similares estar de lado")
@@ -545,6 +583,11 @@ BITSWITCH(experimentalfeatures)
 BIT(slowcrossing, "los trenes reducen la marcha antes de los pasos a nivel")
 BIT(cooperative,  "juego cooperativo, muy limitado")
 BIT(mandatorygrm, "hacer la gerencia de recursos de GRF obligatoria para los archivos .grf")
+BIT(incvehconsist, "permite m s de 255 trenes por compa¤ia (muy experimental)")
+BIT(signalgui,    "altera los sem foros con la ventana de sem foros (muy experimental)")
+BIT(newterraingen, "nuevo generador de terrenos con el generador de escenarios aleatorio")
+BIT(engineconvert, "convierte m quinas de tren en m quinas extra (muy experimental)")
+
 
 // Description for maskdisasters bits
 BITSWITCH(maskdisasters)
@@ -627,7 +670,7 @@ SETTEXT(LANG_CFGFILENOTFOUND, "No se encontr¢ archivo cfg %s. Ignorado.\n")
 SETTEXT(LANG_CFGFILENOTWRITABLE, "No se pudo abrir %s para escritura.\n")
 
 // A non-comment line is longer than 32 chars, rest ignored.
-SETTEXT(LANG_CFGLINETOOLONG, "Arvertencia! L¡nea de conficuraci¢n es m s larga de 32 caract, truncada.\n")
+SETTEXT(LANG_CFGLINETOOLONG, "Advertencia! L¡nea de conficuraci¢n m s larga de 32 caract, truncada.\n")
 
 // Shown if an obsolete switch is used. First option is %s which is the
 // config name, second one is %s which is the command line char
@@ -706,7 +749,7 @@ SETTEXT(CFG_LOWMEMORY, "`%s' (%s) permite a TTDPatch correr en ordenadores con 3
 SETTEXT(CFG_GENERALFIXES, "`%s' (%s) arregla varios detalles, v‚a la documentaci¢n para saber que hace exactamente.")
 SETTEXT(CFG_MOREAIRPORTS, "`%s' (%s) permite construir m s aeropuertos por ciudad.")
 SETTEXT(CFG_BRIBE, "`%s' (%s) a¤ade una opci¢n de soborno en el men£ de autoridades locales.")
-SETTEXT(CFG_PLANECRCTRL, "`%s' (%s) le permite controlar cuando est  permitido que un avi¢n se estrelle. Codificado en un valor de un d¡gito, por defecto 1.") 
+SETTEXT(CFG_PLANECRCTRL, "`%s' (%s) le permite controlar cuando est  permitido que un avi¢n se estrelle.") 
 SETTEXT(CFG_SHOWSPEED, "`%s' (%s) muestra la velocidad del veh¡culo en la barra de estado de su ventana.")
 SETTEXT(CFG_AUTORENEW, "`%s' (%s) renova los veh¡culos despu‚s de haber pasado este n£mero de meses de que su vida £til terminara.  Rango %ld..%ld.  por defecto %ld.")
 SETTEXT(CFG_CHEATSCOST, "`%s' (%s) hace que los c¢digos trampa en r¢tulos cuesten dinero.")
@@ -722,7 +765,7 @@ SETTEXT(CFG_GRADUALLOADING, "`%s' (%s) hace m s realista la forma en que se carg
 SETTEXT(CFG_MOVEERRORPOPUP, "`%s' (%s) mueve los mensajes de error a una esquina de la pantalla.") 
 SETTEXT(CFG_SIGNAL1WAITTIME, "`%s' (%s) cambia el n£mero de d¡as que espera un tren antes de darse la vuelta en una v¡a £nica . Rango 0..254, o 255 para esperar indefinidamente.") 
 SETTEXT(CFG_SIGNAL2WAITTIME, "`%s' (%s) cambia el n£mero de d¡as que espera un tren antes de darse la vuelta en una v¡a doble. Rango 0..254, o 255 para esperar indefinidamente.") 
-SETTEXT(CFG_DISASTERS, "`%s' (%s) permite escoger qu‚ desastres pueden ocurrir. Valor codificado, por defecto 255 (todos los desastres).") 
+SETTEXT(CFG_DISASTERS, "`%s' (%s) permite escoger qu‚ desastres pueden ocurrir.") 
 SETTEXT(CFG_FORCEAUTORENEW, "`%s' (%s) fuerza el servicio a veh¡culos cuando es hora de la auto-renovaci¢n (vea `autorenew').") 
 SETTEXT(CFG_MORENEWS, "`%s' (%s) genera reportes de noticias para m s eventos, vea la documentaci¢n para mayor informaci¢n.") 
 SETTEXT(CFG_UNIFIEDMAGLEV, "`%s' (%s) permite que compres monorailes en dep¢sitos de maglev y viceversa. Modo: 1 - covierte los maglev en monorailes; 2 - convierte los monorailes en maglev; 3 - mantiene separados los monorailes y maglev.")
@@ -738,14 +781,14 @@ SETTEXT(CFG_STARTYEAR, "`%s' (%s) establece un nuevo a¤o de inicio para juegos a
 SETTEXT(CFG_ERRORPOPUPTIME, "`%s' (%s) cambia el tiempo que tarda en cerrarse sola una ventana roja de error.  Rango 1..255 (en segundos), o 0 para un tiempo muy largo.  Por defecto 10.")
 SETTEXT(CFG_TOWNGROWTHLIMIT, "`%s' (%s) cambia el factor que limita la mayor extensi¢n que puede tener una ciudad.  Rango %ld..%ld.  Por defecto %ld.")
 SETTEXT(CFG_LARGERTOWNS, "`%s' (%s) hace que una de un n£mero dado de ciudades crezca m s r pido y m s grande (aplicando tambi‚n `towngrowthlimit' selectivamente).  Rango %ld..%ld.  Por defecto %ld (una de cuatro ciudades).")
-SETTEXT(CFG_MISCMODS, "`%s' (%s) modifica la manera en que algunos modificadores trabaja, v‚a la documentaci¢n para mayor informaci¢n. Valor codificado en bits, Por defecto 0 (sin modificaciones).")
+SETTEXT(CFG_MISCMODS, "`%s' (%s) modifica la manera en que algunos modificadores trabaja, v‚a la documentaci¢n para mayor informaci¢n.")
 SETTEXT(CFG_LOADALLGRAPHICS, "`%s' (%s) hace que TTDPatch carge siempre todos los archivos .grf en newgrf(w).cfg, sin importar si fueron utilizados en un juego gurdado anterior(etc.) o no.")
 SETTEXT(CFG_SAVEOPTDATA, "`%s' (%s) hace que TTDPatch guarde y cargue informaci¢n adicional (opcional) al final de los juegos guardados.")
-SETTEXT(CFG_MOREBUILDOPTIONS, "`%s' (%s) aumenta las opciones de construcci¢n. Valor codificado en bits.")
+SETTEXT(CFG_MOREBUILDOPTIONS, "`%s' (%s) aumenta las opciones de construcci¢n.")
 SETTEXT(CFG_SEMAPHORES, "`%s' (%s) convierte las se¤ales construidas antes de 1975 en se¤ales de sem foro.")
 SETTEXT(CFG_MOREHOTKEYS, "`%s' (%s) activa nuevas teclas de funci¢n.")
 SETTEXT(CFG_MANYTREES, "`%s' (%s) permite plantar m s de un  rbol en un cuadro, o sobre un  rea rectangular con Ctrl.")
-SETTEXT(CFG_MORECURRENCIES,"`%s' (%s) activa m s monedas y el Euro. Valor codificado en binario. Por defecto 0.")
+SETTEXT(CFG_MORECURRENCIES,"`%s' (%s) activa m s monedas y el Euro.")
 SETTEXT(CFG_MANCONVERT,"`%s' (%s) permite la conversi¢n manual de v¡as colocando v¡as nuevas sobre las v¡as existentes.")
 SETTEXT(CFG_NEWAGERATING, "`%s' (%s) hace que los rankings de las estaciones sean m s tolerantes a la edad de los veh¡culos.  Ahora los vagones pueden tener hasta 21 a¤os en vez de 3.")
 SETTEXT(CFG_ENHANCEGUI,"`%s' (%s) mejora la interfaz del usuario.")
@@ -801,14 +844,14 @@ SETTEXT(CFG_SHIPLOSTTIME, "`%s' (%s) avisa de los barcos perdidos despu‚s de un 
 SETTEXT(CFG_AIRCRAFTLOSTTIME, "`%s' (%s) avisa de los aviones perdidos despu‚s de un n£mero dado de dias.  Rango %ld..%ld.  Defecto %ld.")
 SETTEXT(CFG_MAPREFRESH, "`%s' (%s) sobreescribe la frecu‚ncia en que TTD actualiza la ventana del mapa. Valores bajos har n un refresco m s r pido y consumir n m s CPU. El valor por defecto de TTD es 64.  Rango %ld..%ld.  Defecto %ld.")
 SETTEXT(CFG_NETWORKTIMEOUT, "`%s' (%s) desconecta un juego en red si no hay respuesta por un n£mero dado de segundos. Rango %ld..%ld.  Defecto %ld.")
-SETTEXT(CFG_TOYLANDFEATURES, "`%s' (%s) permite funcionalidades de construcci¢n que normalmente est n deshabilitadas para el clima Toyland, como pueden ser los faros. Valor codificado en binario.")
+SETTEXT(CFG_TOYLANDFEATURES, "`%s' (%s) permite funcionalidades de construcci¢n que normalmente est n deshabilitadas para el clima Toyland, como pueden ser los faros.")
 SETTEXT(CFG_STRETCHWINDOW, "`%s' (%s) estirar la ventana de TTD hasta este tama¤o horizontal en puntos (solamente para les versiones Windows de TTD en modo ventana). Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_CANALS, "`%s' (%s) permite la construcci¢n de canales y esclusas usando la herramienta de construcci¢n de boyas del men£ de construcci¢n de muelles.")
 SETTEXT(CFG_FREIGHTTRAINS, "`%s' (%s) multiplica la mercancia transportada po un tren de mercancias por un factor dado, para simular trenes muy largos y pesados. Esto solamente afecta a la aceleraci¢n, el tren no transporta m s mercancias. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_GAMESPEED, "`%s' (%s) Hace la velocidad del juego cambiable. Esto requiere el parche de las teclas. Presione 'q' para duplicar la velocidad de juego (hasta un m ximo de 8x), y 'w' para reducirla. El par metro ser  la configuraci¢n inicial. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_HIGHERBRIDGES, "`%s' (%s) permite la construcci¢n de puentes altos.")
 SETTEXT(CFG_NEWGRFCFG, "`%s' (%s) especifica el archivo de configuraci¢n de los nuevos juegos de gr ficos.")
-SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s)  habilita el uso de la rueda del rat¢n en la versi¢n de Windows. 0 significa zoom original con la rueda (mantiene el centrado), 1 significa zoom estilo OpenTTD (el puntero bajo el cursor del rat¢n se mantiene si es posible). Suma 2 para habilitar el zoom \"seguro\" (dos giros inicia el zoom). Suma 4 para soporte de rueda normalizado (se necesita para algunos controladores y Win95). Rango %ld..%ld. Por defecto %ld.")
+SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s)  habilita el uso de la rueda del rat¢n en la versi¢n de Windows.")
 SETTEXT(CFG_MOREWINDOWS, "`%s' (%s) permite m s ventanas abiertas en la pantalla. El valor por defecto de TTD es de 10, pero 3 ventanas estan ocupadas (barra de herramientas principal, Vista principal y barra de estado), por lo que el m ximo de ventanas abiertas actual es de 7. Men£s desplegables y avisos cuentan igualmente como ventanas. Rango %ld..%ld. Por defecto %ld.")
 SETTEXT(CFG_ENHANCEDDIFFICULTYSETTINGS, "'%s' (%s) hace posible seleccionar 'no' en el n£mero de industrias en la configuraci¢n de dificultad.")
 SETTEXT(CFG_NEWBRIDGES, "`%s' (%s) permite nuevos gr ficos para puentes.")
@@ -845,6 +888,15 @@ SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) permite a la vista principal de seguir a u
 SETTEXT(CFG_TRAMS, "`%s' (%s) permite la construcci¢n de tramvias.")
 SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) permite construir un tramo de via sobre la entrada de los t£neles")
 SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) le permite a usted forzar opciones del juego.")
+SETTEXT(CFG_SHORTRVS, "`%s' (%s) activa veh¡culos de carretera cortos (o largos)")
+SETTEXT(CFG_ARTICULATEDRVS, "`%s' (%s) permite veh¡culos de carretera articulados")
+SETTEXT(CFG_NEWAIRPORTS, "`%s' (%s) permite el uso de nuevos tipos de aeropuertos con GRFs")
+SETTEXT(CFG_NEWROUTES, "`%s' (%s) Permite el cambio de railes y carreteras a trav‚s de los archivos grf")
+SETTEXT(CFG_AUTOSIGDISTANCE, "`%s' (%s) establece la separaci¢n de los sem foros indicada por la herramienta de semaforizar. Las direcciones / y \\ cuentan como 4, las dem s como 3, por tanto el valor de 12 pone sem…fors cada 3. Rango 4..255, por defecto 12.")
+SETTEXT(CFG_CLONETRAIN, "`%s' (%s) Permite clonar los trenes con la ventana de la cochera.")
+SETTEXT(CFG_TRACERESTRICT, "%s (%s) Permite restringir las rutas ferroviarias seg£n el criterio del usuario.")
+SETTEXT(CFG_STATIONSIZE, "%s (%s) cambia el tama¤o m ximo de las estaciones ferroviarias al valor especificado, nota que las estaciones siguen limitadas por la extensi¢n de la estaci¢n. Rango 1..255 por defecto 255. Opciones: on/off/n£mero")
+
 
 
 
@@ -893,7 +945,7 @@ SETTEXT(LANG_INTERNALERROR, "*** Error interno de TTDPatch #%d ***\n")
 SETTEXT(LANG_REGISTRYERROR, "TTD no est  correctamente instalado (error de registro %d)\n")
 
 // Trying no-registry file
-SETTEXT(LANG_TRYINGNOREGIST, "Prueba informaci¢n no registrada des de %s\n")
+SETTEXT(LANG_TRYINGNOREGIST, "Prueba informaci¢n no registrada desde %s\n")
 
 // no-registry file failed
 SETTEXT(LANG_NOREGISTFAILED, "Informaci¢n no registrada no disponible.\n")
@@ -920,7 +972,7 @@ SETTEXT(LANG_RUNERROR, "No se pudo ejecutar %s: %s\n")
 SETTEXT(LANG_CRPROCESSFAIL, "Proceso de creaci¢n fallado")
 
 // Interprocess communication error: TTDPatchW seems to be already running
-SETTEXT(LANG_IPCEXISTS, "Otra inst ncia de TTDPatch est  corriendo ya!\n")
+SETTEXT(LANG_IPCEXISTS, "Otra instancia de TTDPatch est  corriendo ya!\n")
 
 // Failed to convert language strings to Unicode
 SETTEXT(LANG_STRINGCONVFAIL, "Error al preparar los datos de TTDPatch!\n")

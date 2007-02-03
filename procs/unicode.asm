@@ -3,6 +3,8 @@
 #include <defs.inc>
 #include <frag_mac.inc>
 #include <patchproc.inc>
+#include <ptrvar.inc>
+#include <window.inc>
 
 patchproc VARBSET(hasaction12), patchunicode
 
@@ -54,6 +56,18 @@ codefragment newformatnewsmsg
 	icall formatnewsmessage
 	jmp fragmentstart+39
 
+codefragment newMakeStationFacilitiesIconString
+	mov eax,0xB382EE	// 0xE0B3 in UTF-8 encoding
+.next:
+	add eax,0x10000
+	shr byte [textrefstack],1
+	jnc .nowrite
+	mov [edi],eax
+	add edi,3
+.nowrite:
+	jz fragmentstart+45
+	jmp .next
+
 endcodefragments
 
 patchunicode:
@@ -92,4 +106,15 @@ patchunicode:
 #endif
 
 	patchcode formatnewsmsg
+
+	mov eax,[opclass(5)]
+	mov eax,[eax+8]		// text handler
+	mov eax,[eax+10]	// special handler for 30D2
+	mov edi,[eax+0xD1*4]
+	storefragment newMakeStationFacilitiesIconString
+
+	extern winelemdrawptrs,str_window_slider_up,str_window_slider_dn
+	mov eax,[winelemdrawptrs+cWinElemSlider*4]
+	mov dword [eax+121],str_window_slider_up
+	mov dword [eax+146],str_window_slider_dn
 	ret

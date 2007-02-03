@@ -15,6 +15,8 @@
 #include <font.inc>
 #include <bitvars.inc>
 #include <airport.inc>
+#include <idf.inc>
+#include <objects.inc>
 
 extern tramtracks,numtramtracks
 extern newonewayarrows,numonewayarrows
@@ -63,8 +65,13 @@ extern numsnowytemptrees,setstatcargotriggers,industilespecflags
 extern ttdpatchversion
 extern stationanimdata,stationanimspeeds
 extern newcoastspritebase, newcoastspritenum
-extern setairportlayout,airportstartstatuses,setairportmovementdata
+extern setairportlayout,airportstarthangarnodes,setairportmovementdata
 extern airportcallbackflags,airportspecialflags,airportaction3
+extern airportweight,airporttypenames
+extern setrailstationrvrouteing
+extern longintrodate,longintrodatebridges
+extern newsignalspritenum,newsignalspritebase
+extern setobjectclass,setobjectclasstexid
 
 uvarb action1lastfeature
 
@@ -95,8 +102,8 @@ action0:
 	// - pointer to feature-specific data, or 0 if none
 
 proc processnewinfo
-	local vehtype,numinfo,offset, specificnum, speciallist,specialnum, maxesi
-	local dataptrofs,orgoffset,ofstrans,curoffset,numofsleft,curprop
+	local feature,numinfo,offset, specificnum, speciallist,specialnum, maxesi
+	local dataptrofs,orgoffset,ofstrans,curoffset,numofsleft,curprop,ofstranssize
 
 	_enter
 
@@ -105,16 +112,19 @@ proc processnewinfo
 	lea ebx,[esi-6]
 	mov [%$dataptrofs],ebx
 
-	mov [%$vehtype],eax
+	mov [%$feature],eax
+	mov bl,[action0transtablesize+eax]
+	mov [%$ofstranssize],bl
 	mov ebx,[specificpropertylist+ecx]
-	movzx eax,byte [ebx]		// number of vehtype-specific properties
+	movzx eax,byte [ebx]		// number of feature-specific properties
 	lea ebx,[ebx+1+eax]
-	mov [%$speciallist],ebx		// vehtype-special properties
+	mov [%$speciallist],ebx		// feature-special properties
 	mov [%$specificnum],al
 	mov al,[ebx]
 	mov [%$specialnum],al
 	mov eax,[action0transtable+ecx]
 	mov [%$ofstrans],eax
+
 
 	mov ecx,[esi-6]
 	lea ecx,[esi-2+ecx+1]
@@ -135,7 +145,7 @@ proc processnewinfo
 
 	cmp byte [grfstage],0
 	je .resok
-	mov ebx,[%$vehtype]
+	mov ebx,[%$feature]
 	mov ebx,[grfresbase+ebx*4]
 	test ebx,ebx
 	js .resok
@@ -155,7 +165,7 @@ proc processnewinfo
 .notmandatory:
 
 	add eax,[%$numinfo]
-	mov ebx,[%$vehtype]
+	mov ebx,[%$feature]
 
 	mov bl,[vehbnum+ebx]
 	test ebx,ebx
@@ -202,14 +212,20 @@ proc processnewinfo
 
 	cmp al,8		// but not for prop. 08 which *sets* the translation
 	je .notrans
-
-	mov bl,[edi+ebx]
-	mov [%$offset],bl
+	
+	cmp byte [%$ofstranssize], 0
+	je .ofstranssize0
+	mov bx,[edi+ebx*2]
+	jmp short .ofstranssize1
+.ofstranssize0:
+	movzx bx, byte [edi+ebx]
+.ofstranssize1:
+	mov [%$offset],bx
 
 	mov [%$numofsleft],ecx
 	mov cl,1		// only process one at a time
 
-	test bl,bl
+	test bx,bx
 	jz .skip		// referring to an undefined offset
 
 .notrans:
@@ -217,7 +233,7 @@ proc processnewinfo
 	jb .genprop
 	je .loadamount
 
-	mov ebx,[%$vehtype]
+	mov ebx,[%$feature]
 
 	sub al,8
 	cmp al,[%$specificnum]
@@ -274,7 +290,7 @@ proc processnewinfo
 	add eax,[vehtypedataptr]
 
 .getgenprop:
-	mov edi,[%$vehtype]
+	mov edi,[%$feature]
 	movzx edi,byte [vehbase+edi]
 	add edi,[%$offset]
 	imul edi,ebx
@@ -337,7 +353,7 @@ proc processnewinfo
 
 .doprocess:
 	cmp dl,0x82
-	je .textid
+	je near .textid
 
 	cmp dl,1
 	jb .invalidprop		// 0
@@ -355,10 +371,13 @@ proc processnewinfo
 	//	ebx=offset (translated for type "F", untranslated for type "H")
 	//	ecx=num-info (for type "H" only; type "F" should assume num-info=1)
 	//	edx->feature specific data offset
+	//		same as ebx for anything but vehicles, for vehicles: 
+	//		it's ebx+class base ID, so ebx+116 for RVs, etc.
 	//	esi->data
 	// out:	esi->after data
 	//	carry clear if successful
 	//	carry set if error, then ax=error message
+	//		  if ax=invalid sprite error, eax(16:23) holds the error code
 	// safe:eax ebx ecx edx edi ebp
 
 .specialfunction:
@@ -366,6 +385,7 @@ proc processnewinfo
 	mov ebx,[%$offset]
 	mov edx,[%$dataptrofs]
 	push ebp
+	mov ebp,[%$feature]
 	call edi
 	pop ebp
 	jnc .next
@@ -379,6 +399,7 @@ proc processnewinfo
 	mov ecx,[%$numinfo]
 	mov edx,[%$dataptrofs]
 	push ebp
+	mov ebp,[%$feature]
 	call edi
 	pop ebp
 	jnc .notoneatatime
@@ -473,8 +494,12 @@ newspriteblock:
 ; endp newspriteblock
 
 activatevehspriteblock:
+	mov byte [exscurfeature], al	// needed to resolve the action 1 feature later ...
+	movzx ecx,byte [newgrfflags+eax]
+	testflags ecx			// don't reserve sprites if feature is disabled
+	jnc near skipvehspriteblock
+
 	push esi
-	mov byte [exscurfeature], al	//needed to resolve the action 1 feature later ...
 	lodsb
 	mov ecx,eax
 	call getextendedbyte
@@ -509,7 +534,7 @@ action2:
 	// - random ID:
 	//   (unused)
 	// - variational ID:
-	//   (unused)
+	//   offset to allocated buffer as long as sprite data or -1
 	//
 	// Also all sprite numbers are translated into numbers relative
 	// to the action 1 sprite number.
@@ -613,7 +638,7 @@ newcargoid:
 .advancedtileid:
 	mov dl,al
 	call .adjusttilesprite
-	jc .invalid
+	jc near .invalid
 
 .nextadvancedtilesprite:
 	call .adjusttilesprite
@@ -656,9 +681,13 @@ newcargoid:
 .industryid:
 	// industry entries don't contain sprite numbers, so check the size only
 	mov dh,INVSP_BADBLOCK
-	or al,al
-	jnz .invalid
+	cmp al,1
+	ja .invalid
+	jne .industryid_oldstyle
 
+	add esi,6-11		//the new style has 6 bytes - the -11 is for compensating the next add
+
+.industryid_oldstyle:
 	add esi,11
 	cmp esi,ebp
 	mov dh,INVSP_OUTOFDATA
@@ -704,6 +733,8 @@ newcargoid:
 	ret
 
 .variationalid:
+	lea ecx,[esi-8]
+	or dword [ecx],byte -1
 	xor ebx,ebx
 	inc ebx
 	test al,0xc
@@ -721,10 +752,38 @@ newcargoid:
 
 .nextvar:
 	lodsb			// variable
-	and al,0xe0
-	cmp al,0x60
+	mov ah,al
+	and ah,0xe0
+	cmp ah,0x60
+	mov ah,0
 	jne .noparam
-	inc esi
+	cmp al,0x7e
+	lodsb
+	jne .noparam
+	// var 7E, need to resolve var.action 2 ID
+	movzx eax,al
+	mov ax,[cargoids+2*eax]
+	test eax,eax
+	mov dh,INVSP_INVCID
+	jz .invalid
+
+	mov edx,[ecx]
+	test edx,edx
+	jg .havebuffer
+
+	lea edx,[ebp-4]
+	sub edx,ecx	// now edx=length of sprite data
+	push edx
+	call malloc
+	pop edx
+	sub edx,ecx
+	sub edx,4	// now edx=offset from start of sprite data
+	mov [ecx],edx
+
+.havebuffer:
+	mov [esi+edx-2],ax
+	xor eax,eax
+
 .noparam:
 	lodsb
 	test al,0xc0
@@ -965,12 +1024,18 @@ setvehcargomap:
 	mov ecx,eax
 	and ecx,0x7f
 
+	push edi
 	cmp ecx,1
-	sbb ebx,ebx
-	or ebx,edx	// now ebx=feature or ebx=-1 if n-vid=0
+	sbb edi,edi
+	or edi,edx	// now edi=feature or edi=-1 if n-vid=0
+	mov ebx,[ebp+action3info.spriteblock]
+	cmp dword [ebx+spriteblock.grfid],byte -1
+	cmc
+	sbb ebx,ebx	// now ebx=-1 if GRFID was FFFFFFFF or 0 if not
 	push ebp
-	call [action3storeid+ebx*4]
+	call [action3storeid+edi*4]
 	pop ebp
+	pop edi
 
 	// resolve cargo ids
 	push edi
@@ -1046,19 +1111,23 @@ setvehcargomap:
 // store pointer to action 3 data for each ID define
 //
 // in:	eax=n-id unmodified (bit 7 set for livery override)
+//	ebx=0 if GRFID != FFFFFFFF, ebx=-1 if GRFID=FFFFFFFF
 //	ecx=n-id & 7F
 //	edx=feature
 //	ebp->action3info struct (pointer value to store)
 //	esi->action 3 id list
 // out:	esi->action 3 num-cid
 // safe:eax ebx ecx edx
-grfcalltable action3storeid, dd addr(action3storeid_table.generic)
+grfcalltable action3storeid, dd addr(action3storeid.generic)
 
 .gethouses:
 	lodsb
 	add eax,[globalidoffset]
 	mov al,[curgrfhouselist+eax]
+	test ebx,[extrahousegraphdataarr+eax*4]
+	jnz .skiphouse
 	mov [extrahousegraphdataarr+eax*4], ebp
+.skiphouse:
 	loop .gethouses
 	ret
 
@@ -1066,7 +1135,10 @@ grfcalltable action3storeid, dd addr(action3storeid_table.generic)
 	lodsb
 	add eax,[globalidoffset]
 	mov al,[curgrfindustilelist+eax]
+	test ebx,[extraindustilegraphdataarr+eax*4]
+	jnz .skipindustile
 	mov [extraindustilegraphdataarr+eax*4], ebp
+.skipindustile:
 	loop .getindustiles
 	ret
 
@@ -1076,6 +1148,8 @@ grfcalltable action3storeid, dd addr(action3storeid_table.generic)
 	mov al,[curgrfindustrylist+eax]
 	or al,al
 	jz .nextindustry
+	test ebx,[industryaction3+(eax-1)*4]
+	jnz .nextindustry
 	mov [industryaction3+(eax-1)*4], ebp
 .nextindustry:
 	loop .getindustries
@@ -1084,7 +1158,10 @@ grfcalltable action3storeid, dd addr(action3storeid_table.generic)
 .getcargos:
 	lodsb
 	add eax,[globalidoffset]
+	test ebx,[cargoaction3+eax*4]
+	jnz .skipcargo
 	mov [cargoaction3+eax*4], ebp
+.skipcargo:
 	loop .getcargos
 	ret
 
@@ -1102,7 +1179,10 @@ grfcalltable action3storeid, dd addr(action3storeid_table.generic)
 .getcanals:
 	lodsb				// canal feature id
 	add eax,[globalidoffset]
+	test ebx,[canalfeatureids+eax*4]
+	jnz .skipcanal
 	mov [canalfeatureids+eax*4],ebp	// pointer to this action data
+.skipcanal:
 	loop .getcanals
 	ret
 
@@ -1111,7 +1191,7 @@ grfcalltable action3storeid, dd addr(action3storeid_table.generic)
 	add eax,[globalidoffset]
 	movzx ebx,byte [curgrfstationlist+eax]
 	test ebx,ebx
-	jz .getstations			// ignore stations not defined yet
+	jz .nextstation			// ignore stations not defined yet
 
 	// now eax=setid, ebx=gameid (for terminology see statspri.asm)
 
@@ -1141,6 +1221,7 @@ grfcalltable action3storeid, dd addr(action3storeid_table.generic)
 	jnc .searchnext
 	pop esi
 	pop ebp
+.nextstation:
 	loop .getstations
 	ret
 
@@ -1204,10 +1285,21 @@ grfcalltable action3storeid, dd addr(action3storeid_table.generic)
 .nextvid:
 	lodsb
 	add eax,[globalidoffset]
+	test ebx,[edx+4*eax]
+	jnz .skipveh
 	mov [edx+4*eax],ebp
+.skipveh:
 	loop .nextvid
 	ret
 
+.getobjects:
+	push edx
+	extern objectidf
+	mov edx, objectidf		// the feature needs translation
+	extcall idf_bindaction3togameids
+	pop edx
+	ret
+.getsignals:
 .getbridges:
 .getgeneric:
 .getsounds:
@@ -1284,7 +1376,9 @@ exported runspectexthandlers
 //	esi points to some "safe position" (there's exactly one NULL between esi and the next text)
 // safe: eax
 
-%assign maxverstringlen 64
+// Buffer size for the new string
+// NOTE: 96 bytes should be enough for any string of reasonable length.
+%assign maxverstringlen 96
 
 // Append the TTDPatch version number to the main menu title and the about box title
 // The version string is always all-ASCII, so we don't need to worry about UTF-8 here
@@ -1924,15 +2018,21 @@ applynewvehnames:
 	mov ah,0x80
 	call gettexttableptr
 	lea ebx,[eax+ebx*4]
-	jmp short .gotit
+	jmp short processtextdata.gotit
 
 .generaltext:
 	lodsw
 	cmp ah,0xc0
-	jb .notpatchtext
+	jb processtextdata.notpatchtext
 
 	// it's a patch text, which means text IDs might not be
 	// contiguous in the table, so only process one at a time
+
+	// process action 4/13 text data
+	// in:	eax=first text ID
+	//	ecx=count
+	//	esi->text data
+processtextdata:
 	mov ebp,eax
 
 .nextgeneraltext:
@@ -2019,7 +2119,7 @@ activatenewgraphics:
 	mov ebx,[newgraphicsspritebases+ecx-4*4]
 
 	bt [newgraphicssetsenabled],eax
-	jnc skipnewgraphicsblock
+	jnc skipnewgraphicsblock_chk
 
 	cmp dword [edx+spriteblock.grfid],byte -1
 	je .notnormalid
@@ -2031,7 +2131,7 @@ activatenewgraphics:
 .notnormalid:
 	// ID is -1, only use this set if no regular ID has set it yet
 	bt [newgraphicswithgrfid],eax
-	jc skipnewgraphicsblock
+	jc skipnewgraphicsblock_chk
 
 .useset:
 	push esi
@@ -2051,6 +2151,15 @@ activatenewgraphics:
 	mov word [esi-2-2], ax		// esi is on pseudspritedata+2
 	mov [ebx],ax
 	ret
+
+skipnewgraphicsblock_chk:
+	cmp eax, 0xE
+	jne skipnewgraphicsblock
+	push esi
+	call getextendedbyte
+	mov [edx+spriteblock.nsigact5data+4], eax
+	lea ebx, [edx+spriteblock.nsigact5data]
+	jmp activatenewgraphics.nonum
 
 skipnewgraphicsblock:
 	call getextendedbyte
@@ -2211,7 +2320,7 @@ skipspriteif:
 	mov bh,ah		// bh=1 if externalvar, 0 if param
 
 	// a value test
-	mov eax,[esi]
+	mov eax, [esi]
 //	add esi,ecx
 
 	shl ecx,3
@@ -2251,19 +2360,19 @@ endvar
 	jmp checknewgraphicsblock.invalid
 
 .equal:		// 2 = equal
-	je .skipit
+	je near .skipit
 	jmp short .dont		// "jmp" isn't short by default... stupid...
 
 .notequal:	// 3 = not equal
-	jne .skipit
+	jne near .skipit
 	jmp short .dont
 
 .greater:	// 4 = greater
-	ja .skipit
+	ja near .skipit
 	jmp short .dont
 
 .less:		// 5 = less
-	jb .skipit
+	jb near .skipit
 	jmp short .dont
 
 .isactive:	// 6 = GRFID is active
@@ -2317,11 +2426,19 @@ endvar
 			// grf isn't active *yet*
 
 .keepfuture:
-	cmp eax,[edx+spriteblock.grfid]
+	mov ebp, [edx+spriteblock.grfid]
+
+	cmp byte [esi-2], 8 // Varsize, always 8 bytes for masking
+	jne .nomask
+	and ebp, [esi+4] // Mask, +4 bytes from value gives the mask
+
+.nomask:
+	cmp eax, ebp
 	mov edx,[edx+spriteblock.next]
 	jne .findgrfid
 
 .gotstate:
+	mov ebp, [curspriteblock]
 	cmp bl,bh
 	je .skipit
 
@@ -2429,6 +2546,23 @@ recordgrfid:
 
 	mov [ebp+spriteblock.grfid],eax
 
+	cmp eax,byte -1
+	je .notduplicate
+
+	// check for duplicate ID
+
+	mov edx,[spriteblockptr]
+.checknext:
+	cmp ebp,edx
+	je .notduplicate
+
+	cmp [edx+spriteblock.grfid],eax
+	je .duplicate
+	mov edx,[edx+spriteblock.next]
+	test edx,edx
+	jnz .checknext
+
+.notduplicate:
 	test cl,cl
 	jnz .activate
 	ret
@@ -2439,6 +2573,14 @@ recordgrfid:
 	and ch,~4
 	cmp ch,cl
 	jne .skip	// skip rest of file if not active
+	ret
+
+.duplicate:
+	or byte [ebp+spriteblock.flags],2
+	mov [ebp+spriteblock.errparam],edx
+	mov word [ebp+spriteblock.errparam+4],~GRM_EXTRA_GRFIDS
+	mov [ebp+spriteblock.errparam+6],di
+	or edi,byte -1
 	ret
 
 
@@ -2484,11 +2626,24 @@ replacettdsprite:
 	mov ebp,edi
 .replnext:
 	pusha
+	cmp dword [edx+spriteblock.grfid],byte -1
+	jne .notdefgrf
+
+	// GRFID is FFFFFFFF, only override sprite if it's not a patch sprite
+	extern newspritenum,newspritedata
+	imul edi,[newspritenum],19
+	add edi,[newspritedata]
+	cmp byte [edi+eax],0	// was it immutable (i.e. one of ours)?
+	jne .skipsprite
+
+.notdefgrf:
 	mov edi,[edx+spriteblock.spritelist]
 	mov esi,[edi+ebp*4]
 	mov edi,[esi-4]		// sprite size
 	xchg eax,edi
 	call overridesprite
+
+.skipsprite:
 	popa
 	inc edi
 	inc eax
@@ -2545,9 +2700,9 @@ checkgrferrormsg:
 	cmp al,0xff
 	je .isvalid
 
-	cmp al,3
+	cmp al,numactionbmsg
 	mov al,INVSP_INVERRMSG
-	ja checknewgraphicsblock.invalid
+	jae checknewgraphicsblock.invalid
 
 .isvalid:
 	lea ecx,[edi-1]
@@ -2684,6 +2839,8 @@ formatspriteerror:
 .grferrortypes:
 	dw statictext(grfnotice),ourtext(grfwarning)
 	dw ourtext(grferror),ourtext(grferror)
+	dw ourtext(grfbefore),ourtext(grfafter)
+numactionbmsg equ ($-.grferrortypes)/2
 
 
 	// *** action C handler ***
@@ -2729,9 +2886,13 @@ setparam:
 	ret
 
 .globalvar:
+	cmp al,0x9f		// var. 9f is special - it must be written before activation
+	je .ok			// happens, so allow it in the reserve phase
 	extern procall_type
-	cmp dword [procall_type],PROCALL_ACTIVATE
-	jne .done	// skip writing to global variables unless doing activation
+	cmp dword [procall_type],PROCALL_ACTIVATE	// skip writing to global
+	je .ok						// variables unless doing
+	cmp dword [procall_type],PROCALL_INITIALIZE	// activation or initialization
+	jne .done
 
 .ok:
 	test byte [esi],0x80
@@ -2816,23 +2977,34 @@ setparam:
 	cmp byte [procallsprites_replaygrm],1
 	jne .dogrm
 
-	// not in reserve pass, just return most recent result
+	// not in reserve pass, just return most recent result if no conflict
+	mov edx,[curspriteblock]
+	test byte [edx+spriteblock.flags],2
+	jnz .conflict
+
 	mov eax,[esi-13]
-	cmp eax,byte -1
-	je .noresult
+	cmp eax,byte -2
+	ja .noresult
+	sbb eax,byte -1		// -2 -> -1, (-1 -> 0), rest unchanged
 	mov [ebp],eax
 .noresult:
 	ret
 
+.conflict:
+	or edi,byte -1
+	ret
+
 .dogrm:
 	or dword [esi-13],byte -1
+	push ebp
+	push esi
 	jmp [.specialaction+eax*4]
 
-	align 4
-.specialaction:
+noglobal vard .specialaction
 	dd addr(.reserve),addr(.allocate),addr(.check),addr(.mark)
 	dd addr(.allocnofail),addr(.checknofail),addr(.getonly)
 .numspecialactions equ ($-.specialaction)/4
+endvar
 
 	// here we have
 	// eax=operation
@@ -2850,31 +3022,38 @@ setparam:
 
 .reserve:
 	mov al,GRFRESGET+GRFRESMARK	// find and mark unused entries
-	push ebp
-	push esi
 	call [grfresource+ebx*4]
+	jc .failgrm
+	jnz .badres
 	pop esi
 	pop ebp
-	jc .badres
 	mov [ebp],edx
 	mov [esi-13],edx
 	ret
+
+.failgrm:
+	pop esi
+	pop ebp
+	mov dh,INVSP_INVRESOURCE
+	jmp newcargoid.invalid
 
 .mark:
 	mov edx,[ebp]
 	mov al,GRFRESMARK
 	call [grfresource+ebx*4]	// mark given entries
-	jc .badres
+	jc .failgrm
+	jnz .badres
+	pop esi
+	pop ebp
 	ret
 
 .allocate:
 	mov al,GRFRESGET		// find unused entries 
-	push ebp
-	push esi
 	call [grfresource+ebx*4]
+	jc .failgrm
+	jnz .badres
 	pop esi
 	pop ebp
-	jc .badres
 	mov [ebp],edx
 	mov [esi-13],edx
 	ret
@@ -2883,27 +3062,27 @@ setparam:
 	mov edx,[ebp]
 	mov al,GRFRESCHECK		// check given entries
 	call [grfresource+ebx*4]
-	jnc .resok
+	jc .failgrm
+	jz .resok
 .badres:
-	mov dh,INVSP_INVRESOURCE
-	test esi,esi
-	jle newcargoid.invalid
-
+	mov ebp,[curspriteblock]
+	or byte [ebp+spriteblock.flags],2
+	mov [ebp+spriteblock.errparam],esi
+	mov [ebp+spriteblock.errparam+4],dx
+	mov [ebp+spriteblock.errparam+6],di
 	or edi,byte -1
-	mov edx,[curspriteblock]
-	or byte [edx+spriteblock.flags],2
-	mov [edx+spriteblock.errparam],esi
 .resok:
+	pop esi
+	pop ebp
 	ret
 
 .allocnofail:
 	mov al,GRFRESGET+GRFRESNOFAIL		// find unused entries 
-	push ebp
-	push esi
 	call [grfresource+ebx*4]
+	jc .failgrm
 	pop esi
 	pop ebp
-	jnc .gotres
+	jz .gotres
 	or edx,byte -1
 .gotres:
 	mov [ebp],edx
@@ -2913,11 +3092,14 @@ setparam:
 .checknofail:
 	mov edx,[ebp]
 	mov al,GRFRESCHECK+GRFRESNOFAIL		// check given entries
-	push esi
 	call [grfresource+ebx*4]
+	jc .failgrm
 	pop esi
-	jnc .checkok
+	pop ebp
+	jz .checkok
+	or edx,byte -1
 	mov [ebp],edx
+	dec edx
 	mov [esi-13],edx
 .checkok:
 	ret
@@ -2925,9 +3107,10 @@ setparam:
 .getonly:
 	mov edx,[ebp]
 	mov al,GRFRESREAD
-	push esi
 	call [grfresource+ebx*4]
+	jc .failgrm
 	pop esi
+	pop ebp
 	mov [ebp],edx
 	mov [esi-13],edx
 	ret
@@ -3097,9 +3280,10 @@ var actiondop
 //	ecx=number of resource entries
 // in/out:
 //	edx=resource value (in for CHECK and MARK, out for GET, maybe both!)
-// out:	CF=1 resource not available
+// out:	CF=1 invalid resource
+//	CF=0,ZF=0 resource not available (conflicting resource in edx)
 //		for CHECK also esi->spriteblock of conflicting grf
-//	CF=0 resource available
+//	CF=0,ZF=1 resource available
 // safe:eax ebx ecx ebp esi
 
 grfcalltable grfresource
@@ -3117,7 +3301,7 @@ grfcalltable grfresource
 .bitsearch:
 	mov ebx,[grfresbase+ebx*4]
 	cmp ecx,0x7f
-	ja .fail	// more wouldn't work at the moment
+	ja near .fail	// more wouldn't work at the moment
 
 	mov esi,ebx
 	xchg ah,cl	// now esi=base ID, ecx=total IDs, ah=number we want
@@ -3133,6 +3317,7 @@ grfcalltable grfresource
 	jz .checknextidrange
 
 	mov edx,[grfresources+esi*4]
+	test al,0
 	ret
 
 .checknextidrange:
@@ -3147,7 +3332,9 @@ grfcalltable grfresource
 
 	// found no large enough available range
 	pop eax
-	stc
+	mov edx,esi
+	mov esi,[grfresources+esi*4]
+	test esp,esp
 	ret
 
 .vehidnotavail:		// vehicle in range was not available
@@ -3163,8 +3350,9 @@ grfcalltable grfresource
 	dec esi
 
 .failwithptr:
+	mov edx,esi
 	mov esi,[grfresources+esi*4]
-	stc
+	test esp,esp
 	ret
 
 .gotidrange:
@@ -3181,10 +3369,11 @@ grfcalltable grfresource
 	mov [grfresources+esi*4],eax
 	inc esi
 	loop .marknextvehid
+	test al,0
 	ret
 
 .getindustries:
-	mov ah,NINDUSTRIES
+	mov ah,NINDUSTRYTYPES
 	jmp .bitsearch
 
 .getcargos:
@@ -3201,8 +3390,8 @@ grfcalltable grfresource
 .getindustiles:
 .getsounds:
 .getairports:
+.getsignals:
 .fail:
-	or esi,byte -1		// invalid action D, not just lack of resources
 	stc
 	ret
 
@@ -3228,12 +3417,13 @@ grfcalltable grfresource
 	mov [curextragrm+GRM_EXTRA_SPRITES*4],esi
 
 .done:
-	clc
+	test al,0
 	ret
 
 .failsprites:
+	mov edx,GRM_EXTRA_SPRITES
 	mov esi,[lastextragrm+GRM_EXTRA_SPRITES*4]	// return whatever grf last allocated sprites as source of conflict
-	stc
+	test esp,esp
 	ret
 
 
@@ -3484,7 +3674,7 @@ action11:
 initgrfsounds:
 	cmp dword [edx+spriteblock.soundinfo],0
 	je .first
-	mov dl,INVSP_MULTIACT11
+	mov dh,INVSP_MULTIACT11
 .bad:
 	jmp newcargoid.invalid
 
@@ -3665,10 +3855,10 @@ loadcharset:
 	ret
 
 .toomany:
-	mov dl,INVSP_BLOCKTOOLARGE
+	mov dh,INVSP_BLOCKTOOLARGE
 	jmp short .bad
 .badfont:
-	mov dl,INVSP_BADFONT
+	mov dh,INVSP_BADFONT
 .bad:
 	pop eax
 	jnb newcargoid.invalid
@@ -3688,6 +3878,50 @@ skipcharset:
 	loop .nextset
 	ret
 
+
+	// *** action 13 handler ***
+action13:
+	nop
+
+definegrftranslation:
+	lodsd
+	call findgrfid
+	jc .ignore
+
+	mov al,[ebx+spriteblock.active]
+	test al,1
+	jz .ignore
+
+	test al,2
+	jnz .tooearly
+
+	xor eax,eax
+	lodsb
+	mov ecx,eax
+
+	lodsw
+	cmp ax,0xd000
+	jb .badid
+	cmp ax,0xdfff
+	ja .badid
+
+	xchg ebx,[curspriteblock]	// process the referred GRF's specific strings
+	push ebx
+	call processtextdata
+	pop dword [curspriteblock]
+
+.ignore:
+	ret
+
+.badid:
+	mov dh,INVSP_BADID
+	jmp newcargoid.invalid
+.tooearly:
+	mov eax,ourtext(grfafter)
+	mov ebx,[ebx+spriteblock.nameptr]
+	call setspriteerror
+	or edi,byte -1
+	ret
 
 
 //
@@ -3747,22 +3981,22 @@ skipcharset:
 defvehdata gendata, W,B,B,B,B,B				// 00..06
 
 defvehdata spectraindata, B,W,W,B,P,B,B,B,B,B,B,B	// 08..18
-defvehdata spcltraindata, B,F,w,B,d,B,B,B,B,B,B,B,B,B,B,w,w	// 19..29
+defvehdata spcltraindata, B,F,w,B,d,B,B,B,B,B,B,B,B,B,B,w,w,F	// 19..2A
 
 defvehdata specrvdata, B,B,P,B,B,B,B,B			// 08..12
-defvehdata spclrvdata, B,B,B,d,B,B,B,B,B,B,w,w		// 13..1E
+defvehdata spclrvdata, B,B,B,d,B,B,B,B,B,B,w,w,F	// 13..1F
 
 defvehdata specshipdata, B,B,B,B,B,W,B,B		// 08..10
-defvehdata spclshipdata, d,B,B,B,B,B,B,w,w		// 11..19
+defvehdata spclshipdata, d,B,B,B,B,B,B,w,w,F		// 11..1A
 
 defvehdata specplanedata, B,B,B,B,B,B,B,W,B,B		// 08..12
-defvehdata spclplanedata, d,B,B,B,B,w,w			// 13..19
+defvehdata spclplanedata, d,B,B,B,B,w,w,F		// 13..1A
 
 defvehdata specstationdata				// no properties
-defvehdata spclstationdata, F,H,F,B,B,B,F,F,w,B,F,B,B,B,w,B,w	// 08..18
+defvehdata spclstationdata, F,H,F,B,B,B,F,F,w,B,F,B,B,B,w,B,w,F	// 08..19
 
 defvehdata specbridgedata, B,B,B,B			// 08..0B
-defvehdata spclbridgedata, w,F,B			// 0C..0E
+defvehdata spclbridgedata, w,F,B,F			// 0C..0F
 
 defvehdata spechousedata
 defvehdata spclhousedata, F,F,w,B,B,B,B,B,w,B,t,w,B,F,B,d,B,B,B,B,F,B,d	// 08..1e
@@ -3784,7 +4018,10 @@ defvehdata specsounddata
 defvehdata spclsounddata, F,F,F				// 08..0A
 
 defvehdata specairportdata
-defvehdata spclairportdata, F,w,F,B,B				// 08..0c
+defvehdata spclairportdata, F,F,B,B,B,B,t			// 08..0d
+
+defvehdata specobjectdata
+defvehdata spclobjectdata, F,F,t						// 08
 
 %undef defvehdata
 
@@ -3804,16 +4041,21 @@ uvard spritebase
 
 uvard numactivesprites
 uvard lastnonoverride
-uvarb grfstage
+uvard grfstage
 
 // Actions for which we don't need to check that the GRFID is valid
 // so far that's actions 6-9, B-E and 10
-spriteactnogrfid equ 10111101111000000b
+spriteactnogrfid equ 00010111101111000000b
 
 	// pointers to the actions specified in the first byte of
 	// the pseudo sprite data
 
 global numspriteactions,spritegrfidcheckofs
+
+// Actions for which the byte after the action byte is the feature
+// and we should check if it's enabled
+// so far that's actions 0, 2-4 and 13 (not 1 because the sprites need to be skipped always)
+vard docheckfeature, 10000000000000001101b
 
 	align 4
 
@@ -3838,6 +4080,7 @@ var spriteinitializeaction
 	dd 0				//10: define label
 	dd addr(initgrfsounds)		//11: define sounds
 	dd skipcharset			//12: define glyphs
+	dd 0				//13: translate grf texts
 
 numspriteactions equ (addr($)-spriteinitializeaction)/4
 spritegrfidcheckofs equ numspriteactions*4
@@ -3865,6 +4108,7 @@ var spriteactivateaction
 	dd 0				//10: define label
 	dd addr(skipgrfsounds)		//11: define sounds
 	dd loadcharset			//12: define glyphs
+	dd definegrftranslation		//13: translate grf texts
 
 	dd spriteactnogrfid
 
@@ -3891,6 +4135,7 @@ var spritetestactaction
 	dd 0				//10: define label
 	dd addr(skipgrfsounds)		//11: define sounds
 	dd skipcharset			//12: define glyphs
+	dd 0				//13: translate grf texts
 
 	dd spriteactnogrfid
 
@@ -3917,6 +4162,7 @@ var spritesloadedaction
 	dd 0				//10: define label
 	dd addr(skipgrfsounds)		//11: define sounds
 	dd skipcharset			//12: define glyphs
+	dd 0				//13: translate grf texts
 
 	dd -1				// never check for valid GRFID
 
@@ -3943,6 +4189,7 @@ var spritereserveaction
 	dd 0				//10: define label
 	dd addr(skipgrfsounds)		//11: define sounds
 	dd skipcharset			//12: define glyphs
+	dd 0				//13: translate grf texts
 
 	dd -1				// never check for valid GRFID
 
@@ -3999,25 +4246,27 @@ uvard alwaysminusone,1,s
 	// -1 = no resources defined yet, -2 = has special handler
 var grfresbase, dd GRM_TRAINS,GRM_RVS,GRM_SHIPS,GRM_PLANES
 	dd -1, -1, -1, -1		// stations, canals, bridges houses
-	dd -2, -1,GRM_INDUSTRIES	// sprites, industiles, industries,
-	dd GRM_CARGOS,-1,-1		// cargos, sounds, airports
+	dd -2, -1, -1			// sprites, industiles, industries,
+	dd GRM_CARGOS,-1,-1,-1		// cargos, sounds, airports, signals
+	dd -1						// objects
 checkfeaturesize grfresbase, 4
 	// next one starts with 357
 
 	// the following variables need to be close in memory
-var vehbase, db TRAINBASE,ROADVEHBASE,SHIPBASE,AIRCRAFTBASE,0,0,0,0,0,0,0,0,0,0
+var vehbase, db TRAINBASE,ROADVEHBASE,SHIPBASE,AIRCRAFTBASE,0,0,0,0,0,0,0,0,0,0,0,0
 checkfeaturesize vehbase, 1
 
 var vehbnum, db NTRAINTYPES,NROADVEHTYPES,NSHIPTYPES,NAIRCRAFTTYPES
 	db 255,255,NBRIDGES,255		// stations,canals,bridges,houses
-	db 255,255,NINDUSTRIES,32	// generic,industiles,industries,cargos
-	db 0,NUMNEWAIRPORTS		// sounds
+	db 255,255,NINDUSTRYTYPES,32	// generic,industiles,industries,cargos
+	db 0,NUMNEWAIRPORTS,0		// sounds,airports,signals
+	db 255						// objects
 checkfeaturesize vehbnum, 1
 
 	// for action 0, where are the regular vehicle specific properies listed
 var specificpropertylist, dd spectraindata,specrvdata,specshipdata,specplanedata,specstationdata, 0, specbridgedata
 			dd spechousedata,specglobaldata,specindustiledata,specindustrydata,speccargodata,specsounddata
-			dd specairportdata
+			dd specairportdata,0,specobjectdata
 checkfeaturesize specificpropertylist, 4
 
 	// for action 0, where the data for each vehicle class starts
@@ -4031,13 +4280,21 @@ var specificpropertyofs, db -10,-6,0,0
 	// special vehicle properties stored in newvehdatastruc (or with handler func)
 var specialpropertybase, dd newtrainvehdata,newrvvehdata,newshipvehdata,newplanevehdata
 	dd newstationdata, 0, bridgedata, housedata, globaldata, industiledata, industrydata, cargodata, sounddata
-	dd airportdata
+	dd airportdata,0,objectdata
 checkfeaturesize specialpropertybase, 4
 
 	// for those features that need ID translation, put the table here
 var action0transtable, dd 0,0,0,0,curgrfstationlist,0,0,curgrfhouselist,
-		       dd 0, curgrfindustilelist, curgrfindustrylist,0,0, curgrfairportlist
+		       dd 0, curgrfindustilelist, curgrfindustrylist,0,0, curgrfairportlist,0,curgrfobjectgameids
 checkfeaturesize action0transtable, 4
+
+	// for those features that need ID translation in word size, put a 1
+var action0transtablesize, db 0,0,0,0
+	db 0,0,0,0	// curgrfstationlist, 0, 0, curgrfhouselist
+	db 0,0,0,0	// 0, curgrfindustilelist, curgrfindustrylist, 0
+	db 0,0,0,1	// 0, curgrfairportlist, 0, curgrfobjectgameids
+checkfeaturesize action0transtablesize, 1
+
 
 	// pointers to the data for each of the special properties
 var newtrainvehdata
@@ -4046,23 +4303,24 @@ var newtrainvehdata
 	dd traintecoeff,trainc2coeff,trainvehlength		// 1F,20,21
 	dd trainviseffect,trainwagonpowerweight,railvehhighwt	// 22,23,24
 	dd trainuserbits,trainphase2dec,trainmiscflags		// 25,26,27
-	dd traincargoclasses,trainnotcargoclasses		// 28,29
+	dd traincargoclasses,trainnotcargoclasses,longintrodate	// 28,29,2A
 
 var newrvvehdata
 	dd rvpowers, rvweight, rvhspeed, newrvrefit		// 13,14,15,16
 	dd rvcallbackflags, rvtecoeff, rvc2coeff, rvrefitcost	// 17,18,19,1A
 	dd rvphase2dec,rvmiscflags,rvcargoclasses		// 1B,1C,1D
-	dd rvnotcargoclasses					// 1E
+	dd rvnotcargoclasses,longintrodate			// 1E,1F
 
 var newshipvehdata
 	dd newshiprefit, shipcallbackflags, shiprefitcost	// 11,12,13
 	dd oceanspeedfract, canalspeedfract, shipphase2dec	// 14,15,16
 	dd shipmiscflags,shipcargoclasses,shipnotcargoclasses	// 17,18,19
+	dd longintrodate					// 1A
 
 var newplanevehdata
 	dd newplanerefit, planecallbackflags, planerefitcost	// 13,14,15
 	dd planephase2dec,planemiscflags,planecargoclasses	// 16,17,18
-	dd planenotcargoclasses					// 19
+	dd planenotcargoclasses,longintrodate			// 19,1A
 
 var newstationdata
 	dd addr(setstationclass),addr(setstationspritelayout)	// 08,09
@@ -4073,9 +4331,11 @@ var newstationdata
 	dd stationflags,stationnowires,cantrainenterstattile	// 13,14,15
 	dd stationanimdata,stationanimspeeds			// 16,17
 	dd stationanimtriggers					// 18
+	dd addr(setrailstationrvrouteing)				// 19
 
 var bridgedata	// (prop 0C is set in patches.ah)
 	dd 0, addr(alterbridgespritetable), bridgeflags		// 0C..0E
+	dd longintrodatebridges					// 0F
 
 var housedata
 	dd addr(setsubstbuilding)				// 08
@@ -4132,8 +4392,8 @@ var industrydata
 	dd addr(setindustrymapcolors),industryspecialflags-4	// 19..1a
 	dd industrycreationmsgs-2				// 1b
 	dd industryinputmultipliers-4				// 1c
-	dd (industryinputmultipliers+NINDUSTRIES*4)-4		// 1d
-	dd (industryinputmultipliers+2*NINDUSTRIES*4)-4		// 1e
+	dd (industryinputmultipliers+NINDUSTRYTYPES*4)-4	// 1d
+	dd (industryinputmultipliers+2*NINDUSTRYTYPES*4)-4	// 1e
 	dd industrynames-2					// 1f
 	dd fundchances-4					// 20
 	dd industrycallbackflags-1				// 21
@@ -4156,10 +4416,15 @@ var sounddata
 	dd addr(overrideoldsound)					//0A
 
 var airportdata
-	dd setairportlayout,airportstartstatuses,setairportmovementdata	//08..0a
-	dd airportcallbackflags,airportspecialflags			//0b..0c
-
+	dd setairportlayout,setairportmovementdata			//08..09
+	dd airportstarthangarnodes,airportcallbackflags			//0a..0b
+	dd airportspecialflags,airportweight,airporttypenames		//0c..0e
+	
+var objectdata
+	dd addr(setobjectclass), addr(setobjectclasstexid), objectnames 	// 08..0A
+	
 uvard grfvarreinitstart,0
+%define SKIPGUARD 1
 
 	// All variables that must be reset when loading graphics again
 	// are in this block.  They must all use uvard.
@@ -4194,18 +4459,34 @@ uvard stationpylons,256/4
 uvard stationnowires,256/4
 uvard stationflags,256/4
 uvard statcargotriggers,256
-uvard cantrainenterstattile,256
+uvard cantrainenterstattile,256/4
+uvard canrventerrailstattile,256*2
 uvard stationanimtriggers,256/2
 uvard bridgeflags,(NBRIDGES+3)/4
 uvard trainuserbits,NTRAINTYPES/4
 uvard canalfeatureids,6
 uvard genericids,NUMFEATURES
 
-uvard industryaction3,NINDUSTRIES
-uvard industryspriteblock,NINDUSTRIES
-uvard substindustries,(NINDUSTRIES+3)/4
+uvard industryaction3,NINDUSTRYTYPES
+uvard industryspriteblock,NINDUSTRYTYPES
+uvard substindustries,(NINDUSTRYTYPES+3)/4
 
 uvard cargoaction3,32
+
+// objects id management
+uvard objectsdataidtogameid, NOBJECTS/2
+uvard objectsgameiddata, NOBJECTS*idf_gameid_data_size
+uvard objectsgameidcount
+
+// Properties for objects (gameid based)
+uvard objectclass, NOBJECTS/2						// a word id to the actuall objectclasses
+uvard objectnames, NOBJECTS/2						// a TextID
+
+// Properties for classes of objects
+uvard objectclasses, NOBJECTSCLASSES				// the actual defined classes
+uvard numobjectclasses								// how many classes we have have loaded already
+uvard objectclassesnames, NOBJECTSCLASSES/2			// the TextID for the name
+uvard objectclassesnamesprptr, NOBJECTSCLASSES/2	// the spriteblockptr for this TextID
 
 	// other variables
 uvard newstationnum
@@ -4253,9 +4534,10 @@ uvard lastspriteblocknumsets
 uvard curgrfhouselist,256/4
 uvard curgrftownnames,128
 uvard curgrfindustilelist,256/4
-uvard curgrfindustrylist,NINDUSTRIES/4 + 1
+uvard curgrfindustrylist,NINDUSTRYTYPES/4 + 1
 uvard globalidoffset
 uvard curgrfairportlist,256/4
+uvard curgrfobjectgameids,NOBJECTS/2
 
 uvard grfvarclearsigned,0
 
@@ -4267,6 +4549,7 @@ uvard laststationid
 	// ----------------------------
 
 uvard grfvarclearend,0
+%undef SKIPGUARD
 
 global numgrfvarreinitgrm
 numgrfvarreinitgrm equ (grfvarreinitend-grfvarreinitgrmstart)/4
@@ -4285,8 +4568,8 @@ numgrfvarreinit equ (grfvarreinitend-grfvarreinitstart)/4
 
 	// for action 5, where to store the first sprite number
 	// (the ones that are -1 are safe to be reused)
-var newgraphicsspritebases, dd presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,deftwocolormaps,tramtracks,snowytemptreespritebase,newcoastspritebase
-var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,-1,numtramtracks,numsnowytemptrees,newcoastspritenum
+var newgraphicsspritebases, dd presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,deftwocolormaps,tramtracks,snowytemptreespritebase,newcoastspritebase,newsignalspritebase
+var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,-1,numtramtracks,numsnowytemptrees,newcoastspritenum,newsignalspritenum
 
 global numnewgraphicssprites
 numnewgraphicssprites equ (newgraphicsspritenums-newgraphicsspritebases)/4
@@ -4359,7 +4642,7 @@ uvarb cargoid, 32	// list of cargo types for each cargo bit, only valid if bit s
 
 // patchflags bit numbers for each of the newgrf features
 var newgrfflags, db newtrains,newrvs,newships,newplanes,newstations,canals,newbridges,newhouses
-	db anyflagset,newindustries,newindustries,newcargos,newsounds,newairports
+	db anyflagset,newindustries,newindustries,newcargos,newsounds,newairports,newsignals
 	times 0x48-(addr($)-newgrfflags) db noflag
 	db anyflagset	// feature 0x48 is special, for action 4/gen. textIDs
 

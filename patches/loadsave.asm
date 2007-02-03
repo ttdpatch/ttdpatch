@@ -18,6 +18,8 @@
 #include <house.inc>
 #include <newvehdata.inc>
 #include <airport.inc>
+#include <idf.inc>
+#include <objects.inc>
 
 extern LoadWindowSizesFinish,SaveWindowSizesPrepare
 extern actionhandler,activatedefault,animarraysize,calcaccel
@@ -46,7 +48,7 @@ extern newvehdata,oldhuman1,oldveharraysize,oldvehicles
 extern orighumanplayers,patchflags,persistentgrftextlist,realplayernum
 extern recalchousecounts,recalctownpopulations,resetnewsprites,savechunkfn
 extern setbasecostmult,setbasecostmultdefault,setrvweightandpower
-extern setvehiclearraysize,specialerrtext1,specificpropertybase
+extern setvehiclearraysize,specialerrtext1,specialerrtext2,specificpropertybase
 extern specvehdatalength
 extern spriteerror,spriteerrorparam,spriteerrortype,startflagdata
 extern station2clear,station2init,stationarray2ptr,stationidgrfmap
@@ -55,11 +57,13 @@ extern vehtypedataconvbackupptr,vehtypedataptr
 extern windowsizesbufferptr
 extern player2array,player2clear,cargoids
 extern disabledoldhouses,savevar40x
-extern clearairportdata,airportdataidtogameid
+extern clearairportdataids,airportdataidtogameid
+extern landscape8_ptr, landscape8clear, landscape8init
+extern robjflags,robjgameoptionflag,clearrobjarrays
 
 // Known (defined) extra chunks.
 // The first table defines chunk IDs.
-var knownextrachunkids
+varw knownextrachunkids
 // Optional chunks (no real loss of game state if they're discarded)
 	dw 0		// TTD Vehicle data
 	dw 1		// TTDPatch Vehicle data
@@ -86,11 +90,18 @@ var knownextrachunkids
 	dw 0x800b	// new cargo type data
 	dw 0x800c	// player 2 array
 	dw 0x800d	// new airport type data
-
+	dw 0x800e	// Landscape8 Array
+	dw 0x800f	// Restriction Object Arrays
+	dw 0x8010	// Persistent GRF data
+	dw 0x8011	// New objects ID map
+	dw 0x8012	// Industry2 array
+	
 knownextrachunknum equ (addr($)-knownextrachunkids)/2
 
+endvar
+
 // The load functions for each chunk
-var knownextrachunkloadfns
+vard knownextrachunkloadfns
 	dd addr(loadspecvehdata)
 	dd addr(loadttdvehdata)
 	dd addr(loadgrfidlist)
@@ -115,14 +126,22 @@ var knownextrachunkloadfns
 	dd addr(loadnewcargotypes)
 	dd addr(loadplayer2array)
 	dd addr(loadnewairporttypes)
+	dd addr(loadlandscape8array)
+	dd addr(loadrobjarray)
+	dd loadpersgrfdata
+	dd loadobjectidmap
+	dd loadindustry2array
+	
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkloadfns)/4
 	%error "Inconsistent number of chunk functions"
 %endif
 %endif
 
+endvar
+
 // The save functions for each chunk
-var knownextrachunksavefns
+vard knownextrachunksavefns
 	dd addr(savespecvehdata)
 	dd addr(savettdvehdata)
 	dd 0	// if this is used, something went wrong
@@ -147,16 +166,24 @@ var knownextrachunksavefns
 	dd addr(savenewcargotypes)
 	dd addr(saveplayer2array)
 	dd addr(savenewairporttypes)
+	dd addr(savelandscape8array)
+	dd addr(saverobjarray)
+	dd savepersgrfdata
+	dd saveobjectidmap
+	dd saveindustry2array
+
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunksavefns)/4
 	%error "Inconsistent number of chunk functions"
 %endif
 %endif
 
+endvar
+
 // The query functions for each chunk (to determine if the chunk is to be saved/loaded)
 // In:	CF=0 for loading, CF=1 for saving
 // Out:	CF=1 if chunk is to be saved/loaded, CF=0 if not
-var knownextrachunkqueryfns
+vard knownextrachunkqueryfns
 	dd addr(canhavespecvehdata)
 	dd addr(canhavettdvehdata)
 	dd addr(canhaveoldgrfidlist)
@@ -181,11 +208,19 @@ var knownextrachunkqueryfns
 	dd addr(canhavenewcargotypes)
 	dd addr(canhaveplayer2array)
 	dd addr(canhavenewairporttypes)
+	dd addr(canhavelandscape8array)
+	dd addr(canhaverobjarray)
+	dd canhavepersgrfdata
+	dd canhaveobjectidmap
+	dd canhaveindustry2array
+
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkqueryfns)/4
 	%error "Inconsistent number of chunk functions"
 %endif
 %endif
+
+endvar
 
 
 
@@ -221,15 +256,25 @@ uvarw loadremovedsfxs	// ... and this many pseudo-/special vehicles
 %assign LOADED_X2_INDUINCARGO		0x10
 %assign LOADED_X2_NEWCARGOTYPES		0x20
 %assign LOADED_X2_PLAYER2		0x40
+%assign LOADED_X2_NEWAIRPORTLIST	0x80
 
+%assign LOADED_X3_L8ARRAY		0x1
+%assign LOADED_X3_ROBJARRAY		0x2
+%assign LOADED_X3_OBJECTDATAID	0x4
+%assign LOADED_X3_INDUSTRY2ARRAY	0x8
+
+%define SKIPGUARD 1			// the variables get cleaned by a dword.. 
 uvarb extrachunksloaded1		// a combination of LOADED_X1_*
 uvarb extrachunksloaded2		// a combination of LOADED_X2_*
 uvarb extrachunksloaded3		// a combination of LOADED_X3_*
 uvarb extrachunksloaded4		// a combination of LOADED_X4_*
+%undef SKIPGUARD
 
 uvard l6switches
 
 uvard l7switches
+
+uvard l8switches
 
 uvard station2switches
 
@@ -344,6 +389,10 @@ presaveadjust:
 	call copybackcargodata
 	or byte [landscape3+ttdpatchdata.flags],2
 .nonewcargos:
+	testflags fifoloading
+	jnc .nofifo
+	extcall buildfifoidx
+.nofifo:
 
 	ret
 
@@ -462,6 +511,29 @@ newsaveproc:
 ; endp newsaveproc
 
 
+preloadadjust:
+	pusha
+
+	// start by resetting all the vehicle type data
+	call inforeset
+	and dword [extrachunksloaded1],0	// indicate that extra data are no longer valid
+	and dword [grfidlistnum],0	// clear list of GRF IDs
+	mov byte [activatedefault],0	// don't activate by default if we have no grf id list block
+
+	call setvehiclearraysize	// probably unnecessary but just in case
+	call cleardata
+
+	// if no pers.grf data is stored, we don't want to use the
+	// current save's data!
+	xor eax,eax
+	mov edi,persgrfdata
+	mov ecx,persgrfdatastruc_size/4
+	rep stosd
+
+	popa
+	ret
+
+
 postloadadjust:
 	mov edx,addr(adjaivehicleptrsload)
 	call adjaivehicleptrs
@@ -552,20 +624,7 @@ newloadtitleproc:
 .proceedwithload:
 	and byte [loadproblem],0
 
-	// start by resetting all the vehicle type data
-	push ebp
-	push esi
-
-	call inforeset
-	and dword [extrachunksloaded1],0	// indicate that extra data are no longer valid
-	and dword [grfidlistnum],0	// clear list of GRF IDs
-	mov byte [activatedefault],0	// don't activate by default if we have no grf id list block
-
-	call setvehiclearraysize	// probably unnecessary but just in case
-	call cleardata
-
-	pop esi
-	pop ebp
+	call preloadadjust
 
 	// load the main data
 	mov bl,0
@@ -574,8 +633,6 @@ newloadtitleproc:
 	call postloadadjust
 
  	call clearpersistenttexts	// this must be called before extra chunks are loaded
-
-	call clearairportdata
 
 	movzx ecx,word [landscape3+ttdpatchdata.extrachunks]
 
@@ -683,9 +740,9 @@ newloadtitleproc:
 	call adjustscheduleptrs
 #endif
 
-	mov edx,loadremovedvehs
-	and dword [edx],byte 0
-	and word [byte edx+loadremovedsfxs-loadremovedvehs], byte 0
+	and word [loadremovedvehs],0
+	and word [loadremovedcons],0
+	and word [loadremovedsfxs],0
 
 	imul ecx,ecx,oldvehicles
 	mov esi,dayprocnextveh
@@ -892,6 +949,13 @@ newloadtitleproc:
 	call clearindustryincargos
 
 .hasincargo:
+
+extern clearindustry2array
+
+	test byte [extrachunksloaded3],LOADED_X3_INDUSTRY2ARRAY
+	jnz .hasindustry2
+	call clearindustry2array
+.hasindustry2:
 .nonewindus:
 
 	mov byte [lastextraindustiledata],0
@@ -962,6 +1026,43 @@ newloadtitleproc:
 	bts [orighumanplayers],eax
 .enhmulti_done:
 #endif
+
+	testflags newairports
+	jnc .nonewairports
+	test byte [extrachunksloaded2],LOADED_X2_NEWAIRPORTLIST
+	jnz .haveairportdataids
+
+	call clearairportdataids
+.haveairportdataids:
+.nonewairports:
+
+	// check landscape8 array
+	cmp dword [landscape8_ptr],0
+	jle .no_l8
+	test byte [extrachunksloaded3],LOADED_X3_L8ARRAY
+	jnz .l8_ok
+	call landscape8clear
+.l8_ok:
+	call landscape8init
+.no_l8:
+
+	// check tracing restriction
+	test BYTE [robjgameoptionflag],1
+	jz .robj_loadend
+	test byte [extrachunksloaded3],LOADED_X3_ROBJARRAY
+	jnz .robj_loadend
+	call clearrobjarrays
+.robj_loadend:
+
+	testflags newobjects
+	jnc .nonewobjects
+	test byte [extrachunksloaded3],LOADED_X3_OBJECTDATAID
+	jnz .haveobjectsdataids
+	extcall clearobjectdataids
+.haveobjectsdataids:
+.nonewobjects:
+
+	call updategamedata
 	
 	// looks like it's all. Whew!
 
@@ -971,6 +1072,11 @@ newloadtitleproc:
 
 	call infoapply
 	call updatevehvars
+
+	testflags fifoloading
+	jnc .nofifo
+	extcall buildloadlists
+.nofifo:
 
 	// finally make sure all vehicles have correct new sprites
 	// in case newgrf.txt has changed
@@ -991,11 +1097,18 @@ newloadtitleproc:
 ; endp newloadproc
 
 
+// Called after loading a savegame/scenario or after generating a random game
+//
+exported updategamedata
+	extern followvehicleidx
+	or dword [followvehicleidx],byte -1	// reset followvehicle
+	ret
+
+
 // Delete an entire consist from the vehicle array
 //
 // in:	eax->veharray
 //	ecx->vehicle within consist
-//	edx->loadremovedvehs
 // uses:esi
 global deleteconsist
 deleteconsist:
@@ -1010,14 +1123,14 @@ deleteconsist:
 
 	cmp byte [esi+veh.class],0x14
 	jae short .delspec
-	inc word [byte edx+loadremovedcons-loadremovedvehs]
+	inc word [loadremovedcons]
 
 .delloop:
-	inc word [edx]
+	inc word [loadremovedvehs]
 	jmp short .delschedule
 
 .delspec:
-	inc word [byte edx+loadremovedsfxs-loadremovedvehs]
+	inc word [loadremovedsfxs]
 
 .delschedule:
 	cmp dword [esi+veh.scheduleptr],byte -1
@@ -1123,6 +1236,12 @@ canhavettdvehdata:
 canhavepatchconfig:
 canhaveoptionaldata:		// generic label
 	testflags saveoptdata
+	ret
+
+// All query functions that are always available go here
+canhavepersgrfdata:
+canalwayshavedata:		// generic label
+	stc
 	ret
 
 // Query functions for optional chunks that depend on other features as well as saveoptdata
@@ -1240,6 +1359,34 @@ loadsavettdvehdata:
 	xchg eax,ebx
 	jmp skipchunkonload		// for now we don't indicate this condition; perhaps we should
 					// also, this relies on skipchunkonload doing nothing when EAX=0...
+
+// and same for persistent GRF data (in persgrfdata struct)
+loadpersgrfdata:
+	xor ebx,ebx
+	mov ecx,persgrfdatastruc_size
+	sub ecx,eax
+	jae .nottoomuch
+
+	add eax,ecx
+	sub ebx,ecx
+
+.nottoomuch:
+	jmp short loadsavepersgrfdata
+
+savepersgrfdata:
+	mov eax,persgrfdatastruc_size
+	call savechunkheader
+	xor ebx,ebx
+
+loadsavepersgrfdata:
+	extern persgrfdata
+	mov esi,persgrfdata
+	xchg ecx,eax
+	call ebp
+	xchg eax,ebx
+	test eax,eax
+	jnz skipchunkonload
+	ret
 
 
 canhaveoldgrfidlist:	// old style, only load, don't save
@@ -1500,7 +1647,7 @@ loadlandscape7array:
 	jne .notoldformat
 	mov dword [l7switches],L7_HIGHERBRIDGES
 	xchg eax,ecx
-	jmp short loadsavelandscape7array.oldformat
+	jmp loadsavelandscape7array.oldformat
 
 .notoldformat:
 	cmp eax,0x10000+4
@@ -1532,6 +1679,10 @@ savelandscape7array:
 	jnc .nonewstations
 	or ecx,L7_NEWSTATIONS
 .nonewstations:
+	testflags tracerestrict
+	jnc .notracerestriction
+	or ecx,L7_TRACERESTRICTION
+.notracerestriction:
 
 	mov [l7switches],ecx
 
@@ -1626,7 +1777,6 @@ saveanimtiles:
 	mov esi, [newanimarray]
 	jmp ebp
 		
-
 // Query, load and save functions for the newshistory array
 canhavenewshistory:
 	mov eax,[newshistoryptr]
@@ -1653,6 +1803,7 @@ loadsavenewshistory:
 canhaveindustrymap:
 canhaveindustileidmap:
 canhaveinduincargodata:
+canhaveindustry2array:
 
 	testflags newindustries
 	ret
@@ -1683,12 +1834,12 @@ loadsaveindustileidmap:
 	ret
 
 loadindustrymap:
-	cmp eax,8*NINDUSTRIES
+	cmp eax,8*NINDUSTRYTYPES
 	jne badchunk
 	jmp short loadsaveindustrymap
 
 saveindustrymap:
-	mov eax,8*NINDUSTRIES
+	mov eax,8*NINDUSTRYTYPES
 	call savechunkheader
 
 loadsaveindustrymap:
@@ -1735,7 +1886,7 @@ savestation2array:
 	xor ecx,ecx
 	testflags fifoloading
 	jnc .nofifoloading
-	or ecx,S2_FIFOLOADING
+	or ecx,S2_FIFOLOADING2
 .nofifoloading:
 	testflags generalfixes
 	jnc .nocatchment
@@ -1752,6 +1903,12 @@ savestation2array:
 	jnc .noirrstations
 	or ecx,S2_IRRSTATIONS
 .noirrstations:
+
+	testflags stationsize
+	jnc .nostationsize
+	or ecx,S2_STATIONSIZE
+.nostationsize:
+
 	mov [station2switches],ecx
 
 loadsavestation2array:
@@ -1770,12 +1927,12 @@ loadsavestation2array:
 	ret
 
 loadinduincargodata:
-	cmp eax,8*90
+	cmp eax,8*NUMINDUSTRIES
 	jne badchunk
 	jmp short loadsaveinduincargodata
 
 saveinduincargodata:
-	mov eax,8*90
+	mov eax,8*NUMINDUSTRIES
 	call savechunkheader
 
 loadsaveinduincargodata:
@@ -1784,6 +1941,24 @@ loadsaveinduincargodata:
 	call ebp
 
 	or byte [extrachunksloaded2],LOADED_X2_INDUINCARGO	// meaningless when saving
+	ret
+
+loadindustry2array:
+	cmp eax,NUMINDUSTRIES*industry2_size
+	jne badchunk
+	jmp short loadsaveindustry2array
+
+saveindustry2array:
+	mov eax,NUMINDUSTRIES*industry2_size
+	call savechunkheader
+
+loadsaveindustry2array:
+	xchg ecx,eax
+extern industry2arrayptr
+	mov esi,[industry2arrayptr]
+	call ebp
+
+	or byte [extrachunksloaded3],LOADED_X3_INDUSTRY2ARRAY
 	ret
 
 canhavenewcargotypes:
@@ -2010,8 +2185,31 @@ loadsavenewairporttypes:
 	xchg ecx,eax
 	mov esi,airportdataidtogameid
 	call ebp
+	or byte [extrachunksloaded2],LOADED_X2_NEWAIRPORTLIST
 	ret
 
+canhaveobjectidmap:
+	testflags newobjects
+	ret
+
+loadobjectidmap:
+	cmp eax,idf_dataid_data_size*NOBJECTS
+	jne badchunk
+	jmp short loadsaveobjectidmap
+
+saveobjectidmap:
+	mov eax,idf_dataid_data_size*NOBJECTS
+	call savechunkheader
+
+loadsaveobjectidmap:
+	xchg ecx,eax
+	extern objectsdataiddata
+	mov esi,objectsdataiddata
+	call ebp
+	or byte [extrachunksloaded3],LOADED_X3_OBJECTDATAID
+	ret
+
+	
 //
 // End of extra chunk load/save/query functions
 //
@@ -2279,6 +2477,8 @@ ovar endofloadtarget,-4
 	mov [esi],eax			// store the original vehicle array multiplier
 	mov eax,[loadremovedvehs]
 	mov [esi+2],eax
+	mov eax,[loadremovedcons]
+	mov [esi+4],eax
 	mov eax,[loadremovedsfxs]
 	mov [esi+6],eax			// upper word irrelevant
 
@@ -2342,8 +2542,18 @@ grferror:	// error while loading graphics
 	mov eax,[spriteerrorparam]
 	mov [textrefstack+4],eax
 
-	mov bx,ourtext(grfloaderror)
 	mov dx,[operrormsg2]
+	cmp dx,ourtext(grfbefore)
+	je .beforeafter
+	cmp dx,ourtext(grfafter)
+	jne .notbeforeafter
+
+.beforeafter:	// for before/after message, errparam is a string pointer
+	mov word [textrefstack+2],statictext(special2)
+	mov [specialerrtext2],eax
+
+.notbeforeafter:
+	mov bx,ourtext(grfloaderror)
 
 .showmsg:
 	mov [specialerrtext1],esi
@@ -2473,4 +2683,66 @@ adjaivehicleptrssave:
 	add eax,oldveharray_abs
 
 .done:
+	ret
+
+
+// Query, load and save functions for the landscape8 array
+canhavelandscape8array:
+	mov eax, landscape8
+	shl eax, 1
+	cmc
+	ret
+
+loadlandscape8array:
+	cmp eax, 0x20000+4
+	jne badchunk
+	call loadsavelandscape8array
+	ret
+
+savelandscape8array:
+	mov eax, 0x20000+4
+	call savechunkheader
+	xor ecx, ecx
+// Patches which use this should go in here
+
+	mov [l8switches], ecx
+
+loadsavelandscape8array:
+	xor ecx, ecx
+	mov cl, 4
+	sub eax, ecx
+	push eax
+	mov esi, l8switches
+	call ebp
+	pop ecx
+	mov esi, landscape8
+	call ebp
+
+	ret
+
+// In:	CF=0 for loading, CF=1 for saving
+// Out:	CF=1 if chunk is to be saved/loaded, CF=0 if not
+canhaverobjarray:
+	mov al, [robjgameoptionflag]
+	jnc .load
+	and al, [robjflags]
+	.load:
+	rcr al,1
+	ret
+
+
+loadrobjarray:
+	cmp eax, 0x22010
+	jne badchunk
+	jmp loadsaverobjarray
+
+saverobjarray:
+	mov eax, 0x22010
+	call savechunkheader
+
+loadsaverobjarray:
+	mov ecx,eax
+	mov esi, robjflags
+	call ebp			//ecx=num bytes, esi=data ptr
+	or BYTE [extrachunksloaded3],LOADED_X3_ROBJARRAY
 	ret

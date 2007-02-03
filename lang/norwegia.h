@@ -47,10 +47,10 @@ SETTEXT(LANG_WRONGVERSION, "\n"
 	"          dersom det slÜr feil, vil TTD motta en beskyttelsesfeil og avslutte.\n"
 	"\n"
 	"          Avhengig av hvor godt operativsystemet ditt handterer en GPF, kan\n"
-	"          dette fõre til at maskinen din henger. Du kan miste data. "
-/***/	"          Please read\n"
-/***/	"          the \"Version Trouble\" section in the TTDPatch manual for more\n"
-/***/	"          information.\n"
+	"		dette fõre til at maskinen din henger. Du kan miste data. \n"
+	"          Vennligst les\n"
+	"          \"Version Trouble\"kapittel i TTDPatch-manualen for mer\n"
+	"          informasjon.\n"
 	"\n"
 	"Svar 'j' bare hvis du virkelig vet hva du gjõr. DU HAR BLITT ADVART!\n"
 	"Vil du starte TTD allikevel? ")
@@ -76,11 +76,11 @@ SETTEXT(LANG_WARNVERSION, "ADVARSEL: Ukjent versjon!\n")
 // TTDLOAD.OVL doesn't exist
 SETTEXT(LANG_OVLNOTFOUND, " ikke funnet, leter etter orginalfilene:\n")
 
-// (DOS) neither do tycoon.exe or ttdx.exe.  %s is TTDX.EXE
+// neither do the original files (two %s are two filenames)
 SETTEXT(LANG_NOFILESFOUND, "Fant hverken %s eller %s.\n")
 
-// (Windows) neither does GameGFX.exe.  %s is GameGFX.EXE
-SETTEXT(LANG_NOFILEFOUND, "Kunne ikke finne %s.\n")
+// default Windows language executable (american/english/french/german/spanish).exe
+SETTEXT(LANG_WINDEFLANGEXE, "AMERICAN.EXE");
 
 // Shown when copying tycoon.exe or ttdx.exe (first %s) to ttdload.ovl (2nd %s)
 SETTEXT(LANG_SHOWCOPYING, "Kopierer %s til %s")
@@ -156,12 +156,6 @@ SETTEXT(LANG_LOADCUSTOMTEXTS, "Laster modifiserte spill-tekster.\n")
 // ttdpttxt.dat is not in a valid format
 SETTEXT(LANG_CUSTOMTXTINVALID, "Lese %s: Ugyldig filformat.\n")
 
-SETTEXT(LANG_CUSTOMTXTWRONGVER,
-	"%s mÜ bygges om for denne versjonen av TTDPatch.\n"
-	"Last ned og kjõr det siste mkpttxt.exe programmet.\n")
-
-
-
 
 //-----------------------------------------------
 //   COMMAND LINE HELP (-h)
@@ -185,12 +179,13 @@ TEXTARRAY(halflines,) =
 	  "-n:  Ny handtering av non-stop",
 	  "-q:  Regulert laste/lossetidsalgoritme",
 	  "-s:  Muliggjõre juksing med skilt",
+	  "-u:  Effektiviserer multiplayer spill",
 	  "-v:  Liste ut valgene nÜr de aktiveres",
 	  "-w:  SlÜ pÜ pre-signal-oppsett",
 	  "-y:  Skippe spõrsmÜl om ukjent versjon",
 	  "-z:  Mammut-tog (126 vogner)",
 
-     "-2:  Noen Windows 2000 patcher",
+     "-2:  Windows 2000/XP-kompatibilitet",
 
 	  "-B:  Tillate lengre bruer",
 	  "-D:  Dynamitt kan õdelegge flere ting",
@@ -198,6 +193,7 @@ TEXTARRAY(halflines,) =
 	  "-F:  'Full load' betyr hvilken type",
 	  "     last som helst",
 	  "-G:  Valgbare godstyper pr stasjon",
+	  "-H: Lagetr pÜ bestilling bro f®rer",
 	  "-I:  SlÜ av inflasjon",
 	  "-J:  Tillat flere flyplasser pr by",
 	  "-L:  LÜn/tilbakebetal maks med 'Ctrl'",
@@ -207,45 +203,62 @@ TEXTARRAY(halflines,) =
 	  "-R:  Busser/biler stiller seg i kõ",
 	  "-S:  Nye skipsmodeller",
 	  "-T:  Nye togmodeller",
-	  "-Z:  Lite-minne-versjon (3.5MB)",
 
 	  "-Xb: Mulighet for Ü bestikke",
 	  "     lokale myndigheter",
-	  "-Xd: Legg til depoer i kjõreordrene",
+	  "-Xd: Legg til depoter i kjõreordrene",
 	  "-Xe: Evig spill etter 2070",
 	  "-Xf: 'Feeder service' ved",
 	  "      tvunget lossing",
 	  "-Xg: Trinnvis lasting av kjõretõy",
+	  "-Xh: Ny bybygninger",
 	  "-Xi: Ingen industri gÜr konkurs med",
 	  "     'stable economy' instillingen",
+	  "-Xl: Bygger kanaler og sluser",
 	  "-Xm: Mulighet for Ü laste et spill",
 	  "     i programmenyen",
 	  "-Xo: 'Skiltjuks' koster penger",
+	  "-Xp: Ny prestasjonskalkulasjon",
 	  "-Xr: Bygg alltid opp igjen TTDLOAD.OVL",
 	  "-Xs: Vis farten i statuslinjen",
 	  "-Xw: Utvidet fõr-signal oppsett",
      "-Xx: Lagre og laste ekstra data",
 
 	  "-XA: Tvunget auto-fornying med -Xa",
+	  "-XB: Muliggjõr konstruksjon",
+	  "     i pausemodus",
 	  "-XE: Elektrisk jernbane",
 	  "-XF: SlÜ pÜ eksperimentelle egenskaper",
-	  "-XG: Alltid last inn all ny grafikk",
+	  "-XH: SUntatt+viser nyhetshistorie",
+  "-XI: Muliggjõr stibaserte signaler",
+	  "-XL: Viser profitt i kjõretõyliste",
+	  "-XO: Muliggjõr delte/kopierte ordre",
 	  "-XP: Nye flymodeller",
 	  "-XR: Nye kjõretõy",
 	  "-XS: Administrere datterselskap",
+	  "-XZ: Lite-minne-versjon (3.5MB)",
   	  "-Ya: Mer tolerant Anseelse (rating)",
   	  "     til kjõretõy- og vognalder",
 
 	  "-Yb: Bygge mer pÜ bakker og skrÜninger",
 	  "-Yc: Sportyper har forskj. kostnader",
+	  "-Yd: Nye broer",
+	  "-Yg: Foranderlig spillfart",
+	  "-Yh: Tillater hõye broer",
 	  "-Ym: Tillat manuell sporombygging",
+	  "-Yn: Muliggjõr ny stasjonsgrafikk",
 	  "-Ys: Jernbanesignaler pÜ samme side",
 	  "     som kjõreretning pÜ vei",
 	  "-Yt: Vis mer statistikk i byvinduet",
 	  "-Yw: Raskere salg av vogner",
 
 	  "-YC: Bygg rett pÜ kystlinjen",
+	  "-YD: forbedrede",
+	  "     vanskelighetsgradsinnstillinger",
+	  "-YF: FIFO innlasting",
 	  "-YH: Flere/nye hurtigtaster",
+	  "-YL: Fart begrenser for linjevogner",
+	  "-YN: Muliggjõr nye bynavn",
 	  "-YP: Flyene flyr i gitt hastighet",
 	  "-YS: Semaforflagg fõr 1975",
 
@@ -261,29 +274,41 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-x #:    ùk kjõretõytabellen til 850*#. Les dokumentasjonen!\n"
 	  "-mc #:   Ny handtering av fjell (m) eller svinger (c)\n"
 	  "-trpb #: ùk antall tog (t), biler (r), fly (p) eller skip (s).\n"
-	  "-A #:    Gjõr AI # trinn smartere. Bruk kun smÜ verdier.\n"
 	  "-M #:    Tillat fler-hodet tog, og sett fartsõkning i prosent.\n"
+	  "-U #:    Muliggjõr den nye Locomotion-GUIen. 1 for ny gui uten ctrl.\n"
      "-Xa #:   Automatisk forny kjõretõy # mÜneder fõr de blir gamle\n"
      "-Xc #:   Kontroller hvor ofte flyene havarerer\n"
 	  "-Yr #:   Modifiser tog/bil kollisjoner til type (1/2)\n"
 	  "-Xt #:   Sett den maksimale stõrrelsen en by kan vokse til\n"
+	  "-Xv #:   sorterer kjõretõylistene og setter tiden mellom to oppdateringer\n"
+	  "-Xz #:   \"Limer\" vinduer sammen\n"
 	  "-XC #:   Tillat flere valutaer, og sett visningsmodus\n"
 	  "-XD #:   Velg hvilke katastrofer som kan inntreffe\n"
-	  "-XM #:   Kombiner monorail og maglev sporsystemer \n"
+	  "-XN #:   TTD-avis i farger etter gitt Ürstall\n"
+	  "-XM #:   Kombiner monorail- og maglev-sporsystemer \n"
 	  "-XT #:   Bestemme en av hvor mange byer som blir stõrre\n"
-	  "-XX #:   Ny monorail og maglev fart pÜ brua, gitt i prosent av maks fart\n"
-	  "-XY #:   Sette startÜret for nye random spill\n"
+	  "-XX #:   Ny monorail- og maglev-hastighet pÜ brua, gitt i prosent av maks fart\n"
+	  "-XY #:   Sette startÜret for nye random-spill\n"
+	  "-XW #:   Strekker TTDs vindu til denne stõrrelsen i piksler (kun Windows-versjon)\n"
 	  "-X1 #, -X2 #: Hvor mange dager et tog venter pÜ henholdsvis\n"
+	  "-Yf #:  FÜr frakt til frakt mere massiv ved den gitt faktor\n"
+	  "-Yl #:  Muliggjõr mushjulstõtte og faste alternativer (Windows versjon bare)\n"
   	  "              enveis- eller toveis-signaler\n"
 	  "-Yo #:   Kontrollere noen muligheter for andre brytere (se dokumentasjonen)\n"
-	  "-Yp #:   Tillat Ü plante flere trër, velg plantemodell\n"
+	  "-Yp #:   Tillat Ü plante flere trër, velg plantemodus\n"
+	  "-YA #:   Forlatte veier mister sine eiere, velger modus med parameter\n"
 	  "-YB #:   Flere byggemuligheter, velg muligheter\n"
-	  "-YE #:   Sette hvor mange sekunder den rõde feilmeldingsboksen vises\n"
+	  "-YE #:   Sette hvor mange sekunder feilmeldingsboksen vises\n"
+	  "-YM #:   Viser flere (eller fërre) damp-'bobler', verdi setter mengde\n"
 	  "-YG #:   Forbedre brukergrensesnittet, velg mulighet med parameter\n"
-	  "-YT #:   Sette byvekts algoritme\n"
+	  "-YO #:   Muliggjõr snõ i temperert klima og setter snõhõyden\n"
+	  "-YR #:   Oversiktskartets oppdateringssekvens i ticks\n"
+	  "-YT #:   Sette byvekts-algoritme\n"
+	  "-YW #:  Setter maksimum antall Üpne vinduer\n"
 	  "\n"
 	  "-C cfg-fil:  Bruk denne cfg-fila i stedet for ttdpatch.cfg\n"
 	  "-W cfg-fil:  Oppretter en cfg-fil med gjeldende konfigurasjon\n"
+	  "-Xn cfg-fil: Bruker dette arkiv som konfigurasjonsarkiv for ny grafikksett\n"
 	  "\n"
 	  "SmÜ og store bokstaver er viktig!\n"
 	  "\n"
@@ -306,6 +331,9 @@ SETTEXT(LANG_UNKNOWNSTATE, "Advarsel: Ukjent pÜ/av-status %s, slÜs av.\n")
 // switch is unknown.  %c is '-' or '/' etc, %s is the switch char
 SETTEXT(LANG_UNKNOWNSWITCH, "Ukjent valg '%c%s'.  Bruk -h for hjelp.\n")
 
+// switch bit name is unknown.  First %s is bit name, 2nd is switch name
+SETTEXT(LANG_UNKNOWNSWITCHBIT, "Unknown bit '%s' for switch '%s'.\n")
+
 // cfg command %s is unknown
 SETTEXT(LANG_UNKNOWNCFGLINE, "Advarsel: Ugyldig cfg-linje '%s'.\n")
 
@@ -316,8 +344,8 @@ SETTEXT(LANG_UNKNOWNCFGLINE, "Advarsel: Ugyldig cfg-linje '%s'.\n")
 // the expansion of the %d can be for that switch.
 SWITCHTEXT(uselargerarray, "ùk totalt ant. kjõretõy", " til %d*850")
 SWITCHTEXT(usenewcurves, "Ny svinghandtering", " for %04x")
-SWITCHTEXT(usenewmountain, "Ny fjellhandtering", " for %04x")
-SWITCHTEXT(usenewnonstop, "Ny non-stop-handtering", "")
+SWITCHTEXT(usenewmountain, "Ny bakkehÜndtering", " for %04x")
+SWITCHTEXT(usenewnonstop, "Ny non-stop-hÜndtering", "")
 SWITCHTEXT(increasetraincount, "Nytt togantall", ": %d")
 SWITCHTEXT(increaservcount, "Nytt bilantall", ": %d")
 SWITCHTEXT(setnewservinterval, "Nytt std service-int", ": %d dager")
@@ -337,7 +365,7 @@ SWITCHTEXT(noinflation, "SlÜ av inflasjon", "")
 SWITCHTEXT(maxloanwithctrl, "Maks lÜn/tilbakebetal med 'Ctrl'", "")
 SWITCHTEXT(persistentengines, "Alltid tilgj. lokomotiver", "")
 SWITCHTEXT(fullloadany, "'Full load' betyr uansett last", "")
-SWITCHTEXT(selectstationgoods, "Valgbare godstyper pr stasjon", "")
+SWITCHTEXT(selectstationgoods, "Valgbare godstyper pr stasjon", " for %d days")
 SWITCHTEXT(morethingsremovable, "Spreng flere ting", "")
 SWITCHTEXT(multihead, "Flere lokomotiver pr tog", "")
 SWITCHTEXT(newlineup, "Biler stiller seg i kõ", "")
@@ -345,7 +373,7 @@ SWITCHTEXT(lowmemory, "Lite-minne-versjon (3.5MB)", "")
 SWITCHTEXT(generalfixes, "Generelle modifikasjoner (se dok)", "")
 SWITCHTEXT(moreairports, "Flere flyplasser pr by", "")
 SWITCHTEXT(bribe, "Vis mulighet for bestikkelse", "")
-SWITCHTEXT(noplanecrashes, "Flykrasjkontroll", ": %d")
+SWITCHTEXT(noplanecrashes, "Flykrësjkontroll", ": %d")
 SWITCHTEXT(showspeed, "Vis fart i statuslinjen", "")
 SWITCHTEXT(autorenew, "Autofornye kjõretõy", " ved %d mÜneder")
 SWITCHTEXT(cheatscost, "Skiltjuks koster penger", "")
@@ -369,33 +397,225 @@ SWITCHTEXT(showfulldate, "Alltid vis full dato", "")
 SWITCHTEXT(newtrains, "Nye togmodeller", "")
 SWITCHTEXT(newrvs, "Nye kjõretõymodeller", "")
 SWITCHTEXT(newplanes, "Nye flymodeller", "")
-SWITCHTEXT(signalsontrafficside, "Signaler pÜ 'trafikk'siden av sporet", "")
+SWITCHTEXT(signalsontrafficside, "Signaler pÜ 'trafikk'-siden av sporet", "")
 SWITCHTEXT(electrifiedrail, "Elektrisk jernbane", "")
 SWITCHTEXT(newstartyear, "Standard startÜr", ": %d")
-SWITCHTEXT(newerrorpopuptime, "Ny feilvindu timout", ": %d sek.")
-SWITCHTEXT(newtowngrowthfactor, "Forandre byvekst faktor", " til %d")
+SWITCHTEXT(newerrorpopuptime, "Ny feilvindu timeout", ": %d sek.")
+SWITCHTEXT(newtowngrowthfactor, "Forandre byvekst-faktor", " til %d")
 SWITCHTEXT(largertowns, "Store byer", ", hver 1 av %d")
-SWITCHTEXT(miscmods, "Diverse mods", ": %d")
+SWITCHTEXT(miscmods, "Diverse mods", ": %ld")
 SWITCHTEXT(loadallgraphics, "Alltid last all grafikk", "")
 SWITCHTEXT(saveoptdata, "Lagre og laste mer data", "")
 SWITCHTEXT(morebuildoptions, "Flere byggemuligheter", ": %d")
 SWITCHTEXT(semaphoresignals, "Semaforer fõr 1975", "")
-SWITCHTEXT(morehotkeys, "Fler/nye hurtigtaster", "")
+SWITCHTEXT(morehotkeys, "Flere/nye hurtigtaster", "")
 SWITCHTEXT(plantmanytrees, "Plante mange trër", ", modus %d")
-SWITCHTEXT(morecurrencies, "Tillat flere valuttaer", ", flagg: %d")
+SWITCHTEXT(morecurrencies, "Tillat flere valutaer", ", flagg: %d")
 SWITCHTEXT(manualconvert, "Tillat manuell sporombygging", "")
-SWITCHTEXT(newtowngrowthrate, "Ny byvekst algoritme", ": %d")
+SWITCHTEXT(newtowngrowthrate, "Ny byvekst-algoritme", ": %d")
 SWITCHTEXT(displmoretownstats, "Vis mer bystatistikk", "")
-SWITCHTEXT(enhancegui, "Forbedret brukergrensesnitt", ": %d")
+SWITCHTEXT(enhancegui, "Forbedret brukergrensesnitt", "")
 SWITCHTEXT(newagerating, "Rating mer tolerant til kj.tõyalder", "")
 SWITCHTEXT(buildonslopes, "Bygg flere ting pÜ skrÜninger", "")
 SWITCHTEXT(buildoncoasts, "Bygg rett pÜ kystlinjen", "")
-SWITCHTEXT(experimentalfeatures, "SlÜ pÜ nyeste eksperimentelle ting", ": %d")
+SWITCHTEXT(experimentalfeatures, "SlÜ pÜ nyeste eksperimentelle ting", ": %u")
 SWITCHTEXT(tracktypecostdiff, "Sportyper har forskjellig pris", "")
-SWITCHTEXT(planespeed, "Bruk reell flyfart", "")
+SWITCHTEXT(planespeed, "Bruk reell flyfart", ": %d/4")
 SWITCHTEXT(fastwagonsell, "Raskere salg av vogner", "")
 SWITCHTEXT(newrvcrash, "Forandre tog/bil ulykker"," (modus %d)")
 SWITCHTEXT(stableindustry, "Hindre stenging av industri","")
+SWITCHTEXT(newperformance, "Ny prestasjons-algoritme", "")
+SWITCHTEXT(sortvehlist, "sorterer kjõretõy", ", utsettelse: %d")
+SWITCHTEXT(showprofitinlist, "Vise profitt i kjõretõyliste", "")
+SWITCHTEXT(newspapercolour, "Aviser i farge", " etter %d")
+SWITCHTEXT(sharedorders, "Muliggjõr delte/kopierte kjõreplaner", "")
+SWITCHTEXT(moresteam, "Vise flere damp-'bobler'", ": %x")
+SWITCHTEXT(abandonedroads, "Forlatte veier mister sine eiere", ", mote %d")
+SWITCHTEXT(newstations, "Muliggjõr ny stasjonsgrafikk", "")
+SWITCHTEXT(buildwhilepaused, "Muliggjõrer bygging i pausemodus", "")
+SWITCHTEXT(losttrains, "è varsle om tapte tog", " etter %d dager")
+SWITCHTEXT(lostrvs, "è varsle om tapte veikjõretõyer", " etter %d dager")
+SWITCHTEXT(lostships, "è varsle om tapte skip", " etter %d dager")
+SWITCHTEXT(lostaircraft, "è varsle om tapte fly", " etter %d dager")
+SWITCHTEXT(maprefresh, "Ny kartoppdateringsfrekvens", ": %d merke av")
+SWITCHTEXT(disconnectontimeout, "Frakopler en nettverksspill om det ikke er noen respons", " for %d sec.")
+SWITCHTEXT(moretoylandfeatures, "Muliggjõr flere spillkjennetegn i toyland", ": %d")
+SWITCHTEXT(stretchwindow, "Strekker seg TTDs vindu", " til %d piksler")
+SWITCHTEXT(canals, "Bygger kanaler og sluser", "")
+SWITCHTEXT(higherbridges, "Tillater hõye broer", "")
+SWITCHTEXT(gamespeed, "Spillhastighet kan endres", ", starter med %d")
+SWITCHTEXT(freighttrains, "FÜr frakt til frakt mere massiv", " (x%d)")
+SWITCHTEXT(mousewheel, "Muliggjõr mushjul",", innstilling: %d")
+SWITCHTEXT(morewindows, "Tillater flere Üpne vinduer", " fõrste %d")
+SWITCHTEXT(enhanceddiffsettings, "Avanserte vanskelighetsgradsinnstillinger", "")
+SWITCHTEXT(newbridges, "Nye broer", "")
+SWITCHTEXT(newhouses, "Nye bybygninger", "")
+SWITCHTEXT(newtownnames,"Nye bynavn","")
+SWITCHTEXT(moreanimation,"Tillater mere animerte felt",", opp til %d")
+SWITCHTEXT(newshistory, "Nyhetshistorikk", "")
+SWITCHTEXT(wagonspeedlimits, "Fartsbegrensning for vogner", "")
+SWITCHTEXT(pathbasedsignalling, "Muliggjõr stibaserte signaler", "")
+SWITCHTEXT(aichoosechances, "Spesifiserer sjansen for hva KI kommer til Ü bygge", "")
+SWITCHTEXT(custombridgeheads, "Tillater bygging pÜ broramper", "")
+SWITCHTEXT(townbuildnoroads, "Byer bygger ingen veier", "")
+SWITCHTEXT(newcargodistribution, "Effektivisert varedistribusjon", "")
+SWITCHTEXT(windowsnap, "Vinduer kan 'limes' sammen", " nÜr nërmere hverandre enn %d piksler")
+SWITCHTEXT(resolutionwidth, "Horisontal opplõsning", " %d piksler")
+SWITCHTEXT(resolutionheight, "Vertikal opplõsning", " %d piksler")
+SWITCHTEXT(newindustries, "Nye industrier", "")
+SWITCHTEXT(locomotiongui, "Muliggjõr Locomotion-GUI", "")
+SWITCHTEXT(fifoloading, "Muliggjõr fõrst-inn-fõrst-ut-lastemodus", "");
+SWITCHTEXT(tempsnowline, "Muliggjõr snõ i temperert klima", "")
+SWITCHTEXT(townroadbranchprob, "Endrer sannsynligheten for at en by bygger en ny veigren", " til %d")
+SWITCHTEXT(newcargos, "Tillater nye typer varetyper", "")
+SWITCHTEXT(enhancemultiplayer, "Effektiviserer multiplayer-spill (tillater flere spillere)", "")
+SWITCHTEXT(newsounds, "Tillater nye lyder i spillet", "")
+SWITCHTEXT(morestats, "Muliggjõr innsamling av mere statistikk", "")
+SWITCHTEXT(onewayroads, "Tillater bygging av enveiskjõrte veier med 'Ctrl'", "")
+SWITCHTEXT(irrstations, "Tillat bygging av irregulëre stasjoner", "")
+SWITCHTEXT(autoreplace, "Oppgrader gamle kjõretõy", "; %d%% min. pÜlitelighet for ny modell ")
+SWITCHTEXT(autoslope, "Tillater terraforming uten Ü fjerne bygninger", "")
+SWITCHTEXT(followvehicle, "Fõlg kjõretõy i hovedvisning", "")
+SWITCHTEXT(trams, "Tillat trikkeskinner", "")
+SWITCHTEXT(enhancetunnels, "Tillat bygging av spor oppÜ tunnelinnganger", "")
+SWITCHTEXT(forcegameoptions, "Muligjõr tvungne spillinnstillinger","")
+
+//---------------------------------------
+//  BIT SWITCH DESCRIPTIONS
+//---------------------------------------
+
+// Description for noplanecrashes bits
+BITSWITCH(noplanecrashes)
+BIT(normdis,      "normale flykrësj av hvis katastrofer skrudd av")
+BIT(jetsdis,      "jetflykrësj pÜ smÜ flyplasser hvis katastrofer skrudd av")
+BIT(normbrdown,   "normale flykrësj pÜ kun for skadde fly, rate * 4")
+BIT(jetssamerate, "samme rate for jetfly pÜ smÜ flyplasser og normale krësj")
+BIT(normoff,      "normale flykrësj av")
+BIT(jetsoff,      "jetflykrësj pÜ smÜ flyplasser av")
+
+// Description for miscmods bits
+BITSWITCH(miscmods)
+BIT(nobuildonbanks,        "byer bygger ikke pÜ vannbanker")
+BIT(servintonlyhuman,      "servint-innstilling gjelder ikke KI-spiller")
+BIT(noroadtakeover,        "byer overtar ikke alle veier i scenario-editoren")
+BIT(gradualloadbywagon,    "gradvis lasting vogn etter vogn fõrst")
+BIT(dontfixlitres,         "ikke endre liter slik at 1000l er 1 tonn istedetfor 100l")
+BIT(dontfixtropicbanks,    "ikke fiks banktyper i subtropisk klima")
+BIT(dontfixhousesprites,   "ikke fiks kontorer vist som kirker")
+BIT(oldtownterrmodlimit,   "ikke endre hõyeste kostnad for byer Ü modifisere terreng")
+BIT(nozeppelinonlargeap,   "hindre Zeppeliner i Ü krësje pÜ store flyplasser")
+BIT(nodefaultoldtracktype, "ikke bruk forrige sportype som ny standard")
+BIT(usevehnnumbernotname,  "ikke endre nyhetsmeldinger til Ü bruke kjõretõynavn")
+BIT(norescalecompanygraph, "ikke omskaler kompanigraf nÜr kompanier blir avmarkert")
+BIT(noyearlyfinances,      "ikke vis Ürets finanser hver 1. januar")
+BIT(notimegiveaway,        "ikke prõv Ü gi bort tidsrom for Ü spare energi")
+BIT(nodesynchwarning,      "ikke advar om multiplyer-spill som mister sync")
+BIT(noworldedgeflooding,   "ikke la kanten av kartet oversvõmmes")
+BIT(doshowintro,           "vis spill-intro (ikke hopp over den)")
+BIT(nonewspritesorter,     "ikke bruk den nye sprite-sorterings-algoritmen")
+BIT(nodiagonalflooding,    "ikke tillat diagonal oversvõmming og hjõrnekyster")
+BIT(noenhancedcomp,        "ikke forbedre komprimeringsalgoritmen til lagrede spill")
+BIT(breakdownatsignal,     "ikke fiks tog som bryter sammen mens de venter pÜ grõnt lys")
+BIT(smallspritelimit,      "ikke õk maks. antall sprites")
+BIT(displaytownsize,       "hvis stõrrelse pÜ byen i navnet")
+BIT(noextendstationrange,  "ikke õk maks. avstand mellom stasjonsskilt og industrien som varene skal leveres til")
+BIT(nooldvehiclenews,      "ikke lag nyhetsmeldinger om gamle kjõretõy")
+BIT(dontfixpaymentgraph,   "ikke fiks X-aksen til varepristabellen")
+//BIT(loaduntilgreen,        "fortsett Ü laste pÜ stasjonen mens det er rõdt lys")
+BIT(dontshowaltitude,      "ikke vis hõyde i feltinfovinduet")
+BIT(nogrfidsinscreenshots, "ikke vis aktive GRF-IDer i screenshots")
+BIT(dontchangesnow,        "ikke endre hvordan hõyde blir beregnet for snõmengde")
+
+// Description for morebuildoptions bits
+BITSWITCH(morebuildoptions)
+BIT(ctunnel,         "tillat kryssende tunneler")
+BIT(oilrefinery,     "tillat oljeraffinerier overalt")
+BIT(moreindustries,  "tillat mer enn en industri av samme type")
+BIT(removeobjects,   "tillat fjerning av statuer, fyrtÜrn og radiomaster")
+BIT(removeindustry,  "tillat fjerning av industrier")
+BIT(closeindustries, "tillat samme type industri nërt hverandre")
+BIT(enhancedbuoys,   "tillat bõyer som fungerer som vanlige stasjoner")
+BIT(bulldozesignals, "fjern signaler pÜ spor automatisk")
+
+// Description for experimentalfeatures bits
+BITSWITCH(experimentalfeatures)
+BIT(slowcrossing, "tog senker farten foran plankryss")
+BIT(cooperative,  "kooperativ spillmodus, veldig begrenset")
+BIT(mandatorygrm, "gjõr GRF Resource Management obligatorisk for .grf-filer")
+
+// Description for maskdisasters bits
+BITSWITCH(maskdisasters)
+BIT(zeppelincrash,      "tillat zeppelinkrësj")
+BIT(smallufo,           "tillat liten UFO")
+BIT(refineryexplosion,  "tillat raffinerieksplosjon")
+BIT(factoryexplosion,   "tillat fabrikkeksplosjon")
+BIT(largeufo,           "tillat stor UFO")
+BIT(smallsubmarine,     "tillat liten ubÜt")
+BIT(largesubmarine,     "tillat stor ubÜt")
+BIT(coalminesubsidence, "tillat kullgruve-innstyrtning")
+
+// Description for mousewheel bits
+BITSWITCH(mousewheel)
+BIT(cursorzoom, "zoom ved muspeker istedenfor midten av skjermen")
+BIT(safezoom,   "kun zoom etter to rull")
+BIT(legacy,     "skru pÜ stõtte for eldre (legacy-) operativsystemer og drivere (vanligvis ikke nõdvendig)")
+
+// Description for plantmanytrees bits
+BITSWITCH(plantmanytrees)
+BIT(morethanonepersquare,   "tillat planting av mer enn ett tre per felt")
+BIT(rectangular,            "tillat planting over et rektangulërt omrÜde med 'Ctrl'")
+BIT(morethanonerectangular, "mer enn ett tre per felt i rektangulër plantemodus")
+
+// Description for moretoylandfeatures bits
+BITSWITCH(moretoylandfeatures)
+BIT(lighthouses, "tillat fyrtÜrn langs kysten i toyland")
+BIT(woodlands,   "tillat skoger (ansamlinger av trër) i toyland")
+
+// Description for locomotiongui bits
+BITSWITCH(locomotiongui)
+BIT(usenewgui,      "skru pÜ det nye brukergrensesnittet")
+BIT(defaultnewgui,  "bruk det nye grensesnittet som standard (nÜr dette er skrudd av kan det nye grensesnittet bli nÜdd med ctrl, nÜr skrudd pÜ brukes ctrl for Ü nÜ det gamle grensesnittet)")
+BIT(defaultstation, "gjõr til at \"Bygg stasjon \"-knappen Üpner Locomotion-grensesnittet for stasjonsbygging")
+
+// Description for pathbasedsignalling bits
+BITSWITCH(pathbasedsignalling)
+BIT(autoconvertpresig,    "konverter fõr-, utgangs-, og kombinerte signaler til PBS-signaler")
+BIT(manualpbssig,         "tillat manuell setting av PBS-signaler")
+BIT(preservemanualpresig, "ikke konverter kryss med manuelt satte signaler til PBS")
+BIT(showreservedpath,     "vis reserverte spor mõrkere")
+BIT(shownonjunctionpath,  "vis reserverte spor ogsÜ pÜ felt uten kryss")
+BIT(allowunsafejunction,  "ikke stopp tog ved usikre PBS-signaler")
+BIT(allowunsafereverse,   "ikke stopp tog som ikke kan snu pÜ en trygg mÜte")
+
+// Description for newsounds bits
+BITSWITCH(newsounds)
+BIT(highfrequency, "(kun DOS) Miks lyder som 22KHz istedetfor standarden 11KHz. Tillater korrekt avspilling av samplingger pÜ 22KHz.")
+
+// Description for morecurrencies bits
+BITSWITCH(morecurrencies)
+BIT(symbefore, "alltid vis valutasymbol fõr nummmeret")
+BIT(symafter,  "alltid vis valutasymbol etter nummeret")
+BIT(noeuro,    "ikke introduser euroen")
+BIT(comma,     "alltid bruk komma som tusenskilletegn")
+BIT(period,    "alltid bruk punktum som tusenskilletegn")
+
+// Description for forcegameoptions bits
+BITSWITCH(forcegameoptions)
+BIT(trafficleft,	"tvungen trafikk pÜ venstre side av veien")
+BIT(trafficright,	"tvungen trafikk pÜ hõyre side av veien")
+BIT(imperial,		"tvungen bruk av imperielle (miles) avstandsenheter")
+BIT(metric,		"tvungen bruk av metriske (kilometer) avstandsenheter")
+BIT(townsenglish,	"bruk engelske bynavn")
+BIT(townsfrench,	"bruk franske bynavn")
+BIT(townsgerman,	"bruk tyske bynavn")
+BIT(townsamerican,	"bruk amerikanske bynavn")
+BIT(townslatin,		"bruk latin-amerikanske bynavn")
+BIT(townssilly,		"bruk useriõse bynavn")
+BIT(autosavedisabled,	"skru av autolagringsfunksjonen")
+BIT(autosave3months,	"autolagring hver 3. mÜned")
+BIT(autosave6months,	"autolagring hver 6. mÜned")
+BIT(autosave12months,	"autolagring hver 12. mÜned")
+
 SWITCHTEXT(morenews, "Nyheter om flere hendelser", "")
 
 
@@ -406,7 +626,7 @@ SETTEXT(LANG_CFGFILENOTFOUND, "Kunne ikke finne cfg-fila %s.  Ignorert.\n")
 SETTEXT(LANG_CFGFILENOTWRITABLE, "Kunne ikke Üpne %s for skriving.\n")
 
 // A non-comment line is longer than 32 chars, rest ignored.
-SETTEXT(LANG_CFGLINETOOLONG, "Advarsel! Konfigurasjonslinjen er lengre enn 32 tegn, avkortet.\n")
+SETTEXT(LANG_CFGLINETOOLONG, "Advarsel! Konfigurasjonslinjen er lengre enn 32 tegn, forkortet.\n")
 
 // Shown if an obsolete switch is used. First option is %s which is the
 // config name, second one is %s which is the command line char
@@ -445,7 +665,7 @@ SETTEXT(CFG_NEWSWITCHINTRO, "**** Nye brytere ****")
 // For switches which have no command line equivalent
 SETTEXT(CFG_NOCMDLINE, "kommandolinjebryter ikke tilgjengelig")
 
-// Definitions of the cfg file comments.
+// 
 // All can have a place holder %s to stand for the actual setting name,
 // and all but CFG_CDPATH can have a %s *after* the %s for the command
 // line switch.
@@ -470,14 +690,13 @@ SETTEXT(CFG_PRESIGNALS, "`%s' (%s) tillater bruken av 'fõr-signaler' for Ü forbe
 SETTEXT(CFG_MOREVEHICLES, "`%s' (%s) õker totalt antall kjõretõy til verdi*850.  Intervall %ld..%ld.  Standard %ld.")
 SETTEXT(CFG_MAMMOTHTRAINS, "`%s' (%s) tillater mammut-tog med opptil 126 vogner.")
 SETTEXT(CFG_FULLLOADANY, "`%s' (%s) fÜr et tog til Ü dra fra stasjonen dersom det er fullt av en hvilken som helst last.")
-SETTEXT(CFG_SELECTGOODS, "Med `%s' (%s) ankommer gods kun etter at tjenesten er startet opp.")
+SETTEXT(CFG_SELECTGOODS, "Med `%s' (%s) ankommer gods kun etter at tjenesten er startet opp, and disappear after the given number of days if the service stops.  Specifying 2 means goods never disappear.  Range: %ld..%ld.  Default: %ld.")
 SETTEXT(CFG_DEBTMAX, "`%s' (%s) slÜr pÜ lÜn/tilbakebetaling av maksimalt belõp ved Ü trykke 'Ctrl'.")
 SETTEXT(CFG_OFFICEFOOD, "`%s' (%s) gjõr at kontorbygninger tar imot mat (tropiske/arktiske scenarier).")
 SETTEXT(CFG_ENGINESPERSIST, "`%s' (%s) beholder lokomotiver sÜ lenge de er i bruk (uendelig levetid).")
 SETTEXT(CFG_CDPATH, "`%s' (%s) setter stien til CD'en.")
-// Note- CFG_CDPATH has no command line switch, so don't give %s!
+// 
 SETTEXT(CFG_KEEPSMALLAP, "`%s' (%s) beholder smÜ flyplasser gjennom hele spillet.")
-SETTEXT(CFG_AIBOOST, "`%s' (%s) õker AI sin rekursjonsevne (intelligens) med den angitte verdien.")
 SETTEXT(CFG_LONGBRIDGES, "`%s' (%s) tillater bruer som er 127 felt lange.")
 SETTEXT(CFG_DYNAMITE, "`%s' (%s) tillater sprenging av flere ting ved hjelp av dynamitt.")
 SETTEXT(CFG_MULTIHEAD, "`%s' (%s) tillater et vilkÜrlig antall lokomotiver pÜ ett tog. Kjõp ekstra lokomotiver med 'Ctrl'.")
@@ -486,7 +705,7 @@ SETTEXT(CFG_LOWMEMORY, "`%s' (%s) tillater at TTDPatch kjõrer med  3.5MB minne, 
 SETTEXT(CFG_GENERALFIXES, "`%s' (%s) generelle modifikasjoner. Se dokumentasjonen for mer info dette.")
 SETTEXT(CFG_MOREAIRPORTS, "`%s' (%s) tillater bygging av flere flyplasser enn de vanlige to pr by.")
 SETTEXT(CFG_BRIBE, "`%s' (%s) gir deg en mulighet til Ü bestikke de lokale myndighetene")
-SETTEXT(CFG_PLANECRCTRL, "`%s' (%s) tillater deg Ü kontrollere nÜr flyene har lov til Ü krasje. Bitverdi, standard 1.")
+SETTEXT(CFG_PLANECRCTRL, "`%s' (%s) tillater deg Ü kontrollere nÜr flyene har lov til Ü krasje.")
 SETTEXT(CFG_SHOWSPEED, "`%s' (%s) viser farten i vinduene til kjõretõyene.")
 SETTEXT(CFG_AUTORENEW, "`%s' (%s) fornyer kjõretõy nÜr de fÜr service sÜ mange mÜneder etter de har blitt veldig gamle.  Intervall %ld..%ld.  Standard %ld.")
 SETTEXT(CFG_CHEATSCOST, "`%s' (%s) gjõr at skilt-juks koster penger.")
@@ -502,7 +721,7 @@ SETTEXT(CFG_GRADUALLOADING, "`%s' (%s) forandrer mÜten kjõretõyene er lastet pÜ,
 SETTEXT(CFG_MOVEERRORPOPUP, "`%s' (%s) flytter alle rõde feilmeldingsvinduer til õverste hõyre hjõrne av skjermen.")
 SETTEXT(CFG_SIGNAL1WAITTIME, "`%s' (%s) endrer antall dager et tog venter ved et enveis-signal, fõr det snur. Intervall 0..254, eller 255 for Ü vente evig.")
 SETTEXT(CFG_SIGNAL2WAITTIME, "`%s' (%s) endrer antall dager et tog venter ved et toveis-signal, fõr det snur. Intervall 0..254, eller 255 for Ü vente evig")
-SETTEXT(CFG_DISASTERS, "`%s' (%s) Tillater deg Ü velge hvilke katastrofer som kan intreffe.  Bitkodet verdi, standard 255 (alle katastrofer).")
+SETTEXT(CFG_DISASTERS, "`%s' (%s) Tillater deg Ü velge hvilke katastrofer som kan intreffe.")
 SETTEXT(CFG_FORCEAUTORENEW, "`%s' (%s) tvungen service av kjõretõy nÜr det er tid for auto-utbyttingen (se `autorenew').")
 SETTEXT(CFG_MORENEWS, "`%s' (%s) genererer meldinger/nyhets-overskrifter for flere hendelser. Se dokumentasjonen for mer informasjon.")
 SETTEXT(CFG_UNIFIEDMAGLEV, "`%s' (%s) gjõr det mulig Ü kjõpe maglevtog i monoraildepoer og omvendt.  Modus: 1 - konverter alle maglevtog til monorail; 2 - konverter alle monorailtog til maglevtog; 3 - behold separat monorail og maglev.")
@@ -518,16 +737,16 @@ SETTEXT(CFG_STARTYEAR, "`%s' (%s) setter startÜret for random-spill, og gir en s
 SETTEXT(CFG_ERRORPOPUPTIME, "`%s' (%s) forandrer tiden det vil ta fõr det rõde feilmeldingsvinduet forsvinner.  Intervall 1..255 (i sekunder), eller 0 for veldig lang tid.  Standard 10.")
 SETTEXT(CFG_TOWNGROWTHLIMIT, "`%s' (%s) forandrer faktoren som bestemmer det maksimale omfanget av byene.  Intervall %ld..%ld.  Standard %ld.")
 SETTEXT(CFG_LARGERTOWNS, "`%s' (%s) gjõr at en ut av et gitt antall vokser seg stõrre (slÜr ogsÜ pÜ `towngrowthlimit').  Intervall %ld..%ld.  Standard %ld (En av fire byer).")
-SETTEXT(CFG_MISCMODS, "`%s' (%s) gjõr det mulig Ü forandre hvordan noen av bryterene fungerer. Se dokumentasjonen for mer info.  Bitverdi, standard 0 (ingen justering).")
+SETTEXT(CFG_MISCMODS, "`%s' (%s) gjõr det mulig Ü forandre hvordan noen av bryterene fungerer. Se dokumentasjonen for mer info.")
 SETTEXT(CFG_LOADALLGRAPHICS, "`%s' (%s) tvinger TTDPatch til Ü laste alle .grf files i newgrf(w).cfg, selv om de ikke har blitt brukt i et tidligere spill (etc.) eller ikke.")
 SETTEXT(CFG_SAVEOPTDATA, "`%s' (%s) gjõr at TTDPatch vil lagre og hente ekstra (valgfri) data pÜ slutten av savegamene.")
-SETTEXT(CFG_MOREBUILDOPTIONS, "`%s' (%s) slÜr pÜ fler byggemuligheter. Bitverdi, intervall %ld..%ld. Standard %ld.")
+SETTEXT(CFG_MOREBUILDOPTIONS, "`%s' (%s) slÜr pÜ fler byggemuligheter.")
 SETTEXT(CFG_SEMAPHORES, "`%s' (%s) gjõr at nye signaler bygd fõr 1975 blir semaforsignaler.")
 SETTEXT(CFG_MOREHOTKEYS, "`%s' (%s) slÜr pÜ nye hurtigtaster.")
 SETTEXT(CFG_MANYTREES, "`%s' (%s) tillater planting av fler trër pÜ en rute, eller over et rektangulërt omrÜde med Ctrl.")
-SETTEXT(CFG_MORECURRENCIES,"`%s' (%s) tillater flere valutaer og Euroen.  Parametre: 0 - valutategn pÜ standard plass; 1 - valuttategnene fõr tallene; 2 - valuttategnene etter tallene.  Legg til fire pÜ ett av de tallene og slÜ av Euroen.")
+SETTEXT(CFG_MORECURRENCIES,"`%s' (%s) tillater flere valutaer og Euroen.")
 SETTEXT(CFG_MANCONVERT,"`%s' (%s) tillater manuell sportypekonvertering ved Ü legge ny type oppÜ gammel.")
-SETTEXT(CFG_NEWAGERATING, "`%s' (%s) lar stasjonene vëre litt mer tollerante til vognalder. NÜ kan vognene vëre 21 Ür, istedet for tre.")
+SETTEXT(CFG_NEWAGERATING, "`%s' (%s) lar stasjonene vëre litt mer tolerante ovenfor vognalder. NÜ kan vognene vëre 21 Ür, istedet for tre.")
 SETTEXT(CFG_ENHANCEGUI,"`%s' (%s) forbedrer brukergrensesnittet.")
 SETTEXT(CFG_TOWNGROWTHRATEMODE, "`%s' (%s) gjõr det mulig Ü definere regler for vekstraten til byer.  Modus: 0 - TTD orginal, 1 - TTD utvidet, 2 - skreddersydd.  Se dokumentasjonen for mer informasjon.")
 SETTEXT(CFG_TOWNGROWTHRATEMIN, "`%s' (%s) definerer minimumsveksten til byene, i nye hus pr. Ürhundre.  Kun aktiv hvis `towngrowthratemode' er satt til 2.  Valg: %ld..%ld.  Standard %ld.")
@@ -561,12 +780,70 @@ SETTEXT(CFG_MORETOWNSTATS, "With `%s' (%s) ekstra statistikk blir vist i by-vind
 SETTEXT(CFG_BUILDONSLOPES, "`%s' (%s) gjõr det mulig Ü bygge pÜ tvers i skrÜninger pÜ fundament som f.eks hus blir bygd pÜ.")
 SETTEXT(CFG_BUILDONCOASTS, "`%s' (%s) gjõr det mulig Ü bygge pÜ sandbanker uten Ü bruke dynamitt fõrst")
 SETTEXT(CFG_TRACKTYPECOSTDIFF, "`%s' (%s) gjõr at de forskjellige sportypene koster forskjellig.")
-SETTEXT(CFG_CUSMULTIPLIER, "`%s' (%s) setter valuttakursen for Custom Currency, CUS * 1000.  Standard er 1000 (1 CUS = 1 pund).  Kun aktiv hvis 'morecurrencies' er slÜtt pÜ.")
 SETTEXT(CFG_EXPERIMENTALFEATURES, "`%s' (%s) slÜr pÜ de siste eksperimentelle mulighetene.")
 SETTEXT(CFG_PLANESPEED, "`%s' (%s) fÜr fly til Ü fly ved angitt fart og ikke en fjerdedel av den. Farten vil bli redusert til 5/8 ved motorhavari")
 SETTEXT(CFG_FASTWAGONSELL, "`%s' (%s) tillater hurtigere salg av vogner ved Ü trykke Ctrl")
 SETTEXT(CFG_NEWRVCRASH,"`%s' (%s) forandrer kollisjoner mellom tog og bil. 1 gjõr at toget vil bryte sammen etter sammenstõtet. 2 slÜr av slike kollisjoner helt. Standard: type 1.");
 SETTEXT(CFG_STABLEINDUSTRY,"`%s' (%s) hindrer at industri gÜr konkurs hvis 'Economy' er satt til 'Steady' pÜ options-menyen");
+SETTEXT(CFG_NEWPERF, "`%s' (%s) bruker en mer logisk kalkulasjon for 'Performance' i forhold til kjõretõyprofitt")
+SETTEXT(CFG_SORTVEHLIST, "`%s' (%s) sorterer kjõretõyer i kjõretõylistevinduene. Parameteren bestemmer hvor lang tid som gÜr mellom to oppdateringer. Laverer innstillinger krever med CPU-tid, men holder lista bedre oppdatert. Innstillingen 10 betyr ca. en dag i spillet. Intervall %ld..%ld. Standard %ld.")
+SETTEXT(CFG_NEWSPAPERCOLOUR, "`%s' (%s) endrer avisen til Ü vises i farge etter gitt Ürstall.  Intervall %ld..%ld.  Default %ld.")
+SETTEXT(CFG_SHAREDORDERS, "`%s' (%s) tillater delte og/eller kopierte ordre.")
+SETTEXT(CFG_SHOWPROFITINLIST, "`%s' (%s) viser fargekodet profitt i kjõretõyvinduet.")
+SETTEXT(CFG_MORESTEAM, "`%s' (%s) viser flere (eller fërre) damp-'bobler'. Parameteren bestÜr av to sifre, det fõrste for lengden av dampen, det andre for hvor ofte en ny 'boble' blir generert, med 2 som TTDs standard. Pluss/minus en dobler/halverer lengden eller frekvensen.  Intervall %02lx..%02lx.  Standard %02lx.")
+SETTEXT(CFG_ABANDONEDROADS, "`%s' (%s) gjõr til at veier mister sine eiere hvis de stÜr ubrukte for en viss tidsperiode, slik at du kan fjerne ubrukte hvis de er i veien. Du blir ogsÜ tildelt eierskapet til veier ingen eier hvis dine veikjõretõy bruker dem. In modus 0 mister alle veier sine eiere, i modus 1 blir veier i nërheten av byer tatt over av nërmeste by, i modus 2 blir de tatt over med en gang.")
+SETTEXT(CFG_NEWSTATIONS, "`%s' (%s) tillater ny stasjonsgrafikk.")
+SETTEXT(CFG_BUILDWHILEPAUSED, "`%s' (%s) tillater all bygging mens spillet er satt pÜ pause.")
+SETTEXT(CFG_TRAINLOSTTIME, "`%s' (%s) advarer om tog som har kjõrt seg bort etter gitt antall dager.  Intervall %ld..%ld.  Standard %ld.")
+SETTEXT(CFG_RVLOSTTIME, "`%s' (%s) advarer om veikjõretõyer som har kjõrt seg bort etter gitt antall dager.  Intervall %ld..%ld.  Standard %ld.")
+SETTEXT(CFG_SHIPLOSTTIME, "`%s' (%s) advarer om skip som har kjõrt seg bort etter gitt antall dager.  Intervall %ld..%ld.  Standard %ld.")
+SETTEXT(CFG_AIRCRAFTLOSTTIME, "`%s' (%s) advarer om fly som har kjõrt seg bort etter gitt antall dager.  Intervall %ld..%ld.  Standard %ld.")
+SETTEXT(CFG_MAPREFRESH, "`%s' (%s) overstyrer oppdateringsfrekvensen til TTDs oversiktskart.  Lavere numre betyr raskere oppdatering og mer bruk av CPU.  TTDs standard er 64.  Intervall %ld..%ld.  Standard %ld.")
+SETTEXT(CFG_NETWORKTIMEOUT, "`%s' (%s) kobler fra et nettverksspill hvis det ikke mottar noen respons etter gitt antall sekunder.  Intervall %ld..%ld.  Standard %ld.")
+SETTEXT(CFG_TOYLANDFEATURES, "`%s' (%s) tillater landskapsegenskaper som vanligvis er skrudd av i random-spill i toyland, slik som fyrtÜrn.")
+SETTEXT(CFG_STRETCHWINDOW, "`%s' (%s) strekker ut TTD-vinduet til gitt horisontal stõrrelse i piksler (kun for Windows-versjonen av TTD i vindumodus).  Intervall %ld..%ld.  Standard %ld.")
+SETTEXT(CFG_CANALS, "`%s' (%s) tillater bygging av kanaler og sluser ved hjelp av 'kjõp land'-verktõyet fra havnbyggemenyen.")
+SETTEXT(CFG_FREIGHTTRAINS, "`%s' (%s) multipliserer vekten av varer fraktet med godstog med gitt faktor for Ü simulere veldig lange godstog.  Dette har kun innflytelse pÜ togakselerasjon, togene frakter ikke mer.  Intervall %ld..%ld.  Standard %ld.")
+SETTEXT(CFG_GAMESPEED, "`%s' (%s) Gjõr til at du kan endre hastigheten pÜ spillet. Dette krever hurtigtast-patchen. Trykk 'q' for Ü doble spillhastigheten (opptil 8x) og 'w' for Ü halvere.  Parameteren den initielle innstillingen.  Intervall %ld..%ld.  Standard %ld.")
+SETTEXT(CFG_HIGHERBRIDGES, "`%s' (%s) tillater bygging av hõyere bruer.")
+SETTEXT(CFG_NEWGRFCFG, "`%s' (%s) setter konfigurasjonsfilen nye grafikksett.")
+SETTEXT(CFG_MOUSEWHEEL, "`%s' (%s) tillater zooming med mushjulet i Windows-versjonen.")
+SETTEXT(CFG_MOREWINDOWS, "`%s' (%s) tillater flere Üpne vinduer pÜ skjermen. TTDs standard er 10, men 3 er allerede brukt (hovedverktõylinjen, hovedvisningen, statuslinjen), slik at det aktuelle maksimum er 7. Drop-down-menyer og nyhetsmeldinger teller ogsÜ som vinduer. Intervall %ld..%ld. Standard %ld.")
+SETTEXT(CFG_ENHANCEDDIFFICULTYSETTINGS, "'%s' (%s) tillater 'ingen' som antall industrier i vanskelighetsgradsinnstillingene.")
+SETTEXT(CFG_NEWBRIDGES, "`%s' (%s) tillater ny brugrafikk.")
+SETTEXT(CFG_NEWHOUSES, "`%s' (%s) tillater ny husgrafikk.")
+SETTEXT(CFG_NEWTOWNNAMES, "`%s' (%s) tillater nye bynavn i random-spill vha. grf-filer.")
+SETTEXT(CFG_MOREANIMATION, "`%s' (%s) tillater õking av antall animerte felter. TTDs standard er 256. Intervall %ld..%ld. Standard %ld.")
+SETTEXT(CFG_NEWSHISTORY, "`%s' (%s) tillater samling og visning av nyhetshistorikk.")
+SETTEXT(CFG_WAGONSPEEDLIMITS, "`%s' (%s) tillater fartsbegrensninger pÜ togvogner.")
+SETTEXT(CFG_PATHBASEDSIGNALLING, "`%s' (%s) tillater stibaserte signaler (PBS). Vennligst les dokumentasjonen FùR du skrur dette pÜ, denne opsjonen kan vëre litt vanskelig Ü bruke riktig.")
+SETTEXT(CFG_CUSTOMBRIDGEHEADS, "`%s' (%s) tillater bygging pÜ bruramper.")
+SETTEXT(CFG_TOWNBUILDNOROADS, "`%s' (%s) byer bygger ikke veier.")
+SETTEXT(CFG_NEWCARGODISTRIBUTION, "`%s' (%s) forbedret varedistribusjon.")
+SETTEXT(CFG_WINDOWSNAP, "`%s' (%s) lar vinduer 'limes' sammen. Intervall %ld..%ld. Standard %ld.")
+SETTEXT(CFG_RESOLUTIONWIDTH, "`%s' (%s) tillater endring av opplõsning og setter bredden til TTD-vinduet i piksler.")
+SETTEXT(CFG_RESOLUTIONHEIGHT, "`%s' (%s) tillater endring av opplõsning og setter hõyden til TTD-vinduet i piksler.")
+SETTEXT(CFG_AICHOOSECHANCES, "`%s' (%s) spesifiser hvilken sannsynlighet som skal brukes nÜr KI bestemmer seg for hva den skal bygge (sannsynlighet for Ü bygge skipsrute er 1-railchance-rvchance-airchance).")
+SETTEXT(CFG_AIBUILDRAILCHANCE, "`%s' (%s) sannsynligheten for at KI vil bygge ny jernbanerute nÜr den vil bygge en ny rute. Intervall %ld..%ld, 0=0%%, 65535=100%%. Standard %ld.")
+SETTEXT(CFG_AIBUILDRVCHANCE, "`%s' (%s) sannsynligheten for at KI vil bygge ny veirute nÜr den vil bygge en ny rute. Intervall %ld..%ld, 0=0%%, 65535=100%%. Standard %ld.")
+SETTEXT(CFG_AIBUILDAIRCHANCE, "`%s' (%s) sannsynligheten for at KI vil bygge en ny flyrute nÜr den vil bygge en ny rute. Intervall %ld..%ld, 0=0%%, 65535=100%%. Standard %ld.")
+SETTEXT(CFG_NEWINDUSTRIES, "`%s' (%s) tillater stõtte for nye industrityper.")
+SETTEXT(CFG_LOCOMOTIONGUI, "`%s' (%s) tillater det nye Locomotion-lignende brukergrensesnittet.")
+SETTEXT(CFG_FIFOLOADING, "`%s' (%s) tillat FIFO (fõrst-inn-fõrst-ut) -lasting.")
+SETTEXT(CFG_TEMPSNOWLINE, "`%s' (%s) tillater snõlinje i temperert (trenger en GRF som stõtter dette for Ü faktisk vise snõ)")
+SETTEXT(CFG_TOWNROADBRANCHPROB, "`%s' (%s) endrer sannsynligheten for at en by bygger en ny veigren. 0 betyr nesten ingen nye grener, 65535 betyr gren overalt der det er mulig. TTDs standard er 26214. Intervall %ld..%ld. Standard %ld.")
+SETTEXT(CFG_NEWCARGOS, "`%s' (%s) tillater stõtte for nye varetyper.")
+SETTEXT(CFG_ENHMULTI, "`%s' (%s) forbedrer multiplayer ved Ü tillate flere menneskelige spillere.")
+SETTEXT(CFG_ONEWAYROADS, "`%s' (%s) tillater enveiskjõrte veier")
+SETTEXT(CFG_NEWSOUNDS, "`%s' (%s) tillater nye lyder i spillet vha. GRF-filer.")
+SETTEXT(CFG_IRRSTATIONS, "`%s' (%s) tillater bygging av stasjoner med irregulëre former.")
+SETTEXT(CFG_MORESTATS, "`%s' (%s) tillater innsamling av mer statistikk (avhengig av enhancegui for Ü fungere).")
+SETTEXT(CFG_AUTOREPLACE, "`%s' (%s) oppgraderer kjõretõy til den beste tilgjengelige typen med gitt minimumspÜlitelighet i prosent.  Intervall 1..100, default 80.")
+SETTEXT(CFG_AUTOSLOPE, "`%s' (%s) tillater terraforming uten Ü fjerne spor/veier/hus/indutrier.")
+SETTEXT(CFG_FOLLOWVEHICLE, "`%s' (%s) tillater hovedvisningen Ü fõlge et kjõretõy nÜr du hõyreklikker pÜ \"Center view\" i kjõretõyvinduet.")
+SETTEXT(CFG_TRAMS, "`%s' (%s) tillater bygging av trikker.")
+SETTEXT(CFG_ENHANCETUNNELS, "`%s' (%s) tillater bygging av jernbarespor oppÜ tunnelinnganger.")
+SETTEXT(CFG_FORCEGAMEOPTIONS, "`%s' (%s) tillater deg Ü tvinge spillinnstillinger.")
 
 
 //----------------------------------------------------
@@ -591,8 +868,14 @@ SETTEXT(LANG_SWTWOWAY, "To-veis: ")
 SETTEXT(LANG_TIMEDAYS, "%d dag(er)")
 SETTEXT(LANG_INFINITETIME, "uendelig")
 
+// Shows the keys to scroll the verbose switch table
+SETTEXT(LANG_SCROLLKEYS, " Taster: Opp Ned PgUp PgDown Home End ")
+
+// ... and to abort TTDPatch
+SETTEXT(LANG_SCROLLABORTKEY, " Escape = avbryt ")
+
 // Shows the load options for ttdload.  %s is the given parameters to be passed to ttdload
-SETTEXT(LANG_SWSHOWLOAD, "Trykk en tast for Ü kjõre \"TTDLOAD %s\" (Escape for Ü avbryte).")
+SETTEXT(LANG_SWSHOWLOAD, "Enter/Mellomrom = kjõr \"TTDLOAD %s\"")
 
 SETTEXT(LANG_SWABORTLOAD, "\nProgramlasting avbrutt av bruker.\n")
 
@@ -607,17 +890,18 @@ SETTEXT(LANG_INTERNALERROR, "*** Intern TTDPatch feil #%d ***\n")
 // Error fixing the Windows version HDPath registry entry
 SETTEXT(LANG_REGISTRYERROR, "TTD er ikke installert skikkelig (registerfeil %d)\n")
 
-// DOS reports no memory available
-SETTEXT(LANG_NOTENOUGHMEM, "Ikke nok minne tilgjengelig %s, trenger %d KB til.\n")
+// Trying no-registry file
+SETTEXT(LANG_TRYINGNOREGIST, "Forsõker Ü starte med no-registry-informasjon fra %s\n")
 
-// ...for starting TTD
-SETTEXT(LANG_TOSTARTTTD, "for Ü starte TTD")
+// no-registry file failed
+SETTEXT(LANG_NOREGISTFAILED, "No-registry-informasjoon ikke tilgjengelig.\n")
 
-// Protected mode code exceeds 32kb
-SETTEXT(LANG_PROTECTEDTOOLARGE, "Koden for beskyttet modus er for stor!\n")
+// DOS reports not enough memory available to start TTD
+SETTEXT(LANG_NOTENOUGHMEMTTD, "Ikke nok minne tilgjengelig to start TTD, trenger %d KB til.\n")
 
-// Show where the code was stored, %p is the location
-SETTEXT(LANG_CODESTOREDAT, "Koden for beskyttet modus er lagret i %lX.\n")
+// Other out-of-memory messages
+// %s is a function or variable name to identify where the memory allocation failed
+SETTEXT(LANG_NOTENOUGHMEM, "%s: Ikke nok ledig minne, trenger %d KB til.\n")
 
 // Swapping TTDPatch out
 SETTEXT(LANG_SWAPPING, "Veksler ut.\n")
@@ -630,12 +914,32 @@ SETTEXT(LANG_RUNTTDLOAD, "Starter %s%s%s\n")
 // Error executing ttdload.  1st %s is ttdload.ovl, 2nd %s is the error message from the OS
 SETTEXT(LANG_RUNERROR, "Kunne ikke kjõre %s: %s\n")
 
+// Failed to create the new process for ttdloadw.ovl
+SETTEXT(LANG_CRPROCESSFAIL, "Lag ny prosess mislyktes")
+
+// Interprocess communication error: TTDPatchW seems to be already running
+SETTEXT(LANG_IPCEXISTS, "TTDPatch kjõrer allerede!\n")
+
+// Failed to convert language strings to Unicode
+SETTEXT(LANG_STRINGCONVFAIL, "Feil under klargjõring av TTDPatch-data!\n")
+
 // Show the result after after running, %s is one of the following strings
 SETTEXT(LANG_RUNRESULT, "Resultat: [%s]\n")
 SETTEXT(LANG_RUNRESULTOK, "OK")
 SETTEXT(LANG_RUNRESULTERROR, "Feil!")
 
-// Messages about the graphics file ttdpatch.grf
-SETTEXT(LANG_NOTTDPATCHGRF, "Kunne ikke finne patchgrafikken %s, lager en tom fil.\n")
-SETTEXT(LANG_ERRORCREATING, "Kunne ikke lage %s: %s\n")
+
+//---------------------------------------
+//  MESSAGES DISPLAYED BY TTDLOAD
+//---------------------------------------
+
+// Messages in this category will have "TTDPatch: " prefixed and "\r\n" suffixed
+// when displayed by the DOS version.
+
+// Out of memory (in protected mode)
+SETTEXT(LANG_PMOUTOFMEMORY, "Ikke nok ledig minne!")
+
+// Interprocess communication failed (WinTTDX only)
+SETTEXT(LANG_PMIPCERROR, "Interprosesskommunikasjonsfeil")
+
 

@@ -34,6 +34,7 @@ enum en_categories {
 	CAT_INFST_ROADS,
 	CAT_INFST_STATION,
 	CAT_HOUSESTOWNS,
+	CAT_HOUSESTOWNS_GROWTH,
 	CAT_INDUSTRIESCARGO,
 	CAT_FINANCEECONOMY,
 	CAT_DIFFICULTY,
@@ -45,12 +46,15 @@ enum en_categories {
 	CAT_NONE,
 };
 typedef enum en_categories categories;
+#define CAT_FIRST CAT_BASIC
+#define CAT_LAST  CAT_NONE
 
 	// this defines the bits to be set by the switches.
 typedef struct {
 	int cmdline;		// the command line switch for this
 	const char *cfgcmd;	// the configuration file command
 	int comment;		// the comment written by -W
+	const char *manpage;	// the name of the manual page describing the switch
 	int bit:9;		// the bit to be set.  -1 for special handling, -2 if none
 	unsigned radix:4;	// 0=auto, 1=force octal, 2=force dec, 3=force hex; +4=invert
 	unsigned varsize:3;	// 0=u8  1=u16  2=s16  3=s32  4=s8
@@ -99,12 +103,10 @@ typedef struct {
 ISEXTERN pparamset flags;
 extern int showswitches;
 extern int writeverfile;
-extern u16 startyear;
 
 extern char ttdoptions[128+1024*WINTTDX];
 ISEXTERN int alwaysrun;
 
-extern int cfgfilespecified;
 ISEXTERN char tempstr[17];
 
 // Flags used for debugging. 0=default, -1=no, 1=yes
@@ -125,7 +127,8 @@ ISEXTERN struct {
 		protcodefile,	// load protected mode code from ttdprot?.bin instead of the exe
 		relocofsfile,	// load reloc ofs from reloc.bin file
 		patchdllfile,	// does nothing, but needed to make auxfiles.c happy
-		noregistry;	// use noregistry hack
+		noregistry,	// use noregistry hack
+		norunttd;	// don't actually execute TTD
 } debug_flags;
 
 void check_debug_switches(int *const argc, const char *const **const argv);
@@ -179,7 +182,6 @@ int dumpswitches(int type);
 #define secondchar(x) ((x) >> 8)
 #define maketwochars(c1, c2) ((c1) | ((c2) << 8))
 char *dchartostr(int ch);
-const char *cmdswitchstr(int ch, const char *defstr);
 
 
 #undef ISEXTERN

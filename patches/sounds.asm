@@ -10,6 +10,76 @@ extern curspriteblock,mostrecentspriteblock,newsoundsettings
 
 uvard soundoverrides, NUMOLDSOUNDS
 
+// new ambient sounds
+extern miscgrfvar,randomfn,gettileterrain
+extern curcallback,grffeature,getnewsprite,generatesoundeffect
+exported AmbientSound
+	push eax
+	call [randomfn]
+	cmp eax,0x1470000
+	ja .nosound
+
+	pusha
+	mov esi,ebx
+	mov edi,ebx	// for later
+	mov bl,al
+	mov bh,[landscape4(si,1)]
+	call gettileterrain
+	movzx eax,al
+	shl ebx,16
+	or eax,ebx
+	mov ah,[landscape5(si,1)]
+	mov [miscgrfvar],eax
+
+	mov word [curcallback],0x144
+	mov eax,0x10C		// feature 0C (newsounds) generic
+	mov [grffeature],al
+	xor esi,esi
+	call getnewsprite
+	jc .failed
+
+	dec esi		// was 0, now -1 = tile sound
+	mov ebx,edi
+	mov ecx,edi
+	shl ebx,4
+	shr ecx,4
+	and bx,0xff0
+	and cx,0xff0
+	call [generatesoundeffect]
+
+.failed:
+	xor eax,eax
+	mov [curcallback],eax
+	mov [miscgrfvar],eax
+	popa
+
+.nosound:
+	pop eax
+	ret
+
+uvard oldclass0periodicproc
+uvard oldclass4periodicproc
+
+extern grfmodflags
+exported Class0PeriodicProc
+	test byte [grfmodflags],0x10
+	jz .nonewsounds
+
+	call AmbientSound
+
+.nonewsounds:
+	jmp [oldclass0periodicproc]
+
+exported Class4PeriodicProc
+	test byte [grfmodflags],0x10
+	jz .nonewsounds
+
+	call AmbientSound
+
+.nonewsounds:
+	jmp [oldclass4periodicproc]
+
+
 #if WINTTDX
 PlayCustomSound_dummy:
 
@@ -134,7 +204,7 @@ setsoundvolume:
 	ret
 
 .error:
-	mov ax,ourtext(invalidsprite) 
+	mov eax,(INVSP_BADID<<16)+ourtext(invalidsprite) 
 	stc
 	ret
 
@@ -160,7 +230,7 @@ setsoundpriority:
 	ret
 
 .error:
-	mov ax,ourtext(invalidsprite) 
+	mov eax,(INVSP_BADID<<16)+ourtext(invalidsprite) 
 	stc
 	ret
 
@@ -188,7 +258,7 @@ overrideoldsound:
 	ret
 
 .error:
-	mov ax,ourtext(invalidsprite) 
+	mov eax,(INVSP_BADID<<16)+ourtext(invalidsprite) 
 	stc
 	ret
 
@@ -443,7 +513,7 @@ initsounddriver:
 	mov byte [StereoEnabled],1
 	mov dword [mixbuffer], addr(mixstereosoundtobuffer)
 	mov dword [maxsamplelen], SOUNDBUFSIZE/2/2
-	mov dword [mixbuffer_upsample], addr(mixstereosoundtobuffer_upsample)
+	mov dword [mixbuffer.upsample], addr(mixstereosoundtobuffer_upsample)
 	mov dword [maxsamplelen_upsample], SOUNDBUFSIZE/2/4
 
 #if 0
@@ -460,7 +530,7 @@ initsounddriver:
 	mov byte [SixteenBitEnabled],1
 	mov dword [mixbuffer], addr(mix16bitsoundtobuffer)
 	mov dword [maxsamplelen], SOUNDBUFSIZE/2/4
-	mov dword [mixbuffer_upsample], addr(mix16bitsoundtobuffer_upsample)
+	mov dword [mixbuffer.upsample], addr(mix16bitsoundtobuffer_upsample)
 	mov dword [maxsamplelen_upsample], SOUNDBUFSIZE/2/8
 
 .no16bit:
@@ -535,8 +605,11 @@ endproc
 
 // some parts of the playback need to be changed for stereo playback and auto-init DMA
 // instead of conditional jumps, we do indirect calls to addresses stored here
-vard mixbuffer, addr(mixmonosoundtobuffer)
-vard mixbuffer_upsample, addr(mixmonosoundtobuffer_upsample)
+vard mixbuffer
+		dd addr(mixmonosoundtobuffer)
+.upsample:	dd addr(mixmonosoundtobuffer_upsample)
+endvar
+
 vard needrefill, addr(checkaudiopending)
 vard postsound, addr(postnormalsound)
 
