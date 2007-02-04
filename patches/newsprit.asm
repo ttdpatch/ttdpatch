@@ -1896,16 +1896,20 @@ grfcalltable readpersistentreg
 .getsounds:
 .getsignals:
 .gethouses:
+.gettowns:
 	ud2		// not supported yet
 
 .getindustiles:
 	cmp byte [isother],0
-	jnz .getindustries
+	jnz .getindustries_nocheck
 	ud2		// not supported for tiles, just for industries
 
 extern industry2arrayptr
 
 .getindustries:
+	cmp byte [isother],0
+	jnz .gettowns
+.getindustries_nocheck:
 	cmp ecx,GRFPERSISTENTINDUREGS
 	jae .bad
 	mov eax,esi
@@ -1940,14 +1944,18 @@ grfcalltable writepersistentreg
 .getsounds:
 .getsignals:
 .gethouses:
+.gettowns:
 	ud2		// not supported yet
 
 .getindustiles:
 	cmp byte [isother],0
-	jnz .getindustries
+	jnz .getindustries_nocheck
 	ud2		// not supported for tiles, just for industries
 
 .getindustries:
+	cmp byte [isother],0
+	jnz .gettowns
+.getindustries_nocheck:
 	cmp ecx,GRFPERSISTENTINDUREGS
 	jae .bad
 	mov ebp,esi
