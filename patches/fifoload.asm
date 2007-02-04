@@ -224,9 +224,8 @@ exported fifoenterstation
 	mov	ebx, eax
 	push	ebx
 .vehloop:
-	mov	dx, [esi+veh.capacity]
-	cmp	dx, [esi+veh.currentload]
-	jz	.next
+	cmp	word [esi+veh.capacity], 0
+	je	.next
 	mov	al, [esi+veh.cargotype]
 	call	ecxcargooffset_ebx2
 	cmp	cl, -1
