@@ -34,8 +34,8 @@ exported removeconsistfromqueue
 	extcall ecxcargooffset_ebx2
 	extern stationarray2ofst
 	add ebx, [stationarray2ofst]
-	cmp cl, -1
-	je .next
+	or cl, cl
+	js .next
 	btr dword [esi+veh.modflags], MOD_HASRESERVED
 	jnc .dequeue
 // Unreserve cargo
@@ -47,11 +47,8 @@ exported removeconsistfromqueue
 .dequeue:
 	call dequeueveh
 .next:
-	movzx esi, word [esi+veh.nextunitidx]
-	cmp si, -1
-	je .exitvehloop
-	cvivp
-	jmp short .vehloop
+	cvivpjv [esi+veh.nextunitidx], .vehloop
+
 .exitvehloop:
 	popa
 .done:
@@ -70,9 +67,9 @@ exported dequeueveh
 	pusha
 	mov eax, [esi+veh.veh2ptr]
 	mov edi, [eax+veh2.prevptr]
-	mov dword [eax+veh2.prevptr], 0
+	and dword [eax+veh2.prevptr], 0
 	mov edx, [eax+veh2.nextptr]
-	mov dword [eax+veh2.nextptr], 0
+	and dword [eax+veh2.nextptr], 0
 	test edi,edi
 	jz .ishead
 	mov [edi+veh2.nextptr], edx
@@ -90,7 +87,6 @@ exported dequeueveh
 
 	test edx, edx
 	jz .isboth
-	mov esi, [veh2ptr]	// Debugging; make it easier to determine whether eax and edx are valid veh2 pointers
 	mov [edx+veh2.prevptr], edi	// edi == 0, guaranteed.
 	mov edi, [edx+veh2.vehptr]
 	mov bp, [edi+veh.idx]
@@ -100,7 +96,7 @@ exported dequeueveh
 	ret
 
 .isboth:
-	mov word [ebx+station2.cargos+ecx+stationcargo2.curveh], -1
+	or word [ebx+station2.cargos+ecx+stationcargo2.curveh], byte -1
 	popa
 	ret
 
@@ -114,16 +110,13 @@ exported enqueueveh
 	jnz .ret		// This vehicle left to visit a depot after reserving; do nothing.
 	pusha
 	mov edi, [esi+veh.veh2ptr]
-	movzx eax, word [ebx+station2.cargos+ecx+stationcargo2.curveh]
-	cmp ax,-1
-	je .first
-	cvivp eax
+	cvivpjnv eax, [ebx+station2.cargos+ecx+stationcargo2.curveh], .first
 	mov eax, [eax+veh.veh2ptr]
 .loop:
 	mov edx, eax
 	cmp edx, edi
 	je .done	// This vehicle left to visit a depot after queuing, do nothing.
-	mov dword [edi+veh2.nextptr], 0
+	and dword [edi+veh2.nextptr], 0
 	mov eax, [eax+veh2.nextptr]
 	test eax, eax
 	jnz .loop
@@ -137,7 +130,7 @@ exported enqueueveh
 	ret
 
 .first:
-	mov dword [edi+veh2.prevptr], 0
+	and dword [edi+veh2.prevptr], 0
 	mov si, [esi+veh.idx]
 	mov [ebx+station2.cargos+ecx+stationcargo2.curveh], si
 	popa
@@ -174,8 +167,8 @@ clearfifodata:
 	lea edi, [edi+station2.cargos]
 	mov ecx, 12
 .cargoloop:
-	mov word [edi+stationcargo2.resamt], 0
-	mov word [edi+stationcargo2.curveh], -1
+	and word [edi+stationcargo2.resamt], 0
+	or word [edi+stationcargo2.curveh], byte -1
 	mov byte [edi+stationcargo2.rescount], 0
 	add edi, stationcargo2_size
 	dec ecx
@@ -194,7 +187,7 @@ extern veh2ptr
 	mov [edi+veh2.prevptr], eax
 	mov [edi+veh2.nextptr], eax
 	and byte [esi+veh.modflags+1], ~(1 << (MOD_HASRESERVED-8) )
-	add edi, veh2_size
+	sub edi, 0-veh2_size
 	sub esi, 0-veh_size
 	cmp esi, [veharrayendptr]
 	jb .vehloop
@@ -228,22 +221,18 @@ exported fifoenterstation
 	je	.next
 	mov	al, [esi+veh.cargotype]
 	call	ecxcargooffset_ebx2
-	cmp	cl, -1
-	jne	.call
+	or	cl, cl
+	jns	.call
 	extcall	ecxcargooffset_force
 	mov	ebx, [esp]
-	cmp	cl, -1
-	je	.next
+	cmp	cl, cl
+	js	.next
 .call:
 	mov	ebx, [esp]
 	call	enqueueveh
 .next:
-	movzx	esi, word [esi+veh.nextunitidx]
-	cmp	si, -1
-	je	.popret
-	cvivp
-	jmp	short .vehloop
-.popret:
+	cvivpjv	[esi+veh.nextunitidx], .vehloop
+
 	pop	ebx
 	popa
 .ret:
@@ -267,7 +256,7 @@ exported buildloadlists
 	mov	cl, 11*8
 
 .cargoloop:
-	mov	word [ebx+station2.cargos+ecx+stationcargo2.curveh], -1
+	or	word [ebx+station2.cargos+ecx+stationcargo2.curveh], byte -1
 	mov	dh, al
 	mov	dl, cl
 	lea	edi, [esp-4]
@@ -355,13 +344,10 @@ exported buildfifoidx
 .cargoloop:
 	xor	al, al
 .cargocont:
-	movzx	esi, word [ebx+station2.cargos+ecx+stationcargo2.curveh]
-	cmp	si, -1
-	je	.nextcargo
-	cvivp
+	cvivpjnv [ebx+station2.cargos+ecx+stationcargo2.curveh], .nextcargo
 	mov	ah, [esi+veh.cargotype]
 
-	cvivp	esi, [esi+veh.engineidx]
+	cvivp	[esi+veh.engineidx]
 .vehloop:
 	cmp	word [esi+veh.capacity], 0
 	je	.nextveh
@@ -371,13 +357,8 @@ exported buildfifoidx
 	call	dequeueveh
 
 .nextveh:
-	movzx	esi, word [esi+veh.nextunitidx]
-	cmp	si, -1
-	je	.continue
-	cvivp
-	jmp	short .vehloop
+	cvivpjv	[esi+veh.nextunitidx], .vehloop
 
-.continue:
 	inc	al
 	jmp	short .cargocont
 

@@ -358,12 +358,8 @@ LoadCargoFromStation:
 	add	[ebx+station2.cargos+ecx+stationcargo2.resamt], dx
 
 .nextveh2:
-	movzx	esi, word [esi+veh.nextunitidx]
-	cmp	si, 0-1
-	je	.doneres
-	cvivp
-	jmp	short .consistloop2
-.doneres:
+	cvivpjv  [esi+veh.nextunitidx], .consistloop2
+
 	pop	esi
 	jmp	short .allowfifo
 

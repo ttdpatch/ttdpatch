@@ -182,17 +182,32 @@ endstruc
 #define AIRCRAFTACT_UNKNOWN 0x80008000	// signals that .curraircraftact isn't valid and needs
 					// to be recalculated
  
-// convert vehicle index to vehicle pointer 
-%macro cvivp 0-1 esi // param: register containing index
+// cvivp: convert vehicle index to vehicle pointer
+//
+// params: dest (r32), source (r/m16)
+// params: source (r/m16) or dest (r32)
+//	If source is an m16, dest is esi. Otherwise, the non-specified
+//	argument is the specified register's 32 or 16 bit companion.
+//	If dest is specified, its high 16 bits are assumed to be clear.
+//
+// Do not specify "word [address]" for m16s, simply specify "[address]"
+//
+
+%macro cvivp 0-1 esi
 	%tostr %%1 %1
 	%strlen %%len %%1
-	%if %%len == 2
+	%substr %%mem %%1 1
+	%ifidn %%mem, '['
+		movzx	esi, word %1
+		shl	esi, vehicleshift
+		add	esi, [veharrayptr]
+	%elif %%len == 2
 		%substr %%x %%1 2
 		%ifidn %%x,'x'	 //[abcd]x
 		%elifidn %%x,'i' //[sd]i
 		%elifidn %%x,'p' //[sb]p
 		%else
-			%error "cvivp requires a word or dword register."
+			%error "cvivp requires a word register or memory location, or a dword register."
 		%endif
 		movzx	e%1, %1
 		shl	e%1, vehicleshift
@@ -206,4 +221,64 @@ endstruc
 %macro cvivp 2 //params: destination register, source word
 	movzx %1, word %2
 	cvivp %1
+%endmacro
+
+// cvivpj[n]v: cvivp and jump if [not] vehicle.
+//
+// Do not use cvivpjv if it is immediately followed by an unconditional jmp
+// In this case, use the jnv form instead.
+//
+// params: dest (r32), source (r/m16), jump destination
+// params: source (r/m16) or dest (r32), jump destination
+//	If source is an m16, dest is esi. Otherwise, the non-specified
+//	argument is the specified register's 32 or 16 bit companion.
+//	If dest is specified, its high 16 bits are assumed to be clear.
+//
+// Do not specify "word [address]" for m16s, simply specify "[address]"
+// Jumps will be short unless specified as "near target"
+//
+// In all cases, dest is undefined in the nv case.
+//
+
+%macro cvivpjnv 3
+	movzx	%1, word %2
+	db	0x66		// cmp %1's word register
+	cmp	%1, byte -1
+	je	%3
+	cvivp	%1
+%endmacro
+
+%macro cvivpjnv 2
+	%tostr %%1 %1
+	%strlen %%len %%1
+	%substr %%mem %%1 1
+	%ifidn %%mem, '['
+		cvivpjnv esi, %1, %2
+	%elif %%len == 2
+		%substr %%x %%1 2
+		%ifidn %%x,'x'	 //[abcd]x
+		%elifidn %%x,'i' //[sd]i
+		%elifidn %%x,'p' //[sb]p
+		%else
+			%error "cvivpj[n]v requires a word register or memory location, or a dword register."
+		%endif
+		cvivpjnv e%1, %1, %2
+	%else
+		db	0x66		// cmp %1's word register
+		cmp	%1, byte -1
+		je	%2
+		cvivp	%1
+	%endif
+%endmacro
+
+%macro cvivpjv 3
+	cvivpjnv %1, %2, %%done
+	jmp short %3
+%%done:
+%endmacro
+
+%macro cvivpjv 2
+	cvivpjnv %1, %%done
+	jmp short %2
+%%done:
 %endmacro
