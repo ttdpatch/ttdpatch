@@ -305,6 +305,23 @@ movbxcargoshortnames:
 	pop esi
 	ret
 
+// In:	esi -> vehicle
+//	ebx -> station2
+// Out:	ebx -> station
+//	ecx: cargo offset
+// unlike ecxcargooffset, this works regardless of whether newcargos is on or off
+
+exported safeecxcargooffset
+	testflags newcargos
+	jnc	.nonewcargos
+	mov	al, [esi+veh.cargotype]
+	jmp	short ecxcargooffset_ebx2
+
+.nonewcargos:
+	movzx	ecx, byte [esi+veh.cargotype]
+	shl	ecx, 3
+	jmp	short ecxcargooffset_ebx2.found
+
 // Auxiliary: Get cargo slot offset (slot# * 8) on a given station for the
 // given cargo type. Returns FFh if there's no slot for this cargo.
 // in:	al=cargo#

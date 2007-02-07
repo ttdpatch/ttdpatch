@@ -30,8 +30,7 @@ exported removeconsistfromqueue
 .vehloop:
 	cmp word [esi+veh.capacity],0
 	je .next
- 	mov al, [esi+veh.cargotype]
-	extcall ecxcargooffset_ebx2
+	extcall safeecxcargooffset
 	extern stationarray2ofst
 	add ebx, [stationarray2ofst]
 	or cl, cl
@@ -83,7 +82,11 @@ exported dequeueveh
 .ishead:
 	mov bp, [esi+veh.idx]
 	cmp bp, [ebx+station2.cargos+ecx+stationcargo2.curveh]
+#if RELEASE
 	jne .done	// Not in queue, do nothing
+#else
+	jne .assertnonext	// Not in queue, assert(nextptr == NULL)
+#endif
 
 	test edx, edx
 	jz .isboth
@@ -99,6 +102,13 @@ exported dequeueveh
 	or word [ebx+station2.cargos+ecx+stationcargo2.curveh], byte -1
 	popa
 	ret
+
+#if !RELEASE
+.assertnonext:		// This vehicle is not queued, assert that there is no next vehicle
+	test edx, edx
+	jz .done
+	ud2		// This vehicle is not queued, but has a next vehicle
+#endif
 
 // In:	esi->vehicle
 //	ebx->station2
@@ -210,17 +220,14 @@ exported fifoenterstation
 	jz	.ret
 
 	pusha
-	movzx	eax, byte [esi+veh.laststation]
-	mov	ebx, station_size
-	mul	ebx
-	add	eax, [stationarray2ptr]
-	mov	ebx, eax
+	movzx	ebx, byte [esi+veh.laststation]
+	imul	ebx, station_size
+	add	ebx, [stationarray2ptr]
 	push	ebx
 .vehloop:
 	cmp	word [esi+veh.capacity], 0
 	je	.next
-	mov	al, [esi+veh.cargotype]
-	call	ecxcargooffset_ebx2
+	call	safeecxcargooffset
 	or	cl, cl
 	jns	.call
 	extcall	ecxcargooffset_force
