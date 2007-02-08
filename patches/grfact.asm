@@ -4317,7 +4317,6 @@ uvard newgraphicswithgrfid	// bit mask of action 5 sets that were set by grfs wi
 uvard newcustomhousenames,256
 uvard cargoclasscargos,16	// bit mask of cargo bits that belong to each class
 uvard cargoclass,32/2		// bit mask of cargo classes each cargo belongs to
-uvard deftwocolormaps		// sprite numbers for 2nd CC translation tables
 
 	// aggregate resources, which grf last reserved them or is currently using them
 uvard lastextragrm,GRM_EXTRA_NUM
@@ -4425,12 +4424,16 @@ var grfswitchparamlist
 	grfswitchpar freightweightfactor	// 0E
 	grfswitchpar wagonspeedlimitempty	// 0F
 	grfswitchpar planespeedfactor		// 10
+	db 0					// 11=2CC base sprite, set in action 5
 
 %undef grfswitchpar
 
 global numgrfswitchparam
 numgrfswitchparam equ addr($)-grfswitchparamlist
 uvard grfswitchparam,numgrfswitchparam
+
+global deftwocolormaps
+deftwocolormaps equ grfswitchparam+4*11		// sprite numbers for 2nd CC translation tables
 
 // cargo types available in each climate
 // for each of the values in the cargotypes list below, that bit is set
