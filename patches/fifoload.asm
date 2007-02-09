@@ -107,7 +107,10 @@ exported dequeueveh
 .assertnonext:		// This vehicle is not queued, assert that there is no next vehicle
 	test edx, edx
 	jz .done
-	ud2		// This vehicle is not queued, but has a next vehicle
+	//ud2		// This vehicle is not queued, but has a next vehicle
+	call clearfifodata
+	popa
+	ret
 #endif
 
 // In:	esi->vehicle
