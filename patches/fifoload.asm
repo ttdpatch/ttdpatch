@@ -126,7 +126,6 @@ exported enqueueveh
 	mov edx, eax
 	cmp edx, edi
 	je .done	// This vehicle left to visit a depot after queuing, do nothing.
-	and dword [edi+veh2.nextptr], 0
 	mov eax, [eax+veh2.nextptr]
 	test eax, eax
 	jnz .loop
@@ -134,6 +133,7 @@ exported enqueueveh
 // Now edx->last queued vehicle
 	mov [edx+veh2.nextptr], edi
 	mov [edi+veh2.prevptr], edx
+	and dword [edi+veh2.nextptr], 0
 .done:
 	popa
 .ret:
