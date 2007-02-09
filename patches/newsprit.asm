@@ -1758,13 +1758,16 @@ getspecialvar:
 
 .specialvehvar:
 	bt [cachevehvar40x],eax
-	jc .cachedvar
-	call [vehvarhandler+eax*4]
-	ret
+	jnc .notcached
+	test esi,esi
+	jz .notcached
 
-.cachedvar:
 	mov ecx,[esi+veh.veh2ptr]
 	mov eax,[ecx+veh2.var40x+eax*4]
+	ret
+
+.notcached:
+	call [vehvarhandler+eax*4]
 	ret
 
 .getrandomtriggers:

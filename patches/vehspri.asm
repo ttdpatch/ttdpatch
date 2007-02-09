@@ -14,6 +14,7 @@
 #include <grf.inc>
 #include <ptrvar.inc>
 #include <refit.inc>
+#include <player.inc>
 
 extern cargoamountnnamesptr,cargoclass,curgrfid
 extern cargotypes,deftwocolormaps,exscurfeature
@@ -1371,6 +1372,13 @@ consistcallbacks:
 	// out:	---
 	// uses:eax ebx ecx edx
 setveh2cache:
+	movzx ebx,byte [esi+veh.class]
+	sub ebx,0x10
+	mov [curgrffeature],ebx
+	mov al,[esi+veh.vehtype]
+	sub al,[vehbase+ebx]
+	movzx eax,al
+	mov [curgrfid],eax
 	mov al,[esi+veh.owner]
 	xchg al,[curplayer]
 	push eax
@@ -1386,6 +1394,7 @@ setveh2cache:
 	jb .nextvar
 	pop eax
 	mov [curplayer],al
+	or dword [curgrffeature],byte -1
 	ret
 
 
@@ -1588,14 +1597,50 @@ getconsistcargo:
 	ret
 
 	// 43: get current player info
-	// out:	0cttmmnn
-	//	nn=curplayer, mm=multiplayer, tt=type, c=player colour
+	// out:	Ccttmmnn
+	//	nn=curplayer, mm=multiplayer, tt=type, c=player colour, C=2nd player colour
 	// can be called in purchase list; esi may be 0
 global getplayerinfo
 getplayerinfo:
+	extern curgrffeature,player2array
+	cmp byte [curgrffeature],4
+	jae .novehicle
+	test esi,esi
+	jz .vehtype
+
+	push esi
+	call getvehiclecolors
+	mov ch,[tempvehcols]
+	mov cl,[tempvehcols+1]
+	jmp short .havecols
+
+.vehtype:
+	mov ecx,[curgrffeature]
+	movzx eax,byte [vehbase+ecx]
+	add eax,[curgrfid]
+	push eax
+	call getvehiclecolors_vehtype
+	mov ch,[tempvehcols]
+	mov cl,[tempvehcols+1]
+	jmp short .havecols
+
+.novehicle:
 	movzx eax,byte [curplayer]
-	mov ah,[companycolors+eax]
-	shl eax,8
+	mov ch,[companycolors+eax]
+	mov cl,ch
+	imul eax,0+player2_size
+	add eax,[player2array]
+	test byte [eax+player2.colschemes],1<<COLSCHEME_HAS2CC
+	jz .havecols
+	mov cl,[eax+player2.col2]
+
+	// now ch=primary color. cl=secondary color
+.havecols:
+	shl cl,4
+	movzx eax,ch
+	movzx ecx,cl
+	or eax,ecx
+	shl eax,16
 
 	mov al,ah	// curplayer
 	mov ecx,[landscape3+ttdpatchdata.orgpl1]
@@ -1756,10 +1801,11 @@ getvehiclecargo:
 	// can be called in purchase list; esi may be 0
 global getvehtypeflags
 getvehtypeflags:
-	mov eax, [curgrfid] ; Get the vehicle type id
+	mov ecx, [curgrffeature]
+	movzx eax,byte [vehbase+ecx]
+	add eax, [curgrfid]
 	imul eax, vehtype_size ; Multiple by the size of each entry
-	add eax, vehtypearray ; Move to veh type array
-	movzx eax, byte [eax+vehtype.flags] ; Get the flags
+	movzx eax, byte [vehtypearray+eax+vehtype.flags] ; Get the flags
 	ret ; Return eax to be tested in action2
 
 	// 60: count occurence of vehicle ID in consist
