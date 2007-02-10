@@ -101,7 +101,7 @@ newsignalsdraw:
 	movzx esi, BYTE [landscape2+esi]
 	and esi, BYTE 0xF
 	or eax, esi
-	mov esi, [esp+16+4+32]
+	mov esi, [esp+12+4+32]
 	movzx esi, BYTE [esi-6]
 	cmp esi, 0x90		// (or a NOP, which we change to 80h)
 	jne .notnop
