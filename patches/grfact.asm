@@ -4613,7 +4613,7 @@ numgrfswitchparam equ addr($)-grfswitchparamlist
 uvard grfswitchparam,numgrfswitchparam
 
 global deftwocolormaps
-deftwocolormaps equ grfswitchparam+4*11		// sprite numbers for 2nd CC translation tables
+deftwocolormaps equ grfswitchparam+4*0x11	// sprite numbers for 2nd CC translation tables
 
 // cargo types available in each climate
 // for each of the values in the cargotypes list below, that bit is set
