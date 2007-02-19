@@ -1358,6 +1358,8 @@ consistcallbacks:
 	shl esi,7
 	add esi,[veharrayptr]
 	call setveh2cache
+extern calcaccel		// Changes Speed and Power based off Callback 36 returns
+	call calcaccel		// this changes the whole consist, multihead not required
 	call setvehcallbacks
 	call setveh2cache	// redo because callbacks may change variable values
 	movzx esi,word [esi+veh.nextunitidx]
