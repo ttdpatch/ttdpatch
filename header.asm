@@ -173,7 +173,7 @@ varb patchflagsfixedmap
 	db enhancegui		// 75
 	db newagerating		// 76
 	db buildonslopes	// 77
-	db noflag
+	db fullloadany		// 78
 	db planespeed		// 79
 	db noflag //  moreindustriesperclimate // 80
 	db moretoylandfeatures	// 81

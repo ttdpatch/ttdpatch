@@ -134,7 +134,7 @@
 #define morestats		110	// save some more company statistics
 #define autoreplace		111	// autoreplace old vehicle
 
-// NOTE!! If you add a bit here, also add it to patchflagsfixedmap in vars.ah!!
+// NOTE!! If you add a bit here, also add it to patchflagsfixedmap in header.asm!!
 
 #define lastbitdefaulton	111	// META: last bit defined to be set by -a 
 
