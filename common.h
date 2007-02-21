@@ -150,8 +150,6 @@
 #define adjacentstation		116	// adjacent stations					(124)
 #define newsignals		117	// new signals						(125)
 
-// NOTE!! If you add a bit here, also add it to patchflagsfixedmap in header.asm!!
-
 #define lastbitdefaulton	117	// META: last bit defined to be set by -a
 
 // add new flags that should be on by default above, flags off by default below
