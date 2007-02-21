@@ -52,7 +52,7 @@
 #define noinflation		20	// Turn off inflation					(-)
 #define maxloanwithctrl		21	// Borrow/Repay maximum amount with Ctrl		(-)
 #define persistentengines	22	// Persistent engines while they exist
-#define fullloadany		23	// Full load is full if any type full			(-)
+#define fullloadany		23	// Full load is full if any type full			(78)
 #define signalsontrafficside	24	// railroad signals on the side road vehicles drive on	(59)
 #define morethingsremovable	25	// More things can be removed, at a cost		(-)
 //#define aibooster		26	// Increase AI recursion factor
@@ -149,6 +149,8 @@
 #define stationsize		115	// max rail station spread				(123)
 #define adjacentstation		116	// adjacent stations					(124)
 #define newsignals		117	// new signals						(125)
+
+// NOTE!! If you add a bit here, also add it to patchflagsfixedmap in header.asm!!
 
 #define lastbitdefaulton	117	// META: last bit defined to be set by -a
 
