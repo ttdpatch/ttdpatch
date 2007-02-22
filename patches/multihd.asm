@@ -976,13 +976,18 @@ proc trainmaintcost
 	bt dword [isengine],ebx
 	jnc short .notengine
 
-	movzx eax,byte [ebx+0x10000]
-ovar trainmaintcostarray,-4
+	push ecx
+	movzx ecx, byte [trainrunningcost+ebx]
+	mov al, bl
+	mov ah, 0xD
+extern GetCallBack36
+	call GetCallBack36
+	movzx eax, al
+	pop ecx
 
 	mov dl,[numheads+ebx]
 
-	mov ebx,[ebx*4 +0x10000]
-ovar trainmaintbasecostarray,-4
+	mov ebx, [trainrunningcostbase+ebx*4]
 
 	imul eax,dword [ebx]
 

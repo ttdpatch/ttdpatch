@@ -4,6 +4,7 @@
 
 patchproc fastwagonsell,newtrains, patchwagonsell
 patchproc newtrains, multihead, patchpower
+patchproc newtrains, patchrunningcost
 
 extern trainmaintcostarray,trainmaintbasecostarray
 
@@ -155,23 +156,11 @@ patchmultihead:
 	patchcode oldengineselldualhead,newengineselldualhead,1,1
 //	patchcode oldsecondenginevalue,newsecondenginevalue,1,1
 //	patchcode oldbuysecondengine,newbuysecondengine,1,1
+	ret
 
-#if WINTTDX
-	stringaddress oldtrainmaintcost,2,2
-#else
-	stringaddress oldtrainmaintcost,1,2
-#endif
-	mov eax,[edi+7]
-	mov dword [trainmaintcostarray],eax
-	mov eax,[edi+14]
-	mov dword [trainmaintbasecostarray],eax
-	storefragment newtrainmaintcost
-
-#if WINTTDX
-	patchcode oldshowtrainmaintcost,newshowtrainmaintcost,2,2
-#else
-	patchcode oldshowtrainmaintcost,newshowtrainmaintcost,1,2
-#endif
+patchrunningcost:
+	patchcode oldtrainmaintcost, newtrainmaintcost, 1+WINTTDX, 2
+	patchcode oldshowtrainmaintcost, newshowtrainmaintcost, 1+WINTTDX, 2
 	ret
 
 

@@ -490,7 +490,17 @@ var playersuffixtypes, dw 0x7002,0x7003,6
 global gettrainrunningcost
 gettrainrunningcost:
 //	mov	eax,dword [enginepowerstable]
-	movzx	eax,byte [trainrunningcost+ebx]	// MOVZX instead of the original MOV...
+	push ecx
+	push esi
+	xor esi, esi
+	movzx ecx, byte [trainrunningcost+ebx]
+	mov al, bl
+	mov ah, 0xD
+extern GetCallBack36
+	call GetCallBack36
+	movzx eax, al
+	pop esi
+	pop ecx
 	ret
 ; endp gettrainrunningcost
 
