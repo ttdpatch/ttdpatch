@@ -490,6 +490,9 @@ var playersuffixtypes, dw 0x7002,0x7003,6
 global gettrainrunningcost
 gettrainrunningcost:
 //	mov	eax,dword [enginepowerstable]
+	testflags vruncosts
+	jnc .notvarable
+
 	push ecx
 	push esi
 	xor esi, esi
@@ -501,6 +504,10 @@ extern GetCallBack36
 	movzx eax, al
 	pop esi
 	pop ecx
+	ret
+
+.notvarable:
+	movzx eax, byte [trainrunningcost+ebx]
 	ret
 ; endp gettrainrunningcost
 

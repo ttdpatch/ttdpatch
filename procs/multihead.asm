@@ -4,7 +4,7 @@
 
 patchproc fastwagonsell,newtrains, patchwagonsell
 patchproc newtrains, multihead, patchpower
-patchproc newtrains, patchrunningcost
+patchproc vruncosts, patchrunningcost
 
 extern trainmaintcostarray,trainmaintbasecostarray
 

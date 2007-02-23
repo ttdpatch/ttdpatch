@@ -311,7 +311,7 @@
 	BITS ('S',"newsounds", CFG_NEWSOUNDS, BASIC, "NewSounds", newsounds, U8, FLAGDATA(newsoundsettings), 1),
 	YESNO('T',"trams", CFG_TRAMS, INFST_ROADS, "Trams", trams),
 	     //U
-	     //V
+	YESNO('V', "variablerunningcosts", CFG_VRUNCOSTS, VEH, "", vruncosts),
 	YESNO('W',"newsignals", CFG_NEWSIGNALS, INFST_RAIL_SIGNAL, "", newsignals),
 	YESNO('X',"adjacentstation", CFG_ADJSTATIONS, INFST_STATION, "AdjacentStations:Alpha", adjacentstation),
 	RANGE('Y',"stationsize", CFG_STATIONSIZE, INFST_STATION, "StationSize:Alpha", stationsize, AUTO, U8, FLAGDATA(stationsizevalue), 1, 255, 255),
@@ -516,4 +516,5 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	adjacentstation,
 	newsignals,
 	newobjects,
+	vruncosts,
 
