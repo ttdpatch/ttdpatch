@@ -1135,6 +1135,10 @@ void commandline(int argc, const char *const *argv)
 	setf1(newtrains);
     } 
 
+    if (getf(vruncosts)) {
+	setf1(newtrains);
+    }
+
   }
 
   copyflagdata();
