@@ -1,5 +1,5 @@
 /*
-  mkptinc.c - convert lang/<lang>.txt into <lang>.inc ifdef  MKPTINC
+  mkptinc.c - convert lang/<lang>.txt into <lang>.inc
 
   Copyright (C) 2002-2003 by Josef Drexler <jdrexler@uwo.ca>
   Portions copyright (C) 2006 by Dale McCoy <dalestan@gmail.com>
@@ -11,14 +11,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-#include <errno.h>
 
 #define WANTINGAMETEXTNAMES
 #include "inc/ourtext.h"
-
-#define C
-#include "common.h"
-#include "types.h"
 
 static int allocsize = 32768;
 
