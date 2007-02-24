@@ -1,10 +1,5 @@
 #include <defs.inc>
-#include <frag_mac.inc>
-#include <patchproc.inc>
-#include <ptrvar.inc>
-#include <textdef.inc>
-#include <misc.inc>
-#include <vehtype.inc>
+#include <var.inc>
 
 extern vehcallback
 

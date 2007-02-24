@@ -4,7 +4,6 @@
 #include <defs.inc>
 #include <var.inc>
 #include <win32.inc>
-#include <frag_def.inc>
 
 varb aPatchDll, "ttdpatch.dll", 0
 varb afake_RegOpenKeyA, "fake_RegOpenKeyA@12", 0

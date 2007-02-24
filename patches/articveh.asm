@@ -3,14 +3,11 @@
 //----------------------END HEADER----------------------------------
 
 #include <defs.inc>
-#include <frag_mac.inc>
-#include <patchproc.inc>
-#include <ptrvar.inc>
+#include <ttdvar.inc>
 #include <textdef.inc>
-#include <misc.inc>
+#include <veh.inc>
 #include <town.inc>
 #include <imports/gui.inc>
-#include <vehtype.inc>
 #include <window.inc>
 #include <station.inc>
 
