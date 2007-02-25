@@ -1887,6 +1887,7 @@ getmiscgrftable:
 	call malloccrit
 	pop edi
 	pop dword [edi]	// store size
+	dec dword [edi] // the stored size shouldn't include the size field
 	add edi,4
 	mov [eax+spriteblock.miscstr],edi
 
@@ -1895,7 +1896,6 @@ getmiscgrftable:
 
 	push ecx
 	mov ecx,[esi-4]
-	dec ecx		// size included size dword, skip that
 	rep movsd
 	pop ecx
 
