@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <errno.h>
 
 #define WANTINGAMETEXTNAMES
 #include "inc/ourtext.h"
