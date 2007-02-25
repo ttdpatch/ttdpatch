@@ -1879,7 +1879,9 @@ getmiscgrftable:
 
 .neednew:
 	push edi
-	add edi,32	// 31 to round up + 1 for the length
+	add edi,33	// +1 because the list is zero-based
+			// +1 for the length
+			// +31 to round up
 	and edi,byte ~31
 	push edi
 	shl edi,2
