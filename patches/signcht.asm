@@ -146,6 +146,7 @@ cheatentry "SNOWLINE",snowlinecheat,0
 cheatentry "GOTOXY",gotocheat,0
 cheatentry "TEXTID",textidcheat,0
 cheatentry "RESETCARGO",resetcargocheat,0
+cheatentry "CLONETILE", clonetilecheat,0
 #endif
 endvar
 
@@ -2734,3 +2735,93 @@ purgeindustriescheat:
 
 	clc
 	ret
+	
+
+#if 1 && DEBUG
+	//parameters: 4 hex digits source coordinates, decimal integer x extent (NE->SW), decimal integer y extent (NW->SE)
+extern invalidatetile
+clonetilecheat:
+	call gethexnumber
+	jc NEAR .ret
+	test edx, 0xFFFF0000
+	jnz NEAR .fret
+	mov ecx, edx
+	call getnumber
+	test edx, 0xFFFFFF00
+	jnz NEAR .singtile
+	or edx, edx
+	jz NEAR .singtile
+	mov al, dl
+	call getnumber
+	test edx, 0xFFFFFF00
+	jnz NEAR .singtile
+	or edx, edx
+	jz NEAR .singtile
+	mov bh, dl
+	mov bl, al
+
+	call getsignxy
+	
+	mov ax, si
+	add al, bl
+	jc .singtile2
+	add ah, bh
+	jc .singtile2
+	jmp .nsingtile
+.singtile:
+	call getsignxy
+	mov ax, si
+.singtile2:
+	mov ebx, 0x101
+.nsingtile:
+	mov edx, esi
+	mov ah, bh
+
+.loop:
+	mov al, [landscape1+ecx]
+	mov [landscape1+edx], al
+	mov al, [landscape2+ecx]
+	mov [landscape2+edx], al
+	mov bp, [landscape3+ecx*2]
+	mov [landscape3+edx*2], bp
+	mov al, [landscape4(cx,1)]
+	mov [landscape4(dx,1)], al
+	mov al, [landscape5(cx,1)]
+	mov [landscape5(dx,1)], al
+	mov al, [landscape6+ecx]
+	mov [landscape6+edx], al
+	mov al, [landscape7+ecx]
+	mov [landscape7+edx], al
+	mov edi, landscape8
+	test edi,edi
+	jle .end
+	mov bp, [edi+ecx*2]
+	mov [edi+edx*2], bp
+.end:
+	pushad
+	movzx eax, dl
+	shl eax, 4
+	movzx ecx, dh
+	shl ecx, 4
+	call [invalidatetile]
+	popad
+	inc ch
+	inc dh
+	dec bh
+	jnz NEAR .loop
+	sub ch, ah
+	sub dh, ah
+	mov bh, ah
+	inc cl
+	inc dl
+	dec bl
+	jnz NEAR .loop
+
+.tret:
+	clc
+.ret:
+	ret
+.fret:
+	stc
+	ret
+#endif
