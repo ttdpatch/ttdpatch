@@ -1348,6 +1348,14 @@ patchgeneralfixes:
 #endif
 
 	multipatchcode DistributeIndustryCargo_recession,2
+
+	// fix wrong color code for text ID 22D
+	mov ax,0x22d
+	call gettextandtableptrs
+	cmp byte [edi],0x98
+	jne .notwrongcode
+	mov byte [edi],0x90
+.notwrongcode:
 	ret
 
 // shares some code fragments
