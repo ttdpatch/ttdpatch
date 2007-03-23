@@ -62,9 +62,6 @@
 
 - wagons converted engines don't make category become available
 
-- make building waypoints does not "attach" them to existing stations, thereby
-  can build waypoints adjacent to other stations
-
 - different graphics for electr. depot using action 5
 
 - supporting reversing artic locos
@@ -91,7 +88,7 @@
 - grftrans can't translate new station names
   -> make it write action 0 feature 4 prop 8 set to FFFFFFF, make that use the
      mapping of the previous .grf ?
-  -> or add another bit to action 4 to do that
+  -> action 13 ?
 
 - morecurrencies overwrites default curr selection (not GBP in BE version)
 
@@ -689,6 +686,7 @@ CHANGELOG
   * Make new switches get automatically added to the -h display when the
     description is not yet translated.
   * Improve FIFO loading to allow multiple consists to load simultaneously.
+  * Make TTDPatch mark new bits in bitswitches when writing ttdpatch.cfg.
 - added autosignals to new signal gui, build two-way signals every 3/4 tiles
   (use `autosignaldistance n' or -ZL to set desired signal separation)
 - by Tron:
@@ -703,7 +701,6 @@ CHANGELOG
   * allow stations larger than 15x15, enable with "stationsize <maxsize>"
   * implement signal restrictions, enable with "tracerestrict on" and
     access from new signal gui ("signalgui on")
-  * Make TTDPatch mark new bits in bitswitches when writing ttdpatch.cfg.
 - store some persistent grf properties in savegame (includes "non enter"
   station tiles to prevent stations from breaking when loaded without their
   grf file present
