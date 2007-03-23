@@ -446,8 +446,6 @@
   a shortest-distance algorithm to least-cost algorithm, with some balance
   between cost due to distance, curves and inclines
 
-- implement George's 24-dir action 1 for road vehicles turning
-
 - for vehlist sorting, build sortvar list with two DWORDs: one for vehicle, one
   for the property which is being sorted. then sort the sortvar list directly,
   without going to the veh struct, this should speed up sorting and make
