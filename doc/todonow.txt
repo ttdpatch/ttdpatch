@@ -107,8 +107,6 @@
 
 - change station rating calc with wagonspeedlimits
 
-- add parameter "only x years old" to cht:renew
-
 - airport problem, http://www.tt-forums.net/viewtopic.php?p=237282#237282
 
 - fix perf score overflow: bsr ecx,ebx; sub ecx,16; jb .noshift; shr ebx,cl; .noshift:
@@ -675,3 +673,4 @@ CHANGELOG
     tools in the scenario editor.
   * Make sign cheats ignore commas and decimal points in numeric arguments.
   * Check all on/off states, not just those attached to on/off switches.
+  * Add an "only x years old" parameter to cht:renew
