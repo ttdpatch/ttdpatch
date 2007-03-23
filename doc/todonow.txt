@@ -11,8 +11,6 @@
 
 - make remove industry apply only for dynamite, instead of requiring Ctrl key
 
-- catch alignment problems in flagdata.h automatically (nasm macros?)
-
 - too much diesel smoke when train is slowed down by bridge speed limit
 
 - make elrails cost change in time, something like
@@ -445,6 +443,8 @@
 - modify train pathfinding to prefer straight and level routes; change it from
   a shortest-distance algorithm to least-cost algorithm, with some balance
   between cost due to distance, curves and inclines
+
+- implement George's 24-dir action 1 for road vehicles turning
 
 - for vehlist sorting, build sortvar list with two DWORDs: one for vehicle, one
   for the property which is being sorted. then sort the sortvar list directly,
