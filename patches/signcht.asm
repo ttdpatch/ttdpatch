@@ -420,6 +420,10 @@ getnumber:
 	jz short .exitgetnumber
 	cmp al," "
 	je short .exitgetnumber
+	cmp al,"."
+	je .nextdigit
+	cmp al,","
+	je .nextdigit
 	sub al,"0"
 	jl short .exitgetnumber
 	cmp al,9

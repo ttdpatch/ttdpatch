@@ -6,8 +6,6 @@
 - fix large ships tip not being drawn properly; check ship motion and
   redrawing of the main window; should have the size calculation there
 
-- make hotkeys work for ship and aircraft tools too (and maybe others?)
-
 - make planting more than one tree in a square affect city ratings, but
   perhaps not as much
 
@@ -534,6 +532,9 @@
 
 - in orders menu, make skip change to "skip to" when an order is selected
 
+- redraw screen after processing key [2]/[8] in the scenario editor's Land
+  generation window
+
 - UTF-8 colour codes broken, http://www.tt-forums.net/viewtopic.php?p=489083#489083
 
 =====  Not so urgent  =====
@@ -627,8 +628,6 @@
 - Improve ship pathfinding for longer distances.  Diagonal not north then west
 
 - Larger tile sizes in the editor.
-
-- cht: money 1,000,000 (i.e. ignore commas and/or decimal points for better legibility)
 
 - add option in menu to jump between editor and playing
 
