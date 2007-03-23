@@ -97,8 +97,6 @@
      mapping of the previous .grf ?
   -> or add another bit to action 4 to do that
 
-- gamespeed doesn't turn on morehotkeys?
-
 - morecurrencies overwrites default curr selection (not GBP in BE version)
 
 - provide support for long train vehicles composed of two vehicles?  maybe
