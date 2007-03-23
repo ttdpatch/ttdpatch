@@ -93,8 +93,6 @@
      mapping of the previous .grf ?
   -> or add another bit to action 4 to do that
 
-- gamespeed doesn't turn on morehotkeys?
-
 - morecurrencies overwrites default curr selection (not GBP in BE version)
 
 - provide support for long train vehicles composed of two vehicles?  maybe
@@ -685,16 +683,9 @@ CHANGELOG
 - by DaleStan
   * add the depots-obey-transparency fix to generalfixes
   * add a miscmods bit to disable the depots-obey-transparency fix
-  * elrails: for crossings/connections between elrail and reg. rail don't
-    show pylons and wire for track pieces that go to reg. rail
-  * elrails: Allow grfs turn on catenary above the third rail type.
-  * make hotkeys work for ship and aircraft tools, and for road and land
-    tools in the scenario editor.
   * (devel) Make ttdprotw.exe compilable (and thus debuggable) with MSVC.
   * (devel) Make TTDPatch error out when a switch with an unknown variable
     size is encountered.
-  * Make sign cheats ignore commas and decimal points in numeric arguments.
-  * Check all on/off states, not just those attached to on/off switches.
   * Make new switches get automatically added to the -h display when the
     description is not yet translated.
   * Improve FIFO loading to allow multiple consists to load simultaneously.
@@ -709,7 +700,6 @@ CHANGELOG
 - implement action 13 to allow translating D000/DC00 texts of another grf
 - add generic "must be loaded before/after" messages to action B
 - by JGR:
-  * show more than 255 trains/ships/rvs/planes in vehicle list
   * allow stations larger than 15x15, enable with "stationsize <maxsize>"
   * implement signal restrictions, enable with "tracerestrict on" and
     access from new signal gui ("signalgui on")
@@ -726,3 +716,23 @@ CHANGELOG
 
 
 2.5 beta 10
+- by JGR:
+  * Show more than 255 trains/ships/rvs/planes in vehicle list.
+  * Fix div/mod varadjusts on word/dword varaction2s.
+- Support long intro dates.
+- Allow GRF authors to test for all five loading stages.
+- Display correct error code for all GRF error messages.
+- by minime:
+  * Fix incorrect tooltips in ship and aircraft windows.
+- by Lakie:
+  * Allow GRF authors to test whether a vehicle was built in the exclusive
+    testing phase.
+  * Add "New Game" option to the load/save menu.
+- by DaleStan
+  * elrails: for crossings/connections between elrail and reg. rail don't
+    show pylons and wire for track pieces that go to reg. rail
+  * elrails: Allow grfs turn on catenary above the third rail type.
+  * Make hotkeys work for ship and aircraft tools, and for road and land
+    tools in the scenario editor.
+  * Make sign cheats ignore commas and decimal points in numeric arguments.
+  * Check all on/off states, not just those attached to on/off switches.

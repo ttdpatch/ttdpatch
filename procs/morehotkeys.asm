@@ -106,6 +106,7 @@ patchmorehotkeys:
 	stringaddress LandscapeGenWindowHandler
 	mov [pLandscapeGenWindowHandler],edi
 	
+
 #if !WINTTDX
 	// remove ASCII code from cursor keys (they aren't supposed to generate letters)
 	mov esi,shiftedkeyasciitable+72

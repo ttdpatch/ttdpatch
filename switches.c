@@ -1120,6 +1120,10 @@ void commandline(int argc, const char *const *argv)
 	flags->data.expswitches &= ~(1<<engineconvert_NUM); // If it's not on, then disable this since it requires it
     }
 
+    if (getf(gamespeed))
+	setf1(morehotkeys);
+
+
 #if 0
     if (getf(newcargos) || getf(newindustries)) {
 	clearf(moreindustriesperclimate);
