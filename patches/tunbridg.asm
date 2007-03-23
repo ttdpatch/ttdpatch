@@ -32,6 +32,7 @@ extern gettunnelspriteset
 extern locationtoxy
 extern cleartilefn
 
+extern trackhascatenary_L7
 
 // in:	ebx=di=landscape XY
 //	esi->vehicle
@@ -217,7 +218,7 @@ exported Class9DrawLandTunnelExt
 	testflags electrifiedrail
 	jnc near .notelectrified
 
-	test byte [landscape7+esi], 1
+	call trackhascatenary_L7
 	jz .notelectrified
 	pusha
 	add dl, 8

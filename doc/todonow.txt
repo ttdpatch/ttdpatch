@@ -55,8 +55,6 @@
 
 - newstations flags to build fences for +x/+y and -x/-y sides
 
-- grf option to turn on catenary for third set (japanese set -> shinkansen)
-
 - change realistic curves to use constant drag force instead
   e.g. each curve = 25 kN, but how to handle single loco & short trains?
 
@@ -459,9 +457,6 @@
 
 - town stats with growth mode 2: maybe show growth rate if debugging?
 
-- elrails: for crossings/connections between elrail and reg. rail don't
-  show pylons and wire for track pieces that go to reg. rail
-
 - lowering/raising land removes exclusive land use signs?
 
 - in town, show "Population: 600 (snow)" or "Population: 600 (desert)"
@@ -662,3 +657,23 @@ CHANGELOG
 
 
 2.5 beta 10
+- by JGR:
+  * Show more than 255 trains/ships/rvs/planes in vehicle list.
+  * Fix div/mod varadjusts on word/dword varaction2s.
+- Support long intro dates.
+- Allow GRF authors to test for all five loading stages.
+- Display correct error code for all GRF error messages.
+- by minime:
+  * Fix incorrect tooltips in ship and aircraft windows.
+- by Lakie:
+  * Allow GRF authors to test whether a vehicle was built in the exclusive
+    testing phase.
+  * Add "New Game" option to the load/save menu.
+- by DaleStan
+  * elrails: for crossings/connections between elrail and reg. rail don't
+    show pylons and wire for track pieces that go to reg. rail
+  * elrails: Allow grfs turn on catenary above the third rail type.
+  * Make hotkeys work for ship and aircraft tools, and for road and land
+    tools in the scenario editor.
+  * Make sign cheats ignore commas and decimal points in numeric arguments.
+  * Check all on/off states, not just those attached to on/off switches.

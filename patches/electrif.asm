@@ -101,7 +101,7 @@ drawstationtile:
 	jnc getstationspriteset.noelrail
 
 	// draw overhead wires while we're at it
-	test bp,1
+	call trackhascatenary_bp
 	jz .donedrawing
 
 	cmp dh,8	// rail station tile?
@@ -197,11 +197,8 @@ uvarb dontdisplaywireattunnel,1
 global gettunnelspriteset
 gettunnelspriteset:
 	// draw overhead wires and pylons while we're at it
-	push ebx
-	and ebx,byte 0xF
-	dec ebx
-	pop ebx
-	jnz .donedrawing
+	call trackhascatenary_bl
+	jz .donedrawing
 
 	cmp dh,4	// rail tunnel?
 	jae .donedrawing
@@ -259,7 +256,7 @@ gettunnelspriteset:
 global getbridgespriteset
 getbridgespriteset:
 	// again, draw wires while we're at it
-	test si,1
+	call trackhascatenary_si
 	jz .donedrawing
 	pusha
 
@@ -317,7 +314,7 @@ getunderbridgespriteset:
 	jz .donedrawing
 	test dh,0x18	// rail?
 	jnz .donedrawing
-	test si,1
+	call trackhascatenary_si
 	jz .donedrawing
 	pusha
 	and dh,1
@@ -527,6 +524,7 @@ uvard badpylondirs	// bit mask of pylon directions that cause glitches
 // out:	EBX = map of exits from this tile (bits:0=NW,1=NE,2=SW,3=SE)
 // preserves: everything else
 makerailexitmap:
+	call checkadjacenttiles
 	xor ebx,ebx
 	test dh,010110b
 	jz .not0
@@ -606,11 +604,9 @@ makerailexitcount:
 
 haspyloninthisdirection.tunnel:
 	// new tunnel code support enhancetunnels.
-	mov bl,[landscape3+esi*2]
-	and bl,0xF
-	cmp bl,1
-	mov ebx, 0
-	jne .tunneluppart
+	xor ebx,ebx
+	call trackhascatenary_L3
+	jz .tunneluppart
 
 	// was a depot or tunnel, orientation of exit now in dh
 	// dh:  0 => +X (SW), 1 => -Y (NW), 2 => -X (NE), 3 => +Y (SE)
@@ -623,12 +619,8 @@ haspyloninthisdirection.tunnel:
 	test byte [landscape7+esi], 0x80
 	jz .tunneldone
 
-	push ebx
-	mov bl,[landscape7+esi]
-	and bl,0xF
-	cmp bl,1
-	pop ebx
-	jne .tunneldone
+	call trackhascatenary_L7
+	jz .tunneldone
 
 	// (bits:0=NW,1=NE,2=SW,3=SE)
 	test dh, 1
@@ -658,10 +650,8 @@ haspyloninthisdirection:
 	xor dh,2	// sense of direction for depots is opposite to tunnels
 
 .tunnelold:
-	mov bl,[landscape3+esi*2]
-	and bl,0xF
-	cmp bl,1
-	jne .norailthere
+	call trackhascatenary_L3
+	jz .norailthere
 
 	// was a depot or tunnel, orientation of exit now in dh
 	// dh:  0 => +X (SW), 1 => -Y (NW), 2 => -X (NE), 3 => +Y (SE)
@@ -676,9 +666,8 @@ haspyloninthisdirection:
 
 .checkrailtype:
 	and ebp,0xF
-	and bl,0xF
-	cmp bl,1
-	jne .norailthere
+	call trackhascatenary_bl
+	jz .norailthere
 	call makerailexitmap
 .gotexitmap:
 	xor ebx,ebp		// reverse test
@@ -688,10 +677,8 @@ haspyloninthisdirection:
 .maybecrossing:
 	cmp bl,0x20/2
 	jnz .maybestation
-	mov bl,dh
-	and bl,0xF0
-	cmp bl,0x10
-	jne .norailthere
+	call trackhascatenary_dhh
+	jz .norailthere
 	and dh,8
 	shr dh,3
 	xor dh,1
@@ -712,6 +699,7 @@ haspyloninthisdirection:
 	jc .getrailtype
 
 .norailthere:
+	test esp, esp
 	stc
 	ret
 
@@ -761,7 +749,7 @@ dontwantpyloninthisdirection:
 	call [gettileinfo]
 	cmp bl,0x10/2
 	jne .mightbebridge
-
+	
 	cmp dh,0xc3
 	ja .donenz
 
@@ -1093,7 +1081,7 @@ geteffectivetracklayout:
 	je near .isbridgeortunnel
 
 	cmp bl,0x50
-	je .isstation
+	je near .isstation
 
 .notracks:
 	test esi,esi
@@ -1132,8 +1120,12 @@ geteffectivetracklayout:
 	jne .wrongtracks
 
 .checkrailtype:
-	test byte [landscape3+esi*2],1	// electrified?
-	jnz .hastracks
+	call trackhascatenary_L3	// electrified?
+	jz .wrongtracks
+	xchg bh,dh
+	call checkadjacenttiles
+	xchg bh,dh
+	jmp .hastracks
 
 .wrongtracks:
 	mov bh,0xff
@@ -1151,7 +1143,7 @@ geteffectivetracklayout:
 	test di,di
 	jnz .wrongtracks	// crossing doesn't have slope, so we shouldn't either!
 
-	test byte [landscape3+esi*2+1],1	// electrified?
+	call trackhascatenary_L3p	// electrified?
 	jz .wrongtracks
 
 	and bh,8
@@ -1159,7 +1151,7 @@ geteffectivetracklayout:
 	xor bh,1
 	inc bh
 	jmp .hastracks
-
+	
 .isstation:
 	test di,di
 	jnz .wrongtracks
@@ -1188,12 +1180,8 @@ geteffectivetracklayout:
 	test byte [landscape7+esi], 0x80
 	jz .wrongtracks
 
-	push ebx
-	mov bl,[landscape7+esi]
-	and bl,0xF
-	cmp bl,1
-	pop ebx
-	jne .wrongtracks
+	call trackhascatenary_L7
+	jz .wrongtracks
 
 	test bh, 1
 	jnz .tunnelotherdir
@@ -1237,7 +1225,7 @@ geteffectivetracklayout:
 	cmp bh,3
 	jae .wrongtracks	// road bridge
 
-	test byte [landscape3+esi*2],0x10
+	call trackhascatenary_L3h
 	jz .wrongtracks
 	jmp .hastracks
 
@@ -1731,6 +1719,8 @@ drawpylons:
 	test bl,0x40
 	jnz .haveexitmap
 
+	call checkadjacenttiles
+	mov bl,dh
 	call makerailexitcount
 
 	shr bh,2		// bh is A?B?C?D? where A..D are set if > 1 track piece
@@ -1879,6 +1869,8 @@ displaywires:
 	movzx ebx,word [catenaryspritebase]
 	or bh,bh
 	js displaywires_return
+	
+	call checkadjacenttiles
 
 	add dl,wireheight
 	movzx edi,di
@@ -1969,6 +1961,215 @@ displaywires:
 ; endp displaywires
 
 
+varb tileoffset
+	dw -257,255,257,-256
+//	esi is never reset, so this table is cumulative.
+//	Note that edi runs 3->0, therefore the cumulative change to esi is
+//	dw -1,256,1,-256
+//	A tunnel in these tiles with the direction ecx faces the tile at the original esi
+endvar
+varb trackmask
+	db 100101b,101010b,011001b,010110b
+	db 100101b,101010b // These two bytes are so I don't have to do modulo 4 arithemetic
+endvar
+
+// Check adjacent tiles for electrification
+// In:	DH from gettileinfo
+//	ESI set to XY index
+// Out:	DH reduced to paths connected to electrified rail
+// Preserves: everything else
+// DH is never returned 0. If no electrified connections are found, DH is returned unchanged.
+
+checkadjacenttiles:
+	pusha
+	
+	test dh,0x80
+	jnz near .return  // drawing on bridge
+
+	xor bx,bx
+//bl: bit set: track is connected to at least one elect tile
+//bh: bit set: track is unconnected or connected to two elect tiles (Draw wire/pylon)
+
+	mov ecx,3 // Our counter. The low bit is often used as a X/Y direction indicator.
+
+.removewireloop:
+	add si,[tileoffset+ecx*2]
+	test dh,[trackmask+ecx]
+	jz near .nexttile
+
+	mov al,[landscape4(si)]
+	mov ah,[landscape5(si)]
+	shr al,4
+	cmp al,1
+	jne .maybecrossing
+	test ah,0x80
+	jnz .depot
+.checkconnections:
+	test ah,[trackmask+ecx+2]
+	jnz near .gettracktype
+.unconnected:
+	or bh,[trackmask+ecx]
+	jmp .nexttile
+
+.depot:
+	xor ah,2
+	and ah,3
+	jmp .tunnel
+
+.maybecrossing:
+	cmp al,2
+	jne .maybestation
+	test ah,0x10
+	jz .unconnected
+	xor ah,cl
+	test ah,1
+	jnz .unconnected
+	mov al,[landscape3+1+2*esi]
+	jmp .checktracktype
+
+.maybestation:
+// Assuming the "track type" for non-railway stations will never be non-zero
+	cmp al,5
+	jne .maybebridgeortunnel
+	xor ah,cl
+	test ah,1
+	jz near .gettracktype
+	jmp short .unconnected
+
+.maybebridgeortunnel:
+// Assuming that the "track type" for roads will never be non-zero, except in .bridgeend
+	cmp al,9
+	jne .unconnected
+	test ah, 0x80
+	jnz .bridge
+.maybeenhtunnel:
+	testflags enhancetunnels 
+	jnc .tunnel
+	mov al,[landscape7+esi]
+	test al,0x80
+	jz .tunnel
+	xor ah,cl
+	test ah,1
+	jnz near .checktracktype
+	xor ah,cl
+.tunnel:
+	cmp ah,cl;
+	je .gettracktype
+	jmp short .unconnected
+
+.bridge:
+	test ah,0x40
+	jz .bridgeend
+.bridgemiddle:
+	test ah,0x20
+	jnz .gettracktype 
+.maybemybridge:
+	mov edi,[esp+4]
+// Check to see if the original tile is a bridgehead going the same direction
+// as the tile at the current esi
+	mov al,[landscape4(di)]
+	shr al,4
+	cmp al,9
+	jne .unconnected
+	mov ah,[landscape5(di)]
+	mov al,ah
+	and ah,0xC0
+	cmp ah,0x80
+	jne .unconnected
+	xor al,cl
+	test al,1
+	jnz .unconnected
+	mov al,[landscape3+edi*2]
+	jmp short .checktracktype
+
+.bridgeend:
+	test ah,2
+	jnz .unconnected
+	mov dl,ah
+	mov ax,[landscape3+esi*2]
+	shl ax,4
+	test ah,0x3F
+	jnz .checkconnections
+//Sloped bridgeheads do not have custombridgehead bits, so generate the trackmask manually.
+	mov ah,dl
+	and ah,1
+	inc ah// X==0,Y==1 -> X==01b,Y==10b
+	jmp .checkconnections	
+
+.gettracktype:
+	mov al,[landscape3+esi*2]
+.checktracktype:
+	call trackhascatenary_al
+	jz .nexttile
+	mov ah,[trackmask+ecx]
+	mov al,ah
+	and al,bl// If bit is set in both ah and bl
+	or bh,al // Set it in bh (Draw this wire/pylon)
+	or bl,ah // If bit is set in either ah or bl, set it in bl (possibly draw this wire/pylon)
+.nexttile:
+	dec ecx
+	jns .removewireloop
+
+.removedone:
+	and bh,dh
+	or bh,bh
+	jz .return
+	mov [esp+5*4+1], bh // write new value for dh (track bitmask) to the stack
+	// pusha pushes in this order: eax, ecx, edx, ebx, esp, ebp, esi, edi
+	// Therefore, skip five dword registers and the dl byte.
+.return:
+	popa // and pop the possibly modified value
+	ret
+; endp checkadjacenttiles
+
+extern grfmodflags
+
+// In: track type in the low 2 bits of the specified location
+//	"reg" macro checks a register, "mem" macro checks a byte in memory
+//	With a trailing 'h' the high nibble of the specified location is checked.
+//	Generated name is trackhascatenary_<first_param>[h]
+// Out: ZF = 1 if no catenaries
+//	ZF = 0 if catenaries
+// Safe: All
+// All el-rails track-type checks use one of these functions.
+
+%macro catenarycheck 2-3	// params: trailing namepart (with 'h'), location to check
+				// trailing 0 to check high nibble instead
+				// Internal version. Use one of the next four instead.
+trackhascatenary_%1:
+	test byte [grfmodflags], 0x20
+	jnz .bothtypes
+	test %2,1%3h // Track type 1 only
+	ret
+.bothtypes:
+	test %2,3%3h // Track type 1 or 2
+	ret
+%endmacro
+
+%macro catenarycheck_reg 1	//param: register to check
+	catenarycheck %1, %1
+%endmacro
+%macro catenarycheck_regh 1	//param: register to check
+	catenarycheck %1h, %1, 0
+%endmacro
+%macro catenarycheck_mem 2	//params: name, byte to check
+	catenarycheck %1, byte [%2]
+%endmacro
+%macro catenarycheck_memh 2	//params: name (sans 'h'), byte to check
+	catenarycheck %1h, byte [%2], 0
+%endmacro
+
+catenarycheck_reg al
+catenarycheck_reg bl
+catenarycheck_regh dh
+catenarycheck_reg bp
+catenarycheck_reg si
+catenarycheck_mem L3, landscape3+esi*2
+catenarycheck_memh L3, landscape3+esi*2
+catenarycheck_mem L3p, landscape3+1+esi*2
+global trackhascatenary_L7
+catenarycheck_mem L7, landscape7+esi
+
 // Display railway catenary sprites
 // in:	AX,CX = landscape coordinates of the north corner
 //	ESI = landscape XY index
@@ -1978,9 +2179,8 @@ displaywires:
 //	BL = track type
 // uses:EBX,EBP
 displrailwaycatenary:
-	and bl,0xF
-	cmp bl,1
-	jne .done
+	call trackhascatenary_bl
+	jz .done
 
 // disable display if it's a higherbridge, we already drawn the caternery support
 	push edx
