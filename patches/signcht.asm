@@ -1143,6 +1143,13 @@ roadcheat:
 ; endp roadcheat 
 
 renewcheat:
+	call getnumber
+	jnc .gotnumber
+	inc edx		// set edx to 0
+.gotnumber:
+	imul edx, 0x5b5
+	shr edx, 2
+	push edx
 	mov ax,[currentdate]
 	call dword [getymd]
 	mov cl,al
@@ -1151,9 +1158,11 @@ renewcheat:
 	call checkcost
 	mov ax,dx
 
-	or dh,dh		// do things cost money
+	pop edx
+
+	or ah,ah		// do things cost money
 	jz short .nocost
-	or dl,dl		// do we check cost only
+	or al,al		// do we check cost only
 	jz short .nocost
 
 	// things cost money, so we need to first make sure there is enough money
@@ -1181,7 +1190,6 @@ renewcheat:
 	ret
 
 .actualcheat:
-//	mov edx,dword [enginepowerstable]
 	mov ch,[curplayer]
 
 	xor ebx,ebx
@@ -1203,6 +1211,9 @@ renewcheat:
 
 	cmp byte [esi+veh.owner],ch
 	jne short .nextvehicle		// not this player
+	
+	cmp [esi+veh.age], dx
+	jl short .nextvehicle		// vehicle not old enough
 
 	// it's a train waggon owned by the player
 	movzx edi,byte [traincost+edi]		// get multiplier

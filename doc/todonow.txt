@@ -11,8 +11,6 @@
 
 - make remove industry apply only for dynamite, instead of requiring Ctrl key
 
-- catch alignment problems in flagdata.h automatically (nasm macros?)
-
 - too much diesel smoke when train is slowed down by bridge speed limit
 
 - make elrails cost change in time, something like
@@ -105,8 +103,6 @@
 - crash if # of industries set to none but load without that switch
 
 - change station rating calc with wagonspeedlimits
-
-- add parameter "only x years old" to cht:renew
 
 - airport problem, http://www.tt-forums.net/viewtopic.php?p=237282#237282
 
@@ -733,3 +729,4 @@ CHANGELOG
     tools in the scenario editor.
   * Make sign cheats ignore commas and decimal points in numeric arguments.
   * Check all on/off states, not just those attached to on/off switches.
+  * Add an "only x years old" parameter to cht:renew
