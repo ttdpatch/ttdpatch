@@ -164,7 +164,7 @@ exported Class9DrawLandTunnelExt
 	mov di, 16
 	mov si, di
 	mov dh, 1
-	mov ebx, 0x1322 
+	mov ebx, 0x1322
 	call [addsprite]
 	test dh,dh
 	popa
@@ -191,8 +191,16 @@ exported Class9DrawLandTunnelExt
 
 	xchg eax,ebx
 	
+	cmp bl, 2	//Maglev
+	jne .nomaglev1
+	mov ebx, 2589
+	mov cx, 2
+jmp .maglevin1
+.nomaglev1:
+	mov cx, -1
 	imul bx, 82
 	add ebx, 1005
+.maglevin1:
 	mov al, 1
 	test dh, 1
 	jnz .otherdir
@@ -210,7 +218,6 @@ exported Class9DrawLandTunnelExt
 	or ebx,0x3248000
 .nopathsig:
 	mov ax, 31
-	mov cx, -1
 	call [addrelsprite]
 	popa
 
