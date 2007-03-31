@@ -832,7 +832,8 @@ adjstrailstfunc:
 	add esp, 4
 .noovbldchk:
 
-
+	mov di, [adjoperrormsg1]
+	mov [operrormsg1], di
 	mov edi, [edx]
 	mov esi, [adjaction]
 	mov ebp, [edx+8]
@@ -843,13 +844,15 @@ adjstrailstfunc:
 	extern actionhandler
 	call DWORD [actionhandler]
 	cmp ebx, 0x80000000
+	je NEAR .end
+/*
 	jne .inret
 	mov bx, [adjoperrormsg1]
 	mov dx, [operrormsg2]
 	xor ax, ax
 	xor cx, cx
 	jmp dword [errorpopup]
-.inret:
+.inret:*/
 	test BYTE [adjtmp1], 1
 	jz .inret2
 	xor dl, dl
