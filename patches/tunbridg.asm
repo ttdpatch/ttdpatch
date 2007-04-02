@@ -34,6 +34,9 @@ extern cleartilefn
 
 extern trackhascatenary_L7
 
+uvard traceroutefnptr
+uvard traceroutefnjmp
+
 // in:	ebx=di=landscape XY
 //	esi->vehicle
 //	ebp=vehicle direction
@@ -104,6 +107,7 @@ exported enhancetunneltestrailwaytype
 vard dTunnelSpriteBasesNew
 	dd 2365, 2389
 endvar 
+uvard enhdrawbasetrack
 
 // in EBX = XY index of the tile
 //     SI = class of the tile * 8
@@ -195,19 +199,42 @@ exported Class9DrawLandTunnelExt
 	jne .nomaglev1
 	mov ebx, 2589
 	mov cx, 2
-jmp .maglevin1
-.nomaglev1:
-	mov cx, -1
-	imul bx, 82
-	add ebx, 1005
-.maglevin1:
+	push DWORD 1
 	mov al, 1
 	test dh, 1
-	jnz .otherdir
+	jnz .othermaglevdir
 	mov al, 2
 	inc ebx
-.otherdir:
+.othermaglevdir:
+	jmp .drawtrackdoit
 
+.nomaglev1:
+	push DWORD 3
+	imul bx, 82
+	add ebx, 1005
+	mov [enhdrawbasetrack], ebx
+.loop1:
+	mov ecx, [esp]
+	movzx eax, BYTE [landscape7+esi]
+	xor al, 0x10
+	shr al, 3
+	bt eax, ecx
+	jnc .loopend
+	movzx eax, dh
+	and al, 3
+	movzx ebx, BYTE [enhtnlconvtbl+16+ecx-1+eax*4]
+	//for some reason sprites for directions 4 and 5 seem to be in wrong order
+	mov eax, ebx
+	shr eax, 2
+	and al, 1
+	xor ebx, eax
+
+	add ebx, [enhdrawbasetrack]
+	xor eax, eax
+	bt eax, ecx
+	mov ecx, -1
+
+.drawtrackdoit:
 	testflags pathbasedsignalling
 	jnc .nopathsig
 	test byte [pbssettings],PBS_SHOWRESERVEDPATH|PBS_SHOWNONJUNCTIONPATH
@@ -218,7 +245,15 @@ jmp .maglevin1
 	or ebx,0x3248000
 .nopathsig:
 	mov ax, 31
+	pusha
 	call [addrelsprite]
+	popa
+
+.loopend:
+	dec DWORD [esp]
+	jnz .loop1
+
+	add esp, 4
 	popa
 
 // caternary top
@@ -229,17 +264,32 @@ jmp .maglevin1
 	jz .notelectrified
 	pusha
 	add dl, 8
+// 	test dh, 1
+// 	mov dh, 1
+// 	jnz .otherdirpylons
+// 	mov dh, 2
+// .otherdirpylons:
+	movzx ebx, dh
+	movzx di, BYTE [landscape7+esi]
+	and bl, 3
+	xor dh, dh
+	test di, 0x10
+	jnz .nostraightcat
+	or dh, [enhtnlconvtbl+ebx*4]
+.nostraightcat:
+	test di, 0x20
+	jz .nodiag1cat
+	or dh, [enhtnlconvtbl+ebx*4+1]
+.nodiag1cat:
+	test di, 0x40
+	jz .nodiag2cat
+	or dh, [enhtnlconvtbl+ebx*4+2]
+.nodiag2cat:
 	mov di, 0
-	test dh, 1
-	mov dh, 1
-	jnz .otherdirpylons
-	mov dh, 2
-.otherdirpylons:
 	call drawpylons
 	call displaywires
 	popa
 .notelectrified:
-
 
 .norelsprite:
 	popa
@@ -268,25 +318,51 @@ exported enhancetunnelremovetunnel
 	add esp, 4
 	ret
 
+varb enhtnlconvtbl
+db 2,32,4,1
+db 1,8,32,2
+db 2,8,16,1
+db 1,4,16,2
+
+db 1,5,2,0
+db 0,3,5,0
+db 1,3,4,0
+db 0,2,4,0
+endvar
+
 // in esi = coordinate
 // 	dh = L5
 //	bl = buildflags
 //	bh = direction of the track to build
 exported enhancetunnelremovetrack
+	mov BYTE [trnum], 0
 	test byte [landscape7+esi], 0x80
-	jz .bridge
+	jz .notbridge
 	test dh, 1	// odd numbers (1 and 3) mean NESW orientation
 	jz .neswtun
 	cmp bh, 1
 	je .remove
+.in1:
+	push eax
+	call calctrnum
+	or al, al
+	jns .diagremfine
+	pop eax
 	ret
+.diagremfine:
+	mov [trnum], al
+	pop eax
+	jmp .remove
 .neswtun:
 	cmp bh, 2
 	je .remove
-.bridge:	
+	jmp .in1
+.notbridge:
 	cmp dl, 0xE0
 	jnz .wrong
 	ret
+.wrongpop:
+	pop eax
 .wrong:
 	mov ebx,0x80000000
 	add esp, 4
@@ -294,14 +370,72 @@ exported enhancetunnelremovetrack
 .remove:
 	call checkvehintheway
 	jnz .wrong
+	push eax
+	mov bh, [landscape7+esi]
+	xor bh, 0x10
 
+	movzx eax, BYTE [trnum]
+	add eax, 12
+	btr ebx, eax
+	jnc .wrongpop	//bit not previously set, track not present
+
+	test bh, 0x70
+	jnz .notblank
+	mov bh, 0x10
+.notblank:
+	xor bh, 0x10
 	test bl,1
 	jz .onlytesting
-	mov byte [landscape7+esi], 0
+	mov byte [landscape7+esi], bh
+	mov eax, [esp]
 	call redrawtile
 .onlytesting:
+	pop eax
 	movsx ebx, word [tracksale]
 	add esp, 4
+	ret
+
+uvarb trnum
+
+//bh = direction of the track to build
+//dh = L5
+//trashes: eax
+calctrnum:
+	//tunnel pointing in towards: 0 = NE, 1 = SE, 2 = SW, 3 = NW
+	//valid dirs: bits (bh) = 0-2,5 1-3,5 2-3,4 3-2,4
+	//translated to:	  0-2,1 1-1,2 2-1,2 3-1,2
+	movzx eax, bh
+	bsf eax, eax
+	cmp eax, 1
+	jle .bad
+	test dh, 3
+	jz .case0
+	jp .case3
+	test dh, 1
+	jnz .case1
+.case2:
+	test bh, 0x24
+	jnz .bad
+	sub al, 2
+	ret
+.case0:
+	test bh, 0x18
+	jnz .bad
+	and al, 3
+	ret
+.case3:
+	test bh, 0x28
+	jnz .bad
+	shr al, 1
+	ret
+.case1:
+	test bh, 0x14
+	jnz .bad
+	dec al
+	shr al, 1
+	ret
+.bad:
+	or al, -1
 	ret
 
 // in si = coordinate
@@ -311,10 +445,23 @@ exported enhancetunnelremovetrack
 //	bh = direction of the track to build
 
 exported enhancetunneladdtrack
+	test bh, 3
+	jnz .nodiag
+	push eax
+	call calctrnum
+	or al, al
+	js .badpop
+	jmp .convpop
+.nodiag:
+	mov BYTE [trnum], 0
 	test dh,1	// odd numbers (1 and 3) mean NESW orientation
 	jz .neswtun
 	cmp bh, 1
 	je .convert
+.ret1:
+	ret
+.badpop:
+	pop eax
 	ret
 .neswtun:
 	cmp bh, 2
@@ -328,6 +475,9 @@ exported enhancetunneladdtrack
 	mov ebx,0x80000000		// report an error
 	add esp,4
 	ret
+.convpop:
+	mov [trnum], al
+	pop eax
 .convert:	
 	movzx esi,si
 //	test byte [landscape7+esi], 0x80
@@ -358,12 +508,26 @@ exported enhancetunneladdtrack
 	//mov ah, dl
 	and ah, 3
 	mov al, byte [landscape7+esi]
+	mov bh, al
 	and al,0xF8
 	or al, ah
 	or al, 0x80
-	
-	cmp byte [landscape7+esi], al
+
+	mov ah, [trnum]
+	sub ah, 1
+	inc ah
+	adc ah, ah	//0,1,2-->1,2,4
+	shl ah, 4
+
+	cmp bh, al
 	jne .notthesame
+	or bh, bh
+	jns .notthesame
+
+	xor al, 0x10
+
+	test al, ah	//track part already exists
+	jz .notthesame2
 
 	mov word [operrormsg2],0x1007		// already build
 	mov ebx,0x80000000
@@ -372,6 +536,15 @@ exported enhancetunneladdtrack
 	add esp,4
 	ret
 .notthesame:
+	xor al, 0x10
+.notthesame2:
+	or bh, bh
+	js .alreadytrack
+	and al, 0x8F
+	//or al, 0x10
+.alreadytrack:
+	or al, ah
+	xor al, 0x10
 	test bl,1
 	jz .onlytesting
 	mov byte [landscape7+esi], al
@@ -383,7 +556,6 @@ exported enhancetunneladdtrack
 	add esp,4
 	ret
 
-
 exported Class9RouteMapHandlerTunnel
 	and ah, 0x0C
 	shr ah, 1
@@ -393,7 +565,8 @@ exported Class9RouteMapHandlerTunnel
 .typeok:
 	cmp al, 0
 	jnz .nootherroute
-	test byte [landscape7+edi], 0x80
+	mov al, [landscape7+edi]
+	test al, 0x80
 	jnz .newroute
 .nootherroute:
 	mov eax, 0x101
@@ -401,13 +574,87 @@ exported Class9RouteMapHandlerTunnel
 	jz .done
 	mov ax, 0x202
 .done:
+	shr BYTE [tunnelgetclass9routemapflags], 1
 	ret
 .newroute:
-	mov eax, 0x303
+	push ecx
+	movzx ecx, BYTE [landscape5(di)]
+	and cl, 3
+
+	mov ah, [enhtnlconvtbl+ecx*4+3]
+
+	clc
+	rcr BYTE [tunnelgetclass9routemapflags], 1
+	jc .nodiag2rt
+	
+	//this function should only be called by (within TTD): dotraceroute and derivatives (bx=direction)
+	//AI functions should never get this far as they don't build enhanced tunnels
+	//movetrain->isnexttileconnected (bx=coordinates, always >8), train movement (bx=direction)
+	
+	//exception: test for call by IsNextTileConnected and if so use direction from [esp+8+4] (was ebp)
+
+	cmp DWORD [esp+8+4], 8
+	jae .notintc
+	push eax
+	mov eax, [esp+4+8]
+	cmp DWORD [eax], 0xD08B665D
+	jne .popintc
+	cmp DWORD [eax+4], 0x6610E8C1
+	jne .popintc
+	mov ch, [esp+8+8]
+	pop eax
+	jmp .gotdirin1
+.popintc:
+	pop eax
+.notintc:
+
+	cmp bx, 8
+	jae .nodir
+	//assume bx = direction (1=NE, 3=SE, 5=SW, 7=NW)
+	//assume that all directions except for that heading directly into tunnel are at above level
+
+	push eax
+	//check that call really is from traceroute or derivatives
+
+	mov eax, [esp+4+8]
+	sub eax, [traceroutefnptr]
+	sub eax, 0x350
+	pop eax
+	ja .nodir
+
+	mov ch, bl
+.gotdirin1:
+	mov bh, cl
+	and bh, 3
+	dec ch
+	shr ch, 1
+	cmp ch, bh
+	mov ch, 0
+	mov bh, 0
+	je .nodiag2rt
+
+	xor ah, ah
+.nodir:
+	test al, 0x10
+	jnz .nostraightrt
+	or ah, [enhtnlconvtbl+ecx*4]
+.nostraightrt:
+	test al, 0x20
+	jz .nodiag1rt
+	or ah, [enhtnlconvtbl+ecx*4+1]
+.nodiag1rt:
+	test al, 0x40
+	jz .nodiag2rt
+	or ah, [enhtnlconvtbl+ecx*4+2]
+.nodiag2rt:
+
+	mov al, ah
+	pop ecx
 	ret
 
+//called from _CS:00154D0F
 exported Class9VehEnterLeaveTunnelJump
-	cmp dl, 2
+/*	cmp dl, 2
 	ja .test
 	ret
 .test:
@@ -425,7 +672,7 @@ exported Class9VehEnterLeaveTunnelJump
 	ret
 .edge:
 	or ebx, 0x80000000
-	add esp, 4
+	add esp, 4*/
 	ret
 
 exported Class9GroundAltCorrectionTunnel
@@ -470,6 +717,61 @@ exported Class9GroundAltCorrectionTunnel
 	dec dl
 	and dl, 0xF8
 	mov dh, 1
+	ret
+
+uvarb tunnelgetclass9routemapflags
+uvard tunnelgetotherendretaddr
+varw tunneloffsets
+dw -1, 0x100, 1, -0x100
+endvar
+
+exported gettunnelotherendproc
+	mov eax, [traceroutefnptr]
+	mov eax, [eax+12]	//bTraceRouteSpecialRouteMap
+	cmp BYTE [eax], 0x43
+	jne .notsignal
+	//signal change propagation trace route through a tunnel
+	mov eax, [esp+8]
+	mov [tunnelgetotherendretaddr], eax
+	rol di, 4
+	mov ax, di
+	mov BYTE [tunnelgetclass9routemapflags], 0
+	mov DWORD [esp+8], gettunnelotherendproc.fixdir
+	mov WORD [esp+14], 0	//stop reverse check on tunnel entrance (triggers over the top track detection), and would normally find nothing new anyway.
+ret
+.fixdir:
+	inc ax
+	and ebx, 0xFFFF
+	add di, [tunneloffsets+ebx-1]
+	jmp DWORD [tunnelgetotherendretaddr]
+
+.notsignal:
+	rol di, 4
+	mov ax, di
+	or si, si
+	jnz .ret
+	mov BYTE [tunnelgetclass9routemapflags], 1
+.ret:
+	ret
+
+exported fixtunnelentry
+	mov eax, [esp+8]
+	sub eax, [traceroutefnptr]
+	cmp eax, 0x350
+	ja .fret	//never let this through
+	cmp eax, 0xE2
+	jb .fret	//first step
+	//cl = old direction, as step rather than first step function called
+	
+	//if direction is *not* 0,1,8 or 9, gratuitously deny any attempts to pass *through* the tunnel itself
+	mov al, cl
+	and al, ~9
+	jz .fret	// is 0,1,8 or 9
+	xor eax, eax	//not a tunnel, treat as normal tile
+	ret
+.fret:
+	mov al, [landscape4(di)]
+	and al, 0xF0
 	ret
 
 var enhancetunnelshelpersprite

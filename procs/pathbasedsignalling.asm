@@ -14,6 +14,7 @@ extern railroutetargetshortest,routemaphndlist,traceroutefn
 extern trainchoosedirection
 extern wtrackspriteofsptr
 
+glob_frag findtraceroute
 
 global patchpathbasedsignalling
 
@@ -67,6 +68,7 @@ endcodefragments
 patchpathbasedsignalling:
 	stringaddress findtraceroute,1,2
 	storefunctiontarget 0,traceroutefn
+
 
 	lea esi,[edi-30]
 	mov [railroutestepfnarg],esi
