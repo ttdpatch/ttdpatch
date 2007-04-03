@@ -712,6 +712,8 @@ chkmarksignalroute:
 	jae .bridge
 
 	// check direction to see if we're on an enhancetunnels bridge
+	test dl, 0x38	//diagonal directions, can't possibly be going through tunnel
+	jnz near .markdl
 	mov al,dh
 	and al,1
 	add al,1
@@ -1386,12 +1388,16 @@ lastwagoncleartile:
 	mov ebx,ebp
 
 	// on enhancetunnels bridge?
-	and ebx,2	// now ebx=2 if in Y dir, 0 if in X dir
+	test ebx, 1
+	jz .nottunnel	//diagonal direction invalid?
+	and ebx,7	// now ebx=1: NE, 3:SE, 5:SW, 7:NW
+	dec ebx
+	shr ebx, 1	// now ebx=0: NE, 1:SE, 2:SW, 3:NW
+	xor bl, 2	//flip direction
 	mov bh,[landscape5(di,1)]
-	and bh,1
-	add bh,bh
+	and bh,3
 	cmp bh,bl
-	jne .nottunnel	// not in dir of tunnel entrance -> on bridge
+	jne .nottunnel	// direction of motion != direction OUT of tunnel entrance
 
 	// train left tunnel entrance; we need to clear the pieces in front
 	// of the other end instead
@@ -1399,6 +1405,8 @@ lastwagoncleartile:
 	mov ebx,ebp
 	xor esi,esi
 	xor ebx,4
+	extern gettunnelotherendprocnocheckflag
+	mov BYTE [gettunnelotherendprocnocheckflag], 1	//prevent route fixing of tunnel end calculation
 	call [gettunnelotherend]
 	or byte [lastmovementstat],0x80
 

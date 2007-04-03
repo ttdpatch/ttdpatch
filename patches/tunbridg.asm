@@ -724,8 +724,16 @@ uvard tunnelgetotherendretaddr
 varw tunneloffsets
 dw -1, 0x100, 1, -0x100
 endvar
+uvarb gettunnelotherendprocnocheckflag
 
 exported gettunnelotherendproc
+	clc
+	rcr BYTE [gettunnelotherendprocnocheckflag], 1
+	jnc .doit
+	rol di, 4
+	mov ax, di
+	ret
+.doit:
 	mov eax, [traceroutefnptr]
 	mov eax, [eax+12]	//bTraceRouteSpecialRouteMap
 	cmp BYTE [eax], 0x43
@@ -737,8 +745,8 @@ exported gettunnelotherendproc
 	test BYTE [landscape5(di)], 12
 	jnz .notsignal		//absolutely no road tunnels
 
-/*	mov eax, [esp+8]
-	mov ecx, eax
+	mov eax, [esp+8]
+/*	mov ecx, eax
 	sub ecx, [traceroutefnptr]
 	cmp ecx, 0x350
 	ja .notsignal		//not from trace route (probably town expansion), abort if ever get this far
