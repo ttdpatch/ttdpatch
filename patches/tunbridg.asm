@@ -730,8 +730,21 @@ exported gettunnelotherendproc
 	mov eax, [eax+12]	//bTraceRouteSpecialRouteMap
 	cmp BYTE [eax], 0x43
 	jne .notsignal
+	
+	or si, si
+	jnz .notsignal		//absolutely no road tunnels
+	movzx edi, di
+	test BYTE [landscape5(di)], 12
+	jnz .notsignal		//absolutely no road tunnels
+
+/*	mov eax, [esp+8]
+	mov ecx, eax
+	sub ecx, [traceroutefnptr]
+	cmp ecx, 0x350
+	ja .notsignal		//not from trace route (probably town expansion), abort if ever get this far
+*/
+
 	//signal change propagation trace route through a tunnel
-	mov eax, [esp+8]
 	mov [tunnelgetotherendretaddr], eax
 	rol di, 4
 	mov ax, di
