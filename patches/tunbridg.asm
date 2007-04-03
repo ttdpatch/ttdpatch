@@ -223,6 +223,7 @@ exported Class9DrawLandTunnelExt
 	movzx eax, dh
 	and al, 3
 	movzx ebx, BYTE [enhtnlconvtbl+16+ecx-1+eax*4]
+	movzx ecx, BYTE [enhtnlconvtbl+ecx-1+eax*4]
 	//for some reason sprites for directions 4 and 5 seem to be in wrong order
 	mov eax, ebx
 	shr eax, 2
@@ -230,8 +231,7 @@ exported Class9DrawLandTunnelExt
 	xor ebx, eax
 
 	add ebx, [enhdrawbasetrack]
-	xor eax, eax
-	bt eax, ecx
+	mov eax, ecx
 	mov ecx, -1
 
 .drawtrackdoit:
