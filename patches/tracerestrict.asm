@@ -15,7 +15,7 @@
 
 extern CreateWindow,DrawWindowElements,WindowClicked,DestroyWindow,WindowTitleBarClicked,GenerateDropDownMenu,BringWindowToForeground,invalidatehandle,setmousetool,getnumber,errorpopup
 global robjgameoptionflag,robjflags
-extern cargotypes,newcargotypenames,cargobits,invalidatetile
+extern cargotypes,newcargotypenames,cargobits,invalidatetile,cargotypes
 
 global tr_siggui_btnclick
 
@@ -1496,23 +1496,23 @@ ret
 	xor ecx, ecx
 	xor eax, eax
 .valuebtnddlcargo_loop:
-	//cmp BYTE [cargotypes+ecx], 0xff
-	//je .valuebtnddlcargo_skip
-	bt DWORD [cargobits], ecx
+	movzx ebp, BYTE [cargotypes+ecx]
+	cmp ebp, 0xFF
+	je .valuebtnddlcargo_skip
+	bt DWORD [cargobits], ebp
 	jnc .valuebtnddlcargo_skip
 	mov bp, [newcargotypenames+ecx*2]
-	mov [tempvar+eax], bp
+	mov [tempvar+eax*2], bp
 	cmp al, dl
 	jne .valuebtnddlcargo_nosetcurr
 	mov dh, al
-	shr dh, 1
 	.valuebtnddlcargo_nosetcurr:
-	add eax, 2
+	inc eax
 	.valuebtnddlcargo_skip:
 	inc ecx
 	cmp cl, 32
 	jb .valuebtnddlcargo_loop
-	mov WORD [tempvar+eax], 0xffff
+	mov WORD [tempvar+eax*2], 0xffff
 	sar dx, 8
  	xor ebx, ebx
  	mov ecx, 17
