@@ -1168,9 +1168,9 @@ opclass48hroutemaphnd:
 .rail:
 	mov al,[landscape5(di,1)]
 	cmp al,4
-	jb .check	// tunnel
+	jb .checktunnel	// tunnel
 
-	checkbridgepbs al,,,short .check,short .checkhead
+	checkbridgepbs al,,,near .check,near .checkhead
 #if 0
 	and al,11000110b
 	cmp al,10000000b
@@ -1181,6 +1181,40 @@ opclass48hroutemaphnd:
 	call checkignoredistance	// don't ever exit without calling this!
 	jmp .exit
 
+.checktunnel:
+	mov al, [landscape7+edi]
+	or al, al
+	jns .check	//not enhanced
+	test al, 0x60
+	jz .check	//no diagonals
+	mov al,0
+	call checkignoredistance
+	jae .exit
+	call .exit
+	extern enhtnlconvtbl
+	push edx
+	movzx edx, BYTE [landscape5(di,1)]
+	and dl, 3
+	mov dl, [enhtnlconvtbl+edx*4+3]	//get straight direction, this is always non-interfering, all else is fair game
+	mov bp, ax
+	mov dh, [landscape6+edi]
+	movzx si, dl
+	and dl, dh			//dl=straight direction track, if reserved
+	not dl
+	and dh, dl			//clear straight track from reserved list
+	mov al, dl
+	mov ah, al
+	and bp, ax			//remove straight direction if reserved, bp=available track pieces
+	mov ah, dh
+	mov dx, si			//dl=straight direction track
+	mov dh, dl
+	mov al, -1
+	mov si, bp
+	and dx, bp			//dx=straight track directions if available
+	call .next_check
+	or ax, dx
+	pop edx
+	ret
 	// check for pieces that are marked; since it's a bridge piece they
 	// can't be interfering, all are compatible
 .check:
@@ -1218,6 +1252,7 @@ opclass48hroutemaphnd:
 	and al,[compatiblepieces+ebp-8]		// remove incompatible pieces
 	jz .done
 
+.next_check:
 	test ah,ah
 	jnz .next
 
@@ -1272,7 +1307,7 @@ getnexttileconnection:
 
 	mov al,[landscape5(di,1)]
 	cmp al,4
-	jb near .done	// tunnel
+	jb .tunnel
 
 .bridge:
 	checkbridgepbs al,dl,near .done
@@ -1282,7 +1317,25 @@ getnexttileconnection:
 	jne .done	// middle or road piece
 #endif
 	mov eax,landscape6
-	jmp short .track
+	jmp .track
+
+.tunnel:
+	mov ah, [landscape7+edi]
+	or ah, ah
+	jns NEAR .done	//no enhanced tunnels
+	test ah, 0x60
+	jz NEAR .done	//no diagonals
+	and eax, 3
+	lea eax, [eax*2+1]
+	cmp eax, ebp
+	je NEAR .done	//heading into tunnel
+	shr eax, 1
+	and al, 1
+	inc eax		//eax=2 if tunnel in Y, 1 if tunnel in X
+	not al
+	and dl, al	//prevent stuff trying to go off tunnel end
+	mov eax, landscape6
+	jmp .track
 
 .rail:
 	mov al,[landscape5(di,1)]
