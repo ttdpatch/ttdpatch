@@ -560,6 +560,7 @@ clicklist_next_train:
 	jnz .exit
 	sub edx,1
 	jnc .exit
+	xor edx, edx
 	mov edi,[edi+veh.veh2ptr]
 	mov edi,[edi+veh2.sortvar]	// this is the only part that isn't present in the old code
 					// after finding the correct vehicle entry, use its pointer
