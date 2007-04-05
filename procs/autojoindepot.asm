@@ -3,17 +3,28 @@
 #include <patchproc.inc>
 
 patchproc custombridgeheads, enhancetunnels, patchautojoinraildepot
+patchproc custombridgeheads, newstations, patchautojoinroaddepot
 
 begincodefragments
 
-codefragment oldautojoincheck, 2
+codefragment oldrailautojoincheck, 2
 	cmp al, 0x10
 	jnz $+2+0x2f+2*WINTTDX
 
-codefragment_call newautojoincheck, autojoinraildepotcheck, 8+2*WINTTDX
+codefragment_call newrailautojoincheck, autojoinraildepotcheck, 8+2*WINTTDX
+
+codefragment oldroadautojoincheck, -2
+	cmp al, 0x20
+	jnz $+2+0x52
+
+codefragment_call newroadautojoincheck, autojoinroaddepotcheck, 6
 
 endcodefragments
 
 patchautojoinraildepot:
-	patchcode autojoincheck
+	patchcode railautojoincheck
+	ret
+
+patchautojoinroaddepot:
+	patchcode roadautojoincheck
 	ret

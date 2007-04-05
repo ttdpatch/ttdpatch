@@ -9,7 +9,7 @@ extern patchflags, enhtnlconvtbl
 //	flags set from cmp al, 10h
 // Out:
 // If depot can be attached, zf set and al[5..0]: track mask, as from a track tile's (class 1's) L5
-// Else, zf clear or al[5..0] == 0
+// Else: one of zf clear, al[5..0] == 0, or double-return
 
 exported autojoinraildepotcheck
 	jnz .nottrack
@@ -32,7 +32,7 @@ exported autojoinraildepotcheck
 
 .tunnel:
 	testflags enhancetunnels
-	jnc .clzret
+	jnc fail
 	
 	test al, 0xC
 	jnz .ret // not rail tunnel
@@ -42,12 +42,13 @@ exported autojoinraildepotcheck
 
 	and al, cl
 	cmp al, bl
-	je .clzret
+	je fail	// tunnel faces depot
 
 	mov dl, [landscape7+edi]
 	test dl, 80h
-	jz .clzret	// not enh tunnel
+	jz fail	// not enh tunnel
 
+// generate regular track mask
 	movzx esi, al
 	xor edx, 0x10
 	shl edx, cl
@@ -58,22 +59,72 @@ exported autojoinraildepotcheck
 	or al, [enhtnlconvtbl+ecx-1+esi*4]
 .next:
 	loop .loop
-	jmp short .stzret
+	jmp short .good
 
 .bridge:
 	testflags custombridgeheads
-	jnc .clzret
+	jnc fail
 
 	test al, 0x40 | 6
 	jnz .ret // bridge middle | not rail bridge
 	mov eax, [landscape3+edi*2]
 	shr eax, 4
 	// if head is sloped, al will be clear and later checks will prevent connections.
-.stzret:
+.good:
 	cmp al, al // stz
 .ret:
 	ret
 
-.clzret:
-	test esp, esp //clz
+fail:	// return to caller's caller
+	pop edi
 	ret
+
+
+// In:	ebx: depot or station orientation (6: Drive through X, 7: Drive through Y) 
+//	(e)di: tile index of tile in front of depot/station for depots and normal stations.
+//	al: L4 corresponding to (e)di
+//	
+// Out:
+//	ret if depot/station can be attached
+//	else, double-return
+
+exported autojoinroaddepotcheck
+	cmp ebx, 6
+	jae .drivethrough
+
+	and al, 0xF0
+	cmp al, 0x20
+	jnz .notroad
+	ret
+
+.notroad:
+	cmp al, 0x90
+	jnz fail
+
+	testflags custombridgeheads
+	jnc fail
+
+	mov al, [landscape5(di)]
+	xor al, 0x82
+	test al, 0x80 | 0x40 | 6
+	jnz fail // tunnel | bridge middle | not road
+	ret
+
+.drivethrough:
+	pop eax
+	sub eax, 17+5*WINTTDX	// subtract call (5), landscape load (4 in DOS, 6 in WIN), movzx (3, Win only),
+				//	and di modification (8) from return address
+
+	mov ecx, [eax+4]	// get waAutoJoinStationRoadXYOffsets's address
+	sub di, [ecx+ebx*2]	// reverse the add at [eax]; di is now station's tile index
+
+	sub ebx, 6
+
+// fake a normal station facing direction 0 or 1
+	pusha
+	call eax
+	popa
+
+// repeat, with direction 2/3
+	add ebx, 2
+	jmp eax
