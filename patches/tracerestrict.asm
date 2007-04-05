@@ -1305,7 +1305,10 @@ ret
 	xor ecx, ecx
 
 	.ddl3_action_cargo_loop:
-	bt DWORD [cargobits], ecx
+	movzx ebx, BYTE [cargotypes+ecx]
+	cmp ebx, 0xFF
+	je .ddl3_action_cargo_skip
+	bt DWORD [cargobits], ebx
 	jnc .ddl3_action_cargo_skip
 	dec eax
 	js .ddl3_action_cargo_gotit
