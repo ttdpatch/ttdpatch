@@ -49,6 +49,12 @@ exported enhancetunneltestrailwaytype
 	ret
 
 .withbridge:
+	and eax, 3
+	add al, al
+	inc al
+	cmp eax, ebp	//same direction as tunnel entrance
+	je .withoutbridge
+/*
 	test al, 1
 	jz .otherdir
 	cmp ebp, 1 // vehicle direction
@@ -62,6 +68,8 @@ exported enhancetunneltestrailwaytype
 	cmp ebp, 7
 	je .onbridge
 	jmp .withoutbridge
+*/
+
 .onbridge:
 	jne .ok		// only check track type for engine
 	mov al, [landscape7+ebx]
