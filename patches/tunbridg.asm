@@ -486,7 +486,7 @@ exported enhancetunneladdtrack
 .convpop:
 	mov [trnum], al
 	pop eax
-.convert:	
+.convert:
 	movzx esi,si
 //	test byte [landscape7+esi], 0x80
 //	jnz .alreadybuild
@@ -564,6 +564,8 @@ exported enhancetunneladdtrack
 	add esp,4
 	ret
 
+uvarb tnlrtmppbsflag
+
 exported Class9RouteMapHandlerTunnel
 	and ah, 0x0C
 	shr ah, 1
@@ -593,8 +595,10 @@ exported Class9RouteMapHandlerTunnel
 
 	clc
 	rcr BYTE [tunnelgetclass9routemapflags], 1
-	jc .nodiag2rt
-	
+	jc NEAR .nodiag2rt
+	cmp BYTE [tnlrtmppbsflag], 1
+	je .testok			//pbs trace route
+
 	//this function should only be called by (within TTD): dotraceroute and derivatives (bx=direction)
 	//AI functions should never get this far as they don't build enhanced tunnels
 	//movetrain->isnexttileconnected (bx=coordinates, always >8), train movement (bx=direction)
@@ -629,7 +633,7 @@ exported Class9RouteMapHandlerTunnel
 	sub eax, 0x350
 	pop eax
 	ja .nodir
-
+.testok:
 	mov ch, bl
 .gotdirin1:
 	mov bh, cl
@@ -742,24 +746,25 @@ exported gettunnelotherendproc
 	mov ax, di
 	ret
 .doit:
+	or si, si
+	jnz .notgood		//absolutely no road tunnels
+	movzx edi, di
+	test BYTE [landscape5(di)], 12
+	jnz .notgood		//absolutely no road tunnels
+
+
+//	mov eax, [esp+8]
+/*	mov ecx, eax
+	sub ecx, [traceroutefnptr]
+	cmp ecx, 0x350
+	ja .notgood		//not from trace route (probably town expansion), abort if ever get this far
+*/
 	mov eax, [traceroutefnptr]
 	mov eax, [eax+12]	//bTraceRouteSpecialRouteMap
 	cmp BYTE [eax], 0x43
 	jne .notsignal
-	
-	or si, si
-	jnz .notsignal		//absolutely no road tunnels
-	movzx edi, di
-	test BYTE [landscape5(di)], 12
-	jnz .notsignal		//absolutely no road tunnels
 
 	mov eax, [esp+8]
-/*	mov ecx, eax
-	sub ecx, [traceroutefnptr]
-	cmp ecx, 0x350
-	ja .notsignal		//not from trace route (probably town expansion), abort if ever get this far
-*/
-
 	//signal change propagation trace route through a tunnel
 	mov [tunnelgetotherendretaddr], eax
 	rol di, 4
@@ -775,12 +780,10 @@ ret
 	jmp DWORD [tunnelgetotherendretaddr]
 
 .notsignal:
+	mov BYTE [tunnelgetclass9routemapflags], 1
+.notgood:
 	rol di, 4
 	mov ax, di
-	or si, si
-	jnz .ret
-	mov BYTE [tunnelgetclass9routemapflags], 1
-.ret:
 	ret
 
 exported fixtunnelentry

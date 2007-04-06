@@ -1190,7 +1190,10 @@ opclass48hroutemaphnd:
 	mov al,0
 	call checkignoredistance
 	jae .exit
+extern tnlrtmppbsflag
+	mov BYTE [tnlrtmppbsflag], 1
 	call .exit
+	mov BYTE [tnlrtmppbsflag], 0
 	extern enhtnlconvtbl
 	push edx
 	movzx edx, BYTE [landscape5(di,1)]
@@ -1836,7 +1839,7 @@ reservecurrenttrack:
 	cmp ah,0x50
 	je .station
 	cmp ah,0x90
-	jne .nextveh
+	jne NEAR .nextveh
 
 .bridgetunnel:
 	cmp ch,4
@@ -1844,10 +1847,12 @@ reservecurrenttrack:
 
 	// enhancetunnels bridge?
 	mov ah,[esi+veh.direction]
-	shl ah,2
-	or ah,ch
-	and ah,0x9	// now ah=0 or 9 if in tunnel dir, or 1 or 8 if in bridge dir
-	jpo .mark	// odd number of bits set -> bridge -> mark
+	and ah, 3
+	mov cl, ch
+	and cl, 1
+	inc cl
+	cmp al, cl
+	jne .mark	//not passing in direction parrallel to tunnel
 
 	// only reserve far end (exit) of tunnel
 	mov ah,[esi+veh.direction]
