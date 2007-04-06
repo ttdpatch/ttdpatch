@@ -51,7 +51,7 @@ exported autojoinraildepotcheck
 // generate regular track mask
 	movzx esi, al
 	xor edx, 0x10
-	shl edx, cl
+	shr edx, cl
 	xor eax, eax
 .loop:
 	bt edx, ecx
