@@ -1982,7 +1982,7 @@ displaywires:
 varb tileoffset
 	dw -257,255,257,-256
 //	esi is never reset, so this table is cumulative.
-//	Note that edi runs 3->0, therefore the cumulative change to esi is
+//	Note that ecx runs 3->0, therefore the cumulative change to esi is
 //	dw -1,256,1,-256
 //	A tunnel in these tiles with the direction ecx faces the tile at the original esi
 endvar
@@ -2032,7 +2032,9 @@ checkadjacenttiles:
 .depot:
 	xor ah,2
 	and ah,3
-	jmp .tunnel
+	cmp ah, cl
+	je near .gettracktype // depot exit faces current tile
+	jmp short .unconnected
 
 .maybecrossing:
 	cmp al,2
@@ -2060,20 +2062,36 @@ checkadjacenttiles:
 	jne .unconnected
 	test ah, 0x80
 	jnz .bridge
-.maybeenhtunnel:
-	testflags enhancetunnels 
-	jnc .tunnel
+.tunnel:
+	cmp ah, cl
+	je near .gettracktype	// tunnel exit faces current tile
 	mov al,[landscape7+esi]
 	test al,0x80
-	jz .tunnel
-	xor ah,cl
-	test ah,1
-	jnz near .checktracktype
-	xor ah,cl
-.tunnel:
-	cmp ah,cl;
-	je .gettracktype
-	jmp short .unconnected
+	testflags enhancetunnels
+	cmc
+	jbe .unconnected // j{c || z}
+
+// generate track mask
+	movzx edi, ah //L5
+	and edi, 3
+	xor dl, dl
+
+	test al, 0x40
+	jz .20
+	extern enhtnlconvtbl
+	or dl, [enhtnlconvtbl+2+edi*4]
+.20:
+	test al, 0x20
+	jz .10
+	or dl, [enhtnlconvtbl+1+edi*4]
+.10:
+	test al, 0x10
+	jnz .done
+	or dl, [enhtnlconvtbl+edi*4]
+.done:
+	test dl,[trackmask+ecx+2]
+	jz .unconnected
+	jmp short .checktracktype
 
 .bridge:
 	test ah,0x40
