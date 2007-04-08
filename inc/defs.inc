@@ -128,4 +128,14 @@ extern overflowhandler,realoverflowreturn
 	%1:
 %endmacro
 
+%macro extcall 1.nolist
+	extern %1
+	call %1
+%endmacro
+
+%macro extjmp 1.nolist
+	extern %1
+	jmp %1
+%endmacro
+
 #endif // HAVE_DEFS_INC
