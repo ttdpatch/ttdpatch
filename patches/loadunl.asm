@@ -652,8 +652,8 @@ SetupGradualLoad:
 	cmp	byte [esi+veh.class],0x10
 	jne	.gotnumveh
 
-	mov	al,[%$stationlength]
-	shl	al,4 // Gives you the full station length
+	movzx	eax, BYTE [%$stationlength]
+	shl	eax,4 // Gives you the full station length
 
 .lstart:
 	push	edi // store registors
@@ -665,13 +665,14 @@ SetupGradualLoad:
 	cmp	word [edi+veh.capacity],0 // If vehicle has no cap, skip (So it works as before)
 	je	.lgetveh
 
-	mov	ah,[edi+veh.shortened] // Get vehicle length
-	and	ah,0x7F
-	neg	ah
-	add	ah,0x8
+	mov	bl,[edi+veh.shortened] // Get vehicle length
+	and	bl,0x7F
+	neg	bl
+	add	bl,0x8
+	movsx 	ebx, bl
 
 .lstatlen:
-	sub	al,ah // Decrease station length left
+	sub	eax, ebx // Decrease station length left
 	jb	.ldone // If negitive, jump to end
 	inc	cl // Increase counter
 
