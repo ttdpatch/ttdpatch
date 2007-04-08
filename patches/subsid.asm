@@ -205,7 +205,8 @@ exported makerelations
 .loop3:
 	mov eax, player_size
 	mul ecx
-	add eax, [playerarrayptr]
+	extern player2array
+	add eax, [player2array]
 	mov bl, [ebp+ecx]
 	mov [eax+player2.related],bl
 
