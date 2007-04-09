@@ -990,7 +990,7 @@ newloadtitleproc:
 exported updategamedata
 	extern followvehicleidx
 	or dword [followvehicleidx],byte -1	// reset followvehicle
-	extjump makerelations
+	extjmp makerelations
 
 
 // Delete an entire consist from the vehicle array
