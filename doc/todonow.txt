@@ -117,8 +117,6 @@
 
 - check why newshistory needs enhancedgui? and fix if necessary
 
-- allow resizing train info windows (number of wagons shown)
-
 - no loading states for planes?
 
 - faster loading/unloading at bus stops
@@ -513,9 +511,6 @@
 
 - slowdown on bridges and before crossings as long as any wagon is on them
 
-- make "build signal" button a toggle, then count squares and build signal
-  every "signalevery x" squares
-
 - support train prop 21=06 or 07, problem is @16046b, the cmp al/cl,2/-2,
   won't trigger right if prior vehicle is too short
 
@@ -697,6 +692,7 @@ CHANGELOG
   * allow stations larger than 15x15, enable with "stationsize <maxsize>"
   * implement signal restrictions, enable with "tracerestrict on" and
     access from new signal gui ("signalgui on")
+  * allow resizing train info windows (number of wagons shown)
 - store some persistent grf properties in savegame (includes "non enter"
   station tiles to prevent stations from breaking when loaded without their
   grf file present
