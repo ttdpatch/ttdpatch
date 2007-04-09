@@ -692,7 +692,6 @@ CHANGELOG
   * allow stations larger than 15x15, enable with "stationsize <maxsize>"
   * implement signal restrictions, enable with "tracerestrict on" and
     access from new signal gui ("signalgui on")
-  * allow resizing train info windows (number of wagons shown)
 - store some persistent grf properties in savegame (includes "non enter"
   station tiles to prevent stations from breaking when loaded without their
   grf file present
