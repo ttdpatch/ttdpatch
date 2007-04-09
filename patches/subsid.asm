@@ -26,24 +26,9 @@ extern setplayer_actionnum
 
 global clickhq
 clickhq:
-	mov al,[human1]
-
-	call countshares
-
-	mov cl,[esi+6]
-	mov ch,[landscape3+ttdpatchdata.orgpl1]
-
-	cmp al,cl	// clicking on own button?
-	je .done
-
-	// is it maybe the player going back to his original company?
-	cmp cl,ch
-	je short .setplayer
-
-	// no, so see if companies are related
-	movzx eax, al
-	bt [ebx+player2ofs+player2.related], eax
-	jnc short .done
+	call getrelations
+	jz .done	// clicking on own button?
+	jnc .done	// not related?
 
 .setplayer:
 // can't set player directly because it must be sent to the other player as well
@@ -125,6 +110,8 @@ countshares:
 	ret
 ; endp countshares 
 
+uvarb relations,8 	// relationship masks for the eight companies
+			// bit n of byte n is always set -- a company is always related to itself.
 exported buysellshare
 	call $+5
 ovar .oldfn,-4,$,buysellshare
@@ -134,15 +121,12 @@ ovar .oldfn,-4,$,buysellshare
 exported makerelations
 // Set company relations
 // eax: share owners
-// ebx->player array
+// ebx->player struct
 // dl: related company mask
 // ecx: counter
 	push 7
 	pop ecx
-	sub esp, 8
-	mov ebp, esp
-	// Locals [ebp+0]..[ebp+7]: related masks for companies 0..7
-	push ecx
+	mov ebp, relations
 	push ecx
 .loop:
 	mov dl, 1
@@ -163,7 +147,7 @@ exported makerelations
 	pop eax
 	je .found
 .unowned:
-	shl eax, 8
+	shr eax, 8
 	test al, al
 	js .next
 	call countshares
@@ -178,7 +162,7 @@ exported makerelations
 	mov [ebp+ecx], dl
 	dec ecx
 	jns .loop
-	
+
 // Direct parentage determined. Combine masks.
 // al: mask (reduced as relationships processed)
 // ah: mask (grown as relationships processed)
@@ -203,20 +187,6 @@ exported makerelations
 	dec ecx
 	jns .loop2
 
-// All relationships determined. Store.
-	pop ecx
-.loop3:
-	mov eax, player_size
-	mul ecx
-	extern player2array
-	add eax, [player2array]
-	mov bl, [ebp+ecx]
-	mov [eax+player2.related],bl
-
-	dec ecx
-	jns .loop3
-
-	add esp, 8
 	ret
 
 	align 4
@@ -235,28 +205,17 @@ var comp_aimanage,dd manageaiwindow
 // safe:eax ecx edx
 global redrawplayerwindow
 redrawplayerwindow:
-	mov al,[human1]
-	mov ah,[landscape3+ttdpatchdata.orgpl1]
+	call getrelations
 
 //	mov edx,dword [playerwndbase]		// Human Player, "View HQ"
 	mov edx, dword [comp_humanview]
 
-	cmp al,[esi+6]
-	je short .ishuman
+	je short .ishuman	// Current player
 
-	cmp ah,[esi+6]
-	je short .domanage
-
-//	add edx,byte 0x61				// AI Player, "View HQ"
+//	add edx,byte 0x61			// AI Player, "View HQ"
 	mov edx, dword [comp_aiview]
 
-	// is an AI company; can we take it over?
-	
-	movzx eax, al
-	extern player2ofs
-	bt [ebx+player2ofs+player2.related], eax
-
-	jnc short .nope
+	jnc short .nope		// Can't manage company
 
 .domanage:
 //	mov edx,manageaiwindow	// AI Player, "Manage"
@@ -280,4 +239,17 @@ redrawplayerwindow:
 .done:
 	or al,1
 	ret
-; endp redrawplayerwindow 
+; endp redrawplayerwindow
+
+// compares [esi+6] to [human1]
+// Out: ecx set to [esi+6]
+//	eax set to [human1]
+//	Z if they are the same company
+//	C if they are related companies
+getrelations:
+	movzx eax, byte [human1]
+	movzx ecx, byte [esi+6]
+	cmp al,cl
+	bt [ecx+relations], eax
+	ret
+

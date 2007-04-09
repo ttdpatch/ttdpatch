@@ -85,10 +85,8 @@ exported checkowner
 	movzx eax, al
 	push ecx
 	movzx ecx, byte [curplayer]
-	imul eax, player_size
-	extern player2array
-	add eax, [player2array]
-	bt [eax+player2.related],ecx
+	extern relations
+	bt [relations+eax],ecx
 	pop ecx
 .ret:
 	pop eax
