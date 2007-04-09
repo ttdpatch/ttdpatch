@@ -128,6 +128,8 @@ newvehtypeinit:
 	extern resetgrm
 	call resetgrm		// reset house and industry substitions
 
+	extcall makerelations
+
 	cmp byte [activatedefault],0
 	jne .notnewgame2
 

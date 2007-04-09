@@ -225,8 +225,9 @@
   http://www.tt-forums.net/viewtopic.php?p=354169#354169
   -> see bTempNewHouseAllowedOnBareLand
 
-- make Cht: tracks, renew, clearpresig, nounload, semaphores, etc. also affect
-  subsidiaries
+- make Cht: clearpresig, semaphores, etc. also affect subsidiaries (?)
+  Currently, they effect all companies. Should this be changed? Especially
+  for things like all/nononstop, stopall, resetpbs?
 
 - livery changes in 2070: http://www.tt-forums.net/viewtopic.php?p=355121#355121
 
@@ -457,9 +458,6 @@
 - in town, show "Population: 600 (snow)" or "Population: 600 (desert)"
 
 - use TTD's cache for TTDPatch sprites (at least in lowmemory mode?)
-
-- subsidiaries: if A owns (75%of) B, B owns C and C owns D, allow A, B and C
-  to manage D without going through the chain explicitly
 
 - large sprites (also buildings) sometimes don't get drawn properly, e.g.
   the cruise ship sometimes has the tip cut off
@@ -725,3 +723,7 @@ CHANGELOG
   * Make sign cheats ignore commas and decimal points in numeric arguments.
   * Check all on/off states, not just those attached to on/off switches.
   * Add an "only x years old" parameter to cht:renew
+  * Make Cht: Tracks, ServInt, Renew, and NoUnload also effect all partner
+    (parent, sibling, child &c.) companies.
+  * Permit management of any subsidiary from any other subsidiary, direct or
+    indirect.
