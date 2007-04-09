@@ -230,8 +230,9 @@
   http://www.tt-forums.net/viewtopic.php?p=354169#354169
   -> see bTempNewHouseAllowedOnBareLand
 
-- make Cht: tracks, renew, clearpresig, nounload, semaphores, etc. also affect
-  subsidiaries
+- make Cht: clearpresig, semaphores, etc. also affect subsidiaries (?)
+  Currently, they effect all companies. Should this be changed? Especially
+  for things like all/nononstop, stopall, resetpbs?
 
 - livery changes in 2070: http://www.tt-forums.net/viewtopic.php?p=355121#355121
 
@@ -674,3 +675,5 @@ CHANGELOG
   * Make sign cheats ignore commas and decimal points in numeric arguments.
   * Check all on/off states, not just those attached to on/off switches.
   * Add an "only x years old" parameter to cht:renew
+  * Make Cht: Tracks, ServInt, Renew, and NoUnload also effect all partner
+    (parent, sibling, child &c.) companies.

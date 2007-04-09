@@ -1,6 +1,6 @@
 
 // Sign cheats.
-// Note that CHT: Tracks is in trackcht.ah
+// Note that CHT: Tracks is in trackcht.asm
 
 #include <std.inc>
 #include <proc.inc>
@@ -663,7 +663,6 @@ servintcheat:
 
 .goatit:
 	mov esi,[veharrayptr]
-	mov bl,[curplayer]
 
 	// now: di=number of days, ah=types, al=ai, bl=player number
 .checkislast:
@@ -671,8 +670,9 @@ servintcheat:
 	jae .done
 	or al,al	// ai too? if so, don't check owner
 	jnz short .checktype
-	cmp byte [esi+veh.owner],bl
-	je short .checktype
+	
+	extcall checkowner.veh
+	jc short .checktype
 
 .nextvehicle:
 	sub esi,byte -vehiclesize	//add esi,vehiclesize
@@ -1185,8 +1185,6 @@ renewcheat:
 	ret
 
 .actualcheat:
-	mov ch,[curplayer]
-
 	xor ebx,ebx
 
 	mov esi,[veharrayptr]
@@ -1204,9 +1202,9 @@ renewcheat:
 	bt dword [isengine],edi
 	jc short .nextvehicle
 
-	cmp byte [esi+veh.owner],ch
-	jne short .nextvehicle		// not this player
-	
+	call checkowner.veh
+	jnc short .nextvehicle		// not this player
+
 	cmp [esi+veh.age], dx
 	jl short .nextvehicle		// vehicle not old enough
 
@@ -1701,7 +1699,6 @@ nounloadcheat:
 
 .gotmask:
 	movzx ebx,dl
-	mov dl,[curplayer]
 
 	mov edi,[veharrayptr]
 	add edi,byte -vehiclesize	//sub edi,byte vehiclesize
@@ -1723,8 +1720,10 @@ nounloadcheat:
 	bt ebx,eax
 	jnc .nextvehicle
 
-	cmp byte [edi+veh.owner],dl
-	jne .nextvehicle
+	xchg esi, edi
+	call checkowner.veh
+	xchg esi, edi
+	jnc .nextvehicle
 
 	mov esi,dword [edi+veh.scheduleptr]
 	or esi,esi

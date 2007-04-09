@@ -2,13 +2,12 @@
 // CHT: Tracks
 
 #include <std.inc>
-//#include <defs.inc>
 #include <proc.inc>
 #include <flags.inc>
-//#include <ttdvar.inc>
 #include <newvehdata.inc>
 #include <veh.inc>
 #include <misc.inc>
+#include <player.inc>
 
 extern checkcost,checkmoney,docost
 extern getnumber,isengine,patchflags,redrawscreen
@@ -58,12 +57,41 @@ extern calctrackcostdifference,getvehiclecost,newvehdata
 %%nomatch:
 %endmacro
 
-// check if track owner is in player list, and store result in ch (0=yes,1=no)
-// checks at offset esi
-checkowner:
-	mov cl,[curplayer]
-	cmp cl,[landscape1+esi]
-	setne ch
+
+// Set carry if companies are related.
+// The first company checked depends on the entry point:
+//	checkowner reads [landscape1+esi]
+//	.ecx reads [landscape1+ecx]
+//	.veh reads [esi+veh.owner]
+//	.usestack pops a dword from the stack and uses the low byte
+// All compare the above byte to [curplayer]
+// .ecx will modify esi; all others leave everything except the flags untouched
+/*exported checkowner.usestack
+	xchg eax, [esp] // pick up return address, and store old eax
+	xchg eax, [esp+4] // put ret addr below old eax, and pick up parameter
+	jmp short checkowner.check*/
+exported checkowner.veh
+	push eax
+	mov al, byte [esi+veh.owner]
+	jmp short checkowner.check
+/*exported checkowner.ecx
+	mov esi,ecx*/
+exported checkowner
+	push eax
+	mov al, byte [landscape1+esi]
+.check:
+	cmp al, 10h
+	jae .ret	//Not a company, carry is clear
+	movzx eax, al
+	push ecx
+	movzx ecx, byte [curplayer]
+	imul eax, player_size
+	extern player2array
+	add eax, [player2array]
+	bt [eax+player2.related],ecx
+	pop ecx
+.ret:
+	pop eax
 	ret
 ; endp checkowner
 
@@ -184,6 +212,7 @@ proc dothetrackthing
 	shr al,4
 	mov ah,[landscape5(si)]
 	call checkowner
+	setnc ch			// checkowner no longer does this
 	cmp al,9			// bridge has two owners and different check
 	je short .isbridgeortunnel	// - for all others check ownership now
 	or ch,ch
@@ -257,11 +286,8 @@ proc dothetrackthing
 
 	or ah,ah
 	jnz short .notourrailroadbelow	// road below
-	push cx
 	call checkowner
-	or ch,ch
-	pop cx
-	jne short .notourrailroadbelow	// another company's railroad
+	jnc short .notourrailroadbelow	// another company's railroad
 	jmp short .checklowertrack
 
 .changestartend:
@@ -270,11 +296,8 @@ proc dothetrackthing
 	jmp short .changelowertrack
 
 .checklowertrack:
-	push cx
 	call checkowner
-	or ch,ch
-	pop cx
-	jnz short .testuppertrack
+	jnc short .testuppertrack
 .changelowertrack:
 	checksetoldtrack 0,0,0
 .testuppertrack:
