@@ -8,6 +8,7 @@
 #include <misc.inc>
 #include <patchdata.inc>
 #include <player.inc>
+#include <ptrvar.inc>
 
 extern actionhandler,isremoteplayer,patchflags,redrawscreen,setmousetool
 extern setplayer_actionnum
@@ -39,9 +40,10 @@ clickhq:
 	cmp cl,ch
 	je short .setplayer
 
-	// no, so see if he owns 75%
-	cmp ah,3
-	jb short .done
+	// no, so see if companies are related
+	movzx eax, al
+	bt [ebx+player2ofs+player2.related], eax
+	jnc short .done
 
 .setplayer:
 // can't set player directly because it must be sent to the other player as well
@@ -126,6 +128,7 @@ countshares:
 exported buysellshare
 	call $+5
 ovar .oldfn,-4,$,buysellshare
+	call redrawscreen
 	// fall through
 
 exported makerelations
@@ -177,7 +180,7 @@ exported makerelations
 	jns .loop
 	
 // Direct parentage determined. Combine masks.
-// al: mask (reduced as relationsips processed)
+// al: mask (reduced as relationships processed)
 // ah: mask (grown as relationships processed)
 // ecx: counter
 	pop ecx
@@ -248,11 +251,12 @@ redrawplayerwindow:
 	mov edx, dword [comp_aiview]
 
 	// is an AI company; can we take it over?
+	
+	movzx eax, al
+	extern player2ofs
+	bt [ebx+player2ofs+player2.related], eax
 
-	call countshares
-	cmp ah,3
-
-	jb short .nope
+	jnc short .nope
 
 .domanage:
 //	mov edx,manageaiwindow	// AI Player, "Manage"

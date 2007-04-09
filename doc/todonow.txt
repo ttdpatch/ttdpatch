@@ -460,9 +460,6 @@
 
 - use TTD's cache for TTDPatch sprites (at least in lowmemory mode?)
 
-- subsidiaries: if A owns (75%of) B, B owns C and C owns D, allow A, B and C
-  to manage D without going through the chain explicitly
-
 - large sprites (also buildings) sometimes don't get drawn properly, e.g.
   the cruise ship sometimes has the tip cut off
   -> just set veh.box_coord properly?
@@ -677,3 +674,5 @@ CHANGELOG
   * Add an "only x years old" parameter to cht:renew
   * Make Cht: Tracks, ServInt, Renew, and NoUnload also effect all partner
     (parent, sibling, child &c.) companies.
+  * Permit management of any subsidiary from any other subsidiary, direct or
+    indirect.
