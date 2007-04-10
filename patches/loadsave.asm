@@ -1102,7 +1102,7 @@ extern clearindustry2array
 exported updategamedata
 	extern followvehicleidx
 	or dword [followvehicleidx],byte -1	// reset followvehicle
-	ret
+	extjmp makerelations
 
 
 // Delete an entire consist from the vehicle array
