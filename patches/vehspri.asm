@@ -1649,7 +1649,7 @@ getplayerinfo:
 	or eax,ecx
 	shl eax,16
 
-	mov al,ah	// curplayer
+	mov al,[curplayer]
 	mov ecx,[landscape3+ttdpatchdata.orgpl1]
 
 	cmp al,[human1]
