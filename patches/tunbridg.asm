@@ -792,13 +792,14 @@ exported fixtunnelentry
 	cmp eax, 0x350
 	ja .fret	//never let this through
 	cmp eax, 0xE2
-	jb .fret	//first step
+	jb .tret	//first step
 	//cl = old direction, as step rather than first step function called
 	
 	//if direction is *not* 0,1,8 or 9, gratuitously deny any attempts to pass *through* the tunnel itself
 	mov al, cl
 	and al, ~9
 	jz .fret	// is 0,1,8 or 9
+.tret:
 	xor eax, eax	//not a tunnel, treat as normal tile
 	ret
 .fret:
