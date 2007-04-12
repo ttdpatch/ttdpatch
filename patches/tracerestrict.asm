@@ -1698,7 +1698,7 @@ ret
 	xor edx, edx
 	jmp .setnum
 
-global tracerestrict_delrobjsignal1,tracerestrict_delrobjsignal1.oldfn
+global tracerestrict_delrobjsignal1,tracerestrict_delrobjsignal1.oldfn,delrobjsignal
 
 tracerestrict_delrobjsignal1:
 	call delrobjsignal

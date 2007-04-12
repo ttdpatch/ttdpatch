@@ -1674,6 +1674,9 @@ removetracksignals:
 	test byte [landscape3+esi*2],0xf0
 	jnz .signalsdone
 
+	extern delrobjsignal
+	call delrobjsignal	//this won't ever do anything if trace restriction is not enabled in the game
+
 	// was the last signal, clear "signals present" bit
 	and byte [landscape5(si,1)],~0x40
 
