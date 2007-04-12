@@ -324,7 +324,14 @@ procwindowdragmode:
 	
 	mov [esi+window.width], ax
 	mov [esi+window.height], cx
+	
+	
+	push edx
+	mov dl, cWinEventResize
+	extcall GuiSendEventESI
+	pop edx
 
+#if 0
 	pusha
 	mov edi, esi
 	mov dl, cWinEventResize
@@ -340,6 +347,7 @@ procwindowdragmode:
 	call dword [edi+window.function]
 .calldone:
 	popa
+#endif
 
 	call [RefreshWindowArea]
 	pop word [sizewindowprevy]

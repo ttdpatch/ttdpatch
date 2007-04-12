@@ -23,6 +23,7 @@
 %define cWinEventWheelDown		12h
 #endif
 %define cWinEventResize			13h
+%define cWinEventGRFChanges		14h
 
 %define cWinElemDummyBox	0
 %define cWinElemSpriteBox	1

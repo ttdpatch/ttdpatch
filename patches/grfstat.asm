@@ -299,6 +299,21 @@ actiongrfstat:
 
 	call doresetgraphics
 	call win_grfstat_setnewactive
+	
+// let all windows know we have changed grfs
+	pusha
+	extern windowstack, windowstacktop
+	mov edi, [windowstack]
+.nextwindow:
+	cmp edi, [windowstacktop]
+	jnb .donewindows
+	mov dl, cWinEventGRFChanges
+	extcall GuiSendEventEDI
+	add edi, window_size
+	jmp short .nextwindow
+.donewindows:
+	popa
+	
 	xor ebx,ebx
 	ret
 

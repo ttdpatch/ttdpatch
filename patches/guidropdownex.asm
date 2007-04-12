@@ -412,7 +412,9 @@ GenerateDropDownEx_winhandler:
 	jz near GenerateDropDownEx_clickhandler
 	cmp dl, cWinEventClose
 	jz GenerateDropDownEx_close
-	cmp dl,cWinEventUITick
+	cmp dl, cWinEventGRFChanges
+	jz GenerateDropDownEx_close
+	cmp dl, cWinEventUITick
 	jz GenerateDropDownEx_uitick
 	ret
 	
@@ -442,18 +444,7 @@ GenerateDropDownEx_uitick:
 	mov dl, cWinEventDropDownItemSelect
 	movzx eax, word [esi+window.selecteditem]
 	movzx ecx, word [esi+window.data+DropDownExData.parentele]
-	mov esi, edi
-	mov si, [edi+window.opclassoff]
-	cmp si,-1
-	je .plaincall
-	movzx esi, si
-	mov ebx, [edi+window.function]
-	mov ebp, [ophandler+esi]
-	call dword [ebp+4]
-	jmp short .calldone
-.plaincall:
-	call dword [edi+window.function]
-.calldone:
+	extcall GuiSendEventEDI
 	pop esi
 .closewindow:
 	jmp [DestroyWindow]

@@ -155,6 +155,7 @@ wheelmove:
 	mov byte [wheelhandled],0
 
 	mov cx,bx
+#if 0
 	push esi
 	mov edi,esi
 	mov dl,cWinEventWheelUp
@@ -174,6 +175,12 @@ wheelmove:
 
 .calldone:
 	pop esi
+#else 
+	mov edi,esi
+	mov dl,cWinEventWheelUp
+	add dl,[wheeldir]
+	extcall GuiSendEventEDI
+#endif
 	cmp byte [wheelhandled],0
 	jne .exit
 
