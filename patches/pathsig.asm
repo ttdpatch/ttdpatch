@@ -2089,8 +2089,28 @@ displayregrailsprite:
 	call $
 ovar .oldfn, -4, $,displayregrailsprite
 	push edx
-	test di,di
-	jnz .notflat
+//	test di,di
+//	jnz .notflat
+
+	test di, 2+4+8 // test for 3 corners being flat
+	jz .flat
+	test di, 1+2+4
+	jz .flat
+	test di, 1+2+8
+	jz .flat
+	test di, 1+4+8
+	jz .flat
+
+	test di, 1+2 // These are bad and can not exist (yet)
+	jz .notflat
+	test di, 2+4
+	jz .notflat
+	test di, 4+8
+	jz .notflat
+	test di, 1+8
+	jz .notflat
+
+.flat:
 	test byte [landscape5(si,1)],0xc0
 	jz displayrailsprites.onlygray
 .notflat:
@@ -2157,6 +2177,10 @@ displayrailspriteifgray:
 	ret
 
 .gray:
+	test di, di
+	jnz .notflat
+
+.finishoffset:
 	or ebx,0x3248000
 
 	mov ebp,[wtrackspriteofsptr]
@@ -2168,6 +2192,46 @@ displayrailspriteifgray:
 .notthere:
 	inc ebx
 	ret
+
+.notflat:
+	test di, 2+4+8 // test for 3 corners being flat
+	jz .finishoffset
+	test di, 1+2+4
+	jz .finishoffset
+	test di, 1+2+8
+	jz .finishoffset
+	test di, 1+4+8
+	jz .finishoffset
+
+	add dl, 8 // for corners and 'straights' the offset should be 8 pixels up
+
+/*	// Add back when some action5 support has been added for the orignial offset
+	test di, 1+2
+	jz .flatslope
+	test di, 2+4
+	jz .flatslope
+	test di, 4+8
+	jz .flatslope
+	test di, 1+8
+	jz .flatslope
+*/
+
+	jmp .finishoffset
+
+/*
+.flatslope: // Selects correct sprite for slope
+	mov bx, 1031
+	test di, 1+2
+	jz .finishoffset
+	inc bx
+	test di, 1+8
+	jz .finishoffset
+	inc bx
+	test di, 4+8
+	jz .finishoffset
+	inc bx
+	jmp .finishoffset
+*/
 #endif
 
 
