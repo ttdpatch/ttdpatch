@@ -73,6 +73,7 @@ setplayer:
 	jne .done	// shouldn't happen
 .gotplayer:
 	mov [edi],dl
+	extcall updatevehvars // update veh var 43
 .done:
 .justthecost:
 	xor ebx,ebx
