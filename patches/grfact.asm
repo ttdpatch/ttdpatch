@@ -4646,7 +4646,7 @@ uvarb cargoid, 32	// list of cargo types for each cargo bit, only valid if bit s
 
 // patchflags bit numbers for each of the newgrf features
 var newgrfflags, db newtrains,newrvs,newships,newplanes,newstations,canals,newbridges,newhouses
-	db anyflagset,newindustries,newindustries,newcargos,newsounds,newairports,newsignals
+	db anyflagset,newindustries,newindustries,newcargos,newsounds,newairports,newsignals,newobjects
 	times 0x48-(addr($)-newgrfflags) db noflag
 	db anyflagset	// feature 0x48 is special, for action 4/gen. textIDs
 
