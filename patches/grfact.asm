@@ -72,6 +72,7 @@ extern setrailstationrvrouteing
 extern longintrodate,longintrodatebridges
 extern newsignalspritenum,newsignalspritebase
 extern setobjectclass,setobjectclasstexid
+extern newpbstrackbase, newpbstracknum
 
 uvarb action1lastfeature
 
@@ -4567,8 +4568,8 @@ numgrfvarreinit equ (grfvarreinitend-grfvarreinitstart)/4
 
 	// for action 5, where to store the first sprite number
 	// (the ones that are -1 are safe to be reused)
-var newgraphicsspritebases, dd presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,deftwocolormaps,tramtracks,snowytemptreespritebase,newcoastspritebase,newsignalspritebase
-var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,-1,numtramtracks,numsnowytemptrees,newcoastspritenum,newsignalspritenum
+var newgraphicsspritebases, dd presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,deftwocolormaps,tramtracks,snowytemptreespritebase,newcoastspritebase,newsignalspritebase,newpbstrackbase
+var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,-1,numtramtracks,numsnowytemptrees,newcoastspritenum,newsignalspritenum,newpbstracknum
 
 global numnewgraphicssprites
 numnewgraphicssprites equ (newgraphicsspritenums-newgraphicsspritebases)/4

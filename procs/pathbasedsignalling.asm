@@ -159,5 +159,9 @@ patchpathbasedsignalling:
 	jz .noshow
 
 	chainfunction displayregrailsprite,.oldfn,lastediadj+0x81
+
+extern newgraphicssetsenabled
+	or dword [newgraphicssetsenabled], 1<<15 // Allow new slope sprites to be used
+
 .noshow:
 	ret

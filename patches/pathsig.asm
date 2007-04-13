@@ -2084,6 +2084,9 @@ displayrailsprites:
 	pop edx
 	ret
 
+uvard newpbstracknum
+uvarw newpbstrackbase, 1, s
+
 global displayregrailsprite
 displayregrailsprite:
 	call $
@@ -2091,6 +2094,9 @@ ovar .oldfn, -4, $,displayregrailsprite
 	push edx
 //	test di,di
 //	jnz .notflat
+
+	cmp dword [newpbstracknum], 12 // Must be 12 sprites or it is considered broken
+	je .flat
 
 	test di, 2+4+8 // test for 3 corners being flat
 	jz .flat
@@ -2185,6 +2191,7 @@ displayrailspriteifgray:
 
 	mov ebp,[wtrackspriteofsptr]
 	add bx,[ebp]
+.finishoffset2:
 	pop ebp
 	call [addrailgroundsprite]
 	pop ebx
@@ -2205,7 +2212,7 @@ displayrailspriteifgray:
 
 	add dl, 8 // for corners and 'straights' the offset should be 8 pixels up
 
-/*	// Add back when some action5 support has been added for the orignial offset
+	// Add back when some action5 support has been added for the orignial offset
 	test di, 1+2
 	jz .flatslope
 	test di, 2+4
@@ -2214,24 +2221,38 @@ displayrailspriteifgray:
 	jz .flatslope
 	test di, 1+8
 	jz .flatslope
-*/
 
 	jmp .finishoffset
 
-/*
+
 .flatslope: // Selects correct sprite for slope
-	mov bx, 1031
+	mov bx, [newpbstrackbase]
 	test di, 1+2
-	jz .finishoffset
+	jz .finishoffset1
 	inc bx
 	test di, 1+8
-	jz .finishoffset
+	jz .finishoffset1
 	inc bx
 	test di, 4+8
-	jz .finishoffset
+	jz .finishoffset1
 	inc bx
-	jmp .finishoffset
-*/
+
+	// Has its own sprite correction code
+.finishoffset1:
+	or ebx,0x3248000
+
+	push ecx
+	push eax
+	mov ecx, [wtrackspriteofsptr] // this has the unified maglev corrected track offset
+	mov ax, [ecx]
+	mov cl, 0x52 // Each offset is 82 sprites
+	idiv cl, 0 // fall back of 0
+	shl ax, 2 // 4 sprites difference
+	add bx, ax
+	pop eax
+	pop ecx
+
+	jmp .finishoffset2
 #endif
 
 
