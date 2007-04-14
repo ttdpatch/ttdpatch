@@ -974,10 +974,12 @@ getrandomhousetype:
 	add edi,eax
 
 .next2:
-	inc edx
+	inc dl
+	jz .loop2_done				// overflow can happen when lasthousedataid=0xFF, protect from that
 	cmp dl,[lasthousedataid]
 	jbe .loop2
 
+.loop2_done:
 .noextrahouses:
 // Now edi is the sum of all probablities. Use it to select a type randomly with the given
 // probablities
