@@ -95,6 +95,10 @@ void checkpatch(void)
   u32 sectionaddr = 0;
   u32 sectionsize;
   u32 sectionalign;
+// Vista Patch
+  u32 peheader_import_table_infile;
+  IMAGE_IMPORT_DESCRIPTOR peheader_import_desc;
+// end Vista Patch
   char sectname[9], *oldcode, *newcode;
 
   // Ensure that enough memory is available for the large vehicle array
@@ -208,6 +212,30 @@ void checkpatch(void)
 
   free(newcode);
 
+// Vista DPLAY.DLL fix, simple remove the import fix,
+// and let TTDPatch crash when it tries to access DPlay imports,
+// however it gets patched anyway when win2k is on, so it's quite safe...
+if (getf(win2k)) {
+  //DebugBreak();
+  // Get the idata section
+  fseek(f, sectstart + 4 * 0x28, SEEK_SET);
+  fread(sectname, 8, 1, f);
+  sectname[8] = 0;
+  if (strcmp(sectname, ".idata")) {
+  	error(langtext[LANG_DELETEOVL], patchedfilename);
+  } else {
+	// Get offset_in_file 
+	peheader_import_table_infile = getval((sectstart + 4 * 0x28)+0x14, 4);
+	fseek(f, peheader_import_table_infile+sizeof(IMAGE_IMPORT_DESCRIPTOR)*6,SEEK_SET);
+	fprintf(stderr, "- dplay.dll FIX DEBUG FileLocation: %lX\n", (long)(peheader_import_table_infile+sizeof(IMAGE_IMPORT_DESCRIPTOR)*6));
+	fread(&peheader_import_desc,sizeof(IMAGE_IMPORT_DESCRIPTOR),1, f);
+	fprintf(stderr, "- dplay.dll FIX DEBUG OriginalFirstThunk: %lX\n", peheader_import_desc.OriginalFirstThunk);
+	fseek(f, peheader_import_table_infile+sizeof(IMAGE_IMPORT_DESCRIPTOR)*5,SEEK_SET);
+	fwrite(&peheader_import_desc,sizeof(IMAGE_IMPORT_DESCRIPTOR),1,f);
+	memset(&peheader_import_desc,0,sizeof(IMAGE_IMPORT_DESCRIPTOR));
+	fwrite(&peheader_import_desc,sizeof(IMAGE_IMPORT_DESCRIPTOR),1,f);
+  }
+}
   fseek(f, 0, SEEK_END);
   flen = ftell(f);
 
