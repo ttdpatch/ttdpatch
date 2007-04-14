@@ -1116,7 +1116,9 @@ getvariationalvariable:
 	mov cl,[ebx+1]		// shiftnum
 	mov dh,cl
 	and cl,0x1f
-	shr eax,cl
+#ifdef RELEASE
+	shr eax,cl	// we save 10 code bytes by doing this here
+#endif
 	clc
 	ret
 
@@ -1133,6 +1135,7 @@ getvariationalvariable:
 #ifndef RELEASE
 	push ebp
 	mov ebp,eax
+	shr eax,cl
 #endif
 	auto_size {and al,[ebx+2]}, {and ax,[ebx+2]}, {and eax,[ebx+2]}
 	auto_size {add ebx,3}, {add ebx,4}, {add ebx,6}
