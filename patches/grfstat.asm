@@ -302,7 +302,7 @@ actiongrfstat:
 	
 // let all windows know we have changed grfs
 	pusha
-	extern windowstack, windowstacktop
+	extern windowstack
 	mov edi, [windowstack]
 .nextwindow:
 	cmp edi, [windowstacktop]
