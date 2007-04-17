@@ -50,6 +50,9 @@ var kernel32hnd, dd -1		// handle for KERNEL32 DLL
 var ttdmemsize, dd 0		// size of TTD memory
 #endif
 
+uvarb forcectrlkey // Set to 1 to encourage ctrlkeystate to return zf
+		   // It'll still return nz for computer players and in MP, unless CTRL_ALL resp. CTRL_MP
+
 	// checks if a ctrl key is pressed
 	// in:	on stack, above CTRL bit(s)
 	// out: zf is pressed, nz if not
@@ -73,6 +76,9 @@ ctrlkeystate:
 	jne short .haveit
 
 .issingleplayer:
+	cmp byte [forcectrlkey],1
+	jz .haveit
+
 	mov ecx,keypresstable+0x80	// make offsets fit in a byte
 
 #if WINTTDX

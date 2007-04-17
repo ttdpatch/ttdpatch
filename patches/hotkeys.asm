@@ -270,9 +270,10 @@ rvtoolselect:
 // Tables for mapping the return from toolselect to toolbar control indexes.
 // In most cases (except for scenEdLandMap), these are index+1, and the call
 // table is positioned to have a dummy 0 entry.
+// If the high bit is set, clear it and set [forcectrlkey]. (docks only, currently)
 // keys :   1  2  3  4  5  6  7  8  9  0  -  =  `  \  <eol>
 varb dockToolMap
-	db  1, 2, 3, 0, 4, 5, 6, 2, 1, 3, 0, 0, 0, 7
+	db  1, 2, 3, 0, 4, 5, 6, 2, 1, 3,87h,0, 0, 7
 varb airportToolMap
 	db  1, 0, 0, 0, 2, 3, 4, 0, 1, 0, 0, 0, 0, 5
 varb scenEdRoadToolMap
@@ -289,7 +290,7 @@ othertoolselect:
 	xor dx,dx
 	jmp short .continue
 // If toolselect fails, it will return here.
-	jmp .ret
+	jmp short .ret1
 .continue:
 	call [FindWindow]
 	jz .maybeScenRoad
@@ -300,9 +301,14 @@ othertoolselect:
 	jne .maybeairport
 
 	mov al,[dockToolMap+eax]
-	test eax,eax
-	jz near .ret
+	test al,al
+	jz .ret1
+	extern forcectrlkey
+	sets byte [forcectrlkey]
+	and al, 7Fh
 	call [eax*4+edi+83h]
+	mov byte [forcectrlkey], 0
+.ret1:
 	jmp short .ret
 	
 .maybeairport:
