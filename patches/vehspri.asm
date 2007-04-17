@@ -15,6 +15,7 @@
 #include <ptrvar.inc>
 #include <refit.inc>
 #include <player.inc>
+#include <window.inc>
 
 extern cargoamountnnamesptr,cargoclass,curgrfid
 extern cargotypes,deftwocolormaps,exscurfeature
@@ -1603,6 +1604,86 @@ getconsistcargo:
 	popa
 	ret
 
+
+// variable 43
+// code arranged to remove near jumps
+
+getplayerinfo.gotwindow:
+// Generate var 43 based on the window's owner
+	pop ecx
+	mov [esp+1Ch], eax
+	popa
+	mov al, [eax+window.company]
+	cmp al, -1
+	jl .die
+	je .nocompany
+	cmp al, 7
+	jg .die
+	xchg al, [human1]		// Fudge [human1] and [curplayer] to produce results
+	call getvehiclecolors_vehtype	// relative to the player we're interested in
+	xchg al, [human1]
+	xchg al, [curplayer]
+	push eax
+	call getplayerinfo.havetempcols
+	pop ecx
+	mov [curplayer], cl
+	ret
+
+.die:	// we didn't find the window after all.
+#ifndef RELEASE
+	ud2
+#endif
+
+.nocompany:
+	pop ecx
+	movzx eax,al
+	ret
+
+getplayerinfo.vehtype:
+	mov ecx,[curgrffeature]
+	movzx eax,byte [vehbase+ecx]
+	add eax,[curgrfid]
+	push eax
+	// find window struct pointer
+	// It appears on the stack at least three times between [esp+4]
+	// and [esp+80h] (32 dwords)
+	// I looked for a reliable offset, but could not find one, so we get to search.
+	pusha
+	xor ecx, ecx
+	mov cl, 1Fh
+	lea esi, [esp+4+20+4]
+.outer:
+	lodsd
+	test eax,eax
+	// zero and the above-pushed EAX appear two or more times, so ignore them.
+	jz .loop
+	cmp eax, [esp+1Ch]
+	je .loop
+	xor edx, edx
+	push ecx
+	mov edi, esi
+.inner:
+	scasd
+	jnz .next
+	inc edx
+	cmp edx, 2
+	db 2Eh // BPL: branch not taken
+	je getplayerinfo.gotwindow
+.next:
+	loop .inner
+	pop ecx
+.loop:
+	loop .outer
+#ifdef RELEASE
+	popa
+	pop ecx
+	mov eax, FF
+	ret
+#else
+	add esp, 24h	// undo the push eax/pusha
+	ud2
+#endif
+ 
 	// 43: get current player info
 	// out:	Ccttmmnn
 	//	nn=curplayer, mm=multiplayer, tt=type, c=player colour, C=2nd player colour
@@ -1617,16 +1698,7 @@ getplayerinfo:
 
 	push esi
 	call getvehiclecolors
-	mov ch,[tempvehcols]
-	mov cl,[tempvehcols+1]
-	jmp short .havecols
-
-.vehtype:
-	mov ecx,[curgrffeature]
-	movzx eax,byte [vehbase+ecx]
-	add eax,[curgrfid]
-	push eax
-	call getvehiclecolors_vehtype
+.havetempcols:
 	mov ch,[tempvehcols]
 	mov cl,[tempvehcols+1]
 	jmp short .havecols
