@@ -4,12 +4,14 @@
 #include <flags.inc>
 #include <textdef.inc>
 #include <veh.inc>
+#include <human.inc>
 
 extern actionhandler,addgroundsprite,addsprite,canalfeatureids
 extern checkvehiclesinthewayfn,cleartilefn,curplayerctrlkey,getdesertmap
 extern getgroundalt,getnewsprite,gettileinfo,grffeature,landshapetospriteptr
 extern locationtoxy,patchflags,redrawscreen
 extern waterbanksprites,gettileterrain
+extern guispritebase,numguisprites,actionmakewater_actionnum,ctrlkeystate
 
 
 
@@ -28,7 +30,7 @@ endstruc
 %define SHIPLIFTCLEARFACTOR 16
 
 // Cliff translation table
-var baCliffTranslation, db -1, -1, -1, 2	
+var baCliffTranslation, db -1, -1, -1, 2
                 db -1, -1, 0, -1
                 db -1, 3, -1, -1
                 db 1, -1, -1, -1
@@ -123,6 +125,7 @@ uvard oldclass6periodicproc,1,s
 uvard dockwinpurchaselandico,1,s
 uvard oldclass5drawlandfnc,1,s
 uvard oldclass9drawlandfnc,1,s
+uvard oldclass9queryfnc,1,s
 
 uvarb canalaction2array,3  // height byte, dessertmapinfo byte, dikemapbyte
 
@@ -375,17 +378,86 @@ Class6DrawLand:
 ;endp Class6DrawLand
 
 uvard saved_ebx
+uvarb aquaductflag
 var coastdirections // xy-offsets for all possible height masks (1234h means this must have a coast drawn whatsoever)
 	dw 0000h, 1234h, 1234h, -001h
 	dw 1234h, 0000h, -100h, 0000h 
 	dw 1234h, +100h, 0000h, 0000h
 	dw +001h, 0000h, 0000h, 0000h
 
+uvard newaquaductbase	//4 end sprites (on to bridge is: SW, SE, NE, NW), 4 base sprites: X,Y of top, pillar
+uvard newaquaductnum
+
+uvard aquamiddlebridgesprites,8
+
 global class9drawland
 class9drawland:
 	mov [saved_ebx], ebx
+	test dh, 0xF0
+	jz .norm
+	movzx si, dh
+	and si, 6
+	cmp si, 4
+	jne .norm
+	mov BYTE [aquaductflag], 1
+	jmp [oldclass9drawlandfnc]
+.norm:
+	mov BYTE [aquaductflag], 0
 	jmp [oldclass9drawlandfnc]
 
+
+exported aquaductmiddlespritebaseget
+
+	test BYTE [aquaductflag], 1
+	jz .norm
+	cmp DWORD [newaquaductnum], 8
+	jb .norm
+	mov edi, [newaquaductbase]
+	push eax
+	lea eax, [edi+31E8004h]
+	mov [aquamiddlebridgesprites], eax
+	inc eax
+	mov [aquamiddlebridgesprites+4*4], eax
+	lea eax, [edi+6]
+	mov edi, aquamiddlebridgesprites
+	mov [edi+2*4], eax
+	inc eax
+	mov [edi+6*4], eax
+	mov eax, 1<<0x1E
+	mov [edi+1*4], eax
+	mov [edi+5*4], eax
+	and ebx, 2<<3
+	pop eax
+	mov [esp+4], ebx
+	mov [esp+8], edi
+.norm:
+	mov     ebx, [ebx+edi]	//old code starts
+	btr     ebx, 1Eh	//old code ends
+	ret
+
+uvard aquaendbridgesprites, 4
+
+exported aquaductendspritebaseget
+	test BYTE [aquaductflag], 1
+	jz .norm
+	cmp DWORD [newaquaductnum], 8
+	jb .norm
+	
+	mov esi, [newaquaductbase]
+	test dh, 20
+	jz .next1
+	add esi, 2
+.next1:
+	test bl, 2
+	jz .next2
+	inc esi
+.next2:
+	mov ebx, esi
+	ret
+.norm:
+	and ebx, 0Ch		//old
+	mov ebx, [esi+ebx*8]
+	ret
 	
 // in:	ebx = old sprite
 //		ax, cx = landscape XY
@@ -769,12 +841,16 @@ iswateredtile:
 	jnz .nobridgepiecewithwater
 	// test if it's a bridge middlepart
 	bt ax, 14   // would be:  bt ah, 6 but thats not supported in x86 
-	jnc .nobridgepiecewithwater // not a middle part
+	jnc .testbridgeend // not a middle part
 	bt ax, 13  // 5
 	jc .nobridgepiecewithwater // not a land/water
 	bt ax, 11 // 3
 	jnc .nobridgepiecewithwater // not a water tile
 	jmp .watertile
+.testbridgeend:
+	and ah, 0x86
+	cmp ah, 0x84
+	je .watertile
 .nobridgepiecewithwater:
 .notwater:
 	pop eax
@@ -1195,7 +1271,54 @@ endproc createshiplift
 
 // Action Handler for creating water
 global actionmakewater
-actionmakewater:
+actionmakewater:	//bh:1->dx valid, dl=x extent, dh=y extent
+	test bh, 1
+	jnz .multi
+	mov dx, 0x101
+.multi:
+	movzx edx, dx
+	movzx esi, dl
+	shl esi, 16
+	or edx, esi
+	push ax
+	push cx
+	push edx	//high byte used to store flags: 1=successful tile, lower high byte stores x extent
+	push DWORD 0	//cost
+
+.loop:
+	mov [esp+4], dl
+.innerloop:
+	push ebx
+	call .tileloop
+	cmp ebx, 0x80000000
+	je .notok
+	or BYTE [esp+11], 1
+	add [esp+4], ebx
+.notok:
+	pop ebx
+	add ax, 0x10
+	dec BYTE [esp+4]
+	jnz .innerloop
+	add cx, 0x10
+	movzx edx, BYTE [esp+6]
+	shl edx, 4
+	sub ax, dx
+	shr edx, 4
+	dec BYTE [esp+5]
+	jnz .loop
+
+	pop ebx
+	pop edx
+	pop cx
+	pop ax
+	test edx, 0x1000000
+	jz .reterr
+	ret
+.reterr:
+	mov ebx, 0x80000000
+	ret
+
+.tileloop:
 	xor esi, esi
 	rol cx, 8
 	mov si, cx
@@ -1493,3 +1616,99 @@ Class5DrawLand:
 	popa
 	ret
 ;endp Class5DrawLand
+
+uvarb canaltooltype
+
+exported selectdockpurchaselandtool_spritesel
+	xor bl, bl
+	testflags enhancegui
+	jnc .norm	//no enhanced gui, no aquaducts
+	mov ax, 0x301
+	push byte CTRL_ANY+CTRL_MP
+	call ctrlkeystate
+	setz bl
+.norm:
+	mov [canaltooltype], bl
+	or bl, bl
+	jne .aquaduct
+	mov ebx, 4792
+	cmp dword [numguisprites], 0x4A
+	jbe .nonewcanalicon
+	movzx ebx, word [guispritebase] // Calculate the sprite to use
+	add ebx, 0x4A
+.nonewcanalicon:
+	ret
+.aquaduct:
+	mov ebx, 2593
+	ret
+
+uvarb aquaductmdd
+uvarw aquaductend
+
+exported newdocktoolpurchaseland_handler
+	testflags enhancegui
+	jnc .norm
+	cmp BYTE [canaltooltype], 1
+	je .bridge
+	mov BYTE [aquaductmdd], 3
+	jmp .drag
+.norm:
+	mov bl, 3
+	mov word [operrormsg1], ourtext(cantbuildcanalhere)
+	mov esi, actionmakewater_actionnum
+	ret
+.bridge:
+	mov BYTE [aquaductmdd], 0
+.drag:
+	cmp ax, 0FEFh
+	ja .fret
+	cmp cx, 0FEFh
+	ja .fret
+	mov bx, cx
+	rol bx, 8
+	or bx, ax
+	ror bx, 4
+	mov [aquaductend], bx
+	mov [dragtoolstartx], ax
+	mov [dragtoolstarty], cx
+	mov [dragtoolendx], ax
+	mov [dragtoolendy], cx
+	mov byte [curmousetooltype], 3
+	bts word [uiflags], 13
+.fret:
+	add esp, 4	//eat return address about to call doaction off stack
+	ret
+
+exported Class9Query
+	cmp al, 2
+	je .check0
+.norm:
+	jmp [oldclass9queryfnc]
+.check0:
+	movzx edi, di
+	mov cl,[landscape5(di)]
+	or cl, cl
+	jns .norm
+	and cl, 6
+	cmp cl, 4
+	jne .norm
+	
+	mov ax, ourtext(aquaducttext)
+
+	test byte [landscape5(di)], 40h
+	jz .next1
+	mov ebx, edi
+	mov cx, -1
+	test byte [landscape5(di)], 1
+	jz .next2
+	mov cx, -100h
+
+.next2:
+	add bx, cx
+	test byte [landscape5(bx)], 40h
+	jnz .next2
+	mov bl, [landscape1+ebx]
+	ret
+.next1:
+	mov bl, [landscape1+edi]
+	ret

@@ -369,6 +369,8 @@ defourtext adjstnewenhbuoy
 defourtext newgame
 defourtext newgamewindow
 
+defourtext aquaducttext
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

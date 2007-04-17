@@ -360,7 +360,10 @@ ovar tempraiseloweraffectedtilearray, -4
 	test dh, 0x40
 	jnz NEAR .bridgemiddle
 //bridge end
-
+	mov al, dh
+	and al, 6
+	cmp al, 4
+	je NEAR .exit	//disable autoslope for aquaduct ends
 	//assumption: corners: 0=sloped, 1=flat, 2=flat, 3=sloped
 	mov al, [bTempRaiseLowerDirection]
 	mov bx, 3

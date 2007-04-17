@@ -11,7 +11,7 @@ extern oldclass6maphandler,Class6RouteMapHandler,Class6VehEnterLeave
 extern oldclass6drawlandfnc,Class6DrawLand,selectgroundforbridge
 extern dockwinpurchaselandico,newgraphicssetsenabled,oldclass9drawlandfnc
 extern oldclass5drawlandfnc,Class5DrawLand,actionmakewater_actionnum
-extern class9drawland
+extern class9drawland,Class9Query,oldclass9queryfnc, newgraphicssetsenabled
 
 begincodefragments
 
@@ -35,10 +35,14 @@ codefragment newshipmovement80h
 codefragment olddocktoolpurchaseland, -11
 	mov esi, 10050h
 
-codefragment newdocktoolpurchaseland	
+codefragment newdocktoolpurchaseland
+	/*
 	mov bl, 3
 	mov word [operrormsg1], ourtext(cantbuildcanalhere)
 	mov esi, actionmakewater_actionnum
+	*/
+	icall newdocktoolpurchaseland_handler
+	setfragmentsize 16
 
 codefragment oldclass6cleartile
 	cmp dh, 1
@@ -99,6 +103,46 @@ codefragment newremovebouy
 	and word [nosplit landscape3+esi*2], 0x001
 	setfragmentsize 24
 
+codefragment oldselectdockpurchaselandtool, 7
+	jb $+0x201
+	push esi
+	mov ebx, 4792
+	mov ax, 0x301
+	xor dx, dx
+	db 0xE8
+
+codefragment newselectdockpurchaselandtool
+	icall selectdockpurchaselandtool_spritesel
+	setfragmentsize 9
+
+codefragment newaquaductmiddlespritebaseget
+	icall aquaductmiddlespritebaseget
+	setfragmentsize 7
+
+codefragment newaquaductendspritebaseget
+	icall aquaductendspritebaseget
+	setfragmentsize 6
+	
+codefragment oldclass9drawendspritebaseget,21	//27
+                //mov     esi, [esi+0x18]	//overwritten by slopebld.asm:isbridgeendingramp
+                //or      di, di
+                jnz     short loc_153A9F
+                add     esi, BYTE 10h
+
+loc_153A9F:                                     ; CODE XREF: Class9DrawLand+EAj
+                test    dh, 20h
+                jz      short loc_153AA7
+                add     esi, BYTE 8
+
+loc_153AA7:                                     ; CODE XREF: Class9DrawLand+F2j
+                test    bl, 2
+                jz      short loc_153AAF
+                add     esi, BYTE 4
+
+loc_153AAF:                                     ; CODE XREF: Class9DrawLand+FAj
+                and     ebx, BYTE 0Ch
+                mov     ebx, [esi+ebx*8]
+
 endcodefragments
 
 patchcanals:
@@ -117,7 +161,7 @@ patchcanals:
 	mov dword [eax+0x1C],addr(Class6DrawLand)
 
 	storeaddress finddockwinpurchaselandico, 1, 1, dockwinpurchaselandico
-	or byte [newgraphicssetsenabled+1],1 << (8-8)
+	or DWORD [newgraphicssetsenabled],1 << 8 | 1<<0x12
 
 	//patch flat docks
 	patchcode oldcanbuilddockhere,newcanbuilddockhere,1,1
@@ -128,11 +172,26 @@ patchcanals:
 	mov ecx, [eax+0x1C]
 	mov [oldclass5drawlandfnc], ecx
 	mov dword [eax+0x1C],addr(Class5DrawLand)
+	
+	//aquaduct query handler
+	mov eax,[ophandler+0x09*8]
+	mov ecx, [eax+0x34]
+	mov [oldclass9queryfnc], ecx
+	mov dword [eax+0x34],addr(Class9Query)
+	
+	//patch aquaduct draw handler
+	stringaddress oldclass9drawendspritebaseget
+	mov eax, edi
+	storefragment newaquaductendspritebaseget
+	lea edi, [eax+316]
+	storefragment newaquaductmiddlespritebaseget
 
 	// patches the bouys
 	patchcode oldbuildbouy, newbuildbouy, 1, 3
 	patchcode oldremovebouy, newremovebouy
-
+	
+	//patch aquaduct and canal mousetools
+	patchcode selectdockpurchaselandtool
 	ret
 
 patchcanalshigherbridges:
