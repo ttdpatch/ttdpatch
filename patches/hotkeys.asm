@@ -304,8 +304,17 @@ othertoolselect:
 	test al,al
 	jz .ret1
 	extern forcectrlkey
-	sets byte [forcectrlkey]
-	and al, 7Fh
+	sets ah
+	mov [forcectrlkey], ah
+	// Don't bother checking whether the toolbar button is pressed.
+	// If it is, [canaltooltype] is valid
+	// If it isn't, unpressing it again won't hurt anything.
+	extern canaltooltype
+	cmp ah, [canaltooltype]
+	je .cont
+	and byte [esi+window.activebuttons+1], ~1
+.cont:
+	and eax, 7Fh
 	call [eax*4+edi+83h]
 	mov byte [forcectrlkey], 0
 .ret1:
