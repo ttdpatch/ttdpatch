@@ -1,5 +1,5 @@
 // Higher Bridges by Oskar Eisemuth
-// 
+//
 // Drawing Pieces under the Bridge isn't the fastest and best way,
 // but in code size the smallest and easiest.
 // Feel free to improve :)
@@ -85,6 +85,8 @@ bridgedrawroadunder:
 
 global bridgedrawmiddlepart
 bridgedrawmiddlepart:
+	mov edi, [esp+4]
+	mov [bridgedrawmiddlepartpillardir], edi
 	add dl, 5
 //	mov edi, [landscape7_ptr]
 //	or edi,edi
@@ -160,8 +162,8 @@ uvarb bridgedrawmiddlepartpillaheightback, 1
 
 global bridgedrawmiddlepartpillar
 bridgedrawmiddlepartpillar:
-	mov edi, [esp-4]
-	mov [bridgedrawmiddlepartpillardir], edi
+	//mov edi, [esp-4]
+	//mov [bridgedrawmiddlepartpillardir], edi
 	pusha
 
 	call bridgedrawmiddlepartpillargettileinfo

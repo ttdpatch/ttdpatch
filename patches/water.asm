@@ -445,7 +445,7 @@ exported aquaductendspritebaseget
 	jb .norm
 	
 	mov esi, [newaquaductbase]
-	test dh, 20
+	test dh, 20h
 	jz .next1
 	add esi, 2
 .next1:
