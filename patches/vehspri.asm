@@ -1646,19 +1646,20 @@ getplayerinfo.vehtype:
 	push eax
 	// find window struct pointer
 	// It appears on the stack at least three times between [esp+4]
-	// and [esp+80h] (32 dwords)
+	// and [esp+A0h]
 	// I looked for a reliable offset, but could not find one, so we get to search.
 	pusha
 	xor ecx, ecx
-	mov cl, 1Fh
+	mov cl, 27h
 	lea esi, [esp+4+20+4]
 .outer:
 	lodsd
-	test eax,eax
 	// zero and the above-pushed EAX appear two or more times, so ignore them.
+	test eax,eax
 	jz .loop
 	cmp eax, [esp+1Ch]
 	je .loop
+
 	xor edx, edx
 	push ecx
 	mov edi, esi
