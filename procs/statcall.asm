@@ -13,8 +13,8 @@
 
 // Few things need to be taken from the patches file
 extern TrainSpeedNewVehicleHandler, TrainSpeedBuyNewVehicle
-extern GetShipCallBackSpeed, GetPlaneCallBackSpeed
-extern TrainPowerGeneric
+extern GetShipCallBackSpeed, TrainPowerGeneric
+extern GetPlaneCallBackSpeed, GetPlaneCallBackSpeed.lesi
 
 // Procedures
 patchproc newtrains, patchtrainstat
@@ -72,6 +72,10 @@ begincodefragments
 	codefragment newplanespeednewwehiclehandler
 		icall GetPlaneCallBackSpeed
 		setfragmentsize 8
+	; Replace it with a special menu one (for no vehicle)
+	codefragment newplanespeednewwehiclehandler2
+		icall GetPlaneCallBackSpeed.lesi
+		setfragmentsize 8
 
 endcodefragments
 
@@ -96,8 +100,8 @@ patchshipstat:
 
 patchplanestat:
 	; Speed Fragments
-	patchcode oldplanespeednewwehiclehandler, newplanespeednewwehiclehandler, 1, 3
+	patchcode oldplanespeednewwehiclehandler, newplanespeednewwehiclehandler2, 1, 3
 	patchcode oldplanespeednewwehiclehandler, newplanespeednewwehiclehandler, 1, 0
-	patchcode oldplanespeednewwehiclehandler, newplanespeednewwehiclehandler, 1, 0
+	patchcode oldplanespeednewwehiclehandler, newplanespeednewwehiclehandler2, 1, 0
 	ret
 

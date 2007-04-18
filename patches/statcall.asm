@@ -157,10 +157,20 @@ GetShipCallBackSpeed:
 
 // Plane Codes
 // Sets the globals up
-global GetPlaneCallBackSpeed
+global GetPlaneCallBackSpeed, GetPlaneCallBackSpeed.lesi
 
 // Gets the speed from callback default if no callback
 GetPlaneCallBackSpeed:
+	push ecx
+	movzx cx, byte [planedefspeed-0xD7+ebx] ; Gets the default speed of the vehicle
+	mov ah, 0xC ; Get the speed value
+	mov al, bl ; Set the system to vehicle id
+	call GetCallBack36 ; Get the actual value for the speed
+	and eax, 0xFF ; Byte return from callback
+	pop ecx
+	ret
+
+.lesi:
 	push ecx
 	push esi
 	xor esi, esi

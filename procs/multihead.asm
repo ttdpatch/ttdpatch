@@ -1,6 +1,7 @@
 #include <defs.inc>
 #include <frag_mac.inc>
 #include <patchproc.inc>
+#include <ptrvar.inc>
 
 patchproc fastwagonsell,newtrains, patchwagonsell
 patchproc newtrains, multihead, patchpower
@@ -125,6 +126,33 @@ codefragment newshowtrainmaintcost
 	pop edx
 	setfragmentsize 0x18,1
 
+extern aircraftmaintcost, aircraftmaintcost.ledi, aircraftmaintcost.lesi
+
+//codefragment oldshowaircraftmaintcost,-7
+//	imul eax, [costs+45*6]
+//	shr eax, 8
+
+codefragment oldaircraftmaintcost
+	movzx eax, byte [planeruncostfactor-0xD7+ebx]
+
+codefragment oldaircraftdetailsmaintcost
+	movzx eax, byte [planesprite+0x1F+edi]
+
+//codefragment oldshowaircraftmaintcost2,-7
+//	imul eax, [costs+45*6]
+//	xor edx, edx
+
+codefragment newaircraftmaintcost
+	icall aircraftmaintcost
+	setfragmentsize 7
+
+codefragment newaircraftmaintcost2
+	icall aircraftmaintcost.lesi
+	setfragmentsize 7
+
+codefragment newaircraftdetailsmaintcost
+	icall aircraftmaintcost.ledi
+	setfragmentsize 7
 
 endcodefragments
 
@@ -161,6 +189,11 @@ patchmultihead:
 patchrunningcost:
 	patchcode oldtrainmaintcost, newtrainmaintcost, 1+WINTTDX, 2
 	patchcode oldshowtrainmaintcost, newshowtrainmaintcost, 1+WINTTDX, 2
+
+	patchcode oldaircraftmaintcost, newaircraftmaintcost2, 1, 3
+	patchcode oldaircraftmaintcost, newaircraftmaintcost, 1, 0
+	patchcode oldaircraftmaintcost, newaircraftmaintcost2, 1, 0
+	patchcode oldaircraftdetailsmaintcost, newaircraftdetailsmaintcost
 	ret
 
 
