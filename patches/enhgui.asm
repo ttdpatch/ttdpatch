@@ -1559,7 +1559,9 @@ DockConstrDragUITick:
 	mov bx, 0x103
 	mov word [operrormsg1], ourtext(cantbuildcanalhere)
 	extern actionmakewater_actionnum
+	push esi
 	dopatchaction actionmakewater
+	pop esi
 	cmp ebx, 80000000h
 	je .end2
 	push eax
@@ -1584,7 +1586,7 @@ DockConstrDragUITick:
 	xor dx, dx
 	call [setmousetool]
 	pop esi
-	bts dword [esi+window.activebuttons], 5
+	bts dword [esi+window.activebuttons], 8
 	mov word [selectedtool], 6
 	popa
 	ret
