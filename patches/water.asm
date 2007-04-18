@@ -5,13 +5,14 @@
 #include <textdef.inc>
 #include <veh.inc>
 #include <human.inc>
+#include <misc.inc>
 
 extern actionhandler,addgroundsprite,addsprite,canalfeatureids
 extern checkvehiclesinthewayfn,cleartilefn,curplayerctrlkey,getdesertmap
 extern getgroundalt,getnewsprite,gettileinfo,grffeature,landshapetospriteptr
 extern locationtoxy,patchflags,redrawscreen
 extern waterbanksprites,gettileterrain
-extern guispritebase,numguisprites,actionmakewater_actionnum,ctrlkeystate
+extern guispritebase,numguisprites,actionmakewater_actionnum,ctrlkeystate,cleararea_actionnum
 
 
 
@@ -1142,6 +1143,7 @@ var paShipLiftAddPartsInLandscape, dw 0, -16, 0, 16,
 dw 16, 0, -16, 0,
 dw -16, 0, 16, 0,
 dw 0, 16, 0, -16
+uvard tmpshplftlndxy, 2
 
 // In: 
 // ax, cx = tile xy 
@@ -1161,27 +1163,32 @@ proc createshiplift
 	mov [%$shiplifttype], di
 	mov [%$actionbuildflags], bl
 
-	mov bl, byte [%$actionbuildflags]
-	mov esi, 0
 	push ebp
- 	call [actionhandler]
+	mov bp, ax
+	mov dx, cx
+	movzx ebx, di
+	add ax, word [paShipLiftAddPartsInLandscape+ebx*8]
+	add cx, word [paShipLiftAddPartsInLandscape+ebx*8+2]
+	add bp, word [paShipLiftAddPartsInLandscape+ebx*8+4]
+	add dx, word [paShipLiftAddPartsInLandscape+ebx*8+6]
+	shl edx, 16
+	mov dx, bp
+	mov bl, 2
+	dopatchaction cleararea
 	pop ebp
 	cmp ebx, 80000000h
-	jnz .noerrormiddle1
+	jnz .noerrorcleartile
 	jmp .error // tempfix for short jump problem 
 
-.noerrormiddle1:
+.noerrorcleartile:
+	mov ax, [%$tilex]
+	mov cx, [%$tiley]
 	push ebp
 	call [gettileinfo]
 	pop ebp
 	test byte [%$actionbuildflags], 1
 	jz .onlytestingmiddle
-	mov byte [landscape1+esi], 11h
-	mov bx, [%$shiplifttype]
-	mov byte [landscape2+esi], bl
-	mov word [landscape3+esi*2], 1h
-	or byte [landscape4(si)], 60h
-	mov byte [landscape5(si)], 2h
+	mov [tmpshplftlndxy],esi
 .onlytestingmiddle:
 
 
@@ -1191,16 +1198,6 @@ proc createshiplift
 	mov cx, [%$tiley]
 	add ax, word [paShipLiftAddPartsInLandscape+ebx*8]
 	add cx, word [paShipLiftAddPartsInLandscape+ebx*8+2]
-	mov ebx, [%$actionbuildflags]
-	mov esi, 0
-	push ebp
- 	call [actionhandler]
-	pop ebp
-	cmp ebx, 80000000h
-	jnz .nobottomerrorfreeing
-	jmp .error	// tempfix for short jump problem 
-.nobottomerrorfreeing:
-	
 	push ebp
 	call [gettileinfo]
 	pop ebp
@@ -1211,14 +1208,7 @@ proc createshiplift
 	
 	test byte [%$actionbuildflags], 1
 	jz .onlytestingbottom
-
-	mov byte [landscape1+esi], 11h
-	mov bx, [%$shiplifttype]
-	add bx, 4
-	mov byte [landscape2+esi], bl
-	mov word [landscape3+esi*2], 1h
-	or byte [landscape4(si)], 60h
-	mov byte [landscape5(si)], 2h
+	mov [tmpshplftlndxy+4], esi
 .onlytestingbottom:
 
 // top part
@@ -1227,26 +1217,58 @@ proc createshiplift
 	mov cx, [%$tiley]
 	add ax, word [paShipLiftAddPartsInLandscape+ebx*8+4]
 	add cx, word [paShipLiftAddPartsInLandscape+ebx*8+6]
-	mov ebx, [%$actionbuildflags]
-	mov esi, 0
-	push ebp
- 	call [actionhandler]
-	pop ebp
-	cmp ebx, 80000000h
-	jz .error
-	
+
 	push ebp
 	call [gettileinfo]
 	pop ebp
 	cmp di, 0	// is flat tile
-	jnz .error
+	jnz NEAR .error
 	
 	test byte [%$actionbuildflags], 1
-	jz .onlytestingtop
+	jz NEAR .onlytestingtop
+	push esi
+	movzx ebx, word [%$shiplifttype]
+	mov ax, [%$tilex]
+	mov cx, [%$tiley]
+	mov si, ax
+	mov dx, cx
+	add ax, word [paShipLiftAddPartsInLandscape+ebx*8]
+	add cx, word [paShipLiftAddPartsInLandscape+ebx*8+2]
+	add si, word [paShipLiftAddPartsInLandscape+ebx*8+4]
+	add dx, word [paShipLiftAddPartsInLandscape+ebx*8+6]
+	shl edx, 16
+	mov dx, si
+	mov bl, 1
+	push ebp
+	dopatchaction cleararea
+	pop ebp
+	pop esi
+	cmp ebx, 80000000h
+	je NEAR .error
 
+	//top
 	mov byte [landscape1+esi], 11h
 	mov bx, [%$shiplifttype]
 	add bx, 8
+	mov byte [landscape2+esi], bl
+	mov word [landscape3+esi*2], 1h
+	or byte [landscape4(si)], 60h
+	mov byte [landscape5(si)], 2h
+
+	//middle
+	mov esi, [tmpshplftlndxy]
+	mov byte [landscape1+esi], 11h
+	mov bx, [%$shiplifttype]
+	mov byte [landscape2+esi], bl
+	mov word [landscape3+esi*2], 1h
+	or byte [landscape4(si)], 60h
+	mov byte [landscape5(si)], 2h
+
+	//bottom
+	mov esi, [tmpshplftlndxy+4]
+	mov byte [landscape1+esi], 11h
+	mov bx, [%$shiplifttype]
+	add bx, 4
 	mov byte [landscape2+esi], bl
 	mov word [landscape3+esi*2], 1h
 	or byte [landscape4(si)], 60h
