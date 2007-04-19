@@ -501,6 +501,7 @@ enum langtextids {
 	CFG_NEWSIGNALS,
 	CFG_NEWOBJECTS,
 	CFG_VRUNCOSTS,
+	CFG_NOTRANSTREES,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS

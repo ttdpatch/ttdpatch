@@ -187,15 +187,16 @@
 #define articulatedrvs		219	// allow articulated RVs				(119)
 #define newroutes		220	// Enable newRoutes					(120)
 #define newobjects		221	// Enable support for newobjects					(-)
+#define hidetranstrees		222	// Hide Trees in transparent buildings mode					(-)
 
-#define lastbitdefaultoff	221	// META: last bit defined not to be set by -a unless DEBUG
+#define lastbitdefaultoff	222	// META: last bit defined not to be set by -a unless DEBUG
 
 // so far unused flags, simply to remember what names I've used already
 // the numbers of these can be changed as desired
 //#define moresignals		 ?	// make tunnels&bridges behave as if there were signals
 //#define hugeairport		 ?	// build huge airports
 
-#define lastbitcommandline	223	// META: last bit that can be set by -a
+#define lastbitcommandline	224	// META: last bit that can be set by -a
 					// 	 i.e. all but the last DWORD
 
 // END PATCHFLAGS

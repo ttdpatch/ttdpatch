@@ -259,6 +259,7 @@ TEXTARRAY(halflines,) =
 	  "-ZA: Enable new airports",
 	  "-ZC: Enable AI transport type chances",
 	  "-ZD: Enables the cloning of trains",
+	  "-ZH: Hides trees in transparent mode",
 	  "-ZI: Enable irregular stations",
 	  "-ZM: Collect more company statistics",
 	  "-ZN: Enables newRoutes",
@@ -514,6 +515,7 @@ SWITCHTEXT(adjacentstation, "Adjacent station building and remote merging with o
 SWITCHTEXT(newsignals, "New signal graphics", "")
 SWITCHTEXT(newobjects, "Enable new objects", "")
 SWITCHTEXT(vruncosts, "Enables grfs to have variable running costs", "")
+SWITCHTEXT(hidetranstrees, "Make trees completely invisible in transparent buildings mode", "")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -897,6 +899,7 @@ SETTEXT(CFG_ADJSTATIONS, "%s (%s) allows new station facilities to be merged to 
 SETTEXT(CFG_NEWSIGNALS, "`%s' (%s) enables new graphics for signals.")
 SETTEXT(CFG_NEWOBJECTS, "`%s' (%s) enables new objects.")
 SETTEXT(CFG_VRUNCOSTS, "`%s' (%s) enables grfs to have variable running costs for vehicles (no warnings will be given when the costs change).")
+SETTEXT(CFG_NOTRANSTREES, "`%s' (%s) make trees completely invisible in transparent buildings mode.")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

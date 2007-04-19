@@ -297,7 +297,7 @@
 	     //E
 	BITS ('F',"toylandfeatures", CFG_TOYLANDFEATURES, TERRAIN, "ToylandFeatures", moretoylandfeatures, U8, FLAGDATA(toylandfeatures), 1),
 	     //G
-	     //H
+	YESNO('H', "hidetranstrees", CFG_NOTRANSTREES, INFST, "", hidetranstrees),
 	YESNO('I',"irregularstations", CFG_IRRSTATIONS, INFST_STATION, "IrregularStations", irrstations),
 	     //J
 	     //K
@@ -517,4 +517,5 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	newsignals,
 	newobjects,
 	vruncosts,
+	hidetranstrees,
 
