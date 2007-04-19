@@ -740,10 +740,9 @@ displbridgelastmid2ndpart:
 	inc edi				// yes, increase 'object length'
 
 .done:
+	mov esi, 10
 	// do the overwritten part
-	xor esi,esi
-	inc esi
-	mov dh,0x28
+	mov dh,0x38
 	ret
 
 

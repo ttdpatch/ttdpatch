@@ -2993,11 +2993,19 @@ ovar .spritesorttableofs,-5,$,spritesorter
 	//
 	//	instead of finding the center X/Y/Z, e.g. X=(X1+X2)/2,
 	//	we'll just double screen-Z, and subtract both values
-
+	
+	//JGR: major exception, if either z-extent is zero (Z1==Z2), then compare based upon only Z1s, if equal then take one with higher Z2.
+	push ebx
+	movzx ebx, WORD [ebp+spritedesc.Z1]
+	cmp cl,ch
+	je NEAR .flatexception
+	cmp bl,bh
+	je NEAR .flatexception
 	mov al,cl
-	sub al,[ebp+spritedesc.Z1]
+	sub al,bl
 	add al,ch
-	sub al,[ebp+spritedesc.Z2]
+	sub al,bh
+	pop ebx
 	cbw
 //	imul ax,4
 //	add ax,ax
@@ -3031,9 +3039,18 @@ ovar .spritesorttableofs,-5,$,spritesorter
 	jnz .again
 	cmp cl,[ebp+spritedesc.Z1]
 	jnz .again
-	cmp cl,[ebp+spritedesc.Z2]
+	cmp ch,[ebp+spritedesc.Z2]
 	jnz .again
 	jmp .checknext	// all coordinates equal, bleh....
+
+.flatexception:
+	cmp cl, bl
+	jne .nequal1
+	cmp ch, bh
+.nequal1:
+	pop ebx
+	pop eax
+	jmp .again
 
 
 	// called when clearing tile, also reset the new landscape arrays

@@ -7,12 +7,13 @@
 #include <std.inc>
 #include <textdef.inc>
 #include <ptrvar.inc>
+#include <flags.inc>
 
 extern addgroundsprite,addsprite,bridgeflags
 extern correctexactalt.getfoundationtype,getbridgefoundationtype
 extern getgroundaltitude,gettileinfo,gettrackfoundationtype,landscape7_ptr
 extern locationtoxy
-extern redrawscreen
+extern redrawscreen,addrelsprite,patchflags
 
 
 
@@ -101,6 +102,38 @@ bridgedrawmiddlepart:
 	add dl, [landscape7+edi] 
 //.no_l7:
 	mov di, 10h
+	
+	extern aquamiddlebridgesprites
+	cmp edi, aquamiddlebridgesprites
+	je .fixoffset
+	ret
+.fixoffset:
+	mov si, 0Bh
+	test byte [esp+4], 10h
+	jz loc_153C0E
+	xchg di, si
+loc_153C0E:
+	mov dh, 1
+
+	pusha		//helper sprite
+	mov di, 0x10
+	mov si, di
+	mov ebx, 0x1322
+	call [addsprite]
+	popa
+	
+	pusha
+	mov ax, 31
+	xor cx, cx
+	call [addrelsprite]
+	popa
+
+	add DWORD [esp], 0x15
+	testflags buildonslopes
+	jnc .ret1
+	extern drawTramBridgeMiddlePart
+	call drawTramBridgeMiddlePart
+.ret1:
 	ret
 ;endp bridgedrawmiddlepart
 
@@ -193,7 +226,7 @@ bridgedrawmiddlepartpillar:
 	test ebp,ebp
 	jz .nobackpillar
 	
-// Second back pillar	
+// Second back pillar
 	test dword [bridgedrawmiddlepartpillardir], 10h
 	jz .otherdirection
 	mov di, 0
@@ -207,7 +240,7 @@ bridgedrawmiddlepartpillar:
 .next2:
 
 	
-	mov dh, 8
+	xor dh, dh	//fixes sorting errors
 	push edi
 	push esi
 	push ebx
