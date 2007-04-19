@@ -149,8 +149,9 @@
 #define stationsize		115	// max rail station spread				(123)
 #define adjacentstation		116	// adjacent stations					(124)
 #define newsignals		117	// new signals						(125)
+#define vruncosts		118	// Enables the changing of vehicle costs		(126)
 
-#define lastbitdefaulton	117	// META: last bit defined to be set by -a
+#define lastbitdefaulton	118	// META: last bit defined to be set by -a
 
 // add new flags that should be on by default above, flags off by default below
 
@@ -186,16 +187,15 @@
 #define articulatedrvs		219	// allow articulated RVs				(119)
 #define newroutes		220	// Enable newRoutes					(120)
 #define newobjects		221	// Enable support for newobjects					(-)
-#define vruncosts		222	// Enables the changing of vehicle costs		(126)
 
-#define lastbitdefaultoff	222	// META: last bit defined not to be set by -a unless DEBUG
+#define lastbitdefaultoff	221	// META: last bit defined not to be set by -a unless DEBUG
 
 // so far unused flags, simply to remember what names I've used already
 // the numbers of these can be changed as desired
 //#define moresignals		 ?	// make tunnels&bridges behave as if there were signals
 //#define hugeairport		 ?	// build huge airports
 
-#define lastbitcommandline	224	// META: last bit that can be set by -a
+#define lastbitcommandline	223	// META: last bit that can be set by -a
 					// 	 i.e. all but the last DWORD
 
 // END PATCHFLAGS

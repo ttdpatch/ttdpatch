@@ -128,19 +128,12 @@ codefragment newshowtrainmaintcost
 
 extern aircraftmaintcost, aircraftmaintcost.ledi, aircraftmaintcost.lesi
 
-//codefragment oldshowaircraftmaintcost,-7
-//	imul eax, [costs+45*6]
-//	shr eax, 8
 
 codefragment oldaircraftmaintcost
 	movzx eax, byte [planeruncostfactor-0xD7+ebx]
 
 codefragment oldaircraftdetailsmaintcost
 	movzx eax, byte [planesprite+0x1F+edi]
-
-//codefragment oldshowaircraftmaintcost2,-7
-//	imul eax, [costs+45*6]
-//	xor edx, edx
 
 codefragment newaircraftmaintcost
 	icall aircraftmaintcost
@@ -152,6 +145,23 @@ codefragment newaircraftmaintcost2
 
 codefragment newaircraftdetailsmaintcost
 	icall aircraftmaintcost.ledi
+	setfragmentsize 7
+
+extern shipmaintcost, shipmaintcost.ledi, shipmaintcost.lesi
+
+codefragment oldshipmaintcost,-7
+	imul eax, [costs+47*6]
+
+codefragment newshipmaintcost
+	icall shipmaintcost
+	setfragmentsize 7
+
+codefragment newshipmaintcost2
+	icall shipmaintcost.lesi
+	setfragmentsize 7
+
+codefragment newshipmaintcost3
+	icall shipmaintcost.ledi
 	setfragmentsize 7
 
 endcodefragments
@@ -187,13 +197,21 @@ patchmultihead:
 	ret
 
 patchrunningcost:
+	; Trains
 	patchcode oldtrainmaintcost, newtrainmaintcost, 1+WINTTDX, 2
 	patchcode oldshowtrainmaintcost, newshowtrainmaintcost, 1+WINTTDX, 2
 
+	; Planes
 	patchcode oldaircraftmaintcost, newaircraftmaintcost2, 1, 3
 	patchcode oldaircraftmaintcost, newaircraftmaintcost, 1, 0
 	patchcode oldaircraftmaintcost, newaircraftmaintcost2, 1, 0
 	patchcode oldaircraftdetailsmaintcost, newaircraftdetailsmaintcost
+
+	; Ships
+	patchcode oldshipmaintcost, newshipmaintcost2, 1, 4
+	patchcode oldshipmaintcost, newshipmaintcost3, 2, 4
+	patchcode oldshipmaintcost, newshipmaintcost, 3, 4
+	patchcode oldshipmaintcost, newshipmaintcost2, 4, 4
 	ret
 
 

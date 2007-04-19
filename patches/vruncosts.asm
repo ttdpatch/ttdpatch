@@ -50,3 +50,40 @@ aircraftmaintcost:
 	pop ecx
 	ret
 
+// ** Ship Functions **
+global shipmaintcost, shipmaintcost.ledi, shipmaintcost.lesi
+shipmaintcost:
+	push ecx
+	movzx ecx, byte [shipruncostfactor-0xCC+ebx]
+	mov ah, 0xF
+	mov al, bl
+	call GetCallBack36 
+	movzx eax, al
+	pop ecx
+	ret
+
+.lesi:
+	push ecx
+	push esi
+	xor esi, esi
+	movzx ecx, byte [shipruncostfactor-0xCC+ebx]
+	mov ah, 0xF
+	mov al, bl
+	call GetCallBack36 
+	movzx eax, al
+	pop esi
+	pop ecx
+	ret
+
+.ledi:
+	push ecx
+	push ebx
+	mov ebx, edi
+	movzx ecx, byte [shipruncostfactor-0xCC+ebx]
+	mov ah, 0xF
+	mov al, bl
+	call GetCallBack36 
+	movzx eax, al
+	pop ebx
+	pop ecx
+	ret

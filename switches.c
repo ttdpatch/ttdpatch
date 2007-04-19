@@ -1141,6 +1141,9 @@ void commandline(int argc, const char *const *argv)
 
     if (getf(vruncosts)) {
 	setf1(newtrains);
+	setf1(newplanes);
+	setf1(newships);
+	setf1(newrvs);
     }
 
   }
