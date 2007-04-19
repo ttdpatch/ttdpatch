@@ -297,7 +297,7 @@
 	     //E
 	BITS ('F',"toylandfeatures", CFG_TOYLANDFEATURES, TERRAIN, "ToylandFeatures", moretoylandfeatures, U8, FLAGDATA(toylandfeatures), 1),
 	     //G
-	YESNO('H', "hidetranstrees", CFG_NOTRANSTREES, INFST, "", hidetranstrees),
+	YESNO('H', "hidetranstrees", CFG_NOTRANSTREES, TERRAIN, "", hidetranstrees),
 	YESNO('I',"irregularstations", CFG_IRRSTATIONS, INFST_STATION, "IrregularStations", irrstations),
 	     //J
 	     //K

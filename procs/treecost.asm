@@ -4,6 +4,8 @@
 
 patchproc plantmanytrees,generalfixes, patchtreecost
 
+patchproc hidetranstrees, patchhidetranstrees
+
 begincodefragments
 
 codefragment oldgettreecost
@@ -26,9 +28,23 @@ codefragment newgettreecost
 //
 // These are no longer needed for the lumber mill warning, but they might be useful later
 
+codefragment oldhidetranstrees, 9
+	test byte [displayoptions], 0x10
+	db 0x75,0xC
+
+codefragment newhidetranstrees
+        pop ecx
+	pop eax
+	ret
+	setfragmentsize 12
 
 endcodefragments
 
 patchtreecost:
 	patchcode oldgettreecost,newgettreecost,1,1
 	ret
+	
+patchhidetranstrees:
+	patchcode oldhidetranstrees, newhidetranstrees,1,1
+	ret
+
