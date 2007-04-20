@@ -3052,7 +3052,8 @@ ovar .spritesorttableofs,-5,$,spritesorter
 .nequal1:
 	pop ebx
 	pop eax
-	jmp .again
+	ja .swapthem		//do unsigned checks for heights, avoid signed issues at high heights.
+	jmp .checknext
 
 
 	// called when clearing tile, also reset the new landscape arrays

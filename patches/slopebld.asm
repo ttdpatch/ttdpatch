@@ -740,7 +740,7 @@ displbridgelastmid2ndpart:
 	inc edi				// yes, increase 'object length'
 
 .done:
-	mov esi, 0x10
+	mov esi, 6
 	// do the overwritten part
 	mov dh, 0x28
 	//saturate Z2 to prevent signed top height, would be any ground altitude greater than 80

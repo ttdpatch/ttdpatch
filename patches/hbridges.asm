@@ -107,7 +107,7 @@ bridgedrawmiddlepart:
 	cmp edi, aquamiddlebridgesprites
 	je .fixoffset
 	ret
-.fixoffset:
+.fixoffset:		//for aquaducts, gives other bridge types horrid clipping errors.
 	mov si, 0Bh
 	test byte [esp+4], 10h
 	jz loc_153C0E
@@ -129,11 +129,14 @@ loc_153C0E:
 	popa
 
 	add DWORD [esp], 0x15
-	testflags buildonslopes
+
+//aquaducts do not need tram sprite addition checking...
+/*	testflags buildonslopes
 	jnc .ret1
 	extern drawTramBridgeMiddlePart
 	call drawTramBridgeMiddlePart
 .ret1:
+*/
 	ret
 ;endp bridgedrawmiddlepart
 
@@ -240,7 +243,7 @@ bridgedrawmiddlepartpillar:
 .next2:
 
 	
-	xor dh, dh	//fixes sorting errors
+	mov dh, 1
 	push edi
 	push esi
 	push ebx
