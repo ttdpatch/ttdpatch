@@ -31,7 +31,7 @@ extern getgroundaltitude,guispritebase,int21handler,invalidatehandle
 extern makestationclassdropdown,makestationseldropdown,numstationsinclass
 extern patchflags,redrawscreen,setmousetool,stationclassesused
 extern stationseldropdownclick,windowsizesbufferptr,windowstack
-extern winelemdrawptrs
+extern winelemdrawptrs,errorpopup
 extern depotscalefactor,aquaductmdd,gettileinfo,numguisprites,guispritebase
 
 
@@ -1489,6 +1489,7 @@ DockConstrDragUITick:
 
 .aquaduct:
 	pusha
+	mov word [operrormsg1], 0x5015
 	call [gettileinfo]
 	test di, 0x10
 	jnz NEAR .badslope
@@ -1514,7 +1515,7 @@ DockConstrDragUITick:
 	mov esi, 0x10048
 	call [actionhandler]
 	cmp ebx, 80000000h
-	je .end
+	je .bad
 	push eax
 	push esi
 	mov esi, -1
@@ -1529,10 +1530,17 @@ DockConstrDragUITick:
 	popa
 	ret
 .badslope:
-	popa
 	mov word [operrormsg2], 0x5009
+	popa
+.bad:
+	mov bx, [operrormsg1]
+	mov dx, [operrormsg2]
+	xor ax, ax
+	xor cx, cx
+	call dword [errorpopup]
+	popa
 	mov ebx, 0x80000000
-	jmp .end
+	ret
 	
 .dragwater:
 	and ax, 0xFF0	//endx

@@ -3001,6 +3001,7 @@ ovar .spritesorttableofs,-5,$,spritesorter
 	je NEAR .flatexception
 	cmp bl,bh
 	je NEAR .flatexception
+.normovrlap:
 	mov al,cl
 	sub al,bl
 	add al,ch
@@ -3047,6 +3048,7 @@ ovar .spritesorttableofs,-5,$,spritesorter
 	cmp cl, bl
 	jne .nequal1
 	cmp ch, bh
+	je NEAR .normovrlap
 .nequal1:
 	pop ebx
 	pop eax
