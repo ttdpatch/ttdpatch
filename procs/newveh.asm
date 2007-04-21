@@ -22,7 +22,7 @@ endcodefragments
 
 patchvehtypes:
 	patchcode oldbuyaddtestbit, newbuyaddtestbit, 2-WINTTDX, 4
-	patchcode oldbuyaddtestbit, newbuyaddtestbit, 2-WINTTDX, 0
+	patchcode oldbuyaddtestbit, newbuyaddtestbit, 3-WINTTDX*2, 3
 	patchcode oldbuyaddtestbit, newbuyaddtestbit, 2, 2
 	ret
 
