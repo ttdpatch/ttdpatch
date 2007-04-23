@@ -16,6 +16,7 @@
 extern CreateWindow,DrawWindowElements,WindowClicked,DestroyWindow,WindowTitleBarClicked,GenerateDropDownMenu,BringWindowToForeground,invalidatehandle,setmousetool,getnumber,errorpopup
 global robjgameoptionflag,robjflags
 extern cargotypes,newcargotypenames,cargobits,invalidatetile,cargotypes
+extern GenerateDropDownEx,GenerateDropDownExPrepare,DropDownExList
 
 global tr_siggui_btnclick
 
@@ -1489,7 +1490,13 @@ ret
 	and BYTE [esi+window.activebuttons+1], ~1
 	jmp .redrawvaluebtnnpopesi
 
+.ddlcargoret1:
+	ret
+
 .valuebtnddlcargo:
+	mov ecx, 17
+	call GenerateDropDownExPrepare
+	jc .ddlcargoret1
 	mov dl, [ebx+robj.word1]
 	mov dh, [ebx+robj.flags]
 	and dh, 1
@@ -1504,8 +1511,8 @@ ret
 	je .valuebtnddlcargo_skip
 	bt DWORD [cargobits], ebp
 	jnc .valuebtnddlcargo_skip
-	mov bp, [newcargotypenames+ecx*2]
-	mov [tempvar+eax*2], bp
+	movzx ebp, WORD [newcargotypenames+ecx*2]
+	mov [DropDownExList+eax*4], ebp
 	cmp al, dl
 	jne .valuebtnddlcargo_nosetcurr
 	mov dh, al
@@ -1515,11 +1522,14 @@ ret
 	inc ecx
 	cmp cl, 32
 	jb .valuebtnddlcargo_loop
-	mov WORD [tempvar+eax*2], 0xffff
+	mov DWORD [DropDownExList+eax*4], -1
 	sar dx, 8
- 	xor ebx, ebx
- 	mov ecx, 17
-	jmp dword [GenerateDropDownMenu]
+	or dx, dx
+	jns .selecteditemaok
+	mov dx, ax
+.selecteditemaok:
+	mov ecx, 17
+	jmp GenerateDropDownEx
 
 .andbtn:
 	mov al, 0
