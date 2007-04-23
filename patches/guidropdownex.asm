@@ -18,25 +18,48 @@ extern resheight
 
 %assign DropDownExMax MAXDROPDOWNEXENTRIES
 
-// Example of usage of GenerateDropDownEx* 
-// you need esi = window  ecx = element nr that is calling
-// call GenerateDropDownExPrepare		// this will result carry if a DropDownEx is already open
-// ...
-// mov [DropDownExList+ecx*4], eax		// where eax is text id to be filled, ecx is position
-// ... 
-// bts [DropDownExListDisabled], ecx	// will disable an entry
-// ...
-// mov [DropDownExList+ecx*4], -1	// terminate the last entry
-// ...
-// call GenerateDropDownExPrepare		// open the DropDownEx window, needs:
-//										// esi = window, ecx = ele, dx = selected item
-// DropDownExFlags:
-//  bit 0 = change size so to have no dummy places (auto shrink)
-//  bit 1 = show devider between the items
-//  bit 2 = use textpointers instead of the default textids
+// Example of usage of GenerateDropDownEx*
+// ==========================================
+//
+// call GenerateDropDownExPrepare		// esi = window, ecx = element nr that is calling (was clicked), ch <> 0 tab mode  
+//							// will result carry if a DropDownEx is already open (window bit enabled)
+//							// otherwise it resets all flags to default values. 
+//
+// mov [DropDownExList+ecx*4], eax		// where eax is text id (or textptr) to be filled, ecx is position
+//							// NOTICE: DropDownEx uses dwords per textids!  Use MAXDROPDOWNEXENTRIES 
+//
+// bts [DropDownExListDisabled], ecx	// will disable an entry and show it as gray, it isn't selectable...
+//
+// mov dword [DropDownExList+ecx*4], -1	// terminate the last entry
+//
+// Change any Flags and settings now, then:
+//
+// call GenerateDropDownEx			// open the DropDownEx window, needs:
+//							// esi = window, ecx = ele, dx = selected item
+//
+// FLAGS: (Set to default values by GenerateDropDownExPrepare)
+// ==========================================
+// DropDownExFlags (word size):
+//   bit 0 = change size so to have no dummy places (auto shrink) -default-
+//   bit 1 = show devider between the items
+//   bit 2 = use textpointers instead of the default textids
+//
+// DropDownExListItemDrawCallback (dword):
+//   0 = none -default- , any other callable function ptr...
+//   Function Parameters: cx = x, dx = y, ebx = id of currently drawn item
+//   All registers are automatically saved/restored
+//
+// DropDownExListItemExtraWidth (word):
+//   Width added to the item for callback drawing
+//
+// DropDownExListItemHeight (word)
+//   Height of the item for callback drawing
+//
+// DropDownExListGrfPtr (dword for each item)  -- untested --
+//   Set curmiscgrf for a textptr
+//
+//
 
-
-// Needs to be filled after prepare
 uvarw DropDownExListItemHeight
 uvarw DropDownExListItemExtraWidth
 uvard DropDownExListItemDrawCallback
