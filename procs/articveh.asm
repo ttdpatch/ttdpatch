@@ -48,6 +48,7 @@ extern rvdailyprocoverride, oldrvdailyproc
 extern dontLetARVsInNormalRVStops, decrementBHIfRVTrailer
 extern changePtrToParentVehicleIfTrailer
 extern rvcheckovertake, cacheFoundVehicle, movingVehicle
+extern setTrailerMovementFlags,setTrailerMovementFlags.origfn
 
 extern	RedrawRoadVehicle
 extern	SetRoadVehObjectOffsets
@@ -124,10 +125,10 @@ begincodefragments
 		push	edi
 		push	ebp
 
-	reusecodefragment oldRVCollisionCheck3, oldRVCollisionCheck2, 24
-
-	codefragment startTrailerInDepot
-		icall	checkIfTrailerAndStartInDepot
+;	reusecodefragment oldRVCollisionCheck3, oldRVCollisionCheck2, 24
+;
+;	codefragment startTrailerInDepot
+;		icall	checkIfTrailerAndStartInDepot
 
 	codefragment oldOpenRVWindow
 		mov	cl, 0Dh
@@ -311,6 +312,19 @@ begincodefragments
 	codefragment newCheckIfVehicleToOvertakeIsBlocked
 		icall cancelBlockIfArticulated
 		setfragmentsize 15
+
+	codefragment oldSetRoadVehicleGoToDepotOrder, 2
+		mov ah, al
+		mov al, 0C2h
+		mov word [esi+veh.currorder], ax
+
+	codefragment newSetRoadVehicleGoToDepotOrder
+		icall sendTrailersToDepot
+
+	codefragment oldCallRVMovementFract,-7
+		retn
+		cmp	byte [esi+0x66], 0
+
 endcodefragments
 
 patcharticulatedvehicles:
@@ -333,10 +347,12 @@ patcharticulatedvehicles:
 	patchcode oldSetMovementStat2, newSetMovementStat2, 1, 1
 	patchcode oldSetMovementStat3, newSetMovementStat3, 1, 1
 
+	patchcode oldSetRoadVehicleGoToDepotOrder, newSetRoadVehicleGoToDepotOrder,2-WINTTDX,3
+
 	stringaddress oldRVCollisionCheck2, 2-WINTTDX, 3
 	mov	edi, [edi]
 	mov	dword [rvCollisionCurrVehicle], edi
-	patchcode oldRVCollisionCheck3, startTrailerInDepot, 2-WINTTDX, 3
+;	patchcode oldRVCollisionCheck3, startTrailerInDepot, 2-WINTTDX, 3
 	storeaddress oldRVCollisionCheck, 2-WINTTDX, 3, JumpOutOfRVRVCollision, 6
 	stringaddress oldRVCollisionCheck, 2-WINTTDX, 3
 	mov	edi, [edi+2]
@@ -359,6 +375,9 @@ patcharticulatedvehicles:
 	stringaddress oldCallRVProcessing, 3, 5
 #endif
 	chainfunction updateTrailerPosAfterRVProc, .origfn, 1
+
+	stringaddress oldCallRVMovementFract, 1, 1
+	chainfunction setTrailerMovementFlags, .origfn, 1
 
 ;------------new stuffs.
 	stringaddress findLimitTurnToFortyFiveDegrees, 1, 1
