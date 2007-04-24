@@ -1556,26 +1556,22 @@ setTrailerMovementFlags:
 ovar .origfn, -4, $, setTrailerMovementFlags
 	jnb	.dontSetFlags
 	cmp	word [esi+veh.nextunitidx], 0xFFFF
-	je	.dontSetFlags
+	je	.setFlagAndLeave
 ;------------------------------------------------
 ;	set the trailer movementstat
 ;	that the above function will check for
 ;------------------------------------------------
 	push	esi
-	;push	eax
-	;mov	al, byte [esi+veh.movementfract]
 .loopTrailers:
 	movzx	esi, word [esi+veh.nextunitidx]		//iterate to next trailer
 	shl	si, 7
 	add	esi, [veharrayptr]
-;	cmp	byte [esi+0x63], 0x06
-;	je	.dontChange
 	mov	byte [esi+veh.movementfract], 0x01
 	cmp	word [esi+veh.nextunitidx], 0xFFFF
 	jne	.loopTrailers
-	;pop	eax
 .dontChange:
 	pop	esi
+.setFlagAndLeave:
 	stc
 ;------------------------------------------------
 .dontSetFlags:
