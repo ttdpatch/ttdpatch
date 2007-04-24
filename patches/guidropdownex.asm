@@ -370,16 +370,20 @@ proc GenerateDropDownEx
 	mov byte [esi+window.itemsvisible], dl
 	
 	// set to old position to old selected item
-	mov al, [esi+window.selecteditem]
+	mov ax, [esi+window.selecteditem]
+	xor dl, dl
+	or ax, ax
+	js .nodefsel
 	mov byte [esi+window.itemsoffset], al
 	add al, [esi+window.itemsvisible]
 	cmp al, [esi+window.itemstotal]
 	jbe .itemokay
 	mov byte [esi+window.itemsoffset], 0
-	mov al, [esi+window.itemstotal]
-	sub al, [esi+window.itemsvisible]
+	mov dl, [esi+window.itemstotal]
+	sub dl, [esi+window.itemsvisible]
 	jna .itemokay
-	mov [esi+window.itemsoffset], al
+.nodefsel:
+	mov [esi+window.itemsoffset], dl
 .itemokay:
 		
 	// enable mouse tracking

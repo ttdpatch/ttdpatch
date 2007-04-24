@@ -1525,9 +1525,6 @@ ret
 	mov DWORD [DropDownExList+eax*4], -1
 	sar dx, 8
 	or dx, dx
-	jns .selecteditemaok
-	mov dx, ax
-.selecteditemaok:
 	mov ecx, 17
 	jmp GenerateDropDownEx
 
