@@ -23,8 +23,8 @@
 
 const static int theme = 3;
 
-extern char landscape4base;
-extern char desertmap;
+extern char landscape4[0x100][0x100];
+extern char desertmap[0x100][64];
 
 extern uint8_t terraintype;     // hills setting (par 1)
 extern uint8_t quantityofwater; // water setting (par 2)
@@ -110,10 +110,10 @@ for (i_y = 0;i_y < resize-1;++i_y)	// don't touch southern-most tiles
 	// set height, but make sure we're not overwriting guard tiles
 #if WINTTDX
 #if DEBUG
-        if ((&landscape4base)[i_y*256+i_x])
+        if (landscape4[i_y][i_x])
           asm("ud2");
 #endif
-        (&landscape4base)[i_y*256+i_x] = v;
+        landscape4[i_y][i_x] = v;
 #else
 #if DEBUG
         char old;
@@ -137,7 +137,7 @@ if (climate == 2)
         c = (char)val(i_y,i_x*4+2,desert);
         d = (char)val(i_y,i_x*4+3,desert);
 
-        (&desertmap)[i_y*64+i_x] = a + (b << 2) + (c << 4) + (d << 6);
+        desertmap[i_y][i_x] = a + (b << 2) + (c << 4) + (d << 6);
       }
     }
 destroyArray(&source);
