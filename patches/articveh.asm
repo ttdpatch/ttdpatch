@@ -142,7 +142,7 @@ newbuyroadvehicle:
 	cmp	word [edi+veh.nextunitidx], 0xFFFF		//grab the parents last trailer
 	je	.thisIsTheLastTrailer
 	movzx	edi, word [edi+veh.nextunitidx]
-	shl	di, 7
+	shl	edi, 7
 	add	edi, [veharrayptr]
 	jmp	.testNextTrailer
 .thisIsTheLastTrailer:						//now set nextunitidx to the new vehicle
@@ -159,7 +159,7 @@ newbuyroadvehicle:
 	cmp	word [edi+veh.nextunitidx], 0xFFFF
 	je	.weAreAllDone
 	movzx	edi, word [edi+veh.nextunitidx]
-	shl	di, 7
+	shl	edi, 7
 	add	edi, [veharrayptr]
 	jmp	.loopSetTrailerEngineIDX
 .weAreAllDone:
@@ -201,7 +201,7 @@ shiftInParentMovement:
 	push	dx
 	mov	dl, byte [esi+veh.movementstat]
 	movzx	eax, word [esi+veh.nextunitidx]
-	shl	ax, 7
+	shl	eax, 7
 	add	eax, [veharrayptr]
 	cmp	byte [eax+veh.parentmvstat], 0xFF
 	jne	.shiftIntoUpper
@@ -225,7 +225,7 @@ checkIfTrailerAndCancelCollision:
 	je	.checkIfHead
 	push	esi
 	movzx	esi, word [edi+veh.engineidx]
-	shl	si, 7
+	shl	esi, 7
 	add	esi, [veharrayptr]
 	cmp	byte [esi+veh.movementstat], 0xFE
 	je	.checkStatus
@@ -298,7 +298,7 @@ dontOpenRVWindowForTrailer:
 	mov	cx, [edi+veh.engineidx]
 	cmp	cx, [edi+veh.idx]
 	je	.notATrailer
-	shl	cx, 7
+	shl	ecx, 7
 	add	ecx, [veharrayptr]
 	mov	dx, [ecx+veh.idx]
 	mov	edi, ecx
@@ -343,7 +343,7 @@ ovar .origfn, -4, $, sellRVTrailers
 .trailersExist:
 	pushad						;push prev veh onto stack
 	movzx	edx, word [edx+veh.nextunitidx]		;iterate to last trailer...
-	shl	dx, 7
+	shl	edx, 7
 	add	edx, [veharrayptr]
 	cmp	word [edx+veh.nextunitidx], 0xFFFF	;MORE? push them on the stack
 	jne	.trailersExist
@@ -381,7 +381,7 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 	push	esi
 .loopToNextTrailer:
 	movzx	esi, word [esi+veh.nextunitidx]
-	shl	si, 7
+	shl	esi, 7
 	add	esi, dword [veharrayptr]	;we now have the first trailers ptr.
 
 .dontStartTrailer:
@@ -1066,7 +1066,7 @@ cycleMovementStats:
 	mov	eax, esi
 ;.loopTrailers:
 	movzx	eax, word [eax+veh.nextunitidx]
-	shl	ax, 7
+	shl	eax, 7
 	add	eax, [veharrayptr]
 	cmp	byte [eax+veh.parentmvstat], 0xFF
 	jne	.shiftIntoUpper
@@ -1184,7 +1184,7 @@ drawRVWithTrailers:
 	cmp	word [edi+veh.nextunitidx], 0xFFFF
 	je	.noMoreTrailers
 	movzx	edi, word [edi+veh.nextunitidx]
-	shl	di, 7
+	shl	edi, 7
 	add	edi, [veharrayptr]
 	xchg	esi, edi
 	sub	cx, word [lastVehicleShortness]	//we want to use the _last_ vehicles shortness... not this ones.
@@ -1221,7 +1221,7 @@ drawTotalCapacityForTrailers:
 	cmp	word [edi+veh.nextunitidx], 0xFFFF
 	je	short .noMoreTrailers
 	movzx	edi, word [edi+veh.nextunitidx]		//iterate to next trailer
-	shl	di, 7
+	shl	edi, 7
 	add	edi, [veharrayptr]
 	jmp	short .loopTrailers
 .noMoreTrailers:					//done.
@@ -1321,7 +1321,7 @@ listAdditionalTrailerCargo:
 	cmp	word [edi+veh.nextunitidx], 0xFFFF
 	je	short .noMoreTrailers
 	movzx	edi, word [edi+veh.nextunitidx]		//iterate to next trailer
-	shl	di, 7
+	shl	edi, 7
 	add	edi, [veharrayptr]
 	jmp	short .loopTrailers
 .noMoreTrailers:					//done.
@@ -1421,7 +1421,7 @@ changePtrToParentVehicleIfTrailer:
 	pop	ebx
 	je	.dontAdjustPtr					//it's trying to overtake an engine, don't adjust
 	movzx	edi, word [edi+veh.engineidx]			//trying to overtake trailer, shift in parent.
-	shl	di, 7
+	shl	edi, 7
 	add	edi, [veharrayptr]
 .dontAdjustPtr:
 	retn
@@ -1472,7 +1472,7 @@ sendTrailersToDepot:
 	push esi
 .loopTrailers:
 	movzx	esi, word [esi+veh.nextunitidx]		//iterate to next trailer
-	shl	si, 7
+	shl	esi, 7
 	add	esi, [veharrayptr]
 	mov	word [esi+veh.currorder], ax
 	cmp	word [esi+veh.nextunitidx], 0xFFFF
@@ -1486,7 +1486,7 @@ RVMovementIncrement:
 	clc
 	push	esi
 	movzx	esi, word [esi+veh.engineidx]		//iterate to next trailer
-	shl	si, 7
+	shl	esi, 7
 	add	esi, [veharrayptr]
 	mov	ax, [esi+veh.speed]
 	pop	esi
@@ -1542,7 +1542,7 @@ ovar .origfn, -4, $, setTrailerMovementFlags
 	push	esi
 .loopTrailers:
 	movzx	esi, word [esi+veh.nextunitidx]		//iterate to next trailer
-	shl	si, 7
+	shl	esi, 7
 	add	esi, [veharrayptr]
 	mov	byte [esi+veh.movementfract], 0x01
 	cmp	word [esi+veh.nextunitidx], 0xFFFF
