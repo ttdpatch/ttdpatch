@@ -236,19 +236,20 @@ checkIfTrailerAndCancelCollision:
 	pop	esi
 	jz	.moveInCollision
 .continueChecking:
-	cmp	byte [edi+0x6A], 0			//am i uturning?
-	jne	.zeroCollisionOnOtherVehicle
-	cmp	byte [esi+0x6A], 0			//are they uturning?
-	jne	.zeroCollisionOnOtherVehicle
 	mov	ax, word [esi+veh.nextunitidx]		//is the target my 'parent'
 	cmp	ax, word [edi+veh.idx]			//note: this is _not_ always the engine!
 	je	.moveInCollision			//(we want to collide with the parent)
 	mov	ax, word [esi+veh.engineidx]
 	cmp	ax, word [edi+veh.engineidx]		//is this a trailer of my tram?
-	jne	.zeroCollisionOnOtherVehicle
+	jne	.checkOvertake
 	mov	ax, word [esi+veh.idx]
 	cmp	ax, word [edi+veh.idx]			//does this trailer come before me?
 	jl	.moveInCollision
+.checkOvertake:
+;	cmp	byte [edi+0x6A], 0			//am i uturning?
+;	jne	.moveInCollision
+;	cmp	byte [esi+0x6A], 0			//are they uturning?
+;	jne	.moveInCollision
 .zeroCollisionOnOtherVehicle:
 	mov	eax, dword [rvCollisionFoundVehicle]
 	mov	dword [eax], 0x0			//cancel any collision!
@@ -363,51 +364,26 @@ ovar .origfn, -4, $, sellRVTrailers
 
 global updateTrailerPosAfterRVProc
 updateTrailerPosAfterRVProc:
-;	mov	byte [runTrailer], 0
 	push	ebx
 	movzx	ebx, word [esi+veh.engineidx]
 	cmp	bx, word [esi+veh.idx]
 	pop	ebx
 	jne	near .justQuit			;engine? continue: not? quit.
-;	push	bx
-;	mov	bl, byte [esi+veh.movementfract]
+
 	pushad
 	call	near $
 ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 	popad
-;	sub	bl, byte [esi+veh.movementfract]
-;	jnb	.dontSet
-;.dontSet:
-;	int3
-;	pop	bx
-;	jb	.setTrailerFlag
-;	jmp	.continueRunningTrailers
-;.setTrailerFlag:
-;	mov	byte [runTrailer], 1
-;	cmp	word [esi+veh.speed], 10
-;	jle	near .justQuit
-;.continueRunningTrailers:
+
 	cmp	word [esi+veh.nextunitidx], 0xFFFF	;trailers? continue.
 	je	.justQuit
 	;now we need to check if rvproc was actually run, there is a ticker inside that stops it run on every call.
 	push	esi
 .loopToNextTrailer:
-;	push	cx
-;	mov	cx, word [esi+veh.XY]
-;	mov	word [ParentXY], cx
-;	mov	dword [ParentIDX], esi
-;	pop	cx
 	movzx	esi, word [esi+veh.nextunitidx]
 	shl	si, 7
 	add	esi, dword [veharrayptr]	;we now have the first trailers ptr.
-;	test	byte [esi+veh.vehstatus], 2
-;	jz	.dontStartTrailer
-;	push	ecx
-;	mov	ecx, dword [ParentIDX]
-;	test	byte [ecx+veh.vehstatus], 2		;is ze parental in ze depot?
-;	pop	ecx
-;	jnz	.dontStartTrailer
-;	btc	word [esi+veh.vehstatus], 1
+
 .dontStartTrailer:
 	pushad
 	call	RVTrailerProcessing	;see below.
@@ -423,19 +399,6 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 	mov	byte [esi+0x6d], 0xFF
 .notInDepot:
 ;----------------------------------------------
-;	push	ecx
-;	mov	ecx, dword [ParentIDX]
-;	cmp	byte [ecx+veh.movementstat], 0xFE		;is ze parental in ze depot?
-;	pop	ecx
-;	jne	.justProcessNext
-;	mov	byte [esi+veh.movementstat], 0xFE
-;	bts	word [esi+veh.vehstatus], 1
-;	bts	word [esi+veh.vehstatus], 0
-;	push	cx
-;	mov	cx, word [ParentXY]
-;	mov	word [esi+veh.XY], cx
-;	pop	cx
-.justProcessNext:
 	cmp	word [esi+veh.nextunitidx], 0xFFFF	;morE?
 	jne	.loopToNextTrailer
 	pop	esi
@@ -447,7 +410,6 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 
 var	unk_1125D7,		db 0x00,0x01,0x08,0x09
 var	unk_1125DB,		db 0x01,0x03,0x05,0x07,0x90
-uvarb	runTrailer
 
 global RVTrailerProcessing
 RVTrailerProcessing:
@@ -919,6 +881,7 @@ RVTrailerProcessing:
 ;	trailers veh structure.
 ;----------------------------------------------------------------
 	call	getParentMovement
+	call	cycleMovementStats
 ;----------------------------------------------------------------
 
 	bt	bx, dx
@@ -949,7 +912,7 @@ RVTrailerProcessing:
 	or	ebp, ebp
 	js	short .zeroSpeedAndReturn
 	mov	byte [esi+veh.movementstat], bl
-	call	cycleMovementStats
+	
 	mov	byte [esi+0x63], 1
 	cmp	dl, byte [esi+veh.direction]
 	jz	short .skipTurnCode
@@ -1111,7 +1074,16 @@ cycleMovementStats:
 	mov	byte [eax+0x6d], dh
 	jmp	.shifted
 .shiftIntoUpper:
+	cmp	byte [eax+0x6d], 0xFF
+	jne	.busted
 	mov	byte [eax+0x6d], dl
+	jmp	.shifted
+.busted:
+;	int3
+;	danger zone.
+;	we've tried to move in a movementstat... but we have none in the cache.
+;	this means we've incorrectly used one... or need another byte to store another
+;	stat.
 .shifted:
 	pop	eax
 .noTrailer:
@@ -1512,7 +1484,13 @@ sendTrailersToDepot:
 global RVMovementIncrement
 RVMovementIncrement:
 	clc
-	mov	ax, word [esi+veh.maxspeed]
+	push	esi
+	movzx	esi, word [esi+veh.engineidx]		//iterate to next trailer
+	shl	si, 7
+	add	esi, [veharrayptr]
+	mov	ax, [esi+veh.speed]
+	pop	esi
+;	mov	ax, word [esi+veh.maxspeed]
 ;	mov	ax, word [esi+veh.speed]
 ;	inc	ax					; increment the speed... we're trying to accelerate
 ;	cmp	byte [esi+0x66], 0
