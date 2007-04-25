@@ -370,6 +370,22 @@ updateTrailerPosAfterRVProc:
 	pop	ebx
 	jne	near .justQuit			;engine? continue: not? quit.
 
+/************************************************
+ * Will the head be moving, if so then store it *
+ * in dl, so we can force the trailers to move  *
+ * (Make sure we restore the variables though)  *
+ ************************************************/
+
+	push ecx
+	xor dl, dl
+	mov cx, [esi+veh.speed]
+	mov dh, [esi+veh.movementfract]
+	call setTrailerMovementFlags
+	adc dl, 0
+	mov [esi+veh.speed], cx
+	mov [esi+veh.movementfract], dh
+	pop ecx
+
 	pushad
 	call	near $
 ovar .origfn, -4, $, updateTrailerPosAfterRVProc
@@ -378,7 +394,11 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 	cmp	word [esi+veh.nextunitidx], 0xFFFF	;trailers? continue.
 	je	.justQuit
 	;now we need to check if rvproc was actually run, there is a ticker inside that stops it run on every call.
+
+	push edi
 	push	esi
+	mov edi, esi
+
 .loopToNextTrailer:
 	movzx	esi, word [esi+veh.nextunitidx]
 	shl	esi, 7
@@ -397,11 +417,14 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 	jne	.notInDepot
 	mov	byte [esi+veh.parentmvstat], 0xFF
 	mov	byte [esi+0x6d], 0xFF
+
 .notInDepot:
 ;----------------------------------------------
 	cmp	word [esi+veh.nextunitidx], 0xFFFF	;morE?
 	jne	.loopToNextTrailer
 	pop	esi
+	pop edi
+
 .justQuit:
 	retn
 
@@ -473,7 +496,7 @@ RVTrailerProcessing:
 	add	bl, byte [roadtrafficside]
 	xor	bl, byte [esi+0x66]
 	push	ecx
-	mov	ecx, dword [off_111D62]		;SO FUNDAMENTALLY IMPORTANT
+	mov	ecx, dword [off_111D62]			;SO FUNDAMENTALLY IMPORTANT
 	mov	ebx, [ecx+ebx*4]			;GET ADDRESS
 	pop	ecx
 	movzx	edx, byte [esi+0x63]
@@ -483,7 +506,7 @@ RVTrailerProcessing:
 	test	dl, 80h
 	jnz	near .CallPathfinderForNewTile		;Runs off and does pathfinder stuffssss  ?????????????????
 	test	dl, 40h
-	jnz	near .Process2ndTurnInUTurn			;
+	jnz	near .Process2ndTurnInUTurn		;
 	mov	ax, word [esi+veh.xpos]
 	mov	cx, word [esi+veh.ypos]
 	and	al, 0F0h
@@ -504,6 +527,19 @@ RVTrailerProcessing:
 ;--------------------------------------------------
 ; >8 Cut out the Overtaking part... TODO: ADD AGAIN
 ;--------------------------------------------------
+
+/************************************************
+ * On corners the head will count trip the	*
+ * Collision code as it tries to leave the	*
+ * Corner, causing it to fall behind, so we	*
+ * check if the direction of the head (edi) is	*
+ * the same as the head if not we are turning!	*
+ ************************************************/ 
+
+	mov dh, byte [edi+veh.direction]
+	cmp dh, [esi+veh.direction]
+	jne .noNeedToAttemptOvertake
+
 	retn
 
 .noNeedToAttemptOvertake:
@@ -513,9 +549,7 @@ RVTrailerProcessing:
 	mov	byte [esi+veh.direction], dl		;shift in new direction
 	mov	dl, dh
 	mov	bp, word [esi+veh.speed]		; we've turned... so take a quarter off our speed.
-;	shr	bp, 2
-;	sub	word [esi+veh.speed], bp
-;	cmp	dl, bl
+	cmp dl, bl
 	jz	short .noTurnRequired
 	mov	ax, word [esi+veh.xpos]
 	mov	cx, word [esi+veh.ypos]
@@ -523,6 +557,7 @@ RVTrailerProcessing:
 	call	[SelectRVSpriteByLoad]
 	call	[SetRoadVehObjectOffsets]
 	jmp	[RedrawRoadVehicle]
+
 ; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 ;
 .noTurnRequired:
@@ -1481,28 +1516,28 @@ sendTrailersToDepot:
 .noTrailers:
 	retn
 
+/************************************************
+ * Now we only need move when we know the head	*
+ * will move so we can move the trailer		* 
+ ************************************************/
 global RVMovementIncrement
 RVMovementIncrement:
 	clc
-	push	esi
-	movzx	esi, word [esi+veh.engineidx]		//iterate to next trailer
-	shl	esi, 7
-	add	esi, [veharrayptr]
-	mov	ax, [esi+veh.speed]
-	pop	esi
-;	mov	ax, word [esi+veh.maxspeed]
-;	mov	ax, word [esi+veh.speed]
-;	inc	ax					; increment the speed... we're trying to accelerate
-;	cmp	byte [esi+0x66], 0
-;	jz	short .dontSpeedOnOvertake
-;	inc	ax					; double speed to overtake!
-;.dontSpeedOnOvertake:
-;	mov	bx, word [esi+veh.maxspeed]
-;	cmp	ax, bx					; have we exceeded our maximum speed?
-;	jbe	short .dontMoveInMax
-;	mov	ax, bx
-;.dontMoveInMax:
-	mov	word [esi+veh.speed], ax			; set the current speed
+/*
+	mov	ax, word [esi+veh.speed]
+	inc	ax					; increment the speed... we're trying to accelerate
+Overtaking disabled atm
+	cmp	byte [esi+0x66], 0
+	jz	short .dontSpeedOnOvertake
+	inc	ax			; double speed to overtake!		
+
+.dontSpeedOnOvertake:
+	mov	bx, word [esi+veh.maxspeed]
+	cmp	ax, bx					; have we exceeded our maximum speed?
+	jbe	short .dontMoveInMax
+	mov	ax, bx
+.dontMoveInMax:
+	mov word [esi+veh.speed], ax			; set the parents current speed
 	test	byte [esi+veh.direction], 1
 	jnz	short .notTurningCorner
 	mov	bx, ax					; we are turning a corner, so slow down?
@@ -1512,33 +1547,48 @@ RVMovementIncrement:
 .notTurningCorner:
 	or	ax, ax					; check if AX is ZERO
 	jz	short .dontAdjustFract
+*/
+	cmp byte [edi+veh.movementstat], 0xFE
+	je .continueonown
+
 	cmp	byte [esi+veh.movementstat], 0xFE
 	jne	.checkMovementFract
 	stc
 	retn
+
+.continueonown:
+	jmp setTrailerMovementFlags // Run the default move along code
+
 .checkMovementFract:
-;	cmp	byte [esi+veh.movementfract], 0x01
-;	jne	.dontAdjustFract
-;	mov	byte [esi+veh.movementfract], 0x00
-	stc						; This instruction sets the CF to 1.
-;	retn
+/*
 	inc	al
 	jz	short .dontAdjustFract			; did incrementing produce a zero result?
 	sub	byte [esi+veh.movementfract], al		; adjust the movement fraction
-.dontAdjustFract:
+*/
+	or dl, dl				// Are we going to be moving?
+	jz .dontAdjustFract
+	mov ax, word [edi+veh.speed]		// We need the change to move at the
+						// same speed otherwise it will break up
+	mov word [esi+veh.speed], ax		// set the parents current speed
+	stc
+.dontAdjustFract:					// Since the head moved happily we can move
 	retn
 
 global setTrailerMovementFlags
 setTrailerMovementFlags:
 	call	near $
 ovar .origfn, -4, $, setTrailerMovementFlags
+	ret
+/*
 	jnb	.dontSetFlags
 	cmp	word [esi+veh.nextunitidx], 0xFFFF
 	je	.setFlagAndLeave
+
 ;------------------------------------------------
 ;	set the trailer movementstat
 ;	that the above function will check for
 ;------------------------------------------------
+
 	push	esi
 .loopTrailers:
 	movzx	esi, word [esi+veh.nextunitidx]		//iterate to next trailer
@@ -1554,3 +1604,5 @@ ovar .origfn, -4, $, setTrailerMovementFlags
 ;------------------------------------------------
 .dontSetFlags:
 	retn
+*/
+

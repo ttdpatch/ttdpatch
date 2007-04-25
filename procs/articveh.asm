@@ -369,11 +369,7 @@ patcharticulatedvehicles:
 
 	patchcode oldAddRVScheduleWhenBuilding, newAddRVScheduleWhenBuilding, 2, 4
 
-#if WINTTDX
-	stringaddress oldCallRVProcessing, 1, 5
-#else
-	stringaddress oldCallRVProcessing, 3, 5
-#endif
+	stringaddress oldCallRVProcessing, 3-2*WINTTDX, 5
 	chainfunction updateTrailerPosAfterRVProc, .origfn, 1
 
 	stringaddress oldCallRVMovementFract, 1, 1
