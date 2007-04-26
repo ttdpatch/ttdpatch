@@ -1601,6 +1601,10 @@ setTrailerMovementFlags:
 	cmp word [esi+veh.nextunitidx], 0xFFFF // Single unit then only one head possible
 	je .JustCallFunction
 
+	// If the head is stopped do not move (similar to how train consists work)
+	bt word [esi+veh.vehstatus], 1
+	jc .JustFail
+
 .NextUnit:
 	cmp byte [esi+veh.movementstat], 0xFE // Is this unit 'free'?
 	jne .JustCallFunction
@@ -1620,6 +1624,11 @@ setTrailerMovementFlags:
 	call	near $
 ovar .origfn, -4, $, setTrailerMovementFlags
 	mov ebp, esi // Allow us to use this new head for trailer speed
+	pop esi
+	ret
+
+.JustFail:
+	clc
 	pop esi
 	ret
 
@@ -1660,4 +1669,52 @@ DontStartParentIfTrailersMoving:
 	clc // Fail, to let the trailers enter
 	ret
 
+/************************************************
+ * Unsets the stop flag if all the trailers	*
+ * haven't entered the depot.			*
+ ************************************************/
+//Output:	ZF - Finnished (unset)
+global RVDepotEnterStop
+RVDepotEnterStop:
+	push edi
+	movzx edi, word [edi+veh.engineidx]	// We are only interested in the head to start with
+						// As this will be the first unit in the depot
+	shl edi, 7
+	add edi, [veharrayptr]
+	push edi				// Store this as the parent for quick access later
 
+.Next:
+	cmp byte [edi+veh.movementstat], 0xFE	// Is this unit in the Depot
+	jne .Wait
+
+	cmp word [edi+veh.nextunitidx], byte -1	// Is this the end of the consist?
+	je .End
+	movzx edi, word [edi+veh.nextunitidx]
+	shl edi, 7
+	add edi, [veharrayptr]
+	jmp .Next
+
+.End:
+	pop edi					// We only set the flag and checks things on the parent
+	or word [edi+veh.vehstatus], 2		// This vehicle IS stopped
+	push ax
+	push bx
+	mov al, 0x0D				// Update the window to show it has stopped
+	mov bx, [edi+veh.engineidx]
+	call [RefreshWindows]
+	pop bx
+	pop ax
+
+	mov al, [human1]			// Should we give a message to the player only works
+	cmp al, [edi+veh.owner]			// for the human player on the local machine
+
+	pop edi
+	ret
+
+.Wait:
+	pop edi					// We only set the flag and checks things on the parent
+	and word [edi+veh.vehstatus], ~2	// This vehicle is NOT stopped
+
+	test al, 2				// Zero MUST be cleared for the head to wait
+	pop edi
+	ret

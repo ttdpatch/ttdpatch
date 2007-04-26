@@ -338,6 +338,15 @@ extern DontStartParentIfTrailersMoving
 	.continue:
 		setfragmentsize 10
 
+	codefragment oldStopRVinDepot
+		mov al, [human1]
+		cmp al, [edi+veh.owner]
+
+	codefragment newStopRVinDepot
+extern RVDepotEnterStop
+		icall RVDepotEnterStop
+		setfragmentsize 8
+
 endcodefragments
 
 patcharticulatedvehicles:
@@ -486,5 +495,6 @@ patcharticulatedvehicles:
 	patchcode oldCheckIfVehicleToOvertakeIsBlocked, newCheckIfVehicleToOvertakeIsBlocked, 1, 1
 
 	patchcode StartRVinDepot
+	patchcode StopRVinDepot, 2-WINTTDX, 2
 
 	retn
