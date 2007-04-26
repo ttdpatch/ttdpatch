@@ -87,7 +87,8 @@ struc veh
 			resw 1	// 68h:rv:??
 			resb 1	// 6ah:rv:turn-around counter
 				// So far it's the last entry identified as used by TTD.
-			resb 0x6E-$
+			resb 0x6D-$
+	.parentmvstat2:	resb 1	// 6Dh:stores the extra parent stat information (mainly needed for uturns)
 	.slfifoidx:	resb 1	// 6Eh:the index of this vehicle in the fifo queue (save/load only)
 	.prevmovementstat:	// 6Fh:the previous movementstat (used for RV trailers and Plane accel/decel)
 	.parentmvstat	resb 1	//     the next turn for Articulated RVs (so that they follow the leader)

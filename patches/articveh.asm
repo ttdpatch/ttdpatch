@@ -151,7 +151,7 @@ newbuyroadvehicle:
 	mov	word [edi+veh.nextunitidx], cx			// initialise to a trailer, set basic params.
 	mov	byte [esi+veh.subclass], 0x02			//futile?
 	mov	byte [esi+veh.parentmvstat], 0xFF
-	mov	byte [esi+0x6d], 0xFF
+	mov	byte [esi+veh.parentmvstat2], 0xFF
 	mov	edi, dword [vehicleToAttachTo]			//grab the parent again
 	mov	cx, word [edi+veh.idx]
 .loopSetTrailerEngineIDX:					//loop through the whole lot and reset engineidx
@@ -211,10 +211,10 @@ shiftInParentMovement:
 	cmp	byte [eax+veh.parentmvstat], 0xFF
 	jne	.shiftIntoUpper
 	mov	byte [eax+veh.parentmvstat], dl
-	mov	byte [eax+0x6d], 0xFF
+	mov	byte [eax+veh.parentmvstat2], 0xFF
 	jmp	.shifted
 .shiftIntoUpper:
-	mov	byte [eax+0x6d], dl
+	mov	byte [eax+veh.parentmvstat2], dl
 .shifted:
 	pop	dx
 	pop	eax
@@ -427,7 +427,7 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 	cmp	byte [esi+veh.movementstat], 0xFE
 	jne	.notInDepot
 	mov	byte [esi+veh.parentmvstat], 0xFF
-	mov	byte [esi+0x6d], 0xFF
+	mov	byte [esi+veh.parentmvstat2], 0xFF
 
 .notInDepot:
 ;----------------------------------------------
@@ -1132,8 +1132,8 @@ cycleMovementStats:
 .allRight:
 	push	edx
 	mov	dl, byte [esi+veh.parentmvstat]	;get the next movement
-	mov	dh, byte [esi+0x6d]			;shuffle the next next movement down
-	mov	byte [esi+0x6d], 0xFF			;zero the register.
+	mov	dh, byte [esi+veh.parentmvstat2]	;shuffle the next next movement down
+	mov	byte [esi+veh.parentmvstat2], 0xFF	;zero the register.
 	mov	byte [esi+veh.parentmvstat], dh	;shift next next into next
 	cmp	word [esi+veh.nextunitidx], 0xFFFF	;check for trailers.
 	je	.noTrailer
@@ -1146,12 +1146,12 @@ cycleMovementStats:
 	cmp	byte [eax+veh.parentmvstat], 0xFF
 	jne	.shiftIntoUpper
 	mov	byte [eax+veh.parentmvstat], dl
-	mov	byte [eax+0x6d], dh
+	mov	byte [eax+veh.parentmvstat2], dh
 	jmp	.shifted
 .shiftIntoUpper:
-	cmp	byte [eax+0x6d], 0xFF
+	cmp	byte [eax+veh.parentmvstat2], 0xFF
 	jne	.busted
-	mov	byte [eax+0x6d], dl
+	mov	byte [eax+veh.parentmvstat2], dl
 	jmp	.shifted
 .busted:
 ;	int3
@@ -1170,8 +1170,8 @@ getParentMovement:
 	cmp	byte [esi+veh.parentmvstat], 0xFF
 	je	.dontTouchy
 	movzx	dx, byte [esi+veh.parentmvstat]	;get the next movement
-;	mov	dh, byte [esi+0x6d]			;shuffle the next next movement down
-;	mov	byte [esi+0x6d], 0xFF		;zero the register.
+;	mov	dh, byte [esi+veh.parentmvstat2] ;shuffle the next next movement down
+;	mov	byte [esi+veh.parentmvstat2], 0xFF ;zero the register.
 ;	mov	byte [esi+veh.parentmvstat], dh	;shift next next into next
 ;	and	dx, 0x0F				;remove dh (next next)
 .dontTouchy:
