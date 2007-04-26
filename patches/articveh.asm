@@ -371,20 +371,26 @@ updateTrailerPosAfterRVProc:
 	jne	near .justQuit			;engine? continue: not? quit.
 
 /************************************************
+ * Road Vehicle Consist Clock Generator		*
+ *						*
  * Will the head be moving, if so then store it *
  * in dl, so we can force the trailers to move  *
  * (Make sure we restore the variables though)  *
+ *						*
+ * Basicly SYNCS a consist keeping it together! *
  ************************************************/
 
 	push ecx
 	xor dl, dl
 	mov cx, [esi+veh.speed]
 	mov dh, [esi+veh.movementfract]
-	call setTrailerMovementFlags
+	call setTrailerMovementFlags // Out ebp as the new temp head (parent otherwise)
 	adc dl, 0
 	mov [esi+veh.speed], cx
 	mov [esi+veh.movementfract], dh
 	pop ecx
+
+/************************************************/
 
 	pushad
 	call	near $
@@ -536,11 +542,36 @@ RVTrailerProcessing:
  * the same as the head if not we are turning!	*
  ************************************************/ 
 
-	mov dh, byte [edi+veh.direction]
-	cmp dh, [esi+veh.direction]
-	jne .noNeedToAttemptOvertake
+// Need to find the unit just infront for this check
+	push edi
+	mov bp, [esi+veh.idx] // Store our idx for checks
+	mov dh, byte [esi+veh.direction] // Yes, is it at a different angle?
+
+.lNextUnit:
+	cmp bp, [edi+veh.nextunitidx] // Is this the unit directly infront
+	jne .lGetNextUnit
+
+	cmp dh, [edi+veh.direction] // Are they facing different directions (turn)
+	jne .lnoNeedToAttemptOvertakepopedi // Yes so complete the turn!
+
+.lGetNextUnit:
+	cmp word [edi+veh.nextunitidx], byte -1 // End of Consist?
+	je .lNotTurning
+
+	movzx edi, word [edi+veh.nextunitidx] // No so get next unit and repeat
+	shl edi, 7
+	add edi, [veharrayptr]	
+	jmp .lNextUnit
+
+.lNotTurning:
+	pop edi
+
+/************************************************/
 
 	retn
+
+.lnoNeedToAttemptOvertakepopedi: // Requited to fix stack
+	pop edi
 
 .noNeedToAttemptOvertake:
 	mov	dh, byte [esi+veh.direction]
@@ -842,6 +873,7 @@ RVTrailerProcessing:
 	pop	ebp
 	pop	ebx
 	pop	ax
+.QuitSetSpeedZero:
 	mov	word [esi+veh.speed], 0
 	retn
 ; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -1017,6 +1049,8 @@ RVTrailerProcessing:
 ; AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 .inDepot:
+	cmp byte [edi+veh.movementstat], 0xFE
+	je .QuitSetSpeedZero
 	mov	word [esi+veh.speed], 0			;exit depot
 	movzx	edi, word [esi+veh.XY]
 	mov	bl, byte [landscape5(di,1)]
@@ -1518,91 +1552,105 @@ sendTrailersToDepot:
 
 /************************************************
  * Now we only need move when we know the head	*
- * will move so we can move the trailer		* 
+ * will move so we can move the trailer		*
  ************************************************/
+//Input:	esi - trailer id
+//		dl - clock cycle move (value 1)
+//		ebp - consist head pointer
+//Output:	CF - Move now (set)
+//		[Since its set basicly from dl, it is almost completely predictable]
 global RVMovementIncrement
 RVMovementIncrement:
 	clc
-/*
-	mov	ax, word [esi+veh.speed]
-	inc	ax					; increment the speed... we're trying to accelerate
-Overtaking disabled atm
-	cmp	byte [esi+0x66], 0
-	jz	short .dontSpeedOnOvertake
-	inc	ax			; double speed to overtake!		
-
-.dontSpeedOnOvertake:
-	mov	bx, word [esi+veh.maxspeed]
-	cmp	ax, bx					; have we exceeded our maximum speed?
-	jbe	short .dontMoveInMax
-	mov	ax, bx
-.dontMoveInMax:
-	mov word [esi+veh.speed], ax			; set the parents current speed
-	test	byte [esi+veh.direction], 1
-	jnz	short .notTurningCorner
-	mov	bx, ax					; we are turning a corner, so slow down?
-	shl	bx, 1
-	add	ax, bx
-	shr	ax, 2					; get 75% of the speed, we're turning.
-.notTurningCorner:
-	or	ax, ax					; check if AX is ZERO
-	jz	short .dontAdjustFract
-*/
-	cmp byte [edi+veh.movementstat], 0xFE
-	je .continueonown
-
 	cmp	byte [esi+veh.movementstat], 0xFE
 	jne	.checkMovementFract
 	stc
 	retn
 
-.continueonown:
-	jmp setTrailerMovementFlags // Run the default move along code
-
+/* This applies the CLOCK for the (SYNC'ED) consist */
 .checkMovementFract:
-/*
-	inc	al
-	jz	short .dontAdjustFract			; did incrementing produce a zero result?
-	sub	byte [esi+veh.movementfract], al		; adjust the movement fraction
-*/
 	or dl, dl				// Are we going to be moving?
 	jz .dontAdjustFract
-	mov ax, word [edi+veh.speed]		// We need the change to move at the
+	mov ax, word [ebp+veh.speed]		// We need the change to move at the
 						// same speed otherwise it will break up
-	mov word [esi+veh.speed], ax		// set the parents current speed
+	mov word [esi+veh.speed], ax		// set the consist's head's current speed
 	stc
 .dontAdjustFract:					// Since the head moved happily we can move
 	retn
 
+/************************************************
+ * Generates the CLOCK for a Road Vehicle, not	*
+ * too important for a single unit RV but for	* * aRVs this is essential for keeping the	*
+ * consist together (SYNCED), there MUST be a	*
+ * working head pointer cycle for a consist to	*
+ * work correctly on any movement change!	*
+ ************************************************/
+// Input:	esi - parent pointer
+// Output:	ebp - consist head pointer
+//		CF - Move now (set)
 global setTrailerMovementFlags
 setTrailerMovementFlags:
+	push esi // Push this for the function, as it holds the head to generate the flag
+	cmp word [esi+veh.nextunitidx], 0xFFFF // Single unit then only one head possible
+	je .JustCallFunction
+
+.NextUnit:
+	cmp byte [esi+veh.movementstat], 0xFE // Is this unit 'free'?
+	jne .JustCallFunction
+
+	cmp word [esi+veh.nextunitidx], byte -1 // Consist End?
+	je .FoundNoNewHead
+
+	movzx esi, word [esi+veh.nextunitidx]
+	shl esi, 7
+	add esi, [veharrayptr]
+	jmp .NextUnit
+
+.FoundNoNewHead:
+	mov esi, [esp] // Restore it to the parent
+
+.JustCallFunction: // Right now call the orginal sub to generate the flags
 	call	near $
 ovar .origfn, -4, $, setTrailerMovementFlags
+	mov ebp, esi // Allow us to use this new head for trailer speed
+	pop esi
 	ret
-/*
-	jnb	.dontSetFlags
-	cmp	word [esi+veh.nextunitidx], 0xFFFF
-	je	.setFlagAndLeave
 
-;------------------------------------------------
-;	set the trailer movementstat
-;	that the above function will check for
-;------------------------------------------------
+/************************************************
+ * -Quickly put together in a WLM conversation-	*
+ * Should stop a head leaving if its trailers	*
+ * have not all got inside the depot.		*
+ ************************************************/
+//Input:	esi - Vehicle (Parent) idx
+//Output:	CF - Continue (set), Abort (not set)
+global DontStartParentIfTrailersMoving
+DontStartParentIfTrailersMoving:
+	mov word [esi+veh.speed], 0
+	cmp word [esi+veh.nextunitidx], 0xFFFF
+	je .noTrailers
 
-	push	esi
-.loopTrailers:
-	movzx	esi, word [esi+veh.nextunitidx]		//iterate to next trailer
-	shl	esi, 7
-	add	esi, [veharrayptr]
-	mov	byte [esi+veh.movementfract], 0x01
-	cmp	word [esi+veh.nextunitidx], 0xFFFF
-	jne	.loopTrailers
-.dontChange:
-	pop	esi
-.setFlagAndLeave:
+	push esi
+
+.nexttrailer:
+	movzx esi, word [esi+veh.nextunitidx]
+	shl esi, 7
+	add esi, [veharrayptr]
+
+	cmp byte [esi+veh.movementstat], 0xFE // Is it in the depot?
+	jne .waitfortrailers
+
+	cmp word [esi+veh.nextunitidx], byte -1
+	jne .nexttrailer
+	pop esi
+
+.noTrailers:
+	mov di, word [esi+veh.XY]
 	stc
-;------------------------------------------------
-.dontSetFlags:
 	retn
-*/
+
+.waitfortrailers:
+	pop esi
+	clc // Fail, to let the trailers enter
+	ret
+
 

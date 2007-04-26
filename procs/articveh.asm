@@ -325,6 +325,19 @@ begincodefragments
 		retn
 		cmp	byte [esi+0x66], 0
 
+	codefragment oldStartRVinDepot, 1
+		retn
+		mov word [esi+veh.speed], 0
+		mov di, word [esi+veh.XY]
+
+	codefragment newStartRVinDepot
+extern DontStartParentIfTrailersMoving
+		icall DontStartParentIfTrailersMoving
+		jb .continue
+		ret
+	.continue:
+		setfragmentsize 10
+
 endcodefragments
 
 patcharticulatedvehicles:
@@ -471,5 +484,7 @@ patcharticulatedvehicles:
 	pop	edi
 	storefragment oldMoveInTmpVehPtrForOvertake
 	patchcode oldCheckIfVehicleToOvertakeIsBlocked, newCheckIfVehicleToOvertakeIsBlocked, 1, 1
+
+	patchcode StartRVinDepot
 
 	retn
