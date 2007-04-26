@@ -163,6 +163,11 @@ newbuyroadvehicle:
 	add	edi, [veharrayptr]
 	jmp	.loopSetTrailerEngineIDX
 .weAreAllDone:
+
+// We are not quite done, remove the consist number so that the normal buy road vehicle function
+// doesn't skip consist numbers (which are used by trailers when they are not needed)
+	mov byte [esi+veh.consistnum], 0
+
 	pop	ecx
 	pop	edi
 
@@ -1066,8 +1071,9 @@ RVTrailerProcessing:
 ;------------------------------------------------------------
 	cmp	byte [esi+veh.parentmvstat], 0xFF
 	je	.dontDoIt
+
 	push	dx
-	call	getParentMovement				;possibly overwrite
+	call	getParentMovement			;possibly overwrite
 	mov	bl, dl
 	pop	dx
 .dontDoIt:
@@ -1580,7 +1586,8 @@ RVMovementIncrement:
 
 /************************************************
  * Generates the CLOCK for a Road Vehicle, not	*
- * too important for a single unit RV but for	* * aRVs this is essential for keeping the	*
+ * too important for a single unit RV but for	*
+ * aRVs this is essential for keeping the	*
  * consist together (SYNCED), there MUST be a	*
  * working head pointer cycle for a consist to	*
  * work correctly on any movement change!	*
