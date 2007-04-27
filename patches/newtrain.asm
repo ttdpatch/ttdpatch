@@ -1815,7 +1815,9 @@ startstopveh:
 	xor word [edx+veh.vehstatus], 2
 	jmp .looptrailers
 .cleanuppop:
+	or edx, edx // We must have a non-zero zero return so the guis update correctly.
 	pop edx
+
 .ok:
 	clc
 .done:
