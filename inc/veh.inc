@@ -72,7 +72,7 @@ struc veh
 				//     actually some kind of status
 				//     aircraft: >=13 when in flight
 				//     train, ship: 80h=in depot
-				//     rv: 0feh=in depot
+	.RVCurTilePos:		//     rv: 0feh=in depot
 	.ignoresignals:		// 63h:train: ticks remaining for "ignore signal" order
 	.targetairport: resb 1	//     aircraft: arget airport
 			resw 1	// 64h:?? travelpos on runway??

@@ -510,7 +510,7 @@ RVTrailerProcessing:
 	mov	ecx, dword [off_111D62]			;SO FUNDAMENTALLY IMPORTANT
 	mov	ebx, [ecx+ebx*4]			;GET ADDRESS
 	pop	ecx
-	movzx	edx, byte [esi+0x63]
+	movzx	edx, byte [esi+veh.RVCurTilePos]
 	shl	edx, 1
 	add	ebx, edx
 	mov	dx, [ebx+2]
@@ -605,7 +605,7 @@ RVTrailerProcessing:
 	mov	ecx, dword [byte_112552]
 	mov	bl, [ecx+ebx]				;the ends of the tiles? or maybe the ends of the stations.
 	pop	ecx
-	cmp	bl, byte [esi+0x63]				;this is the px into the current tile 0x0-0xF
+	cmp	bl, byte [esi+veh.RVCurTilePos]				;this is the px into the current tile 0x0-0xF
 	jnz	near .JustMoveIntoNextTile
 ;------------------------------------------------
 ; WE JUST WANT TO QUIT.... NO STATION CODE THX!!!
@@ -722,7 +722,7 @@ RVTrailerProcessing:
 	js	near .zeroSpeedAndReturn
 	test	ebp, 40000000h
 	jnz	short .dontIncrementBlockedCount
-	inc	byte [esi+0x63]
+	inc	byte [esi+veh.RVCurTilePos]
 
 .dontIncrementBlockedCount:
 	movzx	bx, byte [esi+veh.direction]
@@ -903,7 +903,7 @@ RVTrailerProcessing:
 	mov	word [esi+veh.XY], bp
 	mov	byte [esi+veh.movementstat], bl
 	call	cycleMovementStats
-	mov	byte [esi+0x63], 0
+	mov	byte [esi+veh.RVCurTilePos], 0
 
 .dontActuallyMoveVehicle:
 	cmp	dl, byte [esi+veh.direction]
@@ -985,7 +985,7 @@ RVTrailerProcessing:
 	js	short .zeroSpeedAndReturn
 	mov	byte [esi+veh.movementstat], bl
 	
-	mov	byte [esi+0x63], 1
+	mov	byte [esi+veh.RVCurTilePos], 1
 	cmp	dl, byte [esi+veh.direction]
 	jz	short .skipTurnCode
 	mov	byte [esi+veh.direction], dl
@@ -1105,7 +1105,7 @@ RVTrailerProcessing:
 	and	word [esi+veh.vehstatus], 0FFFEh		;set visible
 	mov	byte [esi+veh.movementstat], bl
 	call	cycleMovementStats
-	mov	byte [esi+0x63], 6			;set the current location in current tile
+	mov	byte [esi+veh.RVCurTilePos], 6			;set the current location in current tile
 	movzx	bx, byte [esi+veh.direction]
 	call	[SelectRVSpriteByLoad]
 	call	[SetRoadVehObjectOffsets]
