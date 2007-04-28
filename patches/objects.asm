@@ -12,6 +12,8 @@
 #include <objects.inc>
 #include <window.inc>
 #include <imports/gui.inc>
+#include <misc.inc>
+#include <imports/dropdownex.inc>
 
 extern failpropwithgrfconflict
 extern curspriteblock,grfstage
@@ -296,8 +298,36 @@ win_object_clickhandler:
 	jnz .notbackground
 	ret
 .notbackground:
+	cmp cl, 4
+	je near win_objectgui_classdropdown
 	ret
+	
+	
+win_objectgui_classdropdown:
+	extcall GenerateDropDownExPrepare
+	jnc .noolddrop
+	ret
+.noolddrop:
+	push ecx
+	xor eax,eax
+	xor ebx,ebx
+.loop:
+	cmp al, MAXDROPDOWNEXENTRIES
+	jae .done
 
-
-
-
+	movzx ecx, word [objectclassesnames+eax*2]
+	mov dword [DropDownExList+4*eax],ecx
+	mov ecx, dword [objectclassesnamesprptr+eax*4]
+	mov dword [DropDownExListGrfPtr+4*eax],ecx
+	inc eax
+	cmp al, MAXDROPDOWNEXENTRIES
+	jae .done
+	cmp al,[numobjectclasses]
+	jb .loop
+.done:
+	mov dword [DropDownExList+4*eax],-1	// terminate it
+	mov byte [DropDownExMaxItemsVisible], 16
+	mov word [DropDownExFlags], 11b
+	pop ecx
+	extjmp GenerateDropDownEx
+	

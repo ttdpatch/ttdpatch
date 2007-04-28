@@ -272,6 +272,10 @@ proc GenerateDropDownEx
 	jnc .noautoshrink
 	cmp cl, byte [DropDownExMaxItemsVisible]
 	jae .noautoshrink
+	// test if the shrink would be to small...
+	mov byte [DropDownExMaxItemsVisible], 2
+	cmp cl, 2
+	jb .noautoshrink
 	mov byte [DropDownExMaxItemsVisible], cl
 .noautoshrink:
 
