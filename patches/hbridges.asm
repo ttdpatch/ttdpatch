@@ -89,26 +89,24 @@ bridgedrawmiddlepart:
 	mov edi, [esp+4]
 	mov [bridgedrawmiddlepartpillardir], edi
 	add dl, 5
-//	mov edi, [landscape7_ptr]
-//	or edi,edi
-//	jz .no_l7
 	xor edi, edi
 	rol cx, 8
 	mov di, cx
 	rol cx, 8
 	or di, ax
 	ror di, 4
-//	add edi, [landscape7ptr]
-	add dl, [landscape7+edi] 
-//.no_l7:
-	mov di, 10h
-	
+	add dl, [landscape7+edi]
+
 	extern aquamiddlebridgesprites
-	cmp edi, aquamiddlebridgesprites
+	cmp DWORD [esp+8], aquamiddlebridgesprites
 	je .fixoffset
+	mov di, 10h
+	mov si, 0Bh
+	test byte [esp+4], 10h
 	ret
 .fixoffset:		//for aquaducts, gives other bridge types horrid clipping errors.
-	mov si, 0Bh
+	mov di, 10h
+	mov si, 10h
 	test byte [esp+4], 10h
 	jz loc_153C0E
 	xchg di, si
@@ -116,8 +114,8 @@ loc_153C0E:
 	mov dh, 1
 
 	pusha		//helper sprite
-	mov di, 0x10
-	mov si, di
+	//mov di, 0x10
+	//mov si, di
 	mov ebx, 0x1322
 	call [addsprite]
 	popa
