@@ -5,19 +5,15 @@
 #include <std.inc>
 #include <textdef.inc>
 #include <veh.inc>
+#include <bitvars.inc>
 
 extern calc_te_a,isplaneinflight,lasttractiveeffort,mountaintypes
 extern postredrawhandle
-
-
-
-
-
-
+extern miscmodsflags
 
 // Makes text handler use our own string and sets up the data array
 
-// in:	?
+// in:	ah=depot number where applicable (text codes 9017,981B,8811)
 // out:	bx=text number, edi as in TTD code
 // safe:bx,ebp
 
@@ -42,13 +38,24 @@ ovar trainspeed_edi,-4
 ovar trainspeed_dest,-4
 
 .hangarspeed:
-	add ebp,byte 2	// otherwise the same as other hangars
+	add ebp,byte 8	// otherwise the same as other hangars
+	mov ebx, ourtext(headingfordepot4)
+	jmp .changeitkeepbx
 
 .otherdepotspeed:
-	add ebp,byte 6
+	mov WORD [ebp+6], statictext(empty)
+	test dword [miscmodsflags],MISCMODS_NODEPOTNUMBERS
+	jnz .nodepotnum_other1
+	mov WORD [ebp+6], statictext(dpt_number2)
+	movzx ax, ah
+	inc ax
+	mov [ebp+8], ax
+	add ebp, BYTE 2
+.nodepotnum_other1:
+	add ebp,byte 8
 	shr ebx,11
-	and ebx,byte 7	// now ebx=2 for road; 3 for ship; 4 for hangar
-	add ebx,ourtext(headingfordepot2)-2
+	and ebx,byte 7	// now ebx=2 for road; 3 for ship
+	add ebx,ourtext(headingfordepot2v2)-2
 	jmp short .changeitkeepbx
 
 .noorderspeed:
@@ -57,15 +64,23 @@ ovar trainspeed_dest,-4
 	jmp short .changeit
 
 .stationspeed:
-	add ebp,byte 2
+	add ebp,byte 8
+	jmp short .changeit
 
 .traindepotspeed:
-	add ebp,byte 6	// the adds are cumulative so that this is 8 really
-
+	mov WORD [ebp+6], statictext(empty)
+	add ebp,byte 8
+	test dword [miscmodsflags],MISCMODS_NODEPOTNUMBERS
+	jnz .changeit
+	mov WORD [ebp-2], statictext(dpt_number2)
+	movzx ax, ah
+	inc ax
+	mov [ebp], ax
+	add ebp, BYTE 2
+	mov bx,ourtext(headingfordepot1v2)
+	jmp .changeitkeepbx
 .changeit:
-	and bx,byte 1	// show first "headingfor" text for 8810, 8822 and the
-			// second one for 8811
-	add bx,ourtext(headingfor)
+	mov bx,ourtext(headingfor)
 
 .changeitkeepbx:
 	push ebx

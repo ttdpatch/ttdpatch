@@ -29,6 +29,8 @@ uvard textspechandler			// TTD's handlers for special text codes
 
 uvard fonttables,3*256			// Pointer to font info for sizes normal,small,large
 
+uvard newtexthandlerfunctrap		//optional callback whenever text handler function parameters or text ref need to be trapped/modified
+
 
 // in:  ax=text ID
 //	text ID & 07ff is the offset into an array of pointers for TTD
@@ -37,6 +39,11 @@ uvard fonttables,3*256			// Pointer to font info for sizes normal,small,large
 // safe:eax ebx (ecx?) edx esi ebp
 global newtexthandler,textprocessing
 newtexthandler:
+	mov esi, [newtexthandlerfunctrap]
+	or esi, esi
+	jz .notrap
+	call esi
+.notrap:
 	push .strangeret		// for detecting handlers that do not return
 	shl dword [continueflag],1
 	jc .rectoodeep

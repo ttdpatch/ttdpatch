@@ -15,6 +15,7 @@
 #include <misc.inc>
 #include <ptrvar.inc>
 #include <refit.inc>
+#include <bitvars.inc>
 
 extern actionhandler,adjustcapacity,callbackflags,copyvehordersfn
 extern ctrlkeystate,curplayerctrlkey,currefitlist,delvehschedule
@@ -23,7 +24,7 @@ extern invalidatehandle,ishumanplayer,isrealhumanplayer,isscheduleshared
 extern needsmaintcheck.always,numvehshared,orderhints,patchflags
 extern redrawscreen,resetorders_actionnum,cargotypes
 extern saverestorevehdata_actionnum,savevehordersfn,shareorders_actionnum
-extern vehcallback
+extern vehcallback,miscmodsflags
 
 
 
@@ -368,8 +369,15 @@ showorder:
 	jmp short .gotthecity
 
 .noaircraft:
+	inc ebp
+	test dword [miscmodsflags],MISCMODS_NODEPOTNUMBERS
+	jnz .nodepotnum
+	mov WORD [edi-2], statictext(dpt_number)
+	add edi, BYTE 2
+	mov [edi+6], bp
+.nodepotnum:
 	imul esi,ebp,byte 6
-	add esi,depotarray
+	add esi,depotarray-6
 	mov ebp,dword [esi+depot.townptr]
 	movzx esi,word [esi+depot.XY]
 
@@ -389,6 +397,10 @@ showorder:
 	pop esi		// restored from stack: textrefstack+3
 	pop eax		// restored from stack: vehicle type
 	add ax,ourtext(gototraindepot)-0x10
+	test dword [miscmodsflags],MISCMODS_NODEPOTNUMBERS
+	jnz .noincdepotoffset
+	add esi, BYTE 2
+.noincdepotoffset:
 	mov [esi],ax
 
 	// NOTE: our text indices are always nonzero, so the last ADD clears ZF
@@ -1383,7 +1395,7 @@ uvarb skipsharingcheck	// if nonzero, shared orders are saved like non-shared on
 global resetorders
 resetorders:
 	test bl,1
-	jz .justtest
+	jz NEAR .justtest
 	pusha
 	add edi,[veharrayptr]
 	test dl,[curplayerctrlkey]

@@ -563,6 +563,7 @@ BIT(dontshowaltitude,      "Don't show altitude in tile info window")
 BIT(nogrfidsinscreenshots, "Don't show active grfids in screenshots")
 BIT(dontchangesnow,        "Don't change how height is calculated for snowiness")
 BIT(notransparentdepots,   "Don't make road and tram depots transparent in transparent-buildings mode")
+BIT(nodepotnumbers,        "Don't display depot numbers")
 
 // Description for morebuildoptions bits
 BITSWITCH(morebuildoptions)

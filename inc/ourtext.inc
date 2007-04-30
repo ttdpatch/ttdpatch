@@ -371,6 +371,10 @@ defourtext newgamewindow
 
 defourtext aquaducttext
 
+defourtext headingfordepot1v2
+defourtext headingfordepot2v2
+defourtext headingfordepot3v2
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
