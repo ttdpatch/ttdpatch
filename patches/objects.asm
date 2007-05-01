@@ -11,6 +11,7 @@
 #include <idf.inc>
 #include <objects.inc>
 #include <window.inc>
+#include <windowext.inc>
 #include <imports/gui.inc>
 #include <misc.inc>
 #include <imports/dropdownex.inc>
@@ -57,7 +58,6 @@ extern objectclasses			// the actual defined classes
 extern objectclassesnames		// the TextID for the name
 extern objectclassesnamesprptr	// the spriteblockptr for this TextID
 extern numobjectclasses			// how many classes we have have loaded already
-
 
 // special functions to handle special object properties
 //
@@ -174,45 +174,31 @@ exported setobjectclasstexid
 	
 
 // Select window
-%assign win_objectgui_id 111
+%assign win_objectgui_id 114
 
-%assign win_objectgui_width 200
-%assign win_objectgui_height 250
 %assign win_objectgui_padding 10 
+
 %assign win_objectgui_dropwidth 12 
 %assign win_objectgui_dropheight 12
+%assign win_objectgui_drop1y 20
+
 %assign win_objectgui_previewheight 60
 
-varb win_objectgui_elements
-db cWinElemTextBox,cColorSchemeDarkGreen
-dw 0, 10, 0, 13, 0x00C5
-db cWinElemTitleBar,cColorSchemeDarkGreen
-dw 11, win_objectgui_width-1, 0, 13, ourtext(grfstatcaption)
-db cWinElemSpriteBox,cColorSchemeDarkGreen
-dw 0, win_objectgui_width-1, 14, win_objectgui_height-1, 0
-// Dropdown
-db cWinElemSpriteBox,cColorSchemeGrey
-dw win_objectgui_padding, win_objectgui_width-1-win_objectgui_padding-win_objectgui_dropwidth-1
-dw 20, 20+win_objectgui_dropheight
-dw 0
-db cWinElemTextBox,cColorSchemeGrey
-dw win_objectgui_width-1-win_objectgui_padding-win_objectgui_dropwidth,win_objectgui_width-1-win_objectgui_padding, 
-dw 20, 20+win_objectgui_dropheight,statictext(txtetoolbox_dropdown)
-// Preview
-db cWinElemSpriteBox,cColorSchemeGrey
-dw win_objectgui_padding,win_objectgui_width-1-win_objectgui_padding, 
-dw 40, 40+win_objectgui_previewheight, 0
-// Dropdown 2
-db cWinElemSpriteBox,cColorSchemeGrey
-dw win_objectgui_padding, win_objectgui_width-1-win_objectgui_padding-win_objectgui_dropwidth-1
-dw 40+win_objectgui_previewheight+20, 40+win_objectgui_previewheight+20+win_objectgui_dropheight
-dw 0
-db cWinElemTextBox,cColorSchemeGrey
-dw win_objectgui_width-1-win_objectgui_padding-win_objectgui_dropwidth,win_objectgui_width-1-win_objectgui_padding, 
-dw 40+win_objectgui_previewheight+20, 40+win_objectgui_previewheight+20+win_objectgui_dropheight,statictext(txtetoolbox_dropdown)
-db cWinElemLast
-endvar
+guiwindow win_objectgui,200,250
+	guicaption cColorSchemeDarkGreen, ourtext(grfstatcaption)
+	guiele background,cWinElemSpriteBox,cColorSchemeDarkGreen,x,0,-x2,0,y,14,-y2,0,data,0
+	// Dropdown 1
+	guiele dropdown1_text,cWinElemSpriteBox,cColorSchemeGrey,x,win_objectgui_padding,-x2,win_objectgui_padding+win_objectgui_dropwidth+1,y,win_objectgui_drop1y,h,win_objectgui_dropheight,data,0
+	guiele dropdown1,cWinElemTextBox,cColorSchemeGrey,-x,win_objectgui_padding+win_objectgui_dropwidth,-x2,win_objectgui_padding,y,win_objectgui_drop1y,h,win_objectgui_dropheight,data,statictext(txtetoolbox_dropdown)
+	// Preview
+	guiele preview,cWinElemSpriteBox,cColorSchemeGrey,x,win_objectgui_padding,-x2,win_objectgui_padding,y,40,h,win_objectgui_previewheight,data,0
+	// Dropdown 2
+	guiele dropdown2_text,cWinElemSpriteBox,cColorSchemeGrey,x,win_objectgui_padding,-x2,win_objectgui_padding+win_objectgui_dropwidth+1,y,40+win_objectgui_previewheight+20,h,win_objectgui_dropheight,data,0
+	guiele dropdown2,cWinElemTextBox,cColorSchemeGrey,-x,win_objectgui_padding+win_objectgui_dropwidth,-x2,win_objectgui_padding,y,40+win_objectgui_previewheight+20,h,win_objectgui_dropheight,data,statictext(txtetoolbox_dropdown)
+endguiwindow
 
+svarw win_objectgui_curclass
+uvard win_objectgui_curobject
 
 exported win_objectgui_create
 	bts dword [esi+window.activebuttons], 26
@@ -248,7 +234,9 @@ win_objectgui_winhandler:
 	cmp dl, cWinEventRedraw
 	jz near win_objectgui_redraw
 	cmp dl, cWinEventClick
-	jz near win_object_clickhandler
+	jz near win_objectgui_clickhandler
+	cmp dl, cWinEventDropDownItemSelect
+	jz near win_objectgui_dropdowncallback
 	cmp dl, cWinEventTimer
 	jz win_objectgui_timer
 //	cmp dl, cWinEventSecTick
@@ -270,7 +258,7 @@ win_objectgui_timer:
 .toolbar:
 	movzx eax, byte [esi+window.data]
 	mov byte [esi+window.data], 0
-	mov cl, 1 // cWinTypeMainToolbar
+	mov cl, 1
 	xor dx, dx
 	call [FindWindow]
 	btr dword [esi+window.activebuttons], eax
@@ -278,31 +266,48 @@ win_objectgui_timer:
 
 	
 win_objectgui_redraw:
-	call dword [DrawWindowElements]
+	call dword [DrawWindowElements]	
+	mov cx, [esi+window.x]
+	mov dx, [esi+window.y]
+	
+	cmp word [win_objectgui_curclass], -1
+	je .noclassselected
+	
+	movzx ebx, word [win_objectgui_curclass]
+	mov eax, dword [objectclassesnamesprptr+ebx*4]
+	extern curmiscgrf
+	mov [curmiscgrf], eax
+	movzx eax, word [objectclassesnames+ebx*2]
+	mov [textrefstack],eax
+	mov bx,statictext(blacktext)
+	add cx, win_objectgui_padding+2
+	add dx, win_objectgui_drop1y+2
+	call [drawtextfn]
+.noclassselected:
 	ret
 	
-win_object_clickhandler:
+win_objectgui_clickhandler:
 	call dword [WindowClicked]
 	jns .click
 	ret
 .click:
-	cmp cl, 0
+	cmp cl, win_objectgui_elements.caption_close_id
 	jne .notdestroy
 	jmp [DestroyWindow]
 .notdestroy:
-	cmp cl, 1
+	cmp cl, win_objectgui_elements.caption_id
 	jne .nottilebar
 	jmp dword [WindowTitleBarClicked]
 .nottilebar:
-	cmp cl, 2
-	jnz .notbackground
-	ret
-.notbackground:
-	cmp cl, 4
+	cmp cl, win_objectgui_elements.dropdown1_text_id
+	je near win_objectgui_classdropdown.text
+	cmp cl, win_objectgui_elements.dropdown1_id
 	je near win_objectgui_classdropdown
 	ret
 	
 	
+win_objectgui_classdropdown.text:
+	inc cl
 win_objectgui_classdropdown:
 	extcall GenerateDropDownExPrepare
 	jnc .noolddrop
@@ -331,3 +336,13 @@ win_objectgui_classdropdown:
 	pop ecx
 	extjmp GenerateDropDownEx
 	
+win_objectgui_dropdowncallback:
+	cmp cl, win_objectgui_elements.dropdown1_id
+	je .selectclass
+	ret
+.selectclass:
+	mov word [win_objectgui_curclass],ax
+	mov al,[esi]
+	mov bx,[esi+window.id]
+	call dword [invalidatehandle]
+	ret
