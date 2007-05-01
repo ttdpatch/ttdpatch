@@ -20,3 +20,6 @@ on earlier versions (due to fundamental changes in the source indentation)
 
 nasm - nasm compiled for Linux (needs GLIBC >= 2.3)
 nasm.exe - nasm compiled for Cygwin
+
+The osx directory holds patches specific for OS X.
+
