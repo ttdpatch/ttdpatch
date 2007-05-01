@@ -101,8 +101,8 @@ bridgedrawmiddlepart:
 	cmp DWORD [esp+8], aquamiddlebridgesprites
 	je .fixoffset
 	mov di, 10h
-	mov si, 0Bh
-	test byte [esp+4], 10h
+//	mov si, 0Bh
+//	test byte [esp+4], 10h
 	ret
 .fixoffset:		//for aquaducts, gives other bridge types horrid clipping errors.
 	mov di, 10h
@@ -207,9 +207,9 @@ bridgedrawmiddlepartpillar:
 
 .next:
 	push ebx
-	mov di, 0 // otherwise Sprite sorting gets a bit screwed...
-	mov si, 0
-	mov dh, 8
+	mov di, 1 // otherwise Sprite sorting gets a bit screwed...
+	mov si, 1
+	mov dh, 1
 	push ebp
 	call [addsprite]
 	pop ebp
