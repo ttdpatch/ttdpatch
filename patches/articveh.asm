@@ -535,48 +535,15 @@ RVTrailerProcessing:
 .checkIfWeCanOvertake:
 	call	[RVCheckCollisionWithRV]		;are we up the ass of an RV?
 	jnb	short .noNeedToAttemptOvertake		;no... continue
+
+	call AttemptToCorrectConflictDetection		; Basicly tries to fix collision detection results when the above function fails
+	jnb .noNeedToAttemptOvertake
+
 ;--------------------------------------------------
 ; >8 Cut out the Overtaking part... TODO: ADD AGAIN
 ;--------------------------------------------------
 
-/************************************************
- * On corners the head will count trip the	*
- * Collision code as it tries to leave the	*
- * Corner, causing it to fall behind, so we	*
- * check if the direction of the head (edi) is	*
- * the same as the head if not we are turning!	*
- ************************************************/ 
-
-// Need to find the unit just infront for this check
-	push edi
-	mov bp, [esi+veh.idx] // Store our idx for checks
-	mov dh, byte [esi+veh.direction] // Yes, is it at a different angle?
-
-.lNextUnit:
-	cmp bp, [edi+veh.nextunitidx] // Is this the unit directly infront
-	jne .lGetNextUnit
-
-	cmp dh, [edi+veh.direction] // Are they facing different directions (turn)
-	jne .lnoNeedToAttemptOvertakepopedi // Yes so complete the turn!
-
-.lGetNextUnit:
-	cmp word [edi+veh.nextunitidx], byte -1 // End of Consist?
-	je .lNotTurning
-
-	movzx edi, word [edi+veh.nextunitidx] // No so get next unit and repeat
-	shl edi, 7
-	add edi, [veharrayptr]	
-	jmp .lNextUnit
-
-.lNotTurning:
-	pop edi
-
-/************************************************/
-
 	retn
-
-.lnoNeedToAttemptOvertakepopedi: // Requited to fix stack
-	pop edi
 
 .noNeedToAttemptOvertake:
 	mov	dh, byte [esi+veh.direction]
@@ -1717,4 +1684,62 @@ RVDepotEnterStop:
 
 	test al, 2				// Zero MUST be cleared for the head to wait
 	pop edi
+	ret
+
+/************************************************
+ * Holds a load of hacks which attempt to find	*
+ * and correct the result, really need Steven	*
+ * to fix real collision detection patch!	*
+ ************************************************/
+AttemptToCorrectConflictDetection:
+	push edi
+
+/************************************************
+ * On corners the head will count trip the	*
+ * Collision code as it tries to leave the	*
+ * Corner, causing it to fall behind, so we	*
+ * check if the direction of the head (edi) is	*
+ * the same as the head if not we are turning!	*
+ ************************************************/ 
+
+// Need to find the unit just infront for this check
+	mov bp, [esi+veh.idx] // Store our idx for checks
+	mov dh, byte [esi+veh.direction] // Yes, is it at a different angle?
+
+.lNextUnit:
+	cmp bp, [edi+veh.nextunitidx] // Is this the unit directly infront
+	jne .lGetNextUnit
+
+	cmp dh, [edi+veh.direction] // Are they facing different directions (turn)
+	jne .lNoConflict // Yes so complete the turn!
+
+.lGetNextUnit:
+	cmp word [edi+veh.nextunitidx], byte -1 // End of Consist?
+	je .lNotTurning
+
+	movzx edi, word [edi+veh.nextunitidx] // No so get next unit and repeat
+	shl edi, 7
+	add edi, [veharrayptr]	
+	jmp .lNextUnit
+
+.lNotTurning:
+
+/************************************************
+ * Seems that when entering a depot a shorter	*
+ * rv will fail collision detection and stop	*
+ * Dead causing the consist to halt.		*
+ ************************************************/
+	movzx edi, word [edi+veh.engineidx]
+	shl edi, 7
+	add edi, [veharrayptr]
+	cmp byte [edi+veh.movementstat], 0xFE
+	je .lNoConflict
+
+	pop edi
+	stc
+	ret
+
+.lNoConflict:
+	pop edi
+	clc
 	ret
