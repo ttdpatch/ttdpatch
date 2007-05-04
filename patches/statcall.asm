@@ -65,7 +65,8 @@ TrainSpeedBuyNewVehicle:
 	ret
 
 // Gets the speed from callback default if no callback
-GetTrainCallBackSpeed:
+// (Notice: will be called by extradetails patch!)
+exported GetTrainCallBackSpeed
 	push ecx
 	mov cx, [trainspeeds+ebx*2] ; Gets the default speed of the vehicle
 	mov ah, 0x9 ; Get the speed value
