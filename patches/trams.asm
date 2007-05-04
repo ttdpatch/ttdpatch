@@ -1641,7 +1641,7 @@ drawTramBridgeMiddlePart:
 .dontdraw:
 	popad
 	mov	si, 0Bh
-	test	byte [esp], 10h
+	test	byte [esp+4], 10h
 	retn
 
 //wow.... my own function.
