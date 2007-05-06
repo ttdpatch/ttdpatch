@@ -1181,6 +1181,9 @@ proc createshiplift
 	jmp .error // tempfix for short jump problem 
 
 .noerrorcleartile:
+	extern TempCAActionErrorCount
+	cmp DWORD [TempCAActionErrorCount], 0
+	jne NEAR .error1
 	mov ax, [%$tilex]
 	mov cx, [%$tiley]
 	push ebp
@@ -1238,7 +1241,7 @@ proc createshiplift
 	add dx, word [paShipLiftAddPartsInLandscape+ebx*8+6]
 	shl edx, 16
 	mov dx, si
-	mov bl, 1
+	mov bl, 0x11
 	push ebp
 	dopatchaction cleararea
 	pop ebp
@@ -1280,6 +1283,8 @@ proc createshiplift
 	imul ebx, [clearwatercost], SHIPLIFTPLACEFACTOR 
 	shr ebx,3
 	_ret
+.error1:
+	mov ebx, 80000000h
 .error:
 	mov ax, [%$tilex]
 	mov cx, [%$tiley]

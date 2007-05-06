@@ -1767,12 +1767,14 @@ var AnimDynamiteCursorSprites
 
 uvarb TempActionFlags
 uvard TempActionCost
+uvard TempCAActionErrorCount
 global cleararea
-cleararea:
+cleararea:		//bl|=0x10 for no explosion animation
 	mov word [operrormsg1], 0x00B5
 	mov [TempActionFlags], bl
 	mov dword [TempActionCost], 0
 	or byte [TempActionFlags], 80h
+	mov DWORD [TempCAActionErrorCount], 0
 	pusha
 	and ax, 0xFFF0
 	and cx, 0xFFF0
@@ -1798,25 +1800,29 @@ cleararea:
 	push ax
 	push cx
 	
-	mov ebx, 0
+	movzx ebx, BYTE [TempActionFlags]
+	and bl, ~1
 	mov esi, 0
 	call [actionhandler]
 	cmp ebx, 80000000h
-	je .ignoreerror
-	
+	je .ignoreerror1
+
 	and byte [TempActionFlags], 7Fh
-	
+
 	add [TempActionCost], ebx
 	test byte [TempActionFlags], 1
 	jz .ignoreerror
 	
-	mov ebx, 1
+	movzx ebx, BYTE [TempActionFlags]
 	mov esi, 0
 	
 	mov ax, [esp+2]
 	mov cx, [esp]
-	call [actionhandler]
-	
+	push DWORD .ignoreerror
+	jmp [actionhandler]
+
+.ignoreerror1:
+	inc DWORD [TempCAActionErrorCount]
 .ignoreerror:
 	pop cx
 	pop ax
@@ -1845,6 +1851,8 @@ cleararea:
 
 	test byte [TempActionFlags], 1
 	jz .haveexplosion
+	test byte [TempActionFlags], 0x10
+	jnz .haveexplosion
 
 	cmp ax, bx
 	jne .largeexplosion
