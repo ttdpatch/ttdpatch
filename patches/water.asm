@@ -14,9 +14,7 @@ extern locationtoxy,patchflags,redrawscreen
 extern waterbanksprites,gettileterrain
 extern guispritebase,numguisprites,actionmakewater_actionnum,ctrlkeystate,cleararea_actionnum
 
-
-
-
+#if 0
 struc newwatersprites
 	.watercliff:	resb 4
 	.lifthouse:		resb 24
@@ -24,6 +22,7 @@ struc newwatersprites
 	.waterwharf:	resb 12
 	.ico:			resb 1
 endstruc
+#endif
 
 // Cost can be calculated via clearwatercost * FACTOR / 8
 %define WATERPLACEFACTOR 3
@@ -35,81 +34,84 @@ var baCliffTranslation, db -1, -1, -1, 2
                 db -1, -1, 0, -1
                 db -1, 3, -1, -1
                 db 1, -1, -1, -1
+				
+				
+%assign canalslifthouseofs 0
 
 var paLiftHouseSprites, dd LiftHouse0, LiftHouse1, LiftHouse2, LiftHouse3	// middle part
 dd LiftHouse0b, LiftHouse1b, LiftHouse2b, LiftHouse3b					// bottom
 dd LiftHouse0t, LiftHouse1t, LiftHouse2t, LiftHouse3t					// top
 
 var LiftHouse0, db 0, 0, 0, 1, 10h, 14h
-		    dd newwatersprites.lifthouse
+		    dd canalslifthouseofs
 		    db 0Fh, 0, 0, 1, 10h, 14h
-		    dd newwatersprites.lifthouse+4
+		    dd canalslifthouseofs+4
 		    db 0 // seelevel, if it's the same or below use first set!
 
 var LiftHouse1, db 0, 0, 0, 10h, 1, 14h
-		    dd newwatersprites.lifthouse+1
+		    dd canalslifthouseofs+1
 		    db 0, 0Fh, 0, 10h, 1, 14h
-		    dd newwatersprites.lifthouse+4+1
+		    dd canalslifthouseofs+4+1
 		    db 0
 
 var LiftHouse2, db 0, 0, 0, 10h, 1, 14h
-		    dd newwatersprites.lifthouse+2
+		    dd canalslifthouseofs+2
 		    db 0, 0Fh, 0, 10h, 1, 14h
-		    dd newwatersprites.lifthouse+4+2
+		    dd canalslifthouseofs+4+2
 		    db 0
 
 var LiftHouse3, db 0, 0, 0, 1, 10h, 14h
-		    dd newwatersprites.lifthouse+3
+		    dd canalslifthouseofs+3
 		    db 0Fh, 0, 0, 1, 10h, 14h
-		    dd newwatersprites.lifthouse+4+3
+		    dd canalslifthouseofs+4+3
 		    db 0
 
 var LiftHouse0b, db 0, 0, 0, 1, 10h, 14h
-		    dd newwatersprites.lifthouse+8
+		    dd canalslifthouseofs+8
 		    db 0Fh, 0, 0, 1, 10h, 14h
-		    dd newwatersprites.lifthouse+12
+		    dd canalslifthouseofs+12
 		    db 0
 
 var LiftHouse1b, db 0, 0, 0, 10h, 1, 14h
-		    dd newwatersprites.lifthouse+8+1
+		    dd canalslifthouseofs+8+1
 		    db 0, 0Fh, 0, 10h, 1, 14h
-		    dd newwatersprites.lifthouse+12+1
+		    dd canalslifthouseofs+12+1
 		    db 0
 
 var LiftHouse2b, db 0, 0, 0, 10h, 1, 14h
-		    dd newwatersprites.lifthouse+8+2
+		    dd canalslifthouseofs+8+2
 		    db 0, 0Fh, 0, 10h, 1, 14h
-		    dd newwatersprites.lifthouse+12+2
+		    dd canalslifthouseofs+12+2
 		    db 0
 
 var LiftHouse3b, db 0, 0, 0, 1, 10h, 14h
-		    dd newwatersprites.lifthouse+8+3
+		    dd canalslifthouseofs+8+3
 		    db 0Fh, 0, 0, 1, 10h, 14h
-		    dd newwatersprites.lifthouse+12+3
+		    dd canalslifthouseofs+12+3
 		    db 0
 
 var LiftHouse0t, db 0, 0, 0, 1, 10h, 14h
-		    dd newwatersprites.lifthouse+16
+		    dd canalslifthouseofs+16
 		    db 0Fh, 0, 0, 1, 10h, 14h
-		    dd newwatersprites.lifthouse+20
+		    dd canalslifthouseofs+20
 		    db 8
 
 var LiftHouse1t, db 0, 0, 0, 10h, 1, 14h
-		    dd newwatersprites.lifthouse+16+1
+		    dd canalslifthouseofs+16+1
 		    db 0, 0Fh, 0, 10h, 1, 14h
-		    dd newwatersprites.lifthouse+20+1
+		    dd canalslifthouseofs+20+1
 		    db 8
 
 var LiftHouse2t, db 0, 0, 0, 10h, 1, 14h
-		    dd newwatersprites.lifthouse+16+2
+		    dd canalslifthouseofs+16+2
 		    db 0, 0Fh, 0, 10h, 1, 14h
-		    dd newwatersprites.lifthouse+20+2
+		    dd canalslifthouseofs+20+2
 		    db 8
 
 var LiftHouse3t, db 0, 0, 0, 1, 10h, 14h
-		    dd newwatersprites.lifthouse+16+3
+		    dd canalslifthouseofs+16+3
 		    db 0Fh, 0, 0, 1, 10h, 14h
-		    dd newwatersprites.lifthouse+20+3
+		    dd canalslifthouseofs+20+3
 		    db 8
 
 var LiftHouseNoGRF, db 0x83,0x81,0x81,0x83
@@ -117,7 +119,7 @@ var LiftHouseNoGRF, db 0x83,0x81,0x81,0x83
 var newwaterspritebase, dw -1	// First new sprite with water sprites...
 		// number of sprites necessary for correct operation
 		// (aborts with wrong version number if it doesn't match)
-var numnewwatersprites, dd newwatersprites_size+10 // make old canals.grf invalid
+var numnewwatersprites, dd 65+10 // make old canals.grf invalid
 
 
 uvard oldclass6drawlandfnc,1,s
@@ -136,20 +138,6 @@ SwapDockWinPurchaseLandIco:
 	jc .active
 	ret
 .active:
-#if 0
-	push ebx
-	push edi
-	movzx ebx,word [newwaterspritebase]
-	or bh,bh
-	js .nosprites
-	add bx, newwatersprites.ico
-	mov edi, [dockwinpurchaselandico]
-	mov word [edi], bx
-.nosprites:
-	pop edi
-	pop ebx
-
-#endif
 	pusha 
 	mov ebx, 4791
 	cmp dword [canalfeatureids+3*4], 0
@@ -275,9 +263,7 @@ Class6DrawLand:
 	cmp edi, 3
 	ja .normalwatertile
 
-	//lea ebx,[ebx+edi+newwatersprites.watercliff]
-	//call [addgroundsprite]
-	
+	// draw water cliffs
 	push edi
 	mov ebx, edi
 	push esi
@@ -313,15 +299,6 @@ Class6DrawLand:
 	movsx si, byte [ebp+4]
 	mov dh, [ebp+5]
 	mov ebx, [ebp+6]
-#if 0
-	add bx, word [newwaterspritebase]	
-	cmp dl, [ebp+20]
-	jna .nosecondset
-	add bx, 24
-.nosecondset:
-
-#else
-	sub ebx, 4 // tempfix
 
 	push esi
 	push eax
@@ -332,7 +309,7 @@ Class6DrawLand:
 	xchg eax, ebx
 	pop eax
 	pop esi
-#endif
+
 	add dl, [ebp+2]
 	call [addsprite]
 	popa
@@ -352,15 +329,6 @@ Class6DrawLand:
  	mov dh, [ebp+5]
   	mov ebx, [ebp+6]
 
-#if 0
-	add bx, word [newwaterspritebase]
-	cmp dl, [ebp+10]
-	jna .nosecondset2
-	add bx, 24
-.nosecondset2:
-#else
-	sub ebx, 4 // tempfix
-
 	push esi
 	push eax
 	mov eax, 1	// we want locks
@@ -370,7 +338,7 @@ Class6DrawLand:
 	xchg eax, ebx
 	pop eax
 	pop esi
-#endif
+
 	add dl, [ebp+2]
 	call [addsprite]
 .nosprites:
@@ -563,11 +531,6 @@ removebridgewater:
 
 // code for showing "dikes" around water
 normalwaterabove:
-#if 0
-	movzx ebx,word [newwaterspritebase]
-	or bx,bx
-	jns .newsprites
-#endif
 	cmp dword [canalfeatureids+2*4], 0
 	jnz .newsprites
 	ret
@@ -717,12 +680,7 @@ normalwaterabove:
 	
 showadikesprite:
 	push edi
-#if 0
-	xchg ebx, edi
-	movzx ebx,word [newwaterspritebase]
-	lea ebx, [ebx+newwatersprites.waterwharf+edi]
-	call [addgroundsprite]
-#endif
+
 	push esi
 	push eax
 	mov eax, 2		// dike parts
@@ -1353,23 +1311,6 @@ actionmakewater:	//bh:1->dx valid, dl=x extent, dh=y extent
 	or si, ax
 	ror si, 4
 
-// not needed here anymore ...
-#if 0	
-	mov dh,[landscape4(si)]
-	shr dh, 4
-	
-	cmp dh, 0
-	jz .validoldtile
-
-	cmp dh, 4
-	jz .validoldtile
-
-	cmp dh, 6
-	jz .validoldtile
-	jmp .error
-	
-.validoldtile:
-#endif
 	push ax
 	push cx
 	push ebx
