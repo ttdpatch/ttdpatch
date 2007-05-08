@@ -70,7 +70,7 @@
 	patchproc subsidiaries, patchsubsidiaries
 	patchproc subsidiaries,morestats, patchcompanywindow
 	patchproc anyflagset, patchmaxloanwithctrl
-	patchproc fullloadany, patchfullloadany
+	patchproc anyflagset, patchfullloadany
 	patchproc selectstationgoods, patchselectstationgoods
 	patchproc keepsmallairports, patchkeepsmallairports
 	patchproc longerbridges, patchlongerbridges

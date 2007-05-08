@@ -9,13 +9,17 @@ codefragment oldcheckfull
 	mov edi,esi
 	mov ax,word [edi+veh.currentload]
 
-codefragment newcheckfull
-	call runindex(checkfull)
-	ret
+codefragment_jmp newcheckfull, checkfull, 5
 
 
 endcodefragments
 
 patchfullloadany:
 	patchcode oldcheckfull,newcheckfull,1,1
+	extern patchflags
+	testflags fullloadany
+	jc .done
+	extern fullloadanycheck
+	mov byte [fullloadanycheck], 0C3h // Change jb to ret
+.done:
 	ret

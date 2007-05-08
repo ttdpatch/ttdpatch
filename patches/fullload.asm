@@ -13,7 +13,8 @@
 global checkfull
 checkfull:
 	btr dword [esi+veh.modflags],MOD_ISFULL
-	jc .done
+ovar fullloadanycheck,0
+	jc .done // changed to ret if fullloadany is off.
 	push ebx
 	push ecx
 

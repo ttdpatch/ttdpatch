@@ -676,3 +676,4 @@ CHANGELOG
     (parent, sibling, child &c.) companies.
   * Permit management of any subsidiary from any other subsidiary, direct or
     indirect.
+  * Make early departure of overweight trains work with fullloadany off.
