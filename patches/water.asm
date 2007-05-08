@@ -130,7 +130,7 @@ uvard oldclass5drawlandfnc,1,s
 uvard oldclass9drawlandfnc,1,s
 uvard oldclass9queryfnc,1,s
 
-uvarb canalaction2array,3  // height byte, dessertmapinfo byte, dikemapbyte
+uvarb canalaction2array,4  // height byte, dessertmapinfo byte, dikemapbyte, randomnum
 
 global SwapDockWinPurchaseLandIco
 SwapDockWinPurchaseLandIco:
@@ -200,6 +200,8 @@ Class6DrawLand:
 	jmp normalwaterabove
 
 .couldbecliff:
+	cmp dh, 3
+	je near Class6DrawLandRiverSlope
 	cmp dh, 1
 	ja .shiplift
 
@@ -209,17 +211,12 @@ Class6DrawLand:
 
 .shiplift:
 	mov esi, ebx	// we need it later, so store it
-
+	
 // Shows the new Shiplifts on and the Watercliffs
 
 // Get the tile type that is stored in the landscape
 	movzx edi, byte [landscape2+esi]
 	
-	//movzx ebx,word [newwaterspritebase]
-	//or bh,bh
-	//jns .newsprites
-	//jmp short .newsprites
-
 	cmp dword [canalfeatureids+1*4], 0
 	jnz .newsprites
 	
@@ -343,6 +340,90 @@ Class6DrawLand:
 	call [addsprite]
 .nosprites:
 	popa
+	ret
+	
+Class6DrawLandRiverSlope:
+	mov esi, ebx
+	shr dl, 3
+	mov [canalaction2array], dl
+	shl dl, 3
+	
+	pusha
+	call getdikemap
+	xchg edi, edx
+	mov [canalaction2array+2], dl
+	call gettileterrain
+	mov [canalaction2array+1], al // now 0 normal, 1 desert, 2 rainforest, 4 on or above snowline
+	mov al, byte [landscape6+esi]
+	mov [canalaction2array+3], al
+	popa
+	
+
+	pusha
+	push eax
+	mov ebx, 4061
+	and edi, byte 0x0F
+	cmp edi, 0	// we don't have a slope, so use default water sprite
+	je .nosprites
+	mov eax, 5	// we want river slopes
+	cmp dword [canalfeatureids+5*4], 0
+	jnz .hassprites
+	mov eax, 0	// we want water cliffs
+	cmp dword [canalfeatureids+0*4], 0
+	jnz .hassprites
+	jmp .nosprites
+.hassprites:
+
+	movzx ebx, byte [baCliffTranslation+edi]
+	mov esi, canalaction2array
+	mov byte [grffeature], 5
+	call getnewsprite
+	xchg eax, ebx
+.nosprites:
+	pop eax
+	call [addgroundsprite]
+	popa
+	
+	pusha
+
+	// select river waterside
+	cmp dword [canalfeatureids+6*4], 0
+	jz .nospriteswaterside
+		
+	mov dword [showadikespritetype], 6
+	and edi, byte 0x0F
+	movsx ebx, byte [baCliffTranslation+edi]
+	inc ebx
+	imul ebx, 12
+	mov dword [showadikespriteofs], ebx
+	
+	movzx edi, byte [canalaction2array+2]
+	bt edi, 0
+	jnc .sprite1
+	mov ebx, 0
+	call showadikesprite
+.sprite1:
+
+	bt edi, 1
+	jnc .sprite2
+	mov ebx, 1
+	call showadikesprite
+.sprite2:
+
+	bt edi, 2
+	jnc .sprite3
+	mov ebx, 2
+	call showadikesprite
+.sprite3:
+
+	bt edi, 3
+	jnc .sprite4
+	mov ebx, 3
+	call showadikesprite
+.sprite4:
+.nospriteswaterside:
+	popa
+	
 	ret
 ;endp Class6DrawLand
 
@@ -544,6 +625,8 @@ normalwaterabove:
 	call gettileterrain
 	
 	mov [canalaction2array+1], al // now 0 normal, 1 desert, 2 rainforest, 4 on or above snowline
+	mov al, byte [landscape6+esi]
+	mov [canalaction2array+3], al
 	popa
 
 	// Calculate the Dike Map
@@ -553,7 +636,9 @@ normalwaterabove:
 	mov [canalaction2array+2], dl
 	xchg edx, edi	
 
-
+	mov dword [showadikespritetype], 2
+	mov dword [showadikespriteofs], 0
+	
 	bt edi, 0
 	jnc .sprite1
 	mov ebx, 0
@@ -677,13 +762,18 @@ normalwaterabove:
 
 	ret
 ;endp normalwaterabovealt
-	
+
+uvard showadikespritetype, 2
+uvard showadikespriteofs, 0
+
+// ebx = cornernumber
 showadikesprite:
 	push edi
 
 	push esi
 	push eax
-	mov eax, 2		// dike parts
+	add ebx, [showadikespriteofs]
+	mov eax, [showadikespritetype]	// dike parts or other
 	mov esi, canalaction2array
 	mov byte [grffeature], 5
 	call getnewsprite
@@ -836,8 +926,12 @@ global Class6RouteMapHandler
 Class6RouteMapHandler: 
 	cmp byte [landscape5(di)], 2h                    
 	je .shiplift
+	cmp byte [landscape5(di)], 3h                    
+	je .rivertilecliff
 	jmp [oldclass6maphandler] // to TTD normal handler
-
+.rivertilecliff:
+	xor eax, eax
+	ret
 .shiplift:
 	movzx   esi, byte [landscape2+edi]
 	mov     al, [waterliftmaproutes+esi]
@@ -1081,7 +1175,9 @@ Class6ClearTile:
 					// if the water "player" want it...
 	je .errorshiplift
 	add esp, 4
-	call clearshiplift
+	cmp dh, 3
+	je near clearriverslope
+	jmp clearshiplift
 	ret
 
 .errorshipliftpopaxcx:
@@ -1095,6 +1191,22 @@ Class6ClearTile:
 	mov ebx, 80000000h
 	ret
 
+clearriverslope:
+	pusha
+	call locationtoxy
+	xchg esi, edi
+	call dword [checkvehiclesinthewayfn]
+	xchg esi, edi
+	jnz .errorvehicle
+	call dword [cleartilefn]
+	
+	popa
+	mov ebx, [clearwatercost]
+	ret
+.errorvehicle:
+	popa
+	mov ebx, 80000000h
+	ret
 
 // 4 x under part, upper part 
 var paShipLiftAddPartsInLandscape, dw 0, -16, 0, 16,
@@ -1256,7 +1368,7 @@ endproc createshiplift
 
 // Action Handler for creating water
 global actionmakewater
-actionmakewater:	//bh:1->dx valid, dl=x extent, dh=y extent
+actionmakewater:	//bh:1->dx valid, dl=x extent, dh=y extent, edi=type of water
 	test bh, 1
 	jnz .multi
 	mov dx, 0x101
@@ -1320,60 +1432,74 @@ actionmakewater:	//bh:1->dx valid, dl=x extent, dh=y extent
 	pop ax
 	cmp di, 0
 	je .flattile 
+	
 	and edi, byte 0x0F
 	movsx edi, byte [baCliffTranslation+edi]
 	test edi, edi
-	js .error
-
+	js near .error
+	
 .halftile:
+	mov dl, byte [curplayerctrlkey]
+	cmp dl, 1
+	je .rivertileoncliff
 	// we are creating a shiplift...
 	jmp createshiplift
-#if 0
-	xchg esi, edi
-	push ebx
-	push edi
-	mov  esi, 0
+	
+.rivertileoncliff:
+	// call remove everything on tile
+	pusha
+	mov esi, 0
  	call [actionhandler]
-	pop edi
-	xchg esi, edi
 	cmp ebx, 80000000h
-	pop ebx
-	jz .error
+	popa
+	jz near .error
 
 	test bl, 1
-	jz .onlytesting
-	mov byte [landscape5(si)], 2h
+	jz near .onlytesting
+	mov byte [landscape5(si)], 3h
+	mov word [landscape3+esi*2], 1
 	jmp short .common
-#endif
+	
 .flattile:
 	mov dh,[landscape4(si)]
 	shr dh, 4
 
 	cmp dh, 6
-	jz .error
+	jz near .error
 
-	xchg esi, edi
-	push ebx
-	push edi
-	mov  esi, 0
+	// call remove everything on tile
+	pusha
+	mov esi, 0
  	call [actionhandler]
-	pop edi
-	xchg esi, edi
 	cmp ebx, 80000000h
-	pop ebx
+	popa
 	jz .error
 
 	test bl, 1
 	jz .onlytesting
+	
+	cmp dl, 0
+	jne .rivertile
+	
 	mov byte [landscape5(si)], 0h
-.common:
-	mov byte [landscape2+esi], 0h
-
 	movzx edx,byte [curplayerctrlkey]
 	xor edx,1
 	mov word [landscape3+esi*2], dx
+	jmp short .common
+.rivertile:
+	cmp byte [curplayerctrlkey], 1
+	jnz .common
+	mov byte [landscape5(si)], 3h
+	mov word [landscape3+esi*2], 0
+.common:
+	mov byte [landscape2+esi], 0h
 	or byte [landscape4(si)], 60h
 	mov byte [landscape1+esi], 11h
+	push eax
+	extern randomfn
+	call [randomfn]
+	mov byte [landscape6+esi], al
+	pop eax
 	call redrawscreen
 .onlytesting:
 	// fix cost

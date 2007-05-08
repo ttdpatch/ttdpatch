@@ -4466,7 +4466,7 @@ uvard canrventerrailstattile,256*2
 uvard stationanimtriggers,256/2
 uvard bridgeflags,(NBRIDGES+3)/4
 uvard trainuserbits,NTRAINTYPES/4
-uvard canalfeatureids,6
+uvard canalfeatureids,10
 uvard genericids,NUMFEATURES
 
 uvard industryaction3,NINDUSTRYTYPES
