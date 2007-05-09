@@ -134,10 +134,10 @@ proc calcpowerandspeed
 	mov al,[trainviseffect+ebx]
 
 .haveviseffect:
-	cmp al,0x40
+	test al,al
 	pop ecx			// if we get here, the wagon has no speed limit
 	pop eax			// check whether it has power or not
-	jae .nopower		// no power (from prop 22/callback 10)
+	js .nopower		// no power (bit 7 from prop 22/callback 10)
 	jecxz .nopower		// no power (prob 1B is zero)
 	jmp short .gotpower	// has power
 
