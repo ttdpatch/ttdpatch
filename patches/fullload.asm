@@ -3,6 +3,7 @@
 
 #include <std.inc>
 #include <veh.inc>
+#include <flags.inc>
 
 
 
@@ -14,6 +15,7 @@ global checkfull
 checkfull:
 	btr dword [esi+veh.modflags],MOD_ISFULL
 	jc .done
+
 	push ebx
 	push ecx
 
@@ -49,9 +51,15 @@ ovar fullloadtest,-1
 
 	cmp ax,word [edi+veh.currentload]
 	movzx eax,byte [edi+veh.cargotype]
-	je short .isfull
-
-	bts ecx,eax	// mark this cargo type as not full
+ovar fullloadanycheck,0
+	jne short .notfull
+	bt ecx,eax		// placeholder
+/*	
+ *	//When fullloadany on, the preceeding two instructions are overwritten with 0AB0F0374h, to become
+ *
+ *	je short .isfull
+ *	bts ecx, eax	// mark this cargo type as not full
+ */
 .isfull:
 	bts ebx,eax	// mark this cargo type as existing
 .nocargo:
