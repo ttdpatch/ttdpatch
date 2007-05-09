@@ -1040,7 +1040,9 @@ grfcalltable getrandomtriggers
 	ret
 
 .getsignals:
+	ret
 .getcanals:
+	mov al, [esi+3]	// esi = canalaction2array
 .getbridges:
 .getgeneric:
 .getindustries:

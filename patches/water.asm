@@ -397,30 +397,10 @@ Class6DrawLandRiverSlope:
 	imul ebx, 12
 	mov dword [showadikespriteofs], ebx
 	
+	popa
 	movzx edi, byte [canalaction2array+2]
-	bt edi, 0
-	jnc .sprite1
-	mov ebx, 0
-	call showadikesprite
-.sprite1:
-
-	bt edi, 1
-	jnc .sprite2
-	mov ebx, 1
-	call showadikesprite
-.sprite2:
-
-	bt edi, 2
-	jnc .sprite3
-	mov ebx, 2
-	call showadikesprite
-.sprite3:
-
-	bt edi, 3
-	jnc .sprite4
-	mov ebx, 3
-	call showadikesprite
-.sprite4:
+	jmp normalwaterabove.setupfinised
+	
 .nospriteswaterside:
 	popa
 	
@@ -638,7 +618,8 @@ normalwaterabove:
 
 	mov dword [showadikespritetype], 2
 	mov dword [showadikespriteofs], 0
-	
+
+.setupfinised:
 	bt edi, 0
 	jnc .sprite1
 	mov ebx, 0
