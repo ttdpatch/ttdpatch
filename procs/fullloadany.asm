@@ -18,8 +18,8 @@ patchfullloadany:
 	patchcode oldcheckfull,newcheckfull,1,1
 	extern patchflags
 	testflags fullloadany
-	jc .done
+	jnc .done
 	extern fullloadanycheck
-	mov byte [fullloadanycheck], 0C3h // Change jb to ret
+	mov dword [fullloadanycheck], 0AB0F0374h // Adjust jump and change the bt to bts
 .done:
 	ret
