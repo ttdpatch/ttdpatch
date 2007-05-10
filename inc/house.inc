@@ -107,6 +107,10 @@ resb 256*5
 ptrvarofs houseaccepttypes,newhousedatablock,$
 resd 256
 
+// minimum life span
+ptrvarofs houseminlifespans,newhousedatablock,$
+resb 256
+
 // New arrays instead of the old 110-element-long ones. The bottom 128 slots are reserved for
 // the old data (it is copied over here), the remaining 256 slots are for the new data, but
 // only entries between 129 and 128+[lastextrahousedata] (inclusive) are valid. This layout

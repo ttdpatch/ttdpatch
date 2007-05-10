@@ -255,6 +255,7 @@ copyhousedata:
 	and dword [houseclasses+5*edx],0	// clear class info
 	mov byte [houseclasses+5*edx+4],0
 	or dword [houseaccepttypes+edx*4],byte -1
+	mov byte [houseminlifespans+edx],0	// default min. lifespan is 0 years
 	and dword [extrahousegraphdataarr+edx*4],0
 //	and dword [extrahousegraphdataarr+edx*8+housegraphdata.act3],0
 //	and dword [extrahousegraphdataarr+edx*8+housegraphdata.spriteblock],0
@@ -1996,6 +1997,16 @@ canremovehouse:
 	gethouseid edx,edi
 	cmp edx,128				// old houses can't be protected
 	jb .allow
+//towns can remove the house only if its minimum lifespan is expired
+	cmp byte [curplayer],0x80
+	jb .nottown
+	push eax
+	mov al,[currentyear]
+	sub al,[landscape7+edi]
+	cmp al,[houseminlifespans+edx-128]
+	pop eax
+	jb .deny
+.nottown:
 	test byte [housecallbackflags2+edx-128],4	// is the protection callback enabled?
 	jnz .callback
 	test byte [houseextraflags+edx-128],2	// is it protected?
@@ -2007,6 +2018,7 @@ canremovehouse:
 	je .allow
 	cmp byte [curplayer],0x11		// water can flush anything it wants...
 	je .allow
+.deny:
 	pop edx					// remove our return address
 	pop cx					// restore regs saved by the caller
 	pop ax

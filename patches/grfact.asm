@@ -4001,7 +4001,7 @@ defvehdata specbridgedata, B,B,B,B			// 08..0B
 defvehdata spclbridgedata, w,F,B,F			// 0C..0F
 
 defvehdata spechousedata
-defvehdata spclhousedata, F,F,w,B,B,B,B,B,w,B,t,w,B,F,B,d,B,B,B,B,F,B,d	// 08..1e
+defvehdata spclhousedata, F,F,w,B,B,B,B,B,w,B,t,w,B,F,B,d,B,B,B,B,F,B,d,B	// 08..1f
 
 defvehdata specglobaldata
 defvehdata spclglobaldata, B,F,t,d,w,d,d,w,F		// 08..10
@@ -4363,6 +4363,7 @@ var housedata
 	dd addr(sethouseclass)					// 1c
 	dd housecallbackflags2					// 1d
 	dd houseaccepttypes					// 1e
+	dd houseminlifespans					// 1f
 	
 var globaldata
 	dd basecostmult,addr(setcargotranstbl)			// 08..09
