@@ -369,38 +369,35 @@ showorder:
 	jmp short .gotthecity
 
 .noaircraft:
-	inc ebp
-	test dword [miscmodsflags],MISCMODS_NODEPOTNUMBERS
-	jnz .nodepotnum
-	mov WORD [edi-2], statictext(dpt_number)
-	add edi, BYTE 2
-	mov [edi+6], bp
-.nodepotnum:
+	lea eax, [ebp+1]
 	imul esi,ebp,byte 6
-	add esi,depotarray-6
+	add esi,depotarray
 	mov ebp,dword [esi+depot.townptr]
 	movzx esi,word [esi+depot.XY]
 
 	or esi,esi	// does the depot/airport actually exist?
-	jnz short .gotthecity
+	jnz short .gotthecity1
 	inc esi			// clear ZF
 	pop esi			// restored from stack: textrefstack+3
 	mov word [esi-2],6	// empty string
 	pop eax			// clear vehicle type from the stack
 	ret
 
+.gotthecity1:
+	test dword [miscmodsflags],MISCMODS_NODEPOTNUMBERS
+	jnz .gotthecity
+	mov WORD [edi-2], statictext(dpt_number)
+	add edi, BYTE 2
+	mov [edi+6], ax
+	add DWORD [esp], 2
 .gotthecity:
 	mov ax,word [ebp+town.citynametype]
 	stosw
 	mov eax,dword [ebp+town.citynameparts]
 	stosd
-	pop esi		// restored from stack: textrefstack+3
+	pop esi		// restored from stack: textrefstack+3 (+2 if depot num)
 	pop eax		// restored from stack: vehicle type
 	add ax,ourtext(gototraindepot)-0x10
-	test dword [miscmodsflags],MISCMODS_NODEPOTNUMBERS
-	jnz .noincdepotoffset
-	add esi, BYTE 2
-.noincdepotoffset:
 	mov [esi],ax
 
 	// NOTE: our text indices are always nonzero, so the last ADD clears ZF
