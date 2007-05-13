@@ -779,6 +779,7 @@ showadikesprite:
 //  | 6 | 2 | 5 |
 //  |---|---|---|
 getdikemap:
+	call iswateredtilestart
 	push byte -5
 
 %macro .addrel 2-*
@@ -836,8 +837,83 @@ getdikemap:
 // Is tile at esi a water tile?
 // Rules if it's a water tile or not...
 // return stc if it's a water tile otherwise clc
-// in:	esi = reference tile
-// 		ebx = tile to check
+// in:	esi = reference tile 
+// 		ebx = tile to check  (not in start)
+extern gettileinfoshort
+
+uvarb iswateredrefheight
+uvarw iswateredrefcorner
+iswateredtilestart:
+	pusha
+	//  in SI=XY, out ESI=XY, DL=Z, DH=L5[ESI], BX=class<<3, DI=map of corners above DL
+	call [gettileinfoshort]
+	mov [iswateredrefheight], dl
+	mov [iswateredrefcorner], di
+	popa
+	ret
+	
+iswateredtile:
+	pusha
+	xchg esi, ebx
+	//  in SI=XY, out ESI=XY, DL=Z, DH=L5[ESI], BX=class<<3, DI=map of corners above DL
+	call [gettileinfoshort]	
+// Show rules
+	cmp bl, 6<<3	// is it a water tile
+	jnz .testother
+	cmp dh, 1
+	jnz .watertile	// no cliff
+	
+// if we have a cliff and we need to check if our reference tile is above ground
+	cmp byte [iswateredrefheight], 0	// a seelevel reference tile
+	jnz .notwater
+	cmp word [iswateredrefcorner], 0	// are we a slope tile? if not, we assume water
+	jz .watertile
+	// non flat ref tile with lowest height 0
+	bt di, 4
+	jc .notwater	// steep slopes are to complicate
+	mov bx, word [iswateredrefcorner]
+	not ebx
+	and di,0x0f
+	and bx,0x0f
+	test di, bx
+	jnz .watertile
+	jmp .notwater
+
+.testother:
+// Station Tiles
+	cmp bl, 5<<3
+	jnz .notstationwithwater
+	cmp dh, 0x4B
+	jb .notstationwithwater
+	jmp .watertile
+.notstationwithwater:
+
+// Bridge & Tunnel Parts:
+	cmp bl, 9<<3
+	jnz .nobridgepiecewithwater
+	// test if it's a bridge middlepart
+	bt dx, 14   // would be:  bt dh, 6 but thats not supported in x86 
+	jnc .testbridgeend // not a middle part
+	bt dx, 13  // 5
+	jc .nobridgepiecewithwater // not a land/water
+	bt dx, 11 // 3
+	jnc .nobridgepiecewithwater // not a water tile
+	jmp .watertile
+.testbridgeend:
+	and dh, 0x86
+	cmp dh, 0x84
+	je .watertile
+.nobridgepiecewithwater:
+.notwater:
+	popa
+	clc
+	ret
+.watertile:
+	popa
+	stc
+	ret
+	
+#if 0
 iswateredtile:
 	push eax
 	mov al,[landscape4(bx)]
@@ -891,6 +967,7 @@ iswateredtile:
 	stc
 	ret
 ;endp iswateredtile
+#endif
 
 
 
