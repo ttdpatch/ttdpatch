@@ -21,39 +21,41 @@
 
 #include "themes.h"
 
-const static int theme = 3;
-
 extern char landscape4[0x100][0x100];
 extern char desertmap[0x100][64];
 
 extern uint8_t terraintype;     // hills setting (par 1)
 extern uint8_t quantityofwater; // water setting (par 2)
 extern char climate;            // 0 - temprate, 1 - snow, 2 - desert, 3 - toyland)
-//extern uint8_t theme;           // 0 - freeform
-                                // 1 - classic
-                                // 2 - valley
-                                // 3 - mountains
-                                // 4 - shoreline
-                                // 5 - atol
-                                // 6 - longmap
+static uint8_t theme = 0;
+                                // 0 - freeform
+                                // 1 - valley
+                                // 2 - mountains
+                                // 3 - shoreline
+                                // 4 - atol
+                                // 5 - longmap
+                                
+static uint8_t forced = 0;
 
 extern void memcompact() asm("dmemcompact");
 extern uint32_t (*randomfn)(void) asm("randomfn");
+extern int32_t landgen_forceparam asm("landgen_forceparam");
 
 #define OUTPUT_FILE // undef this to disable outputing the heightmap and
                     // desert map as bmps
-                    
-
 
 static const char deserttype[4] = { 1, 0, 2, 2 };
 
-void makerandomterrain() // pointer to the random number generator function
+void makerandomterrain()
 {
+
+// landgen cheat solution goes here
 
 int sourcePatchSize = 5 + randomfn()%5;
 
 int par1 = terraintype;
 int par2 = quantityofwater;
+
 
 gridArray* source = NULL;
 gridArray* desert = NULL;
@@ -63,16 +65,29 @@ ulong resize = 64;
 int i_x = 0;
 int i_y = 0;
 
+
 if (sourcePatchSize <= 20) {
      sourceSize = (sourcePatchSize + 5) * 8;
      resize = 1 << ((sourcePatchSize + 5) / 8 + 5);
 }
 
+
 if (theme == 3 || theme == 2)
 {
 makeArray(192, 192, randomfn, &source);
 } else {
-makeArray(sourceSize+randomfn()%64-32, sourceSize+randomfn()%64-32, randomfn, &source);
+makeArray(sourceSize+randomfn()%64-48, sourceSize+randomfn()%64-48, randomfn, &source);
+}
+
+if (landgen_forceparam != -1) {
+  	                par1 =  landgen_forceparam & 0xff;
+ 	                par2 = (landgen_forceparam >> 8) & 0xff;
+ 	                sourceSize = (landgen_forceparam >> 16) & 0xff; 	                
+ 	                theme = (landgen_forceparam >> 24) & 0x3f;
+ 	                destroyArray(&source);
+ 	                makeArray(sourceSize, sourceSize, randomfn, &source);
+ 	                forced = 1;
+ 	                if (par1 >= par2) par2 = par1+1;
 }
 
 go(5,&source);
@@ -97,9 +112,13 @@ addArray(desert,source);
 destroyArray(&desert);
 memcompact();
 
-freeForm(par1, par2, &desert, &source); // use default theme
-//valley(par2,0, &desert, &source);
-//mountains(par2, &desert, &source);
+switch (theme)
+{
+case 0: freeForm(par1, par2, forced, &desert, &source); break; // use default theme
+case 1: valley(par2, forced, &desert, &source); break;
+case 2: mountains(par2, forced, &desert, &source); break;
+default: freeForm(par1,par2, forced, &desert, &source); break;
+}
 
 for (i_y = 0;i_y < resize-1;++i_y)	// don't touch southern-most tiles
 {

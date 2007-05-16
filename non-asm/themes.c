@@ -13,6 +13,7 @@
 #include <ttdvar.h>
 #include "themes.h"
 #include "gridArray.h"
+
 extern char climate;
 
 extern void memcompact() asm("dmemcompact");
@@ -58,15 +59,23 @@ terrain_parm_t terrain_parms[3][4] = {
 * par2 - amount of water
 */
 
-void freeForm (int hills, int water, gridArray** desert_,  gridArray** this_)
+void freeForm (int hills, int water, uint8_t forced, gridArray** desert_,  gridArray** this_)
 {
     terrain_parm_t parm = terrain_parms[water][hills];
 
     float tmpD = 0.0;
     float tmpH = 0.0;
-	int delta = parm.deltamin + (randomfn()%(parm.deltarange+1));
+    
+    int delta = parm.deltamin + (randomfn()%(parm.deltarange+1));
 	int trunc = parm.truncmin + (randomfn()%(parm.truncrange+1));
-	ulong i_x = 0;
+	
+	if (forced)
+    {
+       delta = hills;
+       trunc = water;
+    }
+	
+    ulong i_x = 0;
 	ulong i_y = 0;
 
     if (climate == 2) {
@@ -123,7 +132,7 @@ void freeForm (int hills, int water, gridArray** desert_,  gridArray** this_)
 * creates a classic arctic/tropic terrain (half one thing, half another)
 */
 
-void classic (gridArray** desert_, gridArray** this_)
+void classic (uint8_t forced, gridArray** desert_, gridArray** this_)
 {
  }
 
@@ -132,7 +141,7 @@ void classic (gridArray** desert_, gridArray** this_)
 * par1 - width of the river inside
 */
 
-void valley (int width, gridArray** desert_, gridArray** this_)
+void valley (int width, uint8_t forced, gridArray** desert_, gridArray** this_)
 {
      
      float min = 1.0;
@@ -162,6 +171,7 @@ void valley (int width, gridArray** desert_, gridArray** this_)
      normalize(0.45,*desert_);
      addScalar(0.55,*desert_);
      mulArray(*desert_,*this_);
+     filter(5,this_);
      ttMap(16,17 + width*4,*this_);
      destroyArray(desert_);
      memcompact();
@@ -178,7 +188,7 @@ void valley (int width, gridArray** desert_, gridArray** this_)
 * par 1 - width of the shores
 */
 
-void mountains (int width, gridArray** desert_, gridArray** this_)
+void mountains (int width, uint8_t forced, gridArray** desert_, gridArray** this_)
 {
      int i_x = 0;
      int i_y = 0;
@@ -237,7 +247,7 @@ void mountains (int width, gridArray** desert_, gridArray** this_)
 * par2 - angle
 */
 
-void shoreline (int height, int angle, gridArray** desert_, gridArray** this_)
+void shoreline (int height, int angle, uint8_t forced, gridArray** desert_, gridArray** this_)
 {
  }
 
@@ -246,7 +256,7 @@ void shoreline (int height, int angle, gridArray** desert_, gridArray** this_)
 * note - no desert will be created!
 */
 
-void atolTheme (gridArray** this_)
+void atolTheme ( uint8_t forced, gridArray** this_)
 {
  }
 
@@ -255,6 +265,6 @@ void atolTheme (gridArray** this_)
 * par1 - amout of hilliness
 */
 
-void longmap (int hills, gridArray** desert_, gridArray** this_)
+void longmap (int hills, uint8_t forced,  gridArray** desert_, gridArray** this_)
 {
  }
