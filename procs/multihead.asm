@@ -6,6 +6,7 @@
 patchproc fastwagonsell,newtrains, patchwagonsell
 patchproc newtrains, multihead, patchpower
 patchproc vruncosts, patchrunningcost
+patchproc newtrains, vruncosts, multihead, patchtrainrunningcost
 
 extern trainmaintcostarray,trainmaintbasecostarray
 
@@ -196,11 +197,13 @@ patchmultihead:
 //	patchcode oldbuysecondengine,newbuysecondengine,1,1
 	ret
 
-patchrunningcost:
+patchtrainrunningcost:
 	; Trains
 	patchcode oldtrainmaintcost, newtrainmaintcost, 1+WINTTDX, 2
 	patchcode oldshowtrainmaintcost, newshowtrainmaintcost, 1+WINTTDX, 2
+	ret
 
+patchrunningcost:
 	; Planes
 	patchcode oldaircraftmaintcost, newaircraftmaintcost2, 1, 3
 	patchcode oldaircraftmaintcost, newaircraftmaintcost, 1, 0

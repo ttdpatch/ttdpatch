@@ -978,10 +978,17 @@ proc trainmaintcost
 
 	push ecx
 	movzx ecx, byte [trainrunningcost+ebx]
+
+	mov al, cl		// Is variable running costs enabled?
+	testflags vruncosts	// No so fall back on this value
+	jnc .novruncosts
+
 	mov al, bl
 	mov ah, 0xD
 extern GetCallBack36
 	call GetCallBack36
+
+.novruncosts:
 	movzx eax, al
 	pop ecx
 
