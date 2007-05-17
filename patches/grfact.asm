@@ -4281,7 +4281,7 @@ var specificpropertyofs, db -10,-6,0,0
 
 	// special vehicle properties stored in newvehdatastruc (or with handler func)
 var specialpropertybase, dd newtrainvehdata,newrvvehdata,newshipvehdata,newplanevehdata
-	dd newstationdata, 0, bridgedata, housedata, globaldata, industiledata, industrydata, cargodata, sounddata
+	dd newstationdata, canalsdata, bridgedata, housedata, globaldata, industiledata, industrydata, cargodata, sounddata
 	dd airportdata,0,objectdata
 checkfeaturesize specialpropertybase, 4
 
@@ -4335,6 +4335,9 @@ var newstationdata
 	dd stationanimtriggers					// 18
 	dd addr(setrailstationrvrouteing)				// 19
 
+var canalsdata
+	dd canalscallbackflags					// 08
+	
 var bridgedata	// (prop 0C is set in patches.ah)
 	dd 0, addr(alterbridgespritetable), bridgeflags		// 0C..0E
 	dd longintrodatebridges					// 0F
@@ -4475,6 +4478,8 @@ uvard industryspriteblock,NINDUSTRYTYPES
 uvard substindustries,(NINDUSTRYTYPES+3)/4
 
 uvard cargoaction3,32
+// canals river 
+uvard canalscallbackflags,256/4
 
 // objects id management
 uvard objectsdataidtogameid, NOBJECTS/2

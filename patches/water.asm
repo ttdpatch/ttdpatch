@@ -13,6 +13,7 @@ extern getgroundalt,getnewsprite,gettileinfo,grffeature,landshapetospriteptr
 extern locationtoxy,patchflags,redrawscreen
 extern waterbanksprites,gettileterrain
 extern guispritebase,numguisprites,actionmakewater_actionnum,ctrlkeystate,cleararea_actionnum
+extern canalscallbackflags,curcallback,miscgrfvar
 
 #if 0
 struc newwatersprites
@@ -130,7 +131,7 @@ uvard oldclass5drawlandfnc,1,s
 uvard oldclass9drawlandfnc,1,s
 uvard oldclass9queryfnc,1,s
 
-uvarb canalaction2array,4  // height byte, dessertmapinfo byte, dikemapbyte, randomnum
+uvarb canalaction2array,4  // height byte, dessertmapinfo byte, dikemapbyte, randomnum byte
 
 global SwapDockWinPurchaseLandIco
 SwapDockWinPurchaseLandIco:
@@ -364,7 +365,7 @@ Class6DrawLandRiverSlope:
 	mov ebx, 4061
 	and edi, byte 0x0F
 	cmp edi, 0	// we don't have a slope, so use default water sprite
-	je .nosprites
+	je near .nosprites
 	mov eax, 5	// we want river slopes
 	cmp dword [canalfeatureids+5*4], 0
 	jnz .hassprites
@@ -377,6 +378,21 @@ Class6DrawLandRiverSlope:
 	movzx ebx, byte [baCliffTranslation+edi]
 	mov esi, canalaction2array
 	mov byte [grffeature], 5
+	
+// call callback 0x147 to get a new offset if the grfauthor wish..
+	test byte [canalscallbackflags+eax],1
+	jz .nocallback
+	mov dword [curcallback], 0x147
+	mov dword [miscgrfvar], ebx
+	push eax
+	call getnewsprite
+	// jc not needed, as failing means eax = 0
+	add ebx, eax
+	pop eax
+	mov dword [curcallback], 0
+	mov dword [miscgrfvar], 0
+.nocallback:	
+	
 	call getnewsprite
 	xchg eax, ebx
 .nosprites:
@@ -620,6 +636,9 @@ normalwaterabove:
 	mov dword [showadikespriteofs], 0
 
 .setupfinised:
+
+DrawDikeAroundWater:
+
 	bt edi, 0
 	jnc .sprite1
 	mov ebx, 0
@@ -757,6 +776,20 @@ showadikesprite:
 	mov eax, [showadikespritetype]	// dike parts or other
 	mov esi, canalaction2array
 	mov byte [grffeature], 5
+	
+	test byte [canalscallbackflags+eax],1
+	jz .nocallback
+	mov dword [curcallback], 0x147
+	mov dword [miscgrfvar], ebx
+	push eax
+	call getnewsprite
+	// jc not needed, as failing means eax = 0
+	add ebx, eax
+	pop eax
+	mov dword [curcallback], 0
+	mov dword [miscgrfvar], 0
+.nocallback:		
+		
 	call getnewsprite
 	xchg eax, ebx
 	pop eax
