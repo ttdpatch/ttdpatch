@@ -994,6 +994,8 @@ grfcalltable getrandombits
 	ret
 
 .getcanals:
+	mov al, [esi+3]	// esi = canalaction2array
+	ret
 .getbridges:
 .getgeneric:
 .getcargos:
@@ -1042,7 +1044,7 @@ grfcalltable getrandomtriggers
 .getsignals:
 	ret
 .getcanals:
-	mov al, [esi+3]	// esi = canalaction2array
+	//mov al, [esi+3]	// esi = canalaction2array
 .getbridges:
 .getgeneric:
 .getindustries:
