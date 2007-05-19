@@ -455,9 +455,10 @@ bridgemiddlecheckslopeok:
 	//fix coasts
 	cmp bx, 6*8
 	jne .notwater
-	cmp dh, 1
-	jne .notwater
-	dec dh
+//	cmp dh, 1	// to support rivers
+//	jne .notwater
+//	dec dh
+	mov dh, 0
 .notwater:
 
 	mov word [operrormsg2], ourtext(steepslopes) 

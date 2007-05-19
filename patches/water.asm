@@ -185,6 +185,9 @@ Class6DrawLand:
 	js .oldfunction // no a depot
 	jnz .couldbecliff
 	mov esi, ebx	// we need it later, so store it
+	// check if we have a river tile and jump
+	cmp byte [landscape3+2*esi], 11b
+	je near Class6DrawLandRiverSlope
 	mov bx, 4061
 	call [addgroundsprite]
 	// If we need to draw some eyecandy around the water sprites height > 0
@@ -193,7 +196,8 @@ Class6DrawLand:
 	// or this is a canal at sealevel
 	cmp esi,0x101
 	jb .nocanal
-	test word [landscape3 + 2*esi], 1
+
+	test word [landscape3+2*esi], 1
 	jnz .normalwaterabovejmp
 .nocanal:
 	ret
@@ -204,15 +208,15 @@ Class6DrawLand:
 	cmp dh, 3
 	je near Class6DrawLandRiverSlope
 	cmp dh, 1
-	ja .shiplift
+	ja Class6DrawLandShiftLift
 
 .oldfunction:
 	jmp [oldclass6drawlandfnc]
 	ret
 
-.shiplift:
+Class6DrawLandShiftLift:
 	mov esi, ebx	// we need it later, so store it
-	
+
 // Shows the new Shiplifts on and the Watercliffs
 
 // Get the tile type that is stored in the landscape
@@ -234,27 +238,12 @@ Class6DrawLand:
 
 .newsprites:
 // fill the canalaction2array with usefull info
-	pusha
-	shr dl, 3
+	call FillCanalAction2FeatureArray
+// correct the height for special upper parts of locks, they need to get the same height as the lower tiles
 	cmp edi, 8
 	jb .notatoppart
-	dec dl		// fake top part so it's the right height
+	dec byte [canalaction2array]
 .notatoppart:
-	mov [canalaction2array], dl
-	shl dl, 3
-	
-	call getdikemap
-	xchg edi, edx
-	mov [canalaction2array+2], dl
-	xchg edx, edi
-	
-	
-	mov al, 0
-
-	call gettileterrain
-
-	mov [canalaction2array+1], al // now 0 normal, 1 desert, 2 rainforest, 4 on or above snowline
-	popa
 
 	// See if we need a cliff groundsprite
 	push ebx
@@ -342,23 +331,61 @@ Class6DrawLand:
 .nosprites:
 	popa
 	ret
-	
-Class6DrawLandRiverSlope:
-	mov esi, ebx
-	shr dl, 3
-	mov [canalaction2array], dl
-	shl dl, 3
-	
+
+// in: esi xy
+// out: filled canalaction2array
+//	height byte
+//	desertmapinfo byte
+//	dikemapbyte
+//	randomnum byte
+FillCanalAction2FeatureArray:
 	pusha
 	call getdikemap
 	xchg edi, edx
 	mov [canalaction2array+2], dl
-	call gettileterrain
-	mov [canalaction2array+1], al // now 0 normal, 1 desert, 2 rainforest, 4 on or above snowline
-	mov al, byte [landscape6+esi]
-	mov [canalaction2array+3], al
-	popa
+	// in SI=XY, out ESI=XY, DL=Z, DH=L5[ESI], BX=class<<3, DI=map of corners above DL
+	call [gettileinfoshort]
 	
+	xor eax, eax
+	
+	cmp bx, 6<<3
+	jne .notawatertile				// we may be called by a bridge tile, which has other info in L6
+	mov al, byte [landscape6+esi]	// get the random byte
+.notawatertile:
+	mov [canalaction2array+3], al
+
+	shr dl, 3
+	mov [canalaction2array], dl
+	shl dl, 3
+	
+	cmp byte [climate],2
+	je .tropic
+	cmp byte [climate],1
+	je .snowtest
+	testflags tempsnowline
+	jnc .gotclimate
+	cmp byte [climate],0
+	jne .gotclimate
+.snowtest:
+	add dl, 8
+	cmp dl,[snowline]
+	seta al
+	shl al,2
+	jmp .gotclimate
+.tropic:
+	xchg ebx,esi
+	call [getdesertmap]
+	xchg ebx,esi
+.gotclimate:
+	mov [canalaction2array+1], al // now 0 normal, 1 desert, 2 rainforest, 4 on or above snowline
+
+	popa
+	ret
+	
+Class6DrawLandRiverSlope:
+	mov esi, ebx
+	
+	call FillCanalAction2FeatureArray
 
 	pusha
 	push eax
@@ -415,7 +442,7 @@ Class6DrawLandRiverSlope:
 	
 	popa
 	movzx edi, byte [canalaction2array+2]
-	jmp normalwaterabove.setupfinised
+	jmp DrawDikeAroundWater
 	
 .nospriteswaterside:
 	popa
@@ -430,7 +457,6 @@ var coastdirections // xy-offsets for all possible height masks (1234h means thi
 	dw 1234h, 0000h, -100h, 0000h 
 	dw 1234h, +100h, 0000h, 0000h
 	dw +001h, 0000h, 0000h, 0000h
-
 uvard newaquaductbase	//4 end sprites (on to bridge is: SW, SE, NE, NW), 4 base sprites: X,Y of top, pillar
 uvard newaquaductnum
 
@@ -607,38 +633,25 @@ removebridgewater:
 ;endp removebridgewater
 
 // code for showing "dikes" around water
+// in:
+//	esi = xy
 normalwaterabove:
 	cmp dword [canalfeatureids+2*4], 0
 	jnz .newsprites
 	ret
 .newsprites:
-	
-	pusha
-	shr dl, 3
-	mov [canalaction2array], dl
-	shl dl, 3
-	
-	call gettileterrain
-	
-	mov [canalaction2array+1], al // now 0 normal, 1 desert, 2 rainforest, 4 on or above snowline
-	mov al, byte [landscape6+esi]
-	mov [canalaction2array+3], al
-	popa
-
-	// Calculate the Dike Map
-	call getdikemap	// if you want to cache don't break selectgroundforbridge!
-	
-	xchg edi, edx
-	mov [canalaction2array+2], dl
-	xchg edx, edi	
-
+	call FillCanalAction2FeatureArray
 	mov dword [showadikespritetype], 2
 	mov dword [showadikespriteofs], 0
-
-.setupfinised:
-
+	// fall trough
+	movzx edi, byte [canalaction2array+2]
+	
+// in: 
+//	edi = dikemap
+//	ax,cx = tilexy
+//  showadikespritetype = type to draw
+//	showadikespriteofs = offset in type (to support slopes as examples)
 DrawDikeAroundWater:
-
 	bt edi, 0
 	jnc .sprite1
 	mov ebx, 0
@@ -1548,7 +1561,7 @@ actionmakewater:	//bh:1->dx valid, dl=x extent, dh=y extent, edi=type of water
 	test bl, 1
 	jz near .onlytesting
 	mov byte [landscape5(si)], 3h
-	mov word [landscape3+esi*2], 1
+	mov word [landscape3+esi*2], 11b
 	jmp short .common
 	
 .flattile:
@@ -1580,8 +1593,8 @@ actionmakewater:	//bh:1->dx valid, dl=x extent, dh=y extent, edi=type of water
 .rivertile:
 	cmp byte [curplayerctrlkey], 1
 	jnz .common
-	mov byte [landscape5(si)], 3h
-	mov word [landscape3+esi*2], 0
+	mov byte [landscape5(si)], 0h
+	mov word [landscape3+esi*2], 11b
 .common:
 	mov byte [landscape2+esi], 0h
 	or byte [landscape4(si)], 60h
@@ -1730,7 +1743,7 @@ Class5DrawLand:
 	je .notwater ; actualy it is water, but not canals, but who cares
 
 .seacanal:
-      pusha
+	pusha
 	call [oldclass5drawlandfnc]
 	popa
 	mov esi, ebx
