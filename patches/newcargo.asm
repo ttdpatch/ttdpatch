@@ -988,6 +988,13 @@ setcargobit:
 // price as if it inflated constantly during the game. To solve this, we keep
 // inflating all old cargo prices, so we can use the old passenger cost to
 // find out the inflation factor.
+
+// NOTE TO SELF (and others who want to modify this code):
+// Do not modify this code unless someone reports a problem with it. Long arithmetic is
+// easy to screw up, and the error may not be apparent instantly. I've tried
+// to save some instructions by "clever" tricks, but the code always turned out
+// to be incorrect. It just isn't worth saving some cycles in a code that
+// is called very rarely.
 global setcargopricefactors
 proc setcargopricefactors
 
@@ -1024,30 +1031,29 @@ proc setcargopricefactors
 
 	div edi
 
-	mov edx,[%$multiplier]
-
-// now eax=fraction part, edx=integer part
-// negate the result, we need it as a negative multiplier
-
-	neg eax
-	adc edx,0
-	neg edx
-
-// save the negative result
-	mov [%$multiplier],edx
 	mov [%$multiplier_frac],eax
 
+// now we have a positive multiplier on stack
 .next:
 	lodsd
 // multiply the 32-bit base cost and the 32.32 bit mutliplier to get the
 // cost, but truncate the fraction of the result to 16 bits
 	mov edi,eax
-	imul edi,dword [%$multiplier]
+	imul edi,dword [%$multiplier]		// this is meant to be an unsigned multiply - both arguments should be positive
+	mul dword [%$multiplier_frac]		// multiply the fraction too
+	add edi, edx
+
+// now edi is the integer part of the price factor, eax is the 32-bit fractional part
+// we need the negative price factor, so negate both
+	neg eax
+	adc edi,0
+	neg edi
+
+// save the integer part and the truncated fractional part
 	mov [newcargopricefactors+ebx*8], edi
-	imul dword [%$multiplier_frac]
-	add [newcargopricefactors+ebx*8], edx
 	shr eax,16
 	mov [newcargopricefactors+ebx*8+4], eax
+
 	inc ebx
 	loop .next
 
