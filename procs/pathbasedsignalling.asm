@@ -135,7 +135,10 @@ patchpathbasedsignalling:
 
 	mov eax,[ophandler+2*8]
 	mov edi,[eax+0x28]	// Class2VehEnterLeave
-	mov byte [edi+3+WINTTDX],77+21*WINTTDX	// do not unreserve crossing immediately
+// do not unreserve crossing immediately
+// we can't skip the whole "leave" branch because abandonedroads has a patch in it
+// instead, we sabotage the "is it a train?" check so the unreserving never happens
+	mov byte [edi+0x87+0x20*WINTTDX],0xEB	// jne -> jmp short
 
 	stringaddress oldsignalblocktrace
 //	changereltarget 0,addr(signalblocktrace)
