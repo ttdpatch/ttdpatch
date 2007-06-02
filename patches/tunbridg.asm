@@ -774,10 +774,23 @@ exported gettunnelotherendproc
 	mov WORD [esp+14], 0	//stop reverse check on tunnel entrance (triggers over the top track detection), and would normally find nothing new anyway.
 ret
 .fixdir:
+	push edx
 	inc ax
 	and ebx, 0xFFFF
+	mov ecx, [tunnelgetotherendretaddr]
+	mov edx, [ecx+3]	//sTraceRouteState.distance
+	add [edx], ax
+	add ecx, 0x14		//skip route map tunnel through addition
+	mov edx, [ecx-6]	//rel to AddToLocalRouteMap
+	lea eax, [edx+ecx-2]
+	pop edx
+	push ecx
+	push ebx
+	mov cx, 4000h
+	call eax		//AddToLocalRouteMap
+	pop ebx
 	add di, [tunneloffsets+ebx-1]
-	jmp DWORD [tunnelgetotherendretaddr]
+	ret
 
 .notsignal:
 	mov BYTE [tunnelgetclass9routemapflags], 1
@@ -795,6 +808,8 @@ exported fixtunnelentry
 	jb .tret	//first step
 	//cl = old direction, as step rather than first step function called
 	
+	//check whether reverse signal check on doubly stacked tunnel exits
+
 	//if direction is *not* 0,1,8 or 9, gratuitously deny any attempts to pass *through* the tunnel itself
 	mov al, cl
 	and al, ~9

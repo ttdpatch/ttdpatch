@@ -504,7 +504,7 @@ getpresigtype:
 	// exits, and if there is one set the pre-signals to green otherwise
 	// red.  If there are no exits at all, pre-signals go green too.
 countandsetpresigs:
-
+	movzx ecx, cx	// make sure that the upper half of this loop counter is zero
 	xor ah,ah	// ah: bitcoded (see above for bit values)
 			// 	lower bits: number of green exits, up to 3.
 
