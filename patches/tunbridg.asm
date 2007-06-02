@@ -576,8 +576,8 @@ exported Class9RouteMapHandlerTunnel
 	cmp al, 0
 	jnz .nootherroute
 	mov al, [landscape7+edi]
-	test al, 0x80
-	jnz .newroute
+//	test al, 0x80	//enable enhanced tunnel checking for non-enhanced tunnel entrances to alleviate routefinding/signal propagation/train movement bugs, from track above a normal tunnel entrance to that below it.
+	jmp .newroute	//was jnz
 .nootherroute:
 	mov eax, 0x101
 	test byte [landscape5(di)], 1
@@ -807,8 +807,6 @@ exported fixtunnelentry
 	cmp eax, 0xE2
 	jb .tret	//first step
 	//cl = old direction, as step rather than first step function called
-	
-	//check whether reverse signal check on doubly stacked tunnel exits
 
 	//if direction is *not* 0,1,8 or 9, gratuitously deny any attempts to pass *through* the tunnel itself
 	mov al, cl
