@@ -1191,6 +1191,13 @@ proc newbuyrailvehicle
 
 	cmp ebx,0x80000000
 	je .done
+	
+	; Ugly hack to fix the id "eating" issue by aRVs
+	cmp byte [buildingroadvehicle], 1 ; Since these are all extra parts, we just want to blank 'em anyway
+	jne .notaroadvehiclethen
+	mov byte [edi+veh.consistnum], 0 ; We don't want a articulated piece to have an id!
+	
+.notaroadvehiclethen:
 
 	// attach to engine
 	mov byte [edi+veh.artictype],0	// in case any left-over was in there
@@ -1201,7 +1208,7 @@ proc newbuyrailvehicle
 	mov dx,[edx+veh.idx]
 	mov [edi+veh.engineidx],dx
 	and dword [edi+veh.value],0
-
+	
 	// regular and multihead: attach edi to prevveh
 	// reversed dual head: detach prevveh from prevprevveh and attach to edi
 	//	(e.g. for 5, before 0->2->3->4->1 then 0->2->3->5->4->1)
@@ -1229,6 +1236,9 @@ proc newbuyrailvehicle
 
 	movzx esi,al
 
+	cmp byte [buildingroadvehicle], 1 ; The below doesn't work very well for Road Vehicles, makes them little z's
+	je .reverseroadvehicle
+	
 	mov al,[edi+veh.spritetype]
 	cmp al,0xfd
 	jae .hasotherengine
@@ -1247,6 +1257,11 @@ proc newbuyrailvehicle
 	add al,1
 	mov [edi+veh.spritetype],al
 	jmp .next
+	
+.reverseroadvehicle: ;  For roadvehicles the above will never reverse them correctly, so we do it manually.
+	mov byte [edi+veh.spritetype], 0xFD
+	jmp .next
+
 endproc
 
 
