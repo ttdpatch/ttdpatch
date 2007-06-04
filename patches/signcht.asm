@@ -140,7 +140,7 @@ cheatentry "LANDD", landdispcheat,0
 cheatentry "SOUND", soundeffectcheat,0	// play a certain sound effect for testing
 cheatentry "DSPRITE", findspriteinmemoryanddump,0
 cheatentry "SMEM", patchspriteinmem, 0	// change spritememory
-cheatentry "WATER",landwatercheat,0
+//cheatentry "WATER",landwatercheat,0
 cheatentry "WHEREAMI",positioncheat,0
 cheatentry "SNOWLINE",snowlinecheat,0
 cheatentry "GOTOXY",gotocheat,0
@@ -2366,21 +2366,6 @@ statresetcheat:
 	call dword [invalidatehandle]
 	clc
 	ret
-
-landwatercheat:
-	CALLINT3
-	call getsignxy
-	rol     si, 4
- 	mov     ax, si
-	mov     cx, si
- 	rol     cx, 8
- 	and     ax, 0FF0h
-	and     cx, 0FF0h
- 	ror     si, 4
-	dopatchaction actionmakewater
-	clc
-	ret
-
 
 lostwagonscheat:
 	call findengines

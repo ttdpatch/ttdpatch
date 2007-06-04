@@ -79,13 +79,6 @@ codefragment oldRoadConstrWinHandler, 3
 codefragment newRoadConstrWinHandler
 	icall RoadConstrDragUITick
 
-codefragment oldDockConstrWinHandlerEnd,3
-	cmp dl, cWinEventMouseToolUITick
-	jz near $-210+6
-
-codefragment newDockConstrWinHandlerEnd
-	icall DockConstrDragUITick
-
 codefragment oldAirportConstrWinHandler,3
 	cmp dl, cWinEventClick
 	jz near $-150+6
@@ -166,7 +159,7 @@ patchenhancegui:
 	patchcode oldDemolishTile,newDemolishTile,1,1
 	patchcode oldRailConstrWinHandler,newRailConstrWinHandler,1,1
 	patchcode oldRoadConstrWinHandler,newRoadConstrWinHandler,1,1
-	patchcode oldDockConstrWinHandlerEnd,newDockConstrWinHandlerEnd,1,1
+	// patchcode oldDockConstrWinHandlerEnd,newDockConstrWinHandlerEnd,1,1 // now handled via watergui.asm
 	patchcode oldAirportConstrWinHandler,newAirportConstrWinHandler,1,1
 	patchcode oldLandscapeGenWinHandler,newLandscapeGenWinHandler,1,1
 	stringaddress findrailroadtoolmousedragdirection,1+WINTTDX,2

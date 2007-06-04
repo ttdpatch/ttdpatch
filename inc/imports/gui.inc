@@ -2,6 +2,7 @@ extern BringWindowToForeground,FindWindow
 extern CreateWindow,CreateWindowRelative,CreateTooltip
 extern DestroyWindow
 extern DrawWindowElements
+extern RefreshWindowArea
 
 extern drawtextfn,drawrighttextfn,drawsplittextfn
 extern drawcenteredtextfn,drawsplitcenteredtextfn

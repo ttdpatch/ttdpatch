@@ -32,18 +32,6 @@ codefragment newshipmovement80h
 	nop
 	db 0xE9,0x54,0x01
 
-codefragment olddocktoolpurchaseland, -11
-	mov esi, 10050h
-
-codefragment newdocktoolpurchaseland
-	/*
-	mov bl, 3
-	mov word [operrormsg1], ourtext(cantbuildcanalhere)
-	mov esi, actionmakewater_actionnum
-	*/
-	icall newdocktoolpurchaseland_handler
-	setfragmentsize 16
-
 codefragment oldclass6cleartile
 	cmp dh, 1
 	jz $+2+0x06
@@ -103,18 +91,6 @@ codefragment newremovebouy
 	and word [nosplit landscape3+esi*2], 0x001
 	setfragmentsize 24
 
-codefragment oldselectdockpurchaselandtool, 7
-	jb $+0x201
-	push esi
-	mov ebx, 4792
-	mov ax, 0x301
-	xor dx, dx
-	db 0xE8
-
-codefragment newselectdockpurchaselandtool
-	icall selectdockpurchaselandtool_spritesel
-	setfragmentsize 9
-
 codefragment newaquaductmiddlespritebaseget
 	icall aquaductmiddlespritebaseget
 	setfragmentsize 7
@@ -129,17 +105,17 @@ codefragment oldclass9drawendspritebaseget,21	//27
                 jnz     short loc_153A9F
                 add     esi, BYTE 10h
 
-loc_153A9F:                                     ; CODE XREF: Class9DrawLand+EAj
+loc_153A9F:                                     ; CODE XREF: Class9DrawLand+EA.j
                 test    dh, 20h
                 jz      short loc_153AA7
                 add     esi, BYTE 8
 
-loc_153AA7:                                     ; CODE XREF: Class9DrawLand+F2j
+loc_153AA7:                                     ; CODE XREF: Class9DrawLand+F2.j
                 test    bl, 2
                 jz      short loc_153AAF
                 add     esi, BYTE 4
 
-loc_153AAF:                                     ; CODE XREF: Class9DrawLand+FAj
+loc_153AAF:                                     ; CODE XREF: Class9DrawLand+FA.j
                 and     ebx, BYTE 0Ch
                 mov     ebx, [esi+ebx*8]
 
@@ -148,7 +124,6 @@ endcodefragments
 patchcanals:
 	// Disable next line for simple movement handler
 	patchcode oldshipmovement80h, newshipmovement80h,2,2
-	patchcode olddocktoolpurchaseland, newdocktoolpurchaseland,3+WINTTDX,4
 	patchcode oldclass6cleartile, newclass6cleartile,1,1
 
 	mov eax,[ophandler+0x06*8]
@@ -190,8 +165,19 @@ patchcanals:
 	patchcode oldbuildbouy, newbuildbouy, 1, 3
 	patchcode oldremovebouy, newremovebouy
 	
-	//patch aquaduct and canal mousetools
-	patchcode selectdockpurchaselandtool
+	// patch new gui for water, we don't need to search because we know exactly where the stuff is
+	extern CreateDockWaterConstrWindow,OldDockWaterConstr_WindowHandler,DockWaterConstr_WindowHandler,OldDockWaterConstr_ClickProcs,OldDockWaterConstr_ToolClickProcs
+	mov eax, [ophandler+0x12*8]
+	mov eax, [eax+1*4]	// = Class12FunctionHandler
+	mov edi, [eax+3]	// = Get the Handler Table
+	mov dword [edi], addr(CreateDockWaterConstrWindow)
+	mov eax, [edi+1*4]
+	mov [OldDockWaterConstr_WindowHandler], eax
+	mov eax, [eax+40]
+	mov [OldDockWaterConstr_ClickProcs], eax
+	mov dword [edi+1*4], addr(DockWaterConstr_WindowHandler)
+	lea eax, [edi+76]
+	mov [OldDockWaterConstr_ToolClickProcs], eax
 	ret
 
 patchcanalshigherbridges:

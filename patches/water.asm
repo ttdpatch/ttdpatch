@@ -139,6 +139,8 @@ SwapDockWinPurchaseLandIco:
 	jc .active
 	ret
 .active:
+	extjmp DockWaterConstrWindowSetIcons
+#if 0
 	pusha 
 	mov ebx, 4791
 	cmp dword [canalfeatureids+3*4], 0
@@ -154,9 +156,10 @@ SwapDockWinPurchaseLandIco:
 .nosprites:
 	mov edi, [dockwinpurchaselandico]
 	mov word [edi], bx
-
+	name_elements.elename
 	popa
 	ret
+#endif
 ;endp SwapDockWinPurchaseLandIco;
 
 extern grfmodflags
@@ -772,9 +775,8 @@ DrawDikeAroundWater:
 	call showadikesprite
 .oneisset8:
 	pop edi
-
 	ret
-;endp normalwaterabovealt
+
 
 uvard showadikespritetype, 2
 uvard showadikespriteofs, 0
@@ -959,67 +961,6 @@ iswateredtile:
 	stc
 	ret
 	
-#if 0
-iswateredtile:
-	push eax
-	mov al,[landscape4(bx)]
-	mov ah,[landscape5(bx)]
-	shr al, 4
-
-// Show rules
-	cmp al, 6
-	jnz .testother
-	cmp ah, 1
-	jnz .watertile	// no cliff
-	
-// if we have a cliff and we need to check if our reference tile is above ground
-	mov al, [landscape4(si)]
-	and al, 0xF
-	cmp al, 0
-	je .watertile	// a seelevel reference tile
-	jmp .notwater
-		
-.testother:
-// Station Tiles
-	cmp al, 5
-	jnz .notstationwithwater
-	cmp ah, 0x4B
-	jb .notstationwithwater
-	jmp .watertile
-.notstationwithwater:
-
-// Bridge & Tunnel Parts:
-	cmp al, 9
-	jnz .nobridgepiecewithwater
-	// test if it's a bridge middlepart
-	bt ax, 14   // would be:  bt ah, 6 but thats not supported in x86 
-	jnc .testbridgeend // not a middle part
-	bt ax, 13  // 5
-	jc .nobridgepiecewithwater // not a land/water
-	bt ax, 11 // 3
-	jnc .nobridgepiecewithwater // not a water tile
-	jmp .watertile
-.testbridgeend:
-	and ah, 0x86
-	cmp ah, 0x84
-	je .watertile
-.nobridgepiecewithwater:
-.notwater:
-	pop eax
-	clc
-	ret
-.watertile:
-	pop eax
-	stc
-	ret
-;endp iswateredtile
-#endif
-
-
-
-
-
-
 var waterliftmaproutes, db 2, 1, 1, 2
 				db 2, 1, 1, 2
 				db 2, 1, 1, 2
@@ -1471,8 +1412,10 @@ endproc createshiplift
 
 
 // Action Handler for creating water
+uvard actionmakewater_type
 global actionmakewater
 actionmakewater:	//bh:1->dx valid, dl=x extent, dh=y extent, edi=type of water
+	mov dword [actionmakewater_type], edi
 	test bh, 1
 	jnz .multi
 	mov dx, 0x101
@@ -1545,6 +1488,7 @@ actionmakewater:	//bh:1->dx valid, dl=x extent, dh=y extent, edi=type of water
 .halftile:
 	mov dl, byte [curplayerctrlkey]
 	cmp dl, 1
+	cmp dword [actionmakewater_type], 1
 	je .rivertileoncliff
 	// we are creating a shiplift...
 	jmp createshiplift
@@ -1582,19 +1526,24 @@ actionmakewater:	//bh:1->dx valid, dl=x extent, dh=y extent, edi=type of water
 	test bl, 1
 	jz .onlytesting
 	
-	cmp dl, 0
-	jne .rivertile
-	
 	mov byte [landscape5(si)], 0h
+	cmp dl, 0	// height?
+	jne .noseelevel
 	movzx edx,byte [curplayerctrlkey]
-	xor edx,1
-	mov word [landscape3+esi*2], dx
+	cmp edx, 1
+	je .seelevel
+.noseelevel:
+	cmp dword [actionmakewater_type], 1
+	jz .rivertile
+.canaltile:
+	mov word [landscape3+esi*2], 1b
 	jmp short .common
-.rivertile:
-	cmp byte [curplayerctrlkey], 1
-	jnz .common
-	mov byte [landscape5(si)], 0h
+.rivertile:	
 	mov word [landscape3+esi*2], 11b
+	jmp short .common
+.seelevel:
+	mov word [landscape3+esi*2], 0
+	jmp short .common
 .common:
 	mov byte [landscape2+esi], 0h
 	or byte [landscape4(si)], 60h
@@ -1840,15 +1789,11 @@ exported selectdockpurchaselandtool_spritesel
 	mov ebx, 2593
 	ret
 
-uvarb aquaductmdd
-uvarw aquaductend
-
 exported newdocktoolpurchaseland_handler
 	testflags enhancegui
 	jnc .norm
 	cmp BYTE [canaltooltype], 1
 	je .bridge
-	mov BYTE [aquaductmdd], 3
 	jmp .drag
 .norm:
 	mov bl, 3
@@ -1856,7 +1801,6 @@ exported newdocktoolpurchaseland_handler
 	mov esi, actionmakewater_actionnum
 	ret
 .bridge:
-	mov BYTE [aquaductmdd], 0
 .drag:
 	cmp ax, 0FEFh
 	ja .fret
@@ -1866,7 +1810,6 @@ exported newdocktoolpurchaseland_handler
 	rol bx, 8
 	or bx, ax
 	ror bx, 4
-	mov [aquaductend], bx
 	mov [dragtoolstartx], ax
 	mov [dragtoolstarty], cx
 	mov [dragtoolendx], ax

@@ -375,6 +375,10 @@ defourtext headingfordepot1v2
 defourtext headingfordepot2v2
 defourtext headingfordepot3v2
 
+defourtext canaltexttip
+defourtext rivertexttip
+defourtext aquaducttexttip
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
