@@ -1358,47 +1358,22 @@ win_twoccgui_dropdown:
 
 // Changes the global colours
 changeglobal:
-	cmp cl, 3 // IS it the first colour
-	push edx // Backup registors
-	push ecx
-	movzx edx, byte [esi+window.company] // Get company
-	jnz .notcolourone
-	
-	mov [companycolors+edx], al // Place the new company colour
+	push edi // Backup registors
+	movzx edi, byte [esi+window.company] // Get company
+	shl edi, 8 // Player company in top 8 bits
+	or edi, 1
+	mov dh, al // Store the colour for the action handler
 
-	push eax // Backup the value returned from clicking
-	mov eax, edx // Move the company to eax, so it can be multipled
-	mov edx, player_size // Multiple the company by this value
-	mul edx // Multiple to new player array entry position
-	mov edx, eax // Move the new multipled value back
-	add edx, [playerarrayptr] // Move to the player array
-	pop eax // Restore this registor
-	mov byte [edx+player.colourscheme], al // Store the new company colour
-	jmp .continue
+	cmp cl, 3 // Is it the first colour
+	jz .iscolourone
+	mov bh, 1 // Denotes it being the second colour
 
-.notcolourone:
-	push eax // Backup the value returned from clicking
-	mov eax, edx // Move the company to eax, so it can be multipled
-	mov edx, player2_size // Multiple the company by this value
-	mul edx // Multiple to new player array entry position
-	mov edx, eax // Move the new multipled value back
-	add edx, [player2array] // Move to the player array
-	pop eax // Restore this registor
-	mov byte [edx+player2.col2], al // Store the new company colour
-	bts dword [edx+player2.colschemes], 0 // Tell ttdpatch second colour is defined
-
-.continue:
-	pop ecx
-	pop edx // Restore registor
-
-	pusha // This subroutine does not preserve the registors
-	call resetcolmapcache // Recolour the sprites
-	popa
-	call redrawscreen // Update the screen
-	ret
+.iscolourone:
+	jmp changetab.ChangeColour
 
 // Changes the colours stored where the tab is
 changetab:
+	push edi
 	dec ch // Decrease tab value so it can be used as a multipler
 	push ecx // Make sure the element clicked is preserved
 	movzx ecx, ch // Move the tab clicked to the whole of ecx
@@ -1406,19 +1381,76 @@ changetab:
 	movzx ebp, byte [twoccguitabrows+ecx] // Get the number of elements before
 	sub edx, 1 // Remove the first bit which is have global colour 2 defined
 	add edx, edx // 2 bytes per bit colour slot wise
-	pop ecx // Restore ecx
 
-	movzx ebx, byte [esi+window.company] // Get the current company
-	imul ebx, player2_size // multiple by the number of bytes per player2 enrty
-	add ebx, [player2array] // Move to the player2 array
-
-	movzx ecx, cl // Make the element completely fill ecx
+	movzx ecx, byte [esp] // Make the element completely fill ecx
 	sub ecx, ebp // Remove the extra elements
 	add ecx, edx // Add the colour bytes that come before it
-	mov byte [ebx+player2.specialcol+ecx], al // Apply new colour
 
-	pusha // This subroutine does not preserve the registors
+	movzx edi, byte [esi+window.company] // Get the current company
+	shl edi, 8 // This is in the top byte
+	mov dh, al // Colour should be stored in dh for the actionhandler
+	mov bh, cl // Item to change should be in here
+	pop ecx
+
+.ChangeColour:
+	xor eax, eax
+	xor ecx, ecx
+	// Should theorically never fail, unless desyncing
+	mov bl, 1
+extern TwoCompanyColourChange_actionnum, actionhandler
+	dopatchaction TwoCompanyColourChange // Change the company colour
+	pop edi
+	ret
+
+/********************************* Change Colour Action Handler **********************************/
+// This is required to make sure BOTH computers in multiplayer remain synced, otherwise it all works the same.
+// Input:	edi - top byte company, low byte colour (global)
+//		dh - colour
+//		bh - colour to change (offset)
+exported TwoCompanyColourChange
+	test bl, 1
+	jnz .Continue
+
+	mov ebx, 0 // Always has no cost.
+	ret
+
+.Continue:
+	test di, 1
+	jnz .Global
+
+	shr edi, 8 // Make it a valid offset for below
+	movzx ebx, bh // Used as the master offset later
+	imul edi, player2_size // multiple by the number of bytes per player2 enrty
+	add edi, [player2array] // Move to the player2 array
+
+	mov byte [edi+player2.specialcol+ebx], dh // Apply new colour
+	jmp .Done
+
+.Global:
+	shr edi, 8 // Make it a valid offset for below
+
+	test bh, 1
+	jnz .SecondColour
+
+	mov [companycolors+edi], dh // Place the new company colour
+	imul edi, player_size // Multiple the company by this value
+	add edi, [playerarrayptr] // Move to the player array
+
+	mov byte [edi+player.colourscheme], dh // Store the new company colour
+	jmp .Done
+
+.SecondColour:
+	imul edi, player2_size // multiple by the number of bytes per player2 enrty
+	add edi, [player2array] // Move to the player2 array
+
+	mov byte [edi+player2.col2], dh // Store the new company colour
+	bts dword [edi+player2.colschemes], 0 // Tell ttdpatch second colour is defined
+
+.Done:
+	pusha
 	call resetcolmapcache // Recolour the sprites
 	popa
 	call redrawscreen // Update the screen
 	ret
+
+

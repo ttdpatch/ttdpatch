@@ -125,6 +125,7 @@ startpatchactions			// this is a macro, not a label...
 	patchaction AlterSignalsByGUI
 	patchaction CloneTrainBuild
 	patchaction ConvertEngineType
+	patchaction TwoCompanyColourChange
 
 uvard newvehdata, newvehdatastruc_size/4
 uvard persgrfdata, persgrfdatastruc_size/4
