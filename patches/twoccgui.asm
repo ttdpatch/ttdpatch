@@ -1000,15 +1000,24 @@ win_twoccgui_tabclickhandler:
 
 // Handles the checkbox clicks
 checkboxhandler:
-
-	push ecx // Make sure that ecx is preseved
+	push ecx
 	movzx ecx, cl // Allow whole of ecx to store the the clicked item
 	add cl, bl // Move to the bit to set
-	bt dword [eax+player2.colschemes], ecx // Is the element active
-	jnc .notactive
 
-	btr dword [eax+player2.colschemes], ecx
-	pop ecx // Restore the orginal ecx values
+	pusha
+	movzx edi, byte [esi+window.company] // Set all the variables for the action handler
+	shl edi, 8
+	or edi, 2
+	mov bh, cl // Store the element offset before it gets blanked later.
+	xor eax, eax
+	xor ecx, ecx
+	mov bl, 1
+	dopatchaction TwoCompanyColourChange // Change the company colour
+	popa
+
+	bt dword [eax+player2.colschemes], ecx // Is the element active
+	pop ecx
+	jc .activate // carry because will be active
 
 	movzx ebx, bh // Move the total number of elements on the tab
 	movzx ecx, cl // Make sure that this can be used for setting / clearing the bit
@@ -1018,13 +1027,9 @@ checkboxhandler:
 	bts dword [edi+4], ecx // Disable clicking of dropdown menus
 	add ecx, 1 // Increase to next dropdown
 	bts dword [edi+4], ecx // Disable clicking of dropdown menus
-
 	jmp .end // Make sure it doesn't run the activate code
 
-.notactive:
-	bts dword [eax+player2.colschemes], ecx
-	pop ecx // Restore the orginal ecx values
-
+.activate:
 	movzx ebx, bh // Move the total number of elements on the tab
 	movzx ecx, cl // Make sure that this can be used for setting / clearing the bit
 	bts dword [edi], ecx // Clear the bit in the active elements
@@ -1044,7 +1049,7 @@ checkboxhandler:
 	popa
 	call redrawscreen // Update the screen
 
-	popa // Restore the registors
+	popa // Restore the registor
 	ret
 
 // This handles the buttons for the dropdowns in tabs
@@ -1415,8 +1420,11 @@ exported TwoCompanyColourChange
 	ret
 
 .Continue:
-	test di, 1
+	test di, 1 // Global colours should be handled differently
 	jnz .Global
+
+	test di, 2 // Checkboxes are slightly less complicated but have different code
+	jnz .Checkboxes
 
 	shr edi, 8 // Make it a valid offset for below
 	movzx ebx, bh // Used as the master offset later
@@ -1424,6 +1432,18 @@ exported TwoCompanyColourChange
 	add edi, [player2array] // Move to the player2 array
 
 	mov byte [edi+player2.specialcol+ebx], dh // Apply new colour
+	jmp .Done
+
+.Checkboxes:
+	shr edi, 8 // Make it a valid offset for below
+	movzx ebx, bh // Used as the master offset later
+	imul edi, player2_size // multiple by the number of bytes per player2 enrty
+	add edi, [player2array] // Move to the player2 array
+
+	xor edx, edx // Generate the right bit
+	bts edx, ebx
+
+	xor dword [edi+player2.colschemes], edx // Xor to create a toggle effect, Genius
 	jmp .Done
 
 .Global:
