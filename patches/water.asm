@@ -590,11 +590,16 @@ selectgroundforbridge:
 	ret
 	
 .hascanals:
+.hasriverslope:
 	mov esi, [saved_ebx]
 	// needs esi = xy, edi = corner, and dl = height
-	jmp Class6DrawLandCanalsOrRiversOrSeeWaterL3
-	
+	jmp Class6DrawLandCanalsOrRiversOrSeeWaterL3	
 .coast:
+	mov esi, [saved_ebx]
+	mov bx, word [landscape3+esi*2]
+	and ebx, 11b
+	cmp ebx, 11b
+	jz .hasriverslope
 #if 0
 	push ebx
 	mov ebx, [saved_ebx]
@@ -635,9 +640,20 @@ removebridgewater:
 	call [gettileinfo]
 	or di, di
 	jz .nocoast
+
+	mov ax, word [landscape3+esi*2]
+	and ax, 11b
+	cmp ax, 11b
+	je .riveronslope
+.coast:
 	popa
 	mov dx, 0x6001
 	ret
+.riveronslope:
+	popa
+	mov dx, 0x6003
+	ret
+
 .nocoast:
 	popa
 	mov dx, 0x6000
