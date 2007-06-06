@@ -76,7 +76,7 @@ codefragment oldbuildbouy
 
 codefragment newbuildbouy
 	mov byte [landscape2+edi], al
-	and word [nosplit landscape3+edi*2], 0x0001
+	and word [nosplit landscape3+edi*2], 0x0003
 	rol di, 4
 	setfragmentsize 20
 	
@@ -88,7 +88,7 @@ codefragment oldremovebouy
 codefragment newremovebouy
 	mov byte [landscape1+esi], 11h
 	mov byte [landscape2+esi], 0
-	and word [nosplit landscape3+esi*2], 0x001
+	and word [nosplit landscape3+esi*2], 0x003
 	setfragmentsize 24
 
 codefragment newaquaductmiddlespritebaseget

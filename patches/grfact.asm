@@ -4337,6 +4337,7 @@ var newstationdata
 
 var canalsdata
 	dd canalscallbackflags					// 08
+	dd canalsgraphicflags					// 09
 	
 var bridgedata	// (prop 0C is set in patches.ah)
 	dd 0, addr(alterbridgespritetable), bridgeflags		// 0C..0E
@@ -4480,6 +4481,7 @@ uvard substindustries,(NINDUSTRYTYPES+3)/4
 uvard cargoaction3,32
 // canals river 
 uvard canalscallbackflags,256/4
+uvard canalsgraphicflags,256/4
 
 // objects id management
 uvard objectsdataidtogameid, NOBJECTS/2

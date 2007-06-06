@@ -161,7 +161,8 @@ drawstationtile:
 	popa
 
 .donedrawing:
-
+	cmp dh, 0x52	// buoy fix for rivers and canals
+	jz getstationspriteset.buoy
 getstationspriteset:
 	xchg eax,ebp
 	call geteffectivetracktype
@@ -173,6 +174,9 @@ getstationspriteset:
 
 	testflags newstations
 	jc near getnewstationsprite
+	ret
+ .buoy:
+	xor ebp, ebp
 	ret
 ; endp getstationspriteset
 

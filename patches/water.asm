@@ -13,7 +13,7 @@ extern getgroundalt,getnewsprite,gettileinfo,grffeature,landshapetospriteptr
 extern locationtoxy,patchflags,redrawscreen
 extern waterbanksprites,gettileterrain
 extern guispritebase,numguisprites,actionmakewater_actionnum,ctrlkeystate,cleararea_actionnum
-extern canalscallbackflags,curcallback,miscgrfvar
+extern canalscallbackflags,canalsgraphicflags,curcallback,miscgrfvar
 
 #if 0
 struc newwatersprites
@@ -140,26 +140,6 @@ SwapDockWinPurchaseLandIco:
 	ret
 .active:
 	extjmp DockWaterConstrWindowSetIcons
-#if 0
-	pusha 
-	mov ebx, 4791
-	cmp dword [canalfeatureids+3*4], 0
-	jz .nosprites
-
-	xor ebx, ebx
-	mov eax, 3		// we want icons :)
-	mov esi, 0
-	mov byte [grffeature], 5
-	call getnewsprite
-	xchg eax, ebx
-	
-.nosprites:
-	mov edi, [dockwinpurchaselandico]
-	mov word [edi], bx
-	name_elements.elename
-	popa
-	ret
-#endif
 ;endp SwapDockWinPurchaseLandIco;
 
 extern grfmodflags
@@ -187,27 +167,12 @@ Class6DrawLand:
 	or dh, dh
 	js .oldfunction // no a depot
 	jnz .couldbecliff
-	mov esi, ebx	// we need it later, so store it
-	// check if we have a river tile and jump
-	cmp byte [landscape3+2*esi], 11b
-	je near Class6DrawLandRiverSlope
-	mov bx, 4061
-	call [addgroundsprite]
-	// If we need to draw some eyecandy around the water sprites height > 0
-	cmp dl, 0
-	jnz .normalwaterabovejmp
-	// or this is a canal at sealevel
-	cmp esi,0x101
-	jb .nocanal
-
-	test word [landscape3+2*esi], 1
-	jnz .normalwaterabovejmp
-.nocanal:
-	ret
-.normalwaterabovejmp:
-	jmp normalwaterabove
+	mov esi, ebx		// now esi = xy
+	jmp Class6DrawLandCanalsOrRiversOrSeeWaterL3
 
 .couldbecliff:
+	mov esi, ebx	// we need it later, so store it
+	mov ebp, 1
 	cmp dh, 3
 	je near Class6DrawLandRiverSlope
 	cmp dh, 1
@@ -385,27 +350,76 @@ FillCanalAction2FeatureArray:
 	popa
 	ret
 	
+
+// in: esi tilexy
+// edi = corner map
+// dl = height
+// L3 of esi = Canal/River Type
+Class6DrawLandCanalsOrRiversOrSeeWaterL3:
+	// the corners aren't allowed to be used with canals code because of crash
+	cmp esi,0x101
+	jb .nocanal
+	movzx ebp, byte [landscape3+2*esi]
+	and ebp, 11b
+	jz .nobitsset
+	shr ebp, 1			// now for canals = 0 and for rivers = 1
+	jmp Class6DrawLandCanalsOrRiverSlope
+.nobitsset:
+	// If we need to draw some eyecandy around the water sprites height > 0
+	cmp dl, 0
+	jnz Class6DrawLandCanalsOrRiverSlope
+// no, normal water tile
+.nocanal:
+	mov ebx, 4061
+	call [addgroundsprite]
+	ret
+		
+	// fall through if it's canals	
+Class6DrawLandCanals:
+	xor ebp, ebp
+	jmp short Class6DrawLandCanalsOrRiverSlope
+
 Class6DrawLandRiverSlope:
-	mov esi, ebx
-	
+	mov ebp, 1
+
+// in: esi tilexy
+// edi = corner map
+// ebp = 0 canals 1 = rivers
+Class6DrawLandCanalsOrRiverSlope:
 	call FillCanalAction2FeatureArray
 
 	pusha
 	push eax
 	mov ebx, 4061
-	and edi, byte 0x0F
-	cmp edi, 0	// we don't have a slope, so use default water sprite
-	je near .nosprites
+
+	cmp ebp, 0
+	je .canal
+
 	mov eax, 5	// we want river slopes
 	cmp dword [canalfeatureids+5*4], 0
 	jnz .hassprites
-	mov eax, 0	// we want water cliffs
+
+.canal:
+	mov eax, 0	// we want water cliffs from canals
 	cmp dword [canalfeatureids+0*4], 0
 	jnz .hassprites
+		
 	jmp .nosprites
 .hassprites:
+	and edi, byte 0x0F
+	movsx ebx, byte [baCliffTranslation+edi]
+	
+	test byte [canalsgraphicflags+eax], 1
+	jz .nogroundsprite
+	inc ebx
+.nogroundsprite:
+	cmp ebx, -1	// if we have no groundsprite for a flat tile, we have still have -1 now. Result, less jmps
+	jne .docallback
+	
+	mov ebx, 4061
+	jmp .nosprites
 
-	movzx ebx, byte [baCliffTranslation+edi]
+.docallback:
 	mov esi, canalaction2array
 	mov byte [grffeature], 5
 	
@@ -432,11 +446,16 @@ Class6DrawLandRiverSlope:
 	
 	pusha
 
+
+	mov ebx, ebp
+	shl ebx, 2			// now ebx = 0 or 4
+	add ebx, 2			// now ebx = 2(dikes) or 6 (river waterside as feature)
+
 	// select river waterside
-	cmp dword [canalfeatureids+6*4], 0
+	cmp dword [canalfeatureids+ebx*4], 0
 	jz .nospriteswaterside
-		
-	mov dword [showadikespritetype], 6
+	
+	mov dword [showadikespritetype], ebx
 	and edi, byte 0x0F
 	movsx ebx, byte [baCliffTranslation+edi]
 	inc ebx
@@ -565,25 +584,15 @@ selectgroundforbridge:
 .isawatersprite:
 	or di, di
 	jnz .coast
-	call [addgroundsprite]
 	testflags canals
 	jc .hascanals
+	call [addgroundsprite]
 	ret
 	
 .hascanals:
-	mov ebx, [saved_ebx]
-	cmp dl, 0
-	jnz .drawdikes
-	test word [landscape3+ebx*2], 1
-	jnz .drawdikes
-	ret
-.drawdikes:
-	pusha
-	mov esi, ebx
-	call normalwaterabove
-	popa
-.nodikes:
-	ret
+	mov esi, [saved_ebx]
+	// needs esi = xy, edi = corner, and dl = height
+	jmp Class6DrawLandCanalsOrRiversOrSeeWaterL3
 	
 .coast:
 #if 0
@@ -638,16 +647,43 @@ removebridgewater:
 // code for showing "dikes" around water
 // in:
 //	esi = xy
-normalwaterabove:
-	cmp dword [canalfeatureids+2*4], 0
-	jnz .newsprites
-	ret
-.newsprites:
+//	edi = corner map
+//	dl = height
+//  L3 = type
+DrawDikeAroundWaterTestL3:
+	pusha
+	xor ebx, ebx
+	movzx ebx, byte [landscape3+2*esi]
+	and ebx, 11b
+	jnz .trydrawing
+	// If we need to draw some eyecandy around the water sprites height > 0
+	cmp dl, 0
+	jz .nosprites
+	
+.trydrawing:
+	// now canals or rivers
+	and ebx, 10b
+	shl ebx, 1			// now ebx = 0 or 4
+	add ebx, 2			// now ebx = 2(dikes) or 6 (river waterside as feature)
+
+	// select river waterside
+	cmp dword [canalfeatureids+ebx*4], 0
+	jz .nosprites
 	call FillCanalAction2FeatureArray
-	mov dword [showadikespritetype], 2
-	mov dword [showadikespriteofs], 0
-	// fall trough
+	mov dword [showadikespritetype], ebx
+	and edi, byte 0x0F
+	movsx ebx, byte [baCliffTranslation+edi]
+	inc ebx
+	imul ebx, 12
+	mov dword [showadikespriteofs], ebx
+	
+	popa
 	movzx edi, byte [canalaction2array+2]
+	jmp DrawDikeAroundWater
+	
+.nosprites:
+	popa
+	ret	
 	
 // in: 
 //	edi = dikemap
@@ -1685,18 +1721,12 @@ Class5DrawLand:
 	cmp dh, 52h
 	ja .notwater
 
-	test word [nosplit landscape3+ebx*2], 1 // Check for a canal at sea level because of the next check
-	jnz .seacanal
-
-	cmp dl, 0
-	je .notwater ; actualy it is water, but not canals, but who cares
-
-.seacanal:
 	pusha
 	call [oldclass5drawlandfnc]
 	popa
+	// now test and try to draw dikes or river sides
 	mov esi, ebx
-	call normalwaterabove
+	call DrawDikeAroundWaterTestL3
 	ret
 .notwater:
 	call [oldclass5drawlandfnc]
