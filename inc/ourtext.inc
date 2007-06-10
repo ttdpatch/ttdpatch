@@ -378,6 +378,8 @@ defourtext headingfordepot3v2
 defourtext canaltexttip
 defourtext rivertexttip
 defourtext aquaducttexttip
+defourtext waterconstrwin
+defourtext waterconstrtbtip
 
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 

@@ -19,9 +19,9 @@ guiwindow win_dockconstgui,240,36
 	guiele purchaseland,cWinElemSpriteBox,cColorSchemeDarkGreen,x,132,w,21,y,14,h,21,data,4791
 	guiele canals,cWinElemSpriteBox,cColorSchemeDarkGreen,x,154,w,21,y,14,h,21,data,0
 	guiele aqueduct,cWinElemSpriteBox,cColorSchemeDarkGreen,x,176,w,41,y,14,h,21,data,2598
-	guiele river,cWinElemSpriteBox,cColorSchemeDarkGreen,x,218,w,21,y,14,h,21,data,0
+	guiele river,cWinElemSpriteBox,cColorSchemeDarkGreen,x,218,w,21,y,14,h,21,data,4083
 endguiwindow
-
+// changeing the order or size will influence waterconstgui
 
 exported CreateDockWaterConstrWindow
 	mov eax, 286 + (22<<16) // x + (y << 16)
@@ -31,6 +31,7 @@ exported CreateDockWaterConstrWindow
 	mov ebp, 1						// function number
 	call dword [CreateWindow]
 	mov dword [esi+window.elemlistptr], addr(win_dockconstgui_elements)
+	mov byte [esi+window.data], 24
 	ret
 	
 exported DockWaterConstrWindowSetIcons
@@ -45,7 +46,19 @@ exported DockWaterConstrWindowSetIcons
 	call getnewsprite
 .nosprites:	
 	mov word [win_dockconstgui_elements.canals+10], ax
+	mov word [win_waterconstgui_elements.canals+10], ax
+	
+	mov eax, 4083
+	cmp dword [canalfeatureids+7*4], 0
+	jz .nospritesriver
+	xor ebx, ebx
+	mov eax, 7		// we want river icons
+	mov esi, 0
+	mov byte [grffeature], 5
+	call getnewsprite
+.nospritesriver:
 	mov word [win_dockconstgui_elements.river+10], ax
+	mov word [win_waterconstgui_elements.river+10], ax
 	popa
 	ret
 
@@ -106,8 +119,29 @@ exported DockWaterConstr_WindowHandler
 	jz near DockWaterConstr_MouseDragUITick
 	cmp dl, cWinEventMouseDragRelease
 	jz near DockWaterConstr_MouseDragRelease
+	cmp dl, cWinEventTimer
+	je DockWaterConstr_timer
 	ret
 
+DockWaterConstr_timer:
+	cmp byte [esi+window.data], 0
+	jnz .toolbar
+	ret
+	
+.toolbar:
+	movzx eax, byte [esi+window.data]
+	mov byte [esi+window.data], 0
+	mov cl, cWinTypeMainToolbar
+	xor dx, dx
+	call [FindWindow]
+	btr dword [esi+window.activebuttons], eax
+	mov bx, [esi+window.id]
+	shl eax, 8
+	mov al, [esi+window.type]
+	or al, 0x80
+	jmp [invalidatehandle]
+
+	
 uvard OldDockWaterConstr_ClickProcs,1
 
 varw DockWaterConstr_tooltips, 0x018B, 0x018C, 0x981D, 0x981E, 0x9834, 0x018D, 0x018E, 0x018F, 0x0329, ourtext(canaltexttip), ourtext(aquaducttexttip), ourtext(rivertexttip)
@@ -445,3 +479,48 @@ db 0,1,1,0	//4
 db 0,1,1,0	//8
 db 1,0,0,0	//4,8
 endvar
+
+guiwindow win_waterconstgui,152,36
+	guicaption cColorSchemeDarkGreen, ourtext(waterconstrwin)
+	guiele dock,cWinElemDummyBox,cColorSchemeDarkBlue,x,0,x2,0,y,0,y2,0,data,0
+	guiele shipdepot,cWinElemDummyBox,cColorSchemeDarkBlue,x,0,x2,0,y,0,y2,0,data,0
+	guiele buoy,cWinElemDummyBox,cColorSchemeDarkBlue,x,0,x2,0,y,0,y2,0,data,0
+	guiele dynamite,cWinElemSpriteBox,cColorSchemeDarkGreen,x,0,w,21,y,14,h,21,data,703
+	guiele lowerland,cWinElemSpriteBox,cColorSchemeDarkGreen,x,22,w,21,y,14,h,21,data,695
+	guiele raiseland,cWinElemSpriteBox,cColorSchemeDarkGreen,x,44,w,21,y,14,h,21,data,694
+	guiele purchaseland,cWinElemDummyBox,cColorSchemeDarkBlue,x,0,x2,0,y,0,y2,0,data,0
+	guiele canals,cWinElemSpriteBox,cColorSchemeDarkGreen,x,66,w,21,y,14,h,21,data,0
+	guiele aqueduct,cWinElemSpriteBox,cColorSchemeDarkGreen,x,88,w,41,y,14,h,21,data,2598
+	guiele river,cWinElemSpriteBox,cColorSchemeDarkGreen,x,130,w,21,y,14,h,21,data,4083
+endguiwindow
+
+exported CreateScenWaterConstrWindow
+	bts dword [esi+window.activebuttons], 24
+
+	mov bx, [esi+window.id]
+	mov al, [esi+window.type]
+	or al, 0x80
+	mov ah, 24
+	call [invalidatehandle]
+		
+	mov cx, cWinTypeConstrToolbar
+	xor edx, edx
+	extern FlashWindow
+	call [FlashWindow]
+	jnz .windowopen
+	
+	mov eax, 286 + (22<<16) // x + (y << 16)
+	mov ebx, win_waterconstgui_width + (win_waterconstgui_height << 16)
+	mov cx, cWinTypeConstrToolbar	// window type
+	mov dx, 0x90					// operation class offset
+	mov ebp, 1						// function number
+	call dword [CreateWindow]
+	mov dword [esi+window.elemlistptr], win_waterconstgui_elements
+	mov byte [esi+window.data], 24
+	or word [esi+window.flags], 5
+	ret
+.windowopen:
+	mov byte [esi+window.data], 24
+	or word [esi+window.flags], 5
+	ret
+

@@ -3,6 +3,7 @@
 #include <textdef.inc>
 #include <ptrvar.inc>
 #include <patchproc.inc>
+#include <window.inc>
 
 patchproc canals, patchcanals
 patchproc canals, higherbridges, patchcanalshigherbridges
@@ -119,6 +120,15 @@ loc_153AAF:                                     ; CODE XREF: Class9DrawLand+FA.j
                 and     ebx, BYTE 0Ch
                 mov     ebx, [esi+ebx*8]
 
+				
+codefragment findmaintoolbarscenedclicktable,12
+	js $+6+0x244
+	movzx ebx, cx
+
+codefragment findmaintoolbarscenedtooltiptable,13
+	js $+6+0x228
+	movzx ebx, cx
+		
 endcodefragments
 
 patchcanals:
@@ -178,6 +188,22 @@ patchcanals:
 	mov dword [edi+1*4], addr(DockWaterConstr_WindowHandler)
 	lea eax, [edi+76]
 	mov [OldDockWaterConstr_ToolClickProcs], eax
+	
+	// ScenEditor
+	stringaddress findmaintoolbarscenedclicktable
+	mov edi, dword [edi]
+	extern CreateScenWaterConstrWindow
+	mov dword [edi+4*24], CreateScenWaterConstrWindow
+	// we assume that the click list follows the window element list 
+	sub edi, 12*2+1 // (2 entries up + end marker)
+	mov word [edi], cWinElemSpriteBox+(cColorSchemeDarkBlue<<8)
+	mov dword [edi+2], 442+(451<<16)
+	mov dword [edi+6], 0+(22<<16)
+	mov word [edi+10], 0
+	
+	stringaddress findmaintoolbarscenedtooltiptable
+	mov edi, dword [edi]
+	mov word [edi+2*24], ourtext(waterconstrtbtip)
 	ret
 
 patchcanalshigherbridges:
