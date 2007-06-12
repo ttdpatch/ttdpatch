@@ -102,11 +102,12 @@ autoslopechecklandscape:
 	mov ecx, roadedgetol5
 	jmp .routecommon
 .nobays:
-	cmp dh, 0x58
+	cmp dh, 0x53
 	jb near .exit
-// busstops	
+// busstops and other stops
+	test dh, 1
 	mov dh, 1010b
-	je .nototherdir
+	jnz .nototherdir
 	mov dh, 101b
 .nototherdir:
 	mov ecx, roadedgetol5
