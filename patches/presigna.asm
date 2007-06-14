@@ -610,6 +610,7 @@ updatesignalgraphics:
 	// or not
 thisisotherdir:
 	xor eax,eax
+	movzx ecx, cx
 .nextothersquare:
 	movzx edi,word [ebp]
 	mov al,[ebp+2]

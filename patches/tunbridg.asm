@@ -790,6 +790,7 @@ ret
 	call eax		//AddToLocalRouteMap
 	pop ebx
 	add di, [tunneloffsets+ebx-1]
+	xor ecx, ecx		//in case other code doesn't bother to set higher bits to zero where needed...
 	ret
 
 .notsignal:
