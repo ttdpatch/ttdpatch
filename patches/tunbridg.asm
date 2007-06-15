@@ -590,6 +590,12 @@ exported Class9RouteMapHandlerTunnel
 	push ecx
 	movzx ecx, BYTE [landscape5(di)]
 	and cl, 3
+	or al, al
+	js .enhanced1
+	//ordinary tunnel
+	or al, 0x10
+	and al, ~0x60
+.enhanced1:
 
 	mov ah, [enhtnlconvtbl+ecx*4+3]
 
