@@ -126,6 +126,7 @@ startpatchactions			// this is a macro, not a label...
 	patchaction CloneTrainBuild
 	patchaction ConvertEngineType
 	patchaction TwoCompanyColourChange
+	patchaction AdjacentStationBuildNewStation
 
 uvard newvehdata, newvehdatastruc_size/4
 uvard persgrfdata, persgrfdatastruc_size/4
