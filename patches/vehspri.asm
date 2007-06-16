@@ -1614,6 +1614,7 @@ getplayerinfo.gotwindow:
 	mov [esp+1Ch], eax
 	popa
 	mov al, [eax+window.company]
+.gotcompany:
 	cmp al, -1
 	jl .die
 	je .nocompany
@@ -1644,6 +1645,11 @@ getplayerinfo.vehtype:
 	movzx eax,byte [vehbase+ecx]
 	add eax,[curgrfid]
 	push eax
+
+extern CloneTrainCompany // Saves this function from death when clonetrain is used!
+	cmp byte [CloneTrainCompany], 8 // Lower than 8 is valid, higher means not clonetrain calling
+	jb .CloneTrain
+
 	// find window struct pointer
 	// It appears on the stack at least three times between [esp+4]
 	// and [esp+A0h]
@@ -1684,6 +1690,11 @@ getplayerinfo.vehtype:
 	add esp, 24h	// undo the push eax/pusha
 	ud2
 #endif
+
+.CloneTrain: // This whole sub function isn't net safe and using company directly will not work
+	mov al, [CloneTrainCompany] // We have the company window already (hugs CloneTrain)
+	db 2Eh // BPL: branch not taken
+	jmp getplayerinfo.gotwindow.gotcompany
  
 	// 43: get current player info
 	// out:	Ccttmmnn
