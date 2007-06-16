@@ -84,10 +84,23 @@ codefragment newbegingettunnelotherend
 codefragment newfixtunnelentry
 	icall fixtunnelentry
 	setfragmentsize 6
+
+codefragment oldtunnelsteamcheck,-7	//win: 572291, dos: ShowSteamPlume, _CS:001602EB
+	jz $+2+0x36
+	push esi
+	mov ax, [esi+1Ah]
+	mov cx, [esi+1Ch]
+	movzx ebx, byte [esi+1Fh]
+
+codefragment newtunnelsteamcheck
+	icall tunnelsteamcheck
+	nop
+
 endcodefragments
 
 global patchenhancetunnel
 patchenhancetunnel:
+	patchcode oldtunnelsteamcheck,newtunnelsteamcheck,1,1
 	patchcode oldclass9routemaphandlertunnel,newclass9routemaphandlertunnel,1,1
 	patchcode oldclass9groundaltcorrectiontunnel,newclass9groundaltcorrectiontunnel,1,2
 	patchcode oldclass9vehenterleavetunneljump,newclass9vehenterleavetunneljump,1,1

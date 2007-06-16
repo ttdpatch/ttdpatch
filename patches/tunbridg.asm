@@ -827,5 +827,21 @@ exported fixtunnelentry
 	and al, 0xF0
 	ret
 
+exported tunnelsteamcheck
+	test byte [landscape5(bx)], 80h
+	jnz .notatunnel
+
+	mov al, [landscape5(bx)]
+	and al, 1
+	shl al, 1
+	add al, 1
+
+	mov ah, [esi+veh.direction]
+	and ah, 3
+
+	cmp al, ah
+.notatunnel:
+	ret
+
 var enhancetunnelshelpersprite
 	incbin "embedded/t_helper.dat"
