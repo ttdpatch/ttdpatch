@@ -1693,7 +1693,6 @@ extern CloneTrainCompany // Saves this function from death when clonetrain is us
 
 .CloneTrain: // This whole sub function isn't net safe and using company directly will not work
 	mov al, [CloneTrainCompany] // We have the company window already (hugs CloneTrain)
-	db 2Eh // BPL: branch not taken
 	jmp getplayerinfo.gotwindow.gotcompany
  
 	// 43: get current player info
