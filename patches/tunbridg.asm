@@ -336,6 +336,7 @@ exported enhancetunneladdtrack
 	push ecx
 	call checkvehintheway
 	je .noveh
+.error:
 	mov ebx,0x80000000
 	pop ecx
 	pop eax
@@ -346,11 +347,20 @@ exported enhancetunneladdtrack
 
 	push ebx
 	mov ebx,[wantedtracktypeofs]
-	mov ah, byte [ebx]	// bh contains what type the user wants
+	mov ah, byte [ebx]	// ah contains what type the user wants
 	pop ebx
+	testflags manualconvert
+	mov al, byte [landscape7+esi]
+	jc .ok
+	test al, al
+	jns .ok
+	mov dl, al
+	and dl, 0xF
+	cmp ah, dl
+	jne .error
+.ok:
 	//mov ah, dl
 	and ah, 3
-	mov al, byte [landscape7+esi]
 	and al,0xF8
 	or al, ah
 	or al, 0x80

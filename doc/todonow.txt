@@ -355,8 +355,6 @@
 
 - store station prop 15 in newvehdatastruc
 
-- enhancetunnels on/manualconvert off crashes; checkvehintheway not defined
-
 - buying planes uses refit info from refitted RV?
   http://www.tt-forums.net/viewtopic.php?p=423128#423128
 
@@ -677,3 +675,4 @@ CHANGELOG
   * Permit management of any subsidiary from any other subsidiary, direct or
     indirect.
   * Make early departure of overweight trains work with fullloadany off.
+  * Make enhancetunnels work with manualconvert off.

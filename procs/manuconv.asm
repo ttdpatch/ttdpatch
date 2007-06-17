@@ -64,10 +64,17 @@ patchmanuconv:
 	patchcode oldbuildtrackoncrossing,newbuildtrackoncrossing,1,1
 	patchcode oldbuildtrackunderbridge,newbuildtrackunderbridge,1,1
 	patchcode oldbuildtrackonbridgeortunnel,newbuildtrackonbridgeortunnel,1,1
+	ret
+
+exported patchtracktype
 	stringaddress oldchecktracktype,1,1
 	mov ebx,[edi+lastediadj+16]
 	mov [wantedtracktypeofs],ebx
+extern patchflags
+	testflags manualconvert
+	jnc .ret
 	storefragment newchecktracktype
+.ret:
 	ret
 
 
