@@ -63,6 +63,9 @@ extern ChangeCoastSpriteTable
 extern grfmodflags
 extern ResizeOpenWindows, depotscalefactor
 extern clearairportdata
+// Custom RV stop sprite support.
+extern updateRVStopSpriteLayout
+
 
 // New class 0xF (vehtype management) initialization handler
 // does additional things before calling the original function
@@ -1559,6 +1562,10 @@ extern recalctownpopulations
 	jnc .notrams
 	call updateTramStopSpriteLayout
 .notrams:
+
+// Update RV roadside stop station layouts to use sprites defined by
+// action 5 type 11.
+	call updateRVStopSpriteLayout
 
 	testflags electrifiedrail
 	jc .noshufflemenu

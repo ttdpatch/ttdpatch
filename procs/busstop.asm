@@ -18,6 +18,9 @@ extern newtruckorienttooltips
 extern paStationtramstop1, paStationtramstop2
 extern paStationtramfreightstop1, paStationtramfreightstop2
 
+extern newgraphicssetsenabled
+
+
 global patchbusstop
 
 begincodefragments
@@ -277,4 +280,8 @@ patchbusstop:
 	patchcode class5cleartilebusstoperror
 	patchcode class5cleartiletruckstoperror
 	patchcode buslorrystationwindowdrawhandler
+	
+// Enable custom graphics set for roadside RV stops.
+	or byte [newgraphicssetsenabled+2], 1<<(17-16)
+	
 	ret

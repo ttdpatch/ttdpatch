@@ -13,51 +13,44 @@ extern patchflags
 extern persgrfdata
 extern adjflags
 
+// Custom roadside RV stop sprites.
+uvarw	roadsidervstops, 1, s
+var	roadsidervstopsnum, dd 8
 
 uvarb paStationEntry1, 28
 
+// Station layouts have been modified to support custom sprites
+// defined by action 5 type 11.
 var paStationbusstop1
 	dd 1314
-	db 8,14,0,1,2,16
-	dd 1407
-	db 8,1,0,1,2,16
-	dd 1406
-	db 9,14,7,2,2,3
+	db 0,0,0,16,3,16
 	dd 4079
-	db 8,1,7,2,2,3
+	db 0,13,0,16,3,16
 	dd 4079
 	db 0x80
 
 var paStationbusstop2
 	dd 1313
-	db 1,8,0,2,1,16
-	dd 1407
-	db 14,8,0,2,1,16
-	dd 1406
-	db 1,8,7,2,2,3
+	db 13,0,0,3,16,16
 	dd 4079
-	db 14,9,7,2,2,3
+	db 0,0,0,3,16,16
 	dd 4079
 	db 0x80
 
 var paStationtruckstop1
 	dd 1314
-	db 8,14,0,1,2,16
-	dd 1407
-	db 6,14,10,1,2,8
-	dd 4300
-	db 14,14,10,1,2,8
-	dd 4302
+	db 0,0,0,16,3,16
+	dd 4079
+	db 0,13,0,16,3,16
+	dd 4079
 	db 0x80
 
 var paStationtruckstop2
 	dd 1313
-	db 2,4,0,2,1,16
-	dd 1407
-	db 0,8,4,1,2,8
-	dd 4300
-	db 0,4,4,1,2,8
-	dd 4302
+	db 13,0,0,3,16,16
+	dd 4079
+	db 0,0,0,3,16,16
+	dd 4079
 	db 0x80
 
 	align 4
@@ -508,3 +501,46 @@ Class5CreateLorryWinOrient:
 	mov byte [buslorrystationorientation], 0
 .done:
 	jmp [oldclass5createlorrywinorient]
+
+
+// Inspired by steven's tram station code.
+// Updates sprite numbers in station layouts to use custom sprites
+// defined by action 5 type 11.
+global updateRVStopSpriteLayout
+updateRVStopSpriteLayout:
+	push	ecx
+	
+	// Update bus stop sprites
+	xor	ecx,ecx
+	mov	cx, 02h
+	add	cx, word [roadsidervstops]
+	mov	dword [paStationbusstop1+10], ecx
+	mov	cx, 03h
+	add	cx, word [roadsidervstops]
+	mov	dword [paStationbusstop1+20], ecx
+	mov	cx, 00h
+	add	cx, word [roadsidervstops]
+	mov	dword [paStationbusstop2+10], ecx
+	mov	cx, 01h
+	add	cx, word [roadsidervstops]
+	mov	dword [paStationbusstop2+20], ecx
+
+	// Update truck stop sprites
+	xor	ecx,ecx
+	mov	cx, 06h
+	add	cx, word [roadsidervstops]
+	mov	dword [paStationtruckstop1+10], ecx
+	mov	cx, 07h
+	add	cx, word [roadsidervstops]
+	mov	dword [paStationtruckstop1+20], ecx
+	mov	cx, 04h
+	add	cx, word [roadsidervstops]
+	mov	dword [paStationtruckstop2+10], ecx
+	mov	cx, 05h
+	add	cx, word [roadsidervstops]
+	mov	dword [paStationtruckstop2+20], ecx
+
+
+	pop	ecx
+	retn
+

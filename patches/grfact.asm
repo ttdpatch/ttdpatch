@@ -74,6 +74,9 @@ extern newsignalspritenum,newsignalspritebase
 extern setobjectclass,setobjectclasstexid
 extern newpbstrackbase, newpbstracknum
 extern newaquaductbase, newaquaductnum
+// Custom roadside RV stop sprites.
+extern roadsidervstops, roadsidervstopsnum
+
 
 uvarb action1lastfeature
 
@@ -4577,8 +4580,8 @@ numgrfvarreinit equ (grfvarreinitend-grfvarreinitstart)/4
 
 	// for action 5, where to store the first sprite number
 	// (the ones that are -1 are safe to be reused)
-var newgraphicsspritebases, dd presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,deftwocolormaps,tramtracks,snowytemptreespritebase,newcoastspritebase,newsignalspritebase,newpbstrackbase,0,0,newaquaductbase
-var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,-1,numtramtracks,numsnowytemptrees,newcoastspritenum,newsignalspritenum,newpbstracknum,0,0,newaquaductnum
+var newgraphicsspritebases, dd presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,deftwocolormaps,tramtracks,snowytemptreespritebase,newcoastspritebase,newsignalspritebase,newpbstrackbase,0,roadsidervstops,newaquaductbase
+var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,-1,numtramtracks,numsnowytemptrees,newcoastspritenum,newsignalspritenum,newpbstracknum,0,roadsidervstopsnum,newaquaductnum
 
 global numnewgraphicssprites
 numnewgraphicssprites equ (newgraphicsspritenums-newgraphicsspritebases)/4
