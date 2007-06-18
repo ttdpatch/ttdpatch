@@ -53,6 +53,7 @@
 	patchproc buildonslopes, autoslope, patchbuildonslopes	// must be before manuconv (which destroys a search string)
 	patchproc buildonslopes,newplanes, patchaircraftdispatch
 	patchproc manualconvert, patchmanuconv		// must be before patchbridgeheads
+	patchproc manualconvert, enhancetunnels, patchtracktype		// must be before patchbridgeheads
 	patchproc custombridgeheads, patchbridgeheads	// must be before patchpathbasedsignalling
 
 	patchproc newstations,trams, patchbusstopmovement	// must be before patchpathbasedsignalling

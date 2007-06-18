@@ -265,11 +265,16 @@ buildtrackonbridgeortunnel:
 	jz .neswtun
 	cmp bh,2	// allow only with the right rail direction
 	jne .tunnelwrongdirection
-	jmp short .doconverttunnel
+	testflags manualconvert
+	jc .doconverttunnel
+.ret:
+	ret
 
 .neswtun:
 	cmp bh,1	// same as above
 	jne .tunnelwrongdirection
+	testflags manualconvert
+	jnc .ret
 	
 .doconverttunnel:
 	mov dl,[landscape3+esi*2]	// get convert cost
