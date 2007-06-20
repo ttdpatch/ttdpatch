@@ -55,6 +55,15 @@ patchonewayroads:
 	stringaddress findrvgetrouteovertakeing,1,0
 	storefunctioncall RVGetRouteOvertakeing
 
+	or byte [newgraphicssetsenabled+1],1 << (9-8)
+
+	test byte [miscmodsflags+3], (MISCMODS_ALWAYSSHOWONEWAY>>18h)
+	jz .hidesigns
+	extern openedroadconstruction
+	mov byte [openedroadconstruction], 1
+	ret
+
+.hidesigns:
 	mov eax, [ophandler+0x2*8]
 	mov eax, [eax+1*4]
 	mov edi, [eax+3]
@@ -62,5 +71,4 @@ patchonewayroads:
 	mov dword [oldclass2roadconstrhandler], eax
 	mov dword [edi+1*4], addr(Class2RoadConstrHandler)
 
-	or byte [newgraphicssetsenabled+1],1 << (9-8)
 	ret
