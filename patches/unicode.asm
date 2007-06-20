@@ -891,6 +891,19 @@ proc texthandler_ACP
 	test eax,eax
 	jz .fail	// most likely CP_UTF8 not available (win95), so keep buffer as is
 
+	// there are E0xx codes in the texts, these actually represent the character
+	// with code xx, fix that now
+	lea esi,[%$unicode]
+.nextchar:
+	lodsw
+	test ax,ax
+	jz .e0xx_replaced
+	cmp ah,0xE0
+	jne .nextchar
+	mov byte [esi-1],0
+	jmp short .nextchar
+.e0xx_replaced:
+
 	// and back to the ANSI codepage
 	lea esi,[%$unicode]
 	push 0			// lpUsedDefaultChar
