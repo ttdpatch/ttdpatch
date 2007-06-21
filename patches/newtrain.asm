@@ -939,6 +939,9 @@ showdoublecap:
 	cmp word [esi+10],0
 	ret
 
+// Used to store the hack var (ONLY stored here in 2.5, found in clonetrain.asm in 2.6!)
+uvarb CloneTrainCompany, 1, s
+
 // called when buying a new rail vehicle (action handler)
 //
 // in:  bl=0 if checking, 1 if doing
@@ -962,6 +965,10 @@ proc newbuyrailvehicle
 	movzx edx,bh
 	call checknewtrainisengine2
 	jnz .notadditionalhead
+
+// Little hack to attempt to make Var 43 work in mp
+	mov dh, [curplayer]		// USed by the buy function to store the player buying
+	mov [CloneTrainCompany], dh	// So should be safe for us to copy to our hack
 
 	mov dh,1
 
@@ -989,6 +996,8 @@ proc newbuyrailvehicle
 	and dword [%$veh],0
 
 .done:
+	mov byte [CloneTrainCompany], -1 // Reset this, I'm sure clonetrain already does.
+
 	mov ebx,[%$cost]
 	mov edi,[%$veh]
 	and dword [articulatedvehicle],0
