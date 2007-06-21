@@ -256,27 +256,28 @@ sort_destination:
 	ret
 
 sort_name:
-	// TODO: sort non-custom names among eachother
 	mov cl,[ebp+veh.name+1]
-	and cl,-8
+	mov ch,[esi+veh.name+1]
+	and cx,0xF8F8
+
 	cmp cl,0x78
-	je .continue
-	stc
+	je .ebp_custom
+
+	// the one in ebp doesn't have a custom name
+	cmp ch,0x78
+	jne sort_consistnum	// ... and neither has the one in esi - sort by number
+
+	stc			// the one in esi has custom name, so it wins
 	ret
 
-.continue:
-	mov cl,[esi+veh.name+1]
-	and cl,-8
-	cmp cl,0x78
-	je .comparestrings
-	clc
+.ebp_custom:
+	cmp ch,0x78
+	je .comparestrings	// both have custom names
+
+	clc			// the one in ebp has custom name, the one in esi loses
 	ret
 
 .comparestrings:
-	push es
-	push ds
-	pop es
-
 	push esi
 	mov esi,[esi+veh.name]
 	shl esi,5
@@ -294,7 +295,6 @@ sort_name:
 
 	pop edi
 	pop esi
-	pop es
 	ret
 
 
