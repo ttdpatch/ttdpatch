@@ -41,6 +41,7 @@ endstruc
 
 struc industry2
 	.grfpersistent:	resd 16	// 00h: 16*4=64 bytes for GRFs to use freely
+	.layoutnumber:  resb 1	// 40h: the industry layout number +1
 			resb 2*industry_size-$	// pad it to make it twice the size of
 						// the normal industry struc
 endstruc

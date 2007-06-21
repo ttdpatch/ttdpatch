@@ -2185,20 +2185,21 @@ vard townparamvarhandler
 %endif
 endvar
 
-extern getlandorwaterdistance
+extern getlandorwaterdistance,getindustrylayoutnumber
 
 vard industryvarhandler
 	dd addr(getincargo)
 	dd addr(getincargo)
 	dd addr(getincargo)
 	dd getlandorwaterdistance
+	dd getindustrylayoutnumber
 %ifndef PREPROCESSONLY
 %assign n_industryvarhandler (addr($)-industryvarhandler)/4
 %endif
 endvar
 
 extern getindustrytownzoneanddist,getindustrytowndist_euclid
-extern getothertypecountanddist
+extern getothertypecountanddist,getothertypecountanddist_layout
 
 vard industryparamvarhandler
 	dd getindutiletypeatoffset
@@ -2209,6 +2210,7 @@ vard industryparamvarhandler
 	dd getindustrytownzoneanddist
 	dd getindustrytowndist_euclid
 	dd getothertypecountanddist
+	dd getothertypecountanddist_layout
 %ifndef PREPROCESSONLY
 %assign n_industryparamvarhandler (addr($)-industryparamvarhandler)/4
 %endif

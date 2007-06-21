@@ -3930,6 +3930,8 @@ initnewindustry:
 	sub eax,[industryarrayptr]
 	add eax,eax
 	add eax,[industry2arrayptr]
+
+	push eax
 	mov ecx,industry2_size
 .clearindu2:
 	mov byte [eax],0
@@ -3937,6 +3939,22 @@ initnewindustry:
 	dec ecx
 	jnz .clearindu2
 
+	pop ecx
+
+// the number of the selected layout is still in [fakeinduentry+6]
+// other parts of fakeinduentry can be incorrect, don't use them here!
+	mov al,[fakeinduentry+6]
+	inc al
+	mov [ecx+industry2.layoutnumber],al
+
+	ret
+
+exported getindustrylayoutnumber
+	mov eax,esi
+	sub eax,[industryarrayptr]
+	add eax,eax
+	add eax,[industry2arrayptr]
+	movzx eax,byte [eax+industry2.layoutnumber]
 	ret
 
 varw getincargo_div, 1
@@ -4203,7 +4221,14 @@ exported getothertypedistance
 	ret
 
 extern specialgrfregisters
+
+// var 67 is just a special case of var. 68, with no layout filter
 exported getothertypecountanddist
+	and dword [specialgrfregisters+1*4],0
+	//fallthrough
+
+// var. 68: count instances of a given industry type, plus the distance of the nearest one
+exported getothertypecountanddist_layout
 	push ebx
 
 	movzx eax,ah
@@ -4247,19 +4272,26 @@ exported getothertypecountanddist
 	push ebp
 	mov edi,[industryarrayptr]
 	xor eax,eax
+	mov ah,[specialgrfregisters+1*4]
 	or ebp,byte -1
-	xor ebx,ebx
-	xor edx,edx
+	mov edx,[industry2arrayptr]
+
 	mov ch,NUMINDUSTRIES
 .checknext:
 	cmp word [edi+industry.XY],0
 	je .skip
 	cmp [edi+industry.type],cl
 	jne .skip
+	cmp ah,0
+	je .nolayoutfilter
+	cmp ah,[edx+industry2.layoutnumber]
+	jne .skip
+.nolayoutfilter:
 	inc al			// increase count
 	cmp esi,edi
 	je .skip
 
+	push edx
 	movzx bx,[esi+industry.XY]
 	movzx dx,[esi+industry.XY+1]
 	sub bl,[edi+industry.XY]
@@ -4274,21 +4306,24 @@ exported getothertypecountanddist
 .notnegy:
 
 	add bx,dx
+	pop edx
 
-	cmp ebx,ebp
+	cmp bx,bp
 	ja .skip
 
-	mov ebp,ebx
+	mov bp,bx
 
 .skip:
 	add edi, industry_size
+	add edx, industry2_size
 	dec ch
 	jnz .checknext
 
 // now al=count ebp=distance
 
-	shl ebp,16
-	shld eax,ebp,16
+	mov ah,0
+	shl eax,16
+	mov ax,bp
 
 // now eax[16..23]=count eax[0..15]=dist
 
