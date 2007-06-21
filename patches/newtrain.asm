@@ -951,7 +951,7 @@ showdoublecap:
 // safe:edx esi
 global newbuyrailvehicle
 proc newbuyrailvehicle
-	local x,y,vehtype,cost,veh,otherveh,prevveh,headtype,numheadsbase
+	local x,y,vehtype,cost,veh,otherveh,prevveh,headtype,numheadsbase,player
 
 	_enter
 
@@ -961,6 +961,15 @@ proc newbuyrailvehicle
 	and dword [%$cost],0
 	and dword [%$veh],0
 
+extern CloneTrainCompany
+	mov dh, [CloneTrainCompany]
+	mov [%$player], dh // restore this later otherwise bugs could happen
+	cmp dh, -1
+	jne .gotacompany
+	mov dh, [curplayer]
+	mov [CloneTrainCompany], dh
+
+.gotacompany:
 	movzx edx,bh
 	cmp byte [buildingroadvehicle], 1
 	je .skipcheckengine2check
@@ -1000,6 +1009,8 @@ proc newbuyrailvehicle
 	and dword [%$veh],0
 
 .done:
+	mov bh, [%$player]
+	mov [CloneTrainCompany], bh
 	mov ebx,[%$cost]
 	mov edi,[%$veh]
 	and dword [articulatedvehicle],0
