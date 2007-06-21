@@ -167,10 +167,24 @@ var sortfuncs
 	dd addr(sort_reliability)
 	dd addr(sort_cargo)
 	dd sort_destination
+	dd sort_name
 
 %ifndef PREPROCESSONLY
 %assign SORTCOUNT (addr($)-sortfuncs)/4
 %endif
+
+// sorttexts should be in the exact order as sortfuncs above
+var sorttexts
+	dw ourtext(nosort)
+	dw ourtext(sortconsistnum)
+	dw ourtext(sortprofit)
+	dw ourtext(sortlastprofit)
+	dw ourtext(sortage)
+	dw ourtext(sortmaxspeed)
+	dw ourtext(sortreliability)
+	dw ourtext(sortcargo)
+	dw ourtext(sortdestination)
+	dw ourtext(sortname)
 
 
 sort_nosort:
@@ -239,6 +253,48 @@ sort_destination:
 	pop esi
 	cmp ecx,eax
 	pop eax
+	ret
+
+sort_name:
+	// TODO: sort non-custom names among eachother
+	mov cl,[ebp+veh.name+1]
+	and cl,-8
+	cmp cl,0x78
+	je .continue
+	stc
+	ret
+
+.continue:
+	mov cl,[esi+veh.name+1]
+	and cl,-8
+	cmp cl,0x78
+	je .comparestrings
+	clc
+	ret
+
+.comparestrings:
+	push es
+	push ds
+	pop es
+
+	push esi
+	mov esi,[esi+veh.name]
+	shl esi,5
+	and esi,0x1ff*32
+	add esi,customstringarray
+
+	push edi
+	mov edi,[ebp+veh.name]
+	shl edi,5
+	and edi,0x1ff*32
+	add edi,customstringarray
+
+	mov ecx,32
+	repe cmpsb
+
+	pop edi
+	pop esi
+	pop es
 	ret
 
 
@@ -419,15 +475,20 @@ clicklistwindow:
 	ret
 
 .ourbutton:
-	mov cl,6		// pretend pressing button 6 for button 5 as well
-	xor eax,eax		// fill the menu with the options
-	mov bx,ourtext(nosort)
+	xor ecx,ecx		// fill the menu with the options
+
+	push esi
+	mov esi,sorttexts
 .loop:
-	mov [tempvar+2*eax],bx
-	inc bx
-	inc eax
-	cmp eax,SORTCOUNT
-	jb .loop
+	lodsw
+	mov [tempvar+2*ecx],ax
+	inc ecx
+	cmp ecx,SORTCOUNT
+	jb .loop	
+
+	pop esi
+	mov eax,ecx
+	mov cl,6		// pretend pressing button 6 for button 5 as well
 
 	mov word [tempvar+2*eax],-1	// terminate it
 	xor ebx,ebx			// nothing is disabled
@@ -485,8 +546,8 @@ listguitimer:
 global setvehlisttext
 setvehlisttext:
 	mov [textrefstack],ax	// overwritten
-	movzx ax,[esi+0x31]
-	add ax,ourtext(nosort)
+	movzx eax, byte [esi+0x31]
+	mov ax,[sorttexts+2*eax]
 	mov [textrefstack+6],ax
 	ret
 

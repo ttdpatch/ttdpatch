@@ -381,6 +381,8 @@ defourtext aquaducttexttip
 defourtext waterconstrwin
 defourtext waterconstrtbtip
 
+defourtext sortname
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
