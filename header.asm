@@ -122,6 +122,7 @@ startpatchactions			// this is a macro, not a label...
 	patchaction cleararea
 	patchaction builddiagtrackspan
 	patchaction fundprospecting_newindu
+	patchaction TwoCompanyColourChange
 
 
 uvard newvehdata, newvehdatastruc_size/4
