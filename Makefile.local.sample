@@ -101,3 +101,9 @@ WINCC = CYGWIN
 # and/or this if you're cross compiling and the host gcc isn't 3.4.0 or higher
 #CFLAGS-${HOST} := $(subst -mtune=,-mcpu=,$(CFLAGS-${HOST}))
 
+# Uncomment this if your cygwin/mingw environment starts nasm instead nasm.exe
+# and produce a "cannot execute binary file" error message
+#NASM=nasm.exe
+#NASMPRE=nasm.exe -e
+
+
