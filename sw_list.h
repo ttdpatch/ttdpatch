@@ -283,7 +283,7 @@
 	RANGE('s',"lostships", CFG_SHIPLOSTTIME, VEH_ORDERS, "LostVehicles", lostships, AUTO, U16, FLAGDATA(shiplosttime), 5, 1000, 400),
 	RANGE('t',"losttrains", CFG_TRAINLOSTTIME, VEH_ORDERS, "LostVehicles", losttrains, AUTO, U16, FLAGDATA(trainlosttime), 5, 1000, 150),
 	YESNO('u',"articulatedrvs", CFG_ARTICULATEDRVS, VEH_ROAD, "NewVehicleGraphics", articulatedrvs),
-	RANGE('w',"resolutionwidth", CFG_RESOLUTIONWIDTH, BASIC, "Resolution", resolutionwidth, AUTO, U16, FLAGDATA(reswidth), 640, 2048, 800),
+	RANGE('w',"resolutionwidth", CFG_RESOLUTIONWIDTH, BASIC, "Resolution", resolutionwidth, AUTO, U16, FLAGDATA(reswidth), 640, 4096, 800),
 	RANGE('x',"aibuildrailchance", CFG_AIBUILDRAILCHANCE, DIFFICULTY, "AIConstructionChances", noswitch, AUTO, U16, FLAGDATA(aibuildrailchance), 0, 65535, 30246),
 	RANGE('y',"aibuildrvchance", CFG_AIBUILDRVCHANCE, DIFFICULTY, "AIConstructionChances", noswitch, AUTO, U16, FLAGDATA(aibuildrvchance), 0, 65535, 20164),
 	RANGE('z',"aibuildairchance", CFG_AIBUILDAIRCHANCE, DIFFICULTY, "AIConstructionChances", noswitch, AUTO, U16, FLAGDATA(aibuildairchance), 0, 65535, 5041),
