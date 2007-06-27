@@ -130,10 +130,6 @@
 
 - nowires variable needs to be rethought
 
-- incorrect refit cargo size for planes with non-pass default
-  see http://www.tt-forums.net/viewtopic.php?t=14344
-  also incorrect type; same thread
-
 - refitting crash, http://www.tt-forums.net/viewtopic.php?p=262819#262819
 
 - when selecting station type that makes cur size invalid, choose closest not largest
@@ -141,8 +137,6 @@
 - company colours for rotors
 
 - way to show different sprites in veh list/veh details/depot
-
-- problem selling part of articulated loco with Ctrl (doesn't sell whole veh)
 
 - don't split artic vehs over multiple lines in depot
 
@@ -175,9 +169,6 @@
 - update tools site with http://www.geocities.com/TimesSquare/Stadium/8515/downloads.htm
 
 - add to crash log a list of GRFIDs and the CRC of the corresponding files
-
-- fastwagonsell slightly broken, see also above
-  http://www.tt-forums.net/viewtopic.php?p=319109#319109
 
 - coop feature for other vehicle types too
 
@@ -321,9 +312,6 @@
 - when changing 2nd cc, sprites in veh window get offsets (?)
 
 - George reports lost stations, see emails
-
-- bugs in plane refitting
-  http://www.tt-forums.net/viewtopic.php?p=402035
 
 - new station var 40+x to give slope info
   http://www.tt-forums.net/viewtopic.php?t=23285
