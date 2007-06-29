@@ -140,24 +140,14 @@ sellwagon:
 	shl esi,vehicleshift
 	add esi,eax
 	cmp byte [esi+veh.artictype],0xfe
-	jb .notarticulated
-
-	test bl,2
-	jnz .sellit
-
-	mov cx,[esi+veh.idx]
-	cmp cx,[edx+veh.nextunitidx]
-	jne .engine
-
-	or bl,2
-	jmp short .sellit
+	jae .sellit
 
 .notarticulated:
 	test bl,2
 	jnz .doneusecx	// we have all articulated pieces
 
-	cmp byte [esi+veh.artictype],0xf0
-	ja .engine
+	testflags multihead
+	jc .sellit	// Don't treat engines specially if multihead on.
 
 	mov cx,[esi+veh.vehtype]
 	bt [isengine],cx
