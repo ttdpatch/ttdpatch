@@ -97,6 +97,7 @@ patchnetplay:
 	push aOutputDebugStringA
 	push dword [kernel32hnd]
 	call dword [GetProcAddress]
+extern DebugMsg
 	mov [DebugMsg],eax
 	popa
 #endif

@@ -33,7 +33,9 @@ uvarb playersfound
 varb playersfoundbefore, 1
 uvarb realplayernum	// Real number of players. Numplayers can't be used because TTD assumes it's either 1 or 2
 
+#if DEBUGNETPLAY
 uvard DebugMsg,1,s
+#endif
 
 // New callback function to enumerate players in the session
 // (See DirectX SDK for further info)
@@ -67,6 +69,7 @@ recresult:
 	pusha
 	mov cl,8
 	mov edi, .num
+extern hexnibbles
 	call hexnibbles
 	push .msg
 	call [DebugMsg]
@@ -95,8 +98,8 @@ recresult:
 	ret
 
 #if DEBUGNETPLAY
-var .msg, db "recresult: Unexpected error: 0x"
-var .num, times 8 db 0
+.msg: db "recresult: Unexpected error: 0x"
+.num: times 8 db 0
 db 0xd,0xa,0
 #endif
 
@@ -160,8 +163,8 @@ retrytransfer:
 	ret
 
 #if DEBUGNETPLAY
-var .msg, db "retrytransfer: Retrying packet 0x"
-var .num, db 0,0
+.msg: db "retrytransfer: Retrying packet 0x"
+.num: db 0,0
 db 0xd,0xa,0
 #endif
 
@@ -233,8 +236,8 @@ recbuffer:
 // While waiting, TTD does two things in a loop: looks for messages and enumerates players.
 
 #if DEBUGNETPLAY
-var .foo, db "It takes too much for player "
-var .num, db 0," to answer!",0x0d,0x0a,0
+.foo: db "It takes too much for player "
+.num: db 0," to answer!",0x0d,0x0a,0
 #endif
 // Called instead of PeekMessage in the first part.
 // return with eax=0 to skip message processing
@@ -416,17 +419,18 @@ ovar .bytetocheck,-4,$,recnetack
 .notagain:
 #endif
 .wrongplayer:
-	mov eax,[isremoteplayerid]		// has everyone answered?
-	cmp eax,[acknowledges]
-	jne .exit
+	mov eax,[acknowledges]		// has everyone answered?
+	not eax
+	test eax,[isremoteplayerid]
+	jnz .exit
 .success:
 	and dword [acknowledges],0
 .exit:
 	ret
 
 #if DEBUGNETPLAY
-var .msg, db "Player "
-var .num, db 0
+.msg: db "Player "
+.num: db 0
 db " acknowledged a packet twice!",0xd,0xa,0
 #endif
 
@@ -460,7 +464,7 @@ sendnetack1:
 	ret
 
 #if DEBUGNETPLAY
-var .msg, db "Lastgoodsender uninitialized!",0xd,0xa,0
+.msg: db "Lastgoodsender uninitialized!",0xd,0xa,0
 #endif
 // Called on the host machine after the game has started
 // initialize some important data here
@@ -542,8 +546,8 @@ initplayerdata:
 	ret
 
 #if DEBUGNETPLAY
-var .msg, db "Got PlayerID "
-var .num, db 0,0x0d,0x0a,0
+.msg: db "Got PlayerID "
+.num: db 0,0x0d,0x0a,0
 #endif
 
 // Here comes the main trick of enhancedmultiplayer: make TTD handle all remote players
@@ -613,6 +617,63 @@ checkhuman2:
 	pop eax
 	ret
 
+varb sync_packet, 5
+
+exported transmitendofactions_enhmulti
+	call $
+ovar .oldfn,-4,$,transmitendofactions_enhmulti
+	cmp byte [numplayers],1
+	je .nomulti
+	pusha
+	push 1
+	push sync_packet
+	call dword [dosendbuffer]
+	add esp,8
+	popa
+.nomulti:
+	ret
+
+exported receiveanddoactions_enhmulti
+	call $
+ovar .oldfn,-4,$,receiveanddoactions_enhmulti
+	pusha
+	push 1
+	mov esi,[MPtransferbuffer]
+	push esi
+.wait:
+	call dword [dorecbuffer]
+	test eax,eax
+	jz .wait
+	add esp,8
+#if DEBUGNETPLAY
+	cmp eax,1
+	jne .bad
+	mov esi,[MPtransferbuffer]
+	cmp byte [esi],5
+	je .notbad
+.bad:
+	mov al,[curplayer]
+	add al,'0'
+	mov [.num],al
+	mov eax,[MPtransferbuffer]
+	mov al,[eax]
+	mov edi,.num2
+	mov cl,2
+	call hexnibbles
+	push .msg
+	call [DebugMsg]
+.notbad:
+#endif
+	popa
+	ret
+
+#if DEBUGNETPLAY
+.msg: db "Bad sync packet from player "
+.num: db 0,"!",0x0d,0x0a
+db "It starts with "
+.num2: db 0,0,0xd,0xa,0
+#endif
+
 // The old TickProcAllCompanies behaves badly when the game is paused or is in the title screen
 // Replace this part with a more general solution
 global tickprocallcompanies
@@ -637,10 +698,6 @@ tickprocallcompanies:
 	push eax
 	call dword [doallplayeractions]			// now it's our turn - do and transmit all local actions
 	call dword [transmitendofactionsfn]
-	push 1
-	push .foo
-	call dword [dosendbuffer]
-	add esp,8
 	pop eax
 .notlocal:
 	cmp byte [gamemode],0
@@ -651,51 +708,12 @@ tickprocallcompanies:
 	jnc .nextplayer
 	push eax					// it's a remote player's turn - receive and do his/her actions
 	call dword [receiveanddoactions]
-	push 1
-	mov esi,[MPtransferbuffer]
-	push esi
-.wait:
-	call dword [dorecbuffer]
-	test eax,eax
-	jz .wait
-	add esp,8
-#if DEBUGNETPLAY
-	cmp eax,1
-	jne .bad
-	mov esi,[MPtransferbuffer]
-	cmp byte [esi],5
-	je .notbad
-.bad:
-	pop eax
-	push eax
-	pusha
-	add al,'0'
-	mov [.num],al
-	mov eax,[MPtransferbuffer]
-	mov al,[eax]
-	mov edi,.num2
-	mov cl,2
-	call hexnibbles
-	push .msg
-	call [DebugMsg]
-	popa
-.notbad:
-#endif
 	pop eax
 .nextplayer:
 	inc eax
 	cmp eax,8
 	jb .loop
 	ret
-
-.foo: db 5
-
-#if DEBUGNETPLAY
-var .msg, db "Bad sync packet from player "
-var .num, db 0,"!",0x0d,0x0a
-db "It starts with "
-var .num2, db 0,0,0xd,0xa,0
-#endif
 
 // Called after a premade map has been loaded
 // Human1 was overwritten, but was saved before in oldhuman1 (see loadsave.asm)
