@@ -244,6 +244,16 @@ patchenhmulti:
 
 	patchcode mainmenu2playerbutton
 	patchcode mainmenu2playertooltip
+
+extern transmitendofactions_enhmulti,transmitendofactions_enhmulti.oldfn
+extern receiveanddoactions_enhmulti,receiveanddoactions_enhmulti.oldfn
+extern transmitendofactionsfn,receiveanddoactions
+	mov edi,[transmitendofactionsfn]
+	inc edi
+	chainfunction transmitendofactions_enhmulti,.oldfn
+	mov edi,[receiveanddoactions]
+	inc edi
+	chainfunction receiveanddoactions_enhmulti,.oldfn
 	ret
 
 
