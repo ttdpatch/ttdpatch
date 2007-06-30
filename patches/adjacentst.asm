@@ -115,6 +115,7 @@ global adjacentstationcheck
 //		-1	= normal processing
 //		-2	= error/cancel
 //		-3	= delayed processing
+//		-4	= normal processing, from other player
 
 //trashes: (eax)
 adjacentstationcheck:
@@ -128,12 +129,13 @@ adjacentstationcheck:
 .norm:
 	xor eax, eax
 	dec eax
+.ret:
 ret
 .multitest:
 	xor eax, eax
 	xchg eax, [adjmultiplayerstate]
-	or eax, eax
-	jns .norm
+	cmp eax, -1
+	je .ret // .norm
 	movzx eax, al
 ret
 
@@ -623,6 +625,7 @@ uvard stmodflags, (numstations+31)>>5
 
 global createbuoyactionhook,createbuoyactionhook.oldfn
 createbuoyactionhook:
+	call checkwhethertransmittedaction
 	mov DWORD [adjaction], 0xB0028
 	and DWORD [adjflags2], ~15
 	or DWORD [adjflags2], 16
@@ -687,6 +690,7 @@ ret
 
 global createdockactionhook
 createdockactionhook:
+	call checkwhethertransmittedaction
 	mov DWORD [adjaction], 0x90028
 	and DWORD [adjflags2], ~23
 	or DWORD [adjflags2], 8
@@ -705,6 +709,7 @@ createdockactionhook:
 ret*/
 global createairportactionhook
 createairportactionhook:
+	call checkwhethertransmittedaction
 	movzx esi, bh
 	mov dx, [airportdimensions+esi*2]
 	mov DWORD [adjaction], 0x20028
@@ -715,6 +720,7 @@ createairportactionhook:
 	jmp createrailstactionhook.nocheckirr
 global createbusstactionhook
 createbusstactionhook:
+	call checkwhethertransmittedaction
 	mov dx, 0x101
 	mov DWORD [adjaction], 0x50028
 	and DWORD [adjflags2], ~31
@@ -723,6 +729,7 @@ createbusstactionhook:
 	jmp createrailstactionhook.nocheckirr
 global createlorrystactionhook
 createlorrystactionhook:
+	call checkwhethertransmittedaction
 	mov dx, 0x101
 	mov DWORD [adjaction], 0x60028
 	and DWORD [adjflags2], ~31
@@ -731,6 +738,7 @@ createlorrystactionhook:
 	jmp createrailstactionhook.nocheckirr
 global createrailstactionhook,createrailstactionhook.oldfn
 createrailstactionhook:
+	call checkwhethertransmittedaction
 	testflags irrstations
 	jnc NEAR .end
 	mov DWORD [adjaction], 0x28
@@ -738,7 +746,7 @@ createrailstactionhook:
 	or DWORD [adjflags2], 2
 	mov WORD [adjoperrormsg1], 0x100F
 	mov DWORD [adjtmp1], 0
-	.nocheckirr:
+.nocheckirr:
 	cmp DWORD [adjflags], 0
 	jne .end
 	pusha
@@ -761,22 +769,29 @@ createrailstactionhook:
 	push ebx
 	call adjacentstationcheck
 	pop ebx
+	cmp eax, -4
+	je .normremote
 	cmp eax, -2
 	jle .delay
 	or eax, eax
 	js .popend
 	//auto-merge
+.remotebuild:
 	mov esi, eax
 	mov eax, [esp+28]	//tile coords
 	mov edx, esp
 	mov ecx, 32
-	push DWORD .delay
+	push DWORD .pend
 	jmp adjstrailstfunc
+.normremote:
+	mov eax, -1
+	jmp .remotebuild
 .popend:
 	popa
 	pusha
-	or ebp, -1
+	or ebp, -4
 	call DoTransmitAdjacentStationAction
+.pend:
 	popa
 .end:
 	test DWORD [adjflags2], 16
@@ -996,8 +1011,10 @@ ret
 checkwhethertransmittedaction:
 	cmp DWORD [adjmultiplayerstate], 0
 	jne .good
+	push edx
 	mov dl, [curplayer]
 	cmp dl, [human1]
+	pop edx
 	jne .bad
 .good:
 	ret
@@ -1033,8 +1050,7 @@ locret_14EB1D:
 exported AdjacentStationBuildNewStation
 	push ebp
 	mov ebp, eax
-	shr ebp, 16
-	or ebp, 1<<31
+	sar ebp, 16		// sign extend
 	mov esi, ecx
 	mov si, 0x28
 	mov [adjmultiplayerstate], ebp
