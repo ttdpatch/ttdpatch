@@ -17,6 +17,7 @@ extern CreateWindow,DrawWindowElements,WindowClicked,DestroyWindow,WindowTitleBa
 global robjgameoptionflag,robjflags
 extern cargotypes,newcargotypenames,cargobits,invalidatetile,cargotypes
 extern GenerateDropDownEx,GenerateDropDownExPrepare,DropDownExList
+extern TransmitAction, MPRoutingRestrictionChange_actionnum
 
 global tr_siggui_btnclick
 
@@ -839,6 +840,7 @@ uvarb curvarddboxmode, 1
 
 uvarw curxypos, 1
 
+uvarw currobjrelhorizpos,1
 uvarw robjidindex,1
 uvarw robjid,1
 uvard rootobj,1
@@ -1032,7 +1034,7 @@ ret
 	mov edx, [rootobj]
 	or edx, edx
 	jz .tboxret
-	
+	mov [currobjrelhorizpos], ax
 	push DWORD .tbox_1
 	inc ax
 .tboxrobjrecurse:
@@ -1089,7 +1091,7 @@ ret
 
 	jmp .ddl1_nomoddx
 
-	.ddl1_norm:
+.ddl1_norm:
 	push ecx
 	mov BYTE [curvarddboxmode], 0
 	mov eax, [curddlvarptr]
@@ -1166,6 +1168,7 @@ ret
 	mov [ebx+robj.type], al
 .ddl1_action_bop_ret:
 	mov edx, ebx
+	call TransmitRoutingRestrictionLineChangeCurRobj
 	jmp updatebuttons.noddlcheck
 
 .ddl1_action_norm:
@@ -1187,6 +1190,13 @@ ret
 	or ebx, ebx
 	jnz NEAR .ddl1_action_noinit
 
+.ddl1_action_norm_init:
+	pusha
+	xor bh, bh
+	call TransmitRoutingRestrictionChangeRobjCurPos
+	popa
+	push DWORD trwin_msghndlr.ddl1_action_init_nonmpcont
+.ddl1_action_norm_init_mp:
 	push eax
 	movzx eax, WORD [curxypos]
 	or BYTE [landscape3+1+eax*2], 0x10
@@ -1198,9 +1208,7 @@ ret
 		jz .sbl1f
 		add ebx, robj_size
 	loop .sbl1
-	call error
-	pop eax
-	ret
+jmp .sbl_fail
 
 	.sbl1f:
 	neg ecx
@@ -1217,22 +1225,33 @@ ret
 		je .sbl2f
 		add eax,2
 	loop .sbl2
+.sbl_fail:
 	call error
 	pop eax
+	cmp DWORD [esp], trwin_msghndlr.ddl1_action_init_nonmpcont
+	jne .sbl_fail_ret
+	add esp, 4
+.sbl_fail_ret:
 	ret
 .sbl2f:
 	mov [eax], dx
-	mov [robjid], dx
-	mov [curselrobjid], dx
+	or BYTE [robjflags], 1
 	sub eax, robjidtbl
 	shr eax, 1
+	cmp DWORD [esp+4], trwin_msghndlr.ddl1_action_init_nonmpcont
+	jne .ddl1_action_init_mp_nosetglobvars
+	mov [robjid], dx
+	mov [curselrobjid], dx
 	mov [robjidindex], ax
 	mov [rootobj], ebx
 	mov [curselrobj], ebx
+	mov WORD [currobjrelhorizpos], 0
+.ddl1_action_init_mp_nosetglobvars:
 	movzx edx, WORD [curxypos]
 	mov [landscape7+edx], al
-	or BYTE [robjflags], 1
 	pop eax
+	ret	//conditional fall through
+.ddl1_action_init_nonmpcont:
 	call countrows
 .ddl1_action_noinit:
 	inc eax
@@ -1255,6 +1274,7 @@ ret
 	mov BYTE [ebx+robj.type], al
 .noclearvalue:
 	mov edx, ebx
+	call TransmitRoutingRestrictionLineChangeCurRobj
 	jmp updatebuttons.noddlcheck
 
 .ddl1_action_convert_kph_mph:
@@ -1288,6 +1308,7 @@ ret
 	lea eax, [eax+1+ecx*4]
 	mov [ebx+robj.type],al
 	mov edx,ebx
+	call TransmitRoutingRestrictionLineChangeCurRobj
 	jmp updatebuttons.noddlcheck
 
 .ddl3_action:
@@ -1305,7 +1326,7 @@ ret
 
 	xor ecx, ecx
 
-	.ddl3_action_cargo_loop:
+.ddl3_action_cargo_loop:
 	movzx ebx, BYTE [cargotypes+ecx]
 	cmp ebx, 0xFF
 	je .ddl3_action_cargo_skip
@@ -1313,13 +1334,14 @@ ret
 	jnc .ddl3_action_cargo_skip
 	dec eax
 	js .ddl3_action_cargo_gotit
-	.ddl3_action_cargo_skip:
+.ddl3_action_cargo_skip:
 	inc ecx
 	cmp cl, 32
 	jb .ddl3_action_cargo_loop
-	.ddl3_action_cargo_gotit:
+.ddl3_action_cargo_gotit:
 	mov [edx+robj.word1], cl
 	or BYTE [edx+robj.flags], 1
+	call TransmitRoutingRestrictionLineChangeCurRobj
 	jmp updatebuttons.noddlcheck
 
 .trwin_dropdown:
@@ -1483,6 +1505,7 @@ ret
 	and BYTE [ebx+robj.flags], ~1
 	mov DWORD [ebx+robj.word1],0
 .mtcl_exit:
+call TransmitRoutingRestrictionLineChangeCurRobj
 	push esi
 	jmp .undomtool
 
@@ -1544,6 +1567,12 @@ ret
 	xor eax, eax
 	jmp copysharelistbtn
 .delnorm:
+	pusha
+	mov bh, 3
+	call TransmitRoutingRestrictionPosTypeCurRobj
+	popa
+	push DWORD trwin_msghndlr.delguicont
+.delgen:
 	mov edx, [curselrobj]
 	or edx, edx
 	jz NEAR .delrstret
@@ -1552,7 +1581,7 @@ ret
 	jae .delbtnbop
 	mov DWORD [edx], 0x01800000
 	mov DWORD [edx+4], 0
-	jmp updatebuttons
+ret	//cond jmp .delguicont/ret
 .delbtnbop:
 	movzx ebp, WORD [edx+robj.word1]
 	lea ecx, [ebp*2]
@@ -1592,11 +1621,12 @@ ret
 	xchg eax, [ecx+4]
 	mov [edx+4], eax
 .bopend1:
-	call countrows
-	jmp updatebuttons
+ret	//cond jmp .delguicont/ret
 .blankedx:
 	mov DWORD [edx], 0x01800000
 	mov [edx+4], eax
+ret	//cond ret
+.delguicont:
 	call countrows
 	jmp updatebuttons
 .delrstret:
@@ -1608,14 +1638,22 @@ ret
 	mov eax, 1
 	jmp copysharelistbtn
 .rstnorm:
-	mov WORD [tracerestrictwindowelements.vartb], statictext(empty)
-	mov WORD [tracerestrictwindowelements.optb], statictext(empty)
+	pusha
+	mov bh, 1
+	call TransmitRoutingRestrictionChangeRobjCurPos
+	popa
+	push DWORD trwin_msghndlr.rstnormcont
+.rstbasic:
 	push esi
 	movzx esi, WORD [curxypos]
 	call delrobjsignal
 	mov eax, esi
 	call refreshtile.goteax
 	pop esi
+	ret
+.rstnormcont:
+	mov WORD [tracerestrictwindowelements.vartb], statictext(empty)
+	mov WORD [tracerestrictwindowelements.optb], statictext(empty)
 	xor edx,edx
 	mov [robjidindex], dx
 	mov [robjid], dx
@@ -1626,6 +1664,13 @@ ret
 	jmp updatebuttons
 
 bophandler:
+	pusha
+	mov bh, 2
+	movzx edi, al
+	call TransmitRoutingRestrictionPosTypeCurRobj
+	popa
+	push DWORD bophandler.nmpend
+.mp:	//curselrobj must be non-zero
 	mov edx, [curselrobj]
 	or edx, edx
 	jz NEAR .ret
@@ -1666,9 +1711,13 @@ bophandler:
 	shl ebp, 13
 	or ebx, ebp
 	mov [edx+4], ebx
+ret
+.nmpend:
 	call countrows
 	jmp updatebuttons
 .ret:
+	add esp, 4
+	//this should *never* be reached when calling bophandler.mp
 ret
 
 textwindowchangehandler:
@@ -2260,17 +2309,24 @@ copysharelistbtn:
 uvarb copyshareaction, 1
 //1=copy,2=share
 
+uvarb copyshareactionmp,1
+//0=norm,1=mp
+//with mp: robjidindex, robjid, rootobj, curselrobj are modified anyway
+
 //eax=coords of source
 copysharelist:
 	pusha
 	push esi
+	cmp BYTE [copyshareactionmp], 0
+	jne .nomt
 	push eax
 	xor ebx,ebx
 	xor eax,eax
 	xor edx,edx
 	call [setmousetool]
 	pop eax
-	
+.nomt:
+
 	mov [tr_copylist_emergency_stack_pointer], esp
 	
 	cmp BYTE [copyshareaction], 0
@@ -2317,7 +2373,6 @@ ret
 	sub ecx, robjidtbl
 	shr ecx, 1
 	mov [robjidindex], cx
-
 	mov DWORD [curselrobj], 0
 
 	cmp BYTE [copyshareaction], 1
@@ -2405,9 +2460,12 @@ ret
 	call refreshtile
 .ret:
 	pop esi
+	cmp BYTE [copyshareactionmp], 0
+	jne .noguiaction
 	and BYTE [esi+window.activebuttons+1], ~3
 	mov edx, [curselrobj]
 	call updatebuttons
+.noguiaction:
 	popa
 ret
 
@@ -2449,3 +2507,142 @@ ret
 .goteax:
 	pusha
 	jmp .in
+
+//ax,cx: coords, bl=constr flags (1), bh=type
+//type=0:	create initial restriction
+//type=1:	reset signal
+//type=2:	insert bop, edx=pos, edi=0,1,2=and,or,xor
+//type=3:	delete, edx=pos
+//type=4:	change line, ebx-high=pos, edx=word1, edi=word2 (ignored for bops)
+//type=5:	share, edi=coords of tile to share with
+//type=6:	copy, edi=coords of tile to share with
+//"pos" means number of a restriction object, as would be seen in the GUI window, zero-based
+exported MPRoutingRestrictionChange
+	push WORD [curxypos]
+	movzx esi, cx
+	shl esi, 8
+	or si, ax
+	shr esi, 4
+	mov [curxypos], si
+	or bh, bh
+	jz .type0
+	dec bh
+	jz .type1
+	dec bh
+	jz .type2
+	dec bh
+	jz .type3
+	dec bh
+	jz .type4
+	dec bh
+	jz .type5
+	dec bh
+	jz .type6
+	ud2	//error! bad type
+.end:
+	xor ebx, ebx
+	pop WORD [curxypos]
+	ret
+.type0:
+	push DWORD MPRoutingRestrictionChange.end
+	jmp trwin_msghndlr.ddl1_action_norm_init_mp
+.type1:
+	push DWORD MPRoutingRestrictionChange.end
+	jmp trwin_msghndlr.rstbasic
+.type2:
+	call GetMPRoutingRestrictionMPRobjFromPos
+	mov ax, di
+	push DWORD [curselrobj]
+	mov [curselrobj], edx
+	call bophandler.mp
+	pop DWORD [curselrobj]
+	jmp .end
+.type3:
+	push DWORD MPRoutingRestrictionChange.end
+	jmp trwin_msghndlr.delgen
+.type4:
+	push edx
+	mov edx, ebx
+	shr edx, 16
+	call GetMPRoutingRestrictionMPRobjFromPos
+	pop ebx
+	mov [edx], ebx
+	cmp bh, 32
+	jae .end	//don't set the second dword for bops
+	mov [edx+4], edi
+	jmp .end
+.type5:
+	mov al, 1
+	jmp .type_copyshare
+.type6:
+	mov al, 2
+.type_copyshare:
+	xchg [copyshareaction], al
+	//copied from below function's comments: //with mp: robjidindex, robjid, rootobj, curselrobj are modified anyway
+	mov bx, [robjidindex]
+	shl ebx, 16
+	mov bx, [robjid]
+	mov ecx, [rootobj]
+	mov edx, [curselrobj]
+	pusha
+	mov eax, edi
+	call copysharelist
+	popa
+	mov [robjid], bx
+	shr ebx, 16
+	mov [robjidindex], bx
+	mov [rootobj], ecx
+	mov [curselrobj], edx
+	mov [copyshareaction], al
+	jmp .end
+
+//In: edx=pos
+//trashes: eax, edx
+//Out: edx=robj ptr
+GetMPRoutingRestrictionMPRobjFromPos:
+	mov eax, edx
+	inc ax
+	call trwin_msghndlr.tboxrobjrecurse
+	or ax, ax
+	jnz .ok
+	ud2	//message contained bad robj position/tile coords
+.ok:
+ret
+
+TransmitRoutingRestrictionLineChangeCurRobj:
+	pusha
+	call TransmitRoutingRestrictionChangeRobjCurPos
+	popa
+ret
+
+//trashes: ax, cx, esi, bl, edx
+TransmitRoutingRestrictionPosTypeCurRobj:
+	movzx edx, WORD [currobjrelhorizpos]
+	jmp TransmitRoutingRestrictionChangeRobjCurPos
+
+//trashes: ax, cx, esi, ebx, edx, edi
+TransmitRoutingRestrictionLineChangeCurRobj2:
+	mov bx, [currobjrelhorizpos]
+	shl ebx, 16
+	mov bh, 4
+	mov edi, [curselrobj]
+	mov edx, [edi]
+	mov edi, [edi+4]
+//trashes: ax, cx, esi, bl
+TransmitRoutingRestrictionChangeRobjCurPos:
+	movzx ax, BYTE [curxypos]
+	movzx cx, BYTE [curxypos+1]
+	shl ax, 4
+	shl cx, 4
+//trashes: esi, bl
+TransmitRoutingRestrictionChangeRobj:
+	//prevent recursion loops
+	mov bl, [curplayer]
+	cmp bl, [human1]
+	jne .ret
+
+	mov bl, 1
+	mov esi, MPRoutingRestrictionChange_actionnum
+ 	call [TransmitAction]
+.ret:
+ret
