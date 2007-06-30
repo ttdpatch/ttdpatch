@@ -127,6 +127,7 @@ startpatchactions			// this is a macro, not a label...
 	patchaction ConvertEngineType
 	patchaction TwoCompanyColourChange
 	patchaction AdjacentStationBuildNewStation
+	patchaction MPRoutingRestrictionChange
 
 uvard newvehdata, newvehdatastruc_size/4
 uvard persgrfdata, persgrfdatastruc_size/4
