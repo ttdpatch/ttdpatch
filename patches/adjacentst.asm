@@ -789,7 +789,7 @@ createrailstactionhook:
 .popend:
 	popa
 	pusha
-	or ebp, -4
+	mov ebp, -4
 	call DoTransmitAdjacentStationAction
 .pend:
 	popa
