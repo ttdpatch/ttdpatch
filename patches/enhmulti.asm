@@ -1011,5 +1011,21 @@ exported disable_lograndom
 
 .done:
 	ret
+
+//clean all existing entries from the random log if logging is enabled
+exported truncate_random_log
+	cmp byte [lograndom_enabled],0
+	je .nologging
+
+// Unfortunately, we can't truncate the file directly.
+// Writing 0 bytes via int21 would only work on DOS, the int21 wrapper
+// of the Windows version doesn't translate it correctly
+// The best thing we can do is closing the file then reopening it
+
+	call disable_lograndom
+	call enable_lograndom
+
+.nologging:
+	ret
 	
 #endif //DEBUGNETPLAY

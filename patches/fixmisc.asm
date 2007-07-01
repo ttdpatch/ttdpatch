@@ -2071,6 +2071,12 @@ extern disable_lograndom
 #endif
 	popa
 .noerror:
+#if DEBUGNETPLAY
+// if there was no error, we can safely throw away the random log accumulated so far
+// if there _was_ an error, logging is already disabled, so this will be a no-op
+extern truncate_random_log
+	call truncate_random_log
+#endif
 .justthecost:
 	xor ebx,ebx
 	ret
