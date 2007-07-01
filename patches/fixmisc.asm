@@ -2085,8 +2085,18 @@ checkrandomseed:
 	mov bx,ourtext(desynch1)
 	mov dx,ourtext(desynch2)
 	call dword [errorpopup]
+#if DEBUGNETPLAY
+extern disable_lograndom
+	call disable_lograndom		// logging is unnecessary from now on
+#endif
 	popa
 .noerror:
+#if DEBUGNETPLAY
+// if there was no error, we can safely throw away the random log accumulated so far
+// if there _was_ an error, logging is already disabled, so this will be a no-op
+extern truncate_random_log
+	call truncate_random_log
+#endif
 .justthecost:
 	xor ebx,ebx
 	ret

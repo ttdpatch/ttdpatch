@@ -937,4 +937,95 @@ transmitloadsuccess:
 	pop eax
 	ret
 
-#endif
+#endif //WINTTDX
+
+#if DEBUGNETPLAY
+uvarb lograndom_enabled
+
+noglobal uvarw lograndom_filehandle
+
+extern int21handler
+
+// safe: eax, ebx
+exported lograndomcaller
+	cmp byte [lograndom_enabled],0
+	je .nolog
+	push ecx
+	push edx
+	mov ah,0x40	//write to file or device
+	mov bx,[lograndom_filehandle]
+	mov ecx,4
+// get the return address of randomfn from the stack
+	lea edx,[esp+2*4+4+4]	// we pushed 2 registers, 4 bytes for our return address
+				// and 4 again because the caller pushed ebx before calling us
+	CALLINT21
+	pop edx
+	pop ecx
+
+.nolog:
+	mov ebx,[randomseed2]		// overwritten
+	ret
+
+noglobal varb randomlogfilename, "random.log", 0
+
+// enable random generator logging
+// cf is set on exit if there was an error
+exported enable_lograndom
+	cmp byte [lograndom_enabled],0
+	jne .done
+
+	push eax
+	push ecx
+	push edx
+	mov ah,0x3c		// create or truncate file
+	xor ecx,ecx		// no special attributes
+	mov edx,randomlogfilename	// filename
+
+	CALLINT21
+	jc .error
+	mov byte [lograndom_enabled],1
+	mov [lograndom_filehandle],ax
+.error:
+	pop edx
+	pop ecx
+	pop eax
+.done:
+	ret
+
+exported disable_lograndom
+	cmp byte [lograndom_enabled],0
+	je .done
+
+	push eax
+	push ebx
+
+	mov ah, 0x3E	// close file
+	mov bx,[lograndom_filehandle]
+
+	CALLINT21
+
+	mov byte [lograndom_enabled],0
+
+	pop ebx
+	pop eax
+
+.done:
+	ret
+
+//clean all existing entries from the random log if logging is enabled
+exported truncate_random_log
+	cmp byte [lograndom_enabled],0
+	je .nologging
+
+// Unfortunately, we can't truncate the file directly.
+// Writing 0 bytes via int21 would only work on DOS, the int21 wrapper
+// of the Windows version doesn't translate it correctly
+// The best thing we can do is closing the file then reopening it
+
+	call disable_lograndom
+	call enable_lograndom
+
+.nologging:
+	ret
+	
+#endif //DEBUGNETPLAY

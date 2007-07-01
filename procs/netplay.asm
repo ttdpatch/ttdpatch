@@ -34,6 +34,12 @@ codefragment newretrytransfer
 	setfragmentsize 10
 #endif
 
+#if DEBUGNETPLAY
+
+codefragment_call newrandom, lograndomcaller
+
+#endif
+
 
 endcodefragments
 
@@ -104,6 +110,13 @@ extern DebugMsg
 #endif
 
 	patchcode oldtransmitendofactions,newtransmitendofactions,1,1,,{test word [miscmodsflags],MISCMODS_NODESYNCHWARNING},z
+#if DEBUGNETPLAY
+extern randomfn
+// allow logging of [randomfn] calls for multi debugging
+	mov edi,[randomfn]
+	inc edi			// skip the push ebx
+	storefragment newrandom
+#endif
 	ret
 
 #if WINTTDX

@@ -148,6 +148,10 @@ cheatentry "TEXTID",textidcheat,0
 cheatentry "RESETCARGO",resetcargocheat,0
 cheatentry "CLONETILE", clonetilecheat,0
 #endif
+
+#if DEBUGNETPLAY
+cheatentry "LOGRANDOM",lograndomcheat,0
+#endif
 endvar
 
 uvard activesign	// pointer to current sprite structure, or -1 if about to set
@@ -2819,4 +2823,46 @@ clonetilecheat:
 .fret:
 	stc
 	ret
+#endif
+
+#if DEBUGNETPLAY
+/*
+** -- How to use random generator logging --
+**
+**
+** "Cht: LogRandom 0" disables logging, anything but 0 for parameter enables it,
+** using no parameters toggles the state. The return address of randomfn gets dumped to
+** a file named random.log while logging is enabled. In multiplayer, the file
+** gets truncated every time the random seed check succeeds, and logging is automatically
+** disabled on the first mismatch, so you end up with the interesting part only.
+** You can turn it on before reproducing a known desync, or keep it enabled during
+** playing and examine the resulting log when a "random" desync happens.
+**
+** Don't forget to turn it off manually before exiting (if it didn't turn itself off,
+** of course) to make sure the file gets closed correctly.
+*/
+
+extern lograndom_enabled,enable_lograndom,disable_lograndom
+
+lograndomcheat:
+	or word [cheaterror],-1		// don't show "invalid parameter" when failing
+	call getnumber
+	jc .toggle
+
+	test edx,edx
+	jz .disable
+
+.enable:
+	jmp enable_lograndom	// will set cf correctly
+
+.disable:
+	call disable_lograndom
+	clc
+	ret
+
+.toggle:
+	cmp byte [lograndom_enabled],0
+	je .enable
+	jmp short .disable
+	
 #endif
