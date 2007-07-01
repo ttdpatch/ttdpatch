@@ -143,6 +143,10 @@ cheatentry "GOTOXY",gotocheat,0
 cheatentry "TEXTID",textidcheat,0
 cheatentry "RESETCARGO",resetcargocheat,0
 #endif
+
+#if DEBUGNETPLAY
+cheatentry "LOGRANDOM",lograndomcheat,0
+#endif
 endvar
 
 uvard activesign	// pointer to current sprite structure, or -1 if about to set
@@ -2650,3 +2654,28 @@ resetcargocheat:
 	clc
 	ret
 
+#if DEBUGNETPLAY
+extern lograndom_enabled,enable_lograndom,disable_lograndom
+
+lograndomcheat:
+	or word [cheaterror],-1		// don't show "invalid parameter" when failing
+	call getnumber
+	jc .toggle
+
+	test edx,edx
+	jz .disable
+
+.enable:
+	jmp enable_lograndom	// will set cf correctly
+
+.disable:
+	call disable_lograndom
+	clc
+	ret
+
+.toggle:
+	cmp byte [lograndom_enabled],0
+	je .enable
+	jmp short .disable
+	
+#endif

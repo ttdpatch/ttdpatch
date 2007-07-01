@@ -1570,6 +1570,14 @@ dogeneralpatching:
 	patchcode oldredrawdone,newredrawdone,1,1
 	storefunctionaddress finderrorpopup,1,1,errorpopup
 	storefunctionaddress findrandomfn,1,1,randomfn
+#if WINTTDX
+// in Windows, all random calls go through a jump table
+// save an extra jump by using the address of the real function instead of
+// the address of the jump
+// (this is also required for random call logging to work correctly)
+	mov edi,[randomfn]
+	storefunctiontarget 1,randomfn
+#endif
 	storefunctionaddress findactionhandler,1,1,actionhandler
 	storeaddress findmakerisingcost,1,1,makerisingcost
 	stringaddress oldloadfilemask,1,1

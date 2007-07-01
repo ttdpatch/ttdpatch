@@ -2065,6 +2065,10 @@ checkrandomseed:
 	mov bx,ourtext(desynch1)
 	mov dx,ourtext(desynch2)
 	call dword [errorpopup]
+#if DEBUGNETPLAY
+extern disable_lograndom
+	call disable_lograndom		// logging is unnecessary from now on
+#endif
 	popa
 .noerror:
 .justthecost:
