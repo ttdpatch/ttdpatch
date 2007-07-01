@@ -100,6 +100,7 @@ defbit EXP_NEWTERRAINGEN,	5 // new terrain generator
 defbit EXP_ENGINECONVERT,	6 // Experimental Engine to multihead converter (maybe the other way too)
 defbit EXP_PREVIEWDD,		7 // Create preview windows for station classes.
 defbit EXP_EXTRADETAILS,	8 // Show more informations in the train detail window.
+defbit EXP_ASYNCMP,			9 // Asynchronous/internet multiplayer
 enddefbits
 
 

@@ -587,7 +587,7 @@ BIT(newterraingen, "new terrain generator for random landscapes")
 BIT(engineconvert, "converts an engine to a extra head (very experimental)")
 BIT(previewdd,     "Show previews in the station drop down")
 BIT(extradetails,  "Show more specs in the vehicle details window")
-
+BIT(asyncmp,       "Internet multiplayer support")
 
 // Description for maskdisasters bits
 BITSWITCH(maskdisasters)
