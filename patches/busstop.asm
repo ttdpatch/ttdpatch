@@ -11,7 +11,6 @@ extern DrawStationImageInSelWindow,generatesoundeffect,isrvbus,redrawscreen
 extern editTramMode
 extern patchflags
 extern persgrfdata
-extern adjflags
 
 // Custom roadside RV stop sprites.
 uvarw	roadsidervstops, 1, s
@@ -250,8 +249,6 @@ Class5VehEnterLeaveBusStop:
 uvard oldclass5createbusstation,1,z
 global Class5CreateBusStationAction
 Class5CreateBusStationAction:
-	cmp DWORD [adjflags], 0
-	jne .done
 	cmp bh, 4
 	jb .done
 	testmultiflags trams				//trams enabled?
@@ -268,8 +265,6 @@ Class5CreateBusStationAction:
 uvard oldclass5createtruckstation,1,z
 global Class5CreateTruckStationAction
 Class5CreateTruckStationAction:
-	cmp DWORD [adjflags], 0
-	jne .done
 	cmp bh, 4
 	jb .done
 	testmultiflags trams
