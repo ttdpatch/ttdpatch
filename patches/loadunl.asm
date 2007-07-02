@@ -365,11 +365,11 @@ LoadCargoFromStation:
 
 .reserve:
 	mov	dx, [esi+veh.capacity]
-	sub	dx, [esi+veh.currentload]
-	jz	near .done		// No remaining capacity; we're done.
 	mov	ax, [ebx+station.cargos+ecx+stationcargo.amount]
-	and	ax, [stationcargowaitingmask]
 	add	ebx, [stationarray2ofst]
+	sub	dx, [esi+veh.currentload]
+	jz	near dequeueveh		// No (remaining) capacity; dequeue so following vehicles can load.
+	and	ax, [stationcargowaitingmask]
 	sub	ax, [ebx+station2.cargos+ecx+stationcargo2.resamt]
 	jb	.overflow
 	cmp	ax, dx
