@@ -8,16 +8,34 @@
 #include <imports/gui.inc>
 #include <flags.inc>
 #include <player.inc>
+#include <human.inc>
 
 extern convertplatformsinremoverailstation,newstationspread,ishumanplayer,patchflags,stationarray2ofst,errorpopup,fixstationplatformslength
-extern RefreshWindows,maxrstationspread, airportdimensions, canbuilddockhere, TransmitAction, AdjacentStationBuildNewStation_actionnum
+extern RefreshWindows,maxrstationspread, airportdimensions, canbuilddockhere
+extern actionhandler, AdjacentStationBuildNewStation_actionnum, ctrlkeystate
 
 global adjflags
 
-uvard adjflags
+uvard adjflags		//must be locally set from source
 //bits: 0: attatch to station, 1: new station, 2: normal, 16-31: station id
-uvard adjflags2
-//bits: 0: cancel BusLorryStationBuilt, autoclear, 1: is in fact a railway station, 4=is airport, 8=is dock, 16=buoy
+uvard adjflags2		//need only be right locally
+//bits: 0: cancel BusLorryStationBuilt, autoclear, [deprecated], 1: is in fact a railway station, 2:is airport, 3:is dock, 4:buoy
+
+//0=rail, 2=airport, 5=bus, 6=lorry, 9=dock, B=buoy
+vard adjhookactionjmptbl
+dd createrailstactionhook
+dd 0
+dd createairportactionhook
+dd 0
+dd 0
+dd createbusstactionhook
+dd createlorrystactionhook
+dd 0
+dd 0
+dd createdockactionhook
+dd 0
+dd createbuoyactionhook
+endvar
 
 uvard adjfunc
 uvard adjblock,64
@@ -25,10 +43,6 @@ uvard adjblocklen
 uvard adjdim
 uvard adjtile
 uvard adjaction
-uvarw adjoperrormsg1
-uvard adjtmp1	//1=call buslorrystationbuilt
-
-uvard adjmultiplayerstate
 
 uvard stlist,256
 //bits: 0-15=num of station, 16-23=displayidx, 24-31=type: 1=station, 2=norm, 3=new/enhbuoy, 4=cancel
@@ -111,34 +125,19 @@ global adjacentstationcheck
 //	ecx=length of above data block, max 256 bytes
 
 //out:	eax=station id of station to add
-//		0-255	= use this station id (multiplayer only)
-//		-1	= normal processing
+//		0-255	= use this station id (won't happen/not implemented)
+//		-1	= normal processing (would happen but this implementation won't call if this would be the result)
 //		-2	= error/cancel
 //		-3	= delayed processing
-//		-4	= normal processing, from other player
 
 //trashes: (eax)
 adjacentstationcheck:
-	push edx
-	mov dl, [curplayer]
-	cmp dl, [human1]
-	pop edx
-	jne .multitest
-	cmp byte [curplayerctrlkey],1
-	je .test
-.norm:
+	push byte CTRL_ANY + CTRL_MP // Was control held when attempting to build?
+	call ctrlkeystate
+	jz .test
 	xor eax, eax
 	dec eax
-.ret:
 ret
-.multitest:
-	xor eax, eax
-	xchg eax, [adjmultiplayerstate]
-	cmp eax, -1
-	je .ret // .norm
-	movzx eax, al
-ret
-
 .test:
 	pusha
 	push byte 0
@@ -620,24 +619,6 @@ clickhandler:
 .tret:
 ret
 
-uvard stmodflags, (numstations+31)>>5
-
-
-global createbuoyactionhook,createbuoyactionhook.oldfn
-createbuoyactionhook:
-	call checkwhethertransmittedaction
-	mov DWORD [adjaction], 0xB0028
-	and DWORD [adjflags2], ~15
-	or DWORD [adjflags2], 16
-	mov WORD [adjoperrormsg1], 0x9802
-	mov DWORD [adjtmp1], 0
-	mov dx, 0x101
-jmp createrailstactionhook.nocheckirr
-
-.exit:
-	jmp DWORD $
-ovar .oldfn, -4, $,createbuoyactionhook
-
 global createbuoymergehook
 createbuoymergehook:
 	ror di, 4
@@ -688,69 +669,68 @@ ret
 	mov ebx, 0x80000000
 ret
 
-global createdockactionhook
+uvard stmodflags, (numstations+31)>>5
+
+exported AdjacentStationHook
+	push byte CTRL_ANY + CTRL_MP // Was control held when attempting to build?
+	call ctrlkeystate
+	jz .adj
+	// No so lets just build the station like you normally would
+.norm:
+	call [actionhandler]
+	cmp ebx, 0x80000000
+ret
+.adj:
+	mov DWORD [adjaction], esi
+	mov ebp, esi
+	shr ebp, 22
+	call [adjhookactionjmptbl+ebp]
+	xor ebx, ebx	//always zero, zf set // <-- this one works better, no sound effects or auto road join
+	//or esp, esp	//never zero, zf not set
+ret
+.railbutnoirr:
+	add esp, 4	//eat return
+	jmp .norm
+
+createbuoyactionhook:
+	and DWORD [adjflags2], ~15
+	or DWORD [adjflags2], 16
+	mov dx, 0x101
+jmp createrailstactionhook.nocheckirr
+
 createdockactionhook:
-	call checkwhethertransmittedaction
-	mov DWORD [adjaction], 0x90028
 	and DWORD [adjflags2], ~23
 	or DWORD [adjflags2], 8
-	mov WORD [adjoperrormsg1], 0x9802
-	mov DWORD [adjtmp1], 0
-/*	push DWORD .err
-	call canbuilddockhere
-	add esp, 4*/
-	
+
 	//fudge
 	mov dx, 0x101
 
 	jmp createrailstactionhook.nocheckirr
-/*.err:
-	add esp, 4
-ret*/
-global createairportactionhook
+
 createairportactionhook:
-	call checkwhethertransmittedaction
 	movzx esi, bh
 	mov dx, [airportdimensions+esi*2]
-	mov DWORD [adjaction], 0x20028
 	and DWORD [adjflags2], ~27
 	or DWORD [adjflags2], 4
-	mov WORD [adjoperrormsg1], 0xA001
-	mov DWORD [adjtmp1], 0
 	jmp createrailstactionhook.nocheckirr
-global createbusstactionhook
+
 createbusstactionhook:
-	call checkwhethertransmittedaction
 	mov dx, 0x101
-	mov DWORD [adjaction], 0x50028
 	and DWORD [adjflags2], ~31
-	mov WORD [adjoperrormsg1], 0x1808
-	mov DWORD [adjtmp1], 1
 	jmp createrailstactionhook.nocheckirr
-global createlorrystactionhook
+
 createlorrystactionhook:
-	call checkwhethertransmittedaction
 	mov dx, 0x101
-	mov DWORD [adjaction], 0x60028
 	and DWORD [adjflags2], ~31
-	mov WORD [adjoperrormsg1], 0x1809
-	mov DWORD [adjtmp1], 1
 	jmp createrailstactionhook.nocheckirr
-global createrailstactionhook,createrailstactionhook.oldfn
+
 createrailstactionhook:
-	call checkwhethertransmittedaction
 	testflags irrstations
-	jnc NEAR .end
-	mov DWORD [adjaction], 0x28
+	jnc AdjacentStationHook.railbutnoirr
 	and DWORD [adjflags2], ~29
 	or DWORD [adjflags2], 2
-	mov WORD [adjoperrormsg1], 0x100F
-	mov DWORD [adjtmp1], 0
 .nocheckirr:
-	cmp DWORD [adjflags], 0
-	jne .end
 	pusha
-
 	rol cx, 8
 	mov di, cx
 	rol cx, 8
@@ -766,56 +746,48 @@ createrailstactionhook:
 	mov edx, adjstrailstfunc
 	mov ecx, 32
 	mov esi, esp
-	push ebx
 	call adjacentstationcheck
-	pop ebx
-	cmp eax, -4
-	je .normremote
 	cmp eax, -2
-	jle .delay
-	or eax, eax
-	js .popend
-	//auto-merge
-.remotebuild:
-	mov esi, eax
-	mov eax, [esp+28]	//tile coords
-	mov edx, esp
-	mov ecx, 32
-	push DWORD .pend
-	jmp adjstrailstfunc
-.normremote:
-	mov eax, -1
-	jmp .remotebuild
-.popend:
-	popa
-	pusha
-	mov ebp, -4
-	call DoTransmitAdjacentStationAction
-.pend:
+	jle .end
+	ud2	//ordinary stations shouldn't get this far
 	popa
 .end:
-	test DWORD [adjflags2], 16
-	jnz createbuoyactionhook.exit
-	jmp DWORD $				//LA authority
-ovar .oldfn, -4, $,createrailstactionhook
-.delay:
 	popa
-	xor ebx, ebx
-	or BYTE [adjflags2], 1
-	add esp, 4
-	test DWORD [adjflags2], 16
-	jnz .popbx
-ret
-.popbx:
-	//pop bx
-	//xor ebx, ebx
-	add esp, 2
 ret
 
 adjstrailstfunc:
 	cmp ecx, 32
-	jne NEAR .ret
+	jne NEAR .die
+	
+	mov eax, esi
+	shl eax, 16
+	mov edi, [edx]
+	mov esi, [adjaction]
+	and esi, 0xFFFF0000
+	//mov ebp, [edx+8]
+	mov ebx, [edx+16]
+	movzx ecx, WORD [edx+24]
+	mov ax, [edx+28]
+	or ecx, esi
+	mov edx, [edx+20]
+	dopatchaction AdjacentStationBuildNewStation
+	ret
+.die:
+	ud2
 
+//eax-high=station build id/-1=norm/-2=new
+//ecx-high=high word of action num (low=0x28)
+//dl=len,dh=tracks
+//bh=orientation
+exported AdjacentStationBuildNewStation
+	push eax
+	push ecx
+	movzx ebp, cx
+	shl ebp, 8
+	or bp, ax
+	shr ebp, 4
+	mov esi, eax
+	sar esi, 16
 	cmp esi, -1
 	jl .new
 	jg .st
@@ -833,16 +805,16 @@ adjstrailstfunc:
 .fudge:
 //ugly hack approaching...
 //make sure that irrcheckistrainstation/buslorry/airport/dock code gets called by fudging temporarily L4 value
-	mov cl, [landscape4(ax,1)-0x101]
+	mov cl, [landscape4(bp,1)-0x101]
 	push ecx
 	and cl,0xF
 	or cl, 0x50
-	mov [landscape4(ax,1)-0x101], cl
-	push eax
+	mov [landscape4(bp,1)-0x101], cl
+	push ebp
 	push DWORD .next
+	push DWORD [esp+16]	//first push eax
+	push DWORD [esp+16]	//first push ecx
 .doit:
-	cmp DWORD [adjtmp1], 0
-	jne .noovbldchk
 	//check existance of other stations when overbuilding
 
 	xor esi, esi
@@ -851,65 +823,45 @@ adjstrailstfunc:
 	mov [stmodflags-4+ecx*4], esi
 	loop .clearstmodflags
 
-	movzx ebx, bx
-	dec bl
+	mov ax, dx
+	or bh, bh
+	jz .nswap
+	xchg al, ah
+.nswap:
+	movzx eax, ax
+	dec al
 	js .noovbldchk
-	dec bh
+	dec ah
 	js .noovbldchk
-	push ebx
+	push eax
 .chkloop:
-	mov cl, [landscape4_2(ax,bx,1)]
+	mov cl, [landscape4_2(bp,ax,1)]
 	and cl, 0xF0
 	cmp cl, 0x50
 	jne .checkdone
-	mov cl, [landscape5_2(ax,bx,1)]
+	mov cl, [landscape5_2(bp,ax,1)]
 	cmp cl, 7 // station
 	ja .checkdone
-	movzx ecx, BYTE [landscape2+eax+ebx]
+	movzx ecx, BYTE [landscape2+ebp+eax]
 	mov esi, ecx
 	and esi, ~31
 	and ecx, 31
 	bts DWORD [stmodflags+esi], ecx
 .checkdone:
-	dec bl
+	dec al
 	jns .chkloop
-	mov bl, [esp]
-	dec bh
+	mov al, [esp]
+	dec ah
 	jns .chkloop
 	add esp, 4
 .noovbldchk:
-
-	mov di, [adjoperrormsg1]
-	mov [operrormsg1], di
-	mov edi, [edx]
-	mov esi, [adjaction]
-	mov ebp, [edx+8]
-	mov ebx, [edx+16]
-	mov ecx, [edx+24]
-	mov eax, [edx+28]
-	mov edx, [edx+20]
-	push ebx
-	pusha
-	extern actionhandler
+	mov ecx, [esp]
+	mov esi, ecx
+	mov si, 0x28
+	mov eax, [esp+4]
 	call DWORD [actionhandler]
-	mov [esp+32], ebx
 	cmp ebx, 0x80000000
-	popa
-	je NEAR .fend
-	movzx ebp, WORD [adjflags+2]	//station ID
-	call DoTransmitAdjacentStationAction
-	pop ebx
-	test BYTE [adjtmp1], 1
-	jz .inret2
-	xor dl, dl
-	xchg dl, [curplayerctrlkey]
-	push edx
-	call DWORD [buslorrystationbuilt]
-	pop edx
-	mov [curplayerctrlkey], dl
-	jmp .end
-.inret2:
-
+	je NEAR .end
 	mov ecx, (numstations+31)>>5
 .chkstpltfrmfxovrbldlp:
 	mov eax, [stmodflags-4+ecx*4]
@@ -934,16 +886,14 @@ adjstrailstfunc:
 	jmp .end
 
 .next:
-	pop eax
-	pop ebx
-	mov [landscape4(ax,1)-0x101], bl
+	pop ebp
+	pop edx
+	mov [landscape4(bp,1)-0x101], dl
 .end:
+	pop ecx
+	pop eax
 	mov DWORD [adjflags], 0
-.ret:
 ret
-.fend:
-	pop ebx
-	jmp .end
 
 global dockstcheckadjtilehookfunc
 dockstcheckadjtilehookfunc:
@@ -996,33 +946,6 @@ ret
 	mov dl, -1
 ret
 
-global buslorrystationbuiltcondfunc
-buslorrystationbuiltcondfunc:
-	pop edi
-	btr DWORD [adjflags2], 0
-	jc .quit
-	push eax
-	push esi
-	mov esi, -1
-	jmp edi
-.quit:
-ret
-
-checkwhethertransmittedaction:
-	cmp DWORD [adjmultiplayerstate], 0
-	jne .good
-	push edx
-	mov dl, [curplayer]
-	cmp dl, [human1]
-	pop edx
-	jne .bad
-.good:
-	ret
-.bad:
-	xor ebx, ebx		//prevent anything from being built, but don't show an error message
-	add esp, 8
-	ret
-
 CheckStationFacilitiesLeft:
 	mov	ax, [esi+station.busXY]
 	or	ax, [esi+station.lorryXY]
@@ -1046,30 +969,3 @@ CheckStationFacilitiesLeft:
 
 locret_14EB1D:
 	ret
-
-exported AdjacentStationBuildNewStation
-	push ebp
-	mov ebp, eax
-	sar ebp, 16		// sign extend
-	mov esi, ecx
-	mov si, 0x28
-	mov [adjmultiplayerstate], ebp
-	call DWORD [actionhandler]
-	pop ebp
-ret
-
-DoTransmitAdjacentStationAction:
-	//esi=action
-	//station id/action in ebp
-	test bl, 1
-	jz .quit
-	movzx ecx, cx
-	movzx eax, ax
-	xor si, si
-	or ecx, esi
-	shl ebp, 16
-	or eax, ebp
-	mov esi, AdjacentStationBuildNewStation_actionnum
-	call [TransmitAction]
-.quit:
-ret
