@@ -12,9 +12,11 @@
 
 extern convertplatformsinremoverailstation,newstationspread,ishumanplayer,patchflags,stationarray2ofst,errorpopup,fixstationplatformslength
 extern RefreshWindows,maxrstationspread, airportdimensions, canbuilddockhere
-extern actionhandler, AdjacentStationBuildNewStation_actionnum, ctrlkeystate
+extern actionhandler, AdjacentStationBuildNewStation_actionnum, ctrlkeystate, generatesoundeffect, setmousetool
 
-global adjflags
+global adjflags,buslorrystationbuiltptr
+
+uvard buslorrystationbuiltptr
 
 uvard adjflags		//must be locally set from source
 //bits: 0: attatch to station, 1: new station, 2: normal, 16-31: station id
@@ -36,6 +38,20 @@ dd createdockactionhook
 dd 0
 dd createbuoyactionhook
 endvar
+vard soundeffectlist
+dd 1Eh
+dd -1
+dd 1Dh
+dd -1
+dd -1
+dd -2	//these are done by buslorrystationbuilt instead
+dd -2	//
+dd -1
+dd -1
+dd 0
+dd -1
+dd 0
+endvar
 
 uvard adjfunc
 uvard adjblock,64
@@ -47,8 +63,6 @@ uvard adjaction
 uvard stlist,256
 //bits: 0-15=num of station, 16-23=displayidx, 24-31=type: 1=station, 2=norm, 3=new/enhbuoy, 4=cancel
 uvard numinlist
-
-uvard buslorrystationbuilt
 
 %assign numrows 12
 %assign winwidth 358
@@ -683,7 +697,7 @@ ret
 .adj:
 	mov DWORD [adjaction], esi
 	mov ebp, esi
-	shr ebp, 22
+	shr ebp, 16-2
 	call [adjhookactionjmptbl+ebp]
 	xor ebx, ebx	//always zero, zf set // <-- this one works better, no sound effects or auto road join
 	//or esp, esp	//never zero, zf not set
@@ -771,9 +785,26 @@ adjstrailstfunc:
 	or ecx, esi
 	mov edx, [edx+20]
 	dopatchaction AdjacentStationBuildNewStation
+	cmp ebx, 0x80000000
+	je .ret
+	mov esi, [adjaction]
+	test esi, 0x40000	//only set for road stop actions
+	jnz .buslorrystationbuilt
+	mov bx, ax
+	shr esi, 14
+	mov eax, [soundeffectlist+esi]
+	or esi, BYTE -1
+	call DWORD [generatesoundeffect]
+	xor eax, eax
+	xor ebx, ebx
+	call DWORD [setmousetool]
+.ret:
 	ret
 .die:
 	ud2
+.buslorrystationbuilt:
+	jmp DWORD [buslorrystationbuiltptr]
+
 
 //eax-high=station build id/-1=norm/-2=new
 //ecx-high=high word of action num (low=0x28)

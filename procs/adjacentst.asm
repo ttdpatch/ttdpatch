@@ -1,12 +1,12 @@
 // New clearer hook code redone by Lakie
-#include <defs.inc> 
+#include <defs.inc>
 #include <frag_mac.inc> 
 #include <patchproc.inc>
 #include <window.inc>
 #include <ptrvar.inc>
 #include <station.inc>
 
-begincodefragments
+extern buslorrystationbuiltptr
 
 patchproc adjacentstation, patchadjst
 
@@ -78,6 +78,16 @@ or      di, ax
 ror     di, 4
 db 0xC6
 
+//_CS:00148CF7                         BusLorryStationBuilt:
+codefragment oldbuslorrystationbuilt1, 2
+dw 0 
+push    eax 
+push    esi 
+mov     esi, 0FFFFFFFFh
+push    ebx
+mov     bx, ax
+mov     eax, 1Dh
+
 codefragment newcheckadjsttilebus1
 icall busstcheckadjtilehookfunc
 setfragmentsize 6+WINTTDX*2
@@ -131,5 +141,8 @@ mov eax, [ophandler+5*8]
 mov edi, [eax+40]
 add edi, 0x49+(0x1E*WINTTDX)
 storefragment newclass5vehenterleavetilestchngecheckfunc1
+
+stringaddress oldbuslorrystationbuilt1, 1, 2
+mov [buslorrystationbuiltptr], edi
 
 ret
