@@ -46,6 +46,23 @@ DPlayInterface equ 0x420254	// D: pointer to an IDirectPlay interface
 RemotePlayerID equ 0x4198c8	// D: DPlay ID of the remote player (target of outgoing packets)
 LocalPlayerID equ 0x4198c4	// D: DPlay ID of the local player
 
+// some constant addresses for the ttdwin wrapper c runtime
+// Be sure to use c calling convention (cdecl).
+c_strcat equ 0x40fe1c
+c_strcpy equ 0x40fe20
+c_sprintf equ 0x1116D
+c_strcmp equ 0x4111dc
+c_strlen equ 0x4112b4
+c_strncpy equ 0x414634
+c_strcmpi equ 0x41797c
+
+c_malloc equ 0x411628
+c_calloc equ 0x4115e0
+c_free equ 0x41155e
+
+c_memset equ 0x41150c
+c_memcpy equ 0x415684
+
 // used for GetSystemInfo API call
 struc SYSTEM_INFO
 	// union
