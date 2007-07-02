@@ -664,7 +664,7 @@ version%.h:
 	@echo "#define TTDPATCHVERSIONMINOR $(VERSIONMINOR)" >> $@
 	@echo "#define TTDPATCHVERSIONREVISION $(VERSIONREVISION)" >> $@
 	@echo "#define TTDPATCHVERSIONBUILD $(VERSIONBUILD)" >> $@
-	@echo "#define TTDPATCHVERSIONSVNREV 0x$(SVNREV)" >> $@
+	@echo "#define TTDPATCHVERSIONSVNREV 0x$(SVNREVNUM)" >> $@
 	@echo "#define TTDPATCHVERSIONSVNREVNUM $(SVNREVNUM)" >> $@
 
 # sorted switch list
