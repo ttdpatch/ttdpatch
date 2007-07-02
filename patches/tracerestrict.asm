@@ -17,7 +17,7 @@ extern CreateWindow,DrawWindowElements,WindowClicked,DestroyWindow,WindowTitleBa
 global robjgameoptionflag,robjflags
 extern cargotypes,newcargotypenames,cargobits,invalidatetile,cargotypes
 extern GenerateDropDownEx,GenerateDropDownExPrepare,DropDownExList
-extern TransmitAction, MPRoutingRestrictionChange_actionnum
+extern TransmitAction, MPRoutingRestrictionChange_actionnum, actionhandler
 
 global tr_siggui_btnclick
 
@@ -1235,11 +1235,11 @@ jmp .sbl_fail
 	ret
 .sbl2f:
 	mov [eax], dx
-	or BYTE [robjflags], 1
 	sub eax, robjidtbl
 	shr eax, 1
 	cmp DWORD [esp+4], trwin_msghndlr.ddl1_action_init_nonmpcont
 	jne .ddl1_action_init_mp_nosetglobvars
+	or BYTE [robjflags], 1
 	mov [robjid], dx
 	mov [curselrobjid], dx
 	mov [robjidindex], ax
@@ -1436,7 +1436,13 @@ jmp .redrawvaluebtn
 	je NEAR copysharelist
 ret
 .mtoolclickhndlr_nret:
-
+	pusha
+	mov edi, eax
+	mov bh, 7
+	call TransmitRoutingRestrictionPosTypeCurRobj
+	popa
+	push DWORD .mtcl_qexit
+.mtoolclickhndlr_mp:
 	mov cl, [landscape4(ax,1)]
 	shr cl,4
 	movzx edx,BYTE [ebx+robj.varid]
@@ -1444,25 +1450,25 @@ ret
 	test dl,2
 	jz .notstation
 	cmp cl,5
-	jne NEAR .mtcl_fexit
+	jne .mtoolret
 	
 	cmp BYTE [landscape5(ax,1)],7
 	ja NEAR .mtcl_fexit
 	movzx cx, BYTE [landscape2+eax]
 	mov [ebx+robj.word1], cx
 	or BYTE [ebx+robj.flags],1
-	and BYTE [esi+window.disabledbuttons+1], ~0x10
-	jmp .mtcl_exit
+.mtoolret:
+	ret
 
 .notstation:
 	test dl,4
 	jz .notdepot
 	cmp cl, 1
-	jne .mtcl_fexit
+	jne .mtoolret
 	mov dl, [landscape5(ax,1)]
 	and dl, 0xC0
 	xor dl, 0xC0
-	jnz .mtcl_fexit
+	jnz .mtoolret
 
 .searchdepot:
 	mov ecx, 0x100
@@ -1472,7 +1478,7 @@ ret
 		je .foundepot
 		add edx, byte depot_size
 	loop .depotloop
-	jmp .mtcl_exit
+	ret
 
 .foundepot:
 	neg ecx
@@ -1481,31 +1487,32 @@ ret
 	mov DWORD [ebx+robj.word1], ecx
 	or BYTE [ebx+robj.flags],1
 	and BYTE [esi+window.disabledbuttons+1], ~0x10
-	jmp .mtcl_exit
+	ret
 
 .notdepot:
 	test dl,32
-	jz .mtcl_fexit
+	jz .mtoolret2
 	
 	cmp cl, 1
-	jne .mtcl_fexit
+	jne .mtoolret2
 	
 	mov dl, [landscape5(ax,1)]
 	and dl, 0xC0
 	xor dl, 0x40
-	jnz .mtcl_fexit
+	jnz .mtoolret2
 	
 	mov DWORD [ebx+robj.word1], eax
 	or BYTE [ebx+robj.flags],1
 	and BYTE [esi+window.disabledbuttons+1], ~0x10
-
-	jmp .mtcl_exit
+.mtoolret2:
+ret
 
 .mtcl_fexit:
 	and BYTE [ebx+robj.flags], ~1
 	mov DWORD [ebx+robj.word1],0
 .mtcl_exit:
-call TransmitRoutingRestrictionLineChangeCurRobj
+	call TransmitRoutingRestrictionLineChangeCurRobj
+.mtcl_qexit:
 	push esi
 	jmp .undomtool
 
@@ -1746,6 +1753,7 @@ textwindowchangehandler:
 	jz .ret
 	mov [eax+robj.word1], edx
 	or BYTE [eax+robj.flags], 1
+	call TransmitRoutingRestrictionLineChangeCurRobj
 	mov edx, eax
 	call updatebuttons
 .ret:
@@ -1920,6 +1928,13 @@ updatebuttons:
 	mov [esi+window.disabledbuttons], ecx
 
 .end:
+	movzx ebx, WORD [curxypos]
+	mov bl, [landscape1+ebx]
+	cmp bl, [human1]
+	je .nopreventmodotherplayer
+	//prevent naughty players from changing other companies' restrictions...
+	mov DWORD [esi+window.disabledbuttons], 0x23FF0
+.nopreventmodotherplayer:
 	mov al,[esi+window.type]
 	mov bx,[esi+window.id]
 	or al, 0x40
@@ -2513,11 +2528,15 @@ ret
 //type=1:	reset signal
 //type=2:	insert bop, edx=pos, edi=0,1,2=and,or,xor
 //type=3:	delete, edx=pos
-//type=4:	change line, ebx-high=pos, edx=word1, edi=word2 (ignored for bops)
+//type=4:	change line, ebx-high=pos, edx=dword1, edi=dword2 (ignored for bops)
 //type=5:	share, edi=coords of tile to share with
 //type=6:	copy, edi=coords of tile to share with
+//type=7:	mouse tool value click, station/depot, edi=tile, edx=pos
 //"pos" means number of a restriction object, as would be seen in the GUI window, zero-based
 exported MPRoutingRestrictionChange
+	mov bl, [curplayer]
+	cmp bl, [human1]
+	je .qend
 	push WORD [curxypos]
 	movzx esi, cx
 	shl esi, 8
@@ -2538,10 +2557,13 @@ exported MPRoutingRestrictionChange
 	jz .type5
 	dec bh
 	jz .type6
+	dec bh
+	jz NEAR .type7
 	ud2	//error! bad type
 .end:
-	xor ebx, ebx
 	pop WORD [curxypos]
+.qend:
+	xor ebx, ebx
 	ret
 .type0:
 	push DWORD MPRoutingRestrictionChange.end
@@ -2567,7 +2589,7 @@ exported MPRoutingRestrictionChange
 	call GetMPRoutingRestrictionMPRobjFromPos
 	pop ebx
 	mov [edx], ebx
-	cmp bh, 32
+	cmp bl, 32
 	jae .end	//don't set the second dword for bops
 	mov [edx+4], edi
 	jmp .end
@@ -2595,32 +2617,47 @@ exported MPRoutingRestrictionChange
 	mov [curselrobj], edx
 	mov [copyshareaction], al
 	jmp .end
+.type7:
+	call GetMPRoutingRestrictionMPRobjFromPos
+	mov ebx, edx
+	mov eax, edi
+	call trwin_msghndlr.mtoolclickhndlr_mp
+	jmp .end
 
 //In: edx=pos
 //trashes: eax, edx
 //Out: edx=robj ptr
 GetMPRoutingRestrictionMPRobjFromPos:
-	mov eax, edx
+	push edx
+	movzx edx, WORD [curxypos]
+	mov al, [landscape7+edx]
+	shr dh, 6
+	shl dx, 2
+	mov dl, al
+	mov dx, [robjidtbl+edx*2]
+	shl edx, 3
+	add edx, robjs
+	pop eax
 	inc ax
 	call trwin_msghndlr.tboxrobjrecurse
 	or ax, ax
-	jnz .ok
+	jz .ok
 	ud2	//message contained bad robj position/tile coords
 .ok:
 ret
 
 TransmitRoutingRestrictionLineChangeCurRobj:
 	pusha
-	call TransmitRoutingRestrictionChangeRobjCurPos
+	call TransmitRoutingRestrictionLineChangeCurRobj2
 	popa
 ret
 
-//trashes: ax, cx, esi, bl, edx
+//trashes: ax, cx, esi, bl, edx, ebp
 TransmitRoutingRestrictionPosTypeCurRobj:
 	movzx edx, WORD [currobjrelhorizpos]
 	jmp TransmitRoutingRestrictionChangeRobjCurPos
 
-//trashes: ax, cx, esi, ebx, edx, edi
+//trashes: ax, cx, esi, ebx, edx, edi, ebp
 TransmitRoutingRestrictionLineChangeCurRobj2:
 	mov bx, [currobjrelhorizpos]
 	shl ebx, 16
@@ -2628,21 +2665,16 @@ TransmitRoutingRestrictionLineChangeCurRobj2:
 	mov edi, [curselrobj]
 	mov edx, [edi]
 	mov edi, [edi+4]
-//trashes: ax, cx, esi, bl
+//trashes: ax, cx, esi, bl, edx, ebp
 TransmitRoutingRestrictionChangeRobjCurPos:
 	movzx ax, BYTE [curxypos]
 	movzx cx, BYTE [curxypos+1]
 	shl ax, 4
 	shl cx, 4
-//trashes: esi, bl
+//trashes: esi, bl, edx, ebp
 TransmitRoutingRestrictionChangeRobj:
 	//prevent recursion loops
-	mov bl, [curplayer]
-	cmp bl, [human1]
-	jne .ret
-
 	mov bl, 1
-	mov esi, MPRoutingRestrictionChange_actionnum
- 	call [TransmitAction]
+	dopatchaction MPRoutingRestrictionChange
 .ret:
 ret
