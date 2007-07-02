@@ -2365,6 +2365,13 @@ copysharelist:
 	movzx ebx, WORD [robjidtbl+ecx*2]
 	or ebx, ebx
 	jz NEAR .ret
+	
+	cmp BYTE [copyshareaction], 2
+	jne .nodenyshareothercompcheck
+	mov al, [landscape1+eax]
+	cmp al, [human1]
+	jne NEAR .ret		//user tried to share with opponent's restricted signal, deny it, to prevent them from sharing the two signals and thus being able to modify the opponent's restrictions
+.nodenyshareothercompcheck:
 
 	movzx eax, WORD [curxypos]
 	//note eax now is target tile coords
