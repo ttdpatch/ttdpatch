@@ -526,7 +526,7 @@ CalcTrainDepotWidth:
 
 .ldepotlen:
 	sub ax, cx // Get length remaining
-	jb .ldone // If less than 0 then jump to end
+	jb .checkartic
 	inc bl
 
 .lgetveh:
@@ -538,6 +538,31 @@ CalcTrainDepotWidth:
 	add edi, [veharrayptr]
 	jmp .lgetlen
 	
+.checkartic:
+	// Are we breaking an artic vehicle?
+	cmp byte [edi+veh.artictype], 0xFD
+	jb .ldone
+	push esi
+	push ebx	// Save ebx, in case the vehicle is too long to fit in a single line
+	movzx esi, word [edi+veh.articheadidx]
+	jmp short .startloop
+
+.loop:
+	dec bl 		// reduce count by 1 for each vehicle before [edi] in the artic group
+	jz .toolong
+	movzx esi, word [esi+veh.nextunitidx]
+.startloop:
+	shl esi, vehicleshift
+	add esi, [veharrayptr]
+	cmp esi, edi
+	jne .loop
+	pop esi		// discard old ebx
+	jmp short .pop
+
+.toolong:
+	pop ebx
+.pop:
+	pop esi
 .ldone:
 	mov al, bl // Return number of vehicles
 	add al, bh // Add number of vehicles from the offset

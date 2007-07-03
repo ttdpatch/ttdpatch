@@ -133,8 +133,6 @@
 
 - way to show different sprites in veh list/veh details/depot
 
-- don't split artic vehs over multiple lines in depot
-
 - crash when building higher bridge, http://www.tt-forums.net/viewtopic.php?p=265905#265905
 
 - don't autoclose station building window if it's pinned (others too)
@@ -662,6 +660,7 @@ CHANGELOG
     description is not yet translated.
   * Improve FIFO loading to allow multiple consists to load simultaneously.
   * Make TTDPatch mark new bits in bitswitches when writing ttdpatch.cfg.
+  * Keep articulated vehicles on the same line in the depot window.
 - added autosignals to new signal gui, build two-way signals every 3/4 tiles
   (use `autosignaldistance n' or -ZL to set desired signal separation)
 - by Tron:
