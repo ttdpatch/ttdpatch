@@ -31,7 +31,6 @@ uvard fonttables,3*256			// Pointer to font info for sizes normal,small,large
 
 uvard newtexthandlerfunctrap		//optional callback whenever text handler function parameters or text ref need to be trapped/modified
 
-
 // in:  ax=text ID
 //	text ID & 07ff is the offset into an array of pointers for TTD
 //	text ID & f800 is a code indicating what type of text to display
@@ -378,7 +377,7 @@ endvar
 
 // string code 9A handlers
 vard extstringformat
-	dd print64bitcost,print64bitcost,skipnextcolor
+	dd print64bitcost,print64bitcost,skipnextcolor,pushword,backup
 numextstringformat equ ($-extstringformat)/4
 endvar
 
@@ -410,6 +409,23 @@ print64bitcost:
 	mov eax,ebx
 	extern printcash_64bit
 	jmp printcash_64bit
+
+pushword:
+	lodsw
+	xor edx, edx
+.loop:
+	xchg ax, [textrefstack+edx]
+	add edx, 2
+	cmp edx, 0x20
+	jb .loop
+	ret
+
+backup:
+	lodsb
+	movzx eax, al
+	sub edi, eax
+.ret:
+ret
 
 noglobal uvarb skipcolor
 

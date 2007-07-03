@@ -58,14 +58,19 @@ endstruc
 //1=value valid
 //80=currently allocated
 
+uvarb depotsearch
+
 global trpatch_DoTraceRouteWrapper1,trpatch_DoTraceRouteWrapper1.oldfn,trpatch_DoTraceRouteWrapper2,trpatch_DoTraceRouteWrapper3
 trpatch_DoTraceRouteWrapper3:
+	mov BYTE [depotsearch], 1
 	mov ecx, [esp+4]
 	jmp trpatch_DoTraceRouteWrapper1.common
 trpatch_DoTraceRouteWrapper2:
+	mov BYTE [depotsearch], 1
 	mov ecx, [esp+6]
 	jmp trpatch_DoTraceRouteWrapper1.common
 trpatch_DoTraceRouteWrapper1:
+	mov BYTE [depotsearch], 0
 	mov ecx, [esp+14]
 .common:
 
@@ -215,6 +220,10 @@ ret
 	je near .distsig
 	cmp dh,16
 	je near .nextdeporder
+	cmp dh,17
+	je near .servdays
+	cmp dh,18
+	je near .searchingfordepot
 
 .gotvar:
 	cmp BYTE [tempdlvar],1
@@ -447,6 +456,17 @@ ret
 	pop eax
 	mov ecx, 1
 	xor edx, edx
+	jmp .gotvar
+	
+.servdays:
+	movzx ecx, WORD [currentdate]
+	sub cx, [eax+veh.lastmaintenance]
+	mov edx, [ebx+robj.word1]
+	jmp .gotvar
+
+.searchingfordepot:
+	movzx ecx, BYTE [depotsearch]
+	mov edx, 1
 	jmp .gotvar
 
 .and:
@@ -685,8 +705,8 @@ dw ourtext(tr_sigval_is_red)
 dw 0xffff
 endvar
 
-%assign var_array_num 17
-%assign var_end_mark 16
+%assign var_array_num 19
+%assign var_end_mark 18
 varw pre_var_array
 dw ourtext(tr_vartxt)
 endvar
@@ -707,10 +727,37 @@ dw ourtext(tr_lastvisitstation)
 dw ourtext(tr_carriescargo)
 dw ourtext(tr_distancefromsig)
 dw ourtext(tr_nextdeporder)
+dw ourtext(tr_days_since_last_service)
+dw ourtext(tr_searching_for_depot)
 dw 0xffff
 endvar
 
-//1: 2op, 2: station, 4: depot, 8: uword, 16: udword, 32: sig, 64: cargo
+varw pre_var_array2
+dw ourtext(tr_vartxt)
+endvar
+varw var_array2
+dw ourtext(tr_trainlen)
+dw ourtext(tr_maxspeed_kph)
+dw ourtext(tr_curorder)
+dw ourtext(tr_curdeporder)
+dw ourtext(tr_totalpower)
+dw ourtext(tr_totalweight)
+dw ourtext(tr_sigval_sw)
+dw ourtext(tr_sigval_se)
+dw ourtext(tr_sigval_nw)
+dw ourtext(tr_sigval_ne)
+dw ourtext(tr_maxspeed_mph)
+dw ourtext(tr_nextorder)
+dw ourtext(tr_lastvisitstation)
+dw ourtext(tr_carriescargo)
+dw ourtext(tr_distancefromsig)
+dw ourtext(tr_nextdeporder)
+dw ourtext(tr_days_since_last_service)
+dw statictext(tr_searchingfordepotdropdown)
+dw 0xffff
+endvar
+
+//1: 2op (is and is not only), 2: station, 4: depot, 8: uword, 16: udword, 32: sig, 64: cargo, 128=no var
 varb var_flags
 db 8
 db 8
@@ -728,6 +775,8 @@ db 3
 db 65
 db 8
 db 5
+db 8
+db 129
 endvar
 
 varw pre_var_compat_id
@@ -750,6 +799,8 @@ db 2
 db 8
 db 9
 db 3
+db 10
+db 11
 endvar
 
 %assign j 0
@@ -814,6 +865,8 @@ varinfo 6,j
 varinfo 7,j
 varinfo 8,j
 varinfo 9,j
+varinfo 16,j
+varinfo 17,j
 
 tr_mklists j
 
@@ -1078,6 +1131,8 @@ ret
 ret
 
 .ddl1:
+	call GenerateDropDownExPrepare
+	jc .tboxret
 	call CheckDDL2
 	mov eax, [curselrobj]
 	or eax, eax
@@ -1085,8 +1140,10 @@ ret
 	movzx edx, BYTE [eax+robj.type]
 	sub edx, 32
 	jb .ddl1_norm
-	mov DWORD [tempvar], ourtext(tr_andbtn) | ourtext(tr_orbtn)<<16
-	mov DWORD [tempvar+4], ourtext(tr_xorbtn) | 0xffff0000
+	mov DWORD [DropDownExList], ourtext(tr_andbtn) 
+	mov DWORD [DropDownExList+4], ourtext(tr_orbtn)<<16
+	mov DWORD [DropDownExList+8],  ourtext(tr_xorbtn)
+	mov DWORD [DropDownExList+12], -1
 	mov BYTE [curvarddboxmode], 1
 
 	jmp .ddl1_nomoddx
@@ -1098,8 +1155,12 @@ ret
 	mov ecx, var_array_num
 	.ddl1_loop:
 		movzx ebx,BYTE [eax+ecx-1]
-		mov bx, [var_array+ebx*2]
-		mov [tempvar-2+ecx*2],bx
+		movzx ebx, WORD [var_array2+ebx*2]
+		cmp bx, -1
+		jne .nosx
+		movsx ebx, bx
+		.nosx:
+		mov [DropDownExList-4+ecx*4],ebx
 	loop .ddl1_loop
 	pop ecx
 	mov eax, [curselrobj]
@@ -1121,7 +1182,7 @@ ret
 .ddl1_nomoddx:
  	xor ebx, ebx
  	mov ecx, 5
-	jmp dword [GenerateDropDownMenu]
+	jmp GenerateDropDownEx
 
 .ddl2:
 	call CheckDDL1
@@ -1273,6 +1334,11 @@ jmp .sbl_fail
 .nosetdefopis:
 	mov BYTE [ebx+robj.type], al
 .noclearvalue:
+	movzx edx, BYTE [ebx+robj.varid]
+	test BYTE [var_flags+edx-1], 128
+	jz .notvarless
+	or BYTE [ebx+robj.flags], 1
+.notvarless:
 	mov edx, ebx
 	call TransmitRoutingRestrictionLineChangeCurRobj
 	jmp updatebuttons.noddlcheck
@@ -1914,7 +1980,11 @@ updatebuttons:
 	jnz .nddl3
 	or ecx, 0x20000
 .nddl3:
-	mov ax,[var_array-2+eax*2]
+	test BYTE [var_flags-1+eax], 128
+	jz .nvar
+	or ecx, 0x20100
+.nvar:
+	mov ax,[var_array2-2+eax*2]
 	mov WORD [tracerestrictwindowelements.vartb],ax
 
 	movzx eax, BYTE [edx+robj.type]
@@ -2145,15 +2215,26 @@ ret
 	mov [textrefstack+6], bp
 	jmp .print
 .nocargo:
+	test edx, 128
+	jz .nonovar
+	mov WORD [textrefstack], statictext(trdlg_txt_3)
+	mov bp, [var_array+ecx*2]
+	mov WORD [textrefstack+2], bp
+	movzx ecx, BYTE [eax+robj.type]
+	mov bp, [op_array-2+ecx*2]
+	mov WORD [textrefstack+4], bp
+	jmp .blank6
+.nonovar:
 
 
 	//none
-	mov DWORD [textrefstack], statictext(empty)+statictext(empty)<<16
+	mov DWORD [textrefstack], statictext(empty)+(statictext(empty)<<16)
 .blank4:
 	mov WORD [textrefstack+4], statictext(empty)
 .blank6:
 	mov WORD [textrefstack+6], statictext(empty)
-
+.blank8:
+	mov WORD [textrefstack+8], statictext(empty)
 .print:
 	mov cx, [esi+window.x]
 	movzx edx, WORD [esi+window.y]

@@ -305,3 +305,11 @@ stxt extradetailswagons, 0x95,0x84,"  ",0x98,0x0E,0x7E,0x0F,0
 
 stxt dpt_number, 0x80," (", 0x7E, ")", 0
 stxt dpt_number2, " (", 0x7E, ")", 0
+
+stxt backspace, 0x9A, 0x04, 0x01, 0
+
+stxt tr_searchingfordepotdropdown, 0x9A, 0x03
+stxt_cont dw statictext(backspace)
+stxt_cont db 0x81
+stxt_cont dw ourtext(tr_searching_for_depot)
+stxt_cont db 0

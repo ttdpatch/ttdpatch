@@ -383,6 +383,9 @@ defourtext waterconstrtbtip
 
 defourtext sortname
 
+defourtext tr_days_since_last_service
+defourtext tr_searching_for_depot
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
