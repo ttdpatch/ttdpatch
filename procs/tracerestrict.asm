@@ -65,6 +65,11 @@ patchtracerestrict:
 	//patchcode oldtracerestrict1,newtracerestrict1,1,1
 
 	stringaddress findtracerestrict_TrainChooseDirection1,1,2
+
+	//for testing, disable call to random in TrainChooseDirection
+	//mov DWORD [edi-0x572F05+0x572F8E], 0x90C03366	//xor ax, ax	nop
+	//mov BYTE [edi-0x572F05+0x572F8E+4], 0x90		//nop
+
 	sub edi,29
 	chainfunction trpatch_DoTraceRouteWrapper1,.oldfn
 	stringaddress findtracerestrict_TrainChooseDirection1,2,2

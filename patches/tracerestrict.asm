@@ -1298,9 +1298,9 @@ jmp .sbl_fail
 	mov [eax], dx
 	sub eax, robjidtbl
 	shr eax, 1
+	or BYTE [robjflags], 1
 	cmp DWORD [esp+4], trwin_msghndlr.ddl1_action_init_nonmpcont
 	jne .ddl1_action_init_mp_nosetglobvars
-	or BYTE [robjflags], 1
 	mov [robjid], dx
 	mov [curselrobjid], dx
 	mov [robjidindex], ax
