@@ -13,7 +13,12 @@ varb serverhostip
 	db 'localhost'
 	times 64 db 0
 endvar
+varb portstr
+	db ''
+	times 16 db 0
+endvar
 
+varb SERVER_MAGIC_STRING, 'TTDPATCHSERVER',0
 uvard framecounter, 0
 
 varb MPDLL,'ttdpatchmp.dll',0
@@ -22,19 +27,31 @@ uvard ASObject
 
 %macro mpimport 2-3
 	%ifstr %3 
-		varb %%1_txt, %3, 0
-		push %%1_txt
-		mov dword [specialerrtext2], %%1_txt
+		%define %%2 %3	
 	%else
 		%tostr %%2, %2
-		varb %%1_txt, %%2, 0
-		push %%1_txt	
-		mov dword [specialerrtext2], %%1_txt
-	%endif
+	%endif	
+	%ifndef mpimport_list
+		%xdefine mpimport_list %2, %%2
+	%else 
+		%xdefine mpimport_list mpimport_list, %2, %%2
+	%endif	
+	mov dword [specialerrtext2], %2_txt
+	push %2_txt
 	push dword [%1]
 	call dword [GetProcAddress] // GetProcAddress(lDxMciMidi, "aDxMidiGetVolume")
 	mov	dword [%2], eax
 %endmacro
+
+
+%macro mpimportlist 1-*
+	%rep %0/2
+	varb %1_txt,%2,0
+	uvard %1
+	%rotate 2
+	%endrep
+%endmacro
+
 
 %macro stackalign 0
 	push ebp
@@ -43,7 +60,8 @@ uvard ASObject
 %endmacro
 
 
-// imports
+// imports (will be now handled by mpimport directly)
+#if 0
 uvard ASNetworkStart
 uvard ASClientDisconnect
 uvard ASClientConnect
@@ -53,6 +71,7 @@ uvard ASClientSendDone
 uvard ASClientReceive
 uvard ASClientHasNewData
 uvard ASClientGetLastError
+#endif
 
 guiwindow win_asynmp,200,200
 	guicaption cColorSchemeDarkGreen, 0x0145
@@ -242,11 +261,8 @@ AsyncMPLoadDLL:
 	call dword [LoadLibrary] 
 	test eax,eax
 	jz near .failed
-	mov	dword [lMPDLL], eax
 
-	mpimport lMPDLL, ASNetworkStart
-	test eax,eax
-	jz near .failedimport
+	mov	dword [lMPDLL], eax
 	mpimport lMPDLL, ASNetworkStart
 	test eax,eax
 	jz near .failedimport
@@ -271,18 +287,16 @@ AsyncMPLoadDLL:
 	mpimport lMPDLL, ASClientHasNewData
 	test eax,eax
 	jz near .failedimport
+	mpimport lMPDLL, ASClientGetLastError
+	test eax,eax
+	jz near .failedimport
+	
 .done:	
 	clc
 	ret
 .failedimport:
 .failed:
-	mov word [textrefstack], statictext(specialerr2)
-	mov bx,ourtext(grferror)
-	mov dx,-1
-	xor ax,ax
-	xor cx,cx
-	extern errorpopup
-	call [errorpopup]
+	call AsyncMPErrorStatic
 	stc
 	ret
 
@@ -292,35 +306,108 @@ exported AsyncMPConnect
 	call AsyncMPLoadDLL
 	jc .failed
 	
+	mov dword [specialerrtext2], ASNetworkStart_txt
+	push 1
 	call [ASNetworkStart]
 	add esp, 4
 	test eax, eax
 	jnz .failed
 	
+	mov dword [specialerrtext2], ASClientConnect_txt
 	push dword 5483
 	push serverhostip
 	call [ASClientConnect]
 	add esp, 8
 	test eax, eax
 	jz .failed
-	mov [ASObject], eax
 	
+	mov [ASObject], eax
+	push eax
+	call [ASClientGetLastError]
+	add esp, 4
+	test eax, eax
+	jnz .failedconnect
+
+	call AsyncMPHandshake
+	leave
+	ret
+.failedconnect:
+	pusha
+	mov bx, 0x0147
+	mov dx,-1
+	xor ax,ax
+	xor cx,cx
+	extern errorpopup
+	call [errorpopup]
+	popa
+.failed:
+	call AsyncMPErrorStatic
+	call AsyncMPUnloadDLL
+	leave
+	ret
+
+	
+AsyncMPHandshake:	
 	mov dword [baTempBuffer1], 'TTDP'
 	mov dword [baTempBuffer1+4], 'ATCH'
 	extern ttdpatchvercode
 	mov eax, [ttdpatchvercode]
 	mov dword [baTempBuffer1+8], eax
+	mov dword [baTempBuffer1+9], 0
+	
+	mov dword [specialerrtext2], baTempBuffer1
 	
 	push dword 12
 	push dword baTempBuffer1
 	push dword [ASObject]
 	call [ASClientSend]
 	add esp, 12
+	test eax, eax
+	jne near .failure
 	
-.failed:	
-	call AsyncMPUnloadDLL
-	leave
+	
+	push dword 0
+	push dword baTempBuffer1
+	push dword [ASObject]
+	call [ASClientSendDone]
+	add esp, 12
+	test eax, eax
+	jne .failure
+	
+	// wait for new data, 0usecs, 30secs
+	push dword 0
+	push dword 30
+	push dword [ASObject]
+	call [ASClientHasNewData]
+	add esp, 12
+	cmp eax, 1
+	jne .failure
+	
+	mov dword [specialerrtext2], SERVER_MAGIC_STRING
+	push dword 14+4+2
+	push dword baTempBuffer1
+	push dword [ASObject]
+	call [ASClientReceive]
+	add esp, 12
+	cmp eax, 0
+	js .failure
+	
+	mov ecx, 14/2
+	mov esi, baTempBuffer1
+	mov edi, SERVER_MAGIC_STRING
+	rep cmpsw
+	jne .failure
+	
+	// now check status, version and get player info
+	
+	CALLINT3
 	ret
+
+.failure:
+	call AsyncMPErrorStatic
+	call AsyncMPDisconnect
+	ret
+	
 	
 AsyncMPDisconnect:
 	stackalign
@@ -328,6 +415,18 @@ AsyncMPDisconnect:
 	leave
 	ret	
 
+AsyncMPErrorStatic:	
+	pusha
+	mov word [textrefstack], statictext(specialerr2)
+	mov bx,ourtext(grferror)
+	mov dx,-1
+	xor ax,ax
+	xor cx,cx
+	extern errorpopup
+	call [errorpopup]
+	popa
+	ret
+	
 exported AsyncTickProcAllCompanies
 
 	ret
@@ -354,3 +453,5 @@ exported AsyncMPSyncPackageRecv
 	
 	ret
 #endif
+
+mpimportlist mpimport_list

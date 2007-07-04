@@ -4,13 +4,14 @@
 #include <winsock2.h>
 #include "asyncmpclient.h"
 
-
+#define APIVERSION 1
 __declspec(dllexport) int ASNetworkStart(int version)
 {
 	WSADATA wsaData;
+	if (version != APIVERSION) return -2;
 
 	/* Open the Windows socket */
-	if (WSAStartup(0x0002, &wsaData) != 0) {
+	if (WSAStartup(MAKEWORD(2,0), &wsaData) != 0) {
 		return -1;
 	}
 	return 0;
@@ -44,10 +45,13 @@ __declspec(dllexport) NetObj* ASClientConnect(char* ipaddressorhostname, int por
 	
 	pNetObj->socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (pNetObj->socket == INVALID_SOCKET) {
-		pNetObj->error = WSAGetLastError();
+		pNetObj->error = WSAGetLastError();		
 		return pNetObj;
 	}
-	
+	// currently we don't support non blocking io
+	u_long iMode = 0;
+	ioctlsocket(pNetObj->socket, FIONBIO, &iMode);
+
 	if (connect(pNetObj->socket, (SOCKADDR*) &sin, sizeof(sin)) == SOCKET_ERROR) {
 		pNetObj->error = WSAGetLastError();
 	}
@@ -97,7 +101,7 @@ __declspec(dllexport) int ASClientSend(NetObj* netobj, char* buffer, int bufferl
 	return 0;
 }
 
-__declspec(dllexport) int ASClientSendDone(NetObj* netobj, int size, char* buffer)
+__declspec(dllexport) int ASClientSendDone(NetObj* netobj, char* buffer, int bufferlen)
 {
 	int res;
 	/* Currently we send only our remaining data here */
@@ -118,51 +122,60 @@ __declspec(dllexport) int ASClientSendDone(NetObj* netobj, int size, char* buffe
 	return 0;
 }
 
-__declspec(dllexport) int ASClientReceive(NetObj* netobj, int buffersize, char* buffer)
+__declspec(dllexport) int ASClientReceive(NetObj* netobj, char* buffer, int bufferlen)
 {
 	int recvret;
 	int bufferpos = 0;
-	
-	if (netobj->inpackagelen < buffersize) {
+#if 0
+	if (netobj->inpackagelen < bufferlen) {
 		/* quite bad it seems host want more then data then it should */
 		return -1;
 	}
-	while (bufferpos < buffersize) {
-		recvret=recv(netobj->socket, buffer+bufferpos, buffersize-bufferpos, 0);
-		if (recvret == SOCKET_ERROR) {
+#endif
+	while (bufferpos < bufferlen) {
+		recvret=recv(netobj->socket, buffer+bufferpos, bufferlen-bufferpos, 0);
+		if (recvret > 0) {
+			bufferpos += recvret;
+		} else if (recvret == 0) {
+			netobj->error = 1;
+			/* The server left us */
+			return -2;
+		} else {
 			netobj->error = WSAGetLastError();
 			return -1;
 		}
-		if (recvret == 0) {
-			/* The server left us */
-			return -2;
-		}
-		bufferpos += recvret;
 	}
+	return bufferlen;
+#if 0
 	netobj->inpackagelen -= bufferpos; 
 	if (netobj->inpackagelen < 1) return 0;	/* no more data to read */
 	return netobj->inpackagelen;	/* return the remaining bytes */
+#endif
 }
 
 
-__declspec(dllexport) int ASClientHasNewData(NetObj* netobj)
+__declspec(dllexport) int ASClientHasNewData(NetObj* netobj, int timeoutsec, int timeoutusec)
 {
 	TIMEVAL timeout; 
 	fd_set fdSetRead;
 	int selectret;
-	int recvret;
-	char buffer[sizeof(int)*2];	/* waste some bytes to not get a buffer overflow */
-	int bufferpos = 0;
+//	int recvret;
+//	char buffer[sizeof(int)*2];	/* waste some bytes to not get a buffer overflow */
+//	int bufferpos = 0;
 	/* first check if we have still data in an old package buffer, that would be a wrong use of API */
 	if (netobj->inpackagelen > 0) return -1;
-
-    timeout.tv_sec = 0; 
-	timeout.tv_usec = 0;
+	FD_ZERO(&fdSetRead);
+	FD_SET(netobj->socket, &fdSetRead);
+    timeout.tv_sec = timeoutsec; 
+	timeout.tv_usec = timeoutusec;
 	selectret = select(0,&fdSetRead,NULL,NULL,&timeout);
 	if (selectret == SOCKET_ERROR) {
 		netobj->error = WSAGetLastError();
 		return -1;
 	}
+	if (selectret == 1) return 1;
+	return 0;
+#if 0
 	if (selectret == 1) {
 		/* we seem to have a new data package, get it's size */
 		while (bufferpos < sizeof(int)) {
@@ -181,6 +194,7 @@ __declspec(dllexport) int ASClientHasNewData(NetObj* netobj)
 		return 1;
 	}
 	return 0;
+#endif
 }
 
 __declspec(dllexport) int ASClientGetLastError(NetObj* netobj) {
