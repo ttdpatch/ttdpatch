@@ -174,7 +174,7 @@
 	BITS ('C',"morecurrencies", CFG_MORECURRENCIES, FINANCEECONOMY, "MoreCurrenciesAndEuro", morecurrencies, U8, FLAGDATA(morecurropts), 0),
 	BITS ('D',"disasters", CFG_DISASTERS, DIFFICULTY, "DisasterSelection", maskdisasters, U8, FLAGDATA(disastermask), 255),
 	YESNO('E',"electrifiedrailway", CFG_ELECTRIFIEDRAIL, INFST_RAIL, "ElectrifiedRailways", electrifiedrail),
-	BITS ('F',"experimentalfeatures", CFG_EXPERIMENTALFEATURES, BASIC, "ExperimentalFeatures", experimentalfeatures, U16, FLAGDATA(expswitches), 0xFFFF & ~4),
+	BITS ('F',"experimentalfeatures", CFG_EXPERIMENTALFEATURES, BASIC, "ExperimentalFeatures", experimentalfeatures, U16, FLAGDATA(expswitches), 0xFFFF & ~(4 + 512)),
 	     //G
 	YESNO('H',"newshistory", CFG_NEWSHISTORY, INTERFACE_NEWS, "NewsHistory", newshistory),
 	BITS ('I',"pathbasedsignalling", CFG_PATHBASEDSIGNALLING, INFST_RAIL_SIGNAL, "PathBasedSignalling", pathbasedsignalling, U8, FLAGDATA(pbssettings), 11),
