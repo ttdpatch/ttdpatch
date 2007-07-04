@@ -173,6 +173,10 @@ ret
 	
 	call createwindow
 
+	xor eax, eax // This should really be reset now...
+	xor ebx, ebx
+	call DWORD [setmousetool]
+
 	popa
 	mov eax, -3
 ret
@@ -795,9 +799,6 @@ adjstrailstfunc:
 	mov eax, [soundeffectlist+esi]
 	or esi, BYTE -1
 	call DWORD [generatesoundeffect]
-	xor eax, eax
-	xor ebx, ebx
-	call DWORD [setmousetool]
 .ret:
 	ret
 .die:
