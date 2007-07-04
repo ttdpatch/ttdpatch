@@ -1899,7 +1899,7 @@ class3periodicproc:
 	mov byte [curcallback],0x1b
 	call getnewsprite
 	mov byte [curcallback],0
-	mov [esp+0x1c],al				// will be popped to al
+	mov [esp+0x1c],eax				// will be popped to eax
 	popa
 	jc .animdone
 	call sethouseanimstage
