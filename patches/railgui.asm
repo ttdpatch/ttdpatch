@@ -1552,7 +1552,14 @@ RailConstrWinMouseDragRelease:
 	mov esi, 0x28
 	mov bl, 11
 	mov word [operrormsg1], 0x100F
+	extern AdjacentStationHook
+	testflags adjacentstation
+	jnc .normstationbuild_notadj
+	push DWORD .donebuildstation
+	jmp AdjacentStationHook
+.normstationbuild_notadj:
 	call [actionhandler]
+.donebuildstation:
 
 	mov ax, 1 + (3h << 8)
 	mov dx, 100h
