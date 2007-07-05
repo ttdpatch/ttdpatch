@@ -7,7 +7,7 @@
 //		edi - value to store there
 // Trashes everything (Actionhandler's fault)
 exported SetTTDpatchVar
-	int3
+//	int3 // For testing purposes
 	test bl, 1 // no point in going further on bl = 0
 	jz .ret
 
