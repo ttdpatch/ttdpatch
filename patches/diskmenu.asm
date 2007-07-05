@@ -6,6 +6,8 @@
 #include <flags.inc>
 #include <textdef.inc>
 #include <human.inc>
+#include <misc.inc>
+#include <ptrvar.inc>
 #include <window.inc>
 
 extern ctrlkeystate, patchflags, DestroyWindow, FindWindow
@@ -31,7 +33,13 @@ diskmenuselection:
 	inc dl
 
 .keepdx:
-	mov byte [newgameyesno], 0
+//	int3
+	pusha
+	mov edi, 0
+	mov ebx, 1 + (0 << 16)
+extern SetTTDpatchVar_actionnum, actionhandler
+	dopatchaction SetTTDpatchVar
+	popa
 	cmp dl, 2
 	jb .done
 	je .loadmenu
@@ -56,8 +64,12 @@ diskmenuselection:
 	ret
 
 .newgame:
-	mov esi, 0x10038 // Abandon game
-	mov byte [newgameyesno], 1
+	pusha
+	mov edi, 1
+	mov ebx, 1 + (0 << 16)
+	dopatchaction SetTTDpatchVar
+	popa                                                                                                                                                                                                             
+	mov esi, 0x10038 // New game
 	jmp .doload
 
 .loadmenu:
@@ -113,10 +125,31 @@ changeabandonaction:
 	ret
 
 .newgame:
-	mov dl, byte [climate]
-	mov byte [newgameclimate], dl
-	mov esi, 0x00060
+	mov dl, byte [climate] // Store this in here as it will serive to the climate change
+extern MenuStartNewGame_actionnum
+	mov esi, MenuStartNewGame_actionnum // Call our special action handler function which will sort out most things
 	ret
+
+uvard CreateMainWindow // Holds a function address to reset the gui (setup through proc file)
+exported MenuStartNewGame // Basically does the equivlent of exit game and start new random game!
+	push edx			// Make sure the climate to generate servives
+	call [CreateMainWindow]		// Reset the gui system
+	pop edx
+
+	mov esi, 0x40060 // Set climate type
+	mov bl, 1
+	call [actionhandler]
+
+	mov ebp, [ophandler + (12 * 8)]	// Op Class 12
+	mov ebx, 1			// reset and generate new game data
+	call dword [ebp + 4]		// Op.function
+
+	mov bl, 1
+	mov esi, 0x00060 // Actually create the new game
+	call [actionhandler]
+
+	ud2 // We shouldn't end up here as it changes the stack back to the ttd start point
+	ret	
 
 // Closes any windows of commonly reconised yes / no type when opened
 global closeyesnowindows

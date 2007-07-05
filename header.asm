@@ -128,6 +128,8 @@ startpatchactions			// this is a macro, not a label...
 	patchaction TwoCompanyColourChange
 	patchaction AdjacentStationBuildNewStation
 	patchaction MPRoutingRestrictionChange
+	patchaction SetTTDpatchVar
+	patchaction MenuStartNewGame
 
 uvard newvehdata, newvehdatastruc_size/4
 uvard persgrfdata, persgrfdatastruc_size/4

@@ -78,6 +78,9 @@ codefragment opennewgamewindow
 	icall changeelementlist
 	setfragmentsize 7
 
+codefragment FindCreateMainWindow
+	mov byte [gamemode], 0
+
 endcodefragments
 
 patchdiskmenu:
@@ -105,4 +108,8 @@ patchdiskmenu:
 
 	patchcode oldclosepoint, newclosepoint, 1, 2
 	patchcode oldclosepoint2, newclosepoint, 1, 2
+
+	stringaddress FindCreateMainWindow	// Required to make disk menu's new game option work correctly
+extern CreateMainWindow				// with restarting the basic gui and when in a multiplayer game
+	mov [CreateMainWindow], edi
 	ret
