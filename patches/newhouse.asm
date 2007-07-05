@@ -28,14 +28,15 @@ extern failpropwithgrfconflict,lastextragrm,curextragrm
 // New houses use the same dataid-gameid system as newstations (see there)
 
 // usage of landscape arrays in class 3 with newhouses on:
-// L1: periodic processings remaining before activating random triggers 1 and 2
+// L1:	bits 0-5: periodic processings remaining before activating random triggers 1 and 2
+//	bits 6-7: high part of current animation frame
 // L2: substitute building type (for new house types) or real building type (for old types)
 // L3:	bits 0-5: random triggers activated so far
 //	bits 6-7: construction state (as in unpatched TTD)
 //	bits 8-15: real building type (for new house types) or zero (meaning it's an old type)
 // L5: (for old types 0x04 and 0x05, this field is special, see in Savegame Internals)
 //	bits 0-2: construction counter (as in unpatched TTD)
-//	bits 3-7: current animation frame
+//	bits 3-7: low part of current animation frame
 // L6: random bits
 // L7: Year of construction. If eternalgame is on, it's adjusted in such a way that the age of
 //     the building is still correct
@@ -319,6 +320,16 @@ sethouseoverride:
 
 .error:
 	stc
+	ret
+
+exported sethouseprocessinterval
+	lodsb
+	cmp al,0x3F
+	jbe .ok
+	mov al,0x3F
+.ok:
+	mov [houseprocessintervals+ebx],al
+	clc
 	ret
 
 // Set the class of the house. We store the GRFID as well, so each GRF has private classes
@@ -1236,7 +1247,8 @@ puthouseparttolandscape:
 	mov al,[substbuilding+ebp-128]
 	mov [landscape2+edi],al			// substitute building type
 	mov al,[houseprocessintervals+ebp-128]
-	mov [landscape1+edi],al			// process interval
+	mov [landscape1+edi],al			// process interval (the high two bits are clear,
+						// so the high part of the anim. counter is OK too
 	mov [landscape3+2*edi+1],cl		// real type
 	test byte [newhouseflags+ebp],0x20
 	jz .notanim
@@ -1740,9 +1752,12 @@ sethouseanimstage:
 	je .dontset
 
 // update animation frame
-	shl al,3
+	shl eax,3		// now al=low part adjusted, ah=high part+junk
+	shl ah,6		// now ah=high part adjusted (and junk cleaned)
 	and byte [landscape5(bx)],7
 	or byte [landscape5(bx)],al
+	and byte [landscape1+ebx],0x3F
+	or byte [landscape1+ebx],ah
 
 .dontset:
 // add the tile to the animation list - adding it repeatedly won't hurt, the add function checks
@@ -1767,12 +1782,14 @@ class3periodicproc:
 	sub ebp,128
 	jb near .normalhouse
 	mov al,[landscape1+ebx]
-	or al,al
+	and al,0x3F
 	jz .process			// has the timer reached zero?
 	cmp al,[houseprocessintervals+ebp]
 	ja .process			// is it larger than its maximum? if it is, something went wrong earlier,
 					// so activate triggers and reset timer
 	dec byte [landscape1+ebx]	// time hasn't elapsed yet - decrease timer
+					// (if the lower bits aren't zero, decreasing won't hurt the higher bits,
+					//  i.e. the animation state)
 	jmp near .noprocess
 	
 .process:
@@ -1842,7 +1859,8 @@ class3periodicproc:
 .dontdestroy:
 
 	mov al,[houseprocessintervals+ebp]	// restart counting from maximum
-	mov [landscape1+ebx],al
+	and byte [landscape1+ebx],0xC0
+	or [landscape1+ebx],al
 
 .noprocess:
 .normalhouse:
@@ -2152,7 +2170,9 @@ class3animation:
 .normal:
 // if we have frames remaining, just jump to the next one
 	mov cl,[landscape5(bx)]
-	shr cl,3
+	mov ch,[landscape1+ebx]
+	shr ch,6		// now the high and low parts are next to each other
+	shr ecx,3		// the anim state is now in cl
 	inc cl
 	mov ch,[houseanimframes+eax]
 	and ch,0x7f
@@ -2160,9 +2180,12 @@ class3animation:
 	jb .finished		// this was the last frame
 .hasframe:
 // update current frame field and redraw the tile
-	shl cl,3
+	shl ecx,3		// now cl=low part adjusted, ch=high part+junk
+	shl ch,6		// now ch=high part adjusted (junk cleaned)
 	and byte [landscape5(bx)],7
 	or [landscape5(bx)],cl
+	and byte [landscape1+ebx],0x3F
+	or [landscape1+ebx],ch
 	mov esi,ebx
 	jmp redrawtile			// in manucnvt.asm
 
@@ -2204,7 +2227,9 @@ checkhouseslopes:
 global gethouseanimframe
 gethouseanimframe:
 	movzx eax,byte [landscape5(si)]
-	shr eax,3
+	mov ah,[landscape1+esi]
+	shr ah,6				// now the high and low parts are next to each other
+	shr eax,3				// the anim state is now in al, and other bytes of eax are zero
 	ret
 
 // Called to decide if the current house is an old animated type that needs re-randomizing
