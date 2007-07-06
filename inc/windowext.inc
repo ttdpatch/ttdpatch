@@ -33,7 +33,10 @@
 // Names (if you use elename)
 // ==========================================
 // name_elements.elename		is an label into the name_elements data
-// name_elements.elename_id		the id of the element (can be used in window handler)
+// name_elements.elename_id		the id of the element (can be used in window handler as example)
+// Additional defined are:
+// .elename_x, .elename_x2, .elename_y, .elename_y2,
+// .elename_width,  .elename_height
 //
 // When you use the macro guicaption:
 // name_elements.caption_close_id and name_elements.caption_id are automatical defined
@@ -71,7 +74,8 @@
 	%ifctx guiwindow
 		%ifnidn {},{%1}
 		.%1:
-		assign_workaround %$gui_window_cur_elements %+ .%1_id,($-%$gui_window_cur_elements)/12
+		%xdefine %%name %$gui_window_cur_elements %+ .%1
+		assign_workaround %%name %+ _id, ($-%$gui_window_cur_elements)/12
 		%endif
 %ifnidn {},{%2}		
 	db %2, %3
@@ -103,6 +107,14 @@
 			%assign %%data %2
 		%endif
 	%endrep
+	%ifnidn {},{%%name}
+	assign_workaround %%name %+ _x, %%x1
+	assign_workaround %%name %+ _x2, %%x2
+	assign_workaround %%name %+ _width, %%x2-%%x1
+	assign_workaround %%name %+ _y, %%y1
+	assign_workaround %%name %+ _y2, %%y2
+	assign_workaround %%name %+ _height, %%y2-%%y1
+	%endif
 	dw %%x1, %%x2, %%y1, %%y2, %%data
 %endif
 	%else 
