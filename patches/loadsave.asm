@@ -2725,7 +2725,9 @@ loadsavelandscape8array:
 canhaverobjarray:
 	mov al, [robjgameoptionflag]
 	jnc .load
-	and al, [robjflags]
+	test BYTE [robjflags], 3
+	setnz ah
+	and al, ah
 	.load:
 	rcr al,1
 	ret

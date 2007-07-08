@@ -27,7 +27,7 @@ uvarb robjgameoptionflag,1
 /*
 //Save
 uvard robjflags,4
-//DWORD 0:	1=enabled&save
+//DWORD 0:	1=enabled&save -- restrictions enabled, 2=enabled&save -- feature 2
 uvarw robjidtbl,256*16
 
 uvarb robjs, 0x4000*8
@@ -46,6 +46,10 @@ robjs equ robjidtbl+(256*16*2)
 uvard curvehicleptr, 1
 uvard curstepfuncptr, 1
 
+//Signal tile:
+//L3:	bit 12:		Restricted
+//	bit 13:		feature 2
+
 struc robj
 	.type resb 1
 	.varid resb 1
@@ -57,6 +61,98 @@ endstruc
 //flags:
 //1=value valid
 //80=currently allocated
+
+//type:
+//1:	<
+//2:	>
+//3:	<=
+//4:	>=
+//5:	=
+//6:	!=
+//32:	and
+//33:	or
+//34:	xor
+//64:	Restriction/feature 2 switch
+
+//type: 1-6
+//varid:
+//1:	Train length
+//2:	Max speed
+//3:	St of cur order
+//4:	Dep of cur order
+//5:	Power
+//6:	Weight
+//7-10:	Signal
+//11:	Max speed: mph
+//12:	St of next order
+//13:	Previous st
+//14:	Cargo
+//15:	Distance from signal
+//16:	Dep of next order
+//17:	Days since last service
+//18:	Searching for depot?
+
+//type: 32-34
+//word1:ID of first robj
+//word2:ID of second robj
+
+//type: 64
+//word1:ID of restriction robj
+//word2:ID of feature 2 obj
+
+%define concat(x,y) x %+ y
+
+%macro get_reg_letter 1
+	%ifidni %1,eax
+	%define reg_letter a
+	%elifidni %1,ebx
+	%define reg_letter b
+	%elifidni %1,ecx
+	%define reg_letter c
+	%elifidni %1,edx
+	%define reg_letter d
+	%endif
+%endmacro
+
+%macro get_root_robj 4-5//coord reg,robjidindex out reg (must have l/h form: eax,ebx,ecx,edx),robjid out reg, rootobj ptr out reg,temp byte register
+			//registers 1-4 allowed to clash
+			//register 5 must not clash with registers 1/2,and is only needed if reg 1 === reg 2
+	get_reg_letter %2
+	%ifidn %1, %2
+	mov %5,[landscape7+%1]
+	%else
+	mov %2,%1
+	%endif
+	shr reg_letter %+ h,6
+	shl reg_letter %+ x,2
+	%ifidn %1, %2
+	mov reg_letter %+ l,%5
+	%else
+	mov reg_letter %+ l,[landscape7+%1]
+	%endif
+	movzx %3, WORD [robjidtbl+%2*2]
+	lea %4, [robjs+%3*8]
+%endmacro
+
+%macro sget_root_robj 2-3	//coord reg, out reg, temp byte register
+	get_root_robj %1,%2,%2,%2,%3
+%endmacro
+
+%macro get_rt_base_from_root_obj 1-2,"%1"	//robj reg,[robjid reg]
+	cmp BYTE [%1+robj.type], 64
+	jne %%ret
+	movzx %2, WORD [%1+robj.word1]
+	lea %1, [robjs+%2*8]
+%%ret:
+%endmacro
+
+%macro get_ps_base_from_root_obj 1-2,"%1"	//robj reg,[robjid reg]
+	cmp BYTE [%1+robj.type], 64
+	jne %%ret
+	movzx %2, WORD [%1+robj.word2]
+	lea %1, [robjs+%2*8]
+%%ret:
+%endmacro
 
 uvarb depotsearch
 
@@ -161,6 +257,9 @@ tracerestrict_doesitpass:
 	mov eax,edx
 ret
 
+//bx=robj id
+//returns true/false in edx
+//trashes: eax,ebx,ecx,(edx)
 .recurse:
 	movzx ebx,bx
 	or ebx,ebx
@@ -183,8 +282,13 @@ ret
 	je near .or
 	cmp dl,34
 	je near .xor
+	cmp dl,64
+	je .switch
 	jmp .fret
 
+.switch:
+	movzx ebx, WORD [ebx+robj.word1]
+	jmp .recurse
 
 .cmp:
 	or dh,dh
@@ -920,10 +1024,13 @@ tracerestrict_createwindow:
 	mov dl, [landscape7+ecx]
 	mov [robjidindex], dx
 	movzx edx, WORD [robjidtbl+edx*2]
+.switchin:
 	mov [robjid], dx
-	add edx,edx
-	lea edx, [robjs+edx*4]
+	lea edx, [robjs+edx*8]
 	mov [rootobj], edx
+	cmp BYTE [edx+robj.type], 64
+	movzx edx, WORD [edx+robj.word1]
+	je .switchin
 	
 	xor edx, edx
 	jmp .initovernocur
@@ -1262,6 +1369,69 @@ ret
 	movzx eax, WORD [curxypos]
 	or BYTE [landscape3+1+eax*2], 0x10
 	call refreshtile
+	test BYTE [landscape3+1+eax*2], 0x20
+	jz NEAR .ddl_action_norm_init_not_ps
+	mov ebx, eax
+	shr bh,6
+	shl bx,2
+	movzx edx, BYTE [landscape7+eax]
+	mov dh, bh
+	mov eax, edx
+	movzx edx, WORD [robjidtbl+edx*2]
+	lea edx, [robjs+edx*8]
+	mov ecx, robjnum-1
+	mov ebx, robjs+robj_size
+	.sbl_ps:
+		test BYTE [ebx+2], 0x80
+		jz .sbl_psf
+		add ebx, robj_size
+	loop .sbl_ps
+	jmp NEAR .sbl_fail
+.sbl_psf:
+	cmp DWORD [esp+4], trwin_msghndlr.ddl1_action_init_nonmpcont
+	jne .ddl1_action_init_mp_ps_nosetglobvars
+	push ebx
+	sub ebx, robjs
+	shr ebx, 3
+	mov [robjid], bx
+	mov [curselrobjid], bx
+	pop ebx
+	mov [robjidindex], ax
+	mov [rootobj], ebx
+	mov [curselrobj], ebx
+	mov WORD [currobjrelhorizpos], 0
+.ddl1_action_init_mp_ps_nosetglobvars:
+	push eax
+	lea eax, [ebx+robj_size]
+	dec ecx
+	jz NEAR .sbl_fail
+	.sbl_ps2:
+		test BYTE [eax+2], 0x80
+		jz .sbl_psf2
+		add eax, robj_size
+	loop .sbl_ps2
+	pop eax
+	jmp NEAR .sbl_fail
+.sbl_psf2:	//edx=ps,ebx=new-switch,eax=new-rs,ecx=robjidindex
+	pop ecx
+	shr ebx, 3
+	sub ebx, robjs
+	mov [robjidtbl+ecx*2], bx
+	lea ebx, [ebx*8+robjs]
+	mov DWORD [ebx], 0x800040
+	sub edx, robjs
+	shl edx, 16-3
+	mov ecx, eax
+	sub ecx, robjs
+	shr ecx, 3
+	mov dx, cx
+	mov [ebx+4], edx
+	mov ebx, eax	//tr-robj
+	or BYTE [robjflags], 1
+	pop eax
+	ret
+
+.ddl_action_norm_init_not_ps:
 	mov ecx, robjnum-1
 	mov ebx, robjs+robj_size
 	.sbl1:
@@ -1832,13 +2002,26 @@ global tracerestrict_delrobjsignal1,tracerestrict_delrobjsignal1.oldfn,delrobjsi
 
 tracerestrict_delrobjsignal1:
 	call delrobjsignal
+	call delpobjsignal
 	jmp near $
 ovar .oldfn, -4, $,tracerestrict_delrobjsignal1
 
+delpobjsignal:
+	btr WORD [esi*2+landscape3],13
+	jc .cont
+	ret
+.cont:
+	pusha
+	bt WORD [esi*2+landscape3],13
+	jc NEAR delpobjfromcombsignal
+	jmp delrobjsignal.in
 delrobjsignal:
 	btr WORD [esi*2+landscape3],12
 	jnc NEAR .end
 	pusha
+	bt WORD [esi*2+landscape3],13
+	jc delrobjfromcombsignal
+.in:
 	mov ebx, esi
 	shr bh, 6
 	shl bx, 2
@@ -1847,9 +2030,8 @@ delrobjsignal:
 	xor eax,eax
 	mov [landscape7+esi], al
 	xchg WORD [robjidtbl+ebx*2], ax
-	shl eax, 3
-	lea ebx,[eax+robjs]
-
+	lea ebx,[eax*8+robjs]
+.del:
 	dec BYTE [ebx+robj.count]
 	jnz .pret
 
@@ -1858,7 +2040,9 @@ delrobjsignal:
 
 .recurse:	//ebx=robj
 	cmp BYTE [ebx], 32
-	jl .norecurse
+	jb .norecurse
+	cmp BYTE [ebx], 34
+	ja .norecurse
 	push ebx
 	movzx ebx, WORD [ebx+robj.word1]
 	shl ebx, 3
@@ -1879,6 +2063,25 @@ ret
 	popa
 .end:
 	ret
+delrobjfromcombsignal:
+	xor di, di
+	jmp delpobjfromcombsignal.common
+
+delpobjfromcombsignal:
+	mov di, 2
+.common:
+	get_root_robj esi,eax,ebx,ebx
+	cmp BYTE [ebx+robj.type], 64
+	jne NEAR delrobjsignal.in
+	movzx ecx, WORD [ebx+robj.word1+edi]	//to be deleted
+	xor edi, 2
+	movzx edi, WORD [ebx+robj.word1+edi]	//to be swapped in
+	mov [robjidtbl+eax*2], di
+	xor eax, eax
+	mov [ebx], eax
+	mov [ebx+4], eax
+	lea ebx, [robjs+ecx*8]
+	jmp NEAR delrobjsignal.del
 
 uvard curddlvarptr
 uvard currevddlvarptr
@@ -2439,14 +2642,11 @@ copysharelist:
 	xor cl, 1
 	jnz NEAR .ret
 	
-	mov ecx, eax
-	shr ch,6
-	shl cx,2
-	mov cl, [landscape7+eax]
-	movzx ebx, WORD [robjidtbl+ecx*2]
+	get_root_robj eax,ecx,ebx,edx
+	get_rt_base_from_root_obj edx, ebx
 	or ebx, ebx
 	jz NEAR .ret
-	
+
 	cmp BYTE [copyshareaction], 2
 	jne .nodenyshareothercompcheck
 	mov al, [landscape1+eax]
@@ -2454,8 +2654,17 @@ copysharelist:
 	jne NEAR .ret		//user tried to share with opponent's restricted signal, deny it, to prevent them from sharing the two signals and thus being able to modify the opponent's restrictions
 .nodenyshareothercompcheck:
 
+//ebx=src robjid,ecx=src robjidindex,edx=src robj
+
 	movzx eax, WORD [curxypos]
 	//note eax now is target tile coords
+	test BYTE [landscape3+1+eax*2], 0x20
+	jz .normscpinit
+	sget_root_robj eax,edx
+	add edx, robj.word1
+	jmp .scpinitover
+.normscpinit:
+
 	mov edx, eax
 	shr dh,6
 	shl dx,2
@@ -2475,6 +2684,7 @@ ret
 	mov ecx, edx
 	sub ecx, robjidtbl
 	shr ecx, 1
+.scpinitover:	//eax=dst coords, cx=dst robjidindex,edx=where to store dst<--src rt robjid,ebx=src root obj id
 	mov [robjidindex], cx
 	mov DWORD [curselrobj], 0
 
@@ -2723,8 +2933,14 @@ GetMPRoutingRestrictionMPRobjFromPos:
 	shl dx, 2
 	mov dl, al
 	mov dx, [robjidtbl+edx*2]
+.switch:
 	shl edx, 3
 	add edx, robjs
+	cmp BYTE [edx+robj.type], 64
+	je .notswitch
+	movzx edx, WORD [edx+robj.word1]
+	jmp .switch
+.notswitch:
 	pop eax
 	inc ax
 	call trwin_msghndlr.tboxrobjrecurse
