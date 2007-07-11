@@ -14,12 +14,13 @@
 #include <imports/gui.inc>
 #include <ptrvar.inc>
 #include <flags.inc>
+#include <bitvars.inc>
 
 extern CreateWindow,DrawWindowElements,WindowClicked,DestroyWindow,WindowTitleBarClicked,GenerateDropDownMenu,BringWindowToForeground,invalidatehandle,setmousetool,getnumber,errorpopup
 global robjgameoptionflag,robjflags
 extern cargotypes,newcargotypenames,cargobits,invalidatetile,cargotypes
 extern GenerateDropDownEx,GenerateDropDownExPrepare,DropDownExList
-extern TransmitAction, MPRoutingRestrictionChange_actionnum, actionhandler,patchflags
+extern TransmitAction, MPRoutingRestrictionChange_actionnum, actionhandler,patchflags,miscmodsflags
 
 global tr_siggui_btnclick,programmedsignal_turnitred
 
@@ -2639,7 +2640,6 @@ ret
 	mov WORD [textrefstack+6], statictext(empty)
 	jmp .print
 .printdepot:
-	mov WORD [textrefstack+6], statictext(trdlg_txt_depot)
 	movzx ecx, BYTE [eax+robj.word1]
 	add ecx,ecx
 	lea ecx, [depotarray+ecx+ecx*2]
@@ -2651,6 +2651,9 @@ ret
 	mov edx, [ebp+town.citynameparts]
 	mov DWORD [textrefstack+10], edx
 
+	test dword [miscmodsflags],MISCMODS_NODEPOTNUMBERS
+	jz .printdepotnum
+	mov WORD [textrefstack+6], statictext(trdlg_txt_depot)
 	mov cx, [ecx+depot.XY]
 	or cx, cx
 	jz .clearvalueflag_dontprintstation
@@ -2659,6 +2662,12 @@ ret
 	mov WORD [textrefstack+14], cx
 	shr bp,8
 	mov WORD [textrefstack+16], bp
+	jmp .print
+.printdepotnum:
+	mov WORD [textrefstack+6], statictext(dpt_number)
+	movzx ecx, BYTE [eax+robj.word1]
+	inc ecx
+	mov WORD [textrefstack+14], cx
 	jmp .print
 
 .nodepot:
