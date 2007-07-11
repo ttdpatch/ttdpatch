@@ -3299,19 +3299,8 @@ var trackpiecesignalmask, db 0xC0,0xC0,0xC0,0x30,0xC0,0x30
 GetMPRoutingRestrictionMPRobjFromPos:
 	push edx
 	movzx edx, WORD [curxypos]
-	mov al, [landscape7+edx]
-	shr dh, 6
-	shl dx, 2
-	mov dl, al
-	mov dx, [robjidtbl+edx*2]
-.switch:
-	shl edx, 3
-	add edx, robjs
-	cmp BYTE [edx+robj.type], 64
-	je .notswitch
-	movzx edx, WORD [edx+robj.word1]
-	jmp .switch
-.notswitch:
+	sget_root_robj edx, edx, al
+	get_auto_base_from_root_obj edx,edx
 	pop eax
 	inc ax
 	call trwin_msghndlr.tboxrobjrecurse
@@ -3348,6 +3337,9 @@ TransmitRoutingRestrictionChangeRobjCurPos:
 	shl cx, 4
 //trashes: esi, bl, edx, ebp
 TransmitRoutingRestrictionChangeRobj:
+	mov bl, [curdispmode]
+	shl bl, 7
+	or bh, bl	//0x80
 	//prevent recursion loops
 	mov bl, 1
 	dopatchaction MPRoutingRestrictionChange
