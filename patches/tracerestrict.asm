@@ -12,14 +12,16 @@
 #include <station.inc>
 #include <town.inc>
 #include <imports/gui.inc>
+#include <ptrvar.inc>
+#include <flags.inc>
 
 extern CreateWindow,DrawWindowElements,WindowClicked,DestroyWindow,WindowTitleBarClicked,GenerateDropDownMenu,BringWindowToForeground,invalidatehandle,setmousetool,getnumber,errorpopup
 global robjgameoptionflag,robjflags
 extern cargotypes,newcargotypenames,cargobits,invalidatetile,cargotypes
 extern GenerateDropDownEx,GenerateDropDownExPrepare,DropDownExList
-extern TransmitAction, MPRoutingRestrictionChange_actionnum, actionhandler
+extern TransmitAction, MPRoutingRestrictionChange_actionnum, actionhandler,patchflags
 
-global tr_siggui_btnclick
+global tr_siggui_btnclick,programmedsignal_turnitred
 
 uvarb robjgameoptionflag,1
 // 1=enabled&load
@@ -27,7 +29,7 @@ uvarb robjgameoptionflag,1
 /*
 //Save
 uvard robjflags,4
-//DWORD 0:	1=enabled&save -- restrictions enabled, 2=enabled&save -- feature 2
+//DWORD 0:	1=enabled&save -- restrictions enabled, 2=enabled&save -- programmable signals
 uvarw robjidtbl,256*16
 
 uvarb robjs, 0x4000*8
@@ -48,7 +50,7 @@ uvard curstepfuncptr, 1
 
 //Signal tile:
 //L3:	bit 12:		Restricted
-//	bit 13:		feature 2
+//	bit 13:		Programmed
 
 struc robj
 	.type resb 1
@@ -72,7 +74,7 @@ endstruc
 //32:	and
 //33:	or
 //34:	xor
-//64:	Restriction/feature 2 switch
+//64:	Restriction/Programmable signal switch
 
 //type: 1-6
 //varid:
@@ -92,15 +94,23 @@ endstruc
 //17:	Days since last service
 //18:	Searching for depot?
 
+//19:	Number of green entrance signals in block
+//20:	Number of green one-way entrance signals in block
+//21:	Number of green two-way entrance signals in block
+//22:	Number of red entrance signals in block
+//23:	Number of red one-way entrance signals in block
+//24:	Number of red two-way entrance signals in block
+//25:	Current signal is SW/NW/SE/NE
+
+//26:	Entered side of tile is/is not: SW/NW/SE/NE
+
 //type: 32-34
 //word1:ID of first robj
 //word2:ID of second robj
 
 //type: 64
 //word1:ID of restriction robj
-//word2:ID of feature 2 obj
-
-%define concat(x,y) x %+ y
+//word2:ID of programmable signal obj
 
 %macro get_reg_letter 1
 	%ifidni %1,eax
@@ -111,6 +121,8 @@ endstruc
 	%define reg_letter c
 	%elifidni %1,edx
 	%define reg_letter d
+	%else
+	%error Read tracerestrict.asm:119
 	%endif
 %endmacro
 
@@ -154,7 +166,21 @@ endstruc
 %%ret:
 %endmacro
 
+%macro get_auto_base_from_root_obj 1-2,"%1"	//robj reg,[robjid reg]
+	cmp BYTE [%1+robj.type], 64
+	jne %%ret
+	add %1, [curdispmode]
+	add %1, [curdispmode]
+	movzx %2, WORD [%1+robj.word1]
+	lea %1, [robjs+%2*8]
+%%ret:
+%endmacro
+
 uvarb depotsearch
+
+uvard ps_presig_count,4
+//+1=two way
+//+2=red (else green)
 
 global trpatch_DoTraceRouteWrapper1,trpatch_DoTraceRouteWrapper1.oldfn,trpatch_DoTraceRouteWrapper2,trpatch_DoTraceRouteWrapper3
 trpatch_DoTraceRouteWrapper3:
@@ -193,6 +219,11 @@ ret
 	mov DWORD [curvehicleptr],0
 jmp .nomodify
 
+	// in:	ch=rail piece bit mask (one bit set)
+	//	cl=rail piece bit number, +8 for "other" direction
+	//	di=tile XY
+	// out:	CF=1 if route ends
+	// safe:eax,ebx
 trpatch_stubstepfunc:
 	//test BYTE [robjflags], 1
 	//jz .norm
@@ -222,7 +253,8 @@ trpatch_stubstepfunc:
 
 .check:
 	pusha
-	
+	movzx eax, cl
+	mov cl, [trackpiecesignalmask2+eax]
 	mov eax,[curvehicleptr]
 	or eax,eax
 	jz .tret
@@ -238,23 +270,52 @@ trpatch_stubstepfunc:
 	popa
 	stc
 	ret
+	
+var trackpiecesignalmask2, db 0x80,0x80,0x80,0x20,0x40,0x10,0,0,0x40,0x40,0x40,0x10,0x80,0x20,0,0
 
-//eax=vehicle ptr,bx=xy coords of restrict tile
+//eax=vehicle ptr,bx=xy coords of restrict tile,cl=signal bit
 //trashes: (eax),ebx,ecx,edx
 //returns true/false in eax
 
-
+uvarb sigbit
 varb tempdlvar,1
 tracerestrict_doesitpass:
+	mov [sigbit], cl
 	movzx ebx,bx
 	mov dl,[landscape7+ebx]
 	shr bh,6
 	shl bx,2
 	mov bl,dl
-	mov bx,[robjidtbl+ebx*2]
-	
-	call .recurse
+	movzx ebx, WORD [robjidtbl+ebx*2]
+	cmp BYTE [ebx*8+robjs+robj.type],64
+	jne .norminit
+	mov bx, [ebx*8+robjs+robj.word1]
+.norminit:
+	call programmedsignal_turnitred.recurse
 	mov eax,edx
+ret
+
+//al=signal bit, bx=xy coords of signal tile
+//trashes: (eax),ebx,ecx,edx,(edi<--bx)
+//returns true/false 1/0 in al
+
+programmedsignal_turnitred:
+	movzx ebx,bx
+	movzx eax, al
+	mov [sigbit], al
+	mov edi, ebx
+	mov dl,[landscape7+ebx]
+	shr bh,6
+	shl bx,2
+	mov bl,dl
+	movzx ebx, WORD [robjidtbl+ebx*2]
+	cmp BYTE [ebx*8+robjs+robj.type],64
+	jne .norminit
+	mov bx, [ebx*8+robjs+robj.word2]
+.norminit:
+	call .recurse
+	or edx, edx
+	setnz al
 ret
 
 //bx=robj id
@@ -282,13 +343,7 @@ ret
 	je near .or
 	cmp dl,34
 	je near .xor
-	cmp dl,64
-	je .switch
 	jmp .fret
-
-.switch:
-	movzx ebx, WORD [ebx+robj.word1]
-	jmp .recurse
 
 .cmp:
 	or dh,dh
@@ -328,6 +383,20 @@ ret
 	je near .servdays
 	cmp dh,18
 	je near .searchingfordepot
+	cmp dh,19
+	je near .numgs
+	cmp dh,20
+	je near .numgos
+	cmp dh,21
+	je near .numgts
+	cmp dh,22
+	je near .numrs
+	cmp dh,23
+	je near .numros
+	cmp dh,24
+	je near .numrts
+	cmp dh,25
+	je near .tileside
 
 .gotvar:
 	cmp BYTE [tempdlvar],1
@@ -572,6 +641,68 @@ ret
 	movzx ecx, BYTE [depotsearch]
 	mov edx, 1
 	jmp .gotvar
+	
+.numgs:
+	mov ecx, [ps_presig_count]
+	add ecx, [ps_presig_count+4]
+	jmp .sigcountcommon_twcg
+.numgos:
+	mov ecx, [ps_presig_count]
+	jmp .sigcountcommon
+.numgts:
+	mov ecx, [ps_presig_count+4]
+	//jmp .sigcountcommon_twcg	//fall through
+
+.sigcountcommon_twcg:
+	push ebx
+	push eax
+	mov ah, 1
+	jmp .sigcountcommon_twc
+
+.numrs:
+	mov ecx, [ps_presig_count+8]
+	add ecx, [ps_presig_count+8+4]
+	jmp .sigcountcommon_twcr
+.numros:
+	mov ecx, [ps_presig_count+8]
+	jmp .sigcountcommon
+.numrts:
+	mov ecx, [ps_presig_count+8+4]
+	//jmp .sigcountcommon_twcr	//fall through
+
+.sigcountcommon_twcr:
+	push ebx
+	push eax
+	movzx eax, al
+.sigcountcommon_twc:
+	extern checkistwoway
+	call checkistwoway
+	jnz .sigcount_not_tw
+	test BYTE [landscape2+edi], dl	//nz if signal green, ah=1 if checking for green signals
+	setz al
+	xor al, ah
+	movzx eax, al
+	sub ecx, eax
+.sigcount_not_tw:
+	pop eax
+	pop ebx
+.sigcountcommon:
+	mov edx, [ebx+robj.word1]
+	jmp .gotvar
+	
+.tileside:
+
+	mov cl, [landscape5(di)]
+	and ecx, BYTE 0x3F
+	bsf ecx,ecx
+	mov cl, [l5bitindextotype+ecx]
+	movzx edx, BYTE [sigbit]
+
+	bsf edx,edx
+	movzx ecx, BYTE [typesigbitindextoentertileside+edx-4+ecx*4]
+
+	movzx edx, BYTE [ebx+robj.word1]
+	jmp .gotvar
 
 .and:
 	call .recurseproc2
@@ -606,6 +737,10 @@ ret
 	pop ebx
 ret
 
+//0=X,1=Y,2=H,3=V
+var l5bitindextotype, db 0,1,2,2,3,3
+//0=NE,1=SE,2=SW,3=NW
+var typesigbitindextoentertileside, db -1,-1,0,2,	-1,-1,1,3,	1,2,0,3,	0,1,3,2
 
 global clearrobjarrays
 clearrobjarrays:
@@ -641,7 +776,7 @@ btn_%1_end equ btn_%1_start+%2
 
 %define btnwidths(a) btn_ %+ a %+ _start , btn_ %+ a %+ _end
 
-btndata vartxt, 190
+btndata vartxt, 200
 btndata varddl, 12
 btndata optxt, 40
 btndata opddl, 12
@@ -652,6 +787,7 @@ btndata or, 30
 btndata xor, 30
 btndata delete, 50
 btndata reset, 50
+btndata switch, 75
 btndata sizer, 12
 %assign winwidth btn_sizer_end+1
 
@@ -664,7 +800,8 @@ varb tracerestrictwindowelements
 
 	// Title Bar 1
 	db cWinElemTitleBar, cColorSchemeGrey
-	dw 11, winwidth-1, 0, 13, ourtext(tr_restricttitle)
+	dw 11, winwidth-1, 0, 13
+	.title: dw ourtext(tr_restricttitle)
 	
 	// Background of the Window 2
 	db cWinElemSpriteBox, cColorSchemeGrey
@@ -744,6 +881,11 @@ varb tracerestrictwindowelements
 	dd TRConstraints, TRSizes
 	dw 0
 
+	// Switch button 20
+	db cWinElemTextBox, cColorSchemeGrey
+	dw btnwidths(switch), winheight-13, winheight-1
+	.switchbtn: dw ourtext(tr_ps_gui_text)
+
 	db 0xb
 
 endvar
@@ -767,6 +909,7 @@ vard TRConstraints
 	db 8
 	times 3 db 12
 	db 0
+	db 12
 endvar
 
 varw pre_op_array
@@ -809,8 +952,8 @@ dw ourtext(tr_sigval_is_red)
 dw 0xffff
 endvar
 
-%assign var_array_num 19
-%assign var_end_mark 18
+%assign var_array_num 26
+%assign var_end_mark 25
 varw pre_var_array
 dw ourtext(tr_vartxt)
 endvar
@@ -833,6 +976,13 @@ dw ourtext(tr_distancefromsig)
 dw ourtext(tr_nextdeporder)
 dw ourtext(tr_days_since_last_service)
 dw ourtext(tr_searching_for_depot)
+dw ourtext(tr_ps_sigcount_g)
+dw ourtext(tr_ps_sigcount_go)
+dw ourtext(tr_ps_sigcount_gt)
+dw ourtext(tr_ps_sigcount_r)
+dw ourtext(tr_ps_sigcount_ro)
+dw ourtext(tr_ps_sigcount_rt)
+dw ourtext(tr_entertileside)
 dw 0xffff
 endvar
 
@@ -858,29 +1008,43 @@ dw ourtext(tr_distancefromsig)
 dw ourtext(tr_nextdeporder)
 dw ourtext(tr_days_since_last_service)
 dw statictext(tr_searchingfordepotdropdown)
+dw ourtext(tr_ps_sigcount_g)
+dw ourtext(tr_ps_sigcount_go)
+dw ourtext(tr_ps_sigcount_gt)
+dw ourtext(tr_ps_sigcount_r)
+dw ourtext(tr_ps_sigcount_ro)
+dw ourtext(tr_ps_sigcount_rt)
+dw ourtext(tr_entertileside)
 dw 0xffff
 endvar
 
-//1: 2op (is and is not only), 2: station, 4: depot, 8: uword, 16: udword, 32: sig, 64: cargo, 128=no var
-varb var_flags
-db 8
-db 8
-db 3
-db 5
-db 16
-db 16
-db 33
-db 33
-db 33
-db 33
-db 8
-db 3
-db 3
-db 65
-db 8
-db 5
-db 8
-db 129
+//1: 2op (is and is not only), 2: station, 4: depot, 8: uword, 16: udword, 32: sig, 64: cargo, 128=no var, 256=ne,se,sw,nw (0-3)
+varw var_flags
+dw 8
+dw 8
+dw 3
+dw 5
+dw 16
+dw 16
+dw 33
+dw 33
+dw 33
+dw 33
+dw 8
+dw 3
+dw 3
+dw 65
+dw 8
+dw 5
+dw 8
+dw 129
+dw 16
+dw 16
+dw 16
+dw 16
+dw 16
+dw 16
+dw 257
 endvar
 
 varw pre_var_compat_id
@@ -905,11 +1069,22 @@ db 9
 db 3
 db 10
 db 11
+db 12
+db 12
+db 12
+db 12
+db 12
+db 12
+db 13
 endvar
 
 %assign j 0
 
-%macro varinfo 2	//%1=variable number, %2=j
+%macro varblank 2        //%1=variable number, %2=j
+var_exists_%2_%1 equ 0
+%endmacro
+
+%macro varinfo 2        //%1=variable number, %2=j
 var_info_ddlnum_%2_ %+ currentflagnum equ %1
 var_info_revddlnum_%2_%1 equ currentflagnum
 var_exists_%2_%1 equ 1
@@ -949,12 +1124,12 @@ varinfo 0,j
 %if j==2 || j==3
 varinfo 1,j	//kph
 %else
-var_exists_ %+ j %+ _1 equ 0
+varblank 1,j
 %endif
 %if j==1 || j==3
 varinfo 10,j	//mph
 %else
-var_exists_ %+ j %+ _10 equ 0
+varblank 10,j
 %endif
 varinfo 2,j
 varinfo 11,j
@@ -971,10 +1146,38 @@ varinfo 8,j
 varinfo 9,j
 varinfo 16,j
 varinfo 17,j
-
-tr_mklists j
-
+varinfo 24,j
+%assign k 18
+%rep 6
+varblank k, j
+%assign k k+1
 %endrep
+tr_mklists j
+%endrep
+
+%assign currentflagnum 0
+%assign k 0
+%rep 6
+varblank k, 4
+%assign k k+1
+%endrep
+%assign k 10
+%rep 18-10
+varblank k, 4
+%assign k k+1
+%endrep
+varinfo 18, 4
+varinfo 19, 4
+varinfo 20, 4
+varinfo 21, 4
+varinfo 22, 4
+varinfo 23, 4
+varinfo 24, 4
+varinfo 6, 4
+varinfo 7, 4
+varinfo 8, 4
+varinfo 9, 4
+tr_mklists 4
 
 varw waAnimGoToCursorSprites
 dw 2CCh, 1Dh, 2CDh, 1Dh, 2CEh, 62h, 0FFFFh
@@ -1006,44 +1209,21 @@ uvard curselrobj,1
 
 uvard screenclickxy, 1
 
+uvard curdispmode	//0=restriction,1=ps
+
 global tracerestrict_createwindow
 tracerestrict_createwindow:
 	pushad
 	mov esi, [esp+4]
+	mov BYTE [curdispmode], 0
+	mov WORD [tracerestrictwindowelements.switchbtn], ourtext(tr_ps_gui_text)
+	mov WORD [tracerestrictwindowelements.title], ourtext(tr_restricttitle)
 
 	movzx ecx, WORD [esi+window.data+signalguidata.xy]
 	mov [curxypos], cx
-
-	test BYTE [landscape3+1+ecx*2], 0x10
-	jz .noinit
-
-	mov edx, ecx
-
-	shr dh,6
-	shl dx,2
-	mov dl, [landscape7+ecx]
-	mov [robjidindex], dx
-	movzx edx, WORD [robjidtbl+edx*2]
-.switchin:
-	mov [robjid], dx
-	lea edx, [robjs+edx*8]
-	mov [rootobj], edx
-	cmp BYTE [edx+robj.type], 64
-	movzx edx, WORD [edx+robj.word1]
-	je .switchin
 	
-	xor edx, edx
-	jmp .initovernocur
-.noinit:
-	xor edx,edx
-	mov [robjidindex], dx
-	mov [robjid], dx
-	mov [rootobj], edx
-.initovernocur:
-	mov [curselrobjid], dx
-	mov [curselrobj], edx
-	
-.initover:
+	mov al, 0x10
+	call tr_window_init
 
 	mov cx, 0x2A
 	mov dx,111
@@ -1056,9 +1236,8 @@ tracerestrict_createwindow:
 	mov ebx, winwidth + (winheight << 16) // width , height
 	mov ebp, trwin_msghndlr
 	call dword [CreateWindow]
-
+	mov byte [esi+window.itemsvisible], numrows
 .alreadywindowopen:
-	
 	mov dword [esi+window.elemlistptr], tracerestrictwindowelements
 	mov DWORD [esi+window.disabledbuttons], 0x1F80
 	cmp DWORD [rootobj],0
@@ -1067,8 +1246,10 @@ tracerestrict_createwindow:
 	.nodisvar:
 	mov word [esi+window.id], 111
 	mov byte [esi+window.itemstotal], 0
-	mov byte [esi+window.itemsvisible], numrows
 	mov byte [esi+window.itemsoffset],0
+	
+	testflags tracerestrict
+	jnc .ps_only
 
 	mov WORD [tracerestrictwindowelements.vartb],ourtext(tr_vartxt)
 	mov WORD [tracerestrictwindowelements.optb],ourtext(tr_optxt)
@@ -1078,6 +1259,34 @@ tracerestrict_createwindow:
 	call updatebuttons
 
 	popad
+ret
+.ps_only:
+	call trwin_msghndlr.pstrswitch
+	popad
+ret
+
+tr_window_init:		//al=L3 high bit to test, ecx=coords
+			//trashes: eax, ebx, edx
+	test BYTE [landscape3+1+ecx*2], al
+	jz .noinit
+
+	get_root_robj ecx,eax,ebx,edx
+	mov [robjidindex], ax
+	get_auto_base_from_root_obj edx,ebx
+	mov [rootobj], edx
+	mov [robjid], bx
+	xor edx, edx
+	jmp .initovernocur
+.noinit:
+	xor edx,edx
+	mov [robjidindex], dx
+	mov [robjid], dx
+	mov [rootobj], edx
+.initovernocur:
+	mov [curselrobjid], dx
+	mov [curselrobj], edx
+	
+.initover:
 ret
 
 trwin_msghndlr:
@@ -1134,7 +1343,7 @@ ret
 .notwindowtitlebarclicked:
 
 	cmp cl, 2
-	je .ret
+	je NEAR .ret
 
 	cmp cl, 4
 	je NEAR .ddl1
@@ -1171,6 +1380,9 @@ ret
 
 	cmp cl, 17
 	je NEAR .valuebtn
+	
+	cmp cl, 20
+	je NEAR .pstrswitch
 
 .ret:
 ret
@@ -1238,6 +1450,7 @@ ret
 ret
 
 .ddl1:
+	mov ecx, 5
 	call GenerateDropDownExPrepare
 	jc .tboxret
 	call CheckDDL2
@@ -1287,8 +1500,8 @@ ret
 	mov ebx, [currevddlvarptr]
 	movzx dx, BYTE [ebx-1+edx]
 .ddl1_nomoddx:
- 	xor ebx, ebx
- 	mov ecx, 5
+	xor ebx, ebx
+	mov ecx, 5
 	jmp GenerateDropDownEx
 
 .ddl2:
@@ -1300,7 +1513,7 @@ ret
 	dec dx
 	//mov eax, [curoparray]
 	movzx ebx, BYTE [eax+robj.varid]
-	mov bl, [var_flags-1+ebx]
+	mov bl, [var_flags-2+ebx*2]
 	mov eax, op_array
 	test bl, 1
 	jz .ddl_noop2array
@@ -1367,9 +1580,14 @@ ret
 .ddl1_action_norm_init_mp:
 	push eax
 	movzx eax, WORD [curxypos]
-	or BYTE [landscape3+1+eax*2], 0x10
+	mov bl, [curdispmode]
+	and bl, 1
+	inc bl
+	shl bl, 4	//0x10/0x20
+	or BYTE [landscape3+1+eax*2], bl
 	call refreshtile
-	test BYTE [landscape3+1+eax*2], 0x20
+	xor bl, 0x30
+	test BYTE [landscape3+1+eax*2], bl
 	jz NEAR .ddl_action_norm_init_not_ps
 	mov ebx, eax
 	shr bh,6
@@ -1412,10 +1630,21 @@ ret
 	loop .sbl_ps2
 	pop eax
 	jmp NEAR .sbl_fail
-.sbl_psf2:	//edx=ps,ebx=new-switch,eax=new-rs,ecx=robjidindex
+.sbl_psf2:	//edx=ps,ebx=new-switch,eax=new-rs,ecx(popped)=robjidindex
 	pop ecx
-	shr ebx, 3
+	cmp DWORD [esp+4], trwin_msghndlr.ddl1_action_init_nonmpcont
+	jne .ddl1_action_init_mp_trps_nosetglobvars
+	mov [robjidindex], cx
+	mov [rootobj], eax
+	mov [curselrobj], eax
+	sub eax, robjs
+	shr eax, 3
+	mov [robjid], ax
+	mov [curselrobjid], ax
+	lea eax, [eax*8+robjs]
+.ddl1_action_init_mp_trps_nosetglobvars:
 	sub ebx, robjs
+	shr ebx, 3
 	mov [robjidtbl+ecx*2], bx
 	lea ebx, [ebx*8+robjs]
 	mov DWORD [ebx], 0x800040
@@ -1425,8 +1654,14 @@ ret
 	sub ecx, robjs
 	shr ecx, 3
 	mov dx, cx
+	cmp BYTE [curdispmode], 1
+	jne .dd1imp_notreallyps
+	rol edx, 16
+.dd1imp_notreallyps:
 	mov [ebx+4], edx
 	mov ebx, eax	//tr-robj
+	mov DWORD [ebx], 0x01800000
+	mov DWORD [ebx+4], 0
 	or BYTE [robjflags], 1
 	pop eax
 	ret
@@ -1498,14 +1733,14 @@ jmp .sbl_fail
 	je .ddl1_action_convert_kph_mph
 	and BYTE [ebx+robj.flags], ~1
 	xor al, al
-	test BYTE [var_flags-1+ecx], 32
+	test BYTE [var_flags-2+ecx*2], 32
 	jnz .nosetdefopis
 	mov al, 5
 .nosetdefopis:
 	mov BYTE [ebx+robj.type], al
 .noclearvalue:
 	movzx edx, BYTE [ebx+robj.varid]
-	test BYTE [var_flags+edx-1], 128
+	test BYTE [var_flags+edx*2-2], 128
 	jz .notvarless
 	or BYTE [ebx+robj.flags], 1
 .notvarless:
@@ -1539,7 +1774,7 @@ jmp .sbl_fail
 ret
 .ddl2_action_nret:
 	movzx ecx, BYTE [ebx+robj.varid]
-	movzx ecx, BYTE [var_flags-1+ecx]
+	movzx ecx, WORD [var_flags-2+ecx*2]
 	and ecx, BYTE 1
 	lea eax, [eax+1+ecx*4]
 	mov [ebx+robj.type],al
@@ -1557,7 +1792,9 @@ ret
 ret
 .ddl3_action_nret:
 	movzx ecx, BYTE [edx+robj.varid]
-	test BYTE [var_flags-1+ecx], 64
+	test BYTE [var_flags-2+ecx*2+1], 1
+	jnz .ddl3_action_tileside
+	test BYTE [var_flags-2+ecx*2], 64
 	jz .ddl3_action_ret
 
 	xor ecx, ecx
@@ -1579,6 +1816,9 @@ ret
 	or BYTE [edx+robj.flags], 1
 	call TransmitRoutingRestrictionLineChangeCurRobj
 	jmp updatebuttons.noddlcheck
+.ddl3_action_tileside:
+	mov cl, al
+	jmp .ddl3_action_cargo_gotit
 
 .trwin_dropdown:
 	cmp cl,5
@@ -1599,10 +1839,13 @@ ret
 .valuebtn_nret:
 	movzx eax,BYTE [ebx+robj.varid]
 	dec eax
-	mov al,[var_flags+eax]
+	mov ax,[var_flags+eax*2]
 	
 	test al, 0x40
 	jnz NEAR .valuebtnddlcargo
+
+	test ah, 1
+	jnz NEAR .valuebtnddltileside
 
 	test al, 0x26
 	jnz .mtool
@@ -1682,7 +1925,7 @@ ret
 	mov cl, [landscape4(ax,1)]
 	shr cl,4
 	movzx edx,BYTE [ebx+robj.varid]
-	mov dl, [var_flags-1+edx]
+	mov dx, [var_flags-2+edx*2]
 	test dl,2
 	jz .notstation
 	cmp cl,5
@@ -1790,7 +2033,24 @@ ret
 	jb .valuebtnddlcargo_loop
 	mov DWORD [DropDownExList+eax*4], -1
 	sar dx, 8
-	or dx, dx
+	mov ecx, 17
+	jmp GenerateDropDownEx
+
+.valuebtnddltileside:
+	mov ecx, 17
+	call GenerateDropDownExPrepare
+	jc .ddlcargoret1
+	mov DWORD [DropDownExList], ourtext(ne)
+	mov DWORD [DropDownExList+4], ourtext(se)
+	mov DWORD [DropDownExList+8], ourtext(sw)
+	mov DWORD [DropDownExList+12], ourtext(nw)
+	mov DWORD [DropDownExList+16], -1
+	mov dl, [ebx+robj.word1]
+	mov dh, [ebx+robj.flags]
+	and dh, 1
+	dec dh
+	or dh, dl
+	sar dx, 8
 	mov ecx, 17
 	jmp GenerateDropDownEx
 
@@ -1889,7 +2149,7 @@ ret
 .rstbasic:
 	push esi
 	movzx esi, WORD [curxypos]
-	call delrobjsignal
+	call delautoobjsignal
 	mov eax, esi
 	call refreshtile.goteax
 	pop esi
@@ -1904,6 +2164,20 @@ ret
 	mov [curselrobjid], dx
 	mov [curselrobj], edx
 	call countrows
+	jmp updatebuttons
+
+.pstrswitch:
+	xor BYTE [curdispmode], 1
+	xor WORD [tracerestrictwindowelements.switchbtn], ourtext(tr_ps_gui_text)^ourtext(tr_siggui_text)
+	xor WORD [tracerestrictwindowelements.title], ourtext(tr_restricttitle)^ourtext(tr_ps_wintitle)
+	mov al, 0x10
+	mov cl, [curdispmode]
+	and cl, 1
+	shl al, cl
+	movzx ecx, WORD [curxypos]
+	call tr_window_init
+	call countrows
+	mov edx, [curselrobj]
 	jmp updatebuttons
 
 bophandler:
@@ -1984,7 +2258,7 @@ textwindowchangehandler:
 	movzx ebx, BYTE [eax+robj.varid]
 	or ebx, ebx
 	jz .ret
-	mov bl, [var_flags-1+ebx]
+	mov bx, [var_flags-2+ebx*2]
 	test bl, 0x18
 	jz .ret
 	mov [eax+robj.word1], edx
@@ -2006,6 +2280,10 @@ tracerestrict_delrobjsignal1:
 	jmp near $
 ovar .oldfn, -4, $,tracerestrict_delrobjsignal1
 
+delautoobjsignal:
+	cmp BYTE [curdispmode], 1
+	jne delrobjsignal
+
 delpobjsignal:
 	btr WORD [esi*2+landscape3],13
 	jc .cont
@@ -2020,7 +2298,7 @@ delrobjsignal:
 	jnc NEAR .end
 	pusha
 	bt WORD [esi*2+landscape3],13
-	jc delrobjfromcombsignal
+	jc NEAR delrobjfromcombsignal
 .in:
 	mov ebx, esi
 	shr bh, 6
@@ -2101,11 +2379,29 @@ updatebuttons:
 	call CheckDDL3
 .noddlcheck:
 	pusha
+	xor ecx, ecx
+	testmultiflags tracerestrict,psignals
+	jpe .nodisswitch
+	or ecx, 1<<20
+.nodisswitch:
+	mov DWORD [esi+window.disabledbuttons], ecx
 	movzx ecx, BYTE [measuresys]
+	cmp BYTE [curdispmode], 1
+	jne .tr_chooseddlvars
+	//ps
+	mov bh, 0xC8
+	call TransmitRoutingRestrictionChangeRobjCurPos
+	popa
+	pusha
+	mov DWORD [curddlvarptr], dropdownorder_4
+	mov DWORD [currevddlvarptr], revdropdownorder_4
+	jmp .ddlvarschosen
+.tr_chooseddlvars:
 	mov eax, [ddlvarptrlist+ecx*4]
 	mov [curddlvarptr], eax
 	mov eax, [revddlvarptrlist+ecx*4]
 	mov [currevddlvarptr], eax
+.ddlvarschosen:
 	cmp DWORD [rootobj], 0
 	sete al
 	mov [curmode], al
@@ -2115,7 +2411,7 @@ updatebuttons:
 	mov WORD [tracerestrictwindowelements.rstbtn], ourtext(tr_share)
 	mov WORD [tracerestrictwindowelements.vartb], ourtext(tr_vartxt)
 	mov WORD [tracerestrictwindowelements.optb], ourtext(tr_optxt)
-	mov DWORD [esi+window.disabledbuttons], 0x20FC0
+	or DWORD [esi+window.disabledbuttons], 0x20FC0
 	jmp .end
 .norm:
 	mov WORD [tracerestrictwindowelements.delbtn], 0x8824
@@ -2124,7 +2420,7 @@ updatebuttons:
 	jnz .noblank
 	mov WORD [tracerestrictwindowelements.vartb], ourtext(tr_vartxt)
 	mov WORD [tracerestrictwindowelements.optb], ourtext(tr_optxt)
-	mov DWORD [esi+window.disabledbuttons], 0x21FF0
+	or DWORD [esi+window.disabledbuttons], 0x21FF0
 	jmp .end
 
 .noblank:
@@ -2150,7 +2446,7 @@ updatebuttons:
 
 	or ecx, 0x1000
 .nodisdel:
-	mov [esi+window.disabledbuttons], ecx
+	or [esi+window.disabledbuttons], ecx
 	movzx ax, BYTE [edx+robj.type]
 	add ax, ourtext(tr_andbtn)-32
 	mov WORD [tracerestrictwindowelements.vartb], ax
@@ -2175,15 +2471,15 @@ updatebuttons:
 	or ecx, 0x1C0
 .var:
 	mov ebx, op_array
-	test BYTE [var_flags-1+eax], 32
+	test BYTE [var_flags-2+eax*2], 32
 	jz .nsigop
 	mov ebx, op_array3-8
 .nsigop:
-	test BYTE [var_flags-1+eax], 64
+	test WORD [var_flags-2+eax*2], 0x140
 	jnz .nddl3
 	or ecx, 0x20000
 .nddl3:
-	test BYTE [var_flags-1+eax], 128
+	test BYTE [var_flags-2+eax*2], 128
 	jz .nvar
 	or ecx, 0x20100
 .nvar:
@@ -2198,7 +2494,7 @@ updatebuttons:
 	mov ax,ourtext(tr_optxt)
 .noop:
 	mov WORD [tracerestrictwindowelements.optb],ax
-	mov [esi+window.disabledbuttons], ecx
+	or [esi+window.disabledbuttons], ecx
 
 .end:
 	movzx ebx, WORD [curxypos]
@@ -2206,7 +2502,7 @@ updatebuttons:
 	cmp bl, [human1]
 	je .nopreventmodotherplayer
 	//prevent naughty players from changing other companies' restrictions...
-	mov DWORD [esi+window.disabledbuttons], 0x23FF0
+	or DWORD [esi+window.disabledbuttons], 0x23FF0
 .nopreventmodotherplayer:
 	mov al,[esi+window.type]
 	mov bx,[esi+window.id]
@@ -2264,7 +2560,12 @@ DisplayTrDlgText:
 	or eax, eax
 	jz NEAR .exit
 	call .recurse
-	mov DWORD [textrefstack], ourtext(tr_end)+(statictext(empty)<<16)
+	mov ecx, ourtext(tr_end)+(statictext(empty)<<16)
+	cmp BYTE [curdispmode], 1
+	jne .nosetpsend
+	xor ecx, ourtext(tr_ps_end)^ourtext(tr_end)
+.nosetpsend:
+	mov [textrefstack], ecx
 	movzx ecx, BYTE [eax+robj.count]
 	cmp ecx, BYTE 1
 	je .notshared
@@ -2290,7 +2591,7 @@ ret
 	movzx ecx, BYTE [eax+robj.varid]
 	dec ecx
 	js NEAR .dash
-	movzx edx, BYTE [var_flags+ecx]
+	movzx edx, WORD [var_flags+ecx*2]
 	test edx, 2
 	jz NEAR .nostation
 	mov WORD [textrefstack], statictext(trdlg_txt_3)
@@ -2380,7 +2681,7 @@ ret
 	jmp .print
 .nodword:
 	test edx, 32
-	jz .nosignal
+	jz NEAR .nosignal
 	mov WORD [textrefstack], statictext(trdlg_txt_3)
 	mov bp, [var_array+ecx*2]
 	mov WORD [textrefstack+2], bp
@@ -2428,6 +2729,21 @@ ret
 	mov WORD [textrefstack+4], bp
 	jmp .blank6
 .nonovar:
+	test edx, 256
+	jz .notileside
+	mov WORD [textrefstack], statictext(trdlg_txt_3)
+	mov bp, [var_array+ecx*2]
+	mov WORD [textrefstack+2], bp
+	movzx ecx, BYTE [eax+robj.type]
+	mov bp, [op_array-2+ecx*2]
+	mov WORD [textrefstack+4], bp
+	test BYTE [eax+robj.flags],1
+	jz NEAR .blank6
+	movzx ecx, BYTE [eax+robj.word1]
+	add ecx, ourtext(ne)
+	mov WORD [textrefstack+6], cx
+	jmp .blank8
+.notileside:
 
 
 	//none
@@ -2635,7 +2951,10 @@ copysharelist:
 	shr cl, 4
 	cmp cl, 1
 	jne NEAR .ret
-	test BYTE [landscape3+1+eax*2], 0x10
+	mov ch, 0x10
+	mov cl, [curdispmode]
+	shl ch, cl
+	test BYTE [landscape3+1+eax*2], ch
 	jz NEAR .ret
 	mov cl, [landscape5(ax,1)]
 	shr cl, 6
@@ -2643,7 +2962,7 @@ copysharelist:
 	jnz NEAR .ret
 	
 	get_root_robj eax,ecx,ebx,edx
-	get_rt_base_from_root_obj edx, ebx
+	get_auto_base_from_root_obj edx, ebx
 	or ebx, ebx
 	jz NEAR .ret
 
@@ -2658,10 +2977,24 @@ copysharelist:
 
 	movzx eax, WORD [curxypos]
 	//note eax now is target tile coords
-	test BYTE [landscape3+1+eax*2], 0x20
+	mov ch, 0x20
+	mov cl, [curdispmode]
+	shr ch, cl
+	test BYTE [landscape3+1+eax*2], ch
 	jz .normscpinit
-	sget_root_robj eax,edx
-	add edx, robj.word1
+	get_root_robj eax,ecx,edx,edi
+	mov edi, robjs
+	call .getnextfree
+	mov DWORD [edi], 0x800040
+	mov ebp, edi
+	shr ebp, 3
+	sub ebp, robjs
+	mov [robjidtbl+ecx*2], bp
+	mov ebp, [curdispmode]
+	xor ebp, 1
+	mov [edi+robj.word1+ebp*2], dx
+	xor ebp, 1
+	lea edx, [edi+robj.word1+ebp*2]
 	jmp .scpinitover
 .normscpinit:
 
@@ -2694,7 +3027,10 @@ ret
 
 .share:
 	mov BYTE [landscape7+eax], cl
-	or BYTE [landscape3+1+eax*2], 0x10
+	mov ch, 0x10
+	mov cl, [curdispmode]
+	shl ch, cl
+	or BYTE [landscape3+1+eax*2], ch
 	call refreshtile
 	mov [edx], bx
 	mov [robjid], bx
@@ -2704,7 +3040,8 @@ ret
 	inc BYTE [ebx+robj.count]
 	jnz NEAR .ret
 	//error too many shared
-	and BYTE [landscape3+1+eax*2], ~0x10
+	not ch
+	and BYTE [landscape3+1+eax*2], ch
 	call refreshtile
 	xor eax, eax
 	mov [robjidindex], ax
@@ -2769,7 +3106,10 @@ ret
 	movzx eax, WORD [curxypos]
 	mov cl, [robjidindex]
 	mov BYTE [landscape7+eax], cl
-	or BYTE [landscape3+1+eax*2], 0x10
+	mov ch, 0x10
+	mov cl, [curdispmode]
+	shl ch, cl
+	or BYTE [landscape3+1+eax*2], ch
 	call refreshtile
 .ret:
 	pop esi
@@ -2830,17 +3170,26 @@ ret
 //type=5:	share, edi=coords of tile to share with
 //type=6:	copy, edi=coords of tile to share with
 //type=7:	mouse tool value click, station/depot, edi=tile, edx=pos
+//type=8:	refresh signal state
+//type|=0x40:	always do
+//type|=0x80:	programmable signal action
 //"pos" means number of a restriction object, as would be seen in the GUI window, zero-based
 exported MPRoutingRestrictionChange
+	btr ebx, 14
+	jc .alwaysdo
 	mov bl, [curplayer]
 	cmp bl, [human1]
 	je .qend
+.alwaysdo:
 	push WORD [curxypos]
+	push DWORD [curdispmode]
 	movzx esi, cx
 	shl esi, 8
 	or si, ax
 	shr esi, 4
 	mov [curxypos], si
+	btr ebx, 15
+	setc [curdispmode]
 	or bh, bh
 	jz .type0
 	dec bh
@@ -2852,13 +3201,16 @@ exported MPRoutingRestrictionChange
 	dec bh
 	jz .type4
 	dec bh
-	jz .type5
+	jz NEAR .type5
 	dec bh
-	jz .type6
+	jz NEAR .type6
 	dec bh
 	jz NEAR .type7
+	dec bh
+	jz NEAR .type8
 	ud2	//error! bad type
 .end:
+	pop DWORD [curdispmode]
 	pop WORD [curxypos]
 .qend:
 	xor ebx, ebx
@@ -2921,6 +3273,25 @@ exported MPRoutingRestrictionChange
 	mov eax, edi
 	call trwin_msghndlr.mtoolclickhndlr_mp
 	jmp .end
+.type8:
+	mov cl, [landscape5(si)]
+	and ecx, BYTE 0x3F
+	mov dl, [landscape3+esi*2]
+	mov edi, esi
+.type8loop:
+	bsf eax, ecx
+	jz NEAR .end
+	btr ecx, eax
+	test dl, [trackpiecesignalmask+eax]
+	jz .type8loop
+	pusha
+	mov ebx, 3
+	mov ebp, [ophandler+1*8]	//edi=coord, ax=track piece bit number
+	call [ebp+0x4]			//_CS:001463D1 UpdateSignalBlocks
+	popa
+	jmp .type8loop
+
+var trackpiecesignalmask, db 0xC0,0xC0,0xC0,0x30,0xC0,0x30
 
 //In: edx=pos
 //trashes: eax, edx

@@ -19,8 +19,8 @@ uvard vnewsignalspritebase
 
 uvard curtilecoord
 
-//8 directions, 2 states, 4 presignal states, 2 PBS states, 2 semaphore states, 2 restricted states
-%define numsignalcombos 8*2*4*2*2*2 //512
+//8 directions, 2 states, 4 presignal states, 2 PBS states, 2 semaphore states, 2 restricted states, 2 programmed states
+%define numsignalcombos 8*2*4*2*2*2*2 //1024
 
 //bits of var 10:
 //0:		Green
@@ -29,6 +29,7 @@ uvard curtilecoord
 //6:		Semaphore
 //7:		PBS
 //8:		Restricted
+//9:		Programmed
 
 //bits of var 18:
 //0-7:		L5 of signal tile

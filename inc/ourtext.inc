@@ -386,6 +386,25 @@ defourtext sortname
 defourtext tr_days_since_last_service
 defourtext tr_searching_for_depot
 
+defourtext tr_ps_wintitle
+defourtext tr_ps_gui_text
+
+defourtext tr_ps_sigcount_g
+defourtext tr_ps_sigcount_go
+defourtext tr_ps_sigcount_gt
+defourtext tr_ps_sigcount_r
+defourtext tr_ps_sigcount_ro
+defourtext tr_ps_sigcount_rt
+defourtext tr_ps_end
+defourtext tr_ps_landinfotext
+
+defourtext ne
+defourtext se
+defourtext sw
+defourtext nw
+
+
+defourtext tr_entertileside
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

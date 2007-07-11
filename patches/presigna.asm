@@ -11,6 +11,7 @@ extern actionhandler,checkpathsigblock,curplayerctrlkey,currrmsignalcost
 extern patchflags
 extern pbssettings
 extern altersignalsbygui_flags
+extern ps_presig_count
 
 	align 4
 var signalchangeopptr, dd -1	// Index to signal change operation. 0=set green, 1=set red
@@ -63,6 +64,8 @@ var recursespossible, db 9	// maximum level of recursion is 9.  Each one takes a
 //	 2 = pre-signal
 //	 4 = exit
 //	 8 = signals are semaphore signals
+//	10 = restricted signal
+//	20 = programmed signal
 //	10 = (maybe for combo signals; set for exits that are "reserved" by
 //	     a train in a pre-signal block)
 //	20+40 = (maybe for pre-signal & exit IDs, to support separate sets of
@@ -220,9 +223,27 @@ signalsloop:
 	or byte [esi+presignalstack.signalrun],0x40
 
 .notanexit:
+	test BYTE [nosplit landscape3+1+edi*2],0x20
+	jnz .ps
+.not_ps:
 	call getchangeop
 	mov esi,dword [signalchangeopptr]
 	mov [esi],ah
+	ret
+.ps:
+	testflags psignals
+	jnc .not_ps
+	//push ebp
+	push ecx
+	mov ebx, edi
+	extern programmedsignal_turnitred
+	call programmedsignal_turnitred	//edi preserved
+	pop ecx
+	//pop ebp
+	mov esi,dword [signalchangeopptr]
+	or al, [esi]
+	mov [esi],al
+	mov al,[ebp+2]	//from above
 	ret
 
 ; endp signalsloop 
@@ -464,8 +485,13 @@ getpresigtype:
 
 .itsanexit:
 #endif
-
+	push ebp
 	// it's an exit
+
+	cmp bh, dl
+	setne al
+	movzx ebp, al
+	lea ebp, [ps_presig_count+ebp*4]
 
 	// is it green?
 	test bh,dl		// dl=the other direction
@@ -474,7 +500,9 @@ getpresigtype:
 	or ah,HAVEEXIT
 
 	test byte [landscape2+edi],dl
-	jz short .nextloop2	// not green
+	jz short .redexit	// not green
+
+	inc DWORD [ebp]
 
 	// yes, it's green
 	or ah,HAVEGREENEXIT
@@ -496,6 +524,12 @@ getpresigtype:
 	or ah,HAVEGREENTWOWAYCOMBO
 
 .nextloop2:
+	pop ebp
+	ret
+	
+.redexit:
+	inc DWORD [ebp+8]
+	pop ebp
 	ret
 
 ; endp getpresigtype 
@@ -505,8 +539,13 @@ getpresigtype:
 	// red.  If there are no exits at all, pre-signals go green too.
 countandsetpresigs:
 	movzx ecx, cx	// make sure that the upper half of this loop counter is zero
-	xor ah,ah	// ah: bitcoded (see above for bit values)
+	xor eax,eax	// ah: bitcoded (see above for bit values)
 			// 	lower bits: number of green exits, up to 3.
+
+	mov [ps_presig_count], eax
+	mov [ps_presig_count+4], eax
+	mov [ps_presig_count+8], eax
+	mov [ps_presig_count+12], eax
 
 .nextsig:
 	movzx edi,word [ebp]
@@ -902,7 +941,7 @@ signalsrecurse:
 	//	bl = bit number of the other direction
 	//	bh = which directions are actually set
 	// destroys: ebx
-checkistwoway:
+exported checkistwoway
 	mov dl,al
 	mov dh,al
 	bsf ebx,edx	// which bit is set in edx=al?
@@ -925,7 +964,7 @@ checkistwoway:
 
 	// in:	al=one bit set for the signal
 	//	edi=landscape index
-getcomplicatedotherdir:
+exported getcomplicatedotherdir
 	bsf edx,eax
 	sub dl,4		// now dl = this direction (not bit!)
 
@@ -1020,8 +1059,10 @@ drawsignal:
 	mov esi,[esp+4]		// landscape offset
 
 	// show pre-signal or semaphore graphics
-	mov dh,6+8+16
+	mov dh,6+8+16+32
 	and dh,[landscape3+1+esi*2]
+	add dh, 32
+	and dh, ~32
 	add dh, 16
 	and dh, ~16
 
@@ -1355,9 +1396,10 @@ showtrackinfo:
 	or cl,ch
 	mov ch,0
 
+	test al, 0x20	//programmed signal
+	jnz .ps_signal
 	test al, 0x10	//trace restrict signal
 	jnz .tr_signal
-
 
 	and eax,byte 0x6
 	jnz short .notplain
@@ -1369,11 +1411,16 @@ showtrackinfo:
 	// automatic plain signals -> show normally
 	mov ax,0x1022
 	jmp .done
-
+.ps_signal:
+	add cx, statictext(tr_ps_landinfotext_presig_auto)-ourtext(presigautomatic)
+	test al, 0x10	//trace restrict signal
+	jz .notplain
+	add cx, statictext(tr_trps_landinfotext_presig_auto)-statictext(tr_ps_landinfotext_presig_auto)
+	jmp .notplain
 .tr_signal:
-	and eax,byte 0x6
 	add cx, statictext(tr_landinfotext_presig_auto)-ourtext(presigautomatic)
 .notplain:
+	and eax,byte 0x6
 	add cx,ourtext(presigautomatic)
 	shl ecx,16	// store that in the higher 16 bits
 

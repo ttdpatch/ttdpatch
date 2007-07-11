@@ -150,8 +150,9 @@
 #define adjacentstation		116	// adjacent stations					(124)
 #define newsignals		117	// new signals						(125)
 #define vruncosts		118	// Enables the changing of vehicle costs		(126)
+#define psignals		119	// Programmable signals					(-)
 
-#define lastbitdefaulton	118	// META: last bit defined to be set by -a
+#define lastbitdefaulton	119	// META: last bit defined to be set by -a
 
 // add new flags that should be on by default above, flags off by default below
 

@@ -301,6 +301,56 @@ stxt_cont db ", ",0x81
 stxt_cont dw ourtext(tr_landinfotext)
 stxt_cont db 0
 
+stxt tr_ps_landinfotext_presig_auto, 0x81
+stxt_cont dw ourtext(presigautomatic)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_ps_landinfotext)
+stxt_cont db 0
+stxt tr_ps_landinfotext_presig_manual, 0x81
+stxt_cont dw ourtext(presigmanual)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_ps_landinfotext)
+stxt_cont db 0
+stxt tr_ps_landinfotext_pbs_auto, 0x81
+stxt_cont dw ourtext(pathbasedauto)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_ps_landinfotext)
+stxt_cont db 0
+stxt tr_ps_landinfotext_pbs_manual, 0x81
+stxt_cont dw ourtext(pathbasedmanual)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_ps_landinfotext)
+stxt_cont db 0
+
+stxt tr_trps_landinfotext_presig_auto, 0x81
+stxt_cont dw ourtext(presigautomatic)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_ps_landinfotext)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_landinfotext)
+stxt_cont db 0
+stxt tr_trps_landinfotext_presig_manual, 0x81
+stxt_cont dw ourtext(presigmanual)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_ps_landinfotext)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_landinfotext)
+stxt_cont db 0
+stxt tr_trps_landinfotext_pbs_auto, 0x81
+stxt_cont dw ourtext(pathbasedauto)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_ps_landinfotext)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_landinfotext)
+stxt_cont db 0
+stxt tr_trps_landinfotext_pbs_manual, 0x81
+stxt_cont dw ourtext(pathbasedmanual)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_ps_landinfotext)
+stxt_cont db ", ",0x81
+stxt_cont dw ourtext(tr_landinfotext)
+stxt_cont db 0
+
 stxt extradetailswagons, 0x95,0x84,"  ",0x98,0x0E,0x7E,0x0F,0
 
 stxt dpt_number, 0x80," (", 0x7E, ")", 0

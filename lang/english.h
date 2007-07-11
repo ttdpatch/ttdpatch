@@ -267,6 +267,7 @@ TEXTARRAY(halflines,) =
 	  "-ZR: Prevent towns from building roads",
 	  "-ZS: Enable new sound effects",
 	  "-ZT: Allow buildings tramways",
+	  "-ZU: Enable programmable signals",
 	  "-ZV: Enables variable running costs",
 	  "-ZX: Enable adjacent stations",
 	  "-ZZ: Enable route tracing restrictions",
@@ -516,6 +517,7 @@ SWITCHTEXT(newsignals, "New signal graphics", "")
 SWITCHTEXT(newobjects, "Enable new objects", "")
 SWITCHTEXT(vruncosts, "Enables grfs to have variable running costs", "")
 SWITCHTEXT(hidetranstrees, "Make trees completely invisible in transparent buildings mode", "")
+SWITCHTEXT(psignals, "Allows signals states to be controlled by user criteria","")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -901,6 +903,7 @@ SETTEXT(CFG_NEWSIGNALS, "`%s' (%s) enables new graphics for signals.")
 SETTEXT(CFG_NEWOBJECTS, "`%s' (%s) enables new objects.")
 SETTEXT(CFG_VRUNCOSTS, "`%s' (%s) enables grfs to have variable running costs for vehicles (no warnings will be given when the costs change).")
 SETTEXT(CFG_NOTRANSTREES, "`%s' (%s) make trees completely invisible in transparent buildings mode.")
+SETTEXT(CFG_PSIGNALS, "`%s' (%s) allows signals states to be controlled by user criteria, requires presignals")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

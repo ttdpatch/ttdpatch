@@ -10,6 +10,7 @@ extern tracerestrict_delrobjsignal1,tracerestrict_delrobjsignal1.oldfn
 extern robjgameoptionflag,patchflags
 
 patchproc tracerestrict, patchtracerestrict
+patchproc tracerestrict, psignals, patchtrps
 
 begincodefragments
 
@@ -89,10 +90,10 @@ patchtracerestrict:
 	stringaddress findtracerestrict_RemoveSignal1
 	sub edi,4
 	chainfunction tracerestrict_delrobjsignal1,.oldfn
-	
+ret
+patchtrps:
 	mov BYTE [signalboxrobjendpt1], cWinElemTextBox
 	add DWORD [sigguiwindimensions], 0xE0000
 
-	testflags tracerestrict
 	bts WORD [robjgameoptionflag], 0
 ret
