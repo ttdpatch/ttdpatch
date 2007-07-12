@@ -1359,6 +1359,7 @@ vard calcoperators
 	dd addr(.add),addr(.sub),addr(.signed_min),addr(.signed_max),addr(.unsigned_min),addr(.unsigned_max)
 	dd addr(.signed_divmod),addr(.signed_divmod),addr(.unsigned_divmod),addr(.unsigned_divmod)
 	dd addr(.multiply),addr(.and),addr(.or),addr(.xor),addr(.storevar),addr(.copy),addr(.storepers)
+	dd addr(.rotater)
 numcalcoperators equ ($-calcoperators)/4
 
 endvar
@@ -1524,6 +1525,10 @@ endvar
 
 .badstore:
 	ud2
+	
+.rotater:
+	ror eax, cl
+	ret
 
 uvard lastcalcresult
 
