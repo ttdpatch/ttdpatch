@@ -57,7 +57,8 @@ uvard	paRoadConstrWinClickProcs,1,s
 uvard	paRoadDepotSpriteTable
 uvarw	tmpDI,1,s
 var	numtramtracks, dd 107
-var	tramfrontwiresprites,	db 0h, 37h, 37h, 3Fh, 37h, 37h, 43h, 37h, 37h, 3Fh, 37h, 37h, 3Fh, 37h, 37h, 37h
+//var   tramfrontwiresprites,   db 0h, 37h, 37h, 3Fh, 37h, 37h, 43h, 37h, 37h, 3Fh, 37h, 37h, 3Fh, 37h, 37h, 37h
+var     tramfrontwiresprites,   db 0h, 54h, 55h, 5Bh, 54h, 54h, 5Eh, 5Ah, 55h, 5Ch, 55h, 58h, 5Dh, 57h, 59h, 56h
 var	trambackpolesprites,	db 0h, 38h, 39h, 40h, 38h, 38h, 43h, 3Eh, 39h, 41h, 39h, 3Ch, 42h, 3Bh, 3Dh, 3Ah
 var	tramtracksprites,	db 0h, 16h, 15h, 0Bh, 14h, 04h, 0Eh, 09h, 13h, 0Ch, 05h, 08h, 0Dh, 07h, 0Ah, 06h, 00h, 01h, 02h, 03h, 30h
 var	tramMovement,		db 0h, 02h, 01h, 10h, 02h, 02h, 08h, 1Ah, 01h, 04h, 01h, 15h, 20h, 26h, 29h, 3Fh
