@@ -35,9 +35,9 @@ diskmenuselection:
 .keepdx:
 //	int3
 	pusha
-	mov edi, 0
-	mov ebx, 1 + (0 << 16)
-extern SetTTDpatchVar_actionnum, actionhandler
+	xor edi, edi
+extern SetTTDpatchVar_actionnum, actionhandler, newgameyesno_varnum
+	mov ebx, 1 + newgameyesno_varnum
 	dopatchaction SetTTDpatchVar
 	popa
 	cmp dl, 2
@@ -66,9 +66,9 @@ extern SetTTDpatchVar_actionnum, actionhandler
 .newgame:
 	pusha
 	mov edi, 1
-	mov ebx, 1 + (0 << 16)
+	mov ebx, 1 + newgameyesno_varnum
 	dopatchaction SetTTDpatchVar
-	popa                                                                                                                                                                                                             
+	popa
 	mov esi, 0x10038 // New game
 	jmp .doload
 
