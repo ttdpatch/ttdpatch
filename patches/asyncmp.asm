@@ -452,6 +452,7 @@ exported AsyncMPSyncPackageCreate
 exported AsyncMPSyncPackageRecv
 	
 	ret
-#endif
 
 mpimportlist mpimport_list
+
+#endif
