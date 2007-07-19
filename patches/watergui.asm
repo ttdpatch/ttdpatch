@@ -157,6 +157,7 @@ exported DockWaterConstr_ClickHandler
 	cmp al, 0
 	jne .notdestroy
 	jmp [DestroyWindow]
+global DockWaterConstr_ClickHandler.notdestroy // hotkeys enters here, with al set appropriately
 .notdestroy:
 	cmp al, 8
 	ja .newbuttons

@@ -71,7 +71,6 @@ uvard VehOrdersWindowHandler
 
 varw WinTitleWidths
 //	dw 283	// RoadConstr (Already stored)
-	dw 153	// DockConstr
 	dw 129	// AirportConstr
 //	dw 142	// PlantTrees
 	dw 0

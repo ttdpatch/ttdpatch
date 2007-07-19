@@ -17,7 +17,6 @@ extern LandscapeGenWindowHandler
 // The order here must match the order of WinTitleWidths in procs/morehotheys.asm
 struc saWindowElemList
 	.RoadConstr:	resd 1
-	.DockConstr:	resd 1
 	.AirportConstr:	resd 1
 //	.PlantTrees:	resd 1
 endstruc
@@ -283,10 +282,10 @@ rvtoolselect:
 // Tables for mapping the return from toolselect to toolbar control indexes.
 // In most cases (except for scenEdLandMap), these are index+1, and the call
 // table is positioned to have a dummy 0 entry.
-// If the high bit is set, clear it and set [forcectrlkey]. (docks only, currently)
+// If the high bit is set, clear it and set [forcectrlkey]. (#if 0'ed out)
 // keys :   1  2  3  4  5  6  7  8  9  0  -  =  `  \  <eol>
-varb dockToolMap
-	db  1, 2, 3, 0, 4, 5, 6, 2, 1, 3,87h,0, 0, 7
+varb dockToolMap // This one contains control indices, not call-table indices
+	db  2, 3, 4, 0, 5, 6, 7, 3, 2, 4,10, 0, 0, 8
 varb airportToolMap
 	db  1, 0, 0, 0, 2, 3, 4, 0, 1, 0, 0, 0, 0, 5
 varb scenEdRoadToolMap
@@ -327,12 +326,14 @@ ovar lastOrderWin, -2
 	jz .maybeScenRoad
 	mov edi, [esi+window.elemlistptr]
 
-	cmp edi, [ebx+saWindowElemList.DockConstr]
+	extern win_dockconstgui_elements
+	cmp edi, win_dockconstgui_elements
 	jne .maybeairport
 
 	mov al,[dockToolMap+eax]
 	test al,al
 	jz .ret1
+#if 0
 	extern forcectrlkey
 	sets ah
 	mov [forcectrlkey], ah
@@ -345,8 +346,11 @@ ovar lastOrderWin, -2
 	and byte [esi+window.activebuttons+1], ~1
 .cont:
 	and eax, 7Fh
-	call [eax*4+edi+83h]
+#endif
+	extcall DockWaterConstr_ClickHandler.notdestroy
+#if 0
 	mov byte [forcectrlkey], 0
+#endif
 .ret1:
 	jmp short .ret
 	
