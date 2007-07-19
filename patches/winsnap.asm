@@ -16,6 +16,7 @@ beginwindowdrag:
 	mov ax, [esi+window.y]
 	mov [realwy], ax
 	
+	extcall StoreOrderWindow.drag
 	pop eax
 	push cx
 	push dx

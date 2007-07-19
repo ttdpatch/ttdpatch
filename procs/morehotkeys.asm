@@ -45,39 +45,37 @@ codefragment newothertoolsets
 	jnz $+2+9
 	setfragmentsize 10
 
-codefragment RoadConstrWindowElemList,-14
+codefragment WindowElemList,-14
 	dw 11,283
-	
-codefragment DockConstrWindowElemList,-14
-	dw 11,153
+ovar WinTitleWidth, $, -2
 
-codefragment AirportConstrWindowElemList,-14
-	dw 11,129
 
-codefragment ScenEdRoadConstrWindowElemList,-14
-	dw 11,195
-	
-codefragment LandscapeGenWinElemList,-14
-	dw 11,165
-
-/*
-codefragment PlantTreesWinElemList,-14
-	dw 11,142
-*/
-
-codefragment LandscapeGenWindowHandler
+codefragment findLandscapeGenWindowHandler
 	cmp cl,6
 	jz near $+6+0x2d2
 
+codefragment findVehOrdersWindowHandler
+	jmp $+5+31Dh
+
+
+codefragment oldcheckNewWindow, 2Dh
+	jne short $+2+4Eh
+	db 0xC6		// mov m8, imm8 ([vaTemplocation1], cWinTypeVehicle)
+
+codefragment_call newcheckNewWindow, StoreOrderWindow.new, 6
+
 endcodefragments
 
-uvard saRoadConstrWindowElemList
-uvard saDockConstrWindowElemList
-uvard saAirportConstrWindowElemList
-uvard saScenEdRoadConstrWindowElemList
-uvard saLandscapeGenWinElemList
-//uvard saPlantTreesWinElemList
-uvard pLandscapeGenWindowHandler
+uvard LandscapeGenWindowHandler
+uvard VehOrdersWindowHandler
+
+varw WinTitleWidths
+//	dw 283	// RoadConstr (Already stored)
+	dw 153	// DockConstr
+	dw 129	// AirportConstr
+//	dw 142	// PlantTrees
+	dw 0
+endvar
 
 patchmorehotkeys:
 	patchcode oldhotkeycenter,newhotkeycenter,1,1
@@ -91,21 +89,28 @@ patchmorehotkeys:
 	mov ebx,maxtoolnum
 	mov byte [ebx],2	// 2 tools selectable for road vehicles
 	patchcode rvtoolselect
-	stringaddress RoadConstrWindowElemList
-	mov [saRoadConstrWindowElemList],edi
-	stringaddress DockConstrWindowElemList
-	mov [saDockConstrWindowElemList],edi
-	stringaddress AirportConstrWindowElemList
-	mov [saAirportConstrWindowElemList],edi
-	stringaddress ScenEdRoadConstrWindowElemList
-	mov [saScenEdRoadConstrWindowElemList],edi
-	stringaddress LandscapeGenWinElemList
-	mov [saLandscapeGenWinElemList],edi
-	//stringaddress PlantTreesWinElemList
-	//mov [saPlantTreesWinElemList],edi
-	stringaddress LandscapeGenWindowHandler
-	mov [pLandscapeGenWindowHandler],edi
-	
+
+	extern saWindowElemLists
+	mov ebx, saWindowElemLists
+	mov esi, WinTitleWidths
+
+.findWins:
+	push esi
+	//find the various window element lists
+	stringaddress WindowElemList
+	pop esi
+	mov [ebx],edi
+	add ebx, 4
+	lodsw
+	test ax, ax
+	mov [WinTitleWidth], ax
+	jnz .findWins
+
+.findHandlers:
+	storeaddress LandscapeGenWindowHandler
+	storeaddress VehOrdersWindowHandler
+
+	multipatchcode checkNewWindow, 4
 
 #if !WINTTDX
 	// remove ASCII code from cursor keys (they aren't supposed to generate letters)

@@ -12,11 +12,17 @@
 extern FindWindow,errorpopup,hexdigits,patchflags,redrawscreen,setgamespeed
 extern setgamespeed.set,specialerrtext1
 extern texthandler,saTramConstrWindowElemList
-extern saRoadConstrWindowElemList, saDockConstrWindowElemList, saAirportConstrWindowElemList
-extern saScenEdRoadConstrWindowElemList, pLandscapeGenWindowHandler, saLandscapeGenWinElemList
-//extern saPlantTreesWinElemList
+extern LandscapeGenWindowHandler
 
+// The order here must match the order of WinTitleWidths in procs/morehotheys.asm
+struc saWindowElemList
+	.RoadConstr:	resd 1
+	.DockConstr:	resd 1
+	.AirportConstr:	resd 1
+//	.PlantTrees:	resd 1
+endstruc
 
+uvard saWindowElemLists, saWindowElemList_size/4
 
 
 #define HT_DEBUG 0
@@ -31,11 +37,15 @@ extern saScenEdRoadConstrWindowElemList, pLandscapeGenWindowHandler, saLandscape
 #define HT_DISPLAYBYTE6 9	// +20h Full detail
 #define HT_DISPLAYBYTENUM 6
 #define HT_TOOLS 10
+#define HT_TOOLSNUM 14
+#define HT_ORDERS 24
+#define HT_ORDERSNUM 6
 
-#define HT_TABLESIZE 24
+#define HT_TABLESIZE 30
 
-//		  0  1    2    3     4   5   6789   01234567890123
-// hotkeylist db 'x',0xFF,0xFF,0xFF,'!','"',"§$t%","1234567890-=~]",0,0
+//		  0                                 1         2
+//		  0  1    2    3     4   5   6789   0123456789012345678
+// hotkeylist db 'x',0xFF,0xFF,0xFF,'!','"',"§$t%","1234567890-=~]dfghj",0,0
 // Keyboard Layouts: http://www.uni-regensburg.de/EDV/Misc/KeyBoards/
 
 
@@ -221,6 +231,9 @@ toolselect:
 
 	lea eax,[ebx-1]
 	// now eax=tool index
+	
+	cmp al, HT_TOOLSNUM
+	jae .notinlist
 
 	// skip keys 3 and 4 for road construction
 	cmp ch,1
@@ -289,15 +302,32 @@ othertoolselect:
 	mov cl,3
 	xor dx,dx
 	jmp short .continue
-// If toolselect fails, it will return here.
+// If toolselect "fails", it will return here.
+	test al, al
+	jz short .ret1	// It really did fail.
+
+.orderwin:
+	mov dx, 0
+ovar lastOrderWin, -2
+	mov cl, cWinTypeVehicleOrders
+	call [FindWindow]
+	jz short .ret1
+//	al is HT_TOOLSNUM + 0..5 (Skip, Delete, Non-stop, Goto, Full-load, Unload)
+//	Want cl:	    4..9
+	lea ecx, [eax - (HT_TOOLSNUM-4)]
+	extern VehOrdersWindowHandler
+	mov eax, [VehOrdersWindowHandler]
+	add eax, 19h+9*2	// Skip over entry bookkeeping that doesn't apply to faked clicks,
+	call eax		// plus first two tests (Close and Drag).
 	jmp short .ret1
+
 .continue:
+	mov ebx, saWindowElemLists
 	call [FindWindow]
 	jz .maybeScenRoad
 	mov edi, [esi+window.elemlistptr]
 
-
-	cmp edi, [saDockConstrWindowElemList]
+	cmp edi, [ebx+saWindowElemList.DockConstr]
 	jne .maybeairport
 
 	mov al,[dockToolMap+eax]
@@ -321,7 +351,7 @@ othertoolselect:
 	jmp short .ret
 	
 .maybeairport:
-	cmp edi, [saAirportConstrWindowElemList]
+	cmp edi, [ebx+saWindowElemList.AirportConstr]
 	jne .maybetrees
 	
 	mov al,[airportToolMap+eax]
@@ -346,13 +376,10 @@ othertoolselect:
 	mov cl,3Ch
 	call [FindWindow]
 	jz .maybeScenLand
-	mov edi, [esi+window.elemlistptr]
-	cmp edi, [saScenEdRoadConstrWindowElemList]
-	jne .maybetrees
 	mov al,[scenEdRoadToolMap+eax]
 	test eax,eax
 	jz .ret
-	mov ebx, [saRoadConstrWindowElemList]
+	mov ebx, [ebx+saWindowElemList.RoadConstr]
 	call [eax*4+ebx+0C9h]
 	jmp short .ret
 
@@ -360,13 +387,10 @@ othertoolselect:
 	mov cl,38h
 	call [FindWindow]
 	jz .ret
-	mov edi, [esi+window.elemlistptr]
-	cmp edi, [saLandscapeGenWinElemList]
-	jne .ret
 	mov cl,[scenEdLandMap+eax]
 	jcxz .ret
-	call [pLandscapeGenWindowHandler]
-	
+	call [LandscapeGenWindowHandler]
+
 	// TODO: Redraw the screen after using controls 6 or 7
 	
 .ret:
@@ -374,4 +398,25 @@ othertoolselect:
 //These two instructions were pulled from TTD code to make space for the icall.
 	xor ebx,ebx
 	cmp al,1Bh
+	ret
+
+global StoreOrderWindow.new, StoreOrderWindow.drag
+
+// In:	esi->window struct
+//	 cl: window type
+//	 dx: window ID
+StoreOrderWindow:
+.new:
+	pop eax
+	pop dx		//overwritten
+	mov [esi+6], dx	//overwritten
+	push eax
+.drag:
+.check:
+	cmp cl, cWinTypeVehicleOrders
+	jne .ret
+	cmp byte [esi+window.height], 58h // e if the skip, delete, goto, &c buttons are present.
+	jne .ret
+	mov [lastOrderWin], dx
+.ret:
 	ret
