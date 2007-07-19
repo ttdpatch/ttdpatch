@@ -498,8 +498,8 @@ extern dopatchcode,calldofindstring,store_cj_fragment
 	%4
 
 %ifndef %1_isextern
-	%if %1_add<0
-		add edi,byte -%1_add	// make sure we find the next occurence, not this one again
+	%if %1_add<1
+		add edi,byte -%1_add+1	// make sure we find the next occurence, not this one again
 	%endif
 %else
 	mov eax,%1_add
