@@ -929,6 +929,8 @@ getindustileanimframe:
 //	other bits are reserved
 // - ss is the slope info as returned by GetTileTypeHeightInfo
 global getindustilelandslope
+global getindustilelandslope.got_esi_ebp
+
 getindustilelandslope:
 	pusha
 	movzx ebp,byte [landscape2+esi]	// get industry ID

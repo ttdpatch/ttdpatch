@@ -2107,6 +2107,8 @@ vard stationvarhandler
 %endif
 endvar
 
+extern getstationlandslope,getotherstationid
+
 vard stationparamvarhandler
 	dd addr(getcargowaiting)
 	dd addr(getcargotimesincevisit)
@@ -2115,6 +2117,8 @@ vard stationparamvarhandler
 	dd addr(getcargolastvehdata)
 	dd addr(getcargoacceptdata)
 	dd addr(getnearbystationanimframe)
+	dd getstationlandslope
+	dd getotherstationid
 %ifndef PREPROCESSONLY
 %assign n_stationparamvarhandler (addr($)-stationparamvarhandler)/4
 %endif

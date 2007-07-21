@@ -2290,6 +2290,101 @@ exported getcargoacceptdata
 	shl al,3
 	ret
 
+// parametrized variable 67: get land info of nearby tiles
+
+extern getindustilelandslope.got_esi_ebp
+
+exported getstationlandslope
+	pusha
+	mov esi,[curstationtile]
+	test byte [landscape5(si)],1
+	jz .noswap
+	rol ah,4
+.noswap:
+	xor ebp,ebp
+	jmp getindustilelandslope.got_esi_ebp
+
+// parametrized variable 68: get station info of nearby tiles
+// returns:
+// FFFFFFFFh if the selected tile isn't a railway station
+// OR
+// bits 11..14:	station tile from L5, the last bit modified so
+//		1 means perpendicular, 0 means parallel
+// bit 10:	does the selected tile belong to the current station?
+// bits 8..9:	0 - original TTD station
+//		1 - station from the current GRF
+//		2 - station from other GRF
+// bits 0..7:	setID of station if bits 8..9 is 1, undefined otherwise
+
+exported getotherstationid
+	push ebx
+	push edx
+	push ebp
+	sar ax,4
+	sar al,4
+	mov ebx,[curstationtile]
+	test byte [landscape5(bx)],1
+	jz .noswap
+	xchg al,ah
+.noswap:
+	add al,bl
+	add ah,bh
+	mov ebp,eax
+
+	mov cl,[landscape4(bp)]
+	and cl,0xf0
+	cmp cl,0x50
+	jne .nottile
+
+	mov cl,[landscape5(bp)]
+	cmp cl,8
+	jae .nottile
+
+	xor eax,eax
+
+	// fill bit 10
+	mov al,[landscape2+ebp]
+	cmp [landscape2+ebx],al
+	sete ah
+	shl ah,2
+
+	// fill bits 0..7
+	movzx ecx,byte [landscape3+ebp*2+1]
+	mov al,[stationidgrfmap+ebx*stationid_size+stationid.setid]
+
+	// fill bits 8..9
+	test ecx,ecx
+	jz .typefound
+
+	mov edx,[mostrecentspriteblock]
+	mov edx,[edx+spriteblock.grfid]
+	cmp edx,[stationidgrfmap+ebx*stationid_size+stationid.grfid]
+	setne dl
+	inc dl
+	or ah,dl
+.typefound:
+
+	// fill bits 11..14
+	mov dl,[landscape5(bp)]
+	mov cl,[landscape5(bx)]
+	and cl,1
+	xor dl,cl
+	shl dl,3
+	or ah,dl
+
+	pop ebp
+	pop edx
+	pop ebx
+	ret
+
+.nottile:	
+	pop ebp
+	pop edx
+	pop ebx
+	or eax,byte -1
+	ret
+	
+
 #if 0
 // variable 41: major cargo waiting
 // out:	eax=aaRRTTAA
