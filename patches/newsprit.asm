@@ -2145,10 +2145,12 @@ vard housesvarhandler
 %endif
 endvar
 
+extern getotherhouseanimframe
 vard housesparamvarhandler
 	dd addr(getotherhousecount)
 	dd addr(getothernewhousecount)
 	dd addr(getindustilelandslope)
+	dd getotherhouseanimframe
 %ifndef PREPROCESSONLY
 %assign n_housesparamvarhandler (addr($)-housesparamvarhandler)/4
 %endif

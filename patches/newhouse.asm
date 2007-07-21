@@ -2232,6 +2232,18 @@ gethouseanimframe:
 	shr eax,3				// the anim state is now in al, and other bytes of eax are zero
 	ret
 
+exported getotherhouseanimframe
+	mov ecx,esi
+	sar ax,4
+	sar al,4
+	add ch,ah
+	add cl,al
+	movzx eax,byte [landscape5(cx,1)]
+	mov ah,[landscape1+ecx]
+	shr ah,6
+	shr eax,3
+	ret
+
 // Called to decide if the current house is an old animated type that needs re-randomizing
 // the lift position
 // in:	al: L3 & 0xC0
