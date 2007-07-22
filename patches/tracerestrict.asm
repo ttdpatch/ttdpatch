@@ -1461,8 +1461,8 @@ ret
 	movzx edx, BYTE [eax+robj.type]
 	sub edx, 32
 	jb .ddl1_norm
-	mov DWORD [DropDownExList], ourtext(tr_andbtn) 
-	mov DWORD [DropDownExList+4], ourtext(tr_orbtn)<<16
+	mov DWORD [DropDownExList], ourtext(tr_andbtn)
+	mov DWORD [DropDownExList+4], ourtext(tr_orbtn)
 	mov DWORD [DropDownExList+8],  ourtext(tr_xorbtn)
 	mov DWORD [DropDownExList+12], -1
 	mov BYTE [curvarddboxmode], 1
