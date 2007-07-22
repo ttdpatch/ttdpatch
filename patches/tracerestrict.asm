@@ -105,6 +105,8 @@ endstruc
 
 //26:	Entered side of tile is/is not: SW/NW/SE/NE
 
+//27:	Entered PBS signal tile
+
 //type: 32-34
 //word1:ID of first robj
 //word2:ID of second robj
@@ -178,6 +180,7 @@ endstruc
 %endmacro
 
 uvarb depotsearch
+uvard tr_pbs_sigblentertile
 
 uvard ps_presig_count,4
 //+1=two way
@@ -398,6 +401,8 @@ ret
 	je near .numrts
 	cmp dh,25
 	je near .tileside
+	cmp dh, 26
+	je near .pbssigentertl
 
 .gotvar:
 	cmp BYTE [tempdlvar],1
@@ -705,6 +710,11 @@ ret
 	movzx edx, BYTE [ebx+robj.word1]
 	jmp .gotvar
 
+.pbssigentertl:
+	mov ecx, [tr_pbs_sigblentertile]
+	movzx edx, WORD [ebx+robj.word1]
+	jmp .gotvar
+
 .and:
 	call .recurseproc2
 	and dl,dh
@@ -953,8 +963,8 @@ dw ourtext(tr_sigval_is_red)
 dw 0xffff
 endvar
 
-%assign var_array_num 26
-%assign var_end_mark 25
+%assign var_array_num 27
+%assign var_end_mark 26
 varw pre_var_array
 dw ourtext(tr_vartxt)
 endvar
@@ -984,6 +994,7 @@ dw ourtext(tr_ps_sigcount_r)
 dw ourtext(tr_ps_sigcount_ro)
 dw ourtext(tr_ps_sigcount_rt)
 dw ourtext(tr_entertileside)
+dw ourtext(tr_pbssigblentertl)
 dw 0xffff
 endvar
 
@@ -1016,10 +1027,11 @@ dw ourtext(tr_ps_sigcount_r)
 dw ourtext(tr_ps_sigcount_ro)
 dw ourtext(tr_ps_sigcount_rt)
 dw ourtext(tr_entertileside)
+dw ourtext(tr_pbssigblentertl)
 dw 0xffff
 endvar
 
-//1: 2op (is and is not only), 2: station, 4: depot, 8: uword, 16: udword, 32: sig, 64: cargo, 128=no var, 256=ne,se,sw,nw (0-3)
+//1: 2op (is and is not only), 2: station, 4: depot, 8: uword, 16: udword, 32: sig, 64: cargo, 128=no var, 256=ne,se,sw,nw (0-3),  512=sig (-G/R)
 varw var_flags
 dw 8
 dw 8
@@ -1046,6 +1058,7 @@ dw 16
 dw 16
 dw 16
 dw 257
+dw 513
 endvar
 
 varw pre_var_compat_id
@@ -1077,6 +1090,7 @@ db 12
 db 12
 db 12
 db 13
+db 14
 endvar
 
 %assign j 0
@@ -1148,6 +1162,7 @@ varinfo 9,j
 varinfo 16,j
 varinfo 17,j
 varinfo 24,j
+varinfo 25,j
 %assign k 18
 %rep 6
 varblank k, j
@@ -1167,6 +1182,7 @@ varblank k, 4
 varblank k, 4
 %assign k k+1
 %endrep
+varblank 25,4
 varinfo 18, 4
 varinfo 19, 4
 varinfo 20, 4
@@ -1222,7 +1238,7 @@ tracerestrict_createwindow:
 
 	movzx ecx, WORD [esi+window.data+signalguidata.xy]
 	mov [curxypos], cx
-	
+
 	mov al, 0x10
 	call tr_window_init
 
@@ -1366,7 +1382,7 @@ ret
 	
 	cmp cl, 10
 	je NEAR .orbtn
-	
+
 	cmp cl, 11
 	je NEAR .xorbtn
 
@@ -1841,14 +1857,14 @@ ret
 	movzx eax,BYTE [ebx+robj.varid]
 	dec eax
 	mov ax,[var_flags+eax*2]
-	
+
 	test al, 0x40
 	jnz NEAR .valuebtnddlcargo
 
 	test ah, 1
 	jnz NEAR .valuebtnddltileside
 
-	test al, 0x26
+	test eax, 0x226
 	jnz .mtool
 
 /*
@@ -1880,7 +1896,7 @@ ret
 
 .mtool:
 	push    esi
-	
+
 	btc     DWORD [esi+window.activebuttons], 8
 	jb      .undomtool
 	mov     dx, [esi+window.id]
@@ -1931,7 +1947,7 @@ ret
 	jz .notstation
 	cmp cl,5
 	jne .mtoolret
-	
+
 	cmp BYTE [landscape5(ax,1)],7
 	ja NEAR .mtcl_fexit
 	movzx cx, BYTE [landscape2+eax]
@@ -1970,17 +1986,17 @@ ret
 	ret
 
 .notdepot:
-	test dl,32
+	test edx,32|512
 	jz .mtoolret2
-	
+
 	cmp cl, 1
 	jne .mtoolret2
-	
+
 	mov dl, [landscape5(ax,1)]
 	and dl, 0xC0
 	xor dl, 0x40
 	jnz .mtoolret2
-	
+
 	mov DWORD [ebx+robj.word1], eax
 	or BYTE [ebx+robj.flags],1
 	and BYTE [esi+window.disabledbuttons+1], ~0x10
@@ -2689,7 +2705,7 @@ ret
 	mov DWORD [textrefstack+8], ecx
 	jmp .print
 .nodword:
-	test edx, 32
+	test edx, 32|512
 	jz NEAR .nosignal
 	mov WORD [textrefstack], statictext(trdlg_txt_3)
 	mov bp, [var_array+ecx*2]
@@ -2698,6 +2714,10 @@ ret
 	cmp ecx, 5
 	jb NEAR .blank4
 	mov bp, [op_array4-10+ecx*2]
+	test edx, 512
+	jz .not_noGR
+	mov bp, [op_array2-10+ecx*2]
+.not_noGR:
 	mov WORD [textrefstack+4], bp
 	test BYTE [eax+robj.flags],1
 	jz NEAR .blank6

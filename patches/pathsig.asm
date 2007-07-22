@@ -578,9 +578,11 @@ tracepath:
 	inc edx
 
 	//JGR: pass veh ptr in esi to trainchoosedirection
-
+	extern tr_pbs_sigblentertile
+	mov [tr_pbs_sigblentertile], edi
 	call [trainchoosedirection]		// then call the regular path finding
 	mov byte [ignorereservedpieces],0
+	mov DWORD [tr_pbs_sigblentertile], 0
 
 	mov esi,[railroutestepfnarg]
 	mov eax,[chkrailroutetargetfn]

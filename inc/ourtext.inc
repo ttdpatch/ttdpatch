@@ -405,6 +405,7 @@ defourtext nw
 
 
 defourtext tr_entertileside
+defourtext tr_pbssigblentertl
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
