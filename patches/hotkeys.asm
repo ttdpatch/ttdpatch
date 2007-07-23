@@ -285,7 +285,7 @@ rvtoolselect:
 // If the high bit is set, clear it and set [forcectrlkey]. (#if 0'ed out)
 // keys :   1  2  3  4  5  6  7  8  9  0  -  =  `  \  <eol>
 varb dockToolMap // This one contains control indices, not call-table indices
-	db  2, 3, 4, 0, 5, 6, 7, 3, 2, 4,10, 0, 0, 8
+	db  2, 3, 4, 0, 5, 6, 7, 3, 2, 4,10, 0, 0, 9
 varb airportToolMap
 	db  1, 0, 0, 0, 2, 3, 4, 0, 1, 0, 0, 0, 0, 5
 varb scenEdRoadToolMap
