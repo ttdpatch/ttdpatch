@@ -28,6 +28,7 @@ codefragment newsetupoilfield
 endcodefragments
 
 patchstation2array:
+	xor ebx,ebx
 	testflags generalfixes
 	jnc .nogenfix
 	test dword [miscmodsflags],MISCMODS_NOEXTENDSTATIONRANGE
@@ -38,6 +39,7 @@ patchstation2array:
 	testflags newcargos
 	jnc .dontdoit
 .doit:
+	inc ebx
 	push dword numstations*station2_size
 	call malloccrit
 	pop edi
@@ -45,8 +47,8 @@ patchstation2array:
 	sub edi, [stationarrayptr]
 	mov [stationarray2ofst], edi
 
-	patchcode setupstationstruct_2
-	patchcode setupoilfield
-
 .dontdoit:
+	patchcode oldsetupstationstruct_2,newsetupstationstruct_2,1,1,,{test ebx,ebx},nz
+	patchcode oldsetupoilfield,newsetupoilfield,1,1,,{test ebx,ebx},nz
+
 	ret
