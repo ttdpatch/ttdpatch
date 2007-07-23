@@ -9,6 +9,23 @@ patchproc fifoloading,generalfixes,newcargos,irrstations,patchstation2array
 extern malloccrit,miscmodsflags,patchflags,stationarray2ofst
 extern stationarray2ptr
 
+begincodefragments
+
+codefragment oldsetupstationstruct_2
+	mov byte [esi+station.exclusive],0
+
+codefragment newsetupstationstruct_2
+	icall setupstation2
+	setfragmentsize 7
+
+codefragment oldsetupoilfield
+	mov byte [esi+station.facilities],0x18
+
+codefragment newsetupoilfield
+	icall setupoilfield
+	setfragmentsize 7
+
+endcodefragments
 
 patchstation2array:
 	testflags generalfixes
@@ -27,5 +44,9 @@ patchstation2array:
 	mov [stationarray2ptr], edi
 	sub edi, [stationarrayptr]
 	mov [stationarray2ofst], edi
+
+	patchcode setupstationstruct_2
+	patchcode setupoilfield
+
 .dontdoit:
 	ret
