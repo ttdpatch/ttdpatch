@@ -246,20 +246,6 @@ codefragment newcheckdistcargo
 	jz newcheckdistcargo_start+26
 	jmp newcheckdistcargo_start+39
 
-codefragment oldsetupstationstruct_2
-	mov byte [esi+station.exclusive],0
-
-codefragment newsetupstationstruct_2
-	icall setupstation2
-	setfragmentsize 7
-
-codefragment oldsetupoilfield
-	mov byte [esi+station.facilities],0x18
-
-codefragment newsetupoilfield
-	icall setupoilfield
-	setfragmentsize 7
-
 codefragment oldgetacceptbitmask
 	xor ebx,ebx
 	mov ecx,1
@@ -510,9 +496,6 @@ patchnewcargos:
 	patchcode oldcheckrvtype2,newcheckrvtype2,1,0
 	patchcode checkrvstation
 	patchcode checkdistcargo
-
-	patchcode setupstationstruct_2
-	patchcode setupoilfield
 
 	patchcode getacceptbitmask
 	patchcode collectacceptedcargos

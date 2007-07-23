@@ -7,7 +7,7 @@
 #include <veh.inc>
 
 extern clearfifodata,miscmodsflags,patchflags,station2switches
-extern stationarray2ptr
+extern stationarray2ptr,stationarray2ofst
 
 
 
@@ -156,3 +156,36 @@ extern stationarray2endptr
 
 	popa
 	ret
+
+// Called when setting up a new station struc. Init our new fields in
+// station2.
+// This should basically duplicate the logic in the above proc, but
+// for one station only instead of all of them
+// NOTE: it won't hurt to initialize a field even when the corresponding
+// switch isn't enabled
+global setupstation2
+setupstation2:
+	mov byte [esi+station.exclusive],0	// overwritten
+.overwrittendone:
+	mov edi,esi
+	add edi,[stationarray2ofst]
+	and dword [edi+station2.acceptedcargos],0
+	and dword [edi+station2.catchmenttop],0		// clears catchmentbottom as well
+	push ecx
+	xor ecx,ecx
+.nextcargo:
+	mov word [edi+station2.cargos+ecx+stationcargo2.curveh],-1
+	mov byte [edi+station2.cargos+ecx+stationcargo2.type],0xff
+	add ecx,stationcargo2_size
+	cmp ecx,12*stationcargo2_size
+	jb .nextcargo
+
+	pop ecx
+	ret
+
+// The same, but called when setting up an oilfield station.
+global setupoilfield
+setupoilfield:
+	mov byte [esi+station.facilities],0x18
+	jmp short setupstation2.overwrittendone
+
