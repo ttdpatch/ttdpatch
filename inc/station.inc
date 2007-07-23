@@ -88,6 +88,10 @@ struc station2
 	.railxysouth:	resw 1				// 68h: for a rail station the south corner if 
 	.airportbusyedges:	resd 2				// 6ah: bitmask of busy edges for new airports
 	.platforms:		resw 1				// 72h: lengthened platform variable: active if bit 7 of station.flags set, format: bits 0-7 number of tracks, 8-15 length 
+	.acceptedsinceproc:	resd 1				// 74h: bitmask of cargoes accepted since last periodic proc
+	.acceptedthismonth:	resd 1				// 78h: bitmask of cargoes accepted this month
+	.acceptedlastmonth:	resd 1				// 7ch: ...last month
+	.everaccepted:		resd 1				// 80h: bitmask of cargoes ever accepted
 				resb station_size - $
 endstruc
 

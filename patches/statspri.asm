@@ -2384,6 +2384,42 @@ exported getotherstationid
 	or eax,byte -1
 	ret
 	
+// parametrized variable 69: get cargo acceptance history
+// return value:
+// bit 0: set if cargo type was ever accepted
+// bit 1: set if cargo was accepted last month
+// bit 2: set if cargo was accepted this month
+// bit 3: set if cargo was accepted since last periodic processing
+// other bits: reserved
+exported getstationaccepthistory
+	movzx ecx,ah
+	push dword [mostrecentspriteblock]
+	push ecx
+	call lookuptranslatedcargo
+	pop ecx
+	pop eax
+	xor eax,eax
+
+	cmp cl,0xFF
+	je .done
+
+	cmp dword [stationarray2ofst],0
+	je .done
+
+	push esi
+	add esi,[stationarray2ofst]
+	bt [esi+station2.acceptedsinceproc],ecx
+	rcl eax,1
+	bt [esi+station2.acceptedthismonth],ecx
+	rcl eax,1
+	bt [esi+station2.acceptedlastmonth],ecx
+	rcl eax,1
+	bt [esi+station2.everaccepted],ecx
+	rcl eax,1
+	pop esi
+
+.done:
+	ret
 
 #if 0
 // variable 41: major cargo waiting

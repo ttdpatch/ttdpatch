@@ -25,6 +25,15 @@ codefragment newsetupoilfield
 	icall setupoilfield
 	setfragmentsize 7
 
+codefragment oldmonthlystationupdate
+	cmp byte [esi+station.exclusive],0
+
+codefragment_call newmonthlystationupdate,monthlystationupdate,7
+
+codefragment oldacceptlistupdated,9
+	cmp edx,0x60
+	jb $+2-0x53
+
 endcodefragments
 
 patchstation2array:
@@ -56,5 +65,12 @@ patchstation2array:
 .dontdoit:
 	patchcode oldsetupstationstruct_2,newsetupstationstruct_2,1,1,,{test ebx,ebx},nz
 	patchcode oldsetupoilfield,newsetupoilfield,1,1,,{test ebx,ebx},nz
+	patchcode oldmonthlystationupdate,newmonthlystationupdate,1,1,,{test ebx,ebx},nz
+	stringaddress oldacceptlistupdated
+	test ebx,ebx
+	jz .nochain
+extern acceptlistupdated,acceptlistupdated.oldfn
+	chainfunction acceptlistupdated,.oldfn
+.nochain:
 
 	ret

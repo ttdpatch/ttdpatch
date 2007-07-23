@@ -167,11 +167,18 @@ global setupstation2
 setupstation2:
 	mov byte [esi+station.exclusive],0	// overwritten
 .overwrittendone:
+	push ecx
 	mov edi,esi
 	add edi,[stationarray2ofst]
-	and dword [edi+station2.acceptedcargos],0
-	and dword [edi+station2.catchmenttop],0		// clears catchmentbottom as well
-	push ecx
+	xor ecx,ecx					// MOVing ECX instead of ANDing with zero
+							// spares a byte per instruction
+	mov [edi+station2.acceptedcargos],ecx
+	mov [edi+station2.catchmenttop],ecx		// clears catchmentbottom as well
+	mov [edi+station2.acceptedsinceproc],ecx
+	mov [edi+station2.acceptedthismonth],ecx
+	mov [edi+station2.acceptedlastmonth],ecx
+	mov [edi+station2.everaccepted],ecx
+
 	xor ecx,ecx
 .nextcargo:
 	mov word [edi+station2.cargos+ecx+stationcargo2.curveh],-1
@@ -189,3 +196,28 @@ setupoilfield:
 	mov byte [esi+station.facilities],0x18
 	jmp short setupstation2.overwrittendone
 
+// called at the end of every month to update station fields
+// in: esi->station
+// out: zf set if station.exclusive is zero
+exported monthlystationupdate
+	push esi
+	push eax
+	add esi,[stationarray2ofst]
+
+	xor eax,eax
+	xchg eax,[esi+station2.acceptedthismonth]
+	mov [esi+station2.acceptedlastmonth],eax
+
+	pop eax
+	pop esi
+
+	cmp byte [esi+station.exclusive],0		// overwritten
+	ret
+
+exported acceptlistupdated
+	push esi
+	add esi,[stationarray2ofst]
+	and dword [esi+station2.acceptedsinceproc],0
+	pop esi
+	jmp near $
+ovar .oldfn,-4,$,acceptlistupdated

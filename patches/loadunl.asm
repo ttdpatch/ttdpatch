@@ -226,6 +226,18 @@ AcceptCargoAtStation:
 	call	dword [acceptcargofn]
 	add	[%$income], eax
 
+	cmp dword [stationarray2ofst],0
+	je .cashindone
+
+// record the acceptance of this cargo in the station2 acceptance records
+	mov ebx,[%$currstationptr]
+	add ebx,[stationarray2ofst]
+	movzx ecx, byte [esi+veh.cargotype]
+	bts dword [ebx+station2.acceptedsinceproc],ecx
+	bts dword [ebx+station2.acceptedthismonth],ecx
+	bts dword [ebx+station2.everaccepted],ecx
+
+.cashindone:
 .dontcashin:
 	cmp	word [esi+veh.currentload], 0
 	jne	.notemptyyet
