@@ -4,8 +4,6 @@
 #include <bitvars.inc>
 #include <patchproc.inc>
 
-patchproc fifoloading,generalfixes,newcargos,irrstations,patchstation2array
-
 extern malloccrit,miscmodsflags,patchflags,stationarray2ofst
 extern stationarray2ptr
 
@@ -34,9 +32,24 @@ codefragment oldacceptlistupdated,9
 	cmp edx,0x60
 	jb $+2-0x53
 
+codefragment oldcalccatchment
+	add ch,4
+	jnc .nooverflow
+	mov ch,0xff
+.nooverflow:
+	sub cx,bx
+
+	push bx
+	push cx
+	push bx
+	push cx
+
+codefragment_call newcalccatchment,calccatchment,7
+
+
 endcodefragments
 
-patchstation2array:
+exported patchstation2array
 	xor ebx,ebx
 	testflags generalfixes
 	jnc .nogenfix
@@ -72,5 +85,5 @@ patchstation2array:
 extern acceptlistupdated,acceptlistupdated.oldfn
 	chainfunction acceptlistupdated,.oldfn
 .nochain:
-
+	patchcode oldcalccatchment,newcalccatchment,1,4
 	ret

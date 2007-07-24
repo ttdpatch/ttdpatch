@@ -141,6 +141,7 @@
 	patchproc displmoretownstats, patchmoretownstats
 	patchproc diskmenu, patchdiskmenu		// must be after patchunifiedmaglev (destroys a search string)
 	patchproc diskmenu,generalfixes, patchdefaultsavetitle
+	patchproc fifoloading,generalfixes,newcargos,irrstations,patchstation2array	// must be before patchnewhousedata (it checks for station2 availablity)
 	patchproc newhouses, patchnewhousedata
 
 		// must be processed after any patch that adds new graphics

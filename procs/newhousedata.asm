@@ -228,6 +228,12 @@ codefragment oldremovehousetilefromlandscape,-12
 codefragment newremovehousetilefromlandscape
 	icall removehousetilefromlandscape
 
+codefragment oldfoundtileincatchment
+	mov si,ax
+	movzx edi,bx
+	movzx ebp,si
+
+codefragment_call newfoundtileincatchment,foundtileincatchment
 
 endcodefragments
 
@@ -354,4 +360,7 @@ patchnewhousedata:
 	// fix the ground alt. correction code for houses
 	mov ebp,[ophandler+3*8]
 	mov dword [ebp+0x14],correctexactalt.chkslope
+
+extern stationarray2ofst
+	patchcode oldfoundtileincatchment,newfoundtileincatchment,1,2,,{cmp dword [stationarray2ofst],0},nz
 	ret

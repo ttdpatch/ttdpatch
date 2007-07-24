@@ -567,22 +567,6 @@ codefragment oldcheckstationindustrydist
 codefragment newcheckstationindustrydist
 	icall checkstationindustrydist
 
-codefragment oldcalccatchment
-	add ch,4
-	jnc .nooverflow
-	mov ch,0xff
-.nooverflow:
-	sub cx,bx
-
-	push bx
-	push cx
-	push bx
-	push cx
-
-codefragment newcalccatchment
-	icall calccatchment
-	setfragmentsize 7
-
 codefragment findUpdateStationAcceptList,-0x1b
 	mov bx,0xffff
 	xor cx,cx
@@ -1314,7 +1298,6 @@ patchgeneralfixes:
 	
 	// extend the allowed distance between station sign and industry
 	patchcode oldcheckstationindustrydist,newcheckstationindustrydist,1,1,,{test dword [miscmodsflags],MISCMODS_NOEXTENDSTATIONRANGE},z
-	patchcode oldcalccatchment,newcalccatchment,1,4,,{test dword [miscmodsflags],MISCMODS_NOEXTENDSTATIONRANGE},z
 	storeaddress findUpdateStationAcceptList,1,1,UpdateStationAcceptList
 	// disable news messages for old vehicles
 	patchcode oldoldvehiclenews,newoldvehiclenews,1,1,,{test dword [miscmodsflags],MISCMODS_NOOLDVEHICLENEWS},nz

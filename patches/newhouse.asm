@@ -10,6 +10,7 @@
 #include <grf.inc>
 #include <ptrvar.inc>
 #include <bitvars.inc>
+#include <station.inc>
 
 extern DistributeProducedCargo,actionhandler,addgroundsprite,addrelsprite
 extern addsprite,callback_extrainfo,cleartilefn,ctrlkeystate,curcallback
@@ -257,6 +258,7 @@ copyhousedata:
 	mov byte [houseclasses+5*edx+4],0
 	or dword [houseaccepttypes+edx*4],byte -1
 	mov byte [houseminlifespans+edx],0	// default min. lifespan is 0 years
+	and dword [newhousescargowatchmask+edx*4],0
 	and dword [extrahousegraphdataarr+edx*4],0
 //	and dword [extrahousegraphdataarr+edx*8+housegraphdata.act3],0
 //	and dword [extrahousegraphdataarr+edx*8+housegraphdata.spriteblock],0
@@ -341,6 +343,33 @@ sethouseclass:
 	lodsb
 	mov [houseclasses+ebx*5+4],al
 	clc
+	ret
+
+exported sethousewatchlist
+	and dword [newhousescargowatchmask+ebx*4],0
+
+	lodsb
+	movzx ecx,al
+	test ecx,ecx
+	jz .done
+	xor eax,eax
+	push dword [curspriteblock]
+
+.nextcargo:
+	lodsb
+	push eax
+	call lookuptranslatedcargo
+	pop eax
+	cmp al,0xFF
+	je .skip
+	bts dword [newhousescargowatchmask+ebx*4],eax
+.skip:
+	dec ecx
+	jnz .nextcargo
+
+	pop ecx
+
+.done:
 	ret
 
 // Called to reset gameids after loading a game or starting a new one
@@ -2621,3 +2650,230 @@ removehousetilefromlandscape:
 
 .testonly:
 	jmp [cleartilefn]		// we've hijacked the call to this func
+
+// bit mask of cargo types that triggered callback 148
+noglobal uvard CB148_triggercargoes
+
+extern stationarray2ofst
+
+// called for every tile found in the catchment area of a station
+// use this to notify houses when they accept cargo
+// in:	ax: tile class *8
+//	bx: XY of tile
+// out: si: tile class *8
+//	edi: XY of tile
+// safe: eax,ebx,ecx,edx,ebp
+exported foundtileincatchment
+	mov si,ax			// overwritten
+	movzx edi,bx			// ditto
+	cmp ax,3*8
+	je .house
+.done:
+	ret
+
+.house:
+	mov ebx,edi
+	gethouseid ebp,ebx
+	cmp ebp,127
+	jbe .done			// old houses can't watch for acceptance
+	mov eax,[newhousescargowatchmask+(ebp-128)*4]
+	test eax,eax
+	jz .done			// no cargo is watched
+
+// dig up the station pointer from the stack, ugh....
+	mov ecx,[esp+16]
+	add ecx,[stationarray2ofst]
+	and eax,[ecx+station2.acceptedsinceproc]
+	jz .done			// no watched cargo was accepted recently
+
+	mov [CB148_triggercargoes],eax
+
+	call [randomfn]
+	xor ax,ax
+	mov [callback_extrainfo],eax	// zero out the low two bytes, they will be the offset
+
+
+// now find the northmost tile and house type of this building
+// (code inspired by the RemoveHouse code)
+// the low word of [callback_extrainfo] will contain the difference between the triggered tile and
+// the tile the callback is called on
+	test byte [newhouseflags+ebp-1],4
+	jz .notSWof2x1
+	dec ebp
+	dec bl
+	inc byte [callback_extrainfo]
+
+.notSWof2x1:
+	test byte [newhouseflags+ebp-1],0x18
+	jz .notSEof1x2or2x2
+	dec ebp
+	dec bh
+	inc byte [callback_extrainfo+1]
+
+.notSEof1x2or2x2:
+	test byte [newhouseflags+ebp-2],0x10
+	jz .notSWof2x2
+	sub ebp,2
+	dec bl
+	inc byte [callback_extrainfo]
+
+.notSWof2x2:
+	test byte [newhouseflags+ebp-3],0x10
+	jz .notSof2x2
+	sub ebp,3
+	dec bh
+	dec bl
+	add word [callback_extrainfo],0x101
+
+.notSof2x2:
+// now ebx=coordinates of the north tile
+//     ebp=tile type of the north tile
+
+// call callback 148 on all tiles of the house, adjusting the offset each time
+
+	mov byte [grffeature],7
+	mov dword [curcallback],0x148
+
+// the north tile is always affected
+	sub ebp,128
+	call .docallback
+
+// the SE tile is affected for 2x2 and 1x2 houses
+	test byte [newhouseflags+128+ebp],0x18
+	jz .not2x2or1x2
+	inc bh
+	inc ebp
+	dec byte [callback_extrainfo+1]
+	call .docallback
+
+// call the callback for the remaining two tiles of a 2x2 building
+	test byte [newhouseflags+128+ebp],0x10
+	jz .callbackdone
+	add bx,1-0x100
+	inc ebp
+	inc byte [callback_extrainfo+1]
+	dec byte [callback_extrainfo]
+	call .docallback
+	inc bh
+	dec byte [callback_extrainfo+1]
+	call .docallback
+	jmp short .callbackdone
+
+.not2x2or1x2:
+// the SW tile is affected for 2x1 houses
+	test byte [newhouseflags+128+ebp],4
+	jz .callbackdone
+	inc bl
+	inc ebp
+	dec byte [callback_extrainfo]
+	call .docallback
+
+.callbackdone:
+// all callbacks are called, restore curcallback and the trigger cargoes
+	and dword [curcallback],0
+	and dword [CB148_triggercargoes],0
+	ret
+
+.docallback:
+// do the actual callback and apply animation changes returned by it
+	mov eax,ebp
+	xchg ebx,esi
+	call getnewsprite
+	xchg ebx,esi
+	jc .badreturn
+	call sethouseanimstage
+.badreturn:
+	ret
+
+extern stationarray2ptr,specialgrfregisters
+
+// handle parametrized variable 64 - get acceptance history of nearby stations
+// the parameter is a cargo number
+// register 100h must contain the relative offset of the tile queried
+// returned value:
+// bit 0: at least one nearby station has accepted this cargo in the past
+// bit 1: ...last month
+// bit 2: ...this month
+// bit 3: ...since last periodic proc
+// bit 4: this cargo triggered callback 148 (during that callback only)
+// other bits: reserved
+// where "nearby" means a station that has the tile in its acceptance area
+exported gethouseaccepthistory
+	push ebx
+	push edx
+	push esi
+	push ebp
+
+// find the slot number of the cargo
+	push dword [mostrecentspriteblock]
+	movzx eax,ah
+	push eax
+	call lookuptranslatedcargo
+	pop edx
+	pop eax
+
+	xor eax,eax
+	cmp dl,0xff
+	je .done		// the cargo isn't present
+
+// get the coordinates of the queried tile
+	mov ebx,esi
+	add bl,[specialgrfregisters+0*4]
+	add bh,[specialgrfregisters+0*4+1]
+
+	xor ecx,ecx
+	mov esi,[stationarray2ptr]
+	test esi,esi
+	jz .done		// station2 isn't present
+
+// registers during the loop:
+// eax: acceptance history of the stations already found so far (ORed together)
+// ebx: coordinates of queried tile
+// ecx: offset into station arrays
+// edx: cargo slot number
+// esi->station2 array
+// ebp: scratch, used to collect the acceptance history of the current station
+.nextstation:
+	cmp word [stationarray+ecx+station.XY],0
+	je .skipstation
+
+	cmp bl,[esi+ecx+station2.catchmenttop]
+	jb .skipstation
+	cmp bl,[esi+ecx+station2.catchmentbottom]
+	ja .skipstation
+	cmp bh,[esi+ecx+station2.catchmenttop+1]
+	jb .skipstation
+	cmp bh,[esi+ecx+station2.catchmentbottom+1]
+	ja .skipstation
+
+	xor ebp,ebp
+
+	bt [esi+ecx+station2.acceptedsinceproc],edx
+	rcl ebp,1
+	bt [esi+ecx+station2.acceptedthismonth],edx
+	rcl ebp,1
+	bt [esi+ecx+station2.acceptedlastmonth],edx
+	rcl ebp,1
+	bt [esi+ecx+station2.everaccepted],edx
+	rcl ebp,1
+
+	or eax,ebp
+
+.skipstation:
+	add ecx,station_size
+	cmp ecx,numstations*station_size
+	jb .nextstation
+
+// finally, check if this cargo was among the cargoes that triggered callback 148
+// if we're not in callback 148, that dword is zero, so we never set bit 4
+	bt dword [CB148_triggercargoes],edx
+	jnc .nottrigger
+	or al,0x10
+
+.nottrigger:
+.done:
+	pop ebp
+	pop esi
+	pop edx
+	pop ebx
+	ret

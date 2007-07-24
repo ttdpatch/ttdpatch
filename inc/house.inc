@@ -169,5 +169,9 @@ resw 128+256
 ptrvarofs newhousespriteblock,newhousedatablock,$
 resd 256
 
+// bit mask of cargoes watched by property 20
+ptrvarofs newhousescargowatchmask,newhousedatablock,$
+resd 256
+
 endstruc
 

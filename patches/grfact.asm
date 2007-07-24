@@ -4004,7 +4004,7 @@ defvehdata specbridgedata, B,B,B,B			// 08..0B
 defvehdata spclbridgedata, w,F,B,F			// 0C..0F
 
 defvehdata spechousedata
-defvehdata spclhousedata, F,F,w,B,B,B,B,B,w,B,t,w,B,F,F,d,B,B,B,B,F,B,d,B	// 08..1f
+defvehdata spclhousedata, F,F,w,B,B,B,B,B,w,B,t,w,B,F,F,d,B,B,B,B,F,B,d,B,F	// 08..20
 
 defvehdata specglobaldata
 defvehdata spclglobaldata, B,F,t,d,w,d,d,w,F		// 08..10
@@ -4346,7 +4346,7 @@ var bridgedata	// (prop 0C is set in patches.ah)
 	dd 0, addr(alterbridgespritetable), bridgeflags		// 0C..0E
 	dd longintrodatebridges					// 0F
 
-extern sethouseprocessinterval
+extern sethouseprocessinterval,sethousewatchlist
 var housedata
 	dd addr(setsubstbuilding)				// 08
 	dd addr(sethouseflags)					// 09
@@ -4372,6 +4372,7 @@ var housedata
 	dd housecallbackflags2					// 1d
 	dd houseaccepttypes					// 1e
 	dd houseminlifespans					// 1f
+	dd sethousewatchlist					// 20
 	
 var globaldata
 	dd basecostmult,addr(setcargotranstbl)			// 08..09
