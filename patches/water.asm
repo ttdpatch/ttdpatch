@@ -830,8 +830,8 @@ DrawDikeAroundWater:
 	ret
 
 
-uvard showadikespritetype, 2
-uvard showadikespriteofs, 0
+uvard showadikespritetype, 1
+uvard showadikespriteofs, 1
 
 // ebx = cornernumber
 showadikesprite:
