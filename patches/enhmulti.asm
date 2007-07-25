@@ -1,8 +1,6 @@
 // Enhance multiplayer in the Windows version (allow more players)
 // Doesn't work perfectly yet
 
-#if WINTTDX
-
 #include <std.inc>
 #include <flags.inc>
 #include <textdef.inc>
@@ -12,6 +10,8 @@
 #include <bitvars.inc>
 #include <win32.inc>
 #include <ptrvar.inc>
+
+#if WINTTDX
 
 extern CreateWindow,MPpacketnum,MPtimeout
 extern MPtransferbuffer
