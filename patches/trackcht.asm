@@ -369,15 +369,13 @@ endproc dothetrackthing
 convertvehicles:
 
 	mov esi,[veharrayptr]
-	mov al,[curplayer]
-
 	xor edi,edi	// cost
 
 .checknextvehicle:
 	cmp byte [esi+veh.class],0x10
 	jne short .changenextvehicle
-	cmp byte [esi+veh.owner],al
-	jne short .changenextvehicle
+	call checkowner.veh
+	jnc short .changenextvehicle
 	cmp ch,-1
 	je short .righttype
 	cmp [esi+veh.tracktype],ch

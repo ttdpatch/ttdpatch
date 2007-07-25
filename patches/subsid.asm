@@ -132,12 +132,15 @@ exported makerelations
 .loop:
 	mov dl, 1
 	shl dl, cl // All companies are automatically related to themselves.
+	push ecx
+	
+	testflags subsidiaries
+	jnc .next		// No subsidaries? No (other) relations.
 
 	mov ebx, player_size
 	imul ebx,ecx
-	push ecx
 	add ebx, [playerarrayptr]
-	cmp word [ebx], 0
+	cmp word [ebx+player.name], 0
 	je .next
 	mov eax, [ebx+player.shareowners]
 	test al, al
@@ -170,7 +173,7 @@ exported makerelations
 // ecx: counter
 	pop ecx
 .loop2:
-	movzx eax, byte [ebp+ecx]
+	mov al, [ebp+ecx]
 	mov ah, al
 .iloop:
 	bsf esi, eax

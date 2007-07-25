@@ -19,24 +19,10 @@ codefragment newredrawplayerwindow
 	call runindex(redrawplayerwindow)
 	nop
 
-codefragment oldsellshare,5
-	db 68h,0,7 // [mov esi,] [00]70068h
-
-codefragment oldbuyshare,5+WINTTDX
-#if WINTTDX
-	db 0beh	   // mov esi, ...
-#endif
-	db 68h,0,8 // [00]70068h
 
 endcodefragments
 
 patchcompanywindow:
-	extern buysellshare, buysellshare.oldfn
-	stringaddress oldsellshare
-	chainfunction buysellshare
-	stringaddress oldbuyshare
-	chainfunction buysellshare
-	
 	stringaddress oldredrawplayerwindow,1,1
 
 	// store window struct base address
