@@ -35,10 +35,12 @@ glob_frag newgetstationtracktrl
 codefragment newgetstationtracktrl
 	call runindex(getstationtracktrl)
 
-codefragment olddispstationsprite,5
+codefragment olddispstationsprite,3
 	shl eax,16
 	or ebx,eax
 	db 03	// add ebx,[...]
+
+codefragment_call newdispstationsprite,dispstationsprite,8
 
 codefragment oldremoverailstation,-5
 	add ax,0x10
@@ -138,6 +140,12 @@ codefragment oldperiodicstationupdate
 	bt word [esi+station.flags],0
 	jc $+2+1
 
+codefragment oldapplystationcompanycolor
+	test bx,0x8000
+	jz $+2+6
+
+codefragment_call newapplystationcompanycolor,applystationcompanycolor,5
+
 codefragment_call newperiodicstationupdate, periodicstationupdate
 endcodefragments
 
@@ -153,7 +161,8 @@ patchnewstations:
 	mov byte [edi+lastediadj+24],0x7f
 	add edi,byte 33+lastediadj
 	storefragment newgetstationtracktrl
-	patchcode olddispstationsprite,newgetstationspritetrl
+	patchcode olddispstationsprite,newdispstationsprite
+	multipatchcode oldapplystationcompanycolor,newapplystationcompanycolor,2
 
 	patchcode oldremoverailstation,newremoverailstation,1,1
 	patchcode oldsetupstationstruct,newsetupstationstruct,2,3

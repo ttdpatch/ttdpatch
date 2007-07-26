@@ -1582,6 +1582,14 @@ getstationtracktrl:
 	ret
 
 
+// when displaying the station in the selection window, don't break manually selected
+// recolor sprites and/or semi-transparency
+exported dispstationsprite
+	test ebx,0x7FFF0000
+	jnz .donthurt
+	or ebx,eax
+.donthurt:
+	// fallthrough
 
 // same for station sprite numbers
 global getstationspritetrl
@@ -3163,4 +3171,20 @@ exported setrailstationrvrouteing
 .bad:
 	mov ax, ourtext(invalidsprite)
 	stc
+	ret
+
+// in:	ebx: building sprite from station layout data
+// out:	zf clear if the company color recolor sprite number should be ORed to the high byte
+// safe: none
+exported applystationcompanycolor
+	test bx,0x8000		// overwritten
+	jz .gotit
+	test ebx,0x7FFF0000
+	jnz .hasrecolor		// there is a recolor sprite specified, don't ruin it
+	test ebx,ebx		// clear zf - ebx can't be zero, at least bit 15 is set
+.gotit:
+	ret
+
+.hasrecolor:			// the layout has its own recolor data, don't ruin it
+	cmp eax,eax		// set zf
 	ret
