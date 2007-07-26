@@ -51,6 +51,14 @@ codefragment newaibuyout
 	call runindex(ishumanplayer)
 	setfragmentsize 14
 
+codefragment oldsellshare,5
+	db 68h,0,7 // [mov esi,] [00]70068h
+
+codefragment oldbuyshare,5+WINTTDX
+#if WINTTDX
+	db 0beh	   // mov esi, ...
+#endif
+	db 68h,0,8 // [00]70068h
 
 endcodefragments
 
@@ -63,6 +71,12 @@ patchsubsidiaries:
 	patchcode oldborrowamount,newloanamount,1,1
 	patchcode oldrepayamount,newloanamount,1,1
 	patchcode oldaibuyout,newaibuyout,1,1
+
+	extern buysellshare, buysellshare.oldfn
+	stringaddress oldsellshare
+	chainfunction buysellshare
+	stringaddress oldbuyshare
+	changereltarget 0, buysellshare
 	ret
 
 global patchmaxloanwithctrl
