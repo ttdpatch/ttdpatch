@@ -108,6 +108,7 @@ codefragment newdrawmapwindow
 
 codefragment oldlast7vehdrawn
 	cmp bl, -7
+	db 0x0f,0x8c		// jl near ...
 
 codefragment newlastrailvehdrawn
 	setfragmentsize 3

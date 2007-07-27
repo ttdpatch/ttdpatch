@@ -162,6 +162,9 @@ patchnewstations:
 	add edi,byte 33+lastediadj
 	storefragment newgetstationtracktrl
 	patchcode olddispstationsprite,newdispstationsprite
+	add edi,lastediadj-41
+extern getspritecoordsforstationwindow,getspritecoordsforstationwindow.landscapetopixel
+	chainfunction getspritecoordsforstationwindow,.landscapetopixel
 	multipatchcode oldapplystationcompanycolor,newapplystationcompanycolor,2
 
 	patchcode oldremoverailstation,newremoverailstation,1,1

@@ -3188,3 +3188,29 @@ exported applystationcompanycolor
 .hasrecolor:			// the layout has its own recolor data, don't ruin it
 	cmp eax,eax		// set zf
 	ret
+
+noglobal uvarw rootspritex
+noglobal uvarw rootspritey
+
+// Called instead of LandscapeToPixelCoords when drawing a station in the selection window
+// The old code assumed that there are no linked sprites in the layout, fix that
+// in:	ax: first byte of spritedata (X offset of bounding box/sprite)
+//	cx: second byte of spritedata (Y offset of bounding box/sprite)
+//	dl: third byte of spritedata (Z offset/80h)
+//	ebx->spritedata
+// out:	ax: X offset in pixels
+//	cx: Y offset in pixels
+// safe: ebx,dx,bp
+exported getspritecoordsforstationwindow
+	cmp dl,0x80
+	je .linked
+	call $			// call LandscapeToPixelCoords like the old code did
+ovar .landscapetopixel,-4,$,getspritecoordsforstationwindow
+	mov [rootspritex],ax	// remember the returned values - linked sprite offsets will be relative to these
+	mov [rootspritey],cx
+	ret
+
+.linked:
+	add ax,[rootspritex]	// this is a linked sprite - just add the coordinates of the root sprite
+	add cx,[rootspritey]
+	ret
