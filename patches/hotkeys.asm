@@ -8,6 +8,7 @@
 #include <textdef.inc>
 #include <window.inc>
 #include <smartpad.inc>
+#include <misc.inc>
 
 extern FindWindow,errorpopup,hexdigits,patchflags,redrawscreen,setgamespeed
 extern setgamespeed.set,specialerrtext1
@@ -314,10 +315,25 @@ ovar lastOrderWin, -2
 //	al is HT_TOOLSNUM + 0..5 (Skip, Delete, Non-stop, Goto, Full-load, Unload)
 //	Want cl:	    4..9
 	lea ecx, [eax - (HT_TOOLSNUM-4)]
+	mov ebp, keypresstable
+#if WINTTDX
+	mov dl, 80h
+	xchg [ebp+KEY_Shift], dl
+#else
+	mov dx, 8080h
+	xchg [ebp+KEY_LShift], dl
+	xchg [ebp+KEY_RShift], dh
+#endif
 	extern VehOrdersWindowHandler
 	mov eax, [VehOrdersWindowHandler]
 	add eax, 19h+9*2	// Skip over entry bookkeeping that doesn't apply to faked clicks,
 	call eax		// plus first two tests (Close and Drag).
+#if WINTTDX
+	mov [ebp+KEY_Shift], dl
+#else
+	mov [ebp+KEY_LShift], dl
+	mov [ebp+KEY_RShift], dh
+#endif
 	jmp short .ret1
 
 .continue:

@@ -163,6 +163,7 @@ endstruc
 
 #if WINTTDX
 // Windows version
+#define KEY_Shift	0x10
 #define KEY_Ctrl	0x11
 #else
 // DOS version
