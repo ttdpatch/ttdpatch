@@ -2358,7 +2358,7 @@ exported getotherstationid
 
 	// fill bits 0..7
 	movzx ecx,byte [landscape3+ebp*2+1]
-	mov al,[stationidgrfmap+ebx*stationid_size+stationid.setid]
+	mov al,[stationidgrfmap+ecx*stationid_size+stationid.setid]
 
 	// fill bits 8..9
 	test ecx,ecx
