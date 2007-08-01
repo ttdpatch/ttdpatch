@@ -157,7 +157,7 @@ displayfoundation:
 // in:	AX,CX = current tile's north corner X,Y
 // out:	ESI = bit 0: merges in NW direction, bit 1: merges in NE direction, other bits 0
 // preserves: everything else
-gettilealtmergemap:
+exported gettilealtmergemap
 	push edx
 
 	testflags custombridgeheads
@@ -460,6 +460,9 @@ displstationgroundsprite:
 	test di,di
 	jz .noslope
 	
+	cmp dh,8
+	jb .trainstation
+
 	cmp dh,0x4b
 	jb .slope
 
@@ -472,6 +475,15 @@ displstationgroundsprite:
 .noslope:
 	call [addgroundsprite]
 	ret
+
+.trainstation:
+// train stations can have custom foundations
+	testflags newstations
+	jnc .slope
+extern drawstationcustomfoundation
+	call drawstationcustomfoundation	// in statspri.asm, sets carry if no custom foundations were drawn
+	mov ebp,0				// can't use xor - cf must be preserved
+	jnc displfoundationrelsprite
 
 .slope:
 	mov ebp,edi
@@ -992,6 +1004,7 @@ stationallowslope:
 	test di,0x10
 	jnz .done
 
+.nosteep:
 	// do we actually have slope?
 	test di,di
 	jz .done
@@ -1078,7 +1091,21 @@ chkrailstationflatland:
 
 .bailout:
 	xchg eax,edi
-	jmp stationallowslopeifnz
+// now zf is set if only flat tiles are allowed - the slope check callback
+// can still veto the slope, so we can't just return after checking di
+	jnz .notonlyflat
+	test di,0xf
+	jnz stationallowslope.done	// zf clear will disallow the slope
+.notonlyflat:
+	test di,0x10
+	jnz stationallowslope.done	// no steep slopes are allowed
+// if we reach here, usual logic would allow the slope, but the callback can veto it
+	testflags newstations
+	jnc stationallowslope.nosteep	// no newstations - allow slope and make it more expensive if needed
+extern dostationslopecallback
+	call dostationslopecallback	
+	jz stationallowslope.nosteep	// slope is allowed, but cost still needs to be increased if not flat
+	ret				// return with zf clear - disallow tile
 
 .ydir:
 	test al,6

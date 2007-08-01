@@ -1254,6 +1254,9 @@ getnewstationsprite:
 
 	mov [realtempstationtracktypespriteofs],eax
 
+	movzx eax,dh
+	and dword [foundationtiletype],eax
+
 	mov eax,[stationcurgameid]
 	test byte [stationcallbackflags+eax],2
 	jz .nospritespop
@@ -1264,6 +1267,7 @@ getnewstationsprite:
 
 	mov [orgtiletype],dh
 	mov [modtiletype],eax
+	mov [foundationtiletype],eax
 	mov dh,0xff
 
 .nospritespop:
@@ -1604,6 +1608,168 @@ getstationspritetrl:
 	add ebx,[realtempstationtracktypespriteofs]
 	ret
 
+extern specialgrfregisters
+
+noglobal uvard foundationtiletype
+
+// called from slopebld.asm to check and draw custom rail station foundations
+// return with cf clear if the foundations were drawn and the caller just needs to add the ground sprite
+// in:	ax, cx: X and Y coordinates of tile
+//	dl: adjusted altitude
+// safe: ebp, ???
+exported drawstationcustomfoundation
+// check if the callback is enabled
+	mov ebp,[stationcurgameid]
+	test byte [stationflags+ebp],8
+	jnz .customfoundation
+	stc
+	ret
+
+.customfoundation:
+	pusha
+// the GRF can put a sprite offset to register 100h, but it defaults to 0
+	and dword [specialgrfregisters+0*4],0
+
+// put the currently selected tile type to the low word of var18
+	mov ebx,[foundationtiletype]
+	mov [callback_extrainfo],ebx
+
+// and merge info into bits 16..17
+extern gettilealtmergemap
+	call gettilealtmergemap
+	mov [callback_extrainfo+2],si
+
+// dh will contain 0 for "extended" foundation selection, or the bitmask of parts
+// for the "simple" selection
+	mov dh,0
+
+	movzx edi,di
+
+	test byte [stationflags+ebp],0x10
+	jnz .notsimple
+
+	mov ebx,esi
+	mov dh,bl
+	shl dh,6
+	not dh
+// now dh masks off bit 7 for NW merging and 6 for NE merging
+	and dh,[foundationpartsforslope+edi]
+
+	jz .noslope	// no foundation sprites needed at all
+
+
+.notsimple:
+	xchg eax,ebp			// save the X coord and move ID to eax
+	mov esi,[stationcurstation]
+	mov byte [miscgrfvar],2		// to show that we're selecting foundations
+	mov byte [grffeature],4
+	call getnewsprite
+	mov byte [miscgrfvar],0
+	jc .error
+
+	sub dl,8		// the adjusted altitude is one level higher than the lowest corner
+				// we need the lowest corner as altitude
+
+	mov ebx,eax		// save callback result
+	mov eax,ebp		// restore X coord
+
+	add ebx,[specialgrfregisters+0*4]	// add extra offset in register 100h to spriteno
+
+	test dh,dh
+	jnz .simple
+
+// "Extended" sprite selection. Some slopes are impossible for stations, so the offset
+// into the sprite block isn't the slope itself info itself; slopes 0, 1, 2, 4 and 8 are
+// skipped.
+	sub edi,4	// subtract four
+	adc edi,0	// but add 1 back if edi was below four, so 3 becomes 1
+			// (other values <=4 aren't possible)
+	cmp edi,4	// if edi isn't below 4 (the original isn't below 8
+	adc edi,byte -1	// subtract 1, otherwise do nothing
+
+	add ebx,edi	// add slope-dependent offset to spriteno
+
+extern exscurfeature,exsspritelistext
+
+// add foundation sprite with its own bounding box, and return success
+	mov byte [exscurfeature],4
+	mov byte [exsspritelistext], 1
+
+	mov dh,7
+	mov di,0x10
+	mov si,di
+extern addsprite
+	call [addsprite]
+	clc
+.error:
+	popa
+	ret
+
+.noslope:
+// WARNING: slight kludge
+// no foundation sprites needed - return failure to slopebld.asm, so it draws its
+// own foundation, which will end up as an empty 64x32 sprite
+// we need this dummy sprite because the ground sprite will be added relatively to it
+	stc
+	popa
+	ret
+
+.simple:
+// simple foundation drawing - TTDPatch puts the foundations together from parts
+
+	or ebp,byte -1		// a nonzero ebp will mean this is the first sprite
+
+// dh contains the bitmask of foundation parts to draw
+.nextsprite:
+	shr dh,1		// check next bit
+	jnc .skipsprite
+	
+	mov byte [exscurfeature],4
+	mov byte [exsspritelistext], 1
+
+	push ebx
+	push edx
+	test ebp,ebp
+	jz .addrel
+
+// this is the first sprite - create a bounding box for it
+	mov dh,7
+	mov di,0x10
+	mov si,di
+	call [addsprite]
+	jmp short .added
+
+.addrel:
+// not the first sprite - add as relative sprite, neutralizing the negative xoffs and yoffs
+// of the sprite with the same values in positive
+	mov ax,31
+	mov cx,9
+extern addrelsprite
+	call [addrelsprite]
+
+.added:
+	pop edx
+	pop ebx
+	xor ebp,ebp	// the above code destroyed ebp - zero it so the next sprite will be relative
+.skipsprite:
+	inc ebx		// jump to next sprite in the block
+	test dh,dh	// do we have parts remaining?
+	jnz .nextsprite
+
+// report success
+	clc
+	popa
+	ret
+
+// bitmask of foundation components present for a slope
+// (even impossible slots are filled, this table may come handy later)
+noglobal varb foundationpartsforslope
+	// 87654321   87654321   87654321   87654321
+	db 00000000b, 11010001b, 11100100b, 11100000b	// 0..3
+	db 11001010b, 11001001b, 11000100b, 11000000b	// 4..7
+	db 11010010b, 10010001b, 11100100b, 10100000b	// 8..b
+	db 01001010b, 00001001b, 01000100b, 11010010b	// c..f
+endvar
 
 // search station layout and if found, copy to edi
 //
@@ -3214,3 +3380,91 @@ ovar .landscapetopixel,-4,$,getspritecoordsforstationwindow
 	add ax,[rootspritex]	// this is a linked sprite - just add the coordinates of the root sprite
 	add cx,[rootspritey]
 	ret
+
+// called to do extra slope check for train stations, from slopebld.asm
+// when this is called, we have already weeded out invalid slopes, so if the
+// GRF doesn't veto it, we can allow the slope
+// in:	ax, cx: X and Y of tile
+//	bh: direction (0=X, 1=Y)
+//	esi: XY of tile
+//	di: slope data
+//	ebp-> stack frame of caller with various useful things on stack,
+//	see chkrailstationflatland in slopebld.asm for details
+// return with zf set if tile is OK
+// safe: edx,esi,ebp
+exported dostationslopecallback
+
+// check if callback is enabled
+	movzx esi,byte [curplayer]
+	movzx esi,byte [curselstationid+esi]
+	test esi,esi
+	jz .gotit
+	test byte [stationcallbackflags+esi],0x10
+	jnz .docallback
+.gotit:
+	ret
+
+.docallback:
+	mov dx,[ebp+4+10]	// saved dimensions of the station
+	shl edx,16
+
+	mov dx,[ebp+4+12]	// saved Y of the north corner
+	mov si,[ebp+4+14]	// saved X of the north corner
+	shl dx,4
+	shr si,4
+	or dx,si		// now dx=XY of north corner
+
+	movzx esi,word [ebp+4]	// saved XY of currently checked tile
+	mov [curstationtile],esi
+	sub si,dx
+	mov dx,si		// now dx=XY difference between north corner and current tile
+
+	test bh,bh
+	jz .noswap
+	xchg dh,dl
+.noswap:
+// now dl is distance along the platform, dh is platform number
+// the high 16 bits are still the station dimensions
+	mov [callback_extrainfo],edx
+
+	push ebx
+
+	mov edx,edi
+	test bh,bh
+// create mirrored slope data (with bits 0 and 2 swapped) for stations with Y orientation
+	jz .nomirror
+	mov dh,dl
+	and dh,0101b
+	jz .mirrored	// bit 0 and 2 both zero - no swap needed
+	cmp dh,0101b
+	je .mirrored	// bit 0 and 2 both one - no swap needed
+	xor dl,0101b	// one of the bits is zero, the other is one - XOR should swap them
+.mirrored:
+.nomirror:
+// put the usual (not mirrored) slope data into dl bits 4..7
+	mov ebx,edi
+	shl bl,4
+	or dl,bl
+// put slope data in dl into miscgrfvar
+	mov [miscgrfvar],dl
+
+	mov ebp,eax			// save X coord
+	movzx eax,byte [curplayer]
+	movzx eax,byte [curselstationid+eax]	// put selected stationID to eax
+	xor esi,esi			// no station struc available
+	mov byte [grffeature],4
+	mov dword [curcallback],0x149
+	call getnewsprite
+	mov dword [curcallback],0
+	mov byte [miscgrfvar],0
+	pop ebx
+	xchg eax,ebp		// restore X coord and put callback result to a safe place
+	jc .error
+
+	test ebp,ebp		// callback allows slope if result is zero
+	ret
+
+.error:
+	cmp eax,eax		// if the callback fails, we allow the slope - set zf
+	ret
+
