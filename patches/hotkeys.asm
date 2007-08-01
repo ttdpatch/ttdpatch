@@ -437,6 +437,50 @@ StoreOrderWindow:
 	jne .ret
 	cmp byte [esi+window.height], 58h // e if the skip, delete, goto, &c buttons are present.
 	jne .ret
-	mov [lastOrderWin], dx
+
+// 1) Find old window
+// 2) If present, restore its .elemlistptr
+// 3) Store new window's .elemlistptr
+// 4) Adjust new window's .elemlistptr to specify new window struct
+// 5) Copy new window's old elemlist to tempElemList
+// 6) Adjust the title text to contain the correct textID
+// 7) Adjust tempElemList to specify to the correct title text
+
+	pusha
+	mov ebx, lastOrderWin
+	lea eax, [esi+window.elemlistptr]
+	cmp [ebx], dx
+	xchg [ebx], dx
+	mov ebx, oldElemListPtr
+	je .noold
+	call [FindWindow]
+	jz .noold
+
+	mov edi, [ebx]
+	mov [esi+window.elemlistptr], edi
+	extern RefreshWindowArea
+	call [RefreshWindowArea]
+
+.noold:
+	mov edi, tempElemList
+	mov esi, [eax]		// [.elemlistptr for window to be selected]
+	cmp esi, edi
+	je .alreadyactive
+	mov [ebx], esi		// [oldElemListPtr]
+	mov [eax], edi
+
+	xor ecx, ecx
+	mov cl, 79h	// All four saPlayer1<foo>OrderWinElemLists are 79h bytes.
+	rep movsb
+
+	// Don't bother dealing with the old text; it's always one of 8829, 900B, 9810 or A00B, and those are all identical.
+	mov word [edi-79h+16h], statictext(active_orders_win)	// The title's TID is found at tempElemList+16h.
+
+.alreadyactive:
+	popa
+
 .ret:
 	ret
+
+uvarb tempElemList, 121
+uvard oldElemListPtr

@@ -363,3 +363,7 @@ stxt_cont dw statictext(backspace)
 stxt_cont db 0x81
 stxt_cont dw ourtext(tr_searching_for_depot)
 stxt_cont db 0
+
+stxt active_orders_win, 0x81
+stxt_cont dw 0x8829	// \94\80 (Orders)
+stxt_cont db " (*)", 0
