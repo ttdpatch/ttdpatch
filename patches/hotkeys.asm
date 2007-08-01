@@ -315,24 +315,25 @@ ovar lastOrderWin, -2
 //	al is HT_TOOLSNUM + 0..5 (Skip, Delete, Non-stop, Goto, Full-load, Unload)
 //	Want cl:	    4..9
 	lea ecx, [eax - (HT_TOOLSNUM-4)]
-	mov ebp, keypresstable
 #if WINTTDX
+	mov ebx, keypresstable+KEY_Shift
 	mov dl, 80h
-	xchg [ebp+KEY_Shift], dl
+	xchg [ebx], dl
 #else
+	mov ebx, keypresstable+KEY_LShift
 	mov dx, 8080h
-	xchg [ebp+KEY_LShift], dl
-	xchg [ebp+KEY_RShift], dh
+	xchg [ebx], dl
+	xchg [ebx-KEY_LShift+KEY_RShift], dh
 #endif
+	pusha
 	extern VehOrdersWindowHandler
 	mov eax, [VehOrdersWindowHandler]
 	add eax, 19h+9*2	// Skip over entry bookkeeping that doesn't apply to faked clicks,
 	call eax		// plus first two tests (Close and Drag).
-#if WINTTDX
-	mov [ebp+KEY_Shift], dl
-#else
-	mov [ebp+KEY_LShift], dl
-	mov [ebp+KEY_RShift], dh
+	popa
+	mov [ebx], dl
+#if !WINTTDX
+	mov [ebx-KEY_LShift+KEY_RShift], dh
 #endif
 	jmp short .ret1
 
