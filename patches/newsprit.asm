@@ -2045,22 +2045,22 @@ endvar
 	// even without a structure; once for 81+x and once for 82+x
 	// (all 60+x must set bit 15, which is special!)
 vard varavailability
-	dd 100001000b,7<<29,	100001000b,7<<29	// veh.vars 43, 48
-	dd 100001000b,7<<29,	100001000b,7<<29	// veh.vars 43, 48
-	dd 100001000b,7<<29,	100001000b,7<<29	// veh.vars 43, 48
-	dd 100001000b,7<<29,	100001000b,7<<29	// veh.vars 43, 48
-	dd 1000b,7<<29,		0,7<<29			// station var 43, towns
-	dd 0,7<<29,		0,7<<29			// canals
-	dd 0,7<<29,		0,7<<29			// bridges
-	dd 0,7<<29,		0,7<<29			// houses, bridges
-	dd 0,7<<29,		0,7<<29			// generic variables
-	dd 0,7<<29,		0,7<<29			// industry tiles, industries
-	dd 0,7<<29,		0,7<<29			// industries, towns
-	dd 0,7<<29,		0,7<<29			// cargos
-	dd 0,7<<29,		0,7<<29			// sounds
-	dd 0,7<<29,		0,7<<29			// airports
-	dd 0,7<<29,		0,7<<29			// signals
-	dd 0,7<<29,		0,7<<29			// objects
+	dd 100001000b,7<<29,		100001000b,7<<29	// veh.vars 43, 48
+	dd 100001000b,7<<29,		100001000b,7<<29	// veh.vars 43, 48
+	dd 100001000b,7<<29,		100001000b,7<<29	// veh.vars 43, 48
+	dd 100001000b,7<<29,		100001000b,7<<29	// veh.vars 43, 48
+	dd 1000b,7<<29|10000000b,	0,7<<29			// station var 43 and 67, towns
+	dd 0,7<<29,			0,7<<29			// canals
+	dd 0,7<<29,			0,7<<29			// bridges
+	dd 0,7<<29,			0,7<<29			// houses, bridges
+	dd 0,7<<29,			0,7<<29			// generic variables
+	dd 0,7<<29,			0,7<<29			// industry tiles, industries
+	dd 0,7<<29,			0,7<<29			// industries, towns
+	dd 0,7<<29,			0,7<<29			// cargos
+	dd 0,7<<29,			0,7<<29			// sounds
+	dd 0,7<<29,			0,7<<29			// airports
+	dd 0,7<<29,			0,7<<29			// signals
+	dd 0,7<<29,			0,7<<29			// objects
 
 checkfeaturesize varavailability, (4*2*2)
 

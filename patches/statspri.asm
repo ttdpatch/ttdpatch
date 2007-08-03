@@ -2466,12 +2466,47 @@ exported getcargoacceptdata
 
 // parametrized variable 67: get land info of nearby tiles
 
+noglobal uvarb getstationslope_orientation
+
 extern getindustilelandslope.got_esi_ebp
 
 exported getstationlandslope
+	mov ecx,[curstationtile]
+
+	cmp dword [curcallback],0x149
+	jz .gotorientation
+
+	test esi,esi
+	jz .error		// calling without structure is allowed for var 149 only
+
+	test byte [landscape5(cx,1)],1
+	setnz byte [getstationslope_orientation]
+.gotorientation:
+
+	call .docall
+	cmp byte [getstationslope_orientation],0
+	jz .nomirror
+	mov cl,al
+	and cl,0101b
+	jz .mirrored	// bit 0 and 2 both zero - no swap needed
+	cmp cl,0101b
+	je .mirrored	// bit 0 and 2 both one - no swap needed
+	xor al,0101b	// one of the bits is zero, the other is one - XOR should swap them
+.mirrored:
+.nomirror:
+	ret
+
+.error:
+	xor eax,eax
+	ret
+
+// getindustilelandslope does a popa at the end, so we can't call
+// into the middle of it; we call this helper instead, which ends up
+// jumping into the middle of it
+.docall:
 	pusha
-	mov esi,[curstationtile]
-	test byte [landscape5(si)],1
+	mov esi,ecx
+	cmp byte [getstationslope_orientation],0
 	jz .noswap
 	rol ah,4
 .noswap:
@@ -3427,6 +3462,7 @@ exported dostationslopecallback
 // the high 16 bits are still the station dimensions
 	mov [callback_extrainfo],edx
 
+	mov [getstationslope_orientation],bh	// for var 67 to work
 	push ebx
 
 	mov edx,edi
