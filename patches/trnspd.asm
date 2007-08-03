@@ -68,15 +68,16 @@ ovar trainspeed_dest,-4
 	jmp short .changeit
 
 .traindepotspeed:
-	mov WORD [ebp+6], statictext(empty)
-	add ebp,byte 8
+	add ebp,byte 6
+	//mov WORD [ebp], statictext(empty)
+	mov bx,ourtext(headingfordepot1)
 	test dword [miscmodsflags],MISCMODS_NODEPOTNUMBERS
-	jnz .changeit
-	mov WORD [ebp-2], statictext(dpt_number2)
+	jnz .changeitkeepbx
+	mov WORD [ebp], statictext(dpt_number2)
 	movzx ax, ah
 	inc ax
-	mov [ebp], ax
-	add ebp, BYTE 2
+	mov [ebp+2], ax
+	add ebp, BYTE 4
 	mov bx,ourtext(headingfordepot1v2)
 	jmp .changeitkeepbx
 .changeit:
