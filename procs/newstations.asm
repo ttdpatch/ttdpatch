@@ -146,6 +146,11 @@ codefragment oldapplystationcompanycolor
 
 codefragment_call newapplystationcompanycolor,applystationcompanycolor,5
 
+codefragment newdecidestationtransparency
+	icall decidestationtransparency
+	setfragmentsize 7
+	db 0x73		// jz -> jnc
+
 codefragment_call newperiodicstationupdate, periodicstationupdate
 endcodefragments
 
@@ -165,7 +170,12 @@ patchnewstations:
 	add edi,lastediadj-41
 extern getspritecoordsforstationwindow,getspritecoordsforstationwindow.landscapetopixel
 	chainfunction getspritecoordsforstationwindow,.landscapetopixel
-	multipatchcode oldapplystationcompanycolor,newapplystationcompanycolor,2
+	patchcode oldapplystationcompanycolor,newapplystationcompanycolor,1,2
+	lea edi,[edi+lastediadj-9]
+	storefragment newdecidestationtransparency
+	patchcode oldapplystationcompanycolor,newapplystationcompanycolor,1,0
+	lea edi,[edi+lastediadj-9]
+	storefragment newdecidestationtransparency
 
 	patchcode oldremoverailstation,newremoverailstation,1,1
 	patchcode oldsetupstationstruct,newsetupstationstruct,2,3

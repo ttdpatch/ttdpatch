@@ -1589,7 +1589,8 @@ getstationtracktrl:
 // when displaying the station in the selection window, don't break manually selected
 // recolor sprites and/or semi-transparency
 exported dispstationsprite
-	test ebx,0x7FFF0000
+	btr ebx,30		// bit 30 is meaningless here, sprites are always drawn normally
+	test ebx,0x3FFF0000
 	jnz .donthurt
 	or ebx,eax
 .donthurt:
@@ -3388,6 +3389,18 @@ exported applystationcompanycolor
 
 .hasrecolor:			// the layout has its own recolor data, don't ruin it
 	cmp eax,eax		// set zf
+	ret
+
+// decide whether to draw station sprite in normal or transparent mode
+// in:	ebx: sprite number & flags from layout
+//	other regs set up for addsprite or addrelsprite
+// out:	cf set for normal drawing
+// safe: ebp
+exported decidestationtransparency
+	btr ebx,30
+	jc .gotit			// bit 30 set - always draw normally
+	bt dword [displayoptions],4	// check "transparent buildings" in display options
+.gotit:
 	ret
 
 noglobal uvarw rootspritex
