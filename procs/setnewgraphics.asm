@@ -2,6 +2,7 @@
 #include <frag_mac.inc>
 #include <misc.inc>
 
+
 extern findwindowstructuse.ptr,gameoptionsclick.savevehnames
 extern gameoptionsgrfstat,gameoptionsgrfstathints,gameoptionstimer
 extern heapptr,malloc
@@ -67,10 +68,25 @@ patchsetnewgraphics:
 	mov ebx,edi
 
 	mov esi,[findwindowstructuse.ptr]
-	push 22*12+2*12+1
+	
+	; Default is 22 entries plus 2 new entries, and the terminator
+extern patchflags
+	mov ecx, 22*12 + 2*12 + 1
+	testflags newstartyear
+	jnc .nostartyr
+	
+	; Add a further 4 entries, 'box', text and buttons (other hacks are done later (I hope))
+	add ecx, 4*12
+
+.nostartyr:
+	push ecx ; Push this as the number to make now
+	
 	call malloc
 	pop edi
 	mov [ebx+3],edi
+extern StartYearDataPointers
+	mov dword [StartYearDataPointers], edi ; Store this for later when the real hacking fun begins..
+	mov dword [StartYearDataPointers + 4], ebx ; Store this for later when the real hacking fun begins..
 	mov ebx,[ebx-9]	// window handler
 #if WINTTDX
 	add ebx,[ebx+1]	// resolve indirect jmp

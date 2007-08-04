@@ -369,3 +369,4 @@ newgamewindow="\90Are you sure you want to abandon this game and start a new gam
 headingfordepot1v2="\95\80 Train Depot\80, \84"
 headingfordepot2v2="\95\80 Road Depot\80, \84"
 headingfordepot3v2="\95\80 Ship Depot\80, \84"
+newstartyear="\98New game start year"

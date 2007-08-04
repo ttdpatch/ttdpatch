@@ -133,7 +133,6 @@
 	patchproc eternalgame, patcheternalgame
 	patchproc showfulldate,gamespeed, patchshowfulldate
 	patchproc signalsontrafficside, patchsignalsontrafficside
-	patchproc newstartyear, patchstartyear
 	patchproc newerrorpopuptime, patcherrorpopuptime
 	patchproc newtowngrowthfactor, patchtowngrowthfactor
 //	patchproc largertowns,newtowngrowthrate, patchtowngrowthrate
@@ -165,6 +164,8 @@
 	patchprocandor canmodifygraphics,NOTBIT(MISCMODS_SMALLSPRITELIMIT),, patchextendedspritelimit
 	patchprocandor newshistory,enhancegui,, patchnewshistory	// must be before patchmorewindows
 
+	patchproc newstartyear, patchstartyear // must be after patchsetnewgraphics
+	
 	patchproc enhancegui, clonetrain, patchmovedepotdata
 	patchproc clonetrain, patchclonetrain // Must be patched before winsizer
 	patchproc enhancegui, patchwindowsizer

@@ -403,9 +403,14 @@ defourtext se
 defourtext sw
 defourtext nw
 
-
 defourtext tr_entertileside
 defourtext tr_pbssigblentertl
+
+defourtext newstartyear
+defourtext newstartyearprint
+defourtext newstartyearhintyear
+defourtext newstartyearhintinc
+defourtext newstartyearhintdec
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

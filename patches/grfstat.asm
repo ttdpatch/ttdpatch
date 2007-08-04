@@ -11,6 +11,7 @@
 #include <window.inc>
 #include <bitvars.inc>
 #include <grf.inc>
+#include <flags.inc>
 
 extern activatedefault,ctrlkeystate
 extern BringWindowToForeground,CreateTooltip,CreateWindow,DestroyWindow
@@ -76,7 +77,11 @@ global gameoptionsgrfstathints
 gameoptionsgrfstathints:
 	times 22 dw 0
 	times 2 dw ourtext(initialgrfsettingshint)
-
+	dw ourtext(newstartyearhintyear)
+	dw ourtext(newstartyearhintyear)
+	dw ourtext(newstartyearhintdec)
+	dw ourtext(newstartyearhintinc)
+	
 uvarb grfstat_titleclimate,1,s	// for what climate the grf setting from the
 				// title menu were set; -1 if not set
 
@@ -988,6 +993,10 @@ ovar .savevehnames, -4,$,gameoptionsclick
 
 	cmp cl,23
 	je .grfstat
+
+extern patchflags, gameoptionsstartyrtclick
+	testflags newstartyear
+	jc gameoptionsstartyrtclick
 	ret
 
 .grfstat:
@@ -1010,6 +1019,19 @@ gameoptionstimer:
 	jc .done
 	mov ah,23
 	btr dword [esi+window.activebuttons],23
+	jc .done
+	
+	testflags newstartyear
+	jnc .done
+
+	mov ah,26 ; Reset the elments added by the gui hacks for startyear
+	btr dword [esi+window.activebuttons],26
+	jc .done
+
+	mov ah,27
+	btr dword [esi+window.activebuttons],27
+	jc .done
+	
 .done:
 	ret
 

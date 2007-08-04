@@ -65,6 +65,7 @@
 // Format is basically the same as the patchaction list. Variables must be sorted widest first.
 startpatchvars
 	patchvarb newgameyesno
+	patchvarb startyear
 endpatchvars
 
 
