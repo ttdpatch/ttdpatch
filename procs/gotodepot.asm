@@ -200,9 +200,12 @@ patchgotodepot:
 
 	patchcode oldleavehangar,newleavehangar,1,1
 
-	patchcode oldskipbutton,newskipbutton,1,1
 	patchcode oldfullloadbutton,newfullloadbutton,1,1
 	mov dword [edi+lastediadj+36],0x90007520
 
 	multipatchcode oldcanceldepot,newcanceldepot,4
+	ret
+
+exported patchskipbutton
+	patchcode oldskipbutton,newskipbutton,1,1
 	ret

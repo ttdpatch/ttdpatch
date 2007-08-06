@@ -43,6 +43,7 @@
 	patchproc setnewservinterval,autorenew,gotodepot, patchmaintcheck
 	patchproc sharedorders,gotodepot, patchschedulefuncs
 	patchproc gotodepot, patchgotodepot
+	patchproc gotodepot, fifoloading, patchskipbutton
 	patchproc gotodepot,buildonslopes, patchnewdepottypeandcost
 	patchproc largerstations, patchstationspread
 	patchproc morestationtracks,irrstations, patchmorestationtracks

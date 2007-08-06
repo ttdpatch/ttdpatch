@@ -11,6 +11,7 @@
 #include <patchproc.inc>
 
 patchproc sharedorders, patchsharedorders
+patchproc sharedorders, fifoloading, patchdeletepressed
 patchproc newsignals, patchnewsignals
 
 extern BringWindowToForeground,CreateTooltip,CreateWindow
@@ -2292,8 +2293,11 @@ patcheternalgame:
 patchsharedorders:
 	patchcode oldshowendoforders,newshowendoforders,1,1
 	multipatchcode oldadjustorders,newadjustorders,2
-	patchcode olddeletepressed,newdeletepressed,1,1
 	patchcode olddeletevehschedule,newdeletevehschedule,1,1
+	ret
+
+patchdeletepressed:
+	patchcode olddeletepressed,newdeletepressed,1,1
 	ret
 
 global patchsignals
