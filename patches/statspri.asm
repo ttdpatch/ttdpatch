@@ -2568,7 +2568,7 @@ exported getotherstationid
 
 	mov edx,[mostrecentspriteblock]
 	mov edx,[edx+spriteblock.grfid]
-	cmp edx,[stationidgrfmap+ebx*stationid_size+stationid.grfid]
+	cmp edx,[stationidgrfmap+ecx*stationid_size+stationid.grfid]
 	setne dl
 	inc dl
 	or ah,dl
