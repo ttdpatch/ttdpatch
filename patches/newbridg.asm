@@ -65,7 +65,7 @@ alterbridgespritetable:
 	stc
 	ret
 
-	// prop 0F: long introduction date
+	// prop 0F: long introduction year
 exported longintrodatebridges
 	extern specificpropertybase
 	mov edi,[specificpropertybase+6*4]
@@ -73,20 +73,18 @@ exported longintrodatebridges
 
 .next:
 	lodsd
-	sub eax,701265	// 1920
+	sub eax,1920
 	jge .notbefore
 
 	xor eax,eax
 
 .notbefore:
-	cmp eax,93503	// 256 years minus one day
+	cmp eax,255
 	jb .ok
 
-	mov eax,93503
+	mov al,255
 
 .ok:
-	extern getfullymd
-	call [getfullymd]
 	stosb
 	loop .next
 	clc
