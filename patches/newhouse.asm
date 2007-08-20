@@ -2877,3 +2877,66 @@ exported gethouseaccepthistory
 	pop edx
 	pop ebx
 	ret
+
+// functions to check site suitability for water towers, temperate banks and tropic/arctic banks
+// in:	ax, cx: fine X and Y coordinates
+//	bl: landscape class *8
+// out:	bl=0x18 to allow tile, anything else to make it fail
+// safe: edi, ???
+exported canindustryreplacehouse_watertower
+	mov di,0x00316	//...can only be built in towns
+	jmp short canindustryreplacehouse.gottextid
+
+exported canindustryreplacehouse_bigtown
+	mov di,0x029D	//...can only be built in towns with a population of at least 1200
+	jmp short canindustryreplacehouse.gottextid
+
+exported canindustryreplacehouse
+	mov di,0x030D	//...can only be built in towns
+
+.gottextid:
+	mov [operrormsg2],di	// reproduce overwritten code: change operrormsg2
+
+	cmp bl,0x18
+	je .house
+	ret
+
+.house:
+	pusha
+// restore XY coords from fine X and Y
+	movzx esi,cx
+	rol si,8
+	or si,ax
+	ror si,4
+
+	gethouseid ebp,esi
+	cmp ebp,0x7f
+	jbe .allow
+
+	test byte [housecallbackflags2+ebp-0x80],4
+	jnz .docallback
+
+	test byte [houseextraflags+ebp-0x80],2
+	jnz .deny
+
+.allow:
+	popa
+	ret
+
+.docallback:
+	lea eax,[ebp-0x80]
+	mov byte [grffeature],7
+	mov byte [miscgrfvar],1
+	mov dword [curcallback],0x143
+	call getnewsprite
+	mov dword [curcallback],0
+	mov byte [miscgrfvar],0
+	jc .allow
+	test eax,eax
+	jz .allow
+
+.deny:
+	popa
+	mov word [operrormsg2],ourtext(nohouseremove)
+	xor bl,bl
+	ret

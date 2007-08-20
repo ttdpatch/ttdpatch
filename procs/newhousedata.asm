@@ -235,6 +235,25 @@ codefragment oldfoundtileincatchment
 
 codefragment_call newfoundtileincatchment,foundtileincatchment
 
+extern operrormsg2
+codefragment oldcanindustryreplacehouse_bigtown
+	mov word [operrormsg2],0x029D	//...can only be built in towns with a population of at least 1200
+	cmp bl,0x18
+
+codefragment_call newcanindustryreplacehouse_bigtown,canindustryreplacehouse_bigtown,9
+
+codefragment oldcanindustryreplacehouse
+	mov word [operrormsg2],0x030D	//...can only be built in towns
+	cmp bl,0x18
+
+codefragment_call newcanindustryreplacehouse,canindustryreplacehouse,9
+
+codefragment oldcanindustryreplacehouse_watertower
+	mov word [operrormsg2],0x0316	//...can only be built in towns
+	cmp bl,0x18
+
+codefragment_call newcanindustryreplacehouse_watertower,canindustryreplacehouse_watertower,9
+
 endcodefragments
 
 patchnewhousedata:
@@ -363,4 +382,8 @@ patchnewhousedata:
 
 extern stationarray2ofst
 	patchcode oldfoundtileincatchment,newfoundtileincatchment,1,2,,{cmp dword [stationarray2ofst],0},nz
+
+	patchcode canindustryreplacehouse_bigtown
+	patchcode canindustryreplacehouse
+	patchcode canindustryreplacehouse_watertower
 	ret

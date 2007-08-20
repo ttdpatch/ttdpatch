@@ -411,6 +411,8 @@ defourtext newstartyearprint
 defourtext newstartyearhintyear
 defourtext newstartyearhintinc
 defourtext newstartyearhintdec
+
+defourtext nohouseremove
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
