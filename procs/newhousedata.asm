@@ -235,7 +235,6 @@ codefragment oldfoundtileincatchment
 
 codefragment_call newfoundtileincatchment,foundtileincatchment
 
-extern operrormsg2
 codefragment oldcanindustryreplacehouse_bigtown
 	mov word [operrormsg2],0x029D	//...can only be built in towns with a population of at least 1200
 	cmp bl,0x18
