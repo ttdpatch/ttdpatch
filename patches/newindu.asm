@@ -3949,6 +3949,21 @@ initnewindustry:
 	inc al
 	mov [ecx+industry2.layoutnumber],al
 
+// do the color callback, if enabled
+	movzx eax,byte [esi+industry.type]
+	test byte [industrycallbackflags2+eax],8
+	jz .nocolorcallback
+
+	mov byte [grffeature],10
+	mov dword [curcallback],0x14A
+	call getnewsprite
+	mov dword [curcallback],0
+	jc .nocolorcallback
+
+	and al,0x0F
+	mov [esi+industry.buildingcolor],al
+
+.nocolorcallback:
 	ret
 
 exported getindustrylayoutnumber
