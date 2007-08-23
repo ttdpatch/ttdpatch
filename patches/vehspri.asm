@@ -1614,12 +1614,16 @@ getplayerinfo.gotwindow:
 	mov [esp+1Ch], eax
 	popa
 	mov al, [eax+window.company]
-.gotcompany:
 	cmp al, -1
+#ifdef RELEASE
+	jle .nocompany
+#else
 	jl .die
 	je .nocompany
+#endif
 	cmp al, 7
 	jg .die
+.gotcompany:
 	xchg al, [human1]		// Fudge [human1] and [curplayer] to produce results
 	call getvehiclecolors_vehtype	// relative to the player we're interested in
 	xchg al, [human1]
@@ -1647,8 +1651,9 @@ getplayerinfo.vehtype:
 	push eax
 
 extern CloneTrainCompany // Saves this function from death when clonetrain is used!
-	cmp byte [CloneTrainCompany], 8 // Lower than 8 is valid, higher means not clonetrain calling
-	jb .CloneTrain
+	mov al, [CloneTrainCompany] // We may have the company window already (from CloneTrain)
+	cmp al, 8 // Lower than 8 is valid, higher means not clonetrain calling
+	jb getplayerinfo.gotwindow.gotcompany
 
 	// find window struct pointer
 	// It appears on the stack at least three times between [esp+4]
@@ -1684,17 +1689,13 @@ extern CloneTrainCompany // Saves this function from death when clonetrain is us
 #ifdef RELEASE
 	popa
 	pop ecx
-	mov eax, FF
+	mov eax, 0xFF
 	ret
 #else
 	add esp, 24h	// undo the push eax/pusha
 	ud2
 #endif
 
-.CloneTrain: // This whole sub function isn't net safe and using company directly will not work
-	mov al, [CloneTrainCompany] // We have the company window already (hugs CloneTrain)
-	jmp getplayerinfo.gotwindow.gotcompany
- 
 	// 43: get current player info
 	// out:	Ccttmmnn
 	//	nn=curplayer, mm=multiplayer, tt=type, c=player colour, C=2nd player colour
@@ -1763,7 +1764,7 @@ getplayerinfo:
 	mov ah,2	// Player managing AI company
 
 .donetype:
-	// now eax=000cttnn
+	// now eax=00Ccttnn
 	rol eax,8
 
 	cmp byte [numplayers],2
