@@ -2217,7 +2217,7 @@ vard townparamvarhandler
 %endif
 endvar
 
-extern getlandorwaterdistance,getindustrylayoutnumber
+extern getlandorwaterdistance,getindustrylayoutnumber,getplayerinfo_indu
 
 vard industryvarhandler
 	dd addr(getincargo)
@@ -2225,6 +2225,7 @@ vard industryvarhandler
 	dd addr(getincargo)
 	dd getlandorwaterdistance
 	dd getindustrylayoutnumber
+	dd getplayerinfo_indu
 %ifndef PREPROCESSONLY
 %assign n_industryvarhandler (addr($)-industryvarhandler)/4
 %endif

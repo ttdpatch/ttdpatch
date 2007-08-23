@@ -16,6 +16,7 @@
 #include <refit.inc>
 #include <player.inc>
 #include <window.inc>
+#include <industry.inc>		// For indu var 45
 
 extern cargoamountnnamesptr,cargoclass,curgrfid
 extern cargotypes,deftwocolormaps,exscurfeature
@@ -1695,6 +1696,13 @@ extern CloneTrainCompany // Saves this function from death when clonetrain is us
 	add esp, 24h	// undo the push eax/pusha
 	ud2
 #endif
+
+// indu variable 45 (like veh var 43)
+exported getplayerinfo_indu
+	movzx eax, byte [esi+industry.owner]
+	cmp al, 7
+	jbe short getplayerinfo.gotwindow.gotplayer
+	ret
 
 	// 43: get current player info
 	// out:	Ccttmmnn
