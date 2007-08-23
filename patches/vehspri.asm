@@ -1701,7 +1701,7 @@ extern CloneTrainCompany // Saves this function from death when clonetrain is us
 exported getplayerinfo_indu
 	movzx eax, byte [esi+industry.owner]
 	cmp al, 7
-	jbe short getplayerinfo.gotwindow.gotplayer
+	jbe getplayerinfo.novehicle_gotplayer
 	ret
 
 	// 43: get current player info
@@ -1725,6 +1725,7 @@ getplayerinfo:
 
 .novehicle:
 	movzx eax,byte [curplayer]
+.novehicle_gotplayer:
 	mov ch,[companycolors+eax]
 	mov cl,ch
 	imul eax,0+player2_size
