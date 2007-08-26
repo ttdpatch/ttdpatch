@@ -296,6 +296,8 @@ proc processnewinfo
 
 .getgenprop:
 	mov edi,[%$feature]
+	cmp edi, 4
+	jae .invalidprop
 	movzx edi,byte [vehbase+edi]
 	add edi,[%$offset]
 	imul edi,ebx
