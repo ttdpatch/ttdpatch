@@ -4032,7 +4032,7 @@ initnewindustry:
 
 .nooutputcallback:
 
-	mov dword [curcallback],0	// clear curcallback once only instead of after each callback
+	and dword [curcallback],0	// clear curcallback once only instead of after each callback
 	ret
 
 exported getindustrylayoutnumber
