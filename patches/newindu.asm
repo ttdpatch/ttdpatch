@@ -3896,7 +3896,7 @@ var realindustryowner, db 10h
 // The old overwritten code pedantly zeroed out 8 bytes that
 // are never accessed. We store extra data there instead.
 // in:	esi->industry
-// safe: eax,ecx
+// safe: eax,ecx,edx
 global initnewindustry
 initnewindustry:
 	call [randomfn]
@@ -3949,21 +3949,90 @@ initnewindustry:
 	inc al
 	mov [ecx+industry2.layoutnumber],al
 
+	mov byte [grffeature],10	// we can have up to three callbacks now, spare some bytes by setting this once only
+
+	movzx edx,byte [esi+industry.type]	// edx will contain the type until the end of the proc
+
 // do the color callback, if enabled
-	movzx eax,byte [esi+industry.type]
-	test byte [industrycallbackflags2+eax],8
+	test byte [industrycallbackflags2+edx],8
 	jz .nocolorcallback
 
-	mov byte [grffeature],10
+	mov eax,edx
 	mov dword [curcallback],0x14A
 	call getnewsprite
-	mov dword [curcallback],0
 	jc .nocolorcallback
 
 	and al,0x0F
 	mov [esi+industry.buildingcolor],al
 
 .nocolorcallback:
+
+	test byte [industrycallbackflags2+edx],0x10
+	jz .noinputcallback
+
+	or word [esi+industry.accepts],byte -1
+	mov byte [esi+industry.accepts+2],-1
+
+	and dword [miscgrfvar],0
+	mov ecx,industry.accepts
+	mov dword [curcallback],0x14B
+	push dword [mostrecentspriteblock]
+
+.nextinput:
+	mov eax,edx
+	call getnewsprite
+	jc .inputdone
+	cmp al,0xFF
+	je .inputdone
+	push eax
+	call lookuptranslatedcargo
+	pop eax
+	mov [esi+ecx],al
+	inc ecx
+	inc byte [miscgrfvar]
+	cmp ecx,byte industry.accepts+3
+	jb .nextinput
+
+.inputdone:
+	pop eax		// remove sprite block ptr from stack
+	mov byte [miscgrfvar],0
+
+.noinputcallback:
+
+	test byte [industrycallbackflags2+edx],0x20
+	jz .nooutputcallback
+
+	or word [esi+industry.producedcargos],byte -1
+
+	and dword [miscgrfvar],0
+	mov ecx,industry.producedcargos
+	mov dword [curcallback],0x14C
+	push dword [mostrecentspriteblock]
+
+.nextoutput:
+	mov eax,edx
+	call getnewsprite
+	jc .outputdone
+	cmp al,0xFF
+	je .outputdone
+
+	push eax
+	call lookuptranslatedcargo
+	pop eax
+
+	mov [esi+ecx],al
+	inc ecx
+	inc byte [miscgrfvar]
+	cmp ecx,byte industry.producedcargos+2
+	jb .nextoutput
+	
+.outputdone:
+	pop eax		// remove sprite block ptr from stack
+	mov byte [miscgrfvar],0
+
+.nooutputcallback:
+
+	mov dword [curcallback],0	// clear curcallback once only instead of after each callback
 	ret
 
 exported getindustrylayoutnumber
