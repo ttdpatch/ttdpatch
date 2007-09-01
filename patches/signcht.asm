@@ -149,6 +149,8 @@ cheatentry "RESETCARGO",resetcargocheat,0
 cheatentry "CLONETILE", clonetilecheat,0
 #endif
 
+cheatentry "UNRESERVEPBSTRACK",unreservepbstrack,0
+
 #if DEBUGNETPLAY
 cheatentry "LOGRANDOM",lograndomcheat,0
 #endif
@@ -2735,6 +2737,65 @@ purgeindustriescheat:
 	clc
 	ret
 	
+unreservepbstrack:
+	call getsignxy
+	movzx eax, BYTE [landscape4(si)]
+	movzx ecx, BYTE [landscape5(si)]
+	
+	and al,0xf0
+	cmp al,0x10
+	je .rail
+	cmp al,0x20
+	je .roadcrossing
+	cmp al,0x50
+	je .station
+	cmp al,0x90
+	jne .fret
+.bridgeortunnel:
+	test cl, 0x8C
+	js .bridge
+	jnz .fret	//road bridge
+	jmp .btclear
+.bridge:
+	test cl, 6
+	jnz .fret	//not rail
+.btclear:
+	mov BYTE [landscape6+esi], 0
+	jmp .done
+.rail:
+	test cl, 0xC0
+	js .fret	//depot
+	jnz .signal
+	and BYTE [landscape6+esi], ~0x1F
+	jmp .done
+.signal:
+	and BYTE [landscape6+esi], ~0xF0
+	jmp .done
+.roadcrossing:
+	and cl,0xf0
+	cmp cl,0x10	// crossing?
+	jne .fret
+	and BYTE [landscape5(si)], ~0x4
+	jmp .done
+.station:
+	cmp cl, 0x8
+	jae .fret	//not train
+	and byte [landscape3+esi*2],~0x80
+//	jmp .done
+.done:
+	mov eax, esi
+	movzx ecx, ah
+	shl ecx, 4
+	movzx eax, al
+	shl eax, 4
+	call [invalidatetile]
+.tret:
+	clc
+.ret:
+	ret
+.fret:
+	stc
+	ret
 
 #if 1 && DEBUG
 	//parameters: 4 hex digits source coordinates, decimal integer x extent (NE->SW), decimal integer y extent (NW->SE)
