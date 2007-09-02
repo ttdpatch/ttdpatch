@@ -28,6 +28,7 @@ extern resetpathsignalling,setmainviewxy,specialerrtext1,specialerrtext2
 extern stationarray2ofst,subsidyfn,traincost,treenum,treestart,vehtypedataptr
 extern yeartodate,trackcheat,isplaneinflight
 extern convertplatformsinremoverailstation
+extern invalidatetile
 
 
 %assign cheattext "CHT:"	// gives "CHT:" in little endian
@@ -2799,7 +2800,6 @@ unreservepbstrack:
 
 #if 1 && DEBUG
 	//parameters: 4 hex digits source coordinates, decimal integer x extent (NE->SW), decimal integer y extent (NW->SE)
-extern invalidatetile
 clonetilecheat:
 	call gethexnumber
 	jc NEAR .ret
