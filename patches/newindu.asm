@@ -3976,7 +3976,7 @@ initnewindustry:
 	and dword [miscgrfvar],0
 	mov ecx,industry.accepts
 	mov dword [curcallback],0x14B
-	push dword [mostrecentspriteblock]
+	push dword [industryspriteblock+edx*4]
 
 .nextinput:
 	mov eax,edx
@@ -4007,7 +4007,7 @@ initnewindustry:
 	and dword [miscgrfvar],0
 	mov ecx,industry.producedcargos
 	mov dword [curcallback],0x14C
-	push dword [mostrecentspriteblock]
+	push dword [industryspriteblock+edx*4]
 
 .nextoutput:
 	mov eax,edx
