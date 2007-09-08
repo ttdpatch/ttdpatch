@@ -1612,7 +1612,7 @@ getconsistcargo:
 getplayerinfo.gotwindow:
 // Generate var 43 based on the window's owner
 	pop ecx
-	mov [esp+1Ch], eax
+	mov [ebp+1Ch], eax
 	popa
 	mov al, [eax+window.company]
 	cmp al, -1
@@ -1646,7 +1646,6 @@ getplayerinfo.gotwindow:
 	ret
 
 getplayerinfo.vehtype:
-	mov ecx,[curgrffeature]
 	movzx eax,byte [vehbase+ecx]
 	add eax,[curgrfid]
 	push eax
@@ -1662,14 +1661,15 @@ extern CloneTrainCompany // Saves this function from death when clonetrain is us
 	// I looked for a reliable offset, but could not find one, so we get to search.
 	pusha
 	xor ecx, ecx
+	mov ebp,esp
 	mov cl, 27h
-	lea esi, [esp+4+20+4]
+	lea esi, [ebp+24h]
 .outer:
 	lodsd
 	// zero and the above-pushed EAX appear two or more times, so ignore them.
 	test eax,eax
 	jz .loop
-	cmp eax, [esp+1Ch]
+	cmp eax, [ebp+20h]
 	je .loop
 
 	xor edx, edx
@@ -1711,7 +1711,8 @@ exported getplayerinfo_indu
 global getplayerinfo
 getplayerinfo:
 	extern curgrffeature,player2array
-	cmp byte [curgrffeature],4
+	mov ecx,[curgrffeature]
+	cmp cl,4
 	jae .novehicle
 	test esi,esi
 	jz .vehtype
