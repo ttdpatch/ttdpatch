@@ -2285,6 +2285,10 @@ getlayoutbyte:
 // during callback 2F
 	mov si,[esp+4]
 	mov [industrycheck_mainXY],si
+// get current layout number from [fakeinduentry+6]
+// other parts of fakeinduentry can be incorrect, don't use them here!
+	mov bh,[fakeinduentry+6]
+	mov [miscgrfvar],bh
 // get the shape flags
 	movzx esi,byte [ebp+2]
 	movzx esi,byte [industiledataidtogameid+8*esi+industilegameid.gameid]
