@@ -152,6 +152,10 @@ cheatentry "CLONETILE", clonetilecheat,0
 
 cheatentry "UNRESERVEPBSTRACK",unreservepbstrack,0
 
+#if 1 && DEBUG
+cheatentry "SETINDVAL",setindustrystrucval,0
+#endif
+
 #if DEBUGNETPLAY
 cheatentry "LOGRANDOM",lograndomcheat,0
 #endif
@@ -2884,6 +2888,95 @@ clonetilecheat:
 .fret:
 	stc
 	ret
+	
+	
+	//parameters: hex dword new values, hex dword bit mask, hex byte offset (max 32h), flag: (0/1) return existing dword
+setindustrystrucval:
+	call gethexnumber
+	jc NEAR .fret
+	mov ecx, edx
+	call gethexnumber
+	jc NEAR .fret
+	mov ebp, edx
+	call gethexnumber
+	jc NEAR .fret
+	cmp edx, 32h
+	jae NEAR .fret
+	push edx
+	call gethexnumber
+	jc NEAR .fret
+	xchg edx, [esp]
+	call getsignxy
+
+	mov al, [landscape4(si)]
+	shr al, 4
+	cmp al, 8
+	jne NEAR .pfret //not an industry
+	movzx eax, BYTE [esi+landscape2]
+	add eax, eax
+	lea eax, [eax*2+eax]
+	lea eax, [eax*8+eax]	//*36h = industry structure width
+	add eax, [industryarrayptr]
+	add eax, edx
+	mov edi, [eax]
+	and ecx, ebp
+	mov esi, edi
+	not ebp
+	and edi, ebp
+	or edi, ecx
+	mov [eax], edi
+	pop eax
+	or eax, eax
+	jz .tret
+	
+	push edi
+	mov edi, inddispl
+	xor ebx, ebx
+	call writehexbyte
+	mov BYTE [edi+2], ':'
+
+	mov edi, inddisp2
+	xor ebx, ebx
+	mov ecx, 4
+	mov edx, esi
+.loop:
+	call writehexbyte
+	shr edx, 8
+	loop .loop
+	
+	mov edi, inddisp3
+	xor ebx, ebx
+	mov ecx, 4
+	pop edx
+.loop2:
+	call writehexbyte
+	shr edx, 8
+	loop .loop2
+
+	mov byte [edi+ebx],0
+
+	mov dword [specialerrtext1],inddisp // Copied from below to make a red box
+	mov bx, statictext(specialerr1)
+	mov dx, -1
+	xor ax, ax
+	xor cx, cx
+	push ebp
+	call dword [errorpopup]
+	pop ebp
+.tret:
+	clc
+.ret:
+	ret
+.pfret:
+	add esp, 4
+.fret:
+	stc
+	ret
+var inddisp, db 94h, "INDUSTRY:  "
+var inddispl, db "##:  "
+var inddisp2, db "##-##-##-## --> "
+var inddisp3, db "##-##-##-##", 0,0
+
 #endif
 
 #if DEBUGNETPLAY
