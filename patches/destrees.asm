@@ -77,7 +77,6 @@ plantmoretreesindesert:
 	jz	.runnormal
 	mov	al, 0
 .runnormal:
-	cmp	al, 2
 	retn
 //-----------------------------------------------------------------------------------	
 

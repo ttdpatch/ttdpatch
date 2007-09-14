@@ -24,9 +24,7 @@ codefragment newplantdeserttree
 codefragment oldplantdeserttree2, -18
 	and     eax, 3Ch
 
-codefragment newplantdeserttree2
-	icall	plantmoretreesindesert
-	setfragmentsize 7
+codefragment_call newplantdeserttree2,plantmoretreesindesert,5
 	
 codefragment oldchecktileforfarm
 	and	dh, 1Ch
