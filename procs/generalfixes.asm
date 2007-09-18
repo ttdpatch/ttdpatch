@@ -806,6 +806,12 @@ codefragment newDistributeIndustryCargo_recession
 	setfragmentsize 10
 .norecession:
 
+codefragment oldtreediesinsnowordesert
+	cmp ah, 0x20
+	je $+2+2
+
+codefragment_call newtreediesinsnowordesert,treediesinsnowordesert,7
+
 endcodefragments
 
 patchgeneralfixes:
@@ -1269,6 +1275,8 @@ patchgeneralfixes:
 	jne .notwrongcode
 	mov byte [edi],0x90
 .notwrongcode:
+
+	patchcode treediesinsnowordesert
 	ret
 
 // shares some code fragments
