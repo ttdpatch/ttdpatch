@@ -980,14 +980,6 @@ proc processtileaction2
 //	ebx=sprite number
 .getadjustedspriteno:
 
-// despite it's documentation, exsspritelistext is a boolean (it's reset to zero every time
-// a sprite is added), so set it to 1 every time we read a sprite. This way, the next
-// sprite add function will work correctly
-
-	mov bl,[%$grffeature]
-	mov [exscurfeature],bl
-	mov byte [exsspritelistext], 1
-
 // read the sprite number
 	mov ebx,[esi]
 	add esi,4
@@ -1002,6 +994,14 @@ proc processtileaction2
 	add edx,[%$conststate]
 	movzx edx,byte [.spriteoffsets+edx]
 	add ebx,edx
+
+// Set the sprite limit vars only if we're really going to use a custom sprite.
+// This way, the GRF can use regular sprites allocated via GRM without problems.
+
+	mov dl,[%$grffeature]
+	mov [exscurfeature],dl
+	mov byte [exsspritelistext], 1
+
 	pop edx
 
 .ttdsprite:
