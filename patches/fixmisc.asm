@@ -3593,3 +3593,21 @@ exported adddirectoryentry
 	ret
 
 
+// called when the last tree of a class 4 tile dies, and it was on a non-normal terrain (rough land, snow or desert)
+// in:	al: class0 ground type to go to L5 if the tree was in snow
+//	ah: L2 entry of the tree, with all bits but 4..5 masked out (10 - rough land, 20 - snow or desert)
+// out:	al: class0 ground type to go to L5
+exported treediesinsnowordesert
+	cmp ah,0x10
+	je .roughland
+	cmp byte [climate],2		// this is what the old code forgets - in tropic, we should revert to desert, not to snow
+	je .desert
+	ret		// this should really be snow, so no change needed
+
+.roughland:
+	mov al,7
+	ret
+
+.desert:
+	add al,4	// change bits 2..4 from snow (10) to desert (14)
+	ret
