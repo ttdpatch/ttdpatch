@@ -78,7 +78,19 @@ plantmoretreesindesert:
 	mov	al, 0
 .runnormal:
 	retn
-//-----------------------------------------------------------------------------------	
+//-----------------------------------------------------------------------------------
+
+exported treespreadindesert
+	mov	al,[landscape5(bx)]	// overwritten
+	and	al,0x1c			// ditto
+	cmp	al,0x14
+	jne	.nodesert
+	test	byte [grfmodflags], 1
+	jz	.runnormal
+	mov	al, 0x10		// mimic snowy land for deserts - the code will work for both snowy and desert trees
+.nodesert:
+.runnormal:
+	ret
 
 //-----------------------------------------------------------------------------------	
 global keepfieldsinthedesert

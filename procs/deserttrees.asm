@@ -25,6 +25,13 @@ codefragment oldplantdeserttree2, -18
 	and     eax, 3Ch
 
 codefragment_call newplantdeserttree2,plantmoretreesindesert,5
+
+codefragment oldtreespreadindesert,-4,-6
+	and al,0x1c
+	cmp al,4
+	je $+2+0x17+2*WINTTDX
+
+codefragment_call newtreespreadindesert,treespreadindesert,6+2*WINTTDX
 	
 codefragment oldchecktileforfarm
 	and	dh, 1Ch
@@ -74,6 +81,7 @@ endcodefragments
 patchallowtreesindesert:
 	patchcode plantdeserttree		//not only new trees... but replant randomly
 	patchcode plantdeserttree2		//in desert
+	patchcode treespreadindesert		//allow trees to spread in desert
 	patchcode checktileforfarm,1,2		//chunks to allow farms in deserts
 	patchcode checktileforfarm2,1+WINTTDX,3
 	patchcode checktileforfarm3,1+WINTTDX,2
