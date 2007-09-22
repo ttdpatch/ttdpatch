@@ -274,7 +274,7 @@
 	YESNO('j',"shortrvs", CFG_SHORTRVS, VEH_ROAD, "NewVehicleGraphics", shortrvs),
 	     //k
 	     //l
-	     //m
+	BITS ('m',"miscmods2", CFG_MISCMODS2, BASIC, "MiscellaneousModifications", miscmods2, S32, FLAGDATA(miscmods2flags), 0),
 	RANGE('n',"networktimeout", CFG_NETWORKTIMEOUT, BASIC, "NetworkTimeout", disconnectontimeout, AUTO, U8, FLAGDATA(networktimeout), 2, 240, 10),
 	YESNO('o',"onewayroads", CFG_ONEWAYROADS, INFST_ROADS, "OneWayRoads", onewayroads),
 	RANGE('p',"lostaircraft", CFG_AIRCRAFTLOSTTIME, VEH_ORDERS, "LostVehicles", lostaircraft, AUTO, U16, FLAGDATA(aircraftlosttime), 5, 1000, 90),
@@ -429,6 +429,7 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	largertowns,
 	newtowngrowthfactor,
 	miscmods,
+	miscmods2,
 	loadallgraphics,
 	morebuildoptions,
 	semaphoresignals,

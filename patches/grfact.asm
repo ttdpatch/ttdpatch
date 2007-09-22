@@ -4603,6 +4603,7 @@ uvard newgraphicssetsavail	// bit mask of action 5 sets that are available
 	db %1_OFS
 %endmacro
 
+extern miscmods2flags
 var grfswitchparamlist
 	grfswitchpar miscmodsflags		// 00
 	grfswitchpar expswitches		// 01
@@ -4622,6 +4623,7 @@ var grfswitchparamlist
 	grfswitchpar wagonspeedlimitempty	// 0F
 	grfswitchpar planespeedfactor		// 10
 	db 0					// 11=2CC base sprite, set in action 5
+	grfswitchpar miscmods2flags
 
 %undef grfswitchpar
 

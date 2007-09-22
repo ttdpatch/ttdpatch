@@ -615,6 +615,12 @@ initialize:
 	and dword [miscmodsflags],0		// let code access miscmodsflags without checking the miscmods flag
 
 .havemiscmods:
+	testmultiflags miscmods2
+	jnz .havemiscmods2
+extern miscmods2flags
+	and dword [miscmods2flags],0		// ditto for miscmods2flags
+
+.havemiscmods2:
 	testmultiflags experimentalfeatures
 	jnz .haveexpfeatures
 	and word [expswitches],0		// same for experimentalfeatures

@@ -151,8 +151,9 @@
 #define newsignals		117	// new signals						(125)
 #define vruncosts		118	// Enables the changing of vehicle costs		(126)
 #define psignals		119	// Programmable signals					(-)
+#define miscmods2		120	// continuation of miscmods				(-)
 
-#define lastbitdefaulton	119	// META: last bit defined to be set by -a
+#define lastbitdefaulton	120	// META: last bit defined to be set by -a
 
 // add new flags that should be on by default above, flags off by default below
 

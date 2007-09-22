@@ -308,7 +308,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-Yf #:   Make freight trains more massive by the given factor\n"
 	  "-Yg #:   Changeable gamespeed. # is speed at game start\n"
 	  "-Yl #:   Enable mouse wheel support and set options (Windows version only)\n"
-	  "-Yo #:   Control some features of other switches (see the documentation)\n"
+	  "-Yo #, -Zm #:   Control some features of other switches (see the documentation)\n"
 	  "-Yp #:   Allow planting many trees, choose plant mode\n"
 	  "-YA #:   Abandoned roads lose their owners, choose mode with parameter\n"
 	  "-YB #:   More build options, control options with parameter\n"
@@ -430,6 +430,7 @@ SWITCHTEXT(newerrorpopuptime, "New error popup timeout", ": %d sec.")
 SWITCHTEXT(newtowngrowthfactor, "Change town growth factor", " to %d")
 SWITCHTEXT(largertowns, "Larger towns", ", each 1 out of %d")
 SWITCHTEXT(miscmods, "Miscellaneous mods", ": %ld")
+SWITCHTEXT(miscmods2, "More miscellaneous mods", ": %ld")
 SWITCHTEXT(loadallgraphics, "Always load all new graphics", "")
 SWITCHTEXT(saveoptdata, "Save and load optional data", "")
 SWITCHTEXT(morebuildoptions, "More build options", ": %d")
@@ -566,6 +567,9 @@ BIT(nogrfidsinscreenshots, "Don't show active grfids in screenshots")
 BIT(dontchangesnow,        "Don't change how height is calculated for snowiness")
 BIT(notransparentdepots,   "Don't make road and tram depots transparent in transparent-buildings mode")
 BIT(nodepotnumbers,        "Don't display depot numbers")
+
+// Description for miscmods2 bits
+BITSWITCH(miscmods2)
 
 // Description for morebuildoptions bits
 BITSWITCH(morebuildoptions)
@@ -785,6 +789,7 @@ SETTEXT(CFG_ERRORPOPUPTIME, "`%s' (%s) changes the time after which red error po
 SETTEXT(CFG_TOWNGROWTHLIMIT, "`%s' (%s) changes the factor that limits the maximum possible extent of towns.  Range %ld..%ld.  Default %ld.")
 SETTEXT(CFG_LARGERTOWNS, "`%s' (%s) makes each one out of a given number of towns grow faster and larger (also applying `towngrowthlimit' selectively).  Range %ld..%ld.  Default %ld (one out of four towns).")
 SETTEXT(CFG_MISCMODS, "`%s' (%s) makes it posible to modify the working of some other switches, see the docs on more info.")
+SETTEXT(CFG_MISCMODS2, "`%s' (%s) makes it posible to modify the working of some other switches (similarly to miscmods), see the docs on more info.")
 SETTEXT(CFG_LOADALLGRAPHICS, "`%s' (%s) forces TTDPatch to always load all .grf files in newgrf(w).cfg, regardless of whether they were used previously in a loaded game (etc.) or not.")
 SETTEXT(CFG_SAVEOPTDATA, "`%s' (%s) makes TTDPatch save and load additional (optional) data at the end of savegames.")
 SETTEXT(CFG_MOREBUILDOPTIONS, "`%s' (%s) enables more build options.")

@@ -77,6 +77,9 @@ defbit MISCMODS_NOTRANSPARENTDEPOTS,	30 // Don't make road and tram depots trans
 defbit MISCMODS_NODEPOTNUMBERS,		31 // Don't show depot numbers
 enddefbits
 
+defbitvar miscmods2,miscmods2flags
+enddefbits
+
 
 defbitvar morebuildoptions,morebuildoptionsflags
 defbit MOREBUILDOPTIONS_CTUNNEL,	0 // allow crossing tunnels
