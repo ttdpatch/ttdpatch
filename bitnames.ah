@@ -78,6 +78,7 @@ defbit MISCMODS_NODEPOTNUMBERS,		31 // Don't show depot numbers
 enddefbits
 
 defbitvar miscmods2,miscmods2flags
+defbit MISCMODS2_NOENHANCETREES,	 0 // Force grass under the tree when it's planted on bare land or desert
 enddefbits
 
 

@@ -3611,3 +3611,76 @@ exported treediesinsnowordesert
 .desert:
 	add al,4	// change bits 2..4 from snow (10) to desert (14)
 	ret
+
+// Add some consistency to trees - when a tree is planted on a bare land or desert tile,
+// don't turn the ground into full grass.
+// A small change in the landscape format is needed - when bits 4..5 of L2 are zero
+// (indicating grass below), bits 6..7 show the amount of grass. Since unpatched
+// TTD always has these bits zeroed for grass, we assign "grassyness" backwards:
+// 3 is bare land, 0 is totally grassy.
+
+// called during the class 4 periodic processing to update the timer
+// make grass grow every 8 periodic processings, just like for class 0 tiles
+// in:	ah: landscape2 value of the tile
+//	al: ah+1
+//	ebx: XY of the tile
+// out:	ah: new landscape2 value
+// safe: ???
+exported treeperiodicupdate
+	and ax,0xf00f	// overridden
+	test al,7
+	jnz .nograssupdate
+	test ah,0x30
+	jnz .notgrass
+	test ah,0xC0
+	jz .fullgrass
+	sub ah,0x40	// make grass grow and refresh tile
+	xchg ebx,esi
+extern redrawtile
+	call redrawtile
+	xchg ebx,esi
+.nograssupdate:
+.notgrass:
+.fullgrass:
+	or ah,al	// overridden
+	ret
+
+// called during the class 4 periodic processing to remove the last tree from the tile
+// in:	ah: L2 value of the tile
+// out:	al: L5 value for the new class 0 tile
+// safe: ???
+exported treediesongrass
+	mov al,ah
+	shr al,6
+	xor al,3	// invert growth data to make it match with the class 0 format
+	ret
+
+// called while planting a tree on grass, snow or desert
+// make sure that desert and grass growth state  gets transferred to the class 4 tile
+// in:	al: L5 data from the class 0 tile, ANDed with 0x1C
+//	edi: XY of the tile
+// out:	L2 data updated
+// safe: eax,???
+exported planttree
+	mov ah,[landscape5(di)]
+	shl ah,6
+	xor ah,0xc0		// invert the grass/desert state
+	test al,al
+	jz .grass
+	xor ah,0xc0		// this isn't grass, so invert the state back, and 
+	or ah,0x20
+.grass:
+	mov [landscape2+edi],ah
+	ret
+
+// called while drawing the ground of a grassy tree tile
+// in:	XY of the tile on the stack
+// out:	ebx: grass growth state *2
+exported drawgrassytreeland
+	mov ebx,[esp+4]
+	movzx ebx,byte [landscape2+ebx]
+	not bl				// invert all bits, including grass growth state
+	shr bl,5
+	and bl,0xFE
+	jmp near $
+ovar .oldfn,-4,$,drawgrassytreeland

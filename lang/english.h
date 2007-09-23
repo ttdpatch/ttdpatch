@@ -570,6 +570,7 @@ BIT(nodepotnumbers,        "Don't display depot numbers")
 
 // Description for miscmods2 bits
 BITSWITCH(miscmods2)
+BIT(noenhancetrees,        "Force grass under the tree when it's planted on bare land or desert")
 
 // Description for morebuildoptions bits
 BITSWITCH(morebuildoptions)

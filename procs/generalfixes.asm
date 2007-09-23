@@ -841,6 +841,30 @@ codefragment oldtreediesinsnowordesert
 
 codefragment_call newtreediesinsnowordesert,treediesinsnowordesert,7
 
+codefragment oldtreeperiodicupdate
+	and ax,0xf00f
+	or ah,al
+
+codefragment_call newtreeperiodicupdate,treeperiodicupdate,6
+
+codefragment oldtreediesongrass
+	and ah,0x30
+	mov al,3
+
+codefragment_call newtreediesongrass,treediesongrass,5
+
+codefragment oldplanttree
+	cmp al,0x10
+	je $+2+9
+	mov byte [landscape2+edi],0
+
+codefragment_call newplanttree,planttree,11
+
+codefragment olddrawgrassytreeland,8
+	jmp short $+2+0xB
+	push ebx
+	mov bx,6
+
 endcodefragments
 
 patchgeneralfixes:
@@ -1347,6 +1371,18 @@ patchgeneralfixes:
 .notwrongcode:
 
 	patchcode treediesinsnowordesert
+
+extern miscmods2flags
+	mov ebx,[miscmods2flags]
+	patchcode oldtreeperiodicupdate,newtreeperiodicupdate,1,1,,{test ebx,MISCMODS2_NOENHANCETREES},z
+	patchcode oldtreediesongrass,newtreediesongrass,1,1,,{test ebx,MISCMODS2_NOENHANCETREES},z
+	patchcode oldplanttree,newplanttree,1,1,,{test ebx,MISCMODS2_NOENHANCETREES},z
+	stringaddress olddrawgrassytreeland
+	test ebx,MISCMODS2_NOENHANCETREES
+	jnz .noenhtrees
+extern drawgrassytreeland,drawgrassytreeland.oldfn
+	chainfunction drawgrassytreeland,.oldfn
+.noenhtrees:
 	ret
 
 // shares some code fragments
