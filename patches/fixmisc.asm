@@ -3612,6 +3612,34 @@ exported treediesinsnowordesert
 	add al,4	// change bits 2..4 from snow (10) to desert (14)
 	ret
 
+// Prevent random map generator getting stuck in an infinite loop if it can't
+// find anywhere to place a lighthouse.
+
+// Called before the game starts generating lighthouses.
+exported createrandomlighthouses1
+	and	ax, 3       // overwritten
+	mov	cx, ax      // overwritten
+	mov	ebp, 0xFFFF // maximum number of attempts to make
+	ret
+
+// Called every time the game chooses a random location to start making random
+// steps from in search of somewhere to place a lighthouse.
+exported createrandomlighthouses2
+	dec	ebp
+	jnz	.keeptrying
+	// Reached the maximum number of attempts; give up. Our caller's work is
+	// done, so clean up the stack for it and return directly to its caller.
+	pop	ebp
+	pop	cx
+	pop	dword [randomseed2]
+	pop	dword [randomseed1]
+	ret
+.keeptrying:
+	movzx	ebx, ax  // overwritten
+	mov	edi, ebx // overwritten
+	shr	edi, 0xE // overwritten
+	ret
+
 // Add some consistency to trees - when a tree is planted on a bare land or desert tile,
 // don't turn the ground into full grass.
 // A small change in the landscape format is needed - when bits 4..5 of L2 are zero

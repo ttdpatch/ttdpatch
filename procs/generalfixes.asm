@@ -841,6 +841,20 @@ codefragment oldtreediesinsnowordesert
 
 codefragment_call newtreediesinsnowordesert,treediesinsnowordesert,7
 
+codefragment oldcreaterandomlighthouses1
+	and	ax, 3
+	mov	cx, ax
+	add	cx, 7
+
+codefragment_call newcreaterandomlighthouses1,createrandomlighthouses1,7
+
+codefragment oldcreaterandomlighthouses2
+	movzx	ebx, ax
+	mov	edi, ebx
+	shr	edi, 0xE
+
+codefragment_call newcreaterandomlighthouses2,createrandomlighthouses2,8
+ 
 codefragment oldtreeperiodicupdate
 	and ax,0xf00f
 	or ah,al
@@ -1371,6 +1385,9 @@ patchgeneralfixes:
 .notwrongcode:
 
 	patchcode treediesinsnowordesert
+
+	patchcode createrandomlighthouses1
+	patchcode createrandomlighthouses2
 
 extern miscmods2flags
 	mov ebx,[miscmods2flags]
