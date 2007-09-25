@@ -9,6 +9,7 @@
 #include <flags.inc>
 #include <veh.inc>
 #include <win32.inc>
+#include <bitvars.inc>
 
 extern SetStretchBltMode,Sleep
 extern StretchBlt,currwaittime,isbadreadptr,kernel32hnd
@@ -796,5 +797,76 @@ addscreenmode:
 
 .noadd:
 	ret
+
+extern user32hnd
+
+// decide X and Y coordinates for the game window when starting the game
+// the old code calculated with the screen size, disregarding the Taskbar
+// entirely; fix this
+// in:	width of the window on top of the stack, height directly below it
+//	ebp points to the stack frame of the caller
+//	   (see 0x404a48 in the Windows code; we don't need anything right now)
+//	dword at 0x41aa58: screen width in pixels
+//	dword at 0x41aa5c: screen height in pixels
+// out:	eax: X position
+//	ecx: Y position
+// safe: everything except EBP
+exported centerwindow
+// create a RECT structure on the stack - by default, this will contain the
+// whole screen, but will be updated by Windows if the user didn't disable it
+
+	push dword [0x41aa5c]		// bottom
+	push dword [0x41aa58]		// right
+	push dword 0			// top
+	push dword 0			// left
+	testflags generalfixes
+	jnc .nogenfix
+	test dword [miscmods2flags],MISCMODS2_IGNORETASKBAR
+	jnz .nogenfix
+
+// call SystemParametersInfo to fill our RECT structure with the coordinates
+// of the working area (the screen area minus the Taskbar and possibly other toolbars)
+	push dword aSystemParametersInfoA
+	push dword [user32hnd]
+	call dword [GetProcAddress]
+	test eax,eax
+	jz .nogenfix			// for some reason, the entry point could not be found
+					// just use the screen size
+	push dword 0	// fWinIni
+	lea ebx,[esp+4]
+	push ebx	// pvParam (pointer to a RECT struct, in this case)
+	push dword 0	// uiParam
+	push dword 0x30	// SPI_GETWORKAREA
+	call eax
+// we're assuming that if the call failed, it didn't touch the RECT structure
+
+.nogenfix:
+// when we're here, the RECT structure contains the rectangle we should center our window in
+// it is straightforward from here; the only catch is that we ensure that the top left corner
+// is inside the rectangle, so even if the window is too big, the player can still move it
+// or close it via the system menu
+
+	mov eax,[esp+8]		// right
+	sub eax,[esp]		// left
+	sub eax,[esp+16+4]	// width
+	sar eax,1
+	jns .notnegx
+	xor eax,eax
+.notnegx:
+	add eax,[esp]
+
+	mov ecx,[esp+12]	// bottom
+	sub ecx,[esp+4]		// top
+	sub ecx,[esp+16+4+4]	// height
+	sar ecx,1
+	jns .notnegy
+	xor ecx,ecx
+.notnegy:
+	add ecx,[esp+4]
+
+	add esp,16
+	ret
+
+noglobal var aSystemParametersInfoA, db "SystemParametersInfoA",0
 
 #endif
