@@ -2127,8 +2127,17 @@ applyparam:
 	mov edi,[esi+edi*4]
 	movzx esi,cl
 	add esi,eax
+
+// Size check disabled by Csaboka
+// This check is no longer reliable during activation, because actions
+// can replace the size information with their own private data.
+// I can see no reliable way to check the size after initialization,
+// so I'm disabling the check for now.
+#if 0
 	cmp esi,[edi-4]		// outside of sprite length?
 	ja .bad
+#endif
+
 	add edi,eax
 	mov esi,ebx
 	test ch,ch
