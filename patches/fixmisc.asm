@@ -3690,6 +3690,8 @@ exported treediesongrass
 // out:	L2 data updated
 // safe: eax,???
 exported planttree
+	cmp al,0x0C
+	je .farm
 	mov ah,[landscape5(di)]
 	shl ah,6
 	xor ah,0xc0		// invert the grass/desert state
@@ -3699,6 +3701,10 @@ exported planttree
 	or ah,0x20
 .grass:
 	mov [landscape2+edi],ah
+	ret
+
+.farm:
+	mov byte [landscape2+edi],0	// this is a farm field, there is no grass growth state
 	ret
 
 // called while drawing the ground of a grassy tree tile
