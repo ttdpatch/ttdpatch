@@ -1057,6 +1057,13 @@ void commandline(int argc, const char *const *argv)
 	flags->data.reswidth=640;
 	flags->data.resheight=480;
     }
+    
+    // The drawing routines of WinTTD fail spectacularly if the X size isn't
+    // a multiple of four. To avoid this, round the size down to the nearest
+    // multiple. (Fullscreen mode shouldn't be affected since most "official"
+    // resolutions have correct width anyway.
+    
+    flags->data.reswidth &= ~3;
 
     if (!getf(multihead)) {
 	flags->data.multihdspeedup = 0;
