@@ -319,6 +319,8 @@ codefragment findscreenshotsize, 3
 codefragment newaddscreenmode
 	icall addscreenmode
 
+codefragment_call newcalcupdateblockrect,calcupdateblockrect,6
+
 endcodefragments
 
 patchresolution:	
@@ -744,6 +746,9 @@ patchresolution:
 	
 	mov edi,0x404954
 	storefragment newaddscreenmode
+
+	mov edi,0x40F3AA
+	storefragment newcalcupdateblockrect
 	ret
 
 resfullerror:
