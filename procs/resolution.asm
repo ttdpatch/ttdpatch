@@ -343,6 +343,8 @@ codefragment findgiantscreenshotmovepointer, 6
 	mov dx, 500h
 	xor cx, cx
 
+codefragment_call newcalcupdateblockrect,calcupdateblockrect,6
+
 endcodefragments
 
 patchresolution:	
@@ -779,6 +781,9 @@ patchresolution:
 	
 	mov edi,0x404954
 	storefragment newaddscreenmode
+
+	mov edi,0x40F3AA
+	storefragment newcalcupdateblockrect
 	ret
 
 resfullerror:
