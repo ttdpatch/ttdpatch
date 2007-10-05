@@ -1611,7 +1611,6 @@ getconsistcargo:
 
 getplayerinfo.gotwindow:
 // Generate var 43 based on the window's owner
-	pop ecx
 	mov [esp+1Ch], eax
 	popa
 	mov al, [eax+window.company]
@@ -1656,37 +1655,22 @@ extern CloneTrainCompany // Saves this function from death when clonetrain is us
 	jb getplayerinfo.gotwindow.gotcompany
 
 	// find window struct pointer
-	// It appears on the stack at least three times between [esp+4]
-	// and [esp+A0h]
+	// It appears on the stack between [esp+4] and [esp+A0h]
 	// I looked for a reliable offset, but could not find one, so we get to search.
 	pusha
 	xor ecx, ecx
-	mov ebp,esp
 	mov cl, 27h
-	lea esi, [ebp+24h]
-.outer:
-	lodsd
-	// zero and the above-pushed EAX appear two or more times, so ignore them.
-	test eax,eax
-	jz .loop
-	cmp eax, [ebp+20h]
-	je .loop
-
-	xor edx, edx
-	push ecx
-	mov edi, esi
-.inner:
-	scasd
-	jnz .next
-	inc edx
-	cmp edx, 2
-	db 2Eh // BPL: branch not taken
-	je getplayerinfo.gotwindow
-.next:
-	loop .inner
-	pop ecx
+	lea esi, [esp+24h]
 .loop:
-	loop .outer
+	lodsd
+	extern windowstack
+	cmp eax, [windowstack]
+	jb .next
+	cmp eax, [windowstacktop]
+	db 2Eh // BPL: branch not taken
+	jbe getplayerinfo.gotwindow
+.next:
+	loop .loop
 #ifdef RELEASE
 	popa
 	pop ecx
