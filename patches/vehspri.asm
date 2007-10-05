@@ -1612,7 +1612,7 @@ getconsistcargo:
 getplayerinfo.gotwindow:
 // Generate var 43 based on the window's owner
 	pop ecx
-	mov [ebp+1Ch], eax
+	mov [esp+1Ch], eax
 	popa
 	mov al, [eax+window.company]
 	cmp al, -1
