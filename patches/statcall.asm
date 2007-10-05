@@ -10,6 +10,7 @@
 #include <ptrvar.inc>
 #include <textdef.inc>
 #include <newvehdata.inc>
+#include <veh.inc>
 
 // Need for the callback finder
 extern miscgrfvar, vehtypecallback, newvehdata
@@ -162,6 +163,7 @@ global GetPlaneCallBackSpeed, GetPlaneCallBackSpeed.lesi
 
 // Gets the speed from callback default if no callback
 GetPlaneCallBackSpeed:
+	mov [esi+veh.vehtype], bx
 	push ecx
 	movzx cx, byte [planedefspeed-0xD7+ebx] ; Gets the default speed of the vehicle
 	mov ah, 0xC ; Get the speed value
