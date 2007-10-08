@@ -310,7 +310,7 @@
 	YESNO('R',"townbuildnoroads", CFG_TOWNBUILDNOROADS, HOUSESTOWNS, "TownBuildNoRoad", townbuildnoroads),
 	BITS ('S',"newsounds", CFG_NEWSOUNDS, BASIC, "NewSounds", newsounds, U8, FLAGDATA(newsoundsettings), 1),
 	YESNO('T',"trams", CFG_TRAMS, INFST_ROADS, "Trams", trams),
-	YESNO('U',"psignals", CFG_PSIGNALS, INFST_RAIL_SIGNAL, "", psignals),
+	YESNO('U',"psignals", CFG_PSIGNALS, INFST_RAIL_SIGNAL, "ProgrammableSignals:Alpha", psignals),
 	YESNO('V', "variablerunningcosts", CFG_VRUNCOSTS, VEH, "", vruncosts),
 	YESNO('W',"newsignals", CFG_NEWSIGNALS, INFST_RAIL_SIGNAL, "", newsignals),
 	YESNO('X',"adjacentstation", CFG_ADJSTATIONS, INFST_STATION, "AdjacentStations:Alpha", adjacentstation),
