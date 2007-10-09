@@ -2361,6 +2361,12 @@ getlayoutbyte:
 	call texthandler
 	mov [specialerrtext1],esi
 	mov word [operrormsg2],statictext(specialerr1)
+
+// copy the first 5 special GRF registers onto the text ref. stack,
+// so error messages can have calculated data in them
+	mov esi,specialgrfregisters
+	mov edi,textrefstack
+	times 5 movsd
 	jmp short .deny
 
 // called while putting an industry tile to the landscape, to fill L5
@@ -5180,6 +5186,12 @@ doinduplacementcallback:
 	call texthandler
 	mov [specialerrtext1],esi
 	mov word [operrormsg2],statictext(specialerr1)
+
+// copy the first 5 special GRF registers onto the text ref. stack,
+// so error messages can have calculated data in them
+	mov esi,specialgrfregisters
+	mov edi,textrefstack
+	times 5 movsd
 	jmp short .deny
 
 .invalid:
