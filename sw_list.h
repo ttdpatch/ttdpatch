@@ -290,20 +290,20 @@
 
 
 		// Z-extended, uppercase
-	YESNO('A',"newairports", CFG_NEWAIRPORTS, INFST_STATION, "NewAirports", newairports),
+	YESNO('A',"newairports", CFG_NEWAIRPORTS, INFST_STATION, "", newairports),
 	     //B
 	YESNO('C',"aichoosechances", CFG_AICHOOSECHANCES, DIFFICULTY, "AIConstructionChances", aichoosechances),
-	YESNO('D', "clonetrain", CFG_CLONETRAIN, VEH_RAIL, "CloneTrain", clonetrain),
+	YESNO('D', "clonetrain", CFG_CLONETRAIN, VEH_RAIL, "CloneTrain:Alpha", clonetrain),
 	     //E
 	BITS ('F',"toylandfeatures", CFG_TOYLANDFEATURES, TERRAIN, "ToylandFeatures", moretoylandfeatures, U8, FLAGDATA(toylandfeatures), 1),
 	     //G
-	YESNO('H', "hidetranstrees", CFG_NOTRANSTREES, TERRAIN, "", hidetranstrees),
+	YESNO('H',"hidetranstrees", CFG_NOTRANSTREES, TERRAIN, "HideTransparentTrees:Alpha", hidetranstrees),
 	YESNO('I',"irregularstations", CFG_IRRSTATIONS, INFST_STATION, "IrregularStations", irrstations),
 	     //J
 	     //K
 	     //L
 	YESNO('M',"morestatistics", CFG_MORESTATS, INTERFACE, "MoreStatistics", morestats),
-	YESNO('N', "newroutes", CFG_NEWROUTES, INFST, "newRoutes", newroutes),
+	YESNO('N', "newroutes", CFG_NEWROUTES, INFST, "", newroutes),
 	RANGE('O',"autoslope", CFG_AUTOSLOPE, TERRAIN, "AutoSlope", autoslope, AUTO, U16, FLAGDATA(autoslopevalue), 1, 3, 1),
 	     //P
 	     //Q
@@ -311,8 +311,8 @@
 	BITS ('S',"newsounds", CFG_NEWSOUNDS, BASIC, "NewSounds", newsounds, U8, FLAGDATA(newsoundsettings), 1),
 	YESNO('T',"trams", CFG_TRAMS, INFST_ROADS, "Trams", trams),
 	YESNO('U',"psignals", CFG_PSIGNALS, INFST_RAIL_SIGNAL, "ProgrammableSignals:Alpha", psignals),
-	YESNO('V', "variablerunningcosts", CFG_VRUNCOSTS, VEH, "", vruncosts),
-	YESNO('W',"newsignals", CFG_NEWSIGNALS, INFST_RAIL_SIGNAL, "", newsignals),
+	YESNO('V',"variablerunningcosts", CFG_VRUNCOSTS, VEH, "VariableRunningCosts:Alpha", vruncosts),
+	YESNO('W',"newsignals", CFG_NEWSIGNALS, INFST_RAIL_SIGNAL, "NewSignals:Alpha", newsignals),
 	YESNO('X',"adjacentstation", CFG_ADJSTATIONS, INFST_STATION, "AdjacentStations:Alpha", adjacentstation),
 	RANGE('Y',"stationsize", CFG_STATIONSIZE, INFST_STATION, "StationSize:Alpha", stationsize, AUTO, U8, FLAGDATA(stationsizevalue), 1, 255, 255),
 	YESNO('Z',"tracerestrict", CFG_TRACERESTRICT, VEH_ORDERS, "RoutingRestrictions:Alpha", tracerestrict),
