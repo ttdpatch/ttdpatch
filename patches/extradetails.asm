@@ -30,8 +30,7 @@ exported extradetailswagon
 	movzx ebx, byte [edi+veh.vehtype]
 	pusha
 	mov esi, edi
-	xor eax, eax	// to be sure, blank eax
-	extcall GetTrainCallbackSpeed
+	extcall GetTrainCallbackSpeed.doit
 	imul ax, 10
 	shr ax, 4
 	mov [textrefstack],ax	// for later

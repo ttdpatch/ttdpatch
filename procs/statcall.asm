@@ -23,9 +23,10 @@ begincodefragments
 		movzx eax, word [nosplit trainspeeds+ebx*2]
 	codefragment oldtrainbuyvehiclespeed
 		mov ax, [nosplit trainspeeds+ebx*2]
+
 	; Replacement Fragments for speed usage
-	codefragment_call newtrainspeednewwehiclehandler, TrainSpeedNewVehicleHandler, 8
-	codefragment_call newtrainbuyvehiclespeed, TrainSpeedBuyNewVehicle, 8
+	codefragment_call newtrainspeednewwehiclehandler, GetTrainCallbackSpeed.noesi, 8
+	codefragment_call newtrainbuyvehiclespeed, GetTrainCallbackSpeed.makestruc, 12
 
 	; These fragments are for power
 	codefragment oldtrainpowergeneric
@@ -37,20 +38,22 @@ begincodefragments
 	codefragment oldshipspeednewwehiclehandler
 		movzx eax, byte [shipspeed-0xCC+ebx]
 		db 66h, 6Bh	//imul r16, ...
-	codefragment oldshipspeedbuyvehiclespeed
-		movzx ax, byte [shipspeed-0xCC+ebx]
+	reusecodefragment oldshipspeedbuyvehiclespeed, oldshipspeednewwehiclehandler, -1, 7
+		// movzx ax, byte [shipspeed-0xCC+ebx]
 	; Replacement Fragments for speed usage
-	codefragment_call newshipspeednewwehiclehandler, GetShipCallbackSpeed, 7
-	codefragment_call newshipspeedbuyvehiclespeed, GetShipCallbackSpeed, 8
+	codefragment_call newshipspeednewwehiclehandler, GetShipCallbackSpeed.noesi, 7
+	codefragment_call newshipspeedbuyvehiclespeed, GetShipCallbackSpeed.makestruc, 12
 
 // Planes
 	; These fragments are for finding the places where speed is used in ttd
 	codefragment oldplanespeednewwehiclehandler
 		movzx ax, byte [planedefspeed-0xD7+ebx]
+
 	; Replacement Fragments for speed usage
-	codefragment_call newplanespeednewwehiclehandler, GetPlaneCallbackSpeed, 8
+	codefragment_call newplanespeednewwehiclehandler, GetPlaneCallbackSpeed.makestruc, 12
+
 	; Replace it with a special menu one (for no vehicle)
-	codefragment_call newplanespeednewwehiclehandler2, GetPlaneCallbackSpeed.lesi, 8
+	codefragment_call newplanespeednewwehiclehandler2, GetPlaneCallbackSpeed.noesi, 8
 
 endcodefragments
 

@@ -12,42 +12,31 @@ extern GetCallback36 // The most IMPORTANT function for this file
 // ** Aircraft Functions **
 global aircraftmaintcost, aircraftmaintcost.ledi, aircraftmaintcost.lesi
 aircraftmaintcost:
-	push ecx
-	test bh, bh
+	test bh, bh	// Skip special vehicles: UFOs, military, &c.
 	jnz .bad
+.notest:
+	push ecx
 	movzx ecx, byte [planeruncostfactor-0xD7+ebx]
 	mov ah, 0xE
 	mov al, bl
 	call GetCallback36
 	movzx eax, al
-.bad:
 	pop ecx
+.bad:
 	ret
 
 .lesi:
-	push ecx
 	push esi
 	xor esi, esi
-	movzx ecx, byte [planeruncostfactor-0xD7+ebx]
-	mov ah, 0xE
-	mov al, bl
-	call GetCallback36
-	movzx eax, al
+	call .notest
 	pop esi
-	pop ecx
 	ret
 
 .ledi:
-	push ecx
 	push ebx
 	mov ebx, edi
-	movzx ecx, byte [planeruncostfactor-0xD7+ebx]
-	mov ah, 0xE
-	mov al, bl
-	call GetCallback36
-	movzx eax, al
+	call .notest
 	pop ebx
-	pop ecx
 	ret
 
 // ** Ship Functions **
@@ -63,27 +52,15 @@ shipmaintcost:
 	ret
 
 .lesi:
-	push ecx
 	push esi
 	xor esi, esi
-	movzx ecx, byte [shipruncostfactor-0xCC+ebx]
-	mov ah, 0xF
-	mov al, bl
-	call GetCallback36
-	movzx eax, al
+	call shipmaintcost
 	pop esi
-	pop ecx
 	ret
 
 .ledi:
-	push ecx
 	push ebx
 	mov ebx, edi
-	movzx ecx, byte [shipruncostfactor-0xCC+ebx]
-	mov ah, 0xF
-	mov al, bl
-	call GetCallback36
-	movzx eax, al
+	call shipmaintcost
 	pop ebx
-	pop ecx
 	ret

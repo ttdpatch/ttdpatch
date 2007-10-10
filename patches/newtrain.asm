@@ -26,7 +26,7 @@ extern invalidatehandle,ishumanplayer,lastrefitmask,mostrecentspriteblock
 extern movetrainvehicle,newcargotypenames,newsmessagefn
 extern onlycheckpath,patchflags,pbssettings,prevtrainveh
 extern vehtypetextids
-extern TrainSpeedBuyNewVehicle.lwagon
+extern GetTrainCallbackSpeed.lwagon
 extern resetconsistsprites
 
 extern buildingroadvehicle, oldbuyroadvehicle
@@ -541,7 +541,7 @@ showwagoninfo:
 //	add ebx,ebx
 //	add ebx,[enginepowerstable]
 ;	imul bx,[trainspeeds+ebx*2],10
-	call TrainSpeedBuyNewVehicle.lwagon
+	call GetTrainCallbackSpeed.lwagon
 	shr bx,4
 	mov [ebp+20],bx	// for later
 
