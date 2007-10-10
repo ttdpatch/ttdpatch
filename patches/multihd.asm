@@ -985,8 +985,7 @@ proc trainmaintcost
 
 	mov al, bl
 	mov ah, 0xD
-extern GetCallBack36
-	call GetCallBack36
+	extcall GetCallback36
 
 .novruncosts:
 	movzx eax, al

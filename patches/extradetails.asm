@@ -31,7 +31,7 @@ exported extradetailswagon
 	pusha
 	mov esi, edi
 	xor eax, eax	// to be sure, blank eax
-	extcall GetTrainCallBackSpeed
+	extcall GetTrainCallbackSpeed
 	imul ax, 10
 	shr ax, 4
 	mov [textrefstack],ax	// for later

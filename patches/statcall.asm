@@ -25,7 +25,7 @@ TrainSpeedNewVehicleHandler:
 	push esi
 	xor esi, esi
 	xor eax, eax ; Blank the whole of eax
-	call GetTrainCallBackSpeed ; Get the New Speed
+	call GetTrainCallbackSpeed ; Get the New Speed
 	pop esi
 	ret
 
@@ -33,7 +33,7 @@ TrainSpeedNewVehicleHandler:
 	push esi
 	xor esi, esi
 	push eax
-	call GetTrainCallBackSpeed ; Get the New Speed
+	call GetTrainCallbackSpeed ; Get the New Speed
 	mov ebx, eax
 	pop eax
 	pop esi
@@ -43,13 +43,13 @@ TrainSpeedBuyNewVehicle:
 	push esi
 	xor esi, esi
 	xor eax, eax ; Blank eax
-	call GetTrainCallBackSpeed
+	call GetTrainCallbackSpeed
 	pop esi
 	ret
 
 .lmultihead:
 	push eax
-	call GetTrainCallBackSpeed
+	call GetTrainCallbackSpeed
 	movzx ecx, ax
 	pop eax
 	ret
@@ -58,7 +58,7 @@ TrainSpeedBuyNewVehicle:
 	push esi
 	xor esi, esi
 	push eax
-	call GetTrainCallBackSpeed
+	call GetTrainCallbackSpeed
 	mov bx, ax
 	pop eax
 	imul bx, 10
@@ -67,12 +67,12 @@ TrainSpeedBuyNewVehicle:
 
 // Gets the speed from callback default if no callback
 // (Notice: will be called by extradetails patch!)
-exported GetTrainCallBackSpeed
+exported GetTrainCallbackSpeed
 	push ecx
 	mov cx, [trainspeeds+ebx*2] ; Gets the default speed of the vehicle
 	mov ah, 0x9 ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
-	call GetCallBack36 ; Get the actual value for the speed
+	call GetCallback36 ; Get the actual value for the speed
 	pop ecx
 	ret
 
@@ -87,7 +87,7 @@ TrainPowerGeneric:
 	movzx ecx, word [trainpower+ebx*2] ; Gets the default speed of the vehicle
 	mov ah, 0xB ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
-	call GetCallBack36 ; Get the actual value for the speed
+	call GetCallback36 ; Get the actual value for the speed
 	pop esi
 	pop ebx
 	pop ecx
@@ -106,7 +106,7 @@ TrainPowerGeneric:
 	movzx ecx, word [trainpower+ebx*2] ; Gets the default speed of the vehicle
 	mov ah, 0xB ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
-	call GetCallBack36 ; Get the actual value for the speed
+	call GetCallback36 ; Get the actual value for the speed
 	mov ecx, eax
 	pop eax
 	ret
@@ -120,7 +120,7 @@ TrainTEGeneric:
 	movzx ecx, byte [traintecoeff+ebx] ; Get the orginal TE coffient
 	mov ah, 0x1F ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
-	call GetCallBack36 ; Get the actual value for the TE
+	call GetCallback36 ; Get the actual value for the TE
 	and eax, 0xFF ; Byte return from callback
 	pop esi
 	pop ecx
@@ -132,7 +132,7 @@ TrainTEGeneric:
 	movzx ecx, byte [traintecoeff+ebx] ; Get the orginal TE coffient
 	mov ah, 0x1F ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
-	call GetCallBack36 ; Get the actual value for the TE
+	call GetCallback36 ; Get the actual value for the TE
 	and eax, 0xFF ; Byte return from callback
 	mov ebx, eax
 	pop ecx
@@ -141,17 +141,17 @@ TrainTEGeneric:
 
 // Boats Codes
 // Sets the globals up
-global GetShipCallBackSpeed
+global GetShipCallbackSpeed
 
 // Gets the speed from callback default if no callback
-GetShipCallBackSpeed:
+GetShipCallbackSpeed:
 	push ecx
 	push esi
 	xor esi, esi
 	movzx cx, byte [shipspeed-0xCC+ebx] ; Gets the default speed of the vehicle
 	mov ah, 0xB ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
-	call GetCallBack36 ; Get the actual value for the speed
+	call GetCallback36 ; Get the actual value for the speed
 	and eax, 0xFF ; Byte return from callback
 	pop esi
 	pop ecx
@@ -159,16 +159,16 @@ GetShipCallBackSpeed:
 
 // Plane Codes
 // Sets the globals up
-global GetPlaneCallBackSpeed, GetPlaneCallBackSpeed.lesi
+global GetPlaneCallbackSpeed, GetPlaneCallbackSpeed.lesi
 
 // Gets the speed from callback default if no callback
-GetPlaneCallBackSpeed:
+GetPlaneCallbackSpeed:
 	mov [esi+veh.vehtype], bx
 	push ecx
 	movzx cx, byte [planedefspeed-0xD7+ebx] ; Gets the default speed of the vehicle
 	mov ah, 0xC ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
-	call GetCallBack36 ; Get the actual value for the speed
+	call GetCallback36 ; Get the actual value for the speed
 	and eax, 0xFF ; Byte return from callback
 	pop ecx
 	ret
@@ -180,7 +180,7 @@ GetPlaneCallBackSpeed:
 	movzx cx, byte [planedefspeed-0xD7+ebx] ; Gets the default speed of the vehicle
 	mov ah, 0xC ; Get the speed value
 	mov al, bl ; Set the system to vehicle id
-	call GetCallBack36 ; Get the actual value for the speed
+	call GetCallback36 ; Get the actual value for the speed
 	and eax, 0xFF ; Byte return from callback
 	pop esi
 	pop ecx
@@ -192,7 +192,7 @@ GetPlaneCallBackSpeed:
 //	  cx as the default value to use if the callback fails
 //	  esi as vehicle id if applable
 // out:	eax=callback value
-exported GetCallBack36
+exported GetCallback36
 	mov [miscgrfvar], ah
 	mov ah, 0x36 ; Id for the callback
 	call vehtypecallback ; Get the callback results

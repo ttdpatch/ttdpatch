@@ -499,8 +499,7 @@ gettrainrunningcost:
 	movzx ecx, byte [trainrunningcost+ebx]
 	mov al, bl
 	mov ah, 0xD
-extern GetCallBack36
-	call GetCallBack36
+	extcall GetCallback36
 	movzx eax, al
 	pop esi
 	pop ecx

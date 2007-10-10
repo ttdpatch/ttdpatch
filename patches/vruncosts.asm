@@ -7,7 +7,7 @@
 #include <ptrvar.inc>
 
 // External functions, variables etc
-extern GetCallBack36 // The most IMPORTANT function for this file
+extern GetCallback36 // The most IMPORTANT function for this file
 
 // ** Aircraft Functions **
 global aircraftmaintcost, aircraftmaintcost.ledi, aircraftmaintcost.lesi
@@ -18,7 +18,7 @@ aircraftmaintcost:
 	movzx ecx, byte [planeruncostfactor-0xD7+ebx]
 	mov ah, 0xE
 	mov al, bl
-	call GetCallBack36 
+	call GetCallback36
 	movzx eax, al
 .bad:
 	pop ecx
@@ -31,7 +31,7 @@ aircraftmaintcost:
 	movzx ecx, byte [planeruncostfactor-0xD7+ebx]
 	mov ah, 0xE
 	mov al, bl
-	call GetCallBack36 
+	call GetCallback36
 	movzx eax, al
 	pop esi
 	pop ecx
@@ -44,7 +44,7 @@ aircraftmaintcost:
 	movzx ecx, byte [planeruncostfactor-0xD7+ebx]
 	mov ah, 0xE
 	mov al, bl
-	call GetCallBack36 
+	call GetCallback36
 	movzx eax, al
 	pop ebx
 	pop ecx
@@ -57,7 +57,7 @@ shipmaintcost:
 	movzx ecx, byte [shipruncostfactor-0xCC+ebx]
 	mov ah, 0xF
 	mov al, bl
-	call GetCallBack36 
+	call GetCallback36
 	movzx eax, al
 	pop ecx
 	ret
@@ -69,7 +69,7 @@ shipmaintcost:
 	movzx ecx, byte [shipruncostfactor-0xCC+ebx]
 	mov ah, 0xF
 	mov al, bl
-	call GetCallBack36 
+	call GetCallback36
 	movzx eax, al
 	pop esi
 	pop ecx
@@ -82,7 +82,7 @@ shipmaintcost:
 	movzx ecx, byte [shipruncostfactor-0xCC+ebx]
 	mov ah, 0xF
 	mov al, bl
-	call GetCallBack36 
+	call GetCallback36
 	movzx eax, al
 	pop ebx
 	pop ecx

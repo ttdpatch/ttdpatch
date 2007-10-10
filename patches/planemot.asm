@@ -8,7 +8,7 @@
 #include <flags.inc>
 #include <airport.inc>
 
-extern GetCallBack36,airportmovementedgelistptrs,patchflags
+extern airportmovementedgelistptrs,patchflags
 
 //
 // called when plane moves
@@ -69,7 +69,7 @@ planebreakdownspeed:
 	mov ecx, ebx
 	mov ah, 0xC //speeeeed
 	mov al, byte [esi+veh.vehtype]	//vehicles are only 0-255
-	call GetCallBack36
+	extcall GetCallback36
 	mov word [esi+veh.speedlimit], ax
 	pop eax
 

@@ -127,8 +127,6 @@ codefragment newshowtrainmaintcost
 	pop edx
 	setfragmentsize 0x18,1
 
-extern aircraftmaintcost, aircraftmaintcost.ledi, aircraftmaintcost.lesi
-
 
 codefragment oldaircraftmaintcost
 	movzx eax, byte [planeruncostfactor-0xD7+ebx]
@@ -136,34 +134,20 @@ codefragment oldaircraftmaintcost
 codefragment oldaircraftdetailsmaintcost
 	movzx eax, byte [planesprite+0x1F+edi]
 
-codefragment newaircraftmaintcost
-	icall aircraftmaintcost
-	setfragmentsize 7
+codefragment_call newaircraftmaintcost, aircraftmaintcost, 7
 
-codefragment newaircraftmaintcost2
-	icall aircraftmaintcost.lesi
-	setfragmentsize 7
+codefragment_call newaircraftmaintcost2, aircraftmaintcost.lesi, 7
 
-codefragment newaircraftdetailsmaintcost
-	icall aircraftmaintcost.ledi
-	setfragmentsize 7
-
-extern shipmaintcost, shipmaintcost.ledi, shipmaintcost.lesi
+codefragment_call newaircraftdetailsmaintcost, aircraftmaintcost.ledi, 7
 
 codefragment oldshipmaintcost,-7
 	imul eax, [costs+47*6]
 
-codefragment newshipmaintcost
-	icall shipmaintcost
-	setfragmentsize 7
+codefragment_call newshipmaintcost, shipmaintcost, 7
 
-codefragment newshipmaintcost2
-	icall shipmaintcost.lesi
-	setfragmentsize 7
+codefragment_call newshipmaintcost2, shipmaintcost.lesi, 7
 
-codefragment newshipmaintcost3
-	icall shipmaintcost.ledi
-	setfragmentsize 7
+codefragment_call newshipmaintcost3, shipmaintcost.ledi, 7
 
 endcodefragments
 
@@ -205,9 +189,8 @@ patchtrainrunningcost:
 
 patchrunningcost:
 	; Planes
-	patchcode oldaircraftmaintcost, newaircraftmaintcost2, 1, 3
-	patchcode oldaircraftmaintcost, newaircraftmaintcost, 1, 0
-	patchcode oldaircraftmaintcost, newaircraftmaintcost2, 1, 0
+	patchcode aircraftmaintcost, 2, 3
+	multipatchcode oldaircraftmaintcost, newaircraftmaintcost2, 2
 	patchcode oldaircraftdetailsmaintcost, newaircraftdetailsmaintcost
 
 	; Ships
