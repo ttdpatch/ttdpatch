@@ -37,9 +37,6 @@ ovar %1.noesi, $, 0
 
 // Train Codes
 // Set the global subroutines
-global TrainSpeedNewVehicleHandler, TrainSpeedNewVehicleHandler.lnews
-global TrainSpeedBuyNewVehicle, TrainSpeedBuyNewVehicle.lmultihead, TrainSpeedBuyNewVehicle.lwagon
-// ^^ leaving non-existant symbols to try to keep the diffing engines under control.
 global GetTrainCallbackSpeed.lnews, GetTrainCallbackSpeed.doit
 global GetTrainCallbackSpeed.lmultihead, GetTrainCallbackSpeed.lwagon
 
@@ -49,7 +46,14 @@ NOESI GetTrainCallbackSpeed
 // Buy Train Window Changer
 GetTrainCallbackSpeed:
 	xor eax, eax ; Blank the whole of eax
-	jmp short .doit
+.doit:
+	push ecx
+	mov cx, [trainspeeds+ebx*2] ; Gets the default speed of the vehicle
+	mov ah, 0x9 ; Get the speed value
+	mov al, bl ; Set the system to vehicle id
+	call GetCallback36 ; Get the actual value for the speed
+	pop ecx
+	ret
 
 .lnews:
 	push eax
@@ -72,16 +76,6 @@ GetTrainCallbackSpeed:
 	pop eax
 	ret
 
-// Gets the speed from callback default if no callback
-// (Notice: will be called by extradetails patch!)
-.doit:
-	push ecx
-	mov cx, [trainspeeds+ebx*2] ; Gets the default speed of the vehicle
-	mov ah, 0x9 ; Get the speed value
-	mov al, bl ; Set the system to vehicle id
-	call GetCallback36 ; Get the actual value for the speed
-	pop ecx
-	ret
 
 // Used as a generic code replacer for powers
 global TrainPowerGeneric, TrainPowerGeneric.lecx, TrainPowerGeneric.leax
