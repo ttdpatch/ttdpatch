@@ -5,8 +5,6 @@
 #include <std.inc>
 #include <veh.inc>
 
-extern GetCallBack36
-
 //
 // called when plane moves
 //
@@ -66,7 +64,7 @@ planebreakdownspeed:
 	mov ecx, ebx
 	mov ah, 0xC //speeeeed
 	mov al, byte [esi+veh.vehtype]	//vehicles are only 0-255
-	call GetCallBack36
+	extcall GetCallback36
 	mov word [esi+veh.speedlimit], ax
 	pop eax
 

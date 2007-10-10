@@ -13,7 +13,7 @@
 
 extern checkrefittable,isengine,patchflags
 extern vehtypedataptr,newvehdata
-extern TrainSpeedNewVehicleHandler.lnews
+extern GetTrainCallbackSpeed.lnews
 extern ishumanplayer
 
 // Find what vehicles are currently in use
@@ -212,7 +212,7 @@ ovar doshownewrailveh, -4
 //	add eax,[enginepowerstable]
 	movzx eax,byte [traincost+ebx]
 ;	movzx ebx,word [trainspeeds+ebx*2]
-	call TrainSpeedNewVehicleHandler.lnews
+	call GetTrainCallbackSpeed.lnews
 	imul eax,[waggonbasevalue]
 	shr eax,8
 	mov [edi],eax

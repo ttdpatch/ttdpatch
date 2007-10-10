@@ -11,11 +11,6 @@
 #include <ptrvar.inc>
 #include <textdef.inc>
 
-// Few things need to be taken from the patches file
-extern TrainSpeedNewVehicleHandler, TrainSpeedBuyNewVehicle
-extern GetShipCallBackSpeed, GetPlaneCallBackSpeed
-extern TrainPowerGeneric
-
 // Procedures
 patchproc newtrains, patchtrainstat
 patchproc newships, patchshipstat
@@ -26,78 +21,61 @@ begincodefragments
 	; These fragments are for finding the places where speed is used in ttd
 	codefragment oldtrainspeednewwehiclehandler
 		movzx eax, word [nosplit trainspeeds+ebx*2]
-		imul ax, 10
-		shr ax, 4
 	codefragment oldtrainbuyvehiclespeed
 		mov ax, [nosplit trainspeeds+ebx*2]
-	; Replace Ment Fragments for speed usage
-	codefragment newtrainspeednewwehiclehandler
-		icall TrainSpeedNewVehicleHandler
-		imul ax, 10
-		shr ax, 4
-		setfragmentsize 16
-	codefragment newtrainbuyvehiclespeed
-		icall TrainSpeedBuyNewVehicle
-		setfragmentsize 8
+
+	; Replacement Fragments for speed usage
+	codefragment_call newtrainspeednewwehiclehandler, GetTrainCallbackSpeed.noesi, 8
+	codefragment_call newtrainbuyvehiclespeed, GetTrainCallbackSpeed.makestruc, 12
+
 	; These fragments are for power
 	codefragment oldtrainpowergeneric
 		mov ax, [nosplit trainpower+ebx*2]
-	codefragment newtrainpowergeneric
-		icall TrainPowerGeneric
-		setfragmentsize 8
+	codefragment_call newtrainpowergeneric, TrainPowerGeneric, 8
 
 // Ships
 	; These fragments are for finding the places where speed is used in ttd
 	codefragment oldshipspeednewwehiclehandler
 		movzx eax, byte [shipspeed-0xCC+ebx]
-		imul ax, 10
-		shr ax, 5
-	codefragment oldshipspeedbuyvehiclespeed
-		movzx ax, byte [shipspeed-0xCC+ebx]
-	; Replace Ment Fragments for speed usage
-	codefragment newshipspeednewwehiclehandler
-		icall GetShipCallBackSpeed
-		imul ax, 10
-		shr ax, 5
-		setfragmentsize 15
-	codefragment newshipspeedbuyvehiclespeed
-		icall GetShipCallBackSpeed
-		setfragmentsize 8
+		db 66h, 6Bh	//imul r16, ...
+	reusecodefragment oldshipspeedbuyvehiclespeed, oldshipspeednewwehiclehandler, -1, 7
+		// movzx ax, byte [shipspeed-0xCC+ebx]
+	; Replacement Fragments for speed usage
+	codefragment_call newshipspeednewwehiclehandler, GetShipCallbackSpeed.noesi, 7
+	codefragment_call newshipspeedbuyvehiclespeed, GetShipCallbackSpeed.makestruc, 12
 
 // Planes
 	; These fragments are for finding the places where speed is used in ttd
 	codefragment oldplanespeednewwehiclehandler
 		movzx ax, byte [planedefspeed-0xD7+ebx]
-	; Replace Ment Fragments for speed usage
-	codefragment newplanespeednewwehiclehandler
-		icall GetPlaneCallBackSpeed
-		setfragmentsize 8
+
+	; Replacement Fragments for speed usage
+	codefragment_call newplanespeednewwehiclehandler, GetPlaneCallbackSpeed.makestruc, 12
+
+	; Replace it with a special menu one (for no vehicle)
+	codefragment_call newplanespeednewwehiclehandler2, GetPlaneCallbackSpeed.noesi, 8
 
 endcodefragments
 
 ; These active the codefragments
 patchtrainstat:
 	; Speed Fragments
-	patchcode oldtrainspeednewwehiclehandler, newtrainspeednewwehiclehandler, 1, 2
-	patchcode oldtrainspeednewwehiclehandler, newtrainspeednewwehiclehandler, 1, 0
-	patchcode oldtrainbuyvehiclespeed, newtrainbuyvehiclespeed
+	multipatchcode trainspeednewwehiclehandler, 2
+	patchcode trainbuyvehiclespeed
 
 	; Power Fragments
-	patchcode oldtrainpowergeneric, newtrainpowergeneric, 1, 2
-	patchcode oldtrainpowergeneric, newtrainpowergeneric, 1, 0
+	multipatchcode trainpowergeneric, 2
 	ret
 
 patchshipstat:
 	; Speed Fragments
-	patchcode oldshipspeednewwehiclehandler, newshipspeednewwehiclehandler, 1, 2
-	patchcode oldshipspeednewwehiclehandler, newshipspeednewwehiclehandler, 1, 0
-	patchcode oldshipspeedbuyvehiclespeed, newshipspeedbuyvehiclespeed
+	multipatchcode shipspeednewwehiclehandler, 2
+	patchcode shipspeedbuyvehiclespeed
 	ret
 
 patchplanestat:
 	; Speed Fragments
-	patchcode oldplanespeednewwehiclehandler, newplanespeednewwehiclehandler, 1, 3
-	patchcode oldplanespeednewwehiclehandler, newplanespeednewwehiclehandler, 1, 0
-	patchcode oldplanespeednewwehiclehandler, newplanespeednewwehiclehandler, 1, 0
+	patchcode planespeednewwehiclehandler, 2, 3
+	multipatchcode oldplanespeednewwehiclehandler, newplanespeednewwehiclehandler2, 2
 	ret
 
