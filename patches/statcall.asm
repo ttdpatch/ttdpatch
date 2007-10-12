@@ -22,7 +22,9 @@ ovar %1.makestruc, $, 0
 	call eax
 	call %1
 	mov [esi+veh.maxspeed], ax	// overwritten
-	ret
+	pop cx				// overwritten
+	jmp near $+5
+ovar %1.oldfn,-4,$
 %endmacro
 
 // This generates %1.noesi, and calls the callback without a vehicle structure
@@ -177,7 +179,7 @@ NOESI GetPlaneCallbackSpeed
 //	  esi as vehicle id if applable
 // out:	eax=callback value
 exported GetCallback36
-	mov [miscgrfvar], ah
+	mov [miscgrfvar],ah
 	mov ah, 0x36 ; Id for the callback
 	call vehtypecallback ; Get the callback results
 	jnc .lresults
