@@ -22,7 +22,9 @@ ovar %1.makestruc, $, 0
 	call eax
 	call %1
 	mov [esi+veh.maxspeed], ax	// overwritten
-	ret
+	pop cx				// overwritten
+	jmp near $+5
+ovar %1.oldfn,-4,$
 %endmacro
 
 // This generates %1.noesi, and calls the callback without a vehicle structure

@@ -55,27 +55,46 @@ begincodefragments
 	; Replace it with a special menu one (for no vehicle)
 	codefragment_call newplanespeednewwehiclehandler2, GetPlaneCallbackSpeed.noesi, 8
 
+	codefragment endstrucinit
+		pop cx
+		pop ebx
+
 endcodefragments
 
 ; These active the codefragments
 patchtrainstat:
+	; Power Fragments
+	multipatchcode trainpowergeneric, 2
+
 	; Speed Fragments
 	multipatchcode trainspeednewwehiclehandler, 2
 	patchcode trainbuyvehiclespeed
+	extern GetTrainCallbackSpeed.oldfn
+	mov ebx, GetTrainCallbackSpeed.oldfn
 
-	; Power Fragments
-	multipatchcode trainpowergeneric, 2
+// fallthrough
+
+patchendstrucinit:
+	stringaddress endstrucinit, 1, 0
+	mov byte [edi], 0xC3
+	storerelative ebx, edi+2
 	ret
 
 patchshipstat:
 	; Speed Fragments
 	multipatchcode shipspeednewwehiclehandler, 2
 	patchcode shipspeedbuyvehiclespeed
-	ret
+	extern GetShipCallbackSpeed.oldfn
+	mov ebx, GetShipCallbackSpeed.oldfn
+	jmp patchendstrucinit
 
 patchplanestat:
 	; Speed Fragments
 	patchcode planespeednewwehiclehandler, 2, 3
+	extern GetPlaneCallbackSpeed.oldfn
+	mov ebx, GetPlaneCallbackSpeed.oldfn
+	call patchendstrucinit
 	multipatchcode oldplanespeednewwehiclehandler, newplanespeednewwehiclehandler2, 2
 	ret
+
 
