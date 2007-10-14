@@ -1224,16 +1224,26 @@ ovar semaphoredate, -2
 	jz .nosemaphoretoggle
 	xor al, 8
 .nosemaphoretoggle:
-	test bl, 32
-	jz .noonlysemp
-	mov [landscape3+edi*2+1], al
-	jmp .notpbs
-.noonlysemp:
 	and byte [landscape6+edi], ~8
+	test bl, 32
+	jz .nottoggle
+	mov ah, [landscape6+edi]
+	xor ah, 4
+	mov [landscape6+edi], ah
+	test ah, 4
+	jnz .setpbs			//force pbs if setting through flag
+.nottoggle:
 	test bl, 16
 	jz .nopbstoggle
-	or byte [landscape6+edi],8
-.nopbstoggle: 	
+.setpbs:
+	or byte [landscape6+edi], 8
+	jmp .nocleartsig
+.nopbstoggle:
+	and byte [landscape6+edi], ~4
+.nocleartsig:
+	mov ah, bl
+	and ah, 64
+	xor al, ah
 	and bl, 110b
 	and al, ~110b
 	or al, bl
@@ -1352,6 +1362,10 @@ demolishtrackcall:
 ; endp demolishtrackcall 
 
 
+uvarw landinfotxtptr1
+uvarw landinfotxtptr2
+uvarw landinfotxtptr3
+
 // Called to determine the text when an info window is opened for train track
 // In:	EDI=tile index
 //	CL=GS:[DI]
@@ -1422,6 +1436,15 @@ showtrackinfo:
 .notplain:
 	and eax,byte 0x6
 	add cx,ourtext(presigautomatic)
+	testflags tsignals
+	jnc .no_tsig
+	test BYTE [landscape6+edi], 4
+	jz .no_tsig
+	mov [landinfotxtptr1], cx
+	mov WORD [landinfotxtptr2], ourtext(tsignal_linfotxt)
+	mov WORD [landinfotxtptr3], statictext(backspace2)
+	mov cx, statictext(landinfo_3text)
+.no_tsig:
 	shl ecx,16	// store that in the higher 16 bits
 
 			// lower 16 bits=what signal type
@@ -1429,7 +1452,7 @@ showtrackinfo:
 	lea cx,[ourtext(wplainsignals)+eax]
 	mov ax,ourtext(withsignals)
 	jmp .done
-; endp showtrackinfo 
+; endp showtrackinfo
 
 
 // Called when train enters a depot

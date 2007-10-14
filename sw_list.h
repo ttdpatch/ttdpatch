@@ -306,7 +306,7 @@
 	YESNO('N', "newroutes", CFG_NEWROUTES, INFST, "", newroutes),
 	RANGE('O',"autoslope", CFG_AUTOSLOPE, TERRAIN, "AutoSlope", autoslope, AUTO, U16, FLAGDATA(autoslopevalue), 1, 3, 1),
 	     //P
-	     //Q
+	YESNO('Q',"tsignals", CFG_TSIGNALS, INFST_RAIL_SIGNAL, "", tsignals),
 	YESNO('R',"townbuildnoroads", CFG_TOWNBUILDNOROADS, HOUSESTOWNS, "TownBuildNoRoad", townbuildnoroads),
 	BITS ('S',"newsounds", CFG_NEWSOUNDS, BASIC, "NewSounds", newsounds, U8, FLAGDATA(newsoundsettings), 1),
 	YESNO('T',"trams", CFG_TRAMS, INFST_ROADS, "Trams", trams),
@@ -520,4 +520,5 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	vruncosts,
 	hidetranstrees,
 	psignals,
+	tsignals,
 

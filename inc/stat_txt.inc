@@ -367,3 +367,13 @@ stxt_cont db 0
 stxt active_orders_win, 0x81
 stxt_cont dw 0x8829	// \94\80 (Orders)
 stxt_cont db " (*)", 0
+
+stxt backspace2, 0x9A, 0x04, 0x02, 0
+
+stxt landinfo_3text, 0x9A, 0x5
+stxt_cont dd landinfotxtptr1
+stxt_cont db ", ", 0x9A, 0x5
+stxt_cont dd landinfotxtptr2
+stxt_cont db ", ", 0x9A, 0x5
+stxt_cont dd landinfotxtptr3
+stxt_cont db 0

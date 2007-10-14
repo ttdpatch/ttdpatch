@@ -413,6 +413,8 @@ defourtext newstartyearhintinc
 defourtext newstartyearhintdec
 
 defourtext nohouseremove
+
+defourtext tsignal_linfotxt
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

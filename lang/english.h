@@ -264,14 +264,15 @@ TEXTARRAY(halflines,) =
 	  "-ZM: Collect more company statistics",
 	  "-ZN: Enables newRoutes",
 	  "-ZO: Allow landscaping under objects",
+	  "-ZQ: Enable PBS through-signals",
 	  "-ZR: Prevent towns from building roads",
 	  "-ZS: Enable new sound effects",
 	  "-ZT: Allow buildings tramways",
 	  "-ZU: Enable programmable signals",
 	  "-ZV: Enables variable running costs",
+	  "-ZW: Enable new signal graphics",
 	  "-ZX: Enable adjacent stations",
 	  "-ZZ: Enable route tracing restrictions",
-	  "-ZW: Enable new signal graphics",
 
 	  NULL
 	};
@@ -519,6 +520,7 @@ SWITCHTEXT(newobjects, "Enable new objects", "")
 SWITCHTEXT(vruncosts, "Enables grfs to have variable running costs", "")
 SWITCHTEXT(hidetranstrees, "Make trees completely invisible in transparent buildings mode", "")
 SWITCHTEXT(psignals, "Allows signals states to be controlled by user criteria","")
+SWITCHTEXT(tsignals, "Allows PBS reservations the opposite way through selected one-way signals","")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -911,6 +913,7 @@ SETTEXT(CFG_NEWOBJECTS, "`%s' (%s) enables new objects.")
 SETTEXT(CFG_VRUNCOSTS, "`%s' (%s) enables grfs to have variable running costs for vehicles (no warnings will be given when the costs change).")
 SETTEXT(CFG_NOTRANSTREES, "`%s' (%s) make trees completely invisible in transparent buildings mode.")
 SETTEXT(CFG_PSIGNALS, "`%s' (%s) allows signals states to be controlled by user criteria, requires presignals")
+SETTEXT(CFG_TSIGNALS, "`%s' (%s) allows PBS reservations the opposite way through selected one-way signals, requires PBS")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

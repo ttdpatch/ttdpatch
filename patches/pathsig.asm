@@ -7,10 +7,11 @@
 #include <bitvars.inc>
 #include <signals.inc>
 #include <ptrvar.inc>
+#include <flags.inc>
 
 extern addrailgroundsprite,curstationtile,getplatforminfo,getroutemap
 extern invalidatetile,ishumanplayer,pbssettings
-extern randomstationtrigger
+extern randomstationtrigger, patchflags
 
 uvard traceroutefn		// [TTD] do route tracing
 uvard chkrailroutetargetfn	// [TTD] check if a route has arrived at the target
@@ -397,13 +398,23 @@ checksignal:
 	pop edx
 	jmp .goodpieces
 
+.maybestopping:
+	pop edx
+	testflags tsignals
+	jnc .goodpieces
+	test BYTE [landscape6+edi], 4	//if bit present, allow pass through, set ZF
+	jz .goodpieces
+	mov ax, 0
+	ret
+
+
+
 .notstopping:
 	bsf edx,edx
 	shr edx,1
 	mov dl,[sigbitfromsdirpiece+(ebx-1)*2+edx]	// now dl=signal bit in L3
-
 	test [landscape3+edi*2],dl	// signal in right direction?
-	jz .stopping
+	jz .maybestopping
 
 	mov [curtracesigbit],dl
 	test [landscape2+edi],dl
@@ -769,7 +780,7 @@ chkmarksignalroute:
 	jnc near .redraw
 
 	call activatestationpbstrigger
-	jmp short .redraw
+	jmp .redraw
 
 .clearstation:
 	test byte [landscape3+edi*2],0x80
@@ -786,12 +797,19 @@ chkmarksignalroute:
 	mov ch,dl
 	bsf edx,edx
 	mov al,[sigbitsonpiece+edx]
-	test [landscape3+edi*2],al
-	jnz near .done	// had a signal
-//	jnz .signal	// had a signal
-
 	shr edx,1
 	mov dh,[sigbitfromsdirpiece+(ebp-1)*2+edx]
+	test [landscape3+edi*2],al
+	jz .nsig			//no signal at all on this piece, continue
+
+	//signal is present on this piece
+	testflags tsignals
+	jnc near .done
+	test BYTE [landscape6+edi], 4
+	jz near .done			//is this a through signal, if no, done
+	test [landscape3+edi*2], dh
+	jnz near .done			//terminate route if signal is present in train's direction
+.nsig:
 	mov dl,ch
 	mov ch,0
 	jmp short .mark
@@ -1364,7 +1382,7 @@ getnexttileconnection:
 	shr ebx,1
 	mov bl,[sigbitfromsdirpiece+(ebp-1)*2+ebx]
 	test [landscape3+edi*2],bl
-	jz .nopath
+	jz .tsmaybenopath
 
 	mov [curtracesigbit],bl
 	test [landscape2+edi],bl
@@ -1388,6 +1406,12 @@ getnexttileconnection:
 .nopath:
 	pop ebx
 	jmp short .done
+.tsmaybenopath:
+	testflags tsignals
+	jnc .nopath
+	test BYTE [eax+edi], 4
+	jz .nopath
+	jmp .gotpath
 
 .track:
 	test dl,[eax+edi]
@@ -2514,8 +2538,12 @@ checkpathsigblock:
 	add ebp,3
 
 	test [landscape3+edi*2],al
+	jnz .issignal
+	testflags tsignals
+	jnc .nosignal
+	test BYTE [edx+edi], 4	//through signals in opposite direction count as two-way PBS signals as far as auto-pbs setups are concerned
 	jz .nosignal
-
+.issignal:
 	test byte [edx+edi],8
 	jnz .ispbs	// block always converted to PBS if one signal is PBS
 
@@ -2652,4 +2680,61 @@ chktrainleavedepot:
 	mov byte [esi+veh.movementstat],0x80	// restore to original value
 
 .done:
+	ret
+	
+exported class1routemapsigthrough	//high eax=map of signals which are green/non-existant
+	mov	 ah, al		//L5 & 0x3F
+	movzx	 eax, ax
+	push	 ebx
+
+	mov	 bl, byte [landscape3+edi*2]
+	
+//new code begins
+	test BYTE [landscape6+edi], 4
+	jz .nothroughsignal
+	push DWORD .nothroughsignal
+	push ebx
+	not bl
+	jmp class1routemapsigthrough_in		//count non-existant signals as green, if through signal
+.nothroughsignal:
+//new code ends
+
+	mov	 bh, [landscape2+edi]
+	test	 bl, 0C0h
+	jnz	 short loc_547B97
+	or	 bx, 0C0C0h
+loc_547B97:
+	test	 bl, 30h
+	jnz	 short loc_547BA1
+	or	 bx, 3030h
+loc_547BA1:
+	and	 bl, bh
+class1routemapsigthrough_in:
+	test	 bl, 80h
+	jnz	 short loc_547BAD
+	or	 eax, 10070000h
+loc_547BAD:
+	test	 bl, 40h
+	jnz	 short loc_547BB7
+	or	 eax, 7100000h
+loc_547BB7:
+	test	 bl, 20h
+	jnz	 short loc_547BC1
+	or	 eax, 20080000h
+loc_547BC1:
+	test	 bl, 10h
+	jnz	 short loc_547BCB
+	or	 eax, 8200000h
+loc_547BCB:
+
+	pop ebx
+	ret
+	
+//_CS:0016107C,573050
+exported chkrailroutetargettsigchk	//set ZF on blockage
+	test BYTE [landscape3+edi*2], bl
+	jz .maybe
+	ret
+.maybe:
+	test BYTE [landscape6+edi], 4
 	ret

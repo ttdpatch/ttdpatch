@@ -39,9 +39,10 @@ endvar
 varb win_signalgui_elements
 db cWinElemTextBox,cColorSchemeDarkGreen
 dw 0, 10, 0, 13, 0x00C5
+exported signalboxtopbarwnstruc1
 db cWinElemSpriteBox,cColorSchemeDarkGreen
 dw 11, win_signalgui_width-1, 0, 13, 0
-; --- signalbuttons
+; --- signalbuttons 2
 db cWinElemSpriteBox,cColorSchemeDarkGreen
 dw win_signalgui_signalboxwidth*0, win_signalgui_signalboxwidth*1-1, 14, 14+win_signalgui_signalboxheight-1, 0
 db cWinElemSpriteBox,cColorSchemeDarkGreen
@@ -58,10 +59,10 @@ db cWinElemSpriteBox,cColorSchemeDarkGreen
 dw win_signalgui_signalboxwidth*2, win_signalgui_signalboxwidth*3-1, 14+win_signalgui_signalboxheight, 14+win_signalgui_signalboxheightX2-1, 0
 db cWinElemSpriteBox,cColorSchemeDarkGreen
 dw win_signalgui_signalboxwidth*3, win_signalgui_signalboxwidth*4-1, 14+win_signalgui_signalboxheight, 14+win_signalgui_signalboxheightX2-1, 0
-; --- semaphore
+; --- semaphore 10
 db cWinElemSpriteBox,cColorSchemeDarkGreen
 dw win_signalgui_signalboxwidth*4, win_signalgui_signalboxwidth*5-1, 14, 14+win_signalgui_signalboxheight-1, 715
-; ---  autosignal
+; ---  autosignal 11
 db cWinElemSpriteBox,cColorSchemeDarkGreen
 dw win_signalgui_signalboxwidth*4, win_signalgui_signalboxwidth*5-1, 14+win_signalgui_signalboxheight, 14+win_signalgui_signalboxheightX2-1-7, 0
 
@@ -69,11 +70,17 @@ db cWinElemTextBox,cColorSchemeDarkGreen
 dw win_signalgui_signalboxwidth*4,win_signalgui_signalboxwidth*5-1-win_signalgui_signalboxwidth/2, 14+win_signalgui_signalboxheightX2-1-6, 14+win_signalgui_signalboxheightX2-1, 0x0188
 db cWinElemTextBox,cColorSchemeDarkGreen
 dw win_signalgui_signalboxwidth*4+win_signalgui_signalboxwidth/2, win_signalgui_signalboxwidth*5-1, 14+win_signalgui_signalboxheightX2-1-6, 14+win_signalgui_signalboxheightX2-1, 0x0189
-
+exported signalboxptbtnwnstruc1
+; --- pass-through 14
+db cWinElemDummyBox,cColorSchemeDarkGreen
+dw win_signalgui_signalboxwidth*5, win_signalgui_signalboxwidth*6-1, 14, 14+win_signalgui_signalboxheight-1, 0
+; --- 1-2 inversion 15
+db cWinElemDummyBox,cColorSchemeDarkGreen
+dw win_signalgui_signalboxwidth*5, win_signalgui_signalboxwidth*6-1, 14+win_signalgui_signalboxheight, 14+win_signalgui_signalboxheightX2-1, 0
 
 global signalboxrobjendpt1
 signalboxrobjendpt1:
-; --- restriction object
+; --- restriction object 16
 
 db cWinElemLast,cColorSchemeDarkGreen
 dw 0, win_signalgui_width-1, 14+win_signalgui_signalboxheightX2, 14+win_signalgui_signalboxheightX2+13, ourtext(tr_siggui_text)
@@ -87,7 +94,7 @@ struc signalguidata
 	.y:	resw 1	// 04: y of tile to change
 	.life:	resb 1	// 06: seconds left before closing
 	.piece:	resb 1	// 07: track piece bit to change
-	.type:	resb 1	// 08: signal type (pre/pbs/semaphore) to change
+	.type:	resb 1	// 08: signal type (pre/pbs/semaphore) to change //0=plain, 2=pre, 4=exit, 6=combo, +8=semaphore, +16=PBS, +32=through, +64=1-2 inversion
 endstruc
 
 
@@ -178,24 +185,9 @@ exported win_signalgui_create
 	mov word [esi+window.data+signalguidata.y], cx
 	mov byte [esi+window.data+signalguidata.life], win_signalgui_timeout
 	mov byte [esi+window.data+signalguidata.piece], dl
-	
-	
-	mov dl, byte [landscape3+1+edi*2]
-	
-	//robj
-	and dl, ~0x10
-	//robj
 
-	mov ebx,landscape6
-	test ebx,ebx
-	jle .nopbstoggle
-	test byte [ebx+edi], 8
-	jz .nopbstoggle
-	or dx, 16
-.nopbstoggle:
-	and dl, 11110b
-	mov byte [esi+window.data+signalguidata.type], dl
-	call win_signalgui_setdisabledbuttons
+	mov byte [esi+window.data+signalguidata.type], -1
+	call win_signalgui_refreshtilestatus
 	or byte [esi+window.flags], 7
 	pop esi
 	
@@ -220,17 +212,21 @@ win_signalgui_refreshtilestatus:
 	
 	mov dl, byte [landscape3+1+edi*2]
 
-	//robj
-	and dl, ~0x10
-	//robj
+	//robj,psig
+	and dl, ~(0x30|0x81)
+	//robj,psig
 
 	mov ebx,landscape6
 	test ebx,ebx
-	jle .nopbstoggle
+	jle .nottoggle
 	test byte [ebx+edi], 8
 	jz .nopbstoggle
-	or dx, 16
+	or dl, 16
 .nopbstoggle:
+	test byte [ebx+edi], 4
+	jz .nottoggle
+	or dl, 32
+.nottoggle:
 	pop edi
 	cmp byte [esi+window.data+signalguidata.type], dl
 	je .nochange
@@ -247,8 +243,17 @@ win_signalgui_refreshtilestatus:
 	ret
 	
 win_signalgui_setdisabledbuttons:
+	mov dword [esi+window.disabledbuttons], 0
 	push edx
 	movzx edx, byte [esi+window.data+signalguidata.type]
+	test dl, 32
+	jz .nott
+	or dword [esi+window.disabledbuttons], 1<<14
+.nott:
+	test dl, 64
+	jz .notinv
+	or dword [esi+window.disabledbuttons], 1<<15
+.notinv:
 	and dl, 10110b
 	shr dx, 1
 	btr dx, 3
@@ -256,7 +261,6 @@ win_signalgui_setdisabledbuttons:
 	add dl, 4
 .notpbs:
 	add dl, 2
-	mov word [esi+window.disabledbuttons], 0
 	bts dword [esi+window.disabledbuttons], edx
 	pop edx
 	ret
@@ -304,12 +308,15 @@ win_signalgui_redraw:
 	mov dx, [esi+window.y]
 	add dx, win_signalgui_signaly
 	
-	mov eax, 0
+	movzx eax, WORD [esi+window.data+signalguidata.xy]
+	movzx eax, BYTE [landscape3+1+eax*2]
+	and al, 0x30
+	add eax, eax
 	test byte [esi+window.data+signalguidata.type], 8
 	jz .nosemp
 	add eax, 8
 .nosemp:
-	
+
 	push ecx
 	call win_signalgui_drawsignal
 	add cx, win_signalgui_signalboxwidth
@@ -401,7 +408,7 @@ win_signalgui_clickhandler:
 
 	//trace restriction
 	extern tracerestrict_createwindow
-	cmp cl, 14
+	cmp cl, 16
 	je tracerestrict_createwindow
 	//trace restriction
 
@@ -416,7 +423,7 @@ win_signalgui_clickhandler:
 	ret
 .signalclick:
 	sub cl, 2
-	cmp cl, 9
+	cmp cl, 13 //14 -- inv not yet implemented
 	jb near .onsignalbutton
 	ret
 
@@ -454,7 +461,12 @@ win_signalgui_clickhandler:
 	
 	and ecx, 0x0F
 	mov bh, byte [signalgui_signalbits+ecx]
-	
+	test bh, 0x68
+	jz .noaddoldpretype
+	mov bl, [esi+window.data+signalguidata.type]
+	and bl, 6+16	//pre+pbs state
+	or bh, bl
+.noaddoldpretype:
 	mov ax, word [esi+window.data+signalguidata.x]
 	mov cx, word [esi+window.data+signalguidata.y]
 	movzx edx, byte [esi+window.data+signalguidata.piece]
@@ -496,16 +508,21 @@ db 010b
 db 100b
 db 110b
 db 10000b
-db 10010b 
+db 10010b
 db 10100b
 db 10110b
-db 101000b	// special: toggle only semaphore!
+db 1000b	// special: toggle only semaphore!
+db 0		//ignore: autosig
+db 0		//...
+db 0		//...
+db 32		//through
+db 64		//1-2 inversion //button disabled
 endvar
 
 
 //IN:	ax,cx=x,y
 //	bl=actionflags
-//	bh=pre+exit bits,semaphore toggle bit!+pbs bit+only semaphore bit
+//	bh=pre+exit bits,semaphore toggle bit!+pbs bit+only semaphore bit,through+inv bits
 //	dl=trackpiece
 // 	dh=action type; 0=set signal type, 1=build autosignals
 //	build autosignals: edx(16:23)=separation
@@ -523,9 +540,9 @@ exported AlterSignalsByGUI
 	call [ebp+0x10]
 	cmp ebx, 0x80000000
 	je .failedornotneeded
-	test byte [altersignalsbygui_flags], 101000b
+	mov dh, [altersignalsbygui_flags]
+	test dh, 8	//semaphore
 	jz .failedornotneeded
-	jpo .failedornotneeded
 	cmp ebx, 0
 	jne .failedornotneeded
 	mov ebx, [signalremovecost]

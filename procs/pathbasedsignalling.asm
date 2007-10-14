@@ -2,7 +2,7 @@
 #include <frag_mac.inc>
 #include <bitvars.inc>
 #include <ptrvar.inc>
-
+#include <window.inc>
 
 extern chkrailroutetargetfn
 extern displayregrailsprite,displayregrailsprite.oldfn,findrailroutearg
@@ -13,6 +13,7 @@ extern railroutechkcont,railroutestepfnarg,railroutetargetnotshortest
 extern railroutetargetshortest,routemaphndlist,traceroutefn
 extern trainchoosedirection
 extern wtrackspriteofsptr
+extern patchflags
 
 glob_frag findtraceroute
 
@@ -62,6 +63,31 @@ codefragment newdisplayrailsprites
 	icall displayrailsprites
 	jmp newdisplayrailsprites_start+133
 
+codefragment oldclass1routemaphandlersignal, 0x11
+//547B69
+//_CS:001465F9
+	cmp     ah, 40h
+	jz      short loc_14660A
+	mov     ah, al
+	cmp     al, 3
+	jnz     short loc_146606
+	or      al, 40h
+loc_146606:                                     ; CODE XREF: Class1RouteMapHandler+1Dj
+        movzx   eax, ax
+        retn
+//_CS:0014660A
+//insert jmp here (547B7A)
+loc_14660A:                                     ; CODE XREF: Class1RouteMapHandler+17j
+        mov     ah, al
+        movzx   eax, ax
+        push    ebx
+
+codefragment newclass1routemaphandlersignal
+	ijmp class1routemapsigthrough
+	
+codefragment newchkrailroutetargettsigchk
+	icall chkrailroutetargettsigchk
+	setfragmentsize 7
 
 endcodefragments
 
@@ -167,4 +193,18 @@ extern newgraphicssetsenabled
 	or dword [newgraphicssetsenabled], 1<<15 // Allow new slope sprites to be used
 
 .noshow:
+	stringaddress oldclass1routemaphandlersignal
+	testflags tsignals
+	jnc .no_tsignals
+	storefragment newclass1routemaphandlersignal
+	mov edi, [chkrailroutetargetfn]
+	add edi, 0x2F+WINTTDX*4
+	storefragment newchkrailroutetargettsigchk
+	extern signalboxrobjendpt1, signalboxptbtnwnstruc1, sigguiwindimensions, signalboxtopbarwnstruc1
+	add WORD [signalboxrobjendpt1+4], 20
+	add WORD [signalboxtopbarwnstruc1+4], 20
+	mov BYTE [signalboxptbtnwnstruc1], cWinElemSpriteBox
+	mov BYTE [signalboxptbtnwnstruc1+12], cWinElemSpriteBox
+	add WORD [sigguiwindimensions], 20
+.no_tsignals:
 	ret
