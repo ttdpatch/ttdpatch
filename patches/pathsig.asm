@@ -1055,7 +1055,7 @@ opclass08hroutemaphnd:
 	movzx eax,byte [landscape5(di,1)]
 
 	call checkignoredistance
-	jae .done
+	jae NEAR .done
 
 	mov ebp,landscape6
 
@@ -1075,7 +1075,7 @@ opclass08hroutemaphnd:
 
 	test al,0x40	// was there a signal?
 	mov al,ah
-	jz .done	// no, it was on the other piece apparently
+	jz NEAR .done	// no, it was on the other piece apparently
 
 	movzx ebp,word [tracertdistance]
 	mov [lastsigdistance],ebp
@@ -1088,6 +1088,16 @@ opclass08hroutemaphnd:
 	mov dh,[sigbitsonpiece+edx]
 	test [landscape3+edi*2],dh
 	jz .nosignal
+	testflags tsignals
+	jnc .nottest
+	test BYTE [landscape6+edi], 4
+	jz .nottest
+	movzx edx, dl
+	shr edx, 1
+	mov dh, [sigbitfromsdirpiece+(ebx-1)*2+edx]
+	test [landscape3+edi*2],dh
+	jz .nextpiece	//one-way through signal
+.nottest:
 
 	or al,0x40
 	jmp .nextpiece
