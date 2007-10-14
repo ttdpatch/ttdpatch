@@ -17,6 +17,8 @@ extern storeutf8char
 extern failpropwithgrfconflict,lastextragrm,curextragrm
 extern restorevehnametexts
 
+extern landinfotxtptr1,landinfotxtptr2,landinfotxtptr3
+
 uvard ourtext_ptr, ourtext(last)-ourtext(base)+1	// +1 otherwise last overwrites the following uvard in memory
 
 uvarb textprocesstodisplay		// set to 1 if the text will be displayed, so the text. ref. stack can be modified
@@ -377,7 +379,8 @@ endvar
 
 // string code 9A handlers
 vard extstringformat
-	dd print64bitcost,print64bitcost,skipnextcolor,pushword,backup
+	dd print64bitcost,print64bitcost,skipnextcolor,pushword		//0-3
+	dd backup,ptrtextid						//4-5
 numextstringformat equ ($-extstringformat)/4
 endvar
 
@@ -426,6 +429,14 @@ backup:
 	sub edi, eax
 .ret:
 ret
+
+ptrtextid:
+	lodsd
+	movzx eax, WORD [eax]
+	push esi
+	call newtexthandler
+	pop esi
+	ret
 
 noglobal uvarb skipcolor
 
