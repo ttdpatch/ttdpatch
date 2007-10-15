@@ -2362,11 +2362,11 @@ getlayoutbyte:
 	mov [specialerrtext1],esi
 	mov word [operrormsg2],statictext(specialerr1)
 
-// copy the first 5 special GRF registers onto the text ref. stack,
+// copy the first 4 special GRF registers onto the text ref. stack,
 // so error messages can have calculated data in them
 	mov esi,specialgrfregisters
 	mov edi,textrefstack
-	times 5 movsd
+	times 4 movsd
 	jmp short .deny
 
 // called while putting an industry tile to the landscape, to fill L5
@@ -3358,6 +3358,8 @@ induwindow_toolclick:
 	or di,ax
 	ror di,4
 
+	mov word [operrormsg1],0x0285		// Can't build xxx here...
+
 // get industry type
 	movzx eax,byte [esi+window.data]
 	push eax
@@ -3374,9 +3376,23 @@ induwindow_toolclick:
 	jnz .ok
 
 // show error message if failed
-	mov bx,[industrynames+2*ebx]
-	mov [textrefstack],bx
-	mov bx,0x0285		// Can't build xxx here...
+	mov dx,[industrynames+2*ebx]
+	mov bx,[operrormsg1]
+	cmp bx,0x0285		// Has the message been changed by the callee?
+	jne .noadjust
+
+// push everything down by 2 bytes in the text ref. stack to make space for the type name
+	push esi
+	push edi
+	std
+	mov esi,textrefstack+16
+	mov edi,textrefstack+18
+	times 5 movsd
+	cld
+	pop edi
+	pop esi
+	mov [textrefstack],dx
+.noadjust:
 	mov dx,[operrormsg2]
 	call [errorpopup]
 .ok:
@@ -5187,11 +5203,11 @@ doinduplacementcallback:
 	mov [specialerrtext1],esi
 	mov word [operrormsg2],statictext(specialerr1)
 
-// copy the first 5 special GRF registers onto the text ref. stack,
+// copy the first 4 special GRF registers onto the text ref. stack,
 // so error messages can have calculated data in them
 	mov esi,specialgrfregisters
 	mov edi,textrefstack
-	times 5 movsd
+	times 4 movsd
 	jmp short .deny
 
 .invalid:
