@@ -8,6 +8,8 @@
 #include <window.inc>
 #include <imports/gui.inc>
 #include <ptrvar.inc>
+#include <flags.inc>
+#include <bitvars.inc>
 
 extern drawspritefn
 extern presignalspritebase, numsiggraphics
@@ -17,6 +19,7 @@ extern RefreshWindowArea
 extern generatesoundeffect
 extern buildautosignals
 extern autosignalsep
+extern newsignalsdrawsprite, miscmods2flags
 
 %assign win_signalgui_timeout 5
 
@@ -311,7 +314,7 @@ win_signalgui_redraw:
 	movzx eax, WORD [esi+window.data+signalguidata.xy]
 	movzx eax, BYTE [landscape3+1+eax*2]
 	and al, 0x30
-	add eax, eax
+	shl eax, 3
 	test byte [esi+window.data+signalguidata.type], 8
 	jz .nosemp
 	add eax, 8
@@ -328,13 +331,22 @@ win_signalgui_redraw:
 	add cx, win_signalgui_signalboxwidth
 	add eax, 2
 	call win_signalgui_drawsignal
-	
-	// display semaphore toggle button 
+
+	// display semaphore toggle button
 	add cx, win_signalgui_signalboxwidth
 	sub eax, 6
+	push eax
 	xor eax, 8
+	and eax, 8
+	add eax, 512
 	call win_signalgui_drawsignal
-	xor eax, 8
+	cmp BYTE [signalboxptbtnwnstruc1+2], cWinElemDummyBox
+	je .nothrough
+	mov eax, 32
+	add cx, win_signalgui_signalboxwidth
+	call win_signalgui_drawsignal
+.nothrough:
+	pop eax
 	pop ecx
 	
 	add dx, win_signalgui_signalboxheight
@@ -370,7 +382,7 @@ win_signalgui_redraw:
 	ret
 	
 	
-// in eax = 0=plain, 2=pre, 4=exit, 6=combo, +8=semaphore, +16=PBS
+// in eax = 0=plain, 2=pre, 4=exit, 6=combo, +8=semaphore, +16=PBS, +32=through, +64=1-2 inversion, +128=restricted, +256=programmed, +512=don't bother with new-signals
 //	+1 = diagonal view
 win_signalgui_drawsignal:
 	pusha
@@ -381,12 +393,33 @@ win_signalgui_drawsignal:
 	btr eax,0
 	sbb ebx,ebx
 	and ebx,byte -12	// now ebx=-12 for diagonal view, 0 for normal
+	lea esi, [eax*8+12+ebx]
 	add ebx, 0x4fb+12
 	and eax, [numsiggraphics]
 	jz .nopresignal
 	lea ebx,[ebx-0x4fb+eax*8-16]
 	add ebx,[presignalspritebase]
 .nopresignal:
+	test esi, 512<<3
+	jnz .nons
+	test BYTE [miscmods2flags], MISCMODS2_NONEWSIGNALSIGGUI
+	jnz .nons
+	mov eax, esi
+	movzx eax, al	//cut off all past PBS
+	and esi, (32+64+128+256)<<3
+	lea eax, [eax+esi*4]
+	mov esi, eax
+	and eax, ~((128+256)<<5)
+	and esi, ((128+256)<<5)
+	shr esi, 4
+	or eax, esi
+
+	xor esi, esi
+
+	call newsignalsdrawsprite
+	popa
+	ret
+.nons:
 	call [drawspritefn]
 	popa
 	ret

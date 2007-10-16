@@ -574,6 +574,8 @@ BIT(nodepotnumbers,        "Don't display depot numbers")
 BITSWITCH(miscmods2)
 BIT(noenhancetrees,        "Force grass under the tree when it's planted on bare land or desert")
 BIT(ignoretaskbar,         "Don't consider the size of the Taskbar when positioning the game window")
+BIT(nonewsignalsiggui,     "Prevent new signals being used for the signals GUI")
+
 
 // Description for morebuildoptions bits
 BITSWITCH(morebuildoptions)

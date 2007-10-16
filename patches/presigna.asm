@@ -1147,6 +1147,7 @@ var signaloffsets
 global setsignaloffsets
 setsignaloffsets:
 	movzx ebx,bl
+	mov [lastdrawnsignalnum], bl
 	mov edi,[roadtrafficside]
 	and edi,byte 0x10
 	shr edi,1			// 24/16 == 3/2
@@ -1158,6 +1159,8 @@ setsignaloffsets:
 					// for all the other occurences, another "test dl,imm8" will follow it immediately
 	ret
 ; endp setsignaloffsets
+
+uvarb lastdrawnsignalnum
 
 
 // Called when clicking on track with the signal tool
