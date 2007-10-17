@@ -16,12 +16,18 @@
 extern miscgrfvar, vehtypecallback, newvehdata
 
 // This generates %1.makestruc, finishes the vehicle-struc initialization, calls the callback, and moves the return value into the veh struc
-%macro MAKESTRUC 1
+%macro MAKESTRUC 1-2 0	// Params: Global name, 1 if esi and edi are swapped after calling eax.
 ovar %1.makestruc, $, 0
 	pop eax
-	call eax
+	call eax	// For planes, this swaps esi and edi.
+%if %2
+	xchg esi,edi
+%endif
 	call %1
 	mov [esi+veh.maxspeed], ax	// overwritten
+%if %2
+	xchg esi,edi
+%endif
 	pop cx				// overwritten
 	jmp near $+5
 ovar %1.oldfn,-4,$
@@ -169,7 +175,7 @@ GetPlaneCallbackSpeed:
 	pop ecx
 	ret
 
-MAKESTRUC GetPlaneCallbackSpeed
+MAKESTRUC GetPlaneCallbackSpeed, 1
 NOESI GetPlaneCallbackSpeed
 
 // Run callback 36 for vehicles based off the input value
