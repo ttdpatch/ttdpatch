@@ -210,6 +210,8 @@ getrefitmask:
 
 .found:
 	mov bl,[cargotypes+ebx]
+	cmp bl,0xFF
+	je .transnext		// "found" an invalid slot, BTSing with 0xFF would turn on bit 31 instead
 	bts edi,ebx
 	jmp .transnext
 
