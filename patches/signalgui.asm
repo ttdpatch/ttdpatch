@@ -340,12 +340,19 @@ win_signalgui_redraw:
 	and eax, 8
 	add eax, 512
 	call win_signalgui_drawsignal
+	add cx, win_signalgui_signalboxwidth
 	cmp BYTE [signalboxptbtnwnstruc1+2], cWinElemDummyBox
 	je .nothrough
 	mov eax, 32
-	add cx, win_signalgui_signalboxwidth
 	call win_signalgui_drawsignal
 .nothrough:
+	cmp BYTE [signalboxptbtnwnstruc1+2+12], cWinElemDummyBox
+	je .noinv
+	mov eax, 64
+	add dx, win_signalgui_signalboxheight
+	call win_signalgui_drawsignal
+	sub dx, win_signalgui_signalboxheight
+.noinv:
 	pop eax
 	pop ecx
 	
@@ -456,7 +463,7 @@ win_signalgui_clickhandler:
 	ret
 .signalclick:
 	sub cl, 2
-	cmp cl, 13 //14 -- inv not yet implemented
+	cmp cl, 14
 	jb near .onsignalbutton
 	ret
 

@@ -952,9 +952,25 @@ exported checkistwoway
 
 	// see which of these are actually set
 	mov bh,[nosplit landscape3+edi*2]
-
+	
+	test BYTE [landscape3+edi*2+1], 0x40
+	jnz .inv
+.norm:
 	and bh,dh		// clear all but these two directions
 	cmp bh,dh		// now if bh==dh it's a two-way
+	ret
+.inv:
+	testflags isignals
+	jnc .norm
+	and bh,dh		// clear all but these two directions
+	cmp bh,dh		// now if bh==dh it's a two-way
+	jz .setnz
+	test bh, al		//if heading wrong way into one-way signal, leave it as one-way
+	jz .setnz
+	cmp esp, esp
+	ret
+.setnz:
+	test esp, esp
 	ret
 ; endp checkistwoway 
 
@@ -1439,15 +1455,26 @@ showtrackinfo:
 .notplain:
 	and eax,byte 0x6
 	add cx,ourtext(presigautomatic)
+	mov [landinfotxtptr1], cx
 	testflags tsignals
 	jnc .no_tsig
 	test BYTE [landscape6+edi], 4
 	jz .no_tsig
-	mov [landinfotxtptr1], cx
 	mov WORD [landinfotxtptr2], ourtext(tsignal_linfotxt)
 	mov WORD [landinfotxtptr3], statictext(backspace2)
 	mov cx, statictext(landinfo_3text)
+	jmp .got_tsig
 .no_tsig:
+	mov WORD [landinfotxtptr2], statictext(backspace2)
+.got_tsig:
+	testflags isignals
+	jnc .no_isig
+	test BYTE [landscape3+edi*2+1], 0x40
+	jz .no_isig
+	mov cx, statictext(landinfo_3text)
+	mov WORD [landinfotxtptr3], ourtext(isignal_linfotxt)
+.no_isig:
+
 	shl ecx,16	// store that in the higher 16 bits
 
 			// lower 16 bits=what signal type

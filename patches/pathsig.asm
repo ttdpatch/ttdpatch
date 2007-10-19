@@ -2739,7 +2739,7 @@ loc_547BCB:
 
 	pop ebx
 	ret
-	
+
 //_CS:0016107C,573050
 exported chkrailroutetargettsigchk	//set ZF on blockage
 	test BYTE [landscape3+edi*2], bl
@@ -2747,4 +2747,19 @@ exported chkrailroutetargettsigchk	//set ZF on blockage
 	ret
 .maybe:
 	test BYTE [landscape6+edi], 4
+	ret
+
+//_CS:00161093,573067			//set ZF if one-way signal
+exported chkrailroutetargettsigchkinv
+	test BYTE [landscape3+edi*2+1], 0x40
+	jnz .inv
+	test BYTE [landscape3+edi*2], bl
+	ret
+.inv:
+	test BYTE [landscape3+edi*2], bl
+	jz .setnz
+	cmp esp, esp
+	ret
+.setnz:
+	test esp, esp
 	ret

@@ -264,6 +264,7 @@ TEXTARRAY(halflines,) =
 	  "-ZM: Collect more company statistics",
 	  "-ZN: Enables newRoutes",
 	  "-ZO: Allow landscaping under objects",
+	  "-ZP: Enable signal routing inversion",
 	  "-ZQ: Enable PBS through-signals",
 	  "-ZR: Prevent towns from building roads",
 	  "-ZS: Enable new sound effects",
@@ -521,6 +522,7 @@ SWITCHTEXT(vruncosts, "Enables grfs to have variable running costs", "")
 SWITCHTEXT(hidetranstrees, "Make trees completely invisible in transparent buildings mode", "")
 SWITCHTEXT(psignals, "Allows signals states to be controlled by user criteria","")
 SWITCHTEXT(tsignals, "Allows PBS reservations the opposite way through selected one-way signals","")
+SWITCHTEXT(isignals, "Invert the one-way/two-way routing behaviour of selected signals","")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -916,6 +918,7 @@ SETTEXT(CFG_VRUNCOSTS, "`%s' (%s) enables grfs to have variable running costs fo
 SETTEXT(CFG_NOTRANSTREES, "`%s' (%s) make trees completely invisible in transparent buildings mode.")
 SETTEXT(CFG_PSIGNALS, "`%s' (%s) allows signals states to be controlled by user criteria, requires presignals")
 SETTEXT(CFG_TSIGNALS, "`%s' (%s) allows PBS reservations the opposite way through selected one-way signals, requires PBS")
+SETTEXT(CFG_ISIGNALS, "`%s' (%s) invert the routing behaviour of selected signals, such that one-way signals behave as two-way signals and vice-versa")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

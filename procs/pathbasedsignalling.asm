@@ -3,6 +3,7 @@
 #include <bitvars.inc>
 #include <ptrvar.inc>
 #include <window.inc>
+#include <patchproc.inc>
 
 extern chkrailroutetargetfn
 extern displayregrailsprite,displayregrailsprite.oldfn,findrailroutearg
@@ -18,6 +19,8 @@ extern patchflags
 glob_frag findtraceroute
 
 global patchpathbasedsignalling
+
+patchproc tsignals, isignals, tisignalpatchproc
 
 begincodefragments
 
@@ -87,6 +90,9 @@ codefragment newclass1routemaphandlersignal
 	
 codefragment newchkrailroutetargettsigchk
 	icall chkrailroutetargettsigchk
+	setfragmentsize 7
+codefragment newchkrailroutetargettsigchkinv
+	icall chkrailroutetargettsigchkinv
 	setfragmentsize 7
 
 endcodefragments
@@ -193,18 +199,30 @@ extern newgraphicssetsenabled
 	or dword [newgraphicssetsenabled], 1<<15 // Allow new slope sprites to be used
 
 .noshow:
+	ret
+	
+tisignalpatchproc:
+
 	stringaddress oldclass1routemaphandlersignal
 	testflags tsignals
+	jnc .no_tsignals
+	testflags pathbasedsignalling
 	jnc .no_tsignals
 	storefragment newclass1routemaphandlersignal
 	mov edi, [chkrailroutetargetfn]
 	add edi, 0x2F+WINTTDX*4
 	storefragment newchkrailroutetargettsigchk
+	mov BYTE [signalboxptbtnwnstruc1], cWinElemSpriteBox
+.no_tsignals:
+	testflags isignals
+	jnc .no_isignals
+	mov edi, [chkrailroutetargetfn]
+	add edi, 0x2F+WINTTDX*4+23
+	storefragment newchkrailroutetargettsigchkinv
+	mov BYTE [signalboxptbtnwnstruc1+12], cWinElemSpriteBox
+.no_isignals:
 	extern signalboxrobjendpt1, signalboxptbtnwnstruc1, sigguiwindimensions, signalboxtopbarwnstruc1
 	add WORD [signalboxrobjendpt1+4], 20
 	add WORD [signalboxtopbarwnstruc1+4], 20
-	mov BYTE [signalboxptbtnwnstruc1], cWinElemSpriteBox
-	mov BYTE [signalboxptbtnwnstruc1+12], cWinElemSpriteBox
 	add WORD [sigguiwindimensions], 20
-.no_tsignals:
 	ret
