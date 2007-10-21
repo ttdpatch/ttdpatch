@@ -19,7 +19,9 @@ extern miscgrfvar, vehtypecallback, newvehdata
 %macro MAKESTRUC 1-2 0	// Params: Global name, 1 if esi and edi are swapped after calling eax.
 ovar %1.makestruc, $, 0
 	pop eax
+	push ebx
 	call eax	// For planes, this swaps esi and edi.
+	pop ebx
 %if %2
 	xchg esi,edi
 %endif
