@@ -506,6 +506,7 @@ enum langtextids {
 	CFG_MISCMODS2,
 	CFG_TSIGNALS,
 	CFG_ISIGNALS,
+	CFG_ADVORDERS,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS

@@ -26,6 +26,9 @@ extern redrawscreen,resetorders_actionnum,cargotypes
 extern saverestorevehdata_actionnum,savevehordersfn,shareorders_actionnum
 extern vehcallback,miscmodsflags
 
+//in esi=veh, out ebx=depot struc or 0
+uvard FindNearestTrainDepot
+
 
 
 
@@ -337,6 +340,8 @@ global showorder
 showorder:
 	cmp bp,byte 2
 	je short .depotorder
+	cmp bp,byte 5
+	je NEAR .special
 	cmp bp,byte 1
 	ret
 
@@ -402,6 +407,24 @@ showorder:
 
 	// NOTE: our text indices are always nonzero, so the last ADD clears ZF
 	ret
+
+.special:
+	cmp ah, 1
+	ja .specialfail
+	testflags advorders
+	jnc .specialfail
+	movzx eax, ah
+	add ax, ourtext(gotodepot)
+	mov [textrefstack+1], ax
+	movzx eax,byte [edi+veh.class]
+	add ax,ourtext(gototraindepot)-0x10
+	mov [textrefstack+3], ax
+	mov WORD [textrefstack+5], ourtext(advorder_findnearestdepottxt)
+.specialfail:
+	xor bp, bp
+	test esp, esp
+	ret
+
 ; endp showorder 
 
 // figure out whether a ship order has the right player and isn't too far
@@ -536,7 +559,8 @@ newordertarget:
 	and al,0x1f
 	cmp al,2
 	je short .todepot
-
+	cmp al,5
+	je NEAR .special
 .notyet:
 	clc
 	ret
@@ -545,7 +569,7 @@ newordertarget:
 	// check whether we need maintenance...
 	test byte [esi+veh.currorder],DEPOTIFSERVICE
 	jz short .always
-
+.maintcheck:
 	push eax
 	call needsmaintcheck.always
 	pop eax
@@ -570,6 +594,43 @@ newordertarget:
 	mov byte [esi+veh.laststation],-1
 	stc
 	ret
+.special:
+	cmp ah, 1
+	ja .skiporder
+	testflags advorders
+	jnc .skiporder
+	or ah, ah
+	je .alwaysfinddepot
+	call needsmaintcheck.always
+	ja .skiporder
+.alwaysfinddepot:
+	pushad
+	call [FindNearestTrainDepot]
+	or ebx, ebx
+	jz .failfinddepot
+	cmp WORD [ebx], 0
+	je .failfinddepot
+	xor edx, edx
+	mov eax, ebx
+	sub eax, depotarray
+	mov ecx, 6
+	div ecx
+	mov ah, al
+	mov al, 0x22
+	mov [esp+28], eax	//eax and ebx in pushad/popad stack
+	mov [esp+16], ebx
+	popad
+				//eax=depot id in ah, 2 in al, ebx=depot struc
+	mov word [esi+veh.currorder], ax
+	mov bx, [ebx]		//depot xy
+	mov ax, bx
+	mov byte [esi+veh.laststation],-1
+	stc
+	ret
+.failfinddepot:
+	popad
+	jmp .skiporder
+
 ; endp newordertarget 
 
 // called when a train arrives at a depot
@@ -710,6 +771,7 @@ selectorder:
 // allow "full load" for depot orders too
 // in:	dh=order type
 //	dl=button type (0 for full load)
+//	edi=veh ptr
 // out:	zf if it's ok
 //	nz if it's not possible to set the option
 //	dh="and" mask: not 20h if full load, ff if depot
@@ -1771,3 +1833,110 @@ showorderhint:
 	mov ax,[ebx+ecx*2]
 	pop ecx
 	ret
+
+
+//esi=veh, dx=order, al=pos
+insertvehorderhere_gotveh:
+	pusha
+	jmp insertvehorderhere.in
+//esi=window, dx=order
+insertvehorderhere:
+	pusha
+	mov     al, [esi+100010b]
+	movzx   esi, WORD [esi+window.id]
+	shl     esi, 7
+	add     esi, [veharrayptr]
+.in:
+	mov     ebx, [esi+veh.scheduleptr]
+	or      al, al
+	jz      short locret_1635DA
+	mov     ah, al
+	xor     al, al
+loc_1635CA:                                     ; CODE XREF: VehOrders@@SelItemToOrderIdx+29j
+	cmp     word [ebx], 0
+	jz      short locret_1635DA
+	add     bx, 2                   ; !Note: potentially dangerous code
+	inc     al
+	dec     ah
+	jnz     short loc_1635CA
+
+locret_1635DA:
+
+	mov bh, al
+	mov bl, 1
+	mov ax, [esi+veh.xpos]
+	mov cx, [esi+veh.ypos]
+	mov di, [esi+veh.idx]
+	mov WORD [operrormsg1], 0x8833
+	mov esi, 0x50080
+	call [actionhandler]
+	cmp ebx, 0x80000000
+	je .ret
+	cmp BYTE [esi+0x22], -1
+	je .ret
+	inc BYTE [esi+0x22]
+.ret:
+	popa
+ret
+
+extern GenerateDropDownExPrepare,DropDownExList,GenerateDropDownEx,WindowClicked,RefreshWindows
+
+exported vehorderwinhandlerhook
+	pushad
+	mov esi, edi
+	mov bx, cx
+	cmp dl, cWinEventClick
+	jne .notclick
+	call dword [WindowClicked]
+	js NEAR .end
+	cmp byte [rmbclicked],0 // Was it the right mouse button
+	jne .end
+	cmp cl, 7
+	jne .end
+	bt DWORD [esi+window.activebuttons], 7
+	jc .buttonalreadydown
+	push byte CTRL_ANY + CTRL_MP
+	call ctrlkeystate
+	je .doddl
+	jmp .end
+.buttonalreadydown:
+	btr DWORD [esi+window.activebuttons], 31
+	jnc .end
+.doddl:
+	mov ecx, 7
+	call GenerateDropDownExPrepare
+	jc vehorderwinhandlerhook_cancel
+	bts DWORD [esi+window.activebuttons], 31
+	mov DWORD [DropDownExList], ourtext(advorder_gotonearestdepotddltxt)
+	mov DWORD [DropDownExList+4], ourtext(advorder_servicenearestdepotddltxt)
+	mov DWORD [DropDownExList+8], -1
+	mov ecx, 7
+	or edx, BYTE -1
+	call GenerateDropDownEx
+	jmp vehorderwinhandlerhook_cancel
+.notclick:
+	cmp dl, cWinEventDropDownItemSelect
+	jne .notddlsel
+	cmp cl, 7
+	jne vehorderwinhandlerhook_cancel
+	mov dh, al
+	mov dl, 5
+	call insertvehorderhere
+	jmp vehorderwinhandlerhook_cancel
+.notddlsel:
+.end:
+	popad
+	jmp near $
+	ovar vehorderwinhandlerhook.oldfn,-4
+
+vehorderwinhandlerhook_cancel:
+	popad
+	pushad
+	mov esi, edi
+	mov al, [esi+window.type]
+	mov bx, [esi+window.id]
+	call [RefreshWindows]
+	popad
+	ret
+
+

@@ -51,6 +51,8 @@ needsmaintcheck:
 	and al,0x1f
 	cmp al,2
 	je short .itsadepot
+	cmp al, 5
+	je .itsaspecial
 	add ebx,byte 2
 	dec ah
 	jnz .nextcommand
@@ -75,6 +77,12 @@ needsmaintcheck:
 	// always allow maintenance even if there's a depot in the orders
 	push ebx
 	jmp .nocommands
+
+.itsaspecial:
+	testflags advorders
+	jnc .nextcommand
+	cmp ah, 1
+	ja .nextcommand
 
 .itsadepot:
 	cmp al,1

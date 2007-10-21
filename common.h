@@ -154,8 +154,9 @@
 #define miscmods2		120	// continuation of miscmods				(-)
 #define tsignals		121	// PBS through-signals					(-)
 #define isignals		122	// Invertable one-two way signal routing				(-)
+#define advorders		123	// Advanced orders					(-)
 
-#define lastbitdefaulton	122	// META: last bit defined to be set by -a
+#define lastbitdefaulton	123	// META: last bit defined to be set by -a
 
 // add new flags that should be on by default above, flags off by default below
 

@@ -143,10 +143,16 @@ endstruc
 // 02h=is a depot
 // 03h=loading/unloading
 // 04h=??
+// 05h=TTDP special
 //
 // bits for stations: 20h=unload, 40h=full load, 80h=non-stop
 // bits for depots: 40h=manually sent, a0h="go to depot" order,
 //	e0h="go to depot after service int. expired" order
+
+//for TTDP special, high byte=command num
+// 00h=find & goto closest (forward) depot
+// 01h=find & goto closest (forward) depot if service needed
+//high 3 bits means number of words in schedule heap after command which are associated (not implemented)
 
 
 // Format of data in veh2 array (for temporary, unsaved vehicle data)

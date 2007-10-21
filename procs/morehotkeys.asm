@@ -54,8 +54,10 @@ codefragment findLandscapeGenWindowHandler
 	cmp cl,6
 	jz near $+6+0x2d2
 
-codefragment findVehOrdersWindowHandler
-	jmp $+5+31Dh
+codefragment findVehOrdersWindowHandler,-19
+	js $+6+0x3C3
+	cmp cl, 0
+	db 0x0F, 0x84
 
 
 codefragment oldcheckNewWindow, 2Dh

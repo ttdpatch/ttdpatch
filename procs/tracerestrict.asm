@@ -12,6 +12,8 @@ extern robjgameoptionflag,patchflags
 patchproc tracerestrict, patchtracerestrict
 patchproc tracerestrict, psignals, patchtrps
 
+glob_frag findtracerestrict_FindNearestTrainDepot1
+
 begincodefragments
 
 /*codefragment oldtracerestrict1

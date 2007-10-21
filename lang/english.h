@@ -261,6 +261,7 @@ TEXTARRAY(halflines,) =
 	  "-ZD: Enables the cloning of trains",
 	  "-ZH: Hides trees in transparent mode",
 	  "-ZI: Enable irregular stations",
+	  "-ZL: Enable advanced orders",
 	  "-ZM: Collect more company statistics",
 	  "-ZN: Enables newRoutes",
 	  "-ZO: Allow landscaping under objects",
@@ -523,6 +524,7 @@ SWITCHTEXT(hidetranstrees, "Make trees completely invisible in transparent build
 SWITCHTEXT(psignals, "Allows signals states to be controlled by user criteria","")
 SWITCHTEXT(tsignals, "Allows PBS reservations the opposite way through selected one-way signals","")
 SWITCHTEXT(isignals, "Invert the one-way/two-way routing behaviour of selected signals","")
+SWITCHTEXT(advorders, "Enables advanced orders","")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -919,6 +921,7 @@ SETTEXT(CFG_NOTRANSTREES, "`%s' (%s) make trees completely invisible in transpar
 SETTEXT(CFG_PSIGNALS, "`%s' (%s) allows signals states to be controlled by user criteria, requires presignals")
 SETTEXT(CFG_TSIGNALS, "`%s' (%s) allows PBS reservations the opposite way through selected one-way signals, requires PBS")
 SETTEXT(CFG_ISIGNALS, "`%s' (%s) invert the routing behaviour of selected signals, such that one-way signals behave as two-way signals and vice-versa")
+SETTEXT(CFG_ADVORDERS, "`%s' (%s) enables advanced orders")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

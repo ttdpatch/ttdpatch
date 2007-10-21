@@ -1,9 +1,15 @@
 #include <defs.inc>
 #include <frag_mac.inc>
+#include <patchproc.inc>
 
 global patchgotodepot
+extern FindNearestTrainDepot
+
+patchproc advorders, advorderspatchproc
 
 begincodefragments
+
+ext_frag findtracerestrict_FindNearestTrainDepot1
 
 codefragment oldinsertorder
 	mov dl,1
@@ -142,7 +148,10 @@ codefragment oldcanceldepot
 codefragment newcanceldepot
 	call runindex(canceldepot)
 
-
+codefragment VehOrdersWindowHandlerHookJmp1,-18
+	js $+6+0x3C3
+	cmp cl, 0
+	db 0x0F, 0x84
 
 endcodefragments
 
@@ -208,4 +217,13 @@ patchgotodepot:
 
 exported patchskipbutton
 	patchcode oldskipbutton,newskipbutton,1,1
+	ret
+
+extern vehorderwinhandlerhook,vehorderwinhandlerhook.oldfn
+advorderspatchproc:
+	stringaddress findtracerestrict_FindNearestTrainDepot1
+	sub edi, 0x83+WINTTDX*0xE
+	mov [FindNearestTrainDepot], edi
+	stringaddress VehOrdersWindowHandlerHookJmp1
+	chainfunction vehorderwinhandlerhook
 	ret

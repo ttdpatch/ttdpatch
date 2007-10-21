@@ -301,7 +301,7 @@
 	YESNO('I',"irregularstations", CFG_IRRSTATIONS, INFST_STATION, "IrregularStations", irrstations),
 	     //J
 	     //K
-	     //L
+	YESNO('L',"advorders", CFG_ADVORDERS, VEH_ORDERS, "", advorders),
 	YESNO('M',"morestatistics", CFG_MORESTATS, INTERFACE, "MoreStatistics", morestats),
 	YESNO('N', "newroutes", CFG_NEWROUTES, INFST, "", newroutes),
 	RANGE('O',"autoslope", CFG_AUTOSLOPE, TERRAIN, "AutoSlope", autoslope, AUTO, U16, FLAGDATA(autoslopevalue), 1, 3, 1),
@@ -522,4 +522,4 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	psignals,
 	tsignals,
 	isignals,
-
+	advorders,

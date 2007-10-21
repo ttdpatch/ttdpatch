@@ -416,6 +416,11 @@ defourtext nohouseremove
 
 defourtext tsignal_linfotxt
 defourtext isignal_linfotxt
+
+defourtext advorder_findnearestdepottxt
+
+defourtext advorder_gotonearestdepotddltxt
+defourtext advorder_servicenearestdepotddltxt
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
