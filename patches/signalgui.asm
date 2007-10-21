@@ -19,7 +19,7 @@ extern RefreshWindowArea
 extern generatesoundeffect
 extern buildautosignals
 extern autosignalsep
-extern newsignalsdrawsprite, miscmods2flags
+extern newsignalsdrawsprite, miscmods2flags, patchflags
 
 %assign win_signalgui_timeout 5
 
@@ -215,6 +215,11 @@ win_signalgui_refreshtilestatus:
 	
 	mov dl, byte [landscape3+1+edi*2]
 
+	testflags isignals
+	jc .noclearisig
+	and dl, ~0x40
+.noclearisig:
+
 	//robj,psig
 	and dl, ~(0x30|0x81)
 	//robj,psig
@@ -226,6 +231,10 @@ win_signalgui_refreshtilestatus:
 	jz .nopbstoggle
 	or dl, 16
 .nopbstoggle:
+	testflags tsignals
+	jnc .nottoggle
+	testflags pathbasedsignalling
+	jnc .nottoggle
 	test byte [ebx+edi], 4
 	jz .nottoggle
 	or dl, 32
@@ -341,13 +350,15 @@ win_signalgui_redraw:
 	add eax, 512
 	call win_signalgui_drawsignal
 	add cx, win_signalgui_signalboxwidth
-	cmp BYTE [signalboxptbtnwnstruc1+2], cWinElemDummyBox
-	je .nothrough
+	testflags tsignals
+	jnc .nothrough
+	testflags pathbasedsignalling
+	jnc .nothrough
 	mov eax, 32
 	call win_signalgui_drawsignal
 .nothrough:
-	cmp BYTE [signalboxptbtnwnstruc1+2+12], cWinElemDummyBox
-	je .noinv
+	testflags isignals
+	jnc .noinv
 	mov eax, 64
 	add dx, win_signalgui_signalboxheight
 	call win_signalgui_drawsignal
@@ -463,8 +474,20 @@ win_signalgui_clickhandler:
 	ret
 .signalclick:
 	sub cl, 2
-	cmp cl, 14
+	cmp cl, 12
 	jb near .onsignalbutton
+	testflags tsignals
+	jnc .nottclick
+	testflags pathbasedsignalling
+	jnc .nottclick
+	cmp cl, 12
+	je near .onsignalbutton
+.nottclick:
+	testflags isignals
+	jnc .noitclick
+	cmp cl, 13
+	je near .onsignalbutton
+.noitclick:
 	ret
 
 .autosignalup:

@@ -212,16 +212,16 @@ tisignalpatchproc:
 	mov edi, [chkrailroutetargetfn]
 	add edi, 0x2F+WINTTDX*4
 	storefragment newchkrailroutetargettsigchk
-	mov BYTE [signalboxptbtnwnstruc1], cWinElemSpriteBox
 .no_tsignals:
 	testflags isignals
 	jnc .no_isignals
 	mov edi, [chkrailroutetargetfn]
 	add edi, 0x2F+WINTTDX*4+23
 	storefragment newchkrailroutetargettsigchkinv
-	mov BYTE [signalboxptbtnwnstruc1+12], cWinElemSpriteBox
 .no_isignals:
 	extern signalboxrobjendpt1, signalboxptbtnwnstruc1, sigguiwindimensions, signalboxtopbarwnstruc1
+	mov BYTE [signalboxptbtnwnstruc1], cWinElemSpriteBox
+	mov BYTE [signalboxptbtnwnstruc1+12], cWinElemSpriteBox
 	add WORD [signalboxrobjendpt1+4], 20
 	add WORD [signalboxtopbarwnstruc1+4], 20
 	add WORD [sigguiwindimensions], 20
