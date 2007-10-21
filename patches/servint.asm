@@ -53,6 +53,7 @@ needsmaintcheck:
 	je short .itsadepot
 	cmp al, 5
 	je .itsaspecial
+.incthennextcmd:
 	add ebx,byte 2
 	dec ah
 	jnz .nextcommand
@@ -80,9 +81,9 @@ needsmaintcheck:
 
 .itsaspecial:
 	testflags advorders
-	jnc .nextcommand
-	cmp ah, 1
-	ja .nextcommand
+	jnc .incthennextcmd
+	cmp BYTE [ebx+1], 1
+	ja .incthennextcmd
 
 .itsadepot:
 	cmp al,1
