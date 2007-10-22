@@ -37,19 +37,10 @@ my %fulllines;
 my %cfglines;
 my $sw;
 my $cfgline = 0;
-my $linemod;
-
-while(<>){
-	next until /SETNAME/;
-	last;
-}
+my $file = $ARGV[1];
 
 while(<>) {
-	if(m#// Localization strings#){
-		print $_;
-		$linemod = $. - 2;
-		last;
-	}
+	close ARGV and last if eof;
 	next if /^\s*\/\//;
 	if (/TEXTARRAY\(halflines/ .. /NULL/) {
 		next if /ARRAY/ or /NULL/;
@@ -100,8 +91,10 @@ while(<>) {
 		s#/\*{3,}/##;
 		s/\n//;
 		while (s/\s{2,}|\t/ /) {}
-		printf STDERR "Line %d tagged as untranslated: %s\n", $.-$linemod, substr $_, 0, 40;
+		printf STDERR "Line $. tagged as untranslated: %s\n", substr $_, 0, 40;
+		$_ .= "\n";
 	}
+	print "#line $. \"$file\"\n";
 	if (/TEXTARRAY\(halflines/ .. /NULL/) {
 		die "Multiple halfline blocks!\n" if $readhalf == 2;
 		$readhalf = 1;
@@ -185,3 +178,5 @@ while(<>) {
 
 die "halflines block not found.\n" unless $readhalf;
 die "LANG_FULLSWITCHES block not found.\n" unless $readfull;
+
+#print "#error\n"
