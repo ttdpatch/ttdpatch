@@ -70,7 +70,7 @@ endstruc
 
 // additional cargo information, stored in secondary station array, same size as original one, for easier pointer arithmetic
 struc stationcargo2
-	.resamt		resw 1  // +00h/+1Ch:amount reserved by FIFO 2
+	.resamt:	resw 1  // +00h/+1Ch:amount reserved by FIFO 2
 	.unused:	resw 1	
 	.curveh:	resw 1	// +04h/+20h:vehicle currently loading this cargo type (FIFO 1)
 				// Next vehicle (not consist!) to reserve this cargo type (FIFO 2)
@@ -99,4 +99,5 @@ endstruc
 %assign stationtracksand 7		// stationsize and this gives tracks
 %assign stationlengthmax 1 << (8-stationlengthshift)-1
 %assign stationtracksmax stationtracksand
+
 

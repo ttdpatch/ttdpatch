@@ -96,11 +96,11 @@ uvarb industilelandshapeflags,256
 
 // callback flags
 // Bit	Var. 0C	Meaning
-// 0	26 	decide the next animation frame 	
-// 1	27	decide animation speed 	
-// 2	2B	decide amount of acceptance (only from 2.0.1 a55 vcs 3) 	
-// 3	2C	decide accepted types (only from 2.0.1 a55 vcs 3) 	
-// 4	2F	check if a slope is suitable 	
+// 0	26 	decide the next animation frame
+// 1	27	decide animation speed
+// 2	2B	decide amount of acceptance (only from 2.0.1 a55 vcs 3)
+// 3	2C	decide accepted types (only from 2.0.1 a55 vcs 3)
+// 4	2F	check if a slope is suitable
 // 5	30 	decide if default foundations need to be drawn
 // 6	3C	decide if autosloping is allowed or not
 uvarb industilecallbackflags,256
@@ -115,9 +115,9 @@ uvarw industileanimframes,256
 uvarb industileanimspeeds,256
 
 // Animation triggers
-// Bit 0 - the construction state changes 	
-// Bit 1 - the tile is processed in the periodic processing loop 	
-// Bit 2 - the industry of the tile is processed in the periodic processing loop 	
+// Bit 0 - the construction state changes
+// Bit 1 - the tile is processed in the periodic processing loop
+// Bit 2 - the industry of the tile is processed in the periodic processing loop
 // Bit 3 - the industry of the tile receives input cargo from a station
 // Bit 4 - cargo is distributed from the industry
 uvarb industileanimtriggers,256
@@ -1917,7 +1917,7 @@ setsubstindustry:
 	mov ebx,ecx
 	call reloadoldindustry
 
-// replace the placement-check function with our special one that prepares things for callback 22
+// replace the placement-check function with our special one that prepares things for callback 28
 	mov dword [industryplacecheckprocs+ebx*4],addr(newindu_placechkproc)
 	popa
 

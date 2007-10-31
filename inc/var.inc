@@ -126,6 +126,7 @@
 %macro ovar 1-4.nolist -4,$, // params: variablename, offset [, basis [, fullname]]
 	GLOBALVAR %4%1
 	%1 equ addr(%3)+(%2)
+%%code:
 %endmacro
 
 // Check that code isn't in var context (wrong section!)

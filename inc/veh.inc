@@ -52,7 +52,7 @@ struc veh
 	.yearbuilt: 	resb 1	// 44h:year built, -1920
 	.consistnum: 	resb 1	// 45h:train/rv/plane/ship number
 	.vehtype: 	resw 1	// 46h:engine type, or waggontype or plane type etc.
-	.spritetype: 	resb 1	// 48h:vehicle sprite number
+	.spritetype: 	resb 1	// 48h:vehicle sprite number (Trains: FD, forward; FF, reversed)
 	.daycounter: 	resb 1	// 49h:day counter; mod 8=0 then dec. value 0.4%
 	.breakdowns: 	resb 1	// 4ah:breakdowns since last service
 	.breakdowncountdown:	resb 1	// 4bh:1=broken down, >1=countdown to breakdown
@@ -195,7 +195,7 @@ endstruc
 // params: source (r/m16) or dest (r32)
 //	If source is an m16, dest is esi. Otherwise, the non-specified
 //	argument is the specified register's 32 or 16 bit companion.
-//	If dest is specified, its high 16 bits are assumed to be clear.
+//	If dest is specified and source is not, dest's high 16 bits are assumed to be clear.
 //
 // Do not specify "word [address]" for m16s, simply specify "[address]"
 //

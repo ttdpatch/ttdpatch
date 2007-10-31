@@ -1200,7 +1200,7 @@ uvard curstationtile	// station tile currently having its graphics drawn
 // safe:---
 global getnewstationsprite_noelrails
 getnewstationsprite_noelrails:
-	// we get here is elrails is off
+	// we get here if elrails is off
 	// otherwise we get to getnewstationsprite directly
 	// with the following done already
 	and ebp,byte 0xF

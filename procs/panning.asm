@@ -37,7 +37,7 @@ codefragment olddecidepanning
 
 codefragment newdecidepanning
 	movzx ecx,dx
-	imul ecx,dword 0
+	imul ecx,strict dword 0
 panmultiplier equ $-4
 	shr ecx,16
 	setfragmentsize 15

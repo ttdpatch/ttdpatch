@@ -144,8 +144,6 @@ void classic (uint8_t forced, gridArray** desert_, gridArray** this_)
 void valley (int width, uint8_t forced, gridArray** desert_, gridArray** this_)
 {
      
-     float min = 1.0;
-     float max = 2.0;
      int i_x = 0;
      int i_y = 0;
      float val = 0.0;
