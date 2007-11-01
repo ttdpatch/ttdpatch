@@ -5,6 +5,7 @@
 #include <patchproc.inc>
 
 patchproc newstations,trams, patchnewstations
+patchproc newstations,newindustries, patchstationnames
 
 extern checktrainenterstationtile,checktrainenterstationtile.oldfn
 extern createrailwaystation,createrailwaystation.oldfn
@@ -152,6 +153,14 @@ codefragment newdecidestationtransparency
 	db 0x73		// jz -> jnc
 
 codefragment_call newperiodicstationupdate, periodicstationupdate
+
+codefragment GenerateStationName, 50h-6
+	mov cx, di
+	mov edi, [esi+2]
+
+codefragment_call calldisableindustnames, disableindustnames, 7
+codefragment_call getnewgrfnametext, getnewstationname, 5
+
 endcodefragments
 
 
@@ -217,4 +226,23 @@ extern getspritecoordsforstationwindow,getspritecoordsforstationwindow.landscape
 	patchcode stationanimhandler
 	patchcode newtrainstatcreated
 	patchcode periodicstationupdate
+	ret
+
+patchstationnames:
+	stringaddress GenerateStationName
+	extern patchflags, preferredStationNameTypePtr
+	testmultiflags newindustries
+	jz .noindustdisable
+	mov ebx, [edi+2]
+	mov [preferredStationNameTypePtr], ebx
+	push edi
+	storefragment calldisableindustnames
+	pop edi
+.noindustdisable:
+	add edi, 3A5h-50h
+	mov byte [edi-33h], 0xEB	// jnc -> jmp
+	storefragment getnewgrfnametext
+	mov edi, [edi+1Bh+lastediadj]
+	extern ObjectSearchOffsTable
+	mov [ObjectSearchOffsTable], edi
 	ret

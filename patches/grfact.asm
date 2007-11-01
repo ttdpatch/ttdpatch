@@ -4025,7 +4025,7 @@ defvehdata specindustiledata
 defvehdata spclindustiledata, F,F,F,F,F,B,B,w,B,B,B	// 08..12
 
 defvehdata specindustrydata
-defvehdata spclindustrydata, F,H,F, B,t,t,t,B,F,F,B,B,B	,F,F,B,B,F,d,t, d,d,d,t,d,B,B,D		// 08..23
+defvehdata spclindustrydata, F,H,F,B,t,t,t,B, F,F,B,B,B,F,F,B, B,F,d,t,d,d,d,t, d,B,B,d,t		// 08..24
 
 defvehdata speccargodata
 defvehdata spclcargodata, F,t,t,t,t,t,w,B,B,B,F,F,F,F,F,d,B,w,B	// 08..1a
@@ -4397,6 +4397,7 @@ var industiledata
 	dd industileanimframes,industileanimspeeds		// 0f..10
 	dd industileanimtriggers,industilespecflags		// 11..12
 
+extern industrystationname
 var industrydata
 	dd addr(setsubstindustry),addr(setindustryoverride)	// 08..09
 	dd addr(setindustrylayout)				// 0a
@@ -4422,6 +4423,7 @@ var industrydata
 	dd industrycallbackflags-1				// 21
 	dd industrycallbackflags2-1				// 22
 	dd industrydestroymultis-4				// 23
+	dd industrystationname-2				// 24
 
 var cargodata
 	dd addr(setcargobit),newcargotypenames,newcargounitnames	//08..0a

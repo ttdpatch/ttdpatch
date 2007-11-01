@@ -1402,6 +1402,9 @@ uvard industryincargos,2*NUMINDUSTRIES
 
 uvard industrydestroymultis,NINDUSTRYTYPES
 
+// desired name for station near industry
+svarw industrystationname, NINDUSTRYTYPES
+
 // pointer to the industry2 array - currently used for persistent storage for GRFs only
 uvard industry2arrayptr
 
@@ -1574,12 +1577,18 @@ restoreindustrydata:
 // all callback flags are zero by default
 	mov edi,industrycallbackflags
 	mov cl,NINDUSTRYTYPES
-	xor al,al
+	xor eax,eax
 	rep stosb
 
 	mov edi,industrycallbackflags2
 	mov cl,NINDUSTRYTYPES
 	rep stosb
+
+// all names are unset by default
+	dec eax
+	mov edi, industrystationname
+	mov cl,NINDUSTRYTYPES
+	rep stosw
 
 // all multipliers are (1, 0)...
 	mov edi,industryinputmultipliers
@@ -1769,6 +1778,9 @@ reloadoldindustry:
 
 // destruction cost multiplier is 1000 by default
 	mov dword [industrydestroymultis+4*ebx],1000
+
+// No name supplied by default
+	or word [industrystationname+2*ebx], byte -1
 	ret
 
 // copy every property between two slots

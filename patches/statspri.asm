@@ -14,6 +14,7 @@
 #include <newvehdata.inc>
 #include <imports/dropdownex.inc>
 #include <bitvars.inc>
+#include <industry.inc>
 
 extern GenerateDropDownMenu,actionhandler
 extern actionnewstations_actionnum,cantrainenterstattile,canrventerrailstattile,cleartilefn
@@ -3517,3 +3518,142 @@ exported dostationslopecallback
 	cmp eax,eax		// if the callback fails, we allow the slope - set zf
 	ret
 
+// In:	edx: bitmask of already-used station names
+//Out:	edx modified to disable Mines and Oilfield, if appropriate
+//	flags set as for overwritten cmp.
+exported disableindustnames
+	// prop 24 set counts as success: -- use jmp short FindIdustTileNearStation.done
+	mov word [FindIdustTileNearStation.zerojmp], (FindIdustTileNearStation.done - (FindIdustTileNearStation.zerojmp+2)) << 8 | 0xEB
+	call FindIdustTileNearStation
+	jc .done			// This is only testing for a nearby industry w/ prop 24
+	// At least one industry w/ prop 24 nearby; disable default industry-related texts
+	or dh, (1<<0Fh /*Mines*/ | 1<<0Eh /*Oilfield*/ ) >> 8
+.done:
+	cmp byte [0], 4				// overwritten
+ovar preferredStationNameTypePtr, -5
+	ret
+
+
+%push getstationname
+%define %$flags ebx-4
+%define %$TextID ebx-8
+
+// Look for a newgrf defined station name
+// In:	esi->station
+//	edi->town
+//	cx: XY location
+//	edx: mask of already-used default station names 
+//	ebp: TextID TTD chose, minus 300F.	(Construction would have failed if {bt edx, ebp} sets carry.)
+// Locals:  Uses ebx(!) as base pointer
+//	ebx-4: Flags; cf is bit 0
+//	ebx-8: Most recent successful TID, if pushed cf ((ebx-4):0) is clear
+// Out:	bp: TID on success.
+//	Return to appropriate location.
+// Safe: eax,ebx,ecx,edx,ebp
+exported getnewstationname
+// General initialization for both called-from-success and called-from-error
+	// Ignore prop 24s set to 0: -- use jz short FindIdustTileNearStation.loop
+	mov word [FindIdustTileNearStation.zerojmp], (FindIdustTileNearStation.loop - (FindIdustTileNearStation.zerojmp+2)) << 8 | 0x74
+	mov ebx,esp
+	bt edx,ebp
+	pushf
+	add bp, 300Fh		// overwritten
+	push ebp
+
+	testflags newindustries
+	jnc .nonewindu
+
+	call FindIdustTileNearStation
+	jc .nonewindu
+	and byte [%$flags], ~1	// clc
+	mov [%$TextID], ebp
+
+.nonewindu:
+#if 0
+ 	testflags newstations
+	jnc .nonewstats
+				// Station callback/prop and station-generic callback should go here
+.nonewstats:
+#endif
+	pop ebp
+	popf
+	jnc .gottext
+	sub dword [ebx], 36h		// Return to fail loc
+.gottext:
+	ret
+
+%pop
+
+// In:	esi->station
+//Out:	ebp: new TextID to use
+//	cf if no unused TextID found
+// Trashes eax
+FindIdustTileNearStation:
+	push edx
+	push esi
+	movzx edx, cx
+	mov esi, 0
+ovar ObjectSearchOffsTable
+	xor eax,eax
+.loop:
+	lodsw
+	or eax, eax
+	stc
+	jz .done
+	add dx, ax
+	mov al, [landscape4(dx,1)]
+	and al, 0F0h
+	cmp al, 80h
+	jne .loop
+	movzx eax, byte [landscape2+edx]
+	imul eax, industry_size
+	extern industryarrayptr
+	add eax, [industryarrayptr]
+	movzx eax, byte [eax+industry.type]
+	extern industrystationname
+	movzx ebp, word [industrystationname+eax*2]
+	cmp bp, byte -1
+	je .loop
+	or ebp, ebp
+	jz short .loop
+ovar .zerojmp, -2, $, FindIdustTileNearStation
+	xchg [esp],esi
+	call checknewgrfname
+	xchg [esp],esi
+	jc .loop
+.done:
+	pop esi
+	pop edx
+	ret
+
+
+// In:	esi->station
+//	bp: TextID to check
+// Out:	cf if TextID is already used.
+checknewgrfname:
+	pusha
+	mov edi, [esi+station.townptr]
+	mov ebx, stationarray
+	xor edx, edx
+	xor ecx, ecx
+	mov cl, 250
+.loop:
+	cmp ebx, esi
+	je .next
+	cmp word [ebx+station.XY], 0
+	je .next
+	cmp edi, [ebx+station.townptr]
+	jne .next
+	cmp bp, [ebx+station.name]
+	je .fail
+.next:
+	add ebx, 8Eh
+	loop .loop
+
+	popa
+	// The add cleared cf
+	ret
+.fail:
+	popa
+	stc
+	ret
