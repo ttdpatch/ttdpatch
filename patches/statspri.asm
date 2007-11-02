@@ -3607,7 +3607,6 @@ ovar ObjectSearchOffsTable
 	jne .loop
 	movzx eax, byte [landscape2+edx]
 	imul eax, industry_size
-	extern industryarrayptr
 	add eax, [industryarrayptr]
 	movzx eax, byte [eax+industry.type]
 	extern industrystationname
