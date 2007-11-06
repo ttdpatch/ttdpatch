@@ -824,7 +824,7 @@ exported AdjacentStationBuildNewStation
 	jl .new
 	jg .st
 .norm:
-	push DWORD .end
+	//push DWORD .end
 	mov DWORD [adjflags], 4
 	jmp .doit
 .new:
