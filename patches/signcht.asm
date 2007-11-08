@@ -2803,7 +2803,7 @@ unreservepbstrack:
 	ret
 
 #if 1 && DEBUG
-	//parameters: 4 hex digits source coordinates, decimal integer x extent (NE->SW), decimal integer y extent (NW->SE)
+	//parameters: 4 hex digits source coordinates, decimal integer x extent (NE->SW), decimal integer y extent (NW->SE), optional 4 hex digits dest coords
 clonetilecheat:
 	call gethexnumber
 	jc NEAR .ret
@@ -2821,10 +2821,17 @@ clonetilecheat:
 	jnz NEAR .singtile
 	or edx, edx
 	jz NEAR .singtile
-	mov bh, dl
-	mov bl, al
-
+	mov ah, dl
+	call gethexnumber
+	jc .getsxy
+	test edx, 0xFFFF0000
+	jnz NEAR .fret
+	mov esi, edx
+	jmp .gotsxy
+.getsxy:
 	call getsignxy
+.gotsxy:
+	mov bx, ax
 	
 	mov ax, si
 	add al, bl
@@ -2849,7 +2856,9 @@ clonetilecheat:
 	mov bp, [landscape3+ecx*2]
 	mov [landscape3+edx*2], bp
 	mov al, [landscape4(cx,1)]
-	mov [landscape4(dx,1)], al
+	and al, 0xF0
+	and BYTE [landscape4(dx,1)], 0x0F
+	or [landscape4(dx,1)], al
 	mov al, [landscape5(cx,1)]
 	mov [landscape5(dx,1)], al
 	mov al, [landscape6+ecx]
