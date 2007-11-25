@@ -213,10 +213,20 @@ tisignalpatchproc:
 	add edi, 0x2F+WINTTDX*4
 	storefragment newchkrailroutetargettsigchk
 .no_tsignals:
+	stringaddress findtraceroute,1,2
 	testflags isignals
 	jnc .no_isignals
-	mov edi, [chkrailroutetargetfn]
-	add edi, 0x2F+WINTTDX*4+23
+	mov esi, [chkrailroutetargetfn]
+	testflags pathbasedsignalling
+	jc .no_recalc_chkrailroutetargetfn
+	mov esi,[edi-30]
+#if WINTTDX
+	add esi,[esi+1]
+	add esi,5
+#endif
+	mov [chkrailroutetargetfn], esi
+.no_recalc_chkrailroutetargetfn:
+	lea edi, [esi+0x2F+WINTTDX*4+23]
 	storefragment newchkrailroutetargettsigchkinv
 .no_isignals:
 	extern signalboxrobjendpt1, signalboxptbtnwnstruc1, sigguiwindimensions, signalboxtopbarwnstruc1
