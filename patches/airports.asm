@@ -835,6 +835,14 @@ CheckAirportTile:
 // Input:	edi - Tile Y,X
 //		dx - Current count (Y, X)
 // Output:	?
+
+#if 0
+// Due to bugs causing airports to be built where they should not, this code
+// has been removed and the corresponding patchproc has been modified not to
+// icall this function.		-- DaleStan
+// See http://zapotek.paivola.fi/~terom/logs/tycoon/view/2007-11-13~859#goto
+// and http://www.tt-forums.net/viewtopic.php?p=641178#p641178
+
 extern CheckForVehiclesInTheWay
 global CreateAirportCheck
 CreateAirportCheck:
@@ -871,6 +879,8 @@ CreateAirportCheck:
 .vehicleontile: // Jumps to the invalid tile present so can't build
 	add dword [esp], 0x76
 	ret
+
+#endif
 
 // Used to stop construction on a certain tile (if tile layout is 00) 1,6
 // Input:	[ebp] - planned tile type

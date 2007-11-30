@@ -139,9 +139,11 @@ codefragment oldcreateairportcheck,-5
 	push dx
 	push di
 
+#if 0
 codefragment newcreateairportcheck
 	icall CreateAirportCheck
 	setfragmentsize 7
+#endif
 
 codefragment oldcreateairporttile
 #if WINTTDX
@@ -294,7 +296,7 @@ exported patchnewairports
 	patchcode buynewaircraft
 
 	// Patches the Create Airport Subroutine for Irregular Airport Layouts
-	patchcode oldcreateairportcheck, newcreateairportcheck, 2, 2
+	// patchcode oldcreateairportcheck, newcreateairportcheck, 2, 2
 	patchcode oldcreateairporttile, newcreateairporttile, 1, 6
 
 	// Patches the Remove Airport Subroutine for Irregular Airport Layouts
