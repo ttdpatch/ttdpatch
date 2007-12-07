@@ -3569,7 +3569,13 @@ exported getnewstationname
 	// Ignore prop 24s set to 0: -- use jz short FindIdustTileNearStation.loop
 	mov word [FindIdustTileNearStation.zerojmp], (FindIdustTileNearStation.loop - (FindIdustTileNearStation.zerojmp+2)) << 8 | 0x74
 	mov ebx,esp
+	cmp ebp,20h
+	jne .useebp
+	bt edx,0Ah
+	jmp short .pushf
+.useebp:
 	bt edx,ebp
+.pushf:
 	pushf
 	add bp, 300Fh		// overwritten
 	push ebp
