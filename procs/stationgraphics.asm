@@ -5,6 +5,8 @@
 extern drawstationtile
 extern ttdstationspritelayout
 extern drawstationimageinrailselectwin
+extern ttdpatchstationspritelayout
+extern paStationsNewLayouts
 
 ext_frag newgetstationtracktrl
 
@@ -49,7 +51,22 @@ patchstationgraphics:
 	mov eax,[edi+3]
 	mov [ttdstationspritelayout],eax
 	storefragment newgetstationdisplayspritelayout
-
+	
+	pusha
+	push 256*4
+	extcall malloccrit
+	pop edi
+	
+	mov [ttdpatchstationspritelayout], edi
+	mov esi, [ttdstationspritelayout]
+	mov ecx, 0x53
+	cld
+	rep movsd
+	mov esi, paStationsNewLayouts
+	mov ecx, 8	// how many station layout we need to copy? 
+	rep movsd
+	popa
+	
 	mov byte [edi+lastediadj+25],0x7f
 
 	add edi,lastediadj+50

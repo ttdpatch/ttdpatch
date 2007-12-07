@@ -13,43 +13,73 @@ extern patchflags
 extern persgrfdata
 
 // Custom roadside RV stop sprites.
-uvarw	roadsidervstops, 1, s
+uvarw roadsidervstops, 1, s
 var	roadsidervstopsnum, dd 8
-
-uvarb paStationEntry1, 28
 
 // Station layouts have been modified to support custom sprites
 // defined by action 5 type 11.
 var paStationbusstop1
 	dd 1314
 	db 0,0,0,16,3,16
-	dd 4079
+.sprite1:
+	dd 4079+0x8000
 	db 0,13,0,16,3,16
+.sprite2:
+	dd 4079+0x8000
+	db 0x80
+
+var paStationbusstop1Default
+	dd 1314
+	db 8,14,0,1,2,16
+	dd 1407
+	db 8,1,0,1,2,16
+	dd 1406
+	db 9,14,7,2,2,3
+	dd 4079
+	db 8,1,7,2,2,3
 	dd 4079
 	db 0x80
 
 var paStationbusstop2
 	dd 1313
 	db 13,0,0,3,16,16
-	dd 4079
+.sprite1:
+	dd 4079+0x8000
 	db 0,0,0,3,16,16
-	dd 4079
+.sprite2:
+	dd 4079+0x8000
 	db 0x80
 
+var paStationbusstop2Default
+	dd 1313
+	db 1,8,0,2,1,16
+	dd 1407
+	db 14,8,0,2,1,16
+	dd 1406
+	db 1,8,7,2,2,3
+	dd 4079
+	db 14,9,7,2,2,3
+	dd 4079
+	db 0x80
+	
 var paStationtruckstop1
 	dd 1314
 	db 0,0,0,16,3,16
-	dd 4079
+.sprite1:
+	dd 4079+0x8000
 	db 0,13,0,16,3,16
-	dd 4079
+.sprite2:
+	dd 4079+0x8000
 	db 0x80
 
 var paStationtruckstop2
 	dd 1313
 	db 13,0,0,3,16,16
-	dd 4079
+.sprite1:
+	dd 4079+0x8000
 	db 0,0,0,3,16,16
-	dd 4079
+.sprite2:
+	dd 4079+0x8000
 	db 0x80
 
 	align 4
@@ -501,41 +531,57 @@ Class5CreateLorryWinOrient:
 // Inspired by steven's tram station code.
 // Updates sprite numbers in station layouts to use custom sprites
 // defined by action 5 type 11.
-global updateRVStopSpriteLayout
-updateRVStopSpriteLayout:
-	push	ecx
+//
+// Complete rewrite by eis_os:
+// - support company colors,
+// - failback for busstops to default spritelayout
+// - code optimize
+
+extern ttdpatchstationspritelayout
+exported updateRVStopSpriteLayout
+	push ecx
+	cmp word [roadsidervstops], -1
+	jne .newsprites
+	mov ecx, [ttdpatchstationspritelayout]
+	add ecx, 0x53*4
+	mov dword [ecx],paStationbusstop1Default
+	mov dword [ecx+4],paStationbusstop2Default
+	pop ecx
+	ret
+	
+.newsprites:
+	mov ecx, [ttdpatchstationspritelayout]
+	add ecx, 0x53*4
+	mov dword [ecx], paStationbusstop1
+	mov dword [ecx+4],paStationbusstop2
 	
 	// Update bus stop sprites
-	xor	ecx,ecx
-	mov	cx, 02h
-	add	cx, word [roadsidervstops]
-	mov	dword [paStationbusstop1+10], ecx
-	mov	cx, 03h
-	add	cx, word [roadsidervstops]
-	mov	dword [paStationbusstop1+20], ecx
-	mov	cx, 00h
-	add	cx, word [roadsidervstops]
-	mov	dword [paStationbusstop2+10], ecx
-	mov	cx, 01h
-	add	cx, word [roadsidervstops]
-	mov	dword [paStationbusstop2+20], ecx
-
+	movzx ecx, word [roadsidervstops]
+	or ecx, 0x8000	// enable company colors
+	// offset 0x00
+	mov dword [paStationbusstop2.sprite1], ecx
+	inc ecx	// offset now 0x01
+	mov dword [paStationbusstop2.sprite2], ecx
+	
+	inc ecx	// offset now 0x02
+	mov dword [paStationbusstop1.sprite1], ecx
+	inc ecx	// offset now 0x03
+	mov dword [paStationbusstop1.sprite2], ecx
+	
 	// Update truck stop sprites
-	xor	ecx,ecx
-	mov	cx, 06h
-	add	cx, word [roadsidervstops]
-	mov	dword [paStationtruckstop1+10], ecx
-	mov	cx, 07h
-	add	cx, word [roadsidervstops]
-	mov	dword [paStationtruckstop1+20], ecx
-	mov	cx, 04h
-	add	cx, word [roadsidervstops]
-	mov	dword [paStationtruckstop2+10], ecx
-	mov	cx, 05h
-	add	cx, word [roadsidervstops]
-	mov	dword [paStationtruckstop2+20], ecx
-
-
-	pop	ecx
-	retn
+	movzx ecx, word [roadsidervstops]
+	add cx, 04h
+	or ecx, 0x8000	// company colors
+	mov dword [paStationtruckstop2.sprite1], ecx
+	
+	inc ecx	// offset now 0x05
+	mov dword [paStationtruckstop2.sprite2], ecx
+	
+	inc ecx	// offset now 0x06
+	mov dword [paStationtruckstop1.sprite1], ecx
+	
+	inc ecx	// offset now 0x07
+	mov dword [paStationtruckstop1.sprite2], ecx
+	pop ecx
+	ret
 

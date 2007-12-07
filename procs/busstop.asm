@@ -2,12 +2,13 @@
 #include <frag_mac.inc>
 #include <window.inc>
 #include <ptrvar.inc>
+#include <op.inc>
 
 extern BusLorryStationDrawHandler,Class5ClearTileBusStopError
 extern Class5CreateBusStationAction,Class5CreateLorryWinOrient
 extern newbusorienttooltips,oldclass5createbusstation
 extern Class5CreateTruckStationAction,oldclass5createtruckstation
-extern oldclass5createlorrywinorient,paStationEntry1
+extern oldclass5createlorrywinorient
 extern paStationbusstop1,paStationbusstop2,rvmovementscheme
 extern paStationtruckstop1,paStationtruckstop2
 extern rvmovementschemestops,salorrystationguielements
@@ -133,14 +134,14 @@ patchbusstop:
 	patchcode oldclass5cleartiletruckstop, newclass5cleartiletruckstop,1,1
 
 	mov eax, [ophandler+0x5*8]
-	mov eax, [eax+0x10]
+	mov eax, [eax+op.ActionHandler]
 	mov edi, [eax+9]
 	mov eax, [edi+5*4]
 	mov dword [oldclass5createbusstation], eax
 	mov dword [edi+5*4], addr(Class5CreateBusStationAction)
 
 	mov eax, [ophandler+0x5*8]
-	mov eax, [eax+0x10]
+	mov eax, [eax+op.ActionHandler]
 	mov edi, [eax+9]
 	mov eax, [edi+6*4]
 	mov dword [oldclass5createtruckstation], eax
@@ -181,27 +182,6 @@ patchbusstop:
 	mov dword [esi+0xC], 0x05050505
 	mov dword [esi+0x4+16], 0x05050505
 	mov dword [esi+0xC+16], 0x05050505
-
-	pusha
-	mov esi, [ttdstationspritelayout]
-	mov esi, [esi]
-	mov edi, paStationEntry1
-	mov ecx, 7
-	rep movsd
-	popa
-
-	mov edi, [ttdstationspritelayout]
-	mov dword [edi], paStationEntry1
-
-	add edi, 0x53*4
-	mov dword [edi], paStationbusstop1
-	mov dword [edi+4], paStationbusstop2
-;	mov dword [edi+8], paStationtramstop1
-;	mov dword [edi+12], paStationtramstop2
-;	mov dword [edi+16], paStationtruckstop1
-;	mov dword [edi+20], paStationtruckstop2
-;	mov dword [edi+24], paStationtramfreightstop1
-;	mov dword [edi+28], paStationtramfreightstop2
 
 	// rewrite the window system
 	stringaddress findwindowlorrystationelements,1,1
@@ -268,7 +248,7 @@ patchbusstop:
 	mov dword [edi], newtruckorienttooltips
 
 	mov eax, [ophandler+0x5*8]
-	mov eax, [eax+0x4]
+	mov eax, [eax+op.FunctionHandler]
 	mov edi, [eax+3]
 	mov eax, [edi+7*4]
 	mov dword [oldclass5createlorrywinorient], eax

@@ -77,7 +77,8 @@ uvard	checkdepot4return,1,s
 uvard	checkdepot5return,1,s
 
 //this is 'added' onto the end of the ttdstation sprite lists....
-vard 	paStationtramstop,	paStationbusstop1,paStationbusstop2,paStationtramstop1,paStationtramstop2,paStationtruckstop1,paStationtruckstop2,paStationtramfreightstop1,paStationtramfreightstop2		//0x5A
+// See statsprit.asm and stationgraphics.asm for the new paStationsNewLayouts way - eis_os
+//vard 	paStationtramstop,	paStationbusstop1,paStationbusstop2,paStationtramstop1,paStationtramstop2,paStationtruckstop1,paStationtruckstop2,paStationtramfreightstop1,paStationtramfreightstop2		//0x5A
 
 var paStationtramstop1
 	dd 1314

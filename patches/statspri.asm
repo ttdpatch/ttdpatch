@@ -39,6 +39,15 @@ extern miscgrfvar,irrgetrailxysouth,getirrplatformlength
 extern DrawStationImageInSelWindow,MakeTempScrnBlockDesc
 extern convertplatformsinecx,convertplatformsincargoacceptlist,convertplatformsinremoverailstation
 
+extern paStationbusstop1, paStationbusstop2, 
+extern paStationtruckstop1, paStationtruckstop2
+extern paStationtramstop1, paStationtramstop2
+extern paStationtramfreightstop1, paStationtramfreightstop2
+
+// 0x53 is the first new layout/station type in L5
+// if you add a new Layout don't forget to change the copy code in stationgraphics.asm
+vard paStationsNewLayouts, paStationbusstop1,paStationbusstop2,paStationtramstop1,paStationtramstop2,paStationtruckstop1,paStationtruckstop2,paStationtramfreightstop1,paStationtramfreightstop2
+
 // bits in L7:
 %define L7STAT_PBS 1		// is station tile in a PBS block?
 %define L7STAT_BLOCKED 2	// is station tile blocked (can't be entered)?
@@ -762,7 +771,7 @@ setstationclass:
 	ret
 
 
-vard stationspritelayoutinfo, stationspritelayout,curgrfstationlist,ttdstationspritelayout
+vard stationspritelayoutinfo, stationspritelayout,curgrfstationlist,ttdpatchstationspritelayout
 
 global setstationspritelayout
 setstationspritelayout:
@@ -1439,6 +1448,9 @@ removerailstation:
 uvard orgtiletype
 uvard modtiletype
 
+
+uvard ttdstationspritelayout
+
 // get pointer to sprite layout for station tile
 //
 // in:	 dh=tile type (FF if value comes from callback, then tiletype in [modtiletype])
@@ -1459,6 +1471,7 @@ getstationspritelayout:
 	cmp dh,8
 	jb .isitours
 
+#if 0
 	cmp dh, 0x53
 	jb .notours
 	cmp dh, 0x5A					//patchman, eis_os? I need some advice on this!!!
@@ -1469,11 +1482,12 @@ getstationspritelayout:
 	movzx ebp,dh
 	mov ebp,[paStationtramstop+(ebp-0x53)*4]
 	retn
+#endif 
 
 .notours:
 	movzx ebp,dh
 	mov ebp,[dword 0+ebp*4]
-ovar ttdstationspritelayout,-4
+ovar ttdpatchstationspritelayout,-4
 	ret
 
 .modtype:
@@ -1502,17 +1516,17 @@ global getstationdisplayspritelayout
 getstationdisplayspritelayout:
 	cmp ebx,8
 	jb .isitours
-	cmp ebx,0x53
-	jge .newRVStops
+//	cmp ebx,0x53
+//	jge .newRVStops
 
 .notours:
-	mov eax,[ttdstationspritelayout]
+	mov eax,[ttdpatchstationspritelayout]
 	mov ebx,[eax+ebx*4]
 	ret
 
-.newRVStops:
-	mov ebx,[paStationtramstop+(ebx-0x53)*4]
-	ret
+//.newRVStops:
+//	mov ebx,[paStationtramstop+(ebx-0x53)*4]
+//	ret
 
 .isitours:
 	movzx eax,byte [curselstation]
