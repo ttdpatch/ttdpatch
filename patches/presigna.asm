@@ -1082,6 +1082,12 @@ drawsignal:
 	add dh, 16
 	and dh, ~16
 
+	testflags isignals
+	jnc .noisig
+	test BYTE [landscape3+esi*2+1], 0x40
+	jz .noisig
+	or edx, 0x10000
+.noisig:
 	testflags pathbasedsignalling
 	jnc .gotbits
 
@@ -1112,7 +1118,8 @@ drawsignal:
 	and ebx,byte ~1
 
 .gotbits:
-	movzx esi,dh
+	mov esi,edx
+	shr esi, 8
 	testflags newsignals
 	jnc .nonewsignals
 	EXTERN newsignalson
