@@ -24,6 +24,8 @@ extern trainwindowrefit,vehcallback,newvehdata
 extern vehids,traincargosize,traincargotype
 extern vehtypecallback,vehbase,vehbnum,cargotypes,cargobits
 extern RefreshWindows
+extern FindWindow,DestroyWindow
+extern CreateWindowRelative
 
 vard newrefitvars
 	dd newvehdata+newvehdatastruc.refit2,newvehdata+newvehdatastruc.refit1
@@ -353,7 +355,49 @@ openrefitwindow:
 	mov byte [esi+window.itemsvisible],12
 	mov byte [esi+window.itemsoffset],0
 	ret
-
+	
+	// Called to create a refit window
+	// This a more general version without jumping somewhere into the aircraft window code
+	// or assumeing something in the window structure
+	// - eis_os
+	// in:	esi->window to create relative window
+	//	dx=vehidx
+exported openrefitwindowalt
+	pusha
+	mov word [tempvar], cWinTypeVehicle
+	mov word [tempvar+2], dx
+	mov cl, cWinTypeVehicleRefit
+	call [FindWindow]
+	test esi,esi
+	jz .noold
+	call [DestroyWindow]
+.noold:
+	mov cx, cWinTypeVehicleRefit | cWinElemRel
+	mov ebx, 240+(180<<16)
+	mov dx, 0x98
+ 	mov ebp, 0x0C
+	call [CreateWindowRelative]
+	
+	movzx edx, word [tempvar+2]
+	mov [esi+window.id],dx
+	
+	shl edx,7
+	add edx,[veharrayptr]
+	mov dl, [edx+veh.owner]
+	mov [esi+window.company], dl
+	
+	mov edx,[refitwindowstruc]
+	mov [esi+window.elemlistptr], edx
+	
+	call initrefit
+	mov dl,[currefitinfonum]
+	mov [esi+window.itemstotal],dl
+	mov byte [esi+window.itemsvisible],12
+	mov byte [esi+window.itemsoffset],0
+	mov word [esi+window.selecteditem],-1
+	
+	popa
+	ret
 
 	// draw refit window
 	//
@@ -822,39 +866,62 @@ gettrainrefitcap:
 	pop edx
 	ret
 
-
-global checkinhangar
-checkinhangar:
-	mov al,[landscape4(bp)]
-	and al,0xf0
-	cmp al,0x50
-	jnz .checktraindepot
-	mov ah,0
-	cmp byte [landscape5(bp)],0x20
-	jz .hangarchecked
-	cmp byte [landscape5(bp)],0x41
-	jmp short .hangarchecked
-
-.checktraindepot:
-	mov ah,1
-	cmp al,0x10
-	jnz .hangarchecked
-	mov al,[landscape5(bp)]
-	cmp al,0xc0
-	jl .isnotindepot
-	cmp al,0xc4
-	jnl .isnotindepot
-
-.isindepot:
-	xor al,al		// to set ZF
-	jmp short .hangarchecked
-
-.isnotindepot:
-	or al,1			// to reset ZF
-
-.hangarchecked:		// what really matters is the state of the zero flag
-	movzx ebp,ah
+	
+	// Function to determine if a aircraft or rail vehicle can be refitted
+	// The old code didn't check the vehicle type, and didn't work for non-rail engines
+	// - eis_os
+	// in:	edx->vehicle
+	// out:	ebp = [edx+veh.XY]
+	//	cf if refit is possible
+	// safe: eax
+exported checkinhangarandstopped
+	movzx ebp, word [edx+veh.XY]
+	mov al, [landscape4(bp)]
+	and al, 0xF0
+	mov ah, [landscape5(bp)]
+	cmp byte [edx+veh.class], 0x10		// is rail vehicle?
+	je .rail
+	
+	test word [edx+veh.vehstatus], 2	// stopped?
+	jz .fail
+	cmp al,0x50				// station (airport)?
+	
+	cmp byte ah,0x20			// hangar?
+	je .ok
+	cmp byte ah,0x41			// or hangar?
+	je .ok
+.fail:
+	clc
 	ret
+.ok:
+	stc
+	ret
+.rail:
+	cmp al, 0x10				// rail piece?
+	jne .fail
+	
+	test ah,0x80				// depot piece?
+	jz .fail
+	
+	cmp byte [edx+veh.subclass], 0x00	// a front engine
+	je .isengine
+	
+	cmp byte [edx+veh.subclass], 0x04	// a wagon without engine
+	je .ok
+	
+	// we need to test the front engine for status
+	movzx eax,word [edx+veh.engineidx]
+	shl eax,7
+	add eax,[veharrayptr]
+	
+.testengineeax:
+	test word [eax+veh.vehstatus], 2	// stopped?
+	jz .fail
+	jmp .ok
+.isengine:
+	test word [edx+veh.vehstatus], 2	// stopped?
+	jz .fail
+	jmp .ok
 
 
 global trainreverse
