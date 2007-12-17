@@ -868,7 +868,7 @@ gettrainrefitcap:
 
 	
 	// Function to determine if a aircraft or rail vehicle can be refitted
-	// The old code didn't check the vehicle type, and didn't work for non-rail engines
+	// The old code didn't check the vehicle type, and didn't work for wagons
 	// - eis_os
 	// in:	edx->vehicle
 	// out:	ebp = [edx+veh.XY]
@@ -885,6 +885,7 @@ exported checkinhangarandstopped
 	test word [edx+veh.vehstatus], 2	// stopped?
 	jz .fail
 	cmp al,0x50				// station (airport)?
+	jne .fail
 	
 	cmp byte ah,0x20			// hangar?
 	je .ok
