@@ -421,6 +421,13 @@ defourtext advorder_findnearestdepottxt
 
 defourtext advorder_gotonearestdepotddltxt
 defourtext advorder_servicenearestdepotddltxt
+defourtext advorder_loadcondskipddltxt
+defourtext advorder_loadcondskiporderwintxt
+
+defourtext advorder_orderskipcountguibtntxt
+defourtext advorder_orderloadpercentguibtntxt
+defourtext advorder_ordercondskiploadparamddltxt
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

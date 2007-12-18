@@ -24,7 +24,10 @@ extern invalidatehandle,ishumanplayer,isrealhumanplayer,isscheduleshared
 extern needsmaintcheck.always,numvehshared,orderhints,patchflags
 extern redrawscreen,resetorders_actionnum,cargotypes
 extern saverestorevehdata_actionnum,savevehordersfn,shareorders_actionnum
-extern vehcallback,miscmodsflags
+extern vehcallback,miscmodsflags,CreateTextInputWindow,getnumber,DropDownExListDisabled
+
+varw newunloadptr1,0x8828
+varw newnonstopptr1,0x8825
 
 //in esi=veh, out ebx=depot struc or 0
 uvard FindNearestTrainDepot
@@ -331,13 +334,26 @@ var depottypes, db 0xc0,0x20,0x80,0x10
 
 // show an order in the order list
 // in:  ax=order
-//	bp=order & 00e0h
+//	bp=order & 001Fh
 //	esi=window
 //	edi=vehicle
 // out:	zf=1 if regular station, 0 if not
 // safe:eax,esi,edi,ebp
 global showorder
 showorder:
+	cmp bx, 0x8805
+	ja .nochange
+	push ecx
+	and bl, ~1
+	mov ecx, [esp+12]
+	sub ecx, [edi+veh.scheduleptr]
+	shr ecx, 1
+	cmp cl, [edi+veh.currorderidx]
+	jne .nocurselorder
+	or bl, 1
+.nocurselorder:
+	pop ecx
+.nochange:
 	cmp bp,byte 2
 	je short .depotorder
 	cmp bp,byte 5
@@ -409,10 +425,20 @@ showorder:
 	ret
 
 .special:
-	cmp ah, 1
+	movzx ebp, ah
+	shr ebp, 4
+	and ebp, BYTE 0xE
+	add [esp+8], ebp
+//	shr ebp, 1
+//	add [textrefstack], ebp		//this will never overflow past the byte...
+
+	and ah, 0x1F
+	cmp ah, 2
 	ja .specialfail
 	testflags advorders
 	jnc .specialfail
+	cmp ah, 1
+	ja .condloadskip
 	movzx eax, ah
 	add ax, ourtext(gotodepot)
 	mov [textrefstack+1], ax
@@ -424,6 +450,30 @@ showorder:
 	xor bp, bp
 	test esp, esp
 	ret
+.condloadskip:
+	mov ebp, [esp+8]
+	movzx ebp, WORD [ebp]
+	mov WORD [textrefstack+1], ourtext(advorder_loadcondskiporderwintxt)
+	mov eax, ebp
+	and eax, 0x7F
+	mov WORD [textrefstack+7], ax
+	mov eax, ebp
+	shr eax, 8
+	and eax, 0x1F
+	mov WORD [textrefstack+3], ax
+	mov eax, ebp
+	shr eax, 13
+	and eax, 0x7
+	cmp al, 2
+	jb .noteqorneq
+	add eax, statictext(trdlg_lt)-2
+	jmp .sclsprint
+.noteqorneq:
+	add eax, ourtext(trdlg_eq)
+.sclsprint:
+	mov WORD [textrefstack+5], ax
+	jmp .specialfail
+
 
 ; endp showorder 
 
@@ -551,6 +601,7 @@ getofsptr:
 // gets a new order ready
 // in:	ax=new order
 //	esi=vehicle
+//	ebx=schedule ptr to new order
 // out:	carry if depot
 //	ax=bx=new target if depot
 global newordertarget
@@ -578,6 +629,7 @@ newordertarget:
 .skiporder:
 	// not yet, or target doesn't exist; advance order pointer
 	call advanceorders
+.skiporder2:
 	mov word [esi+veh.currorder],0		// force to check commands again
 	clc
 	mov al,0
@@ -595,10 +647,16 @@ newordertarget:
 	stc
 	ret
 .special:
-	cmp ah, 1
+	mov al, ah
+	shr al, 5
+	add [esi+veh.currorderidx], al		//correction for special orders >2 bytes
+	and ah, 0x1F
+	cmp ah, 2
 	ja .skiporder
 	testflags advorders
 	jnc .skiporder
+	cmp ah, 1
+	ja NEAR .loadorderskip
 	or ah, ah
 	je .alwaysfinddepot
 	call needsmaintcheck.always
@@ -631,7 +689,87 @@ newordertarget:
 	popad
 	jmp .skiporder
 
-; endp newordertarget 
+.loadorderskip:
+	pushad
+	xor eax, eax
+	xor ecx, ecx
+	push esi
+.loop:
+	movzx edx, WORD [esi+veh.capacity]
+	add ecx, edx
+	movzx edx, WORD [esi+veh.currentload]
+	add eax, edx
+	movzx esi, WORD [esi+veh.nextunitidx]
+	cmp si, -1
+	je .endloop
+	cvivp
+	jmp .loop
+.endloop:
+	pop esi
+	//ecx=total capacity
+	//eax=current load
+	lea eax, [eax+eax*4]
+	lea eax, [eax+eax*4]
+	shl eax, 2
+	//eax=current load * 100
+	xor edx, edx
+	div ecx
+	//eax=percentage load (rounded down to integer)
+	movzx ecx, WORD [ebx+2]	//parameter
+	mov edx, ecx
+	shr edx, 13
+	movzx ebx, ch
+	and ecx, 0x7F
+.eq:
+	dec edx
+	jns .neq
+	cmp eax, ecx
+	jne .skip
+	je .multiskip
+.neq:
+	dec edx
+	jns .l
+	cmp eax, ecx
+	je .skip
+	jne .multiskip
+.l:
+	dec edx
+	jns .g
+	cmp eax, ecx
+	jnb .skip
+	jb .multiskip
+.g:
+	dec edx
+	jns .le
+	cmp eax, ecx
+	jna .skip
+	ja .multiskip
+.le:
+	dec edx
+	jns .ge
+	cmp eax, ecx
+	jnbe .skip
+	jbe .multiskip
+.ge:
+	dec edx
+	jns .skip
+	cmp eax, ecx
+	jnae .skip
+	jae .multiskip
+	
+.skip:
+	popad
+	jmp .skiporder
+.multiskip:
+	call advanceorders
+	//orders now pointing at beginning of next
+	and ebx, 0x1F
+	mov ecx, ebx
+	call multiadvanceorders
+	popad
+	jmp .skiporder2
+
+; endp newordertarget
 
 // called when a train arrives at a depot
 // check whether it's a manual automatic or by order
@@ -684,6 +822,32 @@ arriveatdepot:
 	jmp .done
 ; endp arriveatdepot
 
+//ecx=count, esi=veh
+multiadvanceorders:
+	or ecx, ecx
+	jz .end
+	pushad
+	movzx eax, BYTE [esi+veh.currorderidx]
+	mov edi, [esi+veh.scheduleptr]
+	movzx edx, BYTE [esi+veh.totalorders]
+.loop:
+	movzx ebx, WORD [edi+eax*2]
+	and bl, 0x1F
+	cmp bl, 5
+	jne .nombchk
+	shr ebx, 13
+	add eax, ebx
+.nombchk:
+	inc eax
+	cmp eax, edx
+	jb .good
+	xor eax, eax
+.good:
+	loop .loop
+	mov [esi+veh.currorderidx], al
+	popad
+.end:
+	ret
 
 	// advance order pointer
 advanceorders:
@@ -731,12 +895,22 @@ skipbutton:
 // don't disable "full load" for depots -- we use it for "only if service"
 // also enable "Delete" for the "End of orders" entry (or if nothing is selected - we can't tell at this point)
 // in:	[ebx]=new order type
-// out:	zf if regular order
+// out:	zf if regular order, ie. don't reset any buttons
 //	nz otherwise
 //	eax=8 for non-depot orders
 //	eax=9 for depot orders
+//	where eax=bit number of button to disable, as well as 9 and 6 (non-stop and unload)
 global selectorder
 selectorder:
+	bt DWORD [esi+window.activebuttons], 8
+	jnc .noremparamspecddl
+	test BYTE [esi+0x31], 4
+	jnz .noremparamspecddl
+	pusha
+	mov ecx, 8
+	call GenerateDropDownExPrepare
+	popa
+.noremparamspecddl:
 	mov word [textrefstack+4], 0x8824
 	mov word [textrefstack+6], 0x8827
 	mov byte [esi+0x31],0
@@ -744,6 +918,8 @@ selectorder:
 	and al,0x1f
 	cmp al,1
 	je short .ok
+	cmp al, 5
+	je .special
 
 	testmultiflags sharedorders
 	jz .notend
@@ -758,14 +934,21 @@ selectorder:
 	jne short .ok
 
 	add al,7	// set to 9, and clear zero flag
-	mov word [textrefstack+6],ourtext(toggleservice)
+	mov word [textrefstack+6], ourtext(toggleservice)
 	or byte [esi+0x31],1
 	ret
 
 .ok:
 	mov al,8
 	ret
-; endp selectorder 
+	
+.special:
+	mov word [textrefstack+6], ourtext(advorder_ordercondskiploadparamddltxt)
+	or byte [esi+0x31],4
+	mov al, 9
+	or esp, esp
+	ret
+; endp selectorder
 
 // called when any of the order buttons is pressed (full load, unload, nonstop)
 // allow "full load" for depot orders too
@@ -1834,34 +2017,23 @@ showorderhint:
 	pop ecx
 	ret
 
+uvarb savedinsertvehorderpos
+uvard curvehorderselitemorderidxvehptr
 
 //esi=veh, dx=order, al=pos
 insertvehorderhere_gotveh:
 	pusha
+	mov ebx, esi
+	call VehOrders@@SelItemToOrderIdx.in
+	mov ebx, esi
 	jmp insertvehorderhere.in
 //esi=window, dx=order
 insertvehorderhere:
 	pusha
-	mov     al, [esi+100010b]
-	movzx   esi, WORD [esi+window.id]
-	shl     esi, 7
-	add     esi, [veharrayptr]
+	call VehOrders@@SelItemToOrderIdx
+	mov esi, [curvehorderselitemorderidxvehptr]
 .in:
-	mov     ebx, [esi+veh.scheduleptr]
-	or      al, al
-	jz      short locret_1635DA
-	mov     ah, al
-	xor     al, al
-loc_1635CA:                                     ; CODE XREF: VehOrders@@SelItemToOrderIdx+29j
-	cmp     word [ebx], 0
-	jz      short locret_1635DA
-	add     bx, 2                   ; !Note: potentially dangerous code
-	inc     al
-	dec     ah
-	jnz     short loc_1635CA
-
-locret_1635DA:
-
+	mov [savedinsertvehorderpos], al
 	mov bh, al
 	mov bl, 1
 	mov ax, [esi+veh.xpos]
@@ -1879,20 +2051,63 @@ locret_1635DA:
 	popa
 ret
 
+//none safe
+exported VehOrders@@SelItemToOrderIdx
+	mov     al, [esi+window.selecteditem]
+	movzx   ebx, WORD [esi+window.id]
+	shl     ebx, 7
+	add     ebx, [veharrayptr]
+	mov [curvehorderselitemorderidxvehptr], ebx
+.in:
+	push edx
+	mov     ebx, [ebx+veh.scheduleptr]
+	or      al, al
+	jz      short locret_1635DA
+	mov     ah, al
+	xor     al, al
+loc_1635CA:                                     ; CODE XREF: VehOrders@@SelItemToOrderIdx+29j
+	mov dx, [ebx]
+	or dx, dx
+	jz      short locret_1635DA
+	add     ebx, 2                   ; !Note: potentially dangerous code
+	inc     al
+
+	and dl, 0x1F
+	cmp dl, 5
+	jne .notest
+	shr dh, 5
+	movzx edx, dh
+	add ebx, edx
+	add ebx, edx
+	add al, dl
+.notest:
+
+	dec     ah
+	jnz     short loc_1635CA
+locret_1635DA:
+	pop edx
+ret
+
+
+uvarb advorderskipcondloadtxtinputwintmpidval
 extern GenerateDropDownExPrepare,DropDownExList,GenerateDropDownEx,WindowClicked,RefreshWindows
 
 exported vehorderwinhandlerhook
 	pushad
 	mov esi, edi
 	mov bx, cx
+	cmp dl, cWinEventTextUpdate
+	jz NEAR .textwindowchangehandler
 	cmp dl, cWinEventClick
-	jne .notclick
+	jne NEAR .notclick
 	call dword [WindowClicked]
 	js NEAR .end
 	cmp byte [rmbclicked],0 // Was it the right mouse button
-	jne .end
+	jne NEAR .end
+	cmp cl, 8
+	je NEAR .fullloadparams
 	cmp cl, 7
-	jne .end
+	jne NEAR .end
 	bt DWORD [esi+window.activebuttons], 7
 	jc .buttonalreadydown
 	push byte CTRL_ANY + CTRL_MP
@@ -1901,27 +2116,136 @@ exported vehorderwinhandlerhook
 	jmp .end
 .buttonalreadydown:
 	btr DWORD [esi+window.activebuttons], 31
-	jnc .end
+	jnc NEAR .end
 .doddl:
 	mov ecx, 7
 	call GenerateDropDownExPrepare
-	jc vehorderwinhandlerhook_cancel
+	jc NEAR vehorderwinhandlerhook_cancel
 	bts DWORD [esi+window.activebuttons], 31
 	mov DWORD [DropDownExList], ourtext(advorder_gotonearestdepotddltxt)
 	mov DWORD [DropDownExList+4], ourtext(advorder_servicenearestdepotddltxt)
-	mov DWORD [DropDownExList+8], -1
+	mov DWORD [DropDownExList+8], ourtext(advorder_loadcondskipddltxt)
+	mov DWORD [DropDownExList+12], -1
 	mov ecx, 7
 	or edx, BYTE -1
 	call GenerateDropDownEx
 	jmp vehorderwinhandlerhook_cancel
 .notclick:
 	cmp dl, cWinEventDropDownItemSelect
-	jne .notddlsel
+	jne NEAR .notddlsel
+	cmp cl, 8
+	je NEAR .specparamddlitemsel
 	cmp cl, 7
-	jne vehorderwinhandlerhook_cancel
+	jne NEAR vehorderwinhandlerhook_cancel
+	cmp al, 2
+	je .dbl
 	mov dh, al
 	mov dl, 5
 	call insertvehorderhere
+	jmp vehorderwinhandlerhook_cancel
+.dbl:
+	mov edi, esi
+	movzx esi, WORD [esi+window.id]
+	shl esi, 7
+	add esi, [veharrayptr]
+	mov dh, al
+	or dh, 0x20
+	mov dl, 5
+	mov al, [edi+100010b]
+	call insertvehorderhere_gotveh
+	mov al, [savedinsertvehorderpos]
+	inc al
+	mov dx, 0x80
+	push DWORD vehorderwinhandlerhook_cancel
+	pusha
+	jmp insertvehorderhere.in
+
+.fullloadparams:
+	test BYTE [esi+0x31], 4
+	jz NEAR .end
+	mov ecx, 8
+	call GenerateDropDownExPrepare
+	jc NEAR vehorderwinhandlerhook_cancel
+	mov DWORD [DropDownExList], ourtext(advorder_orderskipcountguibtntxt)
+	mov DWORD [DropDownExList+4], ourtext(advorder_orderloadpercentguibtntxt)
+	mov DWORD [DropDownExList+8], statictext(empty)
+	mov DWORD [DropDownExList+12], ourtext(tr_optxt)
+	mov DWORD [DropDownExList+16], ourtext(trdlg_eq)
+	mov DWORD [DropDownExList+20], ourtext(trdlg_neq)
+	mov DWORD [DropDownExList+24], statictext(trdlg_lt)
+	mov DWORD [DropDownExList+28], statictext(trdlg_gt)
+	mov DWORD [DropDownExList+32], statictext(trdlg_lte)
+	mov DWORD [DropDownExList+36], statictext(trdlg_gte)
+	mov DWORD [DropDownExList+40], -1
+	mov DWORD [DropDownExListDisabled], 12
+	mov ecx, 8
+	or edx, BYTE -1
+	call GenerateDropDownEx
+	jmp vehorderwinhandlerhook_cancel
+
+.specparamddlitemsel:
+	cmp al, 2
+	ja .specparamopsel
+	dec al
+	and al, 8
+	mov cl, al
+	call VehOrders@@SelItemToOrderIdx
+	movzx eax, WORD [ebx+2]
+	and ah, 0x1F
+	shr eax, cl
+	mov [advorderskipcondloadtxtinputwintmpidval], cl
+	and eax, BYTE 0x7F
+	mov [textrefstack], eax
+	mov ax, statictext(printdword)
+	mov bl, 0xFF
+	mov ch, 3
+	mov cl, [esi+window.type]
+	mov dx, [esi+window.id]
+	mov bp, ourtext(tr_enternumber)
+	call [CreateTextInputWindow]
+	jmp vehorderwinhandlerhook_cancel
+
+.specparamopsel:
+	mov cl, al
+	sub cl, 4
+	call VehOrders@@SelItemToOrderIdx
+	and BYTE [ebx+3], 0x1F
+	shl cl, 5
+	or [ebx+3], cl
+	jmp vehorderwinhandlerhook_cancel
+
+.textwindowchangehandler:
+	push esi
+	mov ebx, 0
+	mov esi, baTextInputBuffer
+	call getnumber
+	pop esi
+	jc vehorderwinhandlerhook_cancel
+	cmp edx, -1
+	je vehorderwinhandlerhook_cancel
+	mov cl, [advorderskipcondloadtxtinputwintmpidval]
+	or cl, cl
+	jnz .countn
+	or edx, edx
+	jns .next1
+	xor edx, edx
+.next1:
+	cmp edx, 100
+	jna .chkdone
+	mov edx, 100
+	jmp .chkdone
+.countn:
+	and edx, 0x1F
+.chkdone:
+	shl edx, cl
+	mov ebp, ~0x7F
+	rol ebp, cl
+	or ebp, ~0x1F7F
+	and edx, 0x1F7F
+	mov ecx, edx
+	call VehOrders@@SelItemToOrderIdx
+	and [ebx+2], bp
+	or [ebx+2], cx
 	jmp vehorderwinhandlerhook_cancel
 .notddlsel:
 .end:
@@ -1939,4 +2263,79 @@ vehorderwinhandlerhook_cancel:
 	popad
 	ret
 
+/*
+exported vehorderwinclicktoselhook_hook
+	push ebp
+	push edx
+	push ebx
+	add al, [esi+window.itemsoffset]
+	//al is now order id based on window position
+
+	movzx ebp, WORD [esi+window.id]
+	shl ebp, 7
+	add ebp, [veharrayptr]
+	mov edx, [ebp+veh.scheduleptr]
+.loop:
+	or al, al
+	jz .end
+	mov bx, [edx]
+	or bx, bx
+	jz .end
+	and bl, 0x1F
+	cmp bl, 5
+	jne .notest
+	shr bh, 5
+	movzx ebx, bh
+	add edx, ebx
+	add edx, ebx
+.notest:
+	dec al
+	add edx, 2
+	jmp .loop
+.end:
+	sub edx, [ebp+veh.scheduleptr]
+	shr edx, 1
+	mov al, dl
+	cmp al, [esi+window.selecteditem]
+	pop ebx
+	pop edx
+	pop ebp
+	ret
+*/
+
+exported vehorderwinitemoffsetshiftcorrectorhook_hook
+	dec al
+	sub al, [esi+window.itemsoffset]
+	cmp al, 6
+	jnb .next
+	ret
+.next:				//blatantly assume that the last extra word is not 0...
+	mov ax, [ebp]
+	and al, 0x1F
+	cmp al, 5
+	jne .faile
+	shr ah, 5
+	movzx eax, ah
+	add ebp, eax
+	add ebp, eax
+.faile:
+	cmp esp, esp
+	ret
+	
+exported vehorderwinitemcounthook_hook
+.loop:
+	mov bx, [edi]
+	or bx, bx
+	je .ret
+	inc al
+	add edi, BYTE 2
+	and bl, 0x1F
+	cmp bl, 5
+	jne .loop
+	shr bx, 12
+	and ebx, BYTE 14
+	add edi, ebx
+	jmp .loop
+.ret:
+	ret
 

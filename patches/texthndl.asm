@@ -18,6 +18,7 @@ extern failpropwithgrfconflict,lastextragrm,curextragrm
 extern restorevehnametexts
 
 extern landinfotxtptr1,landinfotxtptr2,landinfotxtptr3
+extern newunloadptr1,newnonstopptr1
 
 uvard ourtext_ptr, ourtext(last)-ourtext(base)+1	// +1 otherwise last overwrites the following uvard in memory
 

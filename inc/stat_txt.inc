@@ -97,6 +97,15 @@ stxt newfullloadbutton, 0x85,0x85,0x85,0x80,0
 stxt vehlist_sortbutton, 0x85,0x85,0x85,0x98,0x80,0
 stxt vehlist_menubutton, 0x98,0xaa,0
 
+stxt newnonstopbutton, 0x9A, 0x5
+stxt_cont dd newnonstopptr1
+stxt_cont db 0
+
+stxt newunloadbutton, 0x9A, 0x5
+stxt_cont dd newunloadptr1
+stxt_cont db 0
+
+
 stxt txtetoolbox_dropdown, 0x98,0xaa,0
 
 // Graphic Status Window

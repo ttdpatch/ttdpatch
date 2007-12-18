@@ -152,7 +152,20 @@ codefragment VehOrdersWindowHandlerHookJmp1,-18
 	js $+6+0x3C3
 	cmp cl, 0
 	db 0x0F, 0x84
-
+	
+//codefragment vehorderwinclicktoselhook
+//	icall vehorderwinclicktoselhook_hook
+	
+codefragment vehorderwinSelItemToOrderIdxhook
+	ijmp VehOrders@@SelItemToOrderIdx
+	
+codefragment vehorderwinitemoffsetshiftcorrectorhook
+	icall vehorderwinitemoffsetshiftcorrectorhook_hook
+	setfragmentsize 7
+	
+codefragment vehorderwinitemcounthook
+	icall vehorderwinitemcounthook_hook
+	setfragmentsize 13
 endcodefragments
 
 patchgotodepot:
@@ -226,4 +239,12 @@ advorderspatchproc:
 	mov [FindNearestTrainDepot], edi
 	stringaddress VehOrdersWindowHandlerHookJmp1
 	chainfunction vehorderwinhandlerhook
+	add edi, 0xC6
+	//storefragment vehorderwinclicktoselhook
+	add edi, 0x3DC-0xC6+lastediadj
+	storefragment vehorderwinSelItemToOrderIdxhook	//5755A0,1635AF
+	add edi, 0x112+lastediadj
+	storefragment vehorderwinitemoffsetshiftcorrectorhook	//5756B2,1636C1
+	add edi, lastediadj-0xBE
+	storefragment vehorderwinitemcounthook	//5755F4,163603
 	ret

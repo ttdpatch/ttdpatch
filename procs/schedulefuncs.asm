@@ -15,6 +15,22 @@ codefragment oldfullloadtext
 
 codefragment newfullloadtext
 	dw statictext(newfullloadbutton)
+	
+codefragment oldnonstoptext
+	dw 0x8825	// "Non Stop"
+	db 3		// cWinElemTextBox
+	db 0xe		// cColorSchemeGray
+
+codefragment newnonstoptext
+	dw statictext(newnonstopbutton)
+	
+codefragment oldunloadtext
+	dw 0x8828	// "Unload"
+	db 0xB
+	db 0x3
+
+codefragment newunloadtext
+	dw statictext(newunloadbutton)
 
 codefragment olddeletetext1
 	dw 0x8824	// "Delete"
@@ -86,6 +102,8 @@ endcodefragments
 
 patchschedulefuncs:
 	multipatchcode oldfullloadtext,newfullloadtext,4
+	patchcode oldnonstoptext,newnonstoptext
+	multipatchcode oldunloadtext,newunloadtext,4
 	patchcode olddeletetext1,newdeletetext,1,1
 	storeaddress findorderhints,1,1,orderhints
 	multipatchcode olddeletetext2,newdeletetext,3

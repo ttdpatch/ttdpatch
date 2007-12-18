@@ -152,7 +152,8 @@ endstruc
 //for TTDP special, high byte=command num
 // 00h=find & goto closest (forward) depot
 // 01h=find & goto closest (forward) depot if service needed
-//high 3 bits means number of words in schedule heap after command which are associated (not implemented)
+// 02h=skip next n orders if overall load percentage ==,!=,<,>,<=,>= P%		One extra word: MSB->LSB, op: 3 bits, n: 5 bits, gap: 1 bit, P: 7 bits
+//high 3 bits means number of words in schedule heap after command which are associated
 
 
 // Format of data in veh2 array (for temporary, unsaved vehicle data)
