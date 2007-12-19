@@ -107,6 +107,7 @@ defbit EXP_ENGINECONVERT,	6 // Experimental Engine to multihead converter (maybe
 defbit EXP_PREVIEWDD,		7 // Create preview windows for station classes.
 defbit EXP_EXTRADETAILS,	8 // Show more informations in the train detail window.
 defbit EXP_ASYNCMP,			9 // Asynchronous/internet multiplayer
+defbit EXP_RAILVEHMENU,		10 // Adds a rail vehicle menu/window to the depot window
 enddefbits
 
 
