@@ -3516,12 +3516,8 @@ induwindow_redraw:
 	mov byte [curcallback],0x37
 
 // first the accepted cargoes
-// if there's no accepted cargoes, we skip the line entirely
-	cmp byte [industryacceptedcargos+4*ebp],-1
-	jz .nofirstline
-
 	push edi
-// otherwise, loop through the accepted cargoes, updating the textID and filling
+// loop through the accepted cargoes, updating the textID and filling
 // the text. ref. stack
 	mov bx,0x4827-1			// Requires: xxx
 	mov edi,textrefstack
@@ -3529,7 +3525,7 @@ induwindow_redraw:
 .nextcargo:
 	movzx edx,byte [industryacceptedcargos+4*ebp+ecx]	// get cargo name
 	cmp dl,-1			// have we reached the end?
-	je .drawit
+	je .skipit
 	inc ebx				// increase ID to have one more item
 	shl edx,1
 	add edx,[cargotypenamesptr]
@@ -3539,13 +3535,16 @@ induwindow_redraw:
 	call .getcargosubtext
 	mov [edi+4],ax
 	add edi,6
+.skipit:
 	inc byte [callback_extrainfo]
 	inc ecx
 	cmp ecx,3			// have we reached the max?
 	jb .nextcargo
 
-.drawit:
 	pop edi
+// have we added any items?
+	cmp bx,0x4827-1
+	je .nofirstline			// nope, skip drawing the first line
 	mov eax,[mostrecentspriteblock]
 	mov [curmiscgrf],eax
 // now we can draw the first line
@@ -3559,9 +3558,14 @@ induwindow_redraw:
 .nofirstline:
 // the second line: produced cargoes
 	mov cx,[industryproducedcargos+2*ebp]
-// if the first item is -1, no cargoes are produced, so skip the line altogether
+// if both items are -1, no cargoes are produced, so skip the line altogether
+	cmp cx,-1
+	je near .nosecondline
+// if the first slot has -1, swap the slots so the meaningful one comes first
 	cmp cl,-1
-	jz .nosecondline
+	jne .firstslotok
+	xchg cl,ch
+.firstslotok:
 
 // assume we'll have one output cargo
 	mov bx,statictext(newindu_onecargo)
@@ -4751,11 +4755,15 @@ drawinduacceptlist:
 	add ebp,[industryarrayptr]
 	mov byte [grffeature],0xa
 	mov dword [callback_extrainfo],0x100
+
 // if there's no incoming cargo, don't draw anything
-	movzx eax,byte [ebp+industry.accepts]
+        mov eax,[ebp+industry.accepts]
+        cmp ax,-1
+        jne .hasaccepts
+	shr eax,16
 	cmp al,-1
 	jne .hasaccepts
-	ret
+        ret
 
 .hasaccepts:
 	mov byte [curcallback],0x37
@@ -4781,7 +4789,7 @@ drawinduacceptlist:
 .nextslot:
 	movzx eax,byte [ebp+industry.accepts+ecx]
 	cmp al,-1
-	je .done
+	je .skip
 	inc ebx
 	mov word [esi],statictext(ident2)
 	mov ax,[edx+2*eax]
@@ -4790,12 +4798,11 @@ drawinduacceptlist:
 	mov [esi+4],ax
 	add esi,6
 
+.skip:
 	inc byte [callback_extrainfo]
 	inc ecx
 	cmp ecx,3
 	jb .nextslot
-
-.done:
 
 	pop edx
 	pop ecx
@@ -4903,6 +4910,22 @@ drawinduacceptlist:
 	mov ax,6
 	ret
 	
+exported skipproducelist
+	add dx,10
+	cmp word [ebp+industry.producedcargos],-1
+	ret
+
+exported skipfirstproducedcargo
+	movzx eax,byte [ebp+industry.producedcargos]
+	cmp al,-1
+	je .skipfirst
+	add dx,10
+	ret
+
+.skipfirst:
+	add dword [esp],0x4c
+	ret
+
 global drawinduproducelist
 drawinduproducelist:
 	mov word [textrefstack+0],statictext(ident2)
@@ -5743,6 +5766,17 @@ preventindustryclosedown:
 .done:
 	ret
 
+exported industryproductionquery
+	mov bx,[esi+industry.producedcargos]
+	cmp bx,-1
+	je .noproduction
+	mov al,-1
+	cmp bl,-1
+	jne .noswap
+	xchg bl,bh
+.noproduction:
+.noswap:
+	ret
 
 // The following code was written by Oskar for the moreindustriesperclimate switch. That switch has
 // now been made obsolete by newindustries, but some of the code is still used and was moved to this file.

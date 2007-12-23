@@ -394,6 +394,18 @@ codefragment newdrawinduacceptlist
 	setfragmentsize 12
 	db 0xeb			// jz -> jmp short
 
+codefragment oldskipproducelist
+	add dx,10
+	cmp byte [ebp+industry.producedcargos],-1
+
+codefragment_call newskipproducelist,skipproducelist,8
+
+codefragment oldskipfirstproducedcargo
+	add dx,10
+	movzx eax,byte [ebp+industry.producedcargos]
+
+codefragment_call newskipfirstproducedcargo,skipfirstproducedcargo,8
+
 codefragment olddrawinduproducelist
 	mov [textrefstack],ax
 	mov [textrefstack+2],bx
@@ -525,6 +537,12 @@ codefragment newtoyfactoryanimation
 	clc
 	setfragmentsize 3
 
+codefragment oldindustryproductionquery
+	mov bl,[esi+industry.producedcargos]
+	cmp bl,-1
+
+codefragment_jmp newindustryproductionquery,industryproductionquery,5
+
 endcodefragments
 
 ext_frag oldindustryclosedown
@@ -644,6 +662,8 @@ patchnewindustries:
 	add word [eax+80],10
 
 	patchcode drawinduacceptlist
+	patchcode skipproducelist
+	patchcode skipfirstproducedcargo
 	patchcode olddrawinduproducelist,newdrawinduproducelist1,1,2
 	add dword [edi+lastediadj+28],4
 	patchcode olddrawinduproducelist,newdrawinduproducelist2,1,0
@@ -688,6 +708,8 @@ patchnewindustries:
 
 // fix toy factory animations messing up the high byte of L3
 	patchcode toyfactoryanimation
+
+	patchcode industryproductionquery
 	ret
 
 // shares a code fragment
