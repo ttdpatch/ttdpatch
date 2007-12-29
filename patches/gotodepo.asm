@@ -1599,8 +1599,8 @@ adjustorders:
 global deletepressed
 deletepressed:
 	add edi,[veharrayptr]		// overwritten
-	cmp al,[edi+veh.totalorders]	// exit if it's not the terminator entry ("End of orders")
-	jne .end
+	cmp al,[edi+veh.totalorders]	// normal orders may require some extra bookkeeping.
+	jne .fifo
 	or byte [esi+window.activebuttons],0x20		// make "Delete" pushed
 	or byte [esi+window.flags],5		// but make it release after the click
 	cmp dword [scheduleheapfree],scheduleheapend-2	// don't do it if there's not enough heap
@@ -1619,14 +1619,33 @@ deletepressed:
 .deny:
 	clc
 	ret
-.end:
-	// But before exiting, some FIFO accounting: dequeue/unreserve if current order was deleted
+
+.fifo:
+	// dequeue/unreserve if current order was deleted
 	cmp al,[edi+veh.currorderidx]
-	jne .nodequeue
+	jne .advanced
 	xchg esi, edi
 	call removeconsistfromqueue
 	xchg esi, edi
-.nodequeue:
+
+.advanced:
+	// properly delete multi-entry orders
+	mov ecx, [edi+veh.scheduleptr]
+	movzx eax, al
+	movzx ecx, word [ecx+eax*2]
+	cmp cl, 5
+	jne .done
+	shr ecx, 5+8
+	jz .done
+.adv_moredelete:		// Multi-entry order
+	pusha
+	stc
+	call [esp+20h]		// Delete first (remaining) part of the order
+	popa
+	loop .adv_moredelete
+	// Now delete the final part of the order
+
+.done:
 	stc
 	ret
 
