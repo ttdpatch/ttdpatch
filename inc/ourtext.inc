@@ -428,6 +428,8 @@ defourtext advorder_orderskipcountguibtntxt
 defourtext advorder_orderloadpercentguibtntxt
 defourtext advorder_ordercondskiploadparamddltxt
 
+defourtext advorder_orderparamtooltip
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

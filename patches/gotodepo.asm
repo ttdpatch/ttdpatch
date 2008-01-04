@@ -354,6 +354,10 @@ showorder:
 .nocurselorder:
 	pop ecx
 .nochange:
+	// Set up convenience registers for depot and special orders.
+	mov esi,edi
+	mov edi,textrefstack+1
+
 	cmp bp,byte 2
 	je short .depotorder
 	cmp bp,byte 5
@@ -362,11 +366,9 @@ showorder:
 	ret
 
 .depotorder:
-	mov esi,edi
 	movzx ebp,ah
 	push ds
 	pop es
-	mov edi,textrefstack+1
 	and eax,byte DEPOTIFSERVICE
 	shr eax,6
 	add ax,ourtext(gotodepot)
@@ -429,8 +431,6 @@ showorder:
 	shr ebp, 4
 	and ebp, BYTE 0xE
 	add [esp+8], ebp
-//	shr ebp, 1
-//	add [textrefstack], ebp		//this will never overflow past the byte...
 
 	and ah, 0x1F
 	cmp ah, 2
@@ -441,11 +441,11 @@ showorder:
 	ja .condloadskip
 	movzx eax, ah
 	add ax, ourtext(gotodepot)
-	mov [textrefstack+1], ax
-	movzx eax,byte [edi+veh.class]
-	add ax,ourtext(gototraindepot)-0x10
-	mov [textrefstack+3], ax
-	mov WORD [textrefstack+5], ourtext(advorder_findnearestdepottxt)
+	stosw
+	movzx eax,byte [esi+veh.class]
+	add eax,ourtext(gototraindepot)-0x10
+	stosw
+	mov WORD [edi], ourtext(advorder_findnearestdepottxt)
 .specialfail:
 	xor bp, bp
 	test esp, esp
@@ -453,14 +453,15 @@ showorder:
 .condloadskip:
 	mov ebp, [esp+8]
 	movzx ebp, WORD [ebp]
-	mov WORD [textrefstack+1], ourtext(advorder_loadcondskiporderwintxt)
+	mov ax, ourtext(advorder_loadcondskiporderwintxt)
+	stosw
 	mov eax, ebp
 	and eax, 0x7F
-	mov WORD [textrefstack+7], ax
+	mov WORD [edi+4], ax
 	mov eax, ebp
 	shr eax, 8
 	and eax, 0x1F
-	mov WORD [textrefstack+3], ax
+	stosw
 	mov eax, ebp
 	shr eax, 13
 	and eax, 0x7
@@ -471,7 +472,7 @@ showorder:
 .noteqorneq:
 	add eax, ourtext(trdlg_eq)
 .sclsprint:
-	mov WORD [textrefstack+5], ax
+	stosw
 	jmp .specialfail
 
 
@@ -900,12 +901,16 @@ skipbutton:
 //	eax=8 for non-depot orders
 //	eax=9 for depot orders
 //	where eax=bit number of button to disable, as well as 9 and 6 (non-stop and unload)
+//
+//	[esi+31h] controls tooltips and dropdown behaviour:
+//	0 - station order, 1 - depot order, 2 - End-of-orders (or nothing selected)
+//	3 - conditional skip
 global selectorder
 selectorder:
 	bt DWORD [esi+window.activebuttons], 8
 	jnc .noremparamspecddl
-	test BYTE [esi+0x31], 4
-	jnz .noremparamspecddl
+	cmp BYTE [esi+0x31], 3
+	je .noremparamspecddl
 	pusha
 	mov ecx, 8
 	call GenerateDropDownExPrepare
@@ -926,7 +931,7 @@ selectorder:
 	jne .notend
 	and byte [esi+window.disabledbuttons],~0x20	// Enable Delete button
 	mov word [textrefstack+4], ourtext(resetorders)
-	or byte [esi+0x31],2
+	mov byte [esi+0x31],2
 
 .notend:
 	cmp al,2
@@ -934,7 +939,7 @@ selectorder:
 
 	add al,7	// set to 9, and clear zero flag
 	mov word [textrefstack+6], ourtext(toggleservice)
-	or byte [esi+0x31],1
+	mov byte [esi+0x31],1
 	ret
 
 .ok:
@@ -947,7 +952,7 @@ selectorder:
 	cmp al, 2
 	jne .ok
 	mov word [textrefstack+6], ourtext(advorder_ordercondskiploadparamddltxt)
-	or byte [esi+0x31],4
+	mov byte [esi+0x31],3
 	mov al, 9
 	or esp, esp
 	ret
@@ -2018,17 +2023,23 @@ showorderhint:
 	mov al,[esi+0x31]
 	cmp cx,5
 	jne .noreset
-	test al,2
-	jz .noreset
+	cmp al,2
+	jne .noreset
 	mov ax,ourtext(resethint)
 	ret
 
 .noreset:
 	cmp cx,8
 	jne .noservice
-	test al,1
-	jz .noservice
+	cmp al,1
+	jne .tryparams
 	mov ax,ourtext(servicehint)
+	ret
+
+.tryparams:
+	cmp al,3
+	jne .noservice
+	mov ax, ourtext(advorder_orderparamtooltip)
 	ret
 
 .noservice:
@@ -2183,8 +2194,8 @@ exported vehorderwinhandlerhook
 	jmp insertvehorderhere.in
 
 .fullloadparams:
-	test BYTE [esi+0x31], 4
-	jz NEAR .end
+	cmp BYTE [esi+0x31], 3
+	jne NEAR .end
 	mov ecx, 8
 	call GenerateDropDownExPrepare
 	jc NEAR vehorderwinhandlerhook_cancel
