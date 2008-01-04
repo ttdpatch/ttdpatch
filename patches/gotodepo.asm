@@ -911,8 +911,7 @@ selectorder:
 	call GenerateDropDownExPrepare
 	popa
 .noremparamspecddl:
-	mov word [textrefstack+4], 0x8824
-	mov word [textrefstack+6], 0x8827
+	mov dword [textrefstack+4], 0x88278824
 	mov byte [esi+0x31],0
 	movzx eax,byte [ebx]
 	and al,0x1f
@@ -943,6 +942,10 @@ selectorder:
 	ret
 	
 .special:
+	mov al, [ebx+1]
+	and al, 1Fh
+	cmp al, 2
+	jne .ok
 	mov word [textrefstack+6], ourtext(advorder_ordercondskiploadparamddltxt)
 	or byte [esi+0x31],4
 	mov al, 9
