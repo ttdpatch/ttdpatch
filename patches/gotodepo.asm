@@ -863,18 +863,13 @@ advanceorders:
 // called when the skip button is pressed
 // make sure the vehicle doesn't insist on
 // going to the same depot
-// in:	dl=new command (check if <=totalcommands)
-//	edi=vehicle
-// out:	dl=new command
+// in:	edi=vehicle
 global skipbutton
 skipbutton:
 	mov esi, edi
 	extcall removeconsistfromqueue // No-op if consist is not queued or if fifo is off.
-	cmp dl,byte [edi+veh.totalorders]
-	jb short .nottoolarge
-	mov dl,0
+	call advanceorders
 
-.nottoolarge:
 	mov bl,[edi+veh.currorder]		// are we going to a depot?
 	and bl,0x1f
 	testflags gradualloading
@@ -1429,6 +1424,8 @@ refreshdepotschedules:
 //	al=special bits to set (e.g. 40=full load)
 //	zero flag if order is ok to add
 //	nz if not
+uvarb copyextradata
+
 global copyoldorder
 copyoldorder:
 	testmultiflags sharedorders
@@ -1437,6 +1434,16 @@ copyoldorder:
 	je .dosharedorders
 
 .nosharedcheck:
+	testflags advorders
+	jnc .noadvcopy
+	cmp byte [copyextradata],0
+	je .noadvcopy
+	dec byte [copyextradata]
+.copywithoutflags:
+	xor eax,eax
+	ret
+
+.noadvcopy:
 	and dl,0x1f
 	cmp dl,1
 	je short .done
@@ -1449,6 +1456,11 @@ copyoldorder:
 .mightbedepot:
 	cmp dl,2
 	je short .isdepot
+
+	testflags advorders
+	jnc .done
+	cmp dl,5
+	je short .special
 .done:
 	ret
 
@@ -1457,6 +1469,11 @@ copyoldorder:
 	and al,~ DEPOTORDER
 	test al,0	// set zero flag
 	ret
+
+.special:
+	shr ah, 5
+	mov [copyextradata],ah
+	jmp short .copywithoutflags
 
 .dosharedorders:
 	add edi,2	// skip two bytes - this order is two bytes longer than other commands
@@ -2371,4 +2388,6 @@ exported vehorderwinitemcounthook_hook
 	jmp .loop
 .ret:
 	ret
+
+
 

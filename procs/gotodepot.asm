@@ -125,13 +125,11 @@ codefragment newleavehangar
 	nop
 	db 0x72	// turn jz into jc
 
-codefragment oldskipbutton
+codefragment oldskipbutton, -5
 	cmp dl,byte [edi+veh.totalorders]
 	jb $+2+2
 
-codefragment newskipbutton
-	call runindex(skipbutton)
-	setfragmentsize 7
+codefragment_call newskipbutton, skipbutton, 5+7+3
 
 codefragment oldfullloadbutton,-26
 	pop ax
