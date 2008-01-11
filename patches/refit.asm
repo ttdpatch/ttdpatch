@@ -13,6 +13,7 @@
 #include <misc.inc>
 #include <newvehdata.inc>
 #include <ptrvar.inc>
+#include <pusha.inc>
 
 extern cachevehvar40x,callbackflags
 extern cargoamountnnamesptr,cargoclasscargos,cargoid
@@ -1176,12 +1177,16 @@ refitsecondengine:
 
 // called after setting the new cargo type of road vehicles and ships
 // in:	edx=vehicle
-//	bh=old cargo
+//	bh=new cargo ([edx+veh.cargotype] --old cargo)
 // out:	set [edx+veh.currentload]=0
 // safe:bl, others?
 global setnewcargo
 setnewcargo:
+	int3
 	pusha
+	lea edi, [esp+_pusha.ebx]
+	push ebx
+	and dword [edi], 0
 
 	push esi
 	lea esi,[edx+veh.idx-window.id]
@@ -1193,22 +1198,29 @@ setnewcargo:
 	mov [currefitinfoptr],eax
 
 .loopNextVehicle:
+	pop ebx		// possibly restore bh
+	push ebx
 	movzx eax,byte [edx+veh.vehtype]
 	test byte [callbackflags+eax],8
 	jz .nocapacallback
 
 	push esi
 	mov esi,edx
-	xchg bh,[esi+veh.cargotype]	// need to xchg, because bh is old type!
-	mov eax,[currefitinfoptr]	// and getcapacallback does xchg again!
+	mov eax,[currefitinfoptr]
 	call getcapacallback
-	xchg bh,[esi+veh.cargotype]
+	xchg bh,[esi+veh.cargotype]	// put in new cargo type
 	pop esi
 	jc .nocapacallback
 
 	mov [edx+veh.capacity],ax
 
 .nocapacallback:
+	push ebx
+	call [esp+28h]		// do expenses bookkeeping
+	add [edi], ebx
+	cmp ebx, 80000000h
+	je .failed
+	pop ebx
 	mov eax,[currefitinfoptr]
 	mov bl,[eax+refitinfo.cycle]
 	cmp bh,[edx+veh.cargotype]
@@ -1246,8 +1258,16 @@ setnewcargo:
 	mov al,0x12
 	mov bx,[edx+veh.XY]
 	call [invalidatehandle]
+.popretret:
+	pop ebx
 	popa
+	add esp, 4		// this time, skip the expenses bookeeping
+	mov [esp+4], ebx	// Overwrite the cost where 
 	ret
+.failed:
+	mov [edi], ebx
+	pop ebx
+	jmp .popretret
 
 // calculate refit cost
 // in:	same as above
@@ -1262,6 +1282,8 @@ rvshiprefitcost:
 	ret
 
 .havecost:
+	//push ecx
+	//mov ecx, ebx
 	movzx ebx,byte [edx+veh.vehtype]
 	mov bl,[rvrefitcost+ebx-ROADVEHBASE]	// also works for ships
 	cmp byte [edx+veh.class],0x11

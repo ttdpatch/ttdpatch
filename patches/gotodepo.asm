@@ -407,7 +407,7 @@ showorder:
 	ret
 
 .gotthecity1:
-	test dword [miscmodsflags],MISCMODS_NODEPOTNUMBERS
+	test byte [miscmodsflags+3],MISCMODS_NODEPOTNUMBERS>>24
 	jnz .gotthecity
 	mov WORD [edi-2], statictext(dpt_number)
 	add edi, BYTE 2
@@ -828,6 +828,7 @@ multiadvanceorders:
 	or ecx, ecx
 	jz .end
 	pushad
+.start:
 	movzx eax, BYTE [esi+veh.currorderidx]
 	mov edi, [esi+veh.scheduleptr]
 	movzx edx, BYTE [esi+veh.totalorders]
@@ -852,14 +853,11 @@ multiadvanceorders:
 
 	// advance order pointer
 advanceorders:
-	mov al,byte [esi+veh.currorderidx]
-	inc al
-	cmp al,byte [esi+veh.totalorders]
-	jb short .good
-	mov al,0
-.good:
-	mov byte [esi+veh.currorderidx],al
-	ret
+	pusha
+	xor ecx,ecx
+	inc ecx
+	jmp short multiadvanceorders.start
+
 ; endp advanceorders 
 
 // called when the skip button is pressed
@@ -2084,7 +2082,9 @@ insertvehorderhere:
 	popa
 ret
 
-//none safe
+//  In: esi->order window
+// Out: ax: real order index
+//	ebx->selected order
 exported VehOrders@@SelItemToOrderIdx
 	mov     al, [esi+window.selecteditem]
 	movzx   ebx, WORD [esi+window.id]

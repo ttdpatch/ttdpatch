@@ -2671,6 +2671,11 @@ landgencheat:
 	call getnumber
 	mov ah,dl
 	call getnumber
+	test edx,edx
+	jne .ok
+	stc
+	ret
+.ok:
 	shl edx,16
 	or eax,edx
 .done:
