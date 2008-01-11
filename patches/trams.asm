@@ -25,7 +25,7 @@ extern	newvehdata, invalidatetile, demolishroadflag, checkroadremovalconditions
 extern	rvcheckovertake, CreateWindow, txteroadmenu, getroutemap, displbridgeendsprite, CreateWindowRelative
 extern	patchflags, gettunnelotherend, DestroyWindow
 
-extern	CloseWindow, RefreshWindowArea
+extern	CloseWindow, RefreshWindowArea, findroadvehicledepot
 
 extern paStationbusstop1, paStationbusstop2, paStationtruckstop1, paStationtruckstop2
 
@@ -270,11 +270,10 @@ insertTramTrackIntoRemove:
 global newSendVehicleToDepot
 newSendVehicleToDepot:
 	mov	dword [tramVehPtr], esi
-	call	$+5
-ovar .oldfn, $, -4, newSendVehicleToDepot
-	or	dword [tramVehPtr], byte -1
+	call	[findroadvehicledepot]
+	mov	edx, ebx
+	mov	dword [tramVehPtr], 0FFFFFFFFh
 	retn
-/*
 
 ;called by the 'system' as opposed to a user request.
 global newSendVehicleToDepotAuto
@@ -284,7 +283,7 @@ newSendVehicleToDepotAuto:
 	or	ebx, ebx
 	mov	dword [tramVehPtr], 0FFFFFFFFh
 	retn
-*/
+
 global shiftTramBytesIntoL5
 shiftTramBytesIntoL5:
 	push	bx

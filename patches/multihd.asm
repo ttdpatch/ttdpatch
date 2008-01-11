@@ -365,27 +365,13 @@ calcvehweight:
 
 .notpoweredwagon:
 //	add ebx,[enginepowerstable]
-
-/*
-#include <versionw.h>
-#if TTDPATCHVERSIONSVNREVNUM > 1760
-	push eax
-	movzx eax,byte [esi+veh.vehtype]	// initialize al,
-	mov ah, 16h				// ah,
-	mov cl,[trainweight+ebx]
-	mov ch,[railvehhighwt+eax]		// and cx
-	extcall GetCallback36
-	pop ebx
-	add ebx, eax
-	mov eax,ebx
-#else*/
 	add al,[trainweight+ebx]
 
 	movzx ebx,byte [esi+veh.vehtype]
 	adc ah,[railvehhighwt+ebx]
 
 	mov ebx,eax
-//#endif
+
 	// calculate the tractive effort this vehicle provides
 	test byte [esi+veh.modflags],1<<MOD_POWERED
 	jnz .ispowered
