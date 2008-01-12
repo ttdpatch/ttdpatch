@@ -430,6 +430,9 @@ defourtext advorder_ordercondskiploadparamddltxt
 
 defourtext advorder_orderparamtooltip
 
+defourtext advorder_selrefitveh
+defourtext advorder_orderrefitveh
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
