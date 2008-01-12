@@ -153,6 +153,7 @@ endstruc
 // 00h=find & goto closest (forward) depot
 // 01h=find & goto closest (forward) depot if service needed
 // 02h=skip next n orders if overall load percentage ==,!=,<,>,<=,>= P%		One extra word: MSB->LSB, op: 3 bits, n: 5 bits, gap: 1 bit, P: 7 bits
+// 03h=refit to cargo specified. One extra word: cargo: 5 bits, gap: 3 bits, refit cycle: 8 bits. Ignored if not arriveatdepot.
 //high 3 bits means number of words in schedule heap after command which are associated
 
 
@@ -240,12 +241,12 @@ endstruc
 // params: source (r/m16) or dest (r32), jump destination
 //	If source is an m16, dest is esi. Otherwise, the non-specified
 //	argument is the specified register's 32 or 16 bit companion.
-//	If dest is specified, its high 16 bits are assumed to be clear.
+//	If dest is specified and source is not, dest's high 16 bits are assumed to be clear.
 //
 // Do not specify "word [address]" for m16s, simply specify "[address]"
 // Jumps will be short unless specified as "near target"
 //
-// In all cases, dest is undefined in the nv case.
+// dest is undefined in the nv case.
 //
 
 %macro cvivpjnv 3

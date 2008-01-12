@@ -354,10 +354,6 @@ showorder:
 .nocurselorder:
 	pop ecx
 .nochange:
-	// Set up convenience registers for depot and special orders.
-	mov esi,edi
-	mov edi,textrefstack+1
-
 	cmp bp,byte 2
 	je short .depotorder
 	cmp bp,byte 5
@@ -366,9 +362,11 @@ showorder:
 	ret
 
 .depotorder:
+	mov esi,edi
 	movzx ebp,ah
 	push ds
 	pop es
+	mov edi,textrefstack+1
 	and eax,byte DEPOTIFSERVICE
 	shr eax,6
 	add ax,ourtext(gotodepot)
@@ -427,18 +425,21 @@ showorder:
 	ret
 
 .special:
+	mov edi,textrefstack+1
 	movzx ebp, ah
 	shr ebp, 4
 	and ebp, BYTE 0xE
 	add [esp+8], ebp
 
 	and ah, 0x1F
-	cmp ah, 2
+	cmp ah, 3
 	ja .specialfail
 	testflags advorders
 	jnc .specialfail
-	cmp ah, 1
-	ja .condloadskip
+	cmp ah, 2
+	je short .condloadskip
+	ja short .refitveh
+// Goto/service at nearest depot
 	movzx eax, ah
 	add ax, ourtext(gotodepot)
 	stosw
@@ -475,6 +476,43 @@ showorder:
 	stosw
 	jmp .specialfail
 
+.refitveh:
+	push ebx
+	mov ax, ourtext(advorder_orderrefitveh)
+	stosw
+	mov ebx, [esp+12]
+	movzx ebx, word [ebx]
+	and bl, 1Fh
+	movzx eax, bl
+extern newcargotypenames
+	mov ax, [newcargotypenames+eax*2]
+	stosw
+	extcall initrefit
+	mov esi, currefitlist
+.loop:
+	lodsb
+	cmp al, -1
+	je .lostit
+	cmp al, bl
+	jne .next
+	dec bh
+	js .gotit
+.next:
+	add esi, byte refitinfo_size-1
+	jmp .loop
+.gotit:
+	inc esi
+	lodsw
+	mov ebx,[esi+refitinfo.block-(refitinfo.suffix+2)]
+	extern curmiscgrf
+	mov [curmiscgrf],ebx
+	jmp short .storeit
+.lostit:
+	mov ax, statictext(empty)
+.storeit:
+	stosw
+	pop ebx
+	jmp .specialfail
 
 ; endp showorder 
 
@@ -652,12 +690,13 @@ newordertarget:
 	shr al, 5
 	add [esi+veh.currorderidx], al		//correction for special orders >2 bytes
 	and ah, 0x1F
-	cmp ah, 2
+	cmp ah, 3
 	ja .skiporder
 	testflags advorders
 	jnc .skiporder
-	cmp ah, 1
-	ja NEAR .loadorderskip
+	cmp ah, 2
+	je NEAR .loadorderskip
+	ja short .skiporder		// Refit-to orders are handled in arriveatdepot
 	or ah, ah
 	je .alwaysfinddepot
 	call needsmaintcheck.always
@@ -813,14 +852,105 @@ arriveatdepot:
 	cmp ah,[esi+veh.targetairport]
 	jne .done
 
+noglobal uvarb .tempplayer
+
 .goodloc:
 	testmultiflags losttrains,lostrvs,lostships,lostaircraft
 	jz .noreset
 	and word [esi+veh.traveltime],0
 .noreset:
+	mov al, [esi+veh.owner]
+	xchg al, [curplayer]
+	mov [.tempplayer], al
+.refitagain:
 	call advanceorders
+	pusha
+	mov ebx, [esi+veh.scheduleptr]
+	movzx eax, byte [esi+veh.currorderidx]
+	mov eax, [ebx+eax*2]
+	cmp ax, 0x2305
+	je .dorefit
+	mov al, [.tempplayer]
+	mov [curplayer], al
+	popa
+	and byte [esi+veh.vehstatus], ~2 // restart the vehicle?
 	xor al,al	// clear zero
 	jmp .done
+
+.dorefit:
+	or byte [esi+veh.vehstatus],2	// stop the vehicle
+	shr eax, 16
+	push esi
+	add esi, byte veh.idx-window.id
+	call initrefit
+	pop esi
+	and al, 1Fh
+	xor ecx, ecx
+	or ebx, byte -1
+	mov edi, currefitlist
+.findcycle:
+	cmp al,[edi+refitinfo.type]
+	jne .next
+	cmp byte [edi+refitinfo.type], -1
+	je .badcycle
+	mov ebx,ecx		// This entry will work if the correct refit cycle is not available.
+	cmp ah,[edi+refitinfo.cycle]
+	je .gotit
+.next:
+	inc ecx
+	add edi, refitinfo_size
+	jmp .findcycle
+.popandrefit:
+	popa
+	jmp .refitagain
+.badcycle:
+	cmp ebx, byte -1
+	je .popandrefit		// specified cargo is not available
+.gotit:
+
+// save and clear shift state
+#if WINTTDX
+	mov dl, 80h
+	xchg [keypresstable+KEY_Shift], dl
+#else
+	mov eax, keypresstable+KEY_LShift
+	mov dx, 8080h
+	xchg [eax], dl
+	xchg [eax-KEY_LShift+KEY_RShift], dh
+#endif
+	push edx
+
+	shl ebx, 16
+	mov dx, [esi+veh.idx]
+	mov ax,[esi+veh.xpos]
+	mov cx,[esi+veh.ypos]
+	test byte [esi+veh.class],3	// plane&train set pe. rv&ship set po.
+	mov esi, 50090h
+	jpo .rvship
+	add esi, 8
+.rvship:
+	or bl,1
+	call [actionhandler]
+
+// restore shift state
+	pop edx
+#if WINTTDX
+	mov [keypresstable+KEY_Shift], dl
+#else
+	mov eax, keypresstable+KEY_LShift
+	mov [eax], dl
+	mov [eax-KEY_LShift+KEY_RShift], dh
+#endif
+
+	cmp ebx,80000000h
+	je .popandrefit
+	pop edi
+	pop esi
+	sub [esi+veh.profit],ebx
+	push esi
+	push edi
+	jmp .popandrefit
+	
 ; endp arriveatdepot
 
 //ecx=count, esi=veh
@@ -897,13 +1027,13 @@ skipbutton:
 //
 //	[esi+31h] controls tooltips and dropdown behaviour:
 //	0 - station order, 1 - depot order, 2 - End-of-orders (or nothing selected)
-//	3 - conditional skip
+//	3 - conditional skip, 4 - refit vehicle
 global selectorder
 selectorder:
 	bt DWORD [esi+window.activebuttons], 8
 	jnc .noremparamspecddl
 	cmp BYTE [esi+0x31], 3
-	je .noremparamspecddl
+	jae .noremparamspecddl
 	pusha
 	mov ecx, 8
 	call GenerateDropDownExPrepare
@@ -942,10 +1072,13 @@ selectorder:
 .special:
 	mov al, [ebx+1]
 	and al, 1Fh
+	cmp al, 4
+	jae .ok
 	cmp al, 2
-	jne .ok
+	jb .ok
 	mov word [textrefstack+6], ourtext(advorder_ordercondskiploadparamddltxt)
-	mov byte [esi+0x31],3
+	inc eax
+	mov byte [esi+0x31],al
 	mov al, 9
 	or esp, esp
 	ret
@@ -2052,8 +2185,8 @@ showorderhint:
 	ret
 
 .tryparams:
-	cmp al,3
-	jne .noservice
+	cmp al, 2
+	jbe .noservice
 	mov ax, ourtext(advorder_orderparamtooltip)
 	ret
 
@@ -2127,8 +2260,7 @@ loc_1635CA:                                     ; CODE XREF: VehOrders@@SelItemT
 	jne .notest
 	shr dh, 5
 	movzx edx, dh
-	add ebx, edx
-	add ebx, edx
+	lea ebx, [ebx+edx*2]
 	add al, dl
 .notest:
 
@@ -2168,72 +2300,132 @@ exported vehorderwinhandlerhook
 	btr DWORD [esi+window.activebuttons], 31
 	jnc NEAR .end
 .doddl:
-	mov ecx, 7
+	movzx ecx, cl
 	call GenerateDropDownExPrepare
 	jc NEAR vehorderwinhandlerhook_cancel
+	push ecx
+	push esi
 	bts DWORD [esi+window.activebuttons], 31
-	mov DWORD [DropDownExList], ourtext(advorder_gotonearestdepotddltxt)
-	mov DWORD [DropDownExList+4], ourtext(advorder_servicenearestdepotddltxt)
-	mov DWORD [DropDownExList+8], ourtext(advorder_loadcondskipddltxt)
-	mov DWORD [DropDownExList+12], -1
-	mov ecx, 7
+noglobal vard .ordertexts
+	dd ourtext(advorder_gotonearestdepotddltxt), ourtext(advorder_servicenearestdepotddltxt),
+	dd ourtext(advorder_loadcondskipddltxt), ourtext(advorder_selrefitveh),
+
+.numordertexts equ ($-.ordertexts) / 4
+endvar
+	call initrefit
+	mov esi, .ordertexts
+	mov cl, .numordertexts
+	cmp byte [currefitlist], -1
+	jne .maketheddl
+	or byte [DropDownExListDisabled], 1<<3
+.maketheddl:
+	mov edi, DropDownExList
+	rep movsd
+	pop esi
+	pop ecx
+.terminateddl:
 	or edx, BYTE -1
+	mov [edi],edx	// set the terminator
 	call GenerateDropDownEx
 	jmp vehorderwinhandlerhook_cancel
+
 .notclick:
+	//cmp dl, cWinEventTimer
+	//je near .makecycleddl
 	cmp dl, cWinEventDropDownItemSelect
 	jne NEAR .notddlsel
 	cmp cl, 8
 	je NEAR .specparamddlitemsel
 	cmp cl, 7
 	jne NEAR vehorderwinhandlerhook_cancel
-	cmp al, 2
-	je .dbl
-	mov dh, al
 	mov dl, 5
+	mov dh, al
+	cmp al, 2
+	je .skipload
+	ja .refit
 	call insertvehorderhere
 	jmp vehorderwinhandlerhook_cancel
+.skipload:
+	push word 80h
+	jmp short .dbl
+.refit:
+	call initrefit
+	movzx ecx, byte [currefitlist]
+	cmp cl, -1
+	je vehorderwinhandlerhook_cancel
+	or cl, 80h
+	push cx
 .dbl:
 	mov edi, esi
 	movzx esi, WORD [esi+window.id]
 	shl esi, 7
 	add esi, [veharrayptr]
-	mov dh, al
-	or dh, 0x20
-	mov dl, 5
 	mov al, [edi+100010b]
+	or dh, 20h
 	call insertvehorderhere_gotveh
 	mov al, [savedinsertvehorderpos]
 	inc al
-	mov dx, 0x80
+	pop dx
 	push DWORD vehorderwinhandlerhook_cancel
 	pusha
 	jmp insertvehorderhere.in
 
 .fullloadparams:
+	cmp BYTE [esi+0x31], 4
+	je .refitparams
 	cmp BYTE [esi+0x31], 3
 	jne NEAR .end
-	mov ecx, 8
+	movzx ecx, cl
 	call GenerateDropDownExPrepare
 	jc NEAR vehorderwinhandlerhook_cancel
-	mov DWORD [DropDownExList], ourtext(advorder_orderskipcountguibtntxt)
-	mov DWORD [DropDownExList+4], ourtext(advorder_orderloadpercentguibtntxt)
-	mov DWORD [DropDownExList+8], statictext(empty)
-	mov DWORD [DropDownExList+12], ourtext(tr_optxt)
-	mov DWORD [DropDownExList+16], ourtext(trdlg_eq)
-	mov DWORD [DropDownExList+20], ourtext(trdlg_neq)
-	mov DWORD [DropDownExList+24], statictext(trdlg_lt)
-	mov DWORD [DropDownExList+28], statictext(trdlg_gt)
-	mov DWORD [DropDownExList+32], statictext(trdlg_lte)
-	mov DWORD [DropDownExList+36], statictext(trdlg_gte)
-	mov DWORD [DropDownExList+40], -1
+	push ecx
+	push esi
+noglobal vard .loadparamtexts
+	dd ourtext(advorder_orderskipcountguibtntxt), ourtext(advorder_orderloadpercentguibtntxt), statictext(empty)
+	dd ourtext(tr_optxt), ourtext(trdlg_eq), ourtext(trdlg_neq), statictext(trdlg_lt), statictext(trdlg_gt)
+	dd statictext(trdlg_lte), statictext(trdlg_gte)
+
+.numloadparamtexts equ ($-.loadparamtexts)/4
+endvar
+	mov esi, .loadparamtexts
+	mov cl, .numloadparamtexts
 	mov DWORD [DropDownExListDisabled], 12
-	mov ecx, 8
-	or edx, BYTE -1
-	call GenerateDropDownEx
+	jmp .maketheddl
+
+.refitparams:
+	movzx ecx, cl
+	call GenerateDropDownExPrepare
+	jc NEAR vehorderwinhandlerhook_cancel
+	push ecx
+	push esi
+	call initrefit
+	mov esi, currefitlist
+	mov edi, DropDownExList
+	xor ecx, ecx
+.getcargosloop:
+	xor eax, eax
+	lodsb
+	cmp al, -1
+	je .done
+	bts ecx,eax
+	jc .skip
+	mov ax, [newcargotypenames+eax*2]
+	stosd
+.skip:
+	add esi, byte refitinfo_size-1
+	jmp .getcargosloop
+.done:
+	cmp ecx, 1
+	pop esi
+	pop ecx
+	ja .terminateddl
+.unpressparam:
+	and byte [esi+window.activebuttons+1],~1	// unpress the param button; 0 or 1 cargo.
 	jmp vehorderwinhandlerhook_cancel
 
 .specparamddlitemsel:
+	cmp byte [esi+0x31], 4
+	je .refitparamsel
 	cmp al, 2
 	ja .specparamopsel
 	dec al
@@ -2263,6 +2455,66 @@ exported vehorderwinhandlerhook
 	shl cl, 5
 	or [ebx+3], cl
 	jmp vehorderwinhandlerhook_cancel
+
+.refitparamsel:
+	mov eax, [DropDownExList+eax*4]
+	mov cl, 20h
+	mov edi, newcargotypenames
+	repne scasw
+	jne .selectcycle
+	neg ecx
+	add ecx, 1Fh
+	call VehOrders@@SelItemToOrderIdx
+	or cl, 80h
+	mov [ebx+2], cx		// zero refit cycle too
+	jmp vehorderwinhandlerhook_cancel
+
+.selectcycle:
+	UD2
+/*
+	mov [ebx+3], al
+	jmp vehorderwinhandlerhook_cancel
+
+.makecycleddl:
+	int3
+	xor ecx,ecx
+	mov cl, 8
+	call GenerateDropDownExPrepare
+	jc $-5
+	call initrefit
+	push esi
+	push ecx
+	call VehOrders@@SelItemToOrderIdx
+	mov cl, [ebx+2]
+	and cl, 1Fh
+	mov esi, currefitlist
+	mov edi, DropDownExList
+.cycleloop:
+	xor eax,eax
+	lodsb
+	cmp al, -1
+	je .cycledone
+	cmp al, cl
+	jne .next
+	inc esi
+	lodsw
+	stosd
+	inc esi
+	lodsd
+	mov [curmiscgrf],eax
+	inc ch
+	jmp .cycleloop
+.next:
+	add esi, byte refitinfo_size-1
+	jmp .cycleloop
+.cycledone:
+	cmp ch, 1
+	pop ecx
+	pop esi
+	ja .terminateddl
+	and byte [esi+window.activebuttons+1], ~1	// unpress the param button -- no cycles.
+	jmp vehorderwinhandlerhook_cancel
+*/
 
 .textwindowchangehandler:
 	push esi

@@ -417,3 +417,8 @@ advorder_orderskipcountguibtntxt="Count"
 advorder_orderloadpercentguibtntxt="Load%"
 advorder_ordercondskiploadparamddltxt="\98Params \AA"
 advorder_orderparamtooltip="\98Configure the advanced settings for this order"
+advorder_selrefitveh="Refit consist"
+advorder_orderrefitveh="Refit to: \80"
+; To display the refit cycle, change this text to:
+; advorder_orderrefitveh="Refit to: \80\80"
+; I do not display the cycle because I haven't gotten cycle selection to work.
