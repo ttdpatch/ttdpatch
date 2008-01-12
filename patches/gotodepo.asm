@@ -2352,7 +2352,7 @@ endvar
 	call initrefit
 	movzx ecx, byte [currefitlist]
 	cmp cl, -1
-	je vehorderwinhandlerhook_cancel
+	je NEAR vehorderwinhandlerhook_cancel
 	or cl, 80h
 	push cx
 .dbl:
