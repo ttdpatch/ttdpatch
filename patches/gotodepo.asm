@@ -518,11 +518,21 @@ extern newcargotypenames
 
 // figure out whether a ship order has the right player and isn't too far
 // in:	edi=vehicle
+//	dx: new order
+//	bl: actionhandler flags
+//	bh: order offset
 // out: cy or zf if not human, or human and not too far
 //	nc and nz otherwise
 global isshiporder
 isshiporder:
 	push edx
+	cmp byte [advorderextradata],0
+	je .notextra
+	dec byte [advorderextradata]
+	jmp short .done
+.notextra:
+	cmp dl, 5
+	je .special
 	mov dl,byte [edi+veh.owner]
 	push byte PL_PLAYER
 	mov [esp+1],dl
@@ -533,6 +543,12 @@ isshiporder:
 	stc
 	pop edx
 	ret
+
+.special:
+	shr dh, 4	// !!! isshiporder will be called twice per order entry -- this is the first of 2*wordcount calls
+	or dh, 1	// Advanced orders can always be added, so automatically pass the next (extrawords*2 + 1) calls
+	mov [advorderextradata], dh
+	jmp short .done
 
 	// have to check that the station is not too far,
 	// taking depots into account
@@ -922,6 +938,7 @@ noglobal uvarb .tempplayer
 
 	shl ebx, 16
 	mov dx, [esi+veh.idx]
+	mov bh,	al		// Some refit handlers seem to want both cargo and index.
 	mov ax,[esi+veh.xpos]
 	mov cx,[esi+veh.ypos]
 	test byte [esi+veh.class],3	// plane&train set pe. rv&ship set po.
@@ -1557,7 +1574,7 @@ refreshdepotschedules:
 //	al=special bits to set (e.g. 40=full load)
 //	zero flag if order is ok to add
 //	nz if not
-uvarb copyextradata
+uvarb advorderextradata
 
 global copyoldorder
 copyoldorder:
@@ -1569,9 +1586,9 @@ copyoldorder:
 .nosharedcheck:
 	testflags advorders
 	jnc .noadvcopy
-	cmp byte [copyextradata],0
+	cmp byte [advorderextradata],0
 	je .noadvcopy
-	dec byte [copyextradata]
+	dec byte [advorderextradata]
 .copywithoutflags:
 	xor eax,eax
 	ret
@@ -1605,7 +1622,7 @@ copyoldorder:
 
 .special:
 	shr ah, 5
-	mov [copyextradata],ah
+	mov [advorderextradata],ah
 	jmp short .copywithoutflags
 
 .dosharedorders:
