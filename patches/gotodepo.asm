@@ -330,7 +330,7 @@ checkgototype:
 	ret
 ; endp checkgototype 
 
-var depottypes, db 0xc0,0x20,0x80,0x10
+varb depottypes, 0xc0,0x20,0x80,0x10
 
 // show an order in the order list
 // in:  ax=order
@@ -558,19 +558,35 @@ isshiporder:
 
 	pop edx
 
-	movzx ebp,bh
-	shl ebp,1
-	add ebp,dword [edi+veh.scheduleptr]
+	pusha
+	mov esi, [edi+veh.scheduleptr]
+	movzx ecx, bh
+	xor eax,eax
+	or ebx, byte -1
+.loop:
+	lodsw
+	and al, 0x1f
+	cmp al, 1
+	je .store
+	cmp al, 2
+	je .store
+	cmp al, 5
+	je .special2
+	ud2		// Invalid order type
+.special2:
+	shr eax, 8+5
+	lea esi, [esi+eax*2]
+	sub ecx, eax
+	jmp short .endloop
+.store:
+	mov ebx,eax
+.endloop:
+	loop .loop
+	
+	cmp ebx, byte -1
+	je .popdone
 
-	push eax
-	mov eax,[ebp-2]
-	and al,0x1f
-	cmp al,1
-	jb .done
-	cmp al,2
-	ja .done
-
-	push eax
+	push ebx
 	mov byte [esp+3],0xe
 	call getofsptr
 	pop eax
@@ -579,14 +595,14 @@ isshiporder:
 	push edx
 	mov byte [esp+3],0xe
 	call getofsptr
-	pop ebp
+	pop esi
 
-	sub al,[ebp]
+	sub al,[esi]
 	jae short .notneg1
 	neg al
 
 .notneg1:
-	sub ah,[ebp+1]
+	sub ah,[esi+1]
 	jae short .notneg2
 	neg ah
 
@@ -595,7 +611,12 @@ isshiporder:
 	setc ah
 	cmp ax,0x82
 
-	pop eax
+	popa
+	ret
+
+.popdone:
+	stc
+	popa
 	ret
 
 ; endp isshiporder 
@@ -1202,6 +1223,8 @@ global newaircrafttarget
 newaircrafttarget:
 	mov bx,ax
 	and al,0x1f
+	cmp al,5
+	je short .isspecial
 	cmp al,2
 	jne short .isstation
 
@@ -1212,7 +1235,9 @@ newaircrafttarget:
 	mov al,1			// make sure we leave with ZF set
 	jna short .restoretarget
 
+.skiporder:
 	call advanceorders
+.skiporder2:
 	xor bx,bx		// force to check commands again
 	mov al,0		// and never set the flight target
 
@@ -1223,6 +1248,34 @@ newaircrafttarget:
 .isOK:
 	mov word [esi+veh.currorder],bx
 	ret
+.isspecial:
+	mov al, ah
+	shr al, 5
+	add [esi+veh.currorderidx], al		//correction for special orders >2 bytes
+	and ah, 0x1F
+	cmp ah, 3
+	ja .skiporder
+	testflags advorders
+	jnc .skiporder
+	cmp ah, 2
+	je .loadorderskip
+	ja short .skiporder		// Refit-to orders are handled in arriveatdepot
+	jmp short .skiporder		// FIXME: Go-to-nearest and Service-at-nearest orders unsupported for aircraft.
+
+/*	or ah, ah
+	je .alwaysfinddepot
+	call needsmaintcheck.always
+	ja .skiporder
+.alwaysfinddepot:
+	pushad
+	call // something to get nearest hangar
+	// continue copying from newordertarget.alwaysfinddepot? jmp there?
+	// Also, must fix the DDL to allow these orders to be selected.
+*/
+.loadorderskip:
+	call newordertarget.loadorderskip
+	jmp .skiporder2
+
 ; endp newaircrafttarget 
 
 
@@ -2329,6 +2382,11 @@ noglobal vard .ordertexts
 
 .numordertexts equ ($-.ordertexts) / 4
 endvar
+	cvivp edi, [esi+6]
+	cmp byte [edi+veh.class],10h
+	je .istrain
+	or byte [DropDownExListDisabled], 3	// FIXME: No nearest orders for non-rail vehicles.
+.istrain:
 	call initrefit
 	mov esi, .ordertexts
 	mov cl, .numordertexts
