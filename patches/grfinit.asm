@@ -1565,8 +1565,11 @@ extern recalctownpopulations
 
 // Update RV roadside stop station layouts to use sprites defined by
 // action 5 type 11.
+	testmultiflags newstations
+	jz .noRVStops
 	call updateRVStopSpriteLayout
 
+.noRVStops:
 	testflags electrifiedrail
 	jc .noshufflemenu
 	testflags unifiedmaglev
