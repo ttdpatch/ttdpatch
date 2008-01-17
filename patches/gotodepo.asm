@@ -488,7 +488,7 @@ extern newcargotypenames
 	mov ax, [newcargotypenames+eax*2]
 	stosw
 	extcall initrefit
-	mov esi, currefitlist
+	mov esi, currefitlist+1
 .loop:
 	lodsb
 	cmp al, -1
@@ -503,7 +503,7 @@ extern newcargotypenames
 .gotit:
 	inc esi
 	lodsw
-	mov ebx,[esi+refitinfo.block-(refitinfo.suffix+2)]
+	mov ebx,[esi+refitinfo.block-(refitinfo.suffix+2)-1]
 	extern curmiscgrf
 	mov [curmiscgrf],ebx
 	jmp short .storeit
@@ -926,7 +926,7 @@ noglobal uvarb .tempplayer
 	or ebx, byte -1
 	mov edi, currefitlist
 .findcycle:
-	cmp al,[edi+refitinfo.type]
+	cmp al,[edi+refitinfo.ctype]
 	jne .next
 	cmp byte [edi+refitinfo.type], -1
 	je .badcycle
@@ -2474,7 +2474,7 @@ endvar
 	push ecx
 	push esi
 	call initrefit
-	mov esi, currefitlist
+	mov esi, currefitlist+1		// read from refitinfo.ctype
 	mov edi, DropDownExList
 	xor ecx, ecx
 .getcargosloop:
@@ -2565,22 +2565,22 @@ endvar
 	mov esi, currefitlist
 	mov edi, DropDownExList
 .cycleloop:
+	inc esi		// skip .type
 	xor eax,eax
-	lodsb
+	lodsb		// read .ctype
 	cmp al, -1
 	je .cycledone
 	cmp al, cl
 	jne .next
-	inc esi
-	lodsw
+	lodsw		// read .suffix
 	stosd
-	inc esi
-	lodsd
+	inc esi		// skip .cycle
+	lodsd		// read .block
 	mov [curmiscgrf],eax
 	inc ch
 	jmp .cycleloop
 .next:
-	add esi, byte refitinfo_size-1
+	add esi, byte refitinfo_size-2
 	jmp .cycleloop
 .cycledone:
 	cmp ch, 1
