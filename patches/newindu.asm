@@ -4985,6 +4985,7 @@ uvarb fakeinduentry,industry_size
 // 0a B:	heigth of tile
 // 0b W:	distance of nearest water/land tile
 // 0d W:	square of Euclidean distance from town, capped to FFFF
+// 0f D:	32 random bits
 
 // Called as the placement check procedure for new industry types
 // The layout isn't known yet, so we don't reject anything here; we just collect some information about the site
@@ -5070,6 +5071,10 @@ newindu_placechkproc:
 	mov eax,0xFFFF
 .nottoomuch:
 	mov [fakeinduentry+0xd],ax
+
+	call [randomfn]
+	mov [fakeinduentry+0xf],eax
+
 	popa
 
 	clc
