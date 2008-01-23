@@ -311,6 +311,9 @@ static void initvalues(int preferred)
   // value for unimaglevmode isn't valid
   flags->data.unimaglevmode = 1;
 
+  // Set the map size for special var 13; this never changes. -MABXYSS
+  flags->data.mapsize = 0x01888810;
+
   if (!preferred) {	// now set default values for "off" switches,
 			// i.e. as if the switch wasn't on
 			// where it should be different from the "on" default

@@ -4634,8 +4634,8 @@ var grfswitchparamlist
 	grfswitchpar wagonspeedlimitempty	// 0F
 	grfswitchpar planespeedfactor		// 10
 	db 0					// 11=2CC base sprite, set in action 5
-	grfswitchpar miscmods2flags
-
+	grfswitchpar miscmods2flags		// 12
+	grfswitchpar mapsize			// 13
 %undef grfswitchpar
 
 global numgrfswitchparam
@@ -4699,4 +4699,5 @@ articulatedvehicle equ miscgrfvar
 
 global grfmodflags
 uvard grfmodflags
+
 
