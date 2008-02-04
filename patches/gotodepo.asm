@@ -1178,8 +1178,8 @@ selectorder:
 .special:
 	mov al, [ebx+1]
 	and al, 1Fh
-	cmp al, 4
-	jae .ok
+	cmp al, 3
+	ja .ok
 	cmp al, 2
 	jb .ok
 	mov word [textrefstack+6], ourtext(advorder_ordercondskiploadparamddltxt)
