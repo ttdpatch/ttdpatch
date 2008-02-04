@@ -43,6 +43,7 @@ extern resheight
 //   bit 0 = change size so to have no dummy places (auto shrink) -default-
 //   bit 1 = show devider between the items
 //   bit 2 = use textpointers instead of the default textids
+//   bit 3 = do not unactivate button on close
 //
 // DropDownExListItemDrawCallback (dword):
 //   0 = none -default- , any other callable function ptr...
@@ -422,7 +423,10 @@ GenerateDropDownEx_close:
 	// now [eax] = esi+window.activebuttons or tab(ch-1).activebuttons
 .notabs:
 	movzx ecx, cl
+	test BYTE [DropDownExFlags], 8
+	jnz .noclearbtnactivation
 	btr [eax], ecx
+.noclearbtnactivation:
 
 	mov bx, word [edi+window.data+DropDownExData.parentid]
 	mov al, byte [edi+window.data+DropDownExData.parenttype]

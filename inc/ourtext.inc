@@ -432,6 +432,10 @@ defourtext advorder_orderparamtooltip
 
 defourtext advorder_selrefitveh
 defourtext advorder_orderrefitveh
+defourtext advorder_ordergotoloadonlytxt
+defourtext advorder_ordergotounloadonlytxt
+defourtext advorder_ordergotoloadonlyddltxt
+defourtext advorder_ordergotounloadonlyddltxt
 
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 

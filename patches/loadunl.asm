@@ -927,7 +927,12 @@ LoadUnloadCargo:
 
 .dontcheckmods:
 	cmp	word [esi+veh.currentload], 0
-	je	.DoLoad				// nothing to unload - start loading
+	je	NEAR .DoLoad				// nothing to unload - start loading
+	testflags advorders
+	jnc .noadvordertest1
+	cmp BYTE [edi+veh.currorderflags], 1
+	je NEAR .DoLoad
+.noadvordertest1:
 	mov	ebx, [%$currstationptr]
 
 // don't unload cargo coming from the current station, unless we have a forced unload order
@@ -941,6 +946,7 @@ LoadUnloadCargo:
 .cargonotfromhere:
 
 // first, we decide whether our cargo is accepted here
+
 	testflags newcargos
 	jc	.newcargos_testaccept
 
@@ -984,6 +990,12 @@ LoadUnloadCargo:
 	jc	.VehicleDone		// if gradualloading is on, we must finish unloading before trying loading
 .DoLoad:
 // start the loading phase
+
+	testflags advorders
+	jnc .noadvordertest2
+	cmp BYTE [edi+veh.currorderflags], 2
+	je .VehicleDone
+.noadvordertest2:
 
 // if gradualloading is in the by-wagon mode, we can't start loading until all vehicles finish unloading
 	testflags gradualloading

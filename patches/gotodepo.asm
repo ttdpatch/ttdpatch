@@ -24,7 +24,7 @@ extern invalidatehandle,ishumanplayer,isrealhumanplayer,isscheduleshared
 extern needsmaintcheck.always,numvehshared,orderhints,patchflags
 extern redrawscreen,resetorders_actionnum,cargotypes
 extern saverestorevehdata_actionnum,savevehordersfn,shareorders_actionnum
-extern vehcallback,miscmodsflags,CreateTextInputWindow,getnumber,DropDownExListDisabled
+extern vehcallback,miscmodsflags,CreateTextInputWindow,getnumber,DropDownExListDisabled,setmousetool,waAnimGoToCursorSprites,DropDownExFlags
 
 varw newunloadptr1,0x8828
 varw newnonstopptr1,0x8825
@@ -55,6 +55,8 @@ uvard FindNearestTrainDepot
 global checkgotostation
 checkgotostation:
 	xor ecx,ecx
+	cmp BYTE [curvehordergotomtooltype], 0
+	jne NEAR .addadvorder
 	testflags gotodepot
 	jnc .nodepot
 	mov al,[landscape4(di)]
@@ -153,6 +155,7 @@ checkgotostation:
 
 .continue:
 	popa
+.continue_nopop:
 	
 	pop eax			// return to TTD code at a farther point than normally
 	add eax,0xc7+8*WINTTDX
@@ -162,6 +165,25 @@ checkgotostation:
 	mov dl,DEPOTORDER
 	stc
 	ret
+
+.addadvorder:
+	push DWORD .continue_nopop
+	pusha
+	mov dh, [landscape2+edi]
+	mov dl, 0x80
+	push edx
+	mov dh, [curvehordergotomtooltype]
+	mov dl, 5
+	add dh, 0x23
+	mov al, [esi+100010b]
+	movzx esi, WORD [esi+window.id]
+	shl esi, 7
+	add esi, [veharrayptr]
+	call insertvehorderhere_gotveh
+	mov al, [savedinsertvehorderpos]
+	inc al
+	pop edx
+	jmp insertvehorderhere.in
 
 .planeorstation:
 // allow hangars only for planes - we can get here with other vehicle types as well
@@ -432,10 +454,12 @@ showorder:
 	add [esp+8], ebp
 
 	and ah, 0x1F
-	cmp ah, 3
+	cmp ah, 5
 	ja .specialfail
 	testflags advorders
 	jnc .specialfail
+	cmp ah, 3
+	ja NEAR .noloadunloadorder
 	cmp ah, 2
 	je short .condloadskip
 	ja short .refitveh
@@ -513,6 +537,25 @@ extern newcargotypenames
 	stosw
 	pop ebx
 	jmp .specialfail
+
+.noloadunloadorder:
+	movzx eax, ah
+	add ax, ourtext(advorder_ordergotoloadonlytxt)-4
+	stosw
+	mov eax, [esp+8]
+	movzx ebp, BYTE [eax+1]
+	imul ebp,ebp,station_size
+	add ebp,stationarray
+	mov ax,word [ebp+station.name]
+	mov ebp, [ebp+station.townptr]
+	stosw
+	mov ax,word [ebp+town.citynametype]
+	stosw
+	mov eax,dword [ebp+town.citynameparts]
+	stosd
+	jmp .specialfail
+
+
 
 ; endp showorder 
 
@@ -683,6 +726,7 @@ getofsptr:
 global newordertarget
 newordertarget:
 	mov word [esi+veh.target],-1
+	mov BYTE [esi+veh.currorderflags], 0
 	and al,0x1f
 	cmp al,2
 	je short .todepot
@@ -723,14 +767,16 @@ newordertarget:
 	stc
 	ret
 .special:
-	mov al, ah
-	shr al, 5
-	add [esi+veh.currorderidx], al		//correction for special orders >2 bytes
+//	mov al, ah
+//	shr al, 5
+//	add [esi+veh.currorderidx], al		//correction for special orders >2 bytes
 	and ah, 0x1F
-	cmp ah, 3
+	cmp ah, 5
 	ja .skiporder
 	testflags advorders
 	jnc .skiporder
+	cmp ah, 3
+	ja NEAR .noloadunload
 	cmp ah, 2
 	je NEAR .loadorderskip
 	ja short .skiporder		// Refit-to orders are handled in arriveatdepot
@@ -845,6 +891,27 @@ newordertarget:
 	call multiadvanceorders
 	popad
 	jmp .skiporder2
+
+.noloadunload:
+	sub ah, 3
+	mov BYTE [esi+veh.currorderflags], ah
+	mov ah, [ebx+3]
+	mov al, 1
+	mov WORD [esi+veh.currorder], ax
+/*
+	movzx ebx, ah
+	cmp BYTE [esi+veh.laststation], ah
+	jne .noresetlaststation
+	mov byte [esi+veh.laststation],-1
+.noresetlaststation:
+	imul ebx, ebx, station_size
+	add ebx, stationarray
+	mov bx, [ebx+station.railXY]
+	mov ax, bx
+	stc
+*/
+	clc
+	ret
 
 ; endp newordertarget
 
@@ -997,6 +1064,7 @@ multiadvanceorders:
 	jz .end
 	pushad
 .start:
+	mov byte [esi+veh.currorderflags], 0
 	movzx eax, BYTE [esi+veh.currorderidx]
 	mov edi, [esi+veh.scheduleptr]
 	movzx edx, BYTE [esi+veh.totalorders]
@@ -1253,10 +1321,12 @@ newaircrafttarget:
 	shr al, 5
 	add [esi+veh.currorderidx], al		//correction for special orders >2 bytes
 	and ah, 0x1F
-	cmp ah, 3
+	cmp ah, 5
 	ja .skiporder
 	testflags advorders
 	jnc .skiporder
+	cmp ah, 3
+	ja .noloadunload
 	cmp ah, 2
 	je .loadorderskip
 	ja short .skiporder		// Refit-to orders are handled in arriveatdepot
@@ -1275,6 +1345,9 @@ newaircrafttarget:
 .loadorderskip:
 	call newordertarget.loadorderskip
 	jmp .skiporder2
+.noloadunload:
+	call newordertarget.noloadunload
+	jmp .isstation
 
 ; endp newaircrafttarget 
 
@@ -2348,6 +2421,7 @@ ret
 
 
 uvarb advorderskipcondloadtxtinputwintmpidval
+uvarb curvehordergotomtooltype	//1=load only, 2=unload only
 extern GenerateDropDownExPrepare,DropDownExList,GenerateDropDownEx,WindowClicked,RefreshWindows
 
 exported vehorderwinhandlerhook
@@ -2371,6 +2445,7 @@ exported vehorderwinhandlerhook
 	push byte CTRL_ANY + CTRL_MP
 	call ctrlkeystate
 	je .doddl
+	mov BYTE [curvehordergotomtooltype], 0	//just in case state uncertain
 	jmp .end
 .buttonalreadydown:
 	btr DWORD [esi+window.activebuttons], 31
@@ -2385,6 +2460,7 @@ exported vehorderwinhandlerhook
 noglobal vard .ordertexts
 	dd ourtext(advorder_gotonearestdepotddltxt), ourtext(advorder_servicenearestdepotddltxt),
 	dd ourtext(advorder_loadcondskipddltxt), ourtext(advorder_selrefitveh),
+	dd ourtext(advorder_ordergotoloadonlyddltxt), ourtext(advorder_ordergotounloadonlyddltxt),
 
 .numordertexts equ ($-.ordertexts) / 4
 endvar
@@ -2415,6 +2491,7 @@ endvar
 	//je near .makecycleddl
 	cmp dl, cWinEventDropDownItemSelect
 	jne NEAR .notddlsel
+	btr DWORD [esi+window.activebuttons], 31
 	cmp cl, 8
 	je NEAR .specparamddlitemsel
 	cmp cl, 7
@@ -2423,7 +2500,9 @@ endvar
 	mov dh, al
 	cmp al, 2
 	je .skipload
-	ja .refit
+	cmp al, 3
+	je .refit
+	ja NEAR .gotonoloadunload
 	call insertvehorderhere
 	jmp vehorderwinhandlerhook_cancel
 .skipload:
@@ -2603,9 +2682,9 @@ endvar
 	mov esi, baTextInputBuffer
 	call getnumber
 	pop esi
-	jc vehorderwinhandlerhook_cancel
+	jc NEAR vehorderwinhandlerhook_cancel
 	cmp edx, -1
-	je vehorderwinhandlerhook_cancel
+	je NEAR vehorderwinhandlerhook_cancel
 	mov cl, [advorderskipcondloadtxtinputwintmpidval]
 	or cl, cl
 	jnz .countn
@@ -2631,10 +2710,32 @@ endvar
 	or [ebx+2], cx
 	jmp vehorderwinhandlerhook_cancel
 .notddlsel:
+	cmp dl, cWinEventMouseToolClose
+	jne .notmtoolclose
+	mov BYTE [curvehordergotomtooltype], 0
+.notmtoolclose:
+
 .end:
 	popad
 	jmp near $
 	ovar vehorderwinhandlerhook.oldfn,-4
+	
+.gotonoloadunload:
+	sub al, 3
+	mov [curvehordergotomtooltype], al
+	or BYTE [DropDownExFlags], 8
+	mov dx, [esi+window.id]
+	mov ax, 1001h
+	mov ebx, -1
+	mov esi, waAnimGoToCursorSprites
+	call [setmousetool]
+	jmp vehorderwinhandlerhook_cancel
+	
+.clearmtool:
+	mov ebx, 0
+	mov al, 0
+	call [setmousetool]
+	jmp vehorderwinhandlerhook_cancel
 
 vehorderwinhandlerhook_cancel:
 	popad

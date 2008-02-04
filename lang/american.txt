@@ -422,3 +422,7 @@ advorder_orderrefitveh="Refit to: \80"
 ; To display the refit cycle, change this text to:
 ; advorder_orderrefitveh="Refit to: \80\80"
 ; I do not display the cycle because I haven't gotten cycle selection to work.
+advorder_ordergotoloadonlytxt="Go to \80 (Load Only)"
+advorder_ordergotounloadonlytxt="Go to \80 (Unload Only)"
+advorder_ordergotoloadonlyddltxt="Go to station (Load Only)"
+advorder_ordergotounloadonlyddltxt="Go to station (Unload Only)"

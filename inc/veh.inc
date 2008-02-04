@@ -87,7 +87,8 @@ struc veh
 			resw 1	// 68h:rv:??
 			resb 1	// 6ah:rv:turn-around counter
 				// So far it's the last entry identified as used by TTD.
-			resb 0x6D-$
+			resb 0x6C-$
+	.currorderflags:resb 1 	// 6Ch:Current order additional flags (mainly for advorders)
 	.parentmvstat2:	resb 1	// 6Dh:stores the extra parent stat information (mainly needed for uturns)
 	.slfifoidx:	resb 1	// 6Eh:the index of this vehicle in the fifo queue (save/load only)
 	.prevmovementstat:	// 6Fh:the previous movementstat (used for RV trailers and Plane accel/decel)
@@ -154,6 +155,8 @@ endstruc
 // 01h=find & goto closest (forward) depot if service needed
 // 02h=skip next n orders if overall load percentage ==,!=,<,>,<=,>= P%		One extra word: MSB->LSB, op: 3 bits, n: 5 bits, gap: 1 bit, P: 7 bits
 // 03h=refit to cargo specified. One extra word: cargo: 5 bits, gap: 3 bits, refit cycle: 8 bits. Ignored if not arriveatdepot.
+// 04h=go to station, load only, one extra word: high byte: station id, low byte: reserved (0x80)
+// 05h=go to station, unload only, one extra word: high byte: station id, low byte: reserved (0x80)
 //high 3 bits means number of words in schedule heap after command which are associated
 
 
