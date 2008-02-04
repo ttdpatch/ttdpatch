@@ -1966,9 +1966,10 @@ saverestorevehdata:
 	jmp dorestorevehorders
 
 .clearadditionalsavedinfo:
-	mov al,0
+	xor eax,eax
 	mov [savedvehclass],al
 	mov [savedorderindex],al
+	mov [savedcurrorder],ax
 	ret
 
 .removeordercopy:
@@ -2069,6 +2070,8 @@ dosavevehorders:
 
 	mov al,[esi+veh.currorderidx]
 	mov [savedorderindex],al
+	mov ax,[esi+veh.currorder]
+	mov [savedcurrorder],ax
 
 	mov al,[esi+veh.class]
 	mov [savedvehclass],al
@@ -2097,6 +2100,7 @@ uvarb savedvehname,32
 uvarw savedcargoinfo
 uvarw savedserviceinterval
 uvarb savedorderindex
+uvarw savedcurrorder
 
 // called when restoring vehicle orders after buying a new vehicle
 // (this is called again for each entry)
@@ -2114,6 +2118,8 @@ dorestorevehorders:
 	jne .notenough
 
 	mov [esi+veh.currorderidx],al
+	mov ax,[savedcurrorder]
+	mov [esi+veh.currorder],ax
 
 .notenough:
 	test bh,bh
