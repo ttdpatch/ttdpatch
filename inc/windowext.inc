@@ -20,9 +20,9 @@
 // All values are given in key value pairs, example: x1,55,x2,10, ...
 //  
 // Possible keys to describe an element coordinate are:
-// x1,-x1		for the left coordinate of an element
+// x,-x			for the left coordinate of an element
 // x2,-x2,w		for the right coordinate of an element, (w means width and is relative to x1/-x1)
-// y1,-y1		for the top coordinate of an element
+// y,-y			for the top coordinate of an element
 // y2,-y2,h		for the bottom coordinate of an element, (h means height and is relative to y1/-y1)
 // data for the data of an element, for Textboxes its normally a textid as example.
 //
