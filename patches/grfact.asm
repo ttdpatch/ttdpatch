@@ -3883,7 +3883,7 @@ defvehdata specstationdata				// no properties
 defvehdata spclstationdata, F,H,F,B,B,B,F,F,w,B,F,B,B,B,w,B,w	// 08..18
 
 defvehdata specbridgedata, B,B,B,B			// 08..0B
-defvehdata spclbridgedata, w,F,B,F			// 0C..0F
+defvehdata spclbridgedata, w,F,B,F,t,t,t		// 0C..12
 
 defvehdata spechousedata
 defvehdata spclhousedata, F,F,w,B,B,B,B,B,w,B,t,w,B,F,F,d,B,B,B,B,F,B,d	// 08..1e
@@ -3896,7 +3896,7 @@ defvehdata specindustiledata
 defvehdata spclindustiledata, F,F,F,F,F,B,B,w,B,B,B	// 08..12
 
 defvehdata specindustrydata
-defvehdata spclindustrydata, F,H,F, B,t,t,t,B,F,F,B,B,B	,F,F,B,B,F,d,t, d,d,d,t,d,B,B,D		// 08..23
+defvehdata spclindustrydata, F,H,F, B,t,t,t,B,F,F,B,B,B	,F,F,B,B,F,d,t, d,d,d,t,d,B,B,d		// 08..23
 
 defvehdata speccargodata
 defvehdata spclcargodata, F,t,t,t,t,t,w,B,B,B,F,F,F,F,F,d,B,w,B	// 08..1a
@@ -4194,6 +4194,8 @@ var newstationdata
 var bridgedata	// (prop 0C is set in patches.ah)
 	dd 0, addr(alterbridgespritetable), bridgeflags		// 0C..0E
 	dd longintrodatebridges					// 0F
+extern waBridgeNames,waRailBridgeNames,waRoadBridgeNames
+	dd waBridgeNames,waRailBridgeNames,waRoadBridgeNames	// 10..12
 
 extern sethouseprocessinterval
 var housedata
