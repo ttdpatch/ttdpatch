@@ -18,6 +18,10 @@
 
 extern bridgespritetables
 
+uvarw waBridgeNames,NBRIDGES
+uvarw waRailBridgeNames,NBRIDGES*2
+global waRoadBridgeNames
+waRoadBridgeNames equ waRailBridgeNames+NBRIDGES*2
 
 // Byte Data: TableID, Numtables, Data (80h*Numtables), [ TableID, Numtables, Data, ... ]
 global alterbridgespritetable

@@ -974,6 +974,23 @@ setwagonmaxage:
 	add esi,0+vehtypeinfo_size
 	inc cl
 	jnz .setnext
+
+	testmultiflags newbridges
+	jz .nonewbridges
+
+	extern waBridgeNames, waRailBridgeNames
+	mov esi, 0
+ovar paBridgeNames
+	mov edi, waBridgeNames
+	mov cl, NBRIDGES*2
+	rep movsb
+	mov esi, 0
+ovar paRailBridgeNames
+	mov edi, waRailBridgeNames
+	mov cl, NBRIDGES
+	rep movsd
+
+.nonewbridges:
 	ret
 	
 	
