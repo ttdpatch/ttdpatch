@@ -347,9 +347,10 @@ dropdownmenustrings:
 	shl bx,1
 	add bx,0x2c7
 	
+	testmultiflags moretransopts
+	jz .done
 	cmp bx,0x2d3
-	testflags moretransopts
-	jnbe .done	//ne (cmp) or nc (testflags)
+	jne .done
 	mov bx,ourtext(transopts_option)-1
 
 .done:
