@@ -12,6 +12,7 @@
 #include <ptrvar.inc>
 #include <house.inc>
 #include <proc.inc>
+#include <transopts.inc>
 
 extern acttriggers,cachevehvar40x,canalfeatureids,cargoaction3,curcallback
 extern curgrffile,curgrfsprite,curstationtile,curtriggers,ecxcargooffset
@@ -522,6 +523,8 @@ grfcalltable getaction2spritenum
 //	eax-> building data
 //	ebx=number of available sprites -1
 
+extern newtransbits, newtransopts
+
 global getnewsprite
 getnewsprite:
 #if !WINTTDX
@@ -532,6 +535,22 @@ getnewsprite:
 	push edx
 	push ecx
 	push ebx
+
+	// Because this is heavily used, the "testflags" is in the proc, not here.
+ovar skiptransfix, 0
+	jmp short .notrans	// With the next 4 bytes, this becomes mov ecx, [grffeature] if moretransopts on
+// copy the appropriate transparency info into bit 4 of [displayoptions].
+	dd grffeature
+	or byte [displayoptions], 10h	// Set do-not-draw-transparent, ...
+	movsx ecx, byte [newtransbits+ecx]
+	test ecx,ecx
+	js .notrans
+	bt [newtransopts], ecx
+	setc dl
+	shl dl,4
+	not dl		// ... and clear it if the transopts bit is set.
+	and [displayoptions],dl
+.notrans:
 	mov [curgrfid],eax
 
 #if MEASUREVAR40X

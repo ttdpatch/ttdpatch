@@ -437,6 +437,20 @@ defourtext advorder_ordergotounloadonlytxt
 defourtext advorder_ordergotoloadonlyddltxt
 defourtext advorder_ordergotounloadonlyddltxt
 
+defourtext transopts_option
+defourtext transopts_caption
+defourtext transopts_tttrees
+defourtext transopts_ttbuildings
+defourtext transopts_ttindustries
+defourtext transopts_ttstations
+defourtext transopts_ttraildepots
+defourtext transopts_ttroaddepots
+defourtext transopts_ttshipdepots
+defourtext transopts_ttbridges
+defourtext transopts_ttobjects
+defourtext transopts_ttcompany
+defourtext transopts_ttinvistrees
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

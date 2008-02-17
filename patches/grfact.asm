@@ -17,6 +17,7 @@
 #include <airport.inc>
 #include <idf.inc>
 #include <objects.inc>
+#include <transopts.inc>
 
 extern tramtracks,numtramtracks
 extern newonewayarrows,numonewayarrows
@@ -4311,6 +4312,12 @@ var action0transtablesize, db 0,0,0,0
 	db 0,0,0,1	// 0, curgrfairportlist, 0, curgrfobjectgameids
 checkfeaturesize action0transtablesize, 1
 
+	// Bit offsets in newtransopts for the transparency for each feature
+var newtransbits, db -1,-1,-1,-1
+	db TROPT_STATION, -1, TROPT_BRIDGE, TROPT_TOWN_BLDG
+	db -1,TROPT_INDUSTRY,TROPT_INDUSTRY,-1
+	db -1,TROPT_STATION,-1,TROPT_OBJECT
+checkfeaturesize newtransbits, 1
 
 	// pointers to the data for each of the special properties
 var newtrainvehdata

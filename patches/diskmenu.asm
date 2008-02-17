@@ -346,6 +346,11 @@ dropdownmenustrings:
 	sub bx,[numnewoptionentries]
 	shl bx,1
 	add bx,0x2c7
+	
+	cmp bx,0x2d3
+	testflags moretransopts
+	jnbe .done	//ne (cmp) or nc (testflags)
+	mov bx,ourtext(transopts_option)-1
 
 .done:
 	test si,1

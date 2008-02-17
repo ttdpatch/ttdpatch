@@ -124,6 +124,10 @@ hotkeyfunction:
 	jnz .not_key
 
 	btc [displayoptions],ecx
+	cmp ecx,4
+	jne .notranstoggle
+	extcall toggletransparency
+.notranstoggle:
 	call redrawscreen
 
 .not_key:

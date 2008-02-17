@@ -15,6 +15,7 @@
 #include <imports/dropdownex.inc>
 #include <bitvars.inc>
 #include <industry.inc>
+#include <transopts.inc>
 
 extern GenerateDropDownMenu,actionhandler
 extern actionnewstations_actionnum,cantrainenterstattile,canrventerrailstattile,cleartilefn
@@ -3414,8 +3415,15 @@ exported applystationcompanycolor
 exported decidestationtransparency
 	btr ebx,30
 	jc .gotit			// bit 30 set - always draw normally
+	testmultiflags moretransopts
+	jnz .newtrans
 	bt dword [displayoptions],4	// check "transparent buildings" in display options
 .gotit:
+	ret
+.newtrans:
+	extern newtransopts
+	bt dword [newtransopts],TROPT_STATION
+	cmc
 	ret
 
 noglobal uvarw rootspritex

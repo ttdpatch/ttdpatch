@@ -8,6 +8,7 @@
 #include <textdef.inc>
 #include <ptrvar.inc>
 #include <flags.inc>
+#include <transopts.inc>
 
 extern addgroundsprite,addsprite,bridgeflags
 extern correctexactalt.getfoundationtype,getbridgefoundationtype
@@ -211,6 +212,12 @@ bridgedrawmiddlepartpillar:
 	mov si, 1
 	mov dh, 1
 	push ebp
+	extern newtransopts
+	test byte [newtransopts], 1<<TROPT_BRIDGE
+	jz .nottransparent
+	and ebx, 3FFFh
+	or ebx, 3224000h
+.nottransparent:
 	call [addsprite]
 	pop ebp
 	pop ebx

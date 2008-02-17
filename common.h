@@ -155,8 +155,9 @@
 #define tsignals		121	// PBS through-signals					(-)
 #define isignals		122	// Invertable one-two way signal routing				(-)
 #define advorders		123	// Advanced orders					(-)
+#define moretransopts		124	// Provide more transparency options.	(-)
 
-#define lastbitdefaulton	123	// META: last bit defined to be set by -a
+#define lastbitdefaulton	124	// META: last bit defined to be set by -a
 
 // add new flags that should be on by default above, flags off by default below
 
@@ -192,9 +193,8 @@
 #define articulatedrvs		219	// allow articulated RVs				(119)
 #define newroutes		220	// Enable newRoutes					(120)
 #define newobjects		221	// Enable support for newobjects					(-)
-#define hidetranstrees		222	// Hide Trees in transparent buildings mode					(-)
 
-#define lastbitdefaultoff	222	// META: last bit defined not to be set by -a unless DEBUG
+#define lastbitdefaultoff	221	// META: last bit defined not to be set by -a unless DEBUG
 
 // so far unused flags, simply to remember what names I've used already
 // the numbers of these can be changed as desired

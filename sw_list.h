@@ -297,7 +297,7 @@
 	     //E
 	BITS ('F',"toylandfeatures", CFG_TOYLANDFEATURES, TERRAIN, "ToylandFeatures", moretoylandfeatures, U8, FLAGDATA(toylandfeatures), 1),
 	     //G
-	YESNO('H',"hidetranstrees", CFG_NOTRANSTREES, TERRAIN, "HideTransparentTrees:Alpha", hidetranstrees),
+	YESNO('H',"moretransopts", CFG_MORETRANSOPTS, INTERFACE, "MoreTransparencyOptions:Alpha", moretransopts),
 	YESNO('I',"irregularstations", CFG_IRRSTATIONS, INFST_STATION, "IrregularStations", irrstations),
 	     //J
 	     //K
@@ -351,7 +351,7 @@
 	RANGE(153,"townminpopulationsnow", CFG_TOWNMINPOPULATIONSNOW, HOUSESTOWNS, "NewTownGrowthSwitches", noswitch, AUTO, U8, FLAGDATA(townminpopulationsnow), 0, 255, 90),
 	RANGE(156,"townminpopulationdesert", CFG_TOWNMINPOPULATIONDESERT, HOUSESTOWNS, "NewTownGrowthSwitches", noswitch, AUTO, U8, FLAGDATA(townminpopulationdesert), 0, 255, 60),
 	YESNO(157,"newobjects", CFG_NEWOBJECTS, INFST, "", newobjects),
-
+	SPCL (158,"hidetranstrees", 0, NONE, "", OBSOLETE),
 
 //
 // Here follows the switch order list
@@ -518,7 +518,7 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	newsignals,
 	newobjects,
 	vruncosts,
-	hidetranstrees,
+	moretransopts,
 	psignals,
 	tsignals,
 	isignals,

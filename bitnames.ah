@@ -73,7 +73,7 @@ defbit MISCMODS_ALWAYSSHOWONEWAY,	26 // Always display one-way markers
 defbit MISCMODS_DONTSHOWALTITUDE,	27 // Don't show altitude in tile info window
 defbit MISCMODS_NOGRFIDSINSCREENSHOTS,	28 // Don't show active grfids in screenshots
 defbit MISCMODS_DONTCHANGESNOW,		29 // Don't change how height is calculated for snowiness
-defbit MISCMODS_NOTRANSPARENTDEPOTS,	30 // Don't make road and tram depots transparent in transparent-buildings mode
+//defbit MISCMODS_NOTRANSPARENTDEPOTS,	30 // Don't make road and tram depots transparent in transparent-buildings mode
 defbit MISCMODS_NODEPOTNUMBERS,		31 // Don't show depot numbers
 enddefbits
 

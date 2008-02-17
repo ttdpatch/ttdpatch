@@ -259,7 +259,7 @@ TEXTARRAY(halflines,) =
 	  "-ZA: Enable new airports",
 	  "-ZC: Enable AI transport type chances",
 	  "-ZD: Enables the cloning of trains",
-	  "-ZH: Hides trees in transparent mode",
+	  "-ZH: Provide more transparency options",
 	  "-ZI: Enable irregular stations",
 	  "-ZL: Enable advanced orders",
 	  "-ZM: Collect more company statistics",
@@ -520,7 +520,7 @@ SWITCHTEXT(adjacentstation, "Adjacent station building and remote merging with o
 SWITCHTEXT(newsignals, "New signal graphics", "")
 SWITCHTEXT(newobjects, "Enable new objects", "")
 SWITCHTEXT(vruncosts, "Enables grfs to have variable running costs", "")
-SWITCHTEXT(hidetranstrees, "Make trees completely invisible in transparent buildings mode", "")
+SWITCHTEXT(moretransopts, "Provide more transparency options and a dialog to control them", "")
 SWITCHTEXT(psignals, "Allows signals states to be controlled by user criteria","")
 SWITCHTEXT(tsignals, "Allows PBS reservations the opposite way through selected one-way signals","")
 SWITCHTEXT(isignals, "Invert the one-way/two-way routing behaviour of selected signals","")
@@ -571,7 +571,6 @@ BIT(alwaysshowoneway,      "Always show one-way indicators")
 BIT(dontshowaltitude,      "Don't show altitude in tile info window")
 BIT(nogrfidsinscreenshots, "Don't show active grfids in screenshots")
 BIT(dontchangesnow,        "Don't change how height is calculated for snowiness")
-BIT(notransparentdepots,   "Don't make road and tram depots transparent in transparent-buildings mode")
 BIT(nodepotnumbers,        "Don't display depot numbers")
 
 // Description for miscmods2 bits
@@ -918,7 +917,7 @@ SETTEXT(CFG_ADJSTATIONS, "%s (%s) allows new station facilities to be merged to 
 SETTEXT(CFG_NEWSIGNALS, "`%s' (%s) enables new graphics for signals.")
 SETTEXT(CFG_NEWOBJECTS, "`%s' (%s) enables new objects.")
 SETTEXT(CFG_VRUNCOSTS, "`%s' (%s) enables grfs to have variable running costs for vehicles (no warnings will be given when the costs change).")
-SETTEXT(CFG_NOTRANSTREES, "`%s' (%s) make trees completely invisible in transparent buildings mode.")
+SETTEXT(CFG_MORETRANSOPTS, "`%s' (%s) provides more options for transparent buildings mode.")
 SETTEXT(CFG_PSIGNALS, "`%s' (%s) allows signals states to be controlled by user criteria, requires presignals")
 SETTEXT(CFG_TSIGNALS, "`%s' (%s) allows PBS reservations the opposite way through selected one-way signals, requires PBS")
 SETTEXT(CFG_ISIGNALS, "`%s' (%s) invert the routing behaviour of selected signals, such that one-way signals behave as two-way signals and vice-versa")

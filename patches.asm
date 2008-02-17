@@ -171,6 +171,7 @@
 	patchproc clonetrain, patchclonetrain // Must be patched before winsizer
 	patchproc enhancegui, patchwindowsizer
 
+	patchproc moretransopts, patchmoretransopts	// must be before newstations
 	// NOTE:
 	// If you were going to put your patchproc here, just put it in
 	// the procs/ asm file instead, include <patchproc.inc> and it 

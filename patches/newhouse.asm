@@ -899,7 +899,7 @@ proc processtileaction2
 	jc .nottransp1
 
 // add the "transparent" color mapping if transp. buildings is on
-
+// getnewsprite has fudged [displayoptions] properly, depending on whether houses or industries are being drawn
 	test byte [displayoptions],0x10
 	jnz .nottransp1
 	and ebx,0x3fff
