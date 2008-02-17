@@ -565,7 +565,6 @@ BIT(dontfixpaymentgraph,   "no fijar el eje de las X en la ventana de tarifas de
 BIT(dontshowaltitude,      "no mostrar altitud en la ventana de informaci¢n del azulejo")
 BIT(nogrfidsinscreenshots, "no mostrar los grfids activos en las capturas de pantallas")
 BIT(dontchangesnow,        "no cambiar como la altitud es calculada para las nevadas")
-BIT(notransparentdepots,   "no hacer las cocheras de coches y trenes transparentes en el modo transparente")
 
 // Description for morebuildoptions bits
 BITSWITCH(morebuildoptions)
