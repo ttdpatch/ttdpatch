@@ -399,8 +399,8 @@ showlocoinfo:
 	push esi
 	mov esi,textrefstack
 	mov edi,textstackcopy
-	times 6 movsd
-	mov [edi-2],ah		// replaced (a variation of this)
+	times 8 movsd
+	mov [edi-10],ah		// replaced (a variation of this)
 
 	mov edi,textrefstack
 

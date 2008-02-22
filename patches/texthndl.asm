@@ -398,17 +398,15 @@ vard extspechandler, .extformat, .nothing, .nothing, .nothing
 	jmp textprocessing
 
 print64bitcost:
-	mov ebx,[textrefstack]
-	mov edx,[textrefstack+4]
+	push edi
+	mov edi, textrefstack
 
-	mov eax,[textrefstack+8]
-	mov [textrefstack],eax
-	mov eax,[textrefstack+0xC]
-	mov [textrefstack+4],eax
-	mov eax,[textrefstack+0x10]
-	mov [textrefstack+8],eax
-	mov eax,[textrefstack+0x14]
-	mov [textrefstack+0xC],eax
+	mov ebx,[edi]
+	mov edx,[edi+4]
+
+	lea esi,[edi+8]
+	times 6 movsd
+	pop edi
 
 	mov eax,ebx
 	extern printcash_64bit

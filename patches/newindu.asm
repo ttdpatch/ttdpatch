@@ -3394,15 +3394,15 @@ induwindow_toolclick:
 	jne .noadjust
 
 // push everything down by 2 bytes in the text ref. stack to make space for the type name
-	push esi
-	push edi
+	pusha
 	std
-	mov esi,textrefstack+16
-	mov edi,textrefstack+18
-	times 5 movsd
+	mov edi,textrefstack+1Ch
+	lea esi,[edi-2]
+	xor ecx,ecx
+	mov cl,8
+	rep movsd
 	cld
-	pop edi
-	pop esi
+	popa
 	mov [textrefstack],dx
 .noadjust:
 	mov dx,[operrormsg2]
