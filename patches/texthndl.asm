@@ -399,16 +399,17 @@ vard extspechandler, .extformat, .nothing, .nothing, .nothing
 
 print64bitcost:
 	push edi
-	mov edi, textrefstack
-
-	mov ebx,[edi]
-	mov edx,[edi+4]
-
-	lea esi,[edi+8]
+	push esi
+	mov esi, textrefstack
+	mov edi, esi
+	lodsd
+	xchg eax,edx
+	lodsd
+	xchg eax,edx
 	times 6 movsd
+	pop esi
 	pop edi
 
-	mov eax,ebx
 	extern printcash_64bit
 	jmp printcash_64bit
 
