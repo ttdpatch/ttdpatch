@@ -64,7 +64,6 @@ varb sigbitsonpiece
 	db 0xc0,0xc0,0xc0,0x30,0xc0,0x30
 endvar
 
-
 	// final route information
 struc finalrt
 	.length:	resb 1	// how many tiles long is this route
@@ -1101,6 +1100,7 @@ opclass08hroutemaphnd:
 
 	or al,0x40
 	jmp .nextpiece
+
 
 .nosignal:
 	// no signal, remove piece if it's reserved
@@ -2154,7 +2154,7 @@ ovar .oldfn, -4, $,displayregrailsprite
 
 .flat:
 	test byte [landscape5(si,1)],0xc0
-	jz displayrailsprites.onlygray
+	jns displayrailsprites.onlygray
 .notflat:
 	pop edx
 	ret
@@ -2167,14 +2167,15 @@ displayrailsprite:
 	and ebx,0x3fff
 	push ebp
 
-	test byte [esp+5],0xc0
-	jnz .notgray		// depot or signals
+	test byte [landscape5(si,1)],0xc0
+	js .notgray		// depot
+	jnz .sig
 
 //	mov ebp,[landscape6ptr]
 
 	test [landscape6+esi],dh
 	jz .notgray
-
+.gray:
 #if 1
 	pop ebp
 	pop ebx
@@ -2183,6 +2184,25 @@ displayrailsprite:
 #else
 	or ebx,0x3248000
 #endif
+
+.popnotgray:
+	pop eax
+	jmp .notgray
+
+.sig:
+	cmp dh, 4
+	jb .notgray
+	movzx ebp, dh
+	bsf ebp, ebp
+	push eax
+	mov al, [landscape3+esi*2]
+	not al
+	and al, [sigbitsonpiece+ebp]
+	//al=bits of non-existant signal bits on current track piece
+	jpo .popnotgray
+	and al, [landscape6+esi]
+	pop eax
+	jnz .gray
 
 .notgray:
 	mov ebp,[wtrackspriteofsptr]
@@ -2204,8 +2224,9 @@ displayrailspriteifgray:
 	and ebx,0x3fff
 	push ebp
 
-	test byte [esp+5],0xc0
-	jnz .notgray		// depot or signals
+	test byte [landscape5(si,1)],0xc0
+	js .notgray		// depot
+	jnz .sig
 
 //	mov ebp,[landscape6ptr]
 
@@ -2217,6 +2238,25 @@ displayrailspriteifgray:
 	pop ebx
 	inc ebx
 	ret
+
+.popnotgray:
+	pop eax
+	jmp .notgray
+
+.sig:
+	cmp dh, 4
+	jb .notgray
+	movzx ebp, dh
+	bsf ebp, ebp
+	push eax
+	mov al, [landscape3+esi*2]
+	not al
+	and al, [sigbitsonpiece+ebp]
+	//al=bits of non-existant signal bits on current track piece
+	jpo .popnotgray
+	and al, [landscape6+esi]
+	pop eax
+	jz .notgray
 
 .gray:
 	test di, di
@@ -2524,10 +2564,13 @@ checkpathsigblock:
 	mov ah,[ebp+2]
 	add ebp,3
 
-	test [landscape3+edi*2],ah
+	mov al, [landscape3+edi*2]
+	test al, ah
 	jz .skip
 
-	and byte [edx+edi],7
+	and al, 0xF0
+	not al
+	and byte [edx+edi], al //7
 
 .skip:
 	loop .clearnext
