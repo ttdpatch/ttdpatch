@@ -10,16 +10,16 @@ extern setmousetool
 
 guiwindow win_dockconstgui,240,36
 	guicaption cColorSchemeDarkGreen, 0x9801	// DockConstruction
-	guiele dock,cWinElemSpriteBox,cColorSchemeDarkGreen,x,0,w,21,y,14,h,21,data,746
-	guiele shipdepot,cWinElemSpriteBox,cColorSchemeDarkGreen,x,22,w,21,y,14,h,21,data,748
-	guiele buoy,cWinElemSpriteBox,cColorSchemeDarkGreen,x,44,w,21,y,14,h,21,data,693
-	guiele dynamite,cWinElemSpriteBox,cColorSchemeDarkGreen,x,66,w,21,y,14,h,21,data,703
-	guiele lowerland,cWinElemSpriteBox,cColorSchemeDarkGreen,x,88,w,21,y,14,h,21,data,695
-	guiele raiseland,cWinElemSpriteBox,cColorSchemeDarkGreen,x,110,w,21,y,14,h,21,data,694
-	guiele purchaseland,cWinElemSpriteBox,cColorSchemeDarkGreen,x,132,w,21,y,14,h,21,data,4791
-	guiele canals,cWinElemSpriteBox,cColorSchemeDarkGreen,x,154,w,21,y,14,h,21,data,0
-	guiele aqueduct,cWinElemSpriteBox,cColorSchemeDarkGreen,x,176,w,41,y,14,h,21,data,2598
-	guiele river,cWinElemSpriteBox,cColorSchemeDarkGreen,x,218,w,21,y,14,h,21,data,4083
+	guiele dock,cWinElemSpriteBox,cColorSchemeDarkGreen,x,0,w,22,y,14,h,22,data,746
+	guiele shipdepot,cWinElemSpriteBox,cColorSchemeDarkGreen,x,22,w,22,y,14,h,22,data,748
+	guiele buoy,cWinElemSpriteBox,cColorSchemeDarkGreen,x,44,w,22,y,14,h,22,data,693
+	guiele dynamite,cWinElemSpriteBox,cColorSchemeDarkGreen,x,66,w,22,y,14,h,22,data,703
+	guiele lowerland,cWinElemSpriteBox,cColorSchemeDarkGreen,x,88,w,22,y,14,h,22,data,695
+	guiele raiseland,cWinElemSpriteBox,cColorSchemeDarkGreen,x,110,w,22,y,14,h,22,data,694
+	guiele purchaseland,cWinElemSpriteBox,cColorSchemeDarkGreen,x,132,w,22,y,14,h,22,data,4791
+	guiele canals,cWinElemSpriteBox,cColorSchemeDarkGreen,x,154,w,22,y,14,h,22,data,0
+	guiele aqueduct,cWinElemSpriteBox,cColorSchemeDarkGreen,x,176,w,42,y,14,h,22,data,2598
+	guiele river,cWinElemSpriteBox,cColorSchemeDarkGreen,x,218,w,22,y,14,h,22,data,4083
 endguiwindow
 // changeing the order or size will influence waterconstgui
 

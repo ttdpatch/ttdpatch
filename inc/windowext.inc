@@ -100,9 +100,9 @@
 		%elifidn {%1},{-y2}
 			%assign %%y2 %$_height-1-(%2)
 		%elifidn {%1},{w}
-			%assign %%x2 %%x1+%2
+			%assign %%x2 %%x1+%2-1
 		%elifidn {%1},{h}
-			%assign %%y2 %%y1+%2
+			%assign %%y2 %%y1+%2-1
 		%elifidn {%1},{data}
 			%assign %%data %2
 		%endif

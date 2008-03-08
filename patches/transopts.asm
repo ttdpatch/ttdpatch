@@ -25,19 +25,19 @@ exported maybehidetrees
 	ret
 
 // This order much match the order of the defines in transopts.inc
-guiwindow win_transopts, 263, 36
+guiwindow win_transopts, 263, 37
 guicaption cColorSchemeDarkGreen, ourtext(transopts_caption)
-guiele trees,    cWinElemSpriteBox, cColorSchemeDarkGreen, x,0,   y,14, w,22, h,21, data,742
-guiele townbldg, cWinElemSpriteBox, cColorSchemeDarkGreen, x,22,  y,14, w,22, h,21, data,4077
-guiele industry, cWinElemSpriteBox, cColorSchemeDarkGreen, x,44,  y,14, w,22, h,21, data,741
-guiele station,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,66,  y,14, w,22, h,21, data,1299
-guiele raildepot,cWinElemSpriteBox, cColorSchemeDarkGreen, x,88,  y,14, w,22, h,21, data,1294
-guiele roaddepot,cWinElemSpriteBox, cColorSchemeDarkGreen, x,110, y,14, w,22, h,21, data,1295
-guiele shipdepot,cWinElemSpriteBox, cColorSchemeDarkGreen, x,132, y,14, w,22, h,21, data,748
-guiele bridges,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,154, y,14, w,43, h,21, data,2594
-guiele objects,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,197, y,14, w,22, h,21, data,4085
-guiele company,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,219, y,14, w,22, h,21, data,743
-guiele invtrees, cWinElemSpriteBox, cColorSchemeDarkGreen, x,241, y,14, w,21, h,21, data,723
+guiele trees,    cWinElemSpriteBox, cColorSchemeDarkGreen, x,0,   y,14, w,22, h,22, data,742
+guiele townbldg, cWinElemSpriteBox, cColorSchemeDarkGreen, x,22,  y,14, w,22, h,22, data,4077
+guiele industry, cWinElemSpriteBox, cColorSchemeDarkGreen, x,44,  y,14, w,22, h,22, data,741
+guiele station,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,66,  y,14, w,22, h,22, data,1299
+guiele raildepot,cWinElemSpriteBox, cColorSchemeDarkGreen, x,88,  y,14, w,22, h,22, data,1294
+guiele roaddepot,cWinElemSpriteBox, cColorSchemeDarkGreen, x,110, y,14, w,22, h,22, data,1295
+guiele shipdepot,cWinElemSpriteBox, cColorSchemeDarkGreen, x,132, y,14, w,22, h,22, data,748
+guiele bridges,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,154, y,14, w,43, h,22, data,2594
+guiele objects,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,197, y,14, w,22, h,22, data,4085
+guiele company,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,219, y,14, w,22, h,22, data,743
+guiele invtrees, cWinElemSpriteBox, cColorSchemeDarkGreen, x,241, y,14, w,21, h,22, data,723
 endguiwindow
 
 exported changetransparency

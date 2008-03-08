@@ -41,12 +41,12 @@ exported TrainDepotDragDropFailed
 	ret
 	
 guiwindow win_railvehmenu,65,20
-	guiele caption_close,cWinElemTextBox,cColorSchemeGrey,x,0,w,10,y,0,h,13,data,0x00C5
-	guiele captionbar,cWinElemSpriteBox,cColorSchemeGrey,x,0,w,10,y,14,-y2,0,data,0
+	guiele caption_close,cWinElemTextBox,cColorSchemeGrey,x,0,w,11,y,0,h,14,data,0x00C5
+	guiele captionbar,cWinElemSpriteBox,cColorSchemeGrey,x,0,w,11,y,14,-y2,0,data,0
 	
-	guiele reverse,cWinElemSpriteBox,cColorSchemeGrey,x,11,w,17,y,0,h,19,data,715
-	guiele refit,cWinElemSpriteBox,cColorSchemeGrey,x,29,w,17,y,0,h,19,data,692
-	guiele changelook,cWinElemSpriteBox,cColorSchemeGrey,x,47,w,17,y,0,h,19,data,683
+	guiele reverse,cWinElemSpriteBox,cColorSchemeGrey,x,11,w,18,y,0,h,20,data,715
+	guiele refit,cWinElemSpriteBox,cColorSchemeGrey,x,29,w,18,y,0,h,20,data,692
+	guiele changelook,cWinElemSpriteBox,cColorSchemeGrey,x,47,w,18,y,0,h,20,data,683
 endguiwindow
 
 struc win_railvehmenudata
