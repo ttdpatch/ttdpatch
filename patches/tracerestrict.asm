@@ -2307,7 +2307,7 @@ delpobjsignal:
 	ret
 .cont:
 	pusha
-	bt WORD [esi*2+landscape3],13
+	bt WORD [esi*2+landscape3],12
 	jc NEAR delpobjfromcombsignal
 	jmp delrobjsignal.in
 delrobjsignal:
@@ -2359,11 +2359,11 @@ ret
 .end:
 	ret
 delrobjfromcombsignal:
-	xor di, di
+	xor edi, edi
 	jmp delpobjfromcombsignal.common
 
 delpobjfromcombsignal:
-	mov di, 2
+	mov edi, 2
 .common:
 	get_root_robj esi,eax,ebx,ebx
 	cmp BYTE [ebx+robj.type], 64
