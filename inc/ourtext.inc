@@ -451,6 +451,8 @@ defourtext transopts_ttobjects
 defourtext transopts_ttcompany
 defourtext transopts_ttinvistrees
 
+defourtext tr_findbtn
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

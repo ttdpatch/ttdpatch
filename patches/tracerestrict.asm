@@ -20,7 +20,7 @@ extern CreateWindow,DrawWindowElements,WindowClicked,DestroyWindow,WindowTitleBa
 global robjgameoptionflag,robjflags
 extern cargotypes,newcargotypenames,cargobits,invalidatetile,cargotypes
 extern GenerateDropDownEx,GenerateDropDownExPrepare,DropDownExList
-extern TransmitAction, MPRoutingRestrictionChange_actionnum, actionhandler,patchflags,miscmodsflags
+extern TransmitAction, MPRoutingRestrictionChange_actionnum, actionhandler,patchflags,miscmodsflags,setmainviewxy,flashtilex,flashtiley
 
 global tr_siggui_btnclick,programmedsignal_turnitred
 
@@ -103,9 +103,9 @@ endstruc
 //24:	Number of red two-way entrance signals in block
 //25:	Current signal is SW/NW/SE/NE
 
-//26:	Entered side of tile is/is not: SW/NW/SE/NE
+//25:	Entered side of tile is/is not: SW/NW/SE/NE
 
-//27:	Entered PBS signal tile
+//26:	Entered PBS signal tile
 
 //type: 32-34
 //word1:ID of first robj
@@ -799,6 +799,7 @@ btndata xor, 30
 btndata delete, 50
 btndata reset, 50
 btndata switch, 75
+btndata finder, 30
 btndata sizer, 12
 %assign winwidth btn_sizer_end+1
 
@@ -896,6 +897,11 @@ varb tracerestrictwindowelements
 	db cWinElemTextBox, cColorSchemeGrey
 	dw btnwidths(switch), winheight-13, winheight-1
 	.switchbtn: dw ourtext(tr_ps_gui_text)
+	
+	// Finder button 21
+	db cWinElemTextBox, cColorSchemeGrey
+	dw btnwidths(finder), winheight-13, winheight-1
+	dw ourtext(tr_findbtn)
 
 	db 0xb
 
@@ -920,7 +926,7 @@ vard TRConstraints
 	db 8
 	times 3 db 12
 	db 0
-	db 12
+	times 2 db 12
 endvar
 
 varw pre_op_array
@@ -1327,6 +1333,9 @@ trwin_msghndlr:
 	
 	cmp dl, cWinEventTextUpdate
 	jz NEAR textwindowchangehandler
+	
+	cmp dl, cWinEventClose
+	jz NEAR .findbtnreset2
 
 ret
 
@@ -1358,6 +1367,13 @@ ret
 	jne .notwindowtitlebarclicked
 	jmp dword [WindowTitleBarClicked] // Allow moving of Window
 .notwindowtitlebarclicked:
+
+	cmp cl, 21
+	je NEAR .findbtn
+
+	pusha
+	call .findbtnreset2
+	popa
 
 	cmp cl, 2
 	je NEAR .ret
@@ -1400,6 +1416,7 @@ ret
 	
 	cmp cl, 20
 	je NEAR .pstrswitch
+
 
 .ret:
 ret
@@ -2172,8 +2189,9 @@ ret
 	pop esi
 	ret
 .rstnormcont:
-	mov WORD [tracerestrictwindowelements.vartb], statictext(empty)
-	mov WORD [tracerestrictwindowelements.optb], statictext(empty)
+	mov edx, [esi+window.elemlistptr]
+	mov WORD [edx+tracerestrictwindowelements.vartb-tracerestrictwindowelements], statictext(empty)
+	mov WORD [edx+tracerestrictwindowelements.optb-tracerestrictwindowelements], statictext(empty)
 	xor edx,edx
 	mov [robjidindex], dx
 	mov [robjid], dx
@@ -2185,8 +2203,9 @@ ret
 
 .pstrswitch:
 	xor BYTE [curdispmode], 1
-	xor WORD [tracerestrictwindowelements.switchbtn], ourtext(tr_ps_gui_text)^ourtext(tr_siggui_text)
-	xor WORD [tracerestrictwindowelements.title], ourtext(tr_restricttitle)^ourtext(tr_ps_wintitle)
+	mov ecx, [esi+window.elemlistptr]
+	xor WORD [ecx+tracerestrictwindowelements.switchbtn-tracerestrictwindowelements], ourtext(tr_ps_gui_text)^ourtext(tr_siggui_text)
+	xor WORD [ecx+tracerestrictwindowelements.title-tracerestrictwindowelements], ourtext(tr_restricttitle)^ourtext(tr_ps_wintitle)
 	mov al, 0x10
 	mov cl, [curdispmode]
 	and cl, 1
@@ -2196,6 +2215,45 @@ ret
 	call countrows
 	mov edx, [curselrobj]
 	jmp updatebuttons
+	
+.findbtn:
+	btr DWORD [esi+window.activebuttons], 21
+	jc .findbtnreset
+	mov edx, [curselrobj]
+	call getcurtritemxy
+	or eax, eax
+	js .findbtnfail
+	movzx ecx, ah
+	movzx eax, al
+	shl eax, 4
+	shl ecx, 4
+	test bl, 1
+	jz .noflash
+	pusha
+	bts DWORD [esi+window.activebuttons], 21
+	call [invalidatetile]
+	xchg [flashtilex], ax
+	xchg [flashtiley], cx
+	call [invalidatetile]
+	popa
+.noflash:
+	call [setmainviewxy]
+.findbtnfail:
+	mov al,[esi+window.type]
+	mov bx,[esi+window.id]
+	or al, 0x40
+	call dword [invalidatehandle]
+	ret
+.findbtnreset2:
+	btr DWORD [esi+window.activebuttons], 21
+	jnc .findbtnfail
+.findbtnreset:
+	or ecx, -1
+	xchg [flashtiley], cx
+	or eax, -1
+	xchg [flashtilex], ax
+	call [invalidatetile]
+	jmp .findbtnfail
 
 bophandler:
 	pusha
@@ -2397,6 +2455,14 @@ updatebuttons:
 .noddlcheck:
 	pusha
 	xor ecx, ecx
+
+	call getcurtritemxy
+	or eax, eax
+	jns .xygood
+.xybad:
+	or ecx, 1<<21
+.xygood:
+
 	testmultiflags tracerestrict,psignals
 	jpe .nodisswitch
 	or ecx, 1<<20
@@ -2422,21 +2488,22 @@ updatebuttons:
 	cmp DWORD [rootobj], 0
 	sete al
 	mov [curmode], al
+	mov ebx, [esi+window.elemlistptr]
 	or al, al
 	jz .norm
-	mov WORD [tracerestrictwindowelements.delbtn], ourtext(tr_copy)
-	mov WORD [tracerestrictwindowelements.rstbtn], ourtext(tr_share)
-	mov WORD [tracerestrictwindowelements.vartb], ourtext(tr_vartxt)
-	mov WORD [tracerestrictwindowelements.optb], ourtext(tr_optxt)
+	mov WORD [ebx+tracerestrictwindowelements.delbtn-tracerestrictwindowelements], ourtext(tr_copy)
+	mov WORD [ebx+tracerestrictwindowelements.rstbtn-tracerestrictwindowelements], ourtext(tr_share)
+	mov WORD [ebx+tracerestrictwindowelements.vartb-tracerestrictwindowelements], ourtext(tr_vartxt)
+	mov WORD [ebx+tracerestrictwindowelements.optb-tracerestrictwindowelements], ourtext(tr_optxt)
 	or DWORD [esi+window.disabledbuttons], 0x20FC0
 	jmp .end
 .norm:
-	mov WORD [tracerestrictwindowelements.delbtn], 0x8824
-	mov WORD [tracerestrictwindowelements.rstbtn], ourtext(resetorders)
+	mov WORD [ebx+tracerestrictwindowelements.delbtn-tracerestrictwindowelements], 0x8824
+	mov WORD [ebx+tracerestrictwindowelements.rstbtn-tracerestrictwindowelements], ourtext(resetorders)
 	or edx, edx
 	jnz .noblank
-	mov WORD [tracerestrictwindowelements.vartb], ourtext(tr_vartxt)
-	mov WORD [tracerestrictwindowelements.optb], ourtext(tr_optxt)
+	mov WORD [ebx+tracerestrictwindowelements.vartb-tracerestrictwindowelements], ourtext(tr_vartxt)
+	mov WORD [ebx+tracerestrictwindowelements.optb-tracerestrictwindowelements], ourtext(tr_optxt)
 	or DWORD [esi+window.disabledbuttons], 0x21FF0
 	jmp .end
 
@@ -2466,8 +2533,9 @@ updatebuttons:
 	or [esi+window.disabledbuttons], ecx
 	movzx ax, BYTE [edx+robj.type]
 	add ax, ourtext(tr_andbtn)-32
-	mov WORD [tracerestrictwindowelements.vartb], ax
-	mov WORD [tracerestrictwindowelements.optb], ourtext(tr_optxt)
+	mov ebx, [esi+window.elemlistptr]
+	mov WORD [ebx+tracerestrictwindowelements.vartb-tracerestrictwindowelements], ax
+	mov WORD [ebx+tracerestrictwindowelements.optb-tracerestrictwindowelements], ourtext(tr_optxt)
 	jmp .end
 
 .cmp:
@@ -2501,7 +2569,10 @@ updatebuttons:
 	or ecx, 0x20100
 .nvar:
 	mov ax,[var_array2-2+eax*2]
-	mov WORD [tracerestrictwindowelements.vartb],ax
+	push ebx
+	mov ebx, [esi+window.elemlistptr]
+	mov WORD [ebx+tracerestrictwindowelements.vartb-tracerestrictwindowelements],ax
+	xchg ebx, [esp]
 
 	movzx eax, BYTE [edx+robj.type]
 	or eax, eax
@@ -2510,7 +2581,8 @@ updatebuttons:
 	or ecx, 0x20100
 	mov ax,ourtext(tr_optxt)
 .noop:
-	mov WORD [tracerestrictwindowelements.optb],ax
+	pop ebx
+	mov WORD [ebx+tracerestrictwindowelements.optb-tracerestrictwindowelements],ax
 	or [esi+window.disabledbuttons], ecx
 
 .end:
@@ -2527,6 +2599,52 @@ updatebuttons:
 	call dword [invalidatehandle]
 	popa
 ret
+
+//in: edx=robj (or none)
+//out: eax=xy or -1, ebx=flags: 1=highlight tile
+//trashed=none
+getcurtritemxy:
+	or edx, edx
+	jz .curxy
+	test BYTE [edx+robj.flags], 1
+	jz .fail
+	cmp BYTE [edx+robj.type], 32
+	jae .fail
+	movzx ebx, BYTE [edx+robj.varid]
+	xor eax, eax
+	bts eax, ebx
+	test eax, (1<<3)+(1<<12)+(1<<13)
+	jnz .st
+	test eax, (1<<4)+(1<<16)
+	jnz .dep
+	test eax, (0xF<<7)+(1<<26)
+	jnz .sig
+.fail:
+	or eax, -1
+	ret
+.curxy:
+	movzx eax, WORD [curxypos]
+	mov ebx, 1
+	ret
+.st:
+	movzx eax, BYTE [edx+robj.word1]
+	imul eax, eax, station_size
+	add eax, [stationarrayptr]
+	movzx eax, WORD [eax+station.XY]
+	xor ebx, ebx
+ret
+.dep:
+	movzx eax, BYTE [edx+robj.word1]
+	add eax, eax
+	lea eax, [eax+eax*2+depotarray]
+	movzx eax, WORD [eax+depot.XY]
+	mov ebx, 1
+ret
+.sig:
+	movzx eax, WORD [edx+robj.word1]
+	mov ebx, 1
+ret
+
 
 CheckDDL1:
 	test BYTE [esi+window.activebuttons], 20h
