@@ -385,7 +385,7 @@ displaytraininfosprite:
 .done:
 	ret
 
-uvard textstackcopy,6
+uvard textstackcopy,8
 
 // called after setting up info display for train engine
 //
