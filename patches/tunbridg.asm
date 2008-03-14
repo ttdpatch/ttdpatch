@@ -582,6 +582,7 @@ exported Class9RouteMapHandlerTunnel
 	cmp al, ah
 	jz .typeok
 	xor eax, eax
+	ret
 .typeok:
 	cmp al, 0
 	jnz .nootherroute
@@ -595,6 +596,7 @@ exported Class9RouteMapHandlerTunnel
 	mov ax, 0x202
 .done:
 	shr BYTE [tunnelgetclass9routemapflags], 1
+.exit:
 	ret
 .newroute:
 	push ecx
