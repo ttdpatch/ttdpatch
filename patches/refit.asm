@@ -489,6 +489,12 @@ getrvshiprefitcap:
 	mov bx,[ebx]
 	mov [textrefstack],bx		// was set incorrectly
 
+	push ebp
+	push edx
+	xor edx, edx
+	shl ecx, 16
+	
+.vehicleloop:	
 	movzx ebx,byte [ebp+veh.vehtype]
 	test byte [callbackflags+ebx],8
 	jz .nocapacallback
@@ -498,10 +504,28 @@ getrvshiprefitcap:
 	call getcapacallback
 	pop esi
 	jc .nocapacallback
-
-	mov cx,ax
+	add cx, ax
 
 .nocapacallback:
+	inc edx
+	movzx ebp, word [ebp+veh.nextunitidx]
+	cmp bp, byte -1
+	je .endLoop
+	shl ebp, 7
+	add ebp, [veharrayptr]
+	jmp .vehicleloop
+
+.endLoop:
+	cmp cx, 0
+	jne .gotcapacity
+	shr ecx, 16
+	imul ecx, edx
+	
+.gotcapacity:
+	movzx ecx, cx
+	pop edx
+	pop ebp
+
 	mov [textrefstack+2],cx		// overwritten
 	ret
 
@@ -1182,6 +1206,7 @@ refitsecondengine:
 global setnewcargo
 setnewcargo:
 	pusha
+	mov cl, [edx+veh.cargotype]
 
 	push esi
 	lea esi,[edx+veh.idx-window.id]
@@ -1193,6 +1218,7 @@ setnewcargo:
 	mov [currefitinfoptr],eax
 
 .loopNextVehicle:
+	mov [edx+veh.cargotype], cl
 	movzx eax,byte [edx+veh.vehtype]
 	test byte [callbackflags+eax],8
 	jz .nocapacallback
@@ -1279,7 +1305,25 @@ rvshiprefitcost:
 	test bl,bl
 	jnz .gotit
 	mov bl,14
+
 .gotit:
+	push ecx
+	push edx
+	xor ecx, ecx
+.vehloop:
+	inc ecx
+	movzx edx, word [edx+veh.nextunitidx]
+	cmp dx, byte -1
+	je .done
+	shl edx, 7
+	add edx, [veharrayptr]
+	jmp .vehloop
+
+.done:
+	imul ebx, ecx
+	pop edx
+	pop ecx
+	
 	imul ebx,[roadvehbasevalue]
 	sar ebx,9
 	ret
