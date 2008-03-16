@@ -10,6 +10,8 @@
 #include <imports/gui.inc>
 #include <window.inc>
 #include <station.inc>
+#include <ptrvar.inc>
+#include <misc.inc>
 
 extern newbuyrailvehicle, discard, vehcallback, articulatedvehicle, delveharrayentry, sellroadvehicle
 extern RefreshWindows, LoadUnloadCargo, checkgototype, isrvbus, curplayerctrlkey, drawtextfn, currscreenupdateblock
@@ -338,35 +340,167 @@ dontAddScheduleForTrailers:
 
 global sellRVTrailers
 sellRVTrailers:
-	cmp	word [edx+veh.nextunitidx], 0xFFFF	;do we have trailers?
-	jne	.trailersExist
-
-	call	near $
+	cmp word [edx+veh.nextunitidx], byte -1
+	je .noTrailers
+	
+	push edx
+	movzx edx, word [edx+veh.nextunitidx]
+	call .deleteTrailer
+	pop edx
+	
+.noTrailers:
+	call near $ ; Delete our consist head vehicle
 ovar .origfn, -4, $, sellRVTrailers
+	ret
+
+// Input:	edx - vehicle to delete
+.deleteTrailer:
+	pusha
+	xor ecx, ecx
+	xor eax, eax
+	mov esi, 0x10088 ; Sell (Subroutine 2), for Road Vehicles (Class 11)
+	mov ebx, 1 ; We want to do the action, we don't care about the cost
+extern actionhandler
+	call [actionhandler]
+	popa
+	ret
+
+; Stops TTD trying to delete orders (which don't exist) for a trailers
+global deleteRVorders
+deleteRVorders:
+	cmp dword [edx+veh.scheduleptr], -1
+	je .Trailer
+
+extern delvehschedule
+	call [delvehschedule]
+	
+.Trailer:
+	mov esi, edx 
+	ret
+
+uvard PrepareNewVehicleArrayEntry
+uvard CalcExactGroundAltitude
+
+; The bulk of this code works the same as buyNewRoadVehicle
+; Inputs and outputs are identical
+; Please note that it will not calculate stuff required for a proper rv 
+; And should ONLY be used to buy trailers
+global buyRVTrailer
+buyRVTrailer:
+	mov byte [currentexpensetype], expenses_newvehs
+	test bl, 4
+	jnz near .done
+	mov word [operrormsg2], 0xE1 ;TID00E1_TooManyVehiclesInGame
+	call [PrepareNewVehicleArrayEntry]
+	jnz short .continue
+
+.fail:
+	mov ebx, 80000000h
 	retn
+ 
+.continue:
+	test bl, 1
+	jz near .done
+	mov byte [esi+veh.consistnum], 0	; We don't actually need this as 
+	push ax								; we are not the head of a consist
+	push ebx
+	push cx
+	rol cx, 8
+	mov bp, cx
+	rol cx, 8
+	or bp, ax
+	ror bp, 4
+	or al, 8
+	or cl, 8
+	mov byte [esi+veh.direction], 0
+	mov dh, [curplayer]
+	mov [esi+veh.owner], dh
+	mov [esi+veh.XY], bp
+	mov [esi+veh.xpos], ax
+	mov [esi+veh.ypos], cx
+	push esi
+	call [CalcExactGroundAltitude]
+	pop esi
+	mov [esi+veh.zpos], dl
+	mov byte [esi+veh.zsize], 6
+	mov byte [esi+veh.movementstat], 0FEh
+	mov word [esi+veh.vehstatus], 0Bh
+	shr ebx, 8
+	mov al, [rvsprite-74h+ebx]
+	mov [esi+veh.spritetype], al
+	mov al, [rvcargotype-74h+ebx]
+	mov [esi+veh.cargotype], al
+	movzx ax, byte [rvcapacity-74h+ebx]
+	mov [esi+veh.capacity], ax
+	mov word [esi+veh.currentload], 0
+	movzx eax, byte [rvcostfactor-74h+ebx]
+	mov edx, [costs+68]
+	sar edx, 3
+	imul eax, edx
+	shr eax, 5
+	mov [esi+veh.value], eax
+	mov byte [esi+veh.daycounter], 0
+	mov word [esi+veh.currorder], 0
+	mov word [esi+veh.loadtime], 0
+	mov byte [esi+veh.movementfract], 0
+	mov word [esi+0x64], 0
+	mov byte [esi+0x66], 0
+	mov word [esi+0x6A], 0
+	mov byte [esi+veh.laststation], -1
+	mov word [esi+veh.target], 0FFFFh
+	mov dword [esi+veh.profit], 0
+	mov dword [esi+veh.previousprofit], 0
+	movzx ax, byte [rvspeed-74h+ebx]
+	mov [esi+veh.maxspeed], ax
+	mov [esi+veh.vehtype], bx
+	imul bx, 1Ch
+	mov word [esi+veh.reliability], 0
+	mov word [esi+veh.reliabilityspeed], 0
+	mov word [esi+veh.maxage], 0
+	mov word [esi+veh.name], 0x902B ; TID902B_RoadVehicleW
+	mov byte [esi+0x68], 0
+	mov byte [esi+veh.currorderidx], 0
+	mov byte [esi+veh.totalorders], 0
+	mov word [esi+veh.nextunitidx], -1
+	mov word [esi+veh.lastmaintenance], 0
+	mov word [esi+veh.serviceinterval], 0
+	mov byte [esi+veh.breakdowncountdown], 0
+	mov byte [esi+veh.breakdowns], 0
+	mov byte [esi+veh.breakdownthreshold], 0
+	mov al, [currentyear]
+	mov  [esi+veh.yearbuilt], al
+	mov byte [esi+veh.class], 11h
+	mov word [esi+veh.cursprite], 3093
+	push esi
+	call [UpdateVehicleSpriteBox]
+	pop edi
+	mov al, 0x12 ; cWinTypeDepot
+	mov bx, [edi+veh.XY]
+	call [RefreshWindows]	; AL = window type
+							; AH = element idx (only if AL:7 set)
+							; BX = window ID (only if AL:6 clear)
+	movzx bx, [edi+veh.owner]
+	mov al, 0x0A ; cWinTypeRVList
+	call [RefreshWindows]	; AL = window type
+							; AH = element idx (only if AL:7 set)
+							; BX = window ID (only if AL:6 clear)
+	mov al, 0x1D ; Company window
+	call [RefreshWindows]	; AL = window type
+							; AH = element idx (only if AL:7 set)
+							; BX = window ID (only if AL:6 clear)
+	pop cx
+	pop ebx
+	pop ax
 
-.trailersExist:
-	pushad						;push prev veh onto stack
-	movzx	edx, word [edx+veh.nextunitidx]		;iterate to last trailer...
-	shl	edx, 7
-	add	edx, [veharrayptr]
-	cmp	word [edx+veh.nextunitidx], 0xFFFF	;MORE? push them on the stack
-	jne	.trailersExist
-.recurseOut:
-	mov	word [edx+veh.nextunitidx], 0xFFFF	;is this needed?
-	movzx	edx, word [edx+veh.idx]
-	mov	bl, 1					;no idea what's meant to be in here
-							;but sellRoadVehicle wants 1
-	call	[sellroadvehicle]			;del trailer.
-	popad
-	push	eax
-	mov	ax, [edx+veh.idx]
-	cmp	ax, [edx+veh.engineidx]
-	pop	eax
-	jne	.recurseOut				;more trailers.
-	mov	word [edx+veh.nextunitidx], 0xFFFF	;is this needed?
-	jmp	sellRVTrailers				;head? back to top.
-
+.done:
+	shr ebx, 8
+	movzx ebx, byte [rvcostfactor-74h+ebx]
+	mov edx, [costs+68]
+	sar edx, 3
+	imul ebx, edx
+	shr ebx, 5
+	ret
+	
 global updateTrailerPosAfterRVProc
 updateTrailerPosAfterRVProc:
 	push	ebx

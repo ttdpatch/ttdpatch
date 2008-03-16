@@ -347,6 +347,29 @@ extern RVDepotEnterStop
 		icall RVDepotEnterStop
 		setfragmentsize 8
 
+	codefragment oldDeleteRVorders, 7
+		; jz short 0x52
+		; test bl, 1
+		; jz short 0x37
+		db 0x74, 0x52, 0xF6, 0xC3, 0x01, 0x74, 0x37
+	
+	codefragment newDeleteRVorders
+extern deleteRVorders
+		icall deleteRVorders
+		setfragmentsize 7
+	
+	codefragment findPrepareNewVehicleArrayEntry, -23
+		mov esi, [veharrayptr]
+		push cx
+	
+	codefragment findCalcExactGroundAltitude
+		push ebx
+		push edi
+		push ax
+		push cx
+		and al, 0xF0
+		and cl, 0xF0
+	
 endcodefragments
 
 patcharticulatedvehicles:
@@ -388,7 +411,7 @@ patcharticulatedvehicles:
 	patchcode oldListRVsInDepotWindow, newListRVsInDepotWindow, 2, 2
 	stringaddress oldSellRoadVehicle, 2+WINTTDX, 5
 	chainfunction sellRVTrailers, .origfn, 1
-
+	
 	patchcode oldAddRVScheduleWhenBuilding, newAddRVScheduleWhenBuilding, 2, 4
 
 	stringaddress oldCallRVProcessing, 3-2*WINTTDX, 5
@@ -496,5 +519,15 @@ patcharticulatedvehicles:
 
 	patchcode StartRVinDepot
 	patchcode StopRVinDepot, 2-WINTTDX, 2
-
+	
+	patchcode oldDeleteRVorders, newDeleteRVorders
+	
+	stringaddress findPrepareNewVehicleArrayEntry
+extern PrepareNewVehicleArrayEntry
+	mov [PrepareNewVehicleArrayEntry], edi
+	
+	stringaddress findCalcExactGroundAltitude
+extern CalcExactGroundAltitude
+	mov [CalcExactGroundAltitude], edi
+	
 	retn

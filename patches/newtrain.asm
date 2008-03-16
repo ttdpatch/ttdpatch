@@ -1192,7 +1192,8 @@ extern CloneTrainCompany
 	push ebp
 	cmp byte [buildingroadvehicle], 1
 	jne .calloldbuyrailvehicle2
-	call [oldbuyroadvehicle]
+extern buyRVTrailer
+	call buyRVTrailer // We now have our own special "buy wagon" function
 	jmp .plzcontinue2
 .calloldbuyrailvehicle2:
 	call [oldbuyrailvehicle]
@@ -1203,13 +1204,7 @@ extern CloneTrainCompany
 	cmp ebx,0x80000000
 	je .done
 	
-	; Ugly hack to fix the id "eating" issue by aRVs
-	cmp byte [buildingroadvehicle], 1 ; Since these are all extra parts, we just want to blank 'em anyway
-	jne .notaroadvehiclethen
-	mov byte [edi+veh.consistnum], 0 ; We don't want a articulated piece to have an id!
-	
 .notaroadvehiclethen:
-
 	// attach to engine
 	mov byte [edi+veh.artictype],0	// in case any left-over was in there
 	mov byte [edi+veh.subclass],2
