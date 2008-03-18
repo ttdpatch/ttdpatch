@@ -716,6 +716,8 @@ getofsptr:
 	jmp .done
 ; endp getofsptr 
 
+uvard newordertarget_oldrealvehcurrorder
+
 // called when a train arrives at a target and
 // gets a new order ready
 // in:	ax=new order
@@ -725,8 +727,15 @@ getofsptr:
 //	ax=bx=new target if depot
 global newordertarget
 newordertarget:
-	mov word [esi+veh.target],-1
+	push eax
+	or ax, -1
+	xchg word [esi+veh.target],ax
+	mov WORD [newordertarget_oldrealvehcurrorder+2], ax
 	mov BYTE [esi+veh.currorderflags], 0
+	mov ax, WORD [esi+veh.currorder]
+	mov WORD [newordertarget_oldrealvehcurrorder], ax
+	pop eax
+	mov WORD [esi+veh.currorder], ax
 	and al,0x1f
 	cmp al,2
 	je short .todepot
@@ -897,7 +906,9 @@ newordertarget:
 	mov BYTE [esi+veh.currorderflags], ah
 	mov ah, [ebx+3]
 	mov al, 1
+	cmp WORD [newordertarget_oldrealvehcurrorder], ax
 	mov WORD [esi+veh.currorder], ax
+	je .cmpfail
 /*
 	movzx ebx, ah
 	cmp BYTE [esi+veh.laststation], ah
@@ -911,6 +922,11 @@ newordertarget:
 	stc
 */
 	clc
+	ret
+.cmpfail:
+	mov ax, [newordertarget_oldrealvehcurrorder+2]
+	mov [esi+veh.target], ax
+	add esp, 4
 	ret
 
 ; endp newordertarget

@@ -43,12 +43,13 @@ codefragment newisshiporder2
 	pop eax
 	setfragmentsize 9
 
-codefragment oldnewordertarget,-12
+codefragment oldnewordertarget,-16
 	cmp ah,byte [esi+veh.laststation]
 	jne $+2+4
 
 codefragment newnewordertarget
 	call runindex(newordertarget)
+	times 4 nop
 	jc short $+2
 newordertargetjc equ $-1
 
