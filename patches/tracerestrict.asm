@@ -20,7 +20,7 @@ extern CreateWindow,DrawWindowElements,WindowClicked,DestroyWindow,WindowTitleBa
 global robjgameoptionflag,robjflags
 extern cargotypes,newcargotypenames,cargobits,invalidatetile,cargotypes
 extern GenerateDropDownEx,GenerateDropDownExPrepare,DropDownExList
-extern TransmitAction, MPRoutingRestrictionChange_actionnum, actionhandler,patchflags,miscmodsflags,setmainviewxy,flashtilex,flashtiley
+extern TransmitAction, MPRoutingRestrictionChange_actionnum, actionhandler,patchflags,miscmodsflags,setmainviewxy
 
 global tr_siggui_btnclick,programmedsignal_turnitred
 
