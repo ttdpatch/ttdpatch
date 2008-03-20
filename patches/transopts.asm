@@ -3,6 +3,7 @@
 #include <windowext.inc>
 #include <transopts.inc>
 #include <textdef.inc>
+#include <human.inc>
 
 %assign win_transopts_id 115
 
@@ -10,35 +11,33 @@
 // For code that is called by or promptly after getnewsprite,
 // testing [displayoptions] is preferred, especially if it may draw sprites
 // for multiple features.
-vard newtransopts, defaulttrans << 16
-
-exported maybehidetrees
-	test byte [newtransopts+1], 1<<(TROPT_INVISIBLETREES-8)
-	jz .nohide
-	pop ecx		// remove return address
-	pop ecx		// overwritten from ...
-	pop eax		// ... 
-	ret		// ... hidetranstrees code.
-
-.nohide:
-	and ebx, 3FFFh	//overwritten from TTD code
-	ret
+varw newtransopts
+	dw 1<<TROPT_ONEWAY	// default "transparent"  -- aka hidden, for oneway signs.
+	dw 1<<TROPT_ROADDEPOT | 1<<TROPT_BRIDGE | 1<<TROPT_ONEWAY	// default not toggled by [t]
+	dw 0			// default invisible
+endvar
+	
 
 // This order much match the order of the defines in transopts.inc
-guiwindow win_transopts, 263, 37
+guiwindow win_transopts, 262, 36
 guicaption cColorSchemeDarkGreen, ourtext(transopts_caption)
-guiele trees,    cWinElemSpriteBox, cColorSchemeDarkGreen, x,0,   y,14, w,22, h,22, data,742
-guiele townbldg, cWinElemSpriteBox, cColorSchemeDarkGreen, x,22,  y,14, w,22, h,22, data,4077
-guiele industry, cWinElemSpriteBox, cColorSchemeDarkGreen, x,44,  y,14, w,22, h,22, data,741
-guiele station,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,66,  y,14, w,22, h,22, data,1299
-guiele raildepot,cWinElemSpriteBox, cColorSchemeDarkGreen, x,88,  y,14, w,22, h,22, data,1294
-guiele roaddepot,cWinElemSpriteBox, cColorSchemeDarkGreen, x,110, y,14, w,22, h,22, data,1295
-guiele shipdepot,cWinElemSpriteBox, cColorSchemeDarkGreen, x,132, y,14, w,22, h,22, data,748
-guiele bridges,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,154, y,14, w,43, h,22, data,2594
-guiele objects,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,197, y,14, w,22, h,22, data,4085
-guiele company,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,219, y,14, w,22, h,22, data,743
-guiele invtrees, cWinElemSpriteBox, cColorSchemeDarkGreen, x,241, y,14, w,21, h,22, data,723
+noglobal ovar spritestart, windowbox.sprite
+guiele trees,    cWinElemSpriteBox, cColorSchemeDarkGreen, x,0,   y,14, w,22, h,22, data,0
+guiele townbldg, cWinElemSpriteBox, cColorSchemeDarkGreen, x,22,  y,14, w,22, h,22, data,0
+guiele industry, cWinElemSpriteBox, cColorSchemeDarkGreen, x,44,  y,14, w,22, h,22, data,0
+guiele station,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,66,  y,14, w,22, h,22, data,0
+guiele raildepot,cWinElemSpriteBox, cColorSchemeDarkGreen, x,88,  y,14, w,22, h,22, data,0
+guiele roaddepot,cWinElemSpriteBox, cColorSchemeDarkGreen, x,110, y,14, w,22, h,22, data,0
+guiele shipdepot,cWinElemSpriteBox, cColorSchemeDarkGreen, x,132, y,14, w,22, h,22, data,0
+guiele bridges,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,154, y,14, w,42, h,22, data,0
+guiele objects,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,196, y,14, w,22, h,22, data,0
+guiele company,  cWinElemSpriteBox, cColorSchemeDarkGreen, x,218, y,14, w,22, h,22, data,0
+noglobal ovar overlaydrawstart, windowbox.x1
+guiele oneway,   cWinElemSpriteBox, cColorSchemeDarkGreen, x,240, y,14, w,22, h,22, data,0
 endguiwindow
+
+varw ttdguisprites, 742, 4077, 741, 1299, 1294, 1295, 748, 2594, 4085, 743, 723
+
 
 exported changetransparency
 	mov cl, 2Ah
@@ -59,30 +58,41 @@ exported changetransparency
 	mov word [esi+window.id], win_transopts_id
 	mov dword [esi+window.elemlistptr], win_transopts_elements
 	popa
-
 .ret:
 	ret
 
 exported toggletransparency
+	push ebx
 	mov eax, [newtransopts]
-	rol eax, 16
-	test ax, alltrans	// If new and
-	jz .ok1
-	test eax, alltrans<<16	// old tranparencies are both not clear, 
-	jz .ok1
-	and ax, ~defaulttrans	// clear new transparency
-.ok1:
-	test eax, alltrans | alltrans<<16 // if both transparencies are clear
-	jnz .ok2
-	or ax, defaulttrans	// set default transparencies
-.ok2:
-	mov [newtransopts], eax
+	mov ebx, eax
+	shr ebx, 10h
+	cwde
+	not ebx
+	test eax, ebx
+	jz .setunlocked
+.clearunlocked:
+	not ebx
+	and eax, ebx
+	jmp short .store
+.setunlocked:
+	or eax, ebx
+.store:
+	mov [newtransopts], ax
+	pop ebx
+exported setonewayflag
+	test byte [newtransopts+transopts.opts+1], 1<<(TROPT_ONEWAY-8)
+	extern openedroadconstruction
+	setz [openedroadconstruction]
 	ret
 
 
 exported drawbridgesprite
 	test byte [newtransopts], 1<<TROPT_BRIDGE
 	jz .nottrans
+	test byte [newtransopts+transopts.invis], 1<<TROPT_BRIDGE
+	jz .trans
+	ret
+.trans:
 	and ebx, 3FFFh
 	or ebx, 3224000h
 .nottrans:
@@ -91,22 +101,122 @@ exported drawbridgesprite
 
 
 extern DrawWindowElements, WindowClicked, DestroyWindow, WindowTitleBarClicked, CreateTooltip
+extern numguisprites, guispritebase, drawspritefn, ctrlkeystate
 
 transparencywindow_handler:
 	mov bx, cx
 	mov esi, edi
 	cmp dl, cWinEventRedraw
-	jnz .noredraw
-	and byte [esi+window.disabledbuttons+1], ~(1<<(TROPT_INVISIBLETREES-8+2))
+	jnz NEAR .noredraw
+
+// Do we have gui sprites available?
+	mov ecx, .spriteloop+1
 	mov eax, [newtransopts]
-	test al, 1<<TROPT_TREES
-	jne .nodisable
-	and ah, ~(1<<(TROPT_INVISIBLETREES-8))
-	or byte [esi+window.disabledbuttons+1], 1<<(TROPT_INVISIBLETREES-8+2)
-.nodisable:
+	and dword [esi+window.activebuttons], 0
+	mov byte [ecx], 0ABh	// [o16] stosd
 	shl eax, 2
+	cmp dword [numguisprites], 92
+	ja .gotsprites
+
+// Use the old ones.
+	mov byte [ecx], 0A5h	// [o16] movsd
 	mov [esi+window.activebuttons], eax
-	jmp [DrawWindowElements]
+
+.gotsprites:
+	and ah, 1<<(TROPT_ONEWAY-8+2)
+	or [esi+window.activebuttons+1], ah
+	push esi
+	xor ecx, ecx
+	mov cl, TROPT__COUNT
+	mov edi, spritestart
+	mov esi, ttdguisprites
+	mov eax, [guispritebase]
+	add eax, 82
+
+// Store the correct sprites in the windowelements.
+.spriteloop:
+	stosw		// Without new sprites, becomes "movsw"
+	inc eax
+	add edi, windowbox_size-2
+	loop .spriteloop
+	pop esi
+
+// and draw
+	call [DrawWindowElements]
+
+// Now the toolbar is present, add overlays.
+/*	for(int i=TROPT_LAST;i>=0;i--){
+		if (i!=TROPT_ONEWAY){	// oneway is two-state
+			if(HAVE_SEL_SPRITES)
+				addsprite(selection);	// ebx: sprite cx&dx: x&y edi:from DrawWindowElements
+			else if(ISINVISIBLE(i))
+				addsprite(LETTER_I);
+		}
+		if(IS_LOCKED(i)){
+			if(HAVE_LOCK)
+				addsprite(GUI_LOCK);
+			else
+				addsprite(LETTER_L);
+		}
+	}
+*/
+	mov edx, [esi+window.y]
+	add edx, 16
+	mov ecx, [esi+window.x]
+	mov esi, newtransopts
+	mov ebp, overlaydrawstart
+	mov eax, TROPT__LAST
+	jmp short .lock			// oneway-indicator is two-state
+.loop:
+	xor ebx, ebx
+	cmp eax, TROPT_BRIDGE
+	sete bl
+	lea ebx, [ebx*3]	// bridges require different selection sprites; initialize ebx to 0 or 3
+	cmp dword [numguisprites], 92
+	jbe .useI
+	add bx, [guispritebase]
+	bt [esi+transopts.opts], eax
+	jnc .nottrans
+	inc ebx
+	bt [esi+transopts.invis],eax
+.nottrans:
+	adc ebx, 76
+	pusha
+	jmp short .dodraw
+.useI:
+	bt [esi+transopts.opts],eax
+	jnc .lock
+	bt [esi+transopts.invis],eax
+	jnc .lock
+	pusha
+	lea ecx, [ecx+ebx*8+16]
+	sub ecx, ebx	// want ebx*7
+	mov bl, 43
+.dodraw:
+	add ecx, [ebp]
+	call [drawspritefn]
+	popa
+.lock:
+	bt dword [esi+transopts.locked], eax
+	jnc .next
+	mov bx, 46
+	cmp dword [numguisprites], 4Bh
+	jbe .gotlock
+	movzx ebx, word [guispritebase]
+	add ebx, 4Bh
+.gotlock:
+	pusha
+	add ecx, [ebp]
+	inc ecx
+	call [drawspritefn]
+	popa
+.next:
+	sub ebp, windowbox_size
+	dec eax
+	jns .loop
+.ret:
+	ret
+
 .noredraw:
 	cmp dl, cWinEventClick
 	jnz .ret
@@ -114,19 +224,41 @@ transparencywindow_handler:
 	js .ret
 	movzx ebx, cl	// [e]bx so I can save a byte in the lea by using 16-bit addressing.
 	cmp byte [rmbclicked],0 // Was it the right mouse button
-	jne .rmb
+	jne short .rmb
+	param_call ctrlkeystate, CTRL_MP
+	jnz .notctrl
+	sub ebx, 2
+	js .ret
+	btc [newtransopts+transopts.locked], ebx
+	jmp short .redraw
+
+.notctrl:
 	dec ebx		// win_transopts_elements.caption_close_id == 0
-	js .destroy
+	js short .destroy
 	dec ebx		// win_transopts_elements.caption_id == 1
-	js .titlebar
-	btc [newtransopts], ebx
+	js short .titlebar
+	mov ecx, newtransopts
+	btc [ecx+transopts.opts], ebx
+	cmp ebx, TROPT_ONEWAY
+	je .redraw
+	bts [ecx+transopts.opts], ebx
+	jnc .wastrans
+	btr [ecx+transopts.invis], ebx
+.redraw:
+	call setonewayflag
 	extjmp redrawscreen
+.wastrans:
+	bts [ecx+transopts.invis], ebx
+	jnc short .redraw
+.wasinvis:
+	btr [ecx+transopts.opts], ebx
+	btr [ecx+transopts.invis], ebx
+	jmp short .redraw
+	
 .destroy:
 	jmp [DestroyWindow]
 .titlebar:
 	jmp [WindowTitleBarClicked]
-.ret:
-	ret
 
 .rmb:
 	mov ax, 18Bh
@@ -135,6 +267,42 @@ transparencywindow_handler:
 	inc eax
 	dec ebx
 	js .done
-	lea eax, [bx+ourtext(transopts_tttrees)]
+	lea eax, [bx+ourtext(transopts_cttrees)]
 .done:
 	jmp [CreateTooltip]
+
+
+// In: On stack: transparency bit to test
+// Out: nz if transparent, zf if not transparent, fudged return if invisible.
+exported testtransparency
+	pusha
+	mov eax, [esp+24h]
+	mov ebx, newtransopts
+	bt [ebx+transopts.opts], eax
+	jnc short .retnz
+	bt [ebx+transopts.invis], eax
+	jnc short .retz
+	popa
+	pop eax				// returns to a j[n]z short
+	movzx ebx, byte [eax+1]
+	lea eax, [eax+ebx+2]		// follow the jump
+	cmp byte [eax], 81h
+	jne .loop
+	add eax, 12+5
+.loop:
+	cmp byte [eax], 0E8h
+	je .next
+	pop ebx
+	jmp eax
+.next:
+	add eax, 5
+	jmp short .loop
+
+.retz:
+	cmp eax, eax
+	jmp short .ret
+.retnz:
+	test esp, esp
+.ret:
+	popa
+	ret 4

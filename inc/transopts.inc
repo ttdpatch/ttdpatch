@@ -10,7 +10,13 @@
 #define TROPT_OBJECT	8
 #define TROPT_HQ	9
 #define TROPT_STATUE	9
-#define TROPT_INVISIBLETREES 10
+#define TROPT_ONEWAY	10
 
-%assign defaulttrans 07FFh & ~(1<<TROPT_INVISIBLETREES) & ~(1<<TROPT_BRIDGE) & ~(1<<TROPT_ROADDEPOT)
-%assign alltrans 07FFh & ~(1<<TROPT_INVISIBLETREES)	// Bits that are *really* transparency bits.
+#define TROPT__LAST	10
+#define TROPT__COUNT	11
+
+struc transopts
+	.opts:		resw 1
+	.locked:	resw 1
+	.invis:		resw 1
+endstruc

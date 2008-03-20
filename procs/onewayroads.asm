@@ -57,13 +57,6 @@ patchonewayroads:
 
 	or byte [newgraphicssetsenabled+1],1 << (9-8)
 
-	test byte [miscmodsflags+3], (MISCMODS_ALWAYSSHOWONEWAY>>18h)
-	jz .hidesigns
-	extern openedroadconstruction
-	mov byte [openedroadconstruction], 1
-	ret
-
-.hidesigns:
 	mov eax, [ophandler+0x2*8]
 	mov eax, [eax+1*4]
 	mov edi, [eax+3]

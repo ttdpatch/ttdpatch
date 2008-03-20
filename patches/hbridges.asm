@@ -215,10 +215,13 @@ bridgedrawmiddlepartpillar:
 	extern newtransopts
 	test byte [newtransopts], 1<<TROPT_BRIDGE
 	jz .nottransparent
+	test byte [newtransopts+transopts.invis], 1<<TROPT_BRIDGE
+	jnz .invisible
 	and ebx, 3FFFh
 	or ebx, 3224000h
 .nottransparent:
 	call [addsprite]
+.invisible:
 	pop ebp
 	pop ebx
 	cmp ebp, 0

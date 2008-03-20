@@ -100,7 +100,7 @@ exported Class2RoadConstrHandler
 	mov byte [openedroadconstruction], 1
 	jmp short .done
 .close:
-	mov byte [openedroadconstruction], 0
+	extcall setonewayflag
 .done:
 	pusha
 	call redrawscreen

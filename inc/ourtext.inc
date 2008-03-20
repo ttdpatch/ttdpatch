@@ -453,6 +453,18 @@ defourtext transopts_ttinvistrees
 
 defourtext tr_findbtn
 
+defourtext transopts_cttrees
+defourtext transopts_ctbuildings
+defourtext transopts_ctindustries
+defourtext transopts_ctstations
+defourtext transopts_ctraildepots
+defourtext transopts_ctroaddepots
+defourtext transopts_ctshipdepots
+defourtext transopts_ctbridges
+defourtext transopts_ctobjects
+defourtext transopts_ctcompany
+defourtext transopts_ttoneway
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

@@ -539,17 +539,18 @@ getnewsprite:
 	// Because this is heavily used, the "testflags" is in the proc, not here.
 ovar skiptransfix, 0
 	jmp short .notrans	// With the next 4 bytes, this becomes mov ecx, [grffeature] if moretransopts on
-// copy the appropriate transparency info into bit 4 of [displayoptions].
+// copy the appropriate transparency info into bits 4 and 6 of [displayoptions]. (6 for invisibility)
 	dd grffeature
-	or byte [displayoptions], 10h	// Set do-not-draw-transparent, ...
+	mov edx, displayoptions
 	movsx ecx, byte [newtransbits+ecx]
-	test ecx,ecx
+	test ecx, ecx
 	js .notrans
+	rcl byte [edx], 4
 	bt [newtransopts], ecx
-	setc dl
-	shl dl,4
-	not dl		// ... and clear it if the transopts bit is set.
-	and [displayoptions],dl
+	cmc
+	rcr byte [edx], 2
+	bt [newtransopts+transopts.invis], ecx
+	rcr byte [edx], 2
 .notrans:
 	mov [curgrfid],eax
 

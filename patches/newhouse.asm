@@ -902,6 +902,8 @@ proc processtileaction2
 // getnewsprite has fudged [displayoptions] properly, depending on whether houses or industries are being drawn
 	test byte [displayoptions],0x10
 	jnz .nottransp1
+	test byte [displayoptions],0x40
+	jnz .done
 	and ebx,0x3fff
 	or ebx, (802 << 16)+0x4000
 .nottransp1:
@@ -941,6 +943,8 @@ proc processtileaction2
 // add the "transparent" color mapping if transp. buildings is on
 	test byte [displayoptions],0x10
 	jnz .nottransp2
+	test byte [displayoptions],0x40
+	jnz short .boxdone
 	and ebx,0x3fff
 	or ebx, (802 << 16)+0x4000
 .nottransp2:

@@ -860,10 +860,13 @@ drawTramOrRoadDepot:
 	extern	newtransopts
 	test	byte [newtransopts], 1<<TROPT_ROADDEPOT
 	jz	.notTransparent
+	test	byte [newtransopts+transopts.invis], 1<<TROPT_ROADDEPOT
+	jnz	.invisible
 	and	ebx, 3FFFh
 	or	ebx, 3224000h
 .notTransparent:
 	call    [addsprite]
+.invisible:
 	retn
 
 global storeArrayPointerFromClass9

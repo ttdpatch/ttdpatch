@@ -7,14 +7,13 @@ extern newtransopts
 
 begincodefragments
 
-codefragment oldtesttrans, 2
+codefragment oldtesttrans
 	test byte [displayoptions], 10h
 
 codefragment newtesttrans
-transloc: dd newtransopts
-	db 0
-
-codefragment_call callmaybehidetrees, maybehidetrees, 6
+	push byte 0
+ovar transbit, -1
+	db 0e8h		// call (disp32)
 
 codefragment oldchangetransparency
 	xor byte [displayoptions], 10h
@@ -28,7 +27,7 @@ endcodefragments
 
 
 %macro fragment 1
-	db 1<<(%1 % 8), %1/8
+	db %1
 %endmacro
 
 // Note that fragments will be applied from bottom up.
@@ -36,7 +35,7 @@ varb transpatchdata
 #if WINTTDX
 	fragment TROPT_TOWN_BLDG
 	fragment TROPT_INDUSTRY
-	dw 0				// Code for toolbar-dropdown drawing
+	db 0				// Code for toolbar-dropdown drawing
 	fragment TROPT_HQ
 	fragment TROPT_OBJECT
 	fragment TROPT_STATUE
@@ -58,7 +57,7 @@ varb transpatchdata
 	fragment TROPT_SHIPDEPOT
 	fragment TROPT_TREES
 	fragment TROPT_TREES
-	// dw 0			// Code for toolbar-dropdown drawing (no earlier locations to displace)
+	// db 0			// Code for toolbar-dropdown drawing (no earlier locations to displace)
 #endif
 endvar
 
@@ -79,23 +78,18 @@ exported patchmoretransopts
 #endif
 	jne .nottoolbar
 	stringaddress oldtesttrans, 1, eax
-	mov byte [edi+5], 0xEB			// jnz short -> jmp short
+	mov byte [edi+7], 0xEB			// jnz short -> jmp short
+	inc edi		// skip this instance in the next search
 	jmp short .continue
 .nottoolbar:
-	mov ebx, transloc
-	and byte [ebx], ~1	// newtransopts is at least word aligned
-	mov cx, [transpatchdata + (ecx-1)*2]
-	add [ebx], ch
-	mov [ebx+4], cl
+	mov cl, [transpatchdata + (ecx-1)]
+	mov [transbit], cl
 
 	patchcode testtrans, 1, eax
-	xor byte [edi], 1		// swap jnz/jz condition.
-
-	cmp dword [esp], 10-WINTTDX*2
-	jne .continue
-	inc edi
-	inc edi
-	storefragment callmaybehidetrees
+	extern testtransparency
+	mov eax, testtransparency - 4
+	sub eax, edi
+	stosd
 
 .continue:
 	pop ecx

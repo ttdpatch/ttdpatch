@@ -3410,7 +3410,7 @@ exported applystationcompanycolor
 // decide whether to draw station sprite in normal or transparent mode
 // in:	ebx: sprite number & flags from layout
 //	other regs set up for addsprite or addrelsprite
-// out:	cf set for normal drawing
+// out:	cf set for normal drawing, fudged "return" when invisible
 // safe: ebp
 exported decidestationtransparency
 	btr ebx,30
@@ -3423,7 +3423,16 @@ exported decidestationtransparency
 .newtrans:
 	extern newtransopts
 	bt dword [newtransopts],TROPT_STATION
+	jnb .cmret
+	bt dword [newtransopts+transopts.invis],TROPT_STATION
+	jnb .ret
+	pop eax				// returns to a j[n]z short
+	movzx ebx, byte [eax+2]
+	lea eax, [eax+ebx+3+17]		// follow the jump, skip the addsprite
+	jmp eax
+.cmret:
 	cmc
+.ret:
 	ret
 
 noglobal uvarw rootspritex
