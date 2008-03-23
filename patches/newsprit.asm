@@ -1150,13 +1150,6 @@ getvariationalvariable:
 	jmp short .gotval
 
 .novar:
-	movzx ecx,dl
-	mov dh,[ebx+1]
-	test dh,0xe0
-	lea ebx,[ebx+ecx+1]		// skip shiftnum, bitmask
-	jz .exit
-	lea ebx,[ebx+2*ecx]		// skip add-val and div/mod-val
-.exit:
 	stc
 	ret
 
@@ -1313,25 +1306,26 @@ getvariationalvariable:
 
 %endmacro
 
+// In: ebx->param for failed 60+x vars, ->var for other vars
+//	dl: size
 errorinvar:
-	inc ebx
-	inc ebx
+	movzx ecx,dl
+.next:
+	mov dh,[ebx+1]			// shift
+	test dh,0xc0
+	lea ebx,[ebx+2+ecx+1]		// skip var, shift, mask, (nvar or oper)
+	jz .notdivmod
+	lea ebx,[ebx+2*ecx]		// skip add-val and div/mod-val
+.notdivmod:				// ebx -> first range or next var
 	test dh,0x20
 	jz .gotrange
-	dec ebx
-	mov dh,[ebx]
+	mov dh,[ebx]			// var
 	and dh,0xe0
 	cmp dh,0x60
-	jne .notparam
+	jne .next
 	inc ebx
-.notparam:
-	movzx ecx,dl
-	mov dh,[ebx+1]
-	lea ebx,[ebx+ecx+1]
-	test dh,0xc0
-	jz errorinvar
-	lea ebx,[ebx+2*ecx]
-	jmp short errorinvar
+	jmp short .next
+
 .gotrange:
 	movzx ebx,word [ebx]
 	pop ebp
