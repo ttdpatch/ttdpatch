@@ -7,7 +7,7 @@
 
 #define NOVERSION 0xffffffff
 
-#define ALLOCEMPTYOFFSETS 2048	// allocate space for this many offsets
+#define ALLOCEMPTYOFFSETS 3072	// allocate space for this many offsets
 				// if we have no version information
 
 typedef struct {
