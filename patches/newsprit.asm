@@ -928,10 +928,64 @@ getrandom:	// random cargo ID
 #endif
 
 	push edx
+	cmp al, 4
+	jne .notother
+	inc ebx
+	cmp byte [grffeature], al	// al == 4
+	jnb .notother
+	xor eax, eax
+	test esi, esi
+	jz near .gotrandom
+
+	mov al, [ebx+3]
+	movzx ecx, al
+	and ecx, 0x3F
+	jnz .gotcount
+	mov ecx, [specialgrfregisters]
+.gotcount:
+	and al, 0xC0
+	jz short .countback	// 0x
+	cmp al, 0x80
+	je .engine		// 8x
+
+	mov edx, [esi+veh.veh2ptr]
+	ja .firstoftype		// Cx
+
+.selffront:		// 4x. Count back from engine by trainidx - count
+	movzx edx, byte [edx+veh2.var40x+0*4]
+	sub ecx, edx
+	neg ecx
+	jmp short .engine
+
+.firstoftype:		// Count back from engine by firstoftype_idx + count
+	push ecx	// firstoftype_idx == trainidx - bytypeidx
+	movzx ecx, byte [edx+veh2.var40x+0*4]
+	sub cl, [edx+veh2.var40x+1*4]
+	pop edx
+	add ecx, edx
+
+.engine:		// Count back from engine by count
+	cvivp [esi+veh.engineidx]
+
+.countback:
+	jecxz .gotother
+	mov edx, [veharrayptr]
+	xor eax, eax
+.docount:
+	movzx esi, word [esi+veh.nextunitidx]
+	cmp si, byte -1
+	je .gotrandom
+	shl esi, vehicleshift
+	add esi, edx
+	loop .docount
+	jmp short .gotother
+
+.notother:
 	xor eax,eax
 	test esi,esi
 	jz .gotrandom
 
+.gotother:
 	movzx edx,byte [isother]
 
 	mov cl,[ebx+5]

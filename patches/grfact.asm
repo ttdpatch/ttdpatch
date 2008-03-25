@@ -578,13 +578,10 @@ newcargoid:
 
 .doit:
 	lodsb			// num-loadtypes or random/variational bit
-	cmp al,0x83
-	je near .randomid
-
-	cmp al,0x80
-	// jb .cargoid
-	je near .randomid
-	ja near .variationalid
+	test al,0x83
+	jns .cargoid
+	jpo near .randomid	// Randoms & 83 == 80, 83
+	jmp .variationalid	// Variationals & 83 == 81, 82
 
 .cargoid:
 	cmp byte [esi-3],0xa
@@ -650,7 +647,7 @@ newcargoid:
 
 .nextadvancedtilesprite:
 	call .adjusttilesprite
-	jc .invalid
+	jc near .invalid
 	cmp byte [esi+2],0x80
 	je .short
 	add esi,3
@@ -703,6 +700,10 @@ newcargoid:
 	ret
 
 .randomid:
+	cmp al, 84h
+	jne .notext
+	inc esi			// count
+.notext:
 	inc esi			// random-type
 	inc esi			// randbit
 	lodsb			// nrand
