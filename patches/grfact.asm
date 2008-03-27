@@ -4253,6 +4253,8 @@ var externalvars		// for variational cargo IDs and action 7/9/D
 	dd grfmodflags		// 1E   9E
 	dd languagesettings	// 1F	9F
 	dd snowline		// 20	A0
+	dd alwaysminusone	// 21	A1 (placeholder for OpenTTD version)
+	dd difficultylevel	// 22	A2
 
 global numextvars
 numextvars equ (addr($)-externalvars)/4

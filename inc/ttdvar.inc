@@ -155,6 +155,7 @@ ttdvar(terraintype, 0x77126)		// The Type of land to generate
 ttdvar(quantityofwater, 0x77128)	// The 'amount' of sea to be on the map
 ttdvar(economy,0x7712a)			// W: Economy difficulty setting
 ttdvar(disasters,0x7712e)		// W: Disasters difficulty setting
+ttdvar(difficultylevel,0x77130)			// B: Overall difficulty setting
 ttdvar(currency,0x770fb)			// B: currency used in display: 0=pound, 1=dollar, ...
 ttdvar(measuresys,0x770fc)			// B: measurement system: 0=imperial, 1=metric
 
