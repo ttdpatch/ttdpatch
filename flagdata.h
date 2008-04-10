@@ -49,6 +49,7 @@ defword(townmaxgrowthrate)	// max. growth rate in houses per 100 years
 defword(tgrpassinmax)		// maximum number of passengers accepted that will influence growth
 
 defword(branchprobab)		// probability of a road branch
+defword(semaphoreyear)		// year before which semaphores are built
 
 #define flags_word_end townmingrowthrate
 

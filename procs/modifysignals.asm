@@ -32,4 +32,8 @@ patchmodifysignals:
 	patchcode oldmodifysignals,newmodifysignals,1,1
 	patchcode oldshowtrackinfo,newshowtrackinfo,1,1
 	or byte [newgraphicssetsenabled],1 << 4
+extern semaphoredate, semaphoreyear
+	mov al, [semaphoreyear]
+	sub al, (1920 & 0xFF)
+	mov [semaphoredate],al
 	ret

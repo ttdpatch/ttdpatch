@@ -1229,8 +1229,8 @@ modifysignals:
 	inc edi
 	mov al,[edi]
 	and al,~8
-	cmp word [currentdate],0x4e7b 	// 1975
-ovar semaphoredate, -2
+	cmp byte [currentyear], 1975 - 1920
+ovar semaphoredate, -1
 	jae .nosemaphores
 	or al,8
 .nosemaphores:

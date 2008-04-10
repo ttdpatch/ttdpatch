@@ -228,8 +228,8 @@ OpenRailConstrWindow:
 	mov byte [CurRailConstrDir], 0
 	mov byte [CurRailPiece], 1
 	mov byte [CurSignalType], 0
-	mov ax, [semaphoredate]
-	cmp word [currentdate],ax
+	mov al, [semaphoredate]
+	cmp byte [currentyear],al
 	jnae .semaphore
 	mov byte [CurSignalType], 1
 .semaphore:

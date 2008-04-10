@@ -248,7 +248,7 @@
 	RANGE('P',"planespeed", CFG_PLANESPEED, VEH_AIR, "NewPlaneSpeed", planespeed, AUTO, U8, FLAGDATA(planespeedfactor), 1, 4, 4),
 	     //Q
 	RANGE('R',"maprefresh", CFG_MAPREFRESH, INTERFACE, "MapRefresh", maprefresh, AUTO, U8, FLAGDATA(maprefreshfrequency), 1, 255, 1),
-	YESNO('S',"semaphores", CFG_SEMAPHORES, INFST_RAIL_SIGNAL, "SemaphoreSignals", semaphoresignals),
+	RANGE('S',"semaphores", CFG_SEMAPHORES, INFST_RAIL_SIGNAL, "SemaphoreSignals", semaphoresignals, AUTO, U16, FLAGDATA(semaphoreyear), 1920, 2175, 1975),
 	RANGE('T',"towngrowthratemode", CFG_TOWNGROWTHRATEMODE, HOUSESTOWNS, "NewTownGrowthSwitches", newtowngrowthrate, AUTO, U8, FLAGDATA(towngrowthratemode), 0, 2, 2),
 	     //U
 	     //V

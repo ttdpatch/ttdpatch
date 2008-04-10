@@ -245,7 +245,6 @@ TEXTARRAY(halflines,) =
 	  "-YH: More/new hotkeys",
 	  "-YL: Speed limits for train wagons",
 	  "-YN: Enable new town name schemes",
-	  "-YS: Semaphore signals before 1975",
 
 	  "-Zc: Enable new cargo types",
 	  "-Zd: New station cargo distribution",
@@ -321,6 +320,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-YO #:   Enable the snow line in the temperate climate and set its height\n"
 	  "-YP #:   Planes fly at #/4 times their indicated speed.\n"
 	  "-YR #:   Override map refresh frequency to # ticks\n"
+	  "-YS #:   Build semaphore signals before the specified year\n"
 	  "-YT #:   Set town growth rate algorithm\n"
 	  "-YW #:   Set maximum allowed window count\n"
 	  "-Za #:   Enable more animation (sets number of animated tiles)\n"
@@ -437,7 +437,7 @@ SWITCHTEXT(miscmods2, "More miscellaneous mods", ": %ld")
 SWITCHTEXT(loadallgraphics, "Always load all new graphics", "")
 SWITCHTEXT(saveoptdata, "Save and load optional data", "")
 SWITCHTEXT(morebuildoptions, "More build options", ": %d")
-SWITCHTEXT(semaphoresignals, "Semaphores before 1975", "")
+SWITCHTEXT(semaphoresignals, "Semaphore signals", " before %d")
 SWITCHTEXT(morehotkeys, "More/new hotkeys", "")
 SWITCHTEXT(plantmanytrees, "Plant many trees", ", mode %d")
 SWITCHTEXT(morecurrencies, "Enable more currencies", ", flags: %d")
@@ -802,7 +802,7 @@ SETTEXT(CFG_MISCMODS2, "`%s' (%s) makes it posible to modify the working of some
 SETTEXT(CFG_LOADALLGRAPHICS, "`%s' (%s) forces TTDPatch to always load all .grf files in newgrf(w).cfg, regardless of whether they were used previously in a loaded game (etc.) or not.")
 SETTEXT(CFG_SAVEOPTDATA, "`%s' (%s) makes TTDPatch save and load additional (optional) data at the end of savegames.")
 SETTEXT(CFG_MOREBUILDOPTIONS, "`%s' (%s) enables more build options.")
-SETTEXT(CFG_SEMAPHORES, "`%s' (%s) turns new signals built before 1975 into semaphore signals.")
+SETTEXT(CFG_SEMAPHORES, "`%s' (%s) turns new signals built before the specified year into semaphore signals.")
 SETTEXT(CFG_MOREHOTKEYS, "`%s' (%s) enables new hotkeys.")
 SETTEXT(CFG_MANYTREES, "`%s' (%s) allows planting many trees at once.")
 SETTEXT(CFG_MORECURRENCIES,"`%s' (%s) enables more currencies and the Euro.")
