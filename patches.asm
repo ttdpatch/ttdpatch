@@ -19,8 +19,9 @@
 
 	patchproc anyflagset, patchloadunload
 
+	patchproc unifiedmaglev,newtrains,saveoptdata, patchrailvehiclelist	// all switches here must also be present for patchwaggoncheck, patchaibuyvehicle and the testmultiflags in patchaibuyvehicle
 #if WINTTDX
-	patchproc resolutionwidth,resolutionheight, patchresolution
+	patchproc resolutionwidth,resolutionheight, patchresolution	// must be after patchrailvehiclelist -- may create a search string
 #endif
 	patchproc enhancegui,locomotiongui, patchdynamicmemory	// only used currently by enhancegui
 
@@ -121,7 +122,6 @@
 	patchproc maskdisasters, patchdisastersmask	// must be before patcheternalgame (which destroys a search string)
 	patchproc morenews, patchmorenews
 	patchproc morenews,pathbasedsignalling, patchclearcrashedtrain
-	patchproc unifiedmaglev,newtrains,saveoptdata, patchrailvehiclelist	// all switches here must also be present for patchwaggoncheck, patchaibuyvehicle and the testmultiflags in patchaibuyvehicle
 	patchproc unifiedmaglev,newtrains,newrvs,newplanes,newships,saveoptdata, patchaibuyvehicle
 	patchproc unifiedmaglev,newtrains,newrvs,newships,newplanes,saveoptdata,newstartyear, patchairandomroutes
 	patchproc generalfixes,unifiedmaglev, patchrailconsmenu
