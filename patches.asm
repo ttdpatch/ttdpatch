@@ -153,7 +153,7 @@
 
 	patchproc electrifiedrail, patchelectrifiedrail		// must be after patchunifiedmaglev
 	patchproc locomotiongui, patchlocomotiongui		// must be before patchstationgraphics
-	patchproc electrifiedrail,newstations, patchstationgraphics	// must be before patchsetnewgraphics
+	patchproc electrifiedrail,newstations,trams, patchstationgraphics	// must be before patchsetnewgraphics
 	patchproc newstations,trams, patchbusstop		// need stuff set via patchstationgraphics!
 
 		// all patch bits that use overrideembeddedsprite must be listed below

@@ -3,7 +3,7 @@
 #include <patchproc.inc>
 
 patchproc custombridgeheads, patchautojoinraildepot
-patchproc custombridgeheads, newstations, patchautojoinroaddepot
+patchproc custombridgeheads,newstations,trams, patchautojoinroaddepot
 
 begincodefragments
 
