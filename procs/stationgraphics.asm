@@ -8,11 +8,11 @@ extern drawstationimageinrailselectwin
 extern ttdpatchstationspritelayout
 extern paStationsNewLayouts
 
-ext_frag newgetstationtracktrl
-
 global patchstationgraphics
 
 begincodefragments
+
+codefragment_call newgetstationtracktrl, getstationtracktrl
 
 codefragment oldgetstationspriteset
 	and ebp,byte 0xF

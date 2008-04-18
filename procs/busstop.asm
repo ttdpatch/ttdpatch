@@ -125,6 +125,14 @@ codefragment oldbuslorrystationwindowdrawhandler, -5
 
 codefragment_call newbuslorrystationwindowdrawhandler,BusLorryStationDrawHandler,5
 
+codefragment oldaddstationspritebase,6
+	mov dh,[ebp+5]
+	mov ebx,[ebp+6]
+
+codefragment_call newgetstationspritetrl, getstationspritetrl
+codefragment_call newgetstationspritelayout, getstationspritelayout, 10
+codefragment_call newgetstationtracktrl, getstationtracktrl
+
 endcodefragments
 
 patchbusstop:
@@ -263,5 +271,15 @@ patchbusstop:
 	
 // Enable custom graphics set for roadside RV stops.
 	or byte [newgraphicssetsenabled+2], 1<<(17-16)
+
+// Newstations stuff required by trams
+	patchcode oldaddstationspritebase,newgetstationspritetrl,2-WINTTDX,3
+	add edi,byte lastediadj+90
+	storefragment newgetstationspritetrl
+	sub edi,dword 196-lastediadj
+	storefragment newgetstationspritelayout
+	mov byte [edi+lastediadj+24],0x7f
+	add edi,byte 33+lastediadj
+	storefragment newgetstationtracktrl
 	
 	ret

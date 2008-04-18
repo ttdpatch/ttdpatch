@@ -4,7 +4,7 @@
 #include <station.inc>
 #include <patchproc.inc>
 
-patchproc newstations,trams, patchnewstations
+patchproc newstations, patchnewstations
 patchproc newstations,newindustries, patchstationnames
 
 extern checktrainenterstationtile,checktrainenterstationtile.oldfn
@@ -20,21 +20,6 @@ codefragment newaddtracktypetostation
 	call runindex(alteraddlandscape3tracktype)
 	nop
 	nop
-
-codefragment oldaddstationspritebase,6
-	mov dh,[ebp+5]
-	mov ebx,[ebp+6]
-
-codefragment newgetstationspritetrl
-	call runindex(getstationspritetrl)
-
-codefragment newgetstationspritelayout
-	call runindex(getstationspritelayout)
-	setfragmentsize 10
-
-glob_frag newgetstationtracktrl
-codefragment newgetstationtracktrl
-	call runindex(getstationtracktrl)
 
 codefragment olddispstationsprite,3
 	shl eax,16
@@ -167,14 +152,6 @@ endcodefragments
 patchnewstations:
 	// Different Station Sets
 	patchcode oldaddtracktypetostation,newaddtracktypetostation,1,1
-	patchcode oldaddstationspritebase,newgetstationspritetrl,2-WINTTDX,3
-	add edi,byte lastediadj+90
-	storefragment newgetstationspritetrl
-	sub edi,dword 196-lastediadj
-	storefragment newgetstationspritelayout
-	mov byte [edi+lastediadj+24],0x7f
-	add edi,byte 33+lastediadj
-	storefragment newgetstationtracktrl
 	patchcode olddispstationsprite,newdispstationsprite
 	add edi,lastediadj-41
 extern getspritecoordsforstationwindow,getspritecoordsforstationwindow.landscapetopixel
