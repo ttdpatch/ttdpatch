@@ -944,7 +944,7 @@ proc processtileaction2
 	test byte [displayoptions],0x10
 	jnz .nottransp2
 	test byte [displayoptions],0x40
-	jnz short .boxdone
+	jnz short .skipbox
 	and ebx,0x3fff
 	or ebx, (802 << 16)+0x4000
 .nottransp2:
@@ -963,20 +963,29 @@ proc processtileaction2
 	movzx esi,byte [esi+4]
 	call [addsprite]
 	popa
+.skipown:
 	add esi,6
 	jmp short .boxdone
 
 .sharebox:
 // this sprite shares the bounding box of the previous one - use addresprite
+	test byte [displayoptions],0x40
+	jnz short .skipshare
 	movzx eax, byte [esi]
 	movzx ecx, byte [esi+1]
 	call [addrelsprite]
 	popa
+.skipshare:
 	add esi,3
 .boxdone:
 	dec byte [%$numsprites]
 	jnz .nextbox
 	_ret
+
+.skipbox:
+	cmp byte [esi+2],0x80
+	jne .skipown
+	jmp short .skipshare
 
 // helper function to read and pre-process a sprite number read from the action2
 // in:	esi->data
