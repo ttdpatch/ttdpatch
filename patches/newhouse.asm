@@ -969,8 +969,6 @@ proc processtileaction2
 
 .sharebox:
 // this sprite shares the bounding box of the previous one - use addresprite
-	test byte [displayoptions],0x40
-	jnz short .skipshare
 	movzx eax, byte [esi]
 	movzx ecx, byte [esi+1]
 	call [addrelsprite]
