@@ -542,6 +542,8 @@ LoadCargoFromStation:
 	mov	dx, [esi+veh.capacity]
 	cmp	dx, [esi+veh.currentload]
 	jnz	.notfull
+	testflags fifoloading
+	jnc	.notfull
 // Vehicle is full; reduce rescount so next vehicle can load, and mark as has-not-reserved so the exit proc doesn't decrement again
 	and	byte [esi+veh.modflags+1], ~ (1 << (MOD_HASRESERVED-8) )
 	add	ebx, [stationarray2ofst]
@@ -875,7 +877,7 @@ LoadUnloadCargo:
 	xchg eax, esi
 	call convertplatformsinremoverailstation
 	xchg eax, esi
-	mov	[%$stationlength],dl
+	mov	[%$stationlength],dh
 	jmp short .donegetstationlen
 .irrgetstationlen:	
 	push	esi
