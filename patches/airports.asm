@@ -11,7 +11,7 @@
 
 extern curgrfairportlist,curspriteblock
 extern grffeature,curcallback,getnewsprite,callback_extrainfo
-extern GenerateDropDownMenu,invalidatehandle,stationarray2ofst
+extern GenerateDropDownMenu,invalidatehandle,station2ofs_ptr
 extern aircraftbboxtable,orgsetsprite, patchflags
 
 uvard airportdataidtogameid, NUMAIRPORTS*2
@@ -374,8 +374,7 @@ gotonextaircraftedge:
 	movzx eax, byte [esi+veh.movementstat]
 	cmp eax, 64
 	jae .noresetbit_hangar
-	add ebx,[stationarray2ofst]
-	btr [ebx+station2.airportbusyedges],eax
+	btr [ebx+station2ofs+station2.airportbusyedges],eax
 
 	mov byte [esi+veh.movementstat],0xFF
 .noresetbit_hangar:
@@ -393,7 +392,7 @@ gotonextaircraftedge:
 .notheli:
 	or dh,al
 
-	add ebx,[stationarray2ofst]
+	add ebx,[station2ofs_ptr]
 	mov cl,0
 	mov ch,[airportmovementedgenums+ebp]
 	mov edi,[airportmovementedgelistptrs+ebp*4]
@@ -679,8 +678,7 @@ exported newaircraftorder
 
 	cmp ecx, 64
 	jae .noreset
-	add ebx, [stationarray2ofst]
-	btr [ebx+station2.airportbusyedges],ecx
+	btr [ebx+station2ofs+station2.airportbusyedges],ecx
 .noreset:
 .interrupt:
 
@@ -740,10 +738,8 @@ exported buynewaircraft
 	ret
 
 exported initairportstate
-	mov ebp,esi
-	add ebp,[stationarray2ofst]
-	and dword [ebp+station2.airportbusyedges],0
-	and dword [ebp+station2.airportbusyedges+4],0
+	and dword [esi+station2ofs+station2.airportbusyedges],0
+	and dword [esi+station2ofs+station2.airportbusyedges+4],0
 	cmp al,3
 	jae .zerostate
 	mov ax,[.startstates+eax*2]
@@ -969,4 +965,5 @@ CalcAirportBuyCost:
 	pop edi
 	cmp ebx, 0x80000000
 	ret
+
 

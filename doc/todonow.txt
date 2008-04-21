@@ -196,7 +196,7 @@
 
 - add default refit ratio for cargos
 
-- add veh2ofs (or not, wrong size) and station2ofs ptrvars
+- add veh2ofs (or not, wrong size) ptrvar
 
 - show yellow income/cost messages for feeder service drop-off/pick-up
 

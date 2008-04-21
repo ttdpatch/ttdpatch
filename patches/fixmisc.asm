@@ -32,7 +32,7 @@ extern isremoteplayer,lastextrahousedata,lastkeyremapped,maglevclassadjust
 extern maprefreshfrequency,miscmodsflags,newhouseyears,newvehicles
 extern orgsetsprite,patchflags,realcurrency,redrawscreen,resheight,reswidth
 extern setroadowner,sigbitsonpiece,newvehdata,currwaittime
-extern stationarray2ofst,stationarray2ptr,tmpbuffer1,townarray2ofst
+extern station2ofs_ptr,stationarray2ptr,tmpbuffer1,townarray2ofst
 extern trainrunningcost,ttdtexthandler,vehdirectionroutemasks
 extern yeartodate
 extern spriteblockptr,gettextintableptr,gettextandtableptrs
@@ -3451,7 +3451,7 @@ calccatchment:
 	jnc .nooverflow	// by
 	mov ch,0xff	// the
 .nooverflow:		// runindex call
-	add esi,[stationarray2ofst]
+	add esi,[station2ofs_ptr]
 	mov [esi+station2.catchmenttop],bx
 	mov [esi+station2.catchmentbottom],cx
 	ret
@@ -3473,10 +3473,11 @@ checkstationindustrydist:
 	ret
 
 .foundsomething:
-	movzx ebp,byte [esp+17]
+	movzx esi,byte [esp+17]
 	push ecx
-	imul ebp,station2_size
-	add ebp,[stationarray2ptr]
+	imul esi,station2_size
+	add esi,[stationarrayptr]
+	lea ebp, [esi+station2ofs]
 
 	cmp dword [ebp+station2.catchmenttop],0
 	jne .catchmentok
@@ -3484,8 +3485,6 @@ checkstationindustrydist:
 	push ebp
 	push edi
 	mov al,1
-	mov esi,ebp
-	sub esi,[stationarray2ofst]
 	call [UpdateStationAcceptList]
 	pop edi
 	pop ebp

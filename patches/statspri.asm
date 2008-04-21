@@ -28,7 +28,7 @@ extern invalidatehandle,invalidatetile,irrgetrailxysouth,isrealhumanplayer
 extern laststationid,miscgrfvar,newstationclasses,newstationlayout
 extern newstationnames,newstationnum,numstationsinclass,patchflags
 extern piececonnections,randomfn,randomstationtrigger
-extern setstationdisabledbuttons,stationarray2ofst,stationcallbackflags
+extern setstationdisabledbuttons,station2ofs_ptr,stationcallbackflags
 extern stationcargowaitingmask,stationclass,stationclassesused,stationflags
 extern stationspritelayout,stsetids
 extern unimaglevmode, Class5LandPointer, paStationtramstop
@@ -2309,9 +2309,7 @@ getstationacceptedcargos:
 	ret
 
 .new:
-	mov eax,esi
-	add eax,[stationarray2ofst]
-	mov eax,[eax+station2.acceptedcargos]
+	mov eax,[esi+station2ofs+station2.acceptedcargos]
 	ret
 
 // var. 4A: get current animation frame
@@ -2474,9 +2472,7 @@ exported getcargoacceptdata
 .newformat:
 	cmp eax,32
 	jae getcargowaiting.returnzero
-	mov ecx,esi
-	add ecx,[stationarray2ofst]
-	bt dword [ecx+station2.acceptedcargos],eax
+	bt dword [esi+station2ofs+station2.acceptedcargos],eax
 	setc al
 	shl al,3
 	ret
@@ -2629,11 +2625,12 @@ exported getstationaccepthistory
 	cmp cl,0xFF
 	je .done
 
-	cmp dword [stationarray2ofst],0
+	extern stationarray2ptr
+	cmp dword [stationarray2ptr],0
 	je .done
 
 	push esi
-	add esi,[stationarray2ofst]
+	add esi,[station2ofs_ptr]
 	bt [esi+station2.acceptedsinceproc],ecx
 	rcl eax,1
 	bt [esi+station2.acceptedthismonth],ecx

@@ -19,7 +19,7 @@ extern cargotypenamesptr,cargounitnamesptr,cargounitweightsptr
 extern gettextandtableptrs,malloccrit,newcargoamount1names
 extern newcargoicons,newcargopricefactors,newcargoshortnames
 extern newcargotypenames,pdaTempStationPtrsInCatchArea
-extern stationarray2ofst,stationcargowaitingmask
+extern stationcargowaitingmask
 extern stationcargowaitingnotmask,variabletofind,variabletowrite
 
 begincodefragments
@@ -251,9 +251,7 @@ codefragment oldgetacceptbitmask
 	mov ecx,1
 
 codefragment newgetacceptbitmask
-	mov eax,esi
-	add eax,[stationarray2ofst]
-	mov eax,[eax+station2.acceptedcargos]
+	mov eax,[esi+station2ofs+station2.acceptedcargos]
 	ret
 
 codefragment oldcollectacceptedcargos,3

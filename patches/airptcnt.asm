@@ -3,6 +3,8 @@
 //
 
 #include <defs.inc>
+%macro ptrvardec 1
+%endmacro
 #include <station.inc>
 
 extern airportweight

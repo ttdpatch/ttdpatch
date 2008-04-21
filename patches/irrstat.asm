@@ -14,7 +14,7 @@
 
 extern checkvehiclesinthewayfn,cleartilefn,curplayerctrlkey,ishumanplayer
 extern locationtoxy,newstationpos,newstationtracks,patchflags
-extern stationarray2ofst,stationidgrfmap,newstationspread
+extern stationidgrfmap,newstationspread
 extern maxrstationspread
 
 
@@ -218,7 +218,6 @@ global irrsetstationsizenew
 irrsetstationsizenew:
 	push eax
 	push edx
-	push esi
 	sub dx, 0x101
 	or bh, bh
 	jz .noswitch
@@ -227,9 +226,7 @@ irrsetstationsizenew:
 	mov ax, word [esi+station.railXY]
 	add al, dl
 	add ah, dh
-	add esi, [stationarray2ofst]
-	mov word [esi+station2.railxysouth], ax
-	pop esi
+	mov word [esi+station2ofs+station2.railxysouth], ax
 	pop edx
 	pop eax
 	ret
@@ -237,11 +234,8 @@ irrsetstationsizenew:
 global irrsetstationsizeext
 irrsetstationsizeext:
 	push eax
-	push esi
 	mov ax, [newstationxysouth]
-	add esi, [stationarray2ofst]
-	mov word [esi+station2.railxysouth], ax
-	pop esi
+	mov word [esi+station2ofs+station2.railxysouth], ax
 	pop eax
 	ret
 
@@ -253,21 +247,14 @@ global irrgetrailxysouth
 irrgetrailxysouth:
 global irrconvertplatformsincargoacceptlist
 irrconvertplatformsincargoacceptlist:
-	push esi
-	add esi, [stationarray2ofst]
-	cmp word [esi+station2.railxysouth], 0
+	cmp word [esi+station2ofs+station2.railxysouth], 0
 	jz .needrecalc
-	mov dx, word [esi+station2.railxysouth]
-	pop esi
+	mov dx, word [esi+station2ofs+station2.railxysouth]
 	ret
 .needrecalc:
-	pop esi
-	push esi
 	call getstationdimplatformslength
 	mov dx, word [irrgetstationinfoblock+irrgetstationinfo.maxxy]
-	add esi, [stationarray2ofst]
-	mov word [esi+station2.railxysouth], dx
-	pop esi
+	mov word [esi+station2ofs+station2.railxysouth], dx
 	ret
 ;endp irrconvertplatformsincargoacceptlist
 
@@ -420,10 +407,7 @@ proc fixstationplatformslength
 	mov bl, byte [%$maxx]
 	mov bh, byte [%$maxy]
 
-	push esi
-	add esi, [stationarray2ofst]
-	mov word [esi+station2.railxysouth], bx
-	pop esi
+	mov word [esi+station2ofs+station2.railxysouth], bx
 
 	sub bl, dl
 	sub bh, dh
@@ -451,10 +435,8 @@ proc fixstationplatformslength
 	
 .bigstation:
 	or BYTE [esi+station.flags], 0x80
-	mov eax, [stationarray2ofst]
-	add eax, esi
 	xchg bl, bh
-	mov [eax+station2.platforms], bx
+	mov [esi+station2ofs+station2.platforms], bx
 	jmp short .done
 
 .notilesleft:

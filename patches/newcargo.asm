@@ -19,7 +19,7 @@ extern cargoclasscargos,cargoid,curspriteblock,drawtextfn
 extern fillrectangle,getnewsprite,getwincolorfromdoscolor
 extern grffeature,invalidatehandle,isfreight,isfreightmult
 extern malloc,patchflags,pdaTempStationPtrsInCatchArea,randomstationtrigger
-extern cargobits,cargotypes,spriteblockptr,stationarray2ofst
+extern cargobits,cargotypes,spriteblockptr
 extern updatestationgraphics,newvehdata
 extern callback_extrainfo,curcallback,grfstage,grfresources
 extern statanim_cargotype,stationanimtrigger
@@ -130,13 +130,10 @@ addcargotostation_2:
 	shr ecx, 3
 	movzx eax, ah
 
-	add esi, [stationarray2ofst]
-	// ESI->Station2
-
 // now we need to find the right slot
 	xor ebx, ebx
 .loop:
-	cmp [esi+station2.cargos+ebx+stationcargo2.type], cl
+	cmp [esi+station2ofs+station2.cargos+ebx+stationcargo2.type], cl
 	je .found
 	add ebx, stationcargo2_size
 	cmp ebx, 12*stationcargo2_size
@@ -146,8 +143,6 @@ addcargotostation_2:
 	ud2
 
 .found:
-	sub esi, [stationarray2ofst]
-	// ESI->station
 
 // add the amount to the station, but be careful not to exceed the limit ( 7FFFh )
 	add [esi+station.cargos+ebx+stationcargo.amount],ax
@@ -166,11 +161,9 @@ addcargotostation_2:
 
 	pusha
 	mov eax,ebx
-	mov ebx,esi
-	add esi, [stationarray2ofst]
-	movzx eax,byte [esi+station2.cargos+eax+stationcargo2.type]
+	mov ebx,esi	// INVESTIGATE: Still necessary with station2ofs ptrvar?
+	movzx eax,byte [esi+station2ofs+station2.cargos+eax+stationcargo2.type]
 
-	mov esi,ebx
 	mov [statanim_cargotype],al
 	mov edx,1
 	call stationanimtrigger
@@ -199,8 +192,7 @@ addcargotostation_2:
 global movbxcargoicons
 movbxcargoicons:
 	push esi
-	add esi, [stationarray2ofst]
-	movzx eax,byte [esi+station2.cargos+stationcargo2.type]
+	movzx eax,byte [esi+station2ofs+station2.cargos+stationcargo2.type]
 	mov bx, [newcargoicons+eax*2]
 	cmp bx,-1
 	jne .done
@@ -228,9 +220,7 @@ movbxcargoicons:
 // safe: eax
 global movbxcargoamountnames
 movbxcargoamountnames:
-	push esi
-	add esi, [stationarray2ofst]
-	movzx ebx,byte [esi+station2.cargos+stationcargo2.type]
+	movzx ebx,byte [esi+station2ofs+station2.cargos+stationcargo2.type]
 	push cx
 	mov cx, [newcargoamount1names+ebx*2]
 	dec ax
@@ -239,7 +229,6 @@ movbxcargoamountnames:
 .done:
 	mov bx, cx
 	pop cx
-	pop esi
 	ret
 
 // The same as above, but called when displaying the amount of cargo carried by a
@@ -284,11 +273,8 @@ movaxcargoamountnames:
 // out: ax=textid
 global movaxcargotypenames
 movaxcargotypenames:
-	push esi
-	add esi, [stationarray2ofst]
-	movzx eax,byte [esi+station2.cargos+stationcargo2.type]
+	movzx eax,byte [esi+station2ofs+station2.cargos+stationcargo2.type]
 	mov ax, [newcargotypenames+eax*2]
-	pop esi
 	ret
 
 // Called in the station list window handler to get the short cargo name
@@ -298,29 +284,25 @@ movaxcargotypenames:
 // out:	bx=textid
 global movbxcargoshortnames
 movbxcargoshortnames:
-	push esi
-	add esi, [stationarray2ofst]
-	movzx ebx,byte [esi+8*ebp+station2.cargos+stationcargo2.type]
+	movzx ebx,byte [esi+station2ofs+8*ebp+station2.cargos+stationcargo2.type]
 	mov bx, [newcargoshortnames+ebx*2]
-	pop esi
 	ret
 
 // In:	esi -> vehicle
-//	ebx -> station2
-// Out:	ebx -> station
-//	ecx: cargo offset
+//	ebx -> station
+// Out:	ecx: cargo offset
 // unlike ecxcargooffset, this works regardless of whether newcargos is on or off
 
 exported safeecxcargooffset
 	testflags newcargos
 	jnc	.nonewcargos
 	mov	al, [esi+veh.cargotype]
-	jmp	short ecxcargooffset_ebx2
+	jmp	short ecxcargooffset
 
 .nonewcargos:
 	movzx	ecx, byte [esi+veh.cargotype]
 	shl	ecx, 3
-	jmp	short ecxcargooffset_ebx2.found
+	ret
 
 // Auxiliary: Get cargo slot offset (slot# * 8) on a given station for the
 // given cargo type. Returns FFh if there's no slot for this cargo.
@@ -329,12 +311,10 @@ exported safeecxcargooffset
 // out:	ecx=cargo offset
 global ecxcargooffset
 ecxcargooffset:
-	add ebx, [stationarray2ofst]
-exported ecxcargooffset_ebx2
 	xor ecx,ecx
 	
 .loop:
-	cmp [ebx+station2.cargos+ecx+stationcargo2.type], al
+	cmp [ebx+station2ofs+station2.cargos+ecx+stationcargo2.type], al
 	je .found
 	add ecx, stationcargo2_size
 	cmp ecx,12*stationcargo2_size
@@ -343,7 +323,6 @@ exported ecxcargooffset_ebx2
 	mov cl,0xff
 
 .found:
-	sub ebx, [stationarray2ofst]
 	ret
 
 // Auxiliary: Try introducing a new cargo type to an empty slot, or
@@ -359,11 +338,9 @@ ecxcargooffset_force:
 
 // first, look for any empty slots
 	xor ecx, ecx
-	mov edx, ebx
-	add edx, [stationarray2ofst]
 
 .loop1:
-	cmp byte [edx+station2.cargos+ecx+stationcargo2.type], 0xff
+	cmp byte [ebx+station2ofs+station2.cargos+ecx+stationcargo2.type], 0xff
 	je .foundit
 	add ecx, stationcargo2_size
 	cmp ecx,12*stationcargo2_size
@@ -411,8 +388,7 @@ ecxcargooffset_force:
 	mov byte [ebx+station.cargos+ecx+stationcargo.lastspeed], 0
 	mov byte [ebx+station.cargos+ecx+stationcargo.lastage], -1
 
-	mov edx, ebx
-	add edx, [stationarray2ofst]
+	lea edx, [ebx+station2ofs]
 
 	and word [edx+station2.cargos+ecx+stationcargo2.resamt],0
 	or word [edx+station2.cargos+ecx+stationcargo2.curveh],-1
@@ -481,8 +457,7 @@ updatestationacceptlist:
 	jz .ok
 	xor eax,eax
 .ok:
-	mov ebx, esi
-	add ebx, [stationarray2ofst]
+	lea ebx, [esi+station2ofs]
 
 	btr dword [ebx+station2.acceptedcargos],edx
 	movzx eax,ax
@@ -640,14 +615,11 @@ distribcargo_foundstation:
 	jnz .exit
 
 	push edx
-	push edi
 
 // first try looking for the cargo slot
-	mov edi,ebp
-	add edi,[stationarray2ofst]
 	xor edx,edx
 .loop:
-	cmp [edi+station2.cargos+edx+stationcargo2.type], al
+	cmp [ebp+station2ofs+station2.cargos+edx+stationcargo2.type], al
 	je .found
 	add edx, stationcargo2_size
 	cmp edx,12*stationcargo2_size
@@ -677,7 +649,6 @@ distribcargo_foundstation:
 // please note that at this point, the station won't surely be added to the list
 // we don't have to worry about this, though; the later code won't read unused fields
 	mov [TempCargoOffsetsInCatchmentArea+ebx],dl
-	pop edi
 	pop edx
 
 	cmp eax,eax	// set zf
@@ -686,7 +657,6 @@ distribcargo_foundstation:
 
 .disallow:
 	or ebp, ebp
-	pop edi
 	pop edx
 	ret
 
@@ -805,8 +775,7 @@ distribcargo_2stations:
 global collectacceptedcargos
 collectacceptedcargos:
 	xor ebx,ebx
-	add esi,[stationarray2ofst]
-	mov esi,[esi+station2.acceptedcargos]
+	mov esi,[esi+station2ofs+station2.acceptedcargos]
 
 // now esi=mask of accepted cargos
 .nextcargo:
@@ -895,9 +864,7 @@ inflatecargoprices:
 // out:	ebp=color to be used
 global getcargocolor
 getcargocolor:
-	add esi,[stationarray2ofst]
-	movzx ebp,byte [esi+station2.cargos+ebp*8+stationcargo2.type]
-	sub esi,[stationarray2ofst]
+	movzx ebp,byte [esi+station2ofs+station2.cargos+ebp*8+stationcargo2.type]
 	movzx ebp,byte [newcargocolors+ebp]
 	ret
 
@@ -1647,9 +1614,7 @@ exported calcstationrating
 
 // now edi->last vehicle (or 0 if none), ah=type of last vehicle (or 0 if none)
 // get cargo type of the slot
-	mov ecx,esi
-	add ecx,[stationarray2ofst]
-	movzx ecx,byte [ecx+station2.cargos+ebx+stationcargo2.type]
+	movzx ecx,byte [esi+station2ofs+station2.cargos+ebx+stationcargo2.type]
 
 	test byte [cargocallbackflags+ecx],2
 	jz .nocallback

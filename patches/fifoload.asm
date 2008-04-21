@@ -30,9 +30,10 @@ exported removeconsistfromqueue
 .vehloop:
 	cmp word [esi+veh.capacity],0
 	je .next
+	extern station2ofs_ptr
+	sub ebx, [station2ofs_ptr]
 	extcall safeecxcargooffset
-	extern stationarray2ofst
-	add ebx, [stationarray2ofst]
+	add ebx, [station2ofs_ptr]
 	or cl, cl
 	js .next
 	btr dword [esi+veh.modflags], MOD_HASRESERVED
@@ -114,16 +115,16 @@ exported dequeueveh
 #endif
 
 // In:	esi->vehicle
-//	ebx->station2
+//	ebx->station
 //	ecx: cargo offset
 //Out:	vehicle has been added to end of reserving queue
-// NOTE! Do not clear MOD_HASRESERVED! This vehicle may have reseved and then gone to service.
+// NOTE! Do not clear MOD_HASRESERVED! This vehicle may have reserved and then gone to service.
 exported enqueueveh
 	test byte [esi+veh.modflags+1], (1<<(MOD_HASRESERVED-8))
 	jnz .ret		// This vehicle left to visit a depot after reserving; do nothing.
 	pusha
 	mov edi, [esi+veh.veh2ptr]
-	cvivpjnv eax, [ebx+station2.cargos+ecx+stationcargo2.curveh], .first
+	cvivpjnv eax, [ebx+station2ofs+station2.cargos+ecx+stationcargo2.curveh], .first
 	mov eax, [eax+veh.veh2ptr]
 .loop:
 	mov edx, eax
@@ -145,7 +146,7 @@ exported enqueueveh
 .first:
 	and dword [edi+veh2.prevptr], 0
 	mov si, [esi+veh.idx]
-	mov [ebx+station2.cargos+ecx+stationcargo2.curveh], si
+	mov [ebx+station2ofs+station2.cargos+ecx+stationcargo2.curveh], si
 	popa
 	ret
 
@@ -225,8 +226,7 @@ exported fifoenterstation
 	pusha
 	movzx	ebx, byte [esi+veh.laststation]
 	imul	ebx, station_size
-	add	ebx, [stationarray2ptr]
-	push	ebx
+	add	ebx, [stationarrayptr]
 .vehloop:
 	cmp	word [esi+veh.capacity], 0
 	je	.next
@@ -234,16 +234,13 @@ exported fifoenterstation
 	or	cl, cl
 	jns	.call
 	extcall	ecxcargooffset_force
-	mov	ebx, [esp]
-	cmp	cl, cl
+	or	cl, cl
 	js	.next
 .call:
-	mov	ebx, [esp]
 	call	enqueueveh
 .next:
 	cvivpjv	[esi+veh.nextunitidx], .vehloop
 
-	pop	ebx
 	popa
 .ret:
 	ret
@@ -252,17 +249,15 @@ exported fifoenterstation
 exported buildloadlists
 	pusha
 	mov	ebx, [stationarray2ptr]
+	xor	ecx, ecx
 
 .stationloop:
+	push	ecx
 	mov	eax, ebx
-	sub	eax, [stationarray2ofst]
+	sub	eax, [station2ofs_ptr]
 	cmp	word [eax+station.XY], 0
 	je	near .nextstation
-	sub	eax, [stationarrayptr]
-	cdq
-	xor	ecx, ecx
-	mov	cl, station2_size
-	div	ecx, 0 // '0' disables the divide-by-zero prep, but there's no way ecx can be 0 in the first place.
+	mov	eax, ecx
 	mov	cl, 11*8
 
 .cargoloop:
@@ -331,10 +326,11 @@ exported buildloadlists
 	jns	.cargoloop
 
 .nextstation:
+	pop	ecx
 	add	ebx, station2_size
-	extern	stationarray2endptr
-	cmp	ebx, [stationarray2endptr]
-	jb	.stationloop
+	inc	ecx
+	cmp	cl, numstations
+	jne	.stationloop
 	popa
 	ret
 
@@ -346,7 +342,7 @@ exported buildfifoidx
 
 .stationloop:
 	mov	eax, ebx
-	sub	eax, [stationarray2ofst]
+	sub	eax, [station2ofs_ptr]
 	cmp	word [eax+station.XY], 0
 	je	.nextstation
 
@@ -378,6 +374,7 @@ exported buildfifoidx
 
 .nextstation:
 	add	ebx, station2_size
+	extern	stationarray2endptr
 	cmp	ebx, [stationarray2endptr]
 	jb	.stationloop
 	

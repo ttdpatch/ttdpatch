@@ -19,7 +19,7 @@ extern ecxcargooffset,ecxcargooffset_force,generateincometexteffect
 extern generatesoundeffect,getirrplatformlength,getloadamountcallback
 extern invalidatehandle,ishumanplayer,lastaccel,loadwaittime,maxloadamount
 extern miscgrfvar,miscmodsflags,mountaintypes,numvehloadable
-extern numvehstillunloading,patchflags,randomconsisttrigger,stationarray2ofst
+extern numvehstillunloading,patchflags,randomconsisttrigger,station2ofs_ptr
 extern stationcargowaitingmask,stationcargowaitingnotmask
 extern stationplatformtrigger,totalloadamount,transferprofit
 extern updatestationgraphics
@@ -226,12 +226,13 @@ AcceptCargoAtStation:
 	call	dword [acceptcargofn]
 	add	[%$income], eax
 
-	cmp dword [stationarray2ofst],0
+	extern stationarray2ptr
+	cmp dword [stationarray2ptr],0
 	je .cashindone
 
 // record the acceptance of this cargo in the station2 acceptance records
 	mov ebx,[%$currstationptr]
-	add ebx,[stationarray2ofst]
+	add ebx,[station2ofs_ptr]
 	movzx ecx, byte [esi+veh.cargotype]
 	bts dword [ebx+station2.acceptedsinceproc],ecx
 	bts dword [ebx+station2.acceptedthismonth],ecx
@@ -378,7 +379,7 @@ LoadCargoFromStation:
 .reserve:
 	mov	dx, [esi+veh.capacity]
 	mov	ax, [ebx+station.cargos+ecx+stationcargo.amount]
-	add	ebx, [stationarray2ofst]
+	add	ebx, [station2ofs_ptr]
 	sub	dx, [esi+veh.currentload]
 	jz	near dequeueveh		// No (remaining) capacity; dequeue so following vehicles can load.
 	and	ax, [stationcargowaitingmask]
@@ -391,7 +392,7 @@ LoadCargoFromStation:
 	inc	byte [ebx+station2.cargos+ecx+stationcargo2.rescount]
 	add	[ebx+station2.cargos+ecx+stationcargo2.resamt], dx
 .allowfifo:
-	sub	ebx, [stationarray2ofst]	// ebx points to the station struc again
+	sub	ebx, [station2ofs_ptr]	// ebx points to the station struc again
 
 .reserved:
 .nofifo:
@@ -525,9 +526,7 @@ LoadCargoFromStation:
 	jnc	.unres
 	test	byte [esi+veh.modflags+1], 1<<(MOD_HASRESERVED-8)
 	jz	.unres
-	add	ebx, [stationarray2ofst]
-	sub	[ebx+station2.cargos+ecx+stationcargo2.resamt], ax
-	sub	ebx, [stationarray2ofst]
+	sub	[ebx+station2ofs+station2.cargos+ecx+stationcargo2.resamt], ax
 .unres:
 	sub	[ebx+station.cargos+ecx+stationcargo.amount], ax
 	mov	byte [ebx+station.timesinceload], 0
@@ -546,9 +545,7 @@ LoadCargoFromStation:
 	jnc	.notfull
 // Vehicle is full; reduce rescount so next vehicle can load, and mark as has-not-reserved so the exit proc doesn't decrement again
 	and	byte [esi+veh.modflags+1], ~ (1 << (MOD_HASRESERVED-8) )
-	add	ebx, [stationarray2ofst]
-	dec	byte [ebx+station2.cargos+ecx+stationcargo2.rescount]
-	sub	ebx, [stationarray2ofst]
+	dec	byte [ebx+station2ofs+station2.cargos+ecx+stationcargo2.rescount]
 .notfull:
 .nothingmoved:
 	or	byte [%$flags], 2			// both the vehicle and the station windows need redrawing
@@ -716,7 +713,7 @@ SetupGradualLoad:
 	testflags newcargos
 	jnc	.stationptr_ok
 
-	add	edx, [stationarray2ofst]
+	add	edx, [station2ofs_ptr]
 
 .stationptr_ok:
 .nextveh:
@@ -957,10 +954,8 @@ LoadUnloadCargo:
 	jmp	short .noaccept
 
 .newcargos_testaccept:
-	mov	edx,ebx
 	movzx	eax,byte [esi+veh.cargotype]
-	add	edx, [stationarray2ofst]
-	bt	dword [edx+station2.acceptedcargos],eax
+	bt	dword [ebx+station2ofs+station2.acceptedcargos],eax
 	jnc	.noaccept
 
 .accept:

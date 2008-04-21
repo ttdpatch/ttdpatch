@@ -25,7 +25,7 @@ extern invalidatehandle,isengine,loadremovedvehs,makegrfidlist,makerisingcost
 extern newspritedata,newspritenum,newvehtypeinit,ophandler,patchflags
 extern planttreearea,redrawscreen,redrawtile,resetnewsprites
 extern resetpathsignalling,setmainviewxy,specialerrtext1,specialerrtext2
-extern stationarray2ofst,subsidyfn,traincost,treenum,treestart,vehtypedataptr
+extern subsidyfn,traincost,treenum,treestart,vehtypedataptr
 extern yeartodate,trackcheat,isplaneinflight
 extern convertplatformsinremoverailstation
 extern invalidatetile
@@ -1278,18 +1278,16 @@ resetstationcheat:
 	testflags newcargos
 	jnc .doloop
 
-	add eax,[stationarray2ofst]
-	and dword [eax+station2.acceptedcargos],0
-
 	xor edx,edx
 
+	mov [eax+station2ofs+station2.acceptedcargos],edx
+
 .nextcargo2:
-	mov byte [eax+station2.cargos+edx*stationcargo2_size+stationcargo2.type], 0xff
+	mov byte [eax+station2ofs+station2.cargos+edx*stationcargo2_size+stationcargo2.type], 0xff
 	inc edx
 	cmp edx,byte 12
 	jb .nextcargo2
 
-	sub eax,[stationarray2ofst]
 .doloop:
 	add eax,0x8e		// next station
 	loop .nextstation
@@ -2345,14 +2343,11 @@ statresetcheat:
 	bts eax,edx
 .all:
 	mov ecx,12
-	push esi
-	mov esi,edi
-	add esi,[stationarray2ofst]
 .loop:
 	lea ebx,[ecx-1]
 	testflags newcargos
 	jnc .gotcargo
-	movzx ebx, byte [esi+station2.cargos+(ecx-1)*8+stationcargo2.type]
+	movzx ebx, byte [edi+station2ofs+station2.cargos+(ecx-1)*8+stationcargo2.type]
 	or bl,bl
 	js .next	// unused slot
 
@@ -2367,11 +2362,10 @@ statresetcheat:
 	jnc .next
 
 	btr dword [edi+station2.acceptedcargos], ebx
-	mov byte [esi+station2.cargos+(ecx-1)*8+stationcargo2.type], 0xff
+	mov byte [edi+station2ofs+station2.cargos+(ecx-1)*8+stationcargo2.type], 0xff
 
 .next:
 	loop .loop
-	pop esi
 	pop ebx
 	mov al,0x11
 	call dword [invalidatehandle]

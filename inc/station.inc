@@ -100,4 +100,5 @@ endstruc
 %assign stationlengthmax 1 << (8-stationlengthshift)-1
 %assign stationtracksmax stationtracksand
 
+ptrvardec station2ofs
 

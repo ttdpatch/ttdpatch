@@ -17,4 +17,5 @@ RELOC(bTempRaiseLowerDirection)
 RELOC(bTempRaiseLowerCorner)
 RELOC(player2ofs)
 RELOC(landscape8)
+RELOC(station2ofs)
 

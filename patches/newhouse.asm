@@ -2665,8 +2665,6 @@ removehousetilefromlandscape:
 // bit mask of cargo types that triggered callback 148
 noglobal uvard CB148_triggercargoes
 
-extern stationarray2ofst
-
 // called for every tile found in the catchment area of a station
 // use this to notify houses when they accept cargo
 // in:	ax: tile class *8
@@ -2693,8 +2691,7 @@ exported foundtileincatchment
 
 // dig up the station pointer from the stack, ugh....
 	mov ecx,[esp+16]
-	add ecx,[stationarray2ofst]
-	and eax,[ecx+station2.acceptedsinceproc]
+	and eax,[ecx+station2ofs+station2.acceptedsinceproc]
 	jz .done			// no watched cargo was accepted recently
 
 	mov [CB148_triggercargoes],eax

@@ -7,7 +7,7 @@
 #include <veh.inc>
 
 extern clearfifodata,miscmodsflags,patchflags,station2switches
-extern stationarray2ptr,stationarray2ofst
+extern stationarray2ptr,station2ofs_ptr
 
 
 
@@ -168,8 +168,7 @@ setupstation2:
 	mov byte [esi+station.exclusive],0	// overwritten
 .overwrittendone:
 	push ecx
-	mov edi,esi
-	add edi,[stationarray2ofst]
+	lea edi, [esi+station2ofs]
 	xor ecx,ecx					// MOVing ECX instead of ANDing with zero
 							// spares a byte per instruction
 	mov [edi+station2.acceptedcargos],ecx
@@ -202,7 +201,7 @@ setupoilfield:
 exported monthlystationupdate
 	push esi
 	push eax
-	add esi,[stationarray2ofst]
+	add esi,[station2ofs_ptr]
 
 	xor eax,eax
 	xchg eax,[esi+station2.acceptedthismonth]
@@ -215,9 +214,6 @@ exported monthlystationupdate
 	ret
 
 exported acceptlistupdated
-	push esi
-	add esi,[stationarray2ofst]
-	and dword [esi+station2.acceptedsinceproc],0
-	pop esi
+	and dword [esi+station2ofs+station2.acceptedsinceproc],0
 	jmp near $
 ovar .oldfn,-4,$,acceptlistupdated

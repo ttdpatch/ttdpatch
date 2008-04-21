@@ -10,7 +10,7 @@
 
 extern callbackflags,cargotypes,miscmodsflags,patchflags
 extern randomconsisttrigger,randomstationtrigger,randomtrigger
-extern stationarray2ofst,stationcargowaitingmask
+extern stationcargowaitingmask
 extern stationplatformtrigger,newvehdata
 extern statanim_cargotype,stationanimtrigger,stationplatformanimtrigger
 
@@ -168,9 +168,7 @@ checkstationcargoemptytrigger:
 	testflags newcargos
 	jnc .nonewcargos
 
-	add ebx,[stationarray2ofst]
-	mov cl,[ebx+station2.cargos+ecx*stationcargo2_size+stationcargo2.type]
-	sub ebx,[stationarray2ofst]
+	mov cl,[ebx+station2ofs+station2.cargos+ecx*stationcargo2_size+stationcargo2.type]
 	cmp cl,0xff
 	je .empty
 

@@ -12,7 +12,7 @@ extern irrsetstationsizeext,irrsetstationsizenew,ishumanplayer,miscgrfvar
 extern newstationlayout,newstationpos,newstationtracks,patchflags
 extern stationsizeofs
 extern usenewstationlayout
-extern stationarray2ofst,newstationspread
+extern newstationspread
 
 
 
@@ -115,9 +115,7 @@ checkistrainstation:
 
 	test BYTE [esi+station.flags], 80h
 	jz .normgetstatlength
-	mov eax, [stationarray2ofst]
-	add eax, esi
-	mov bx, [eax+station2.platforms]
+	mov bx, [esi+station2ofs+station2.platforms]
 	
 	jmp .istoosmall
 .normgetstatlength:
@@ -623,10 +621,8 @@ calcplatformsfornewstation:
 	ret
 .bigstation:
 	or BYTE [esi+station.flags], 0x80
-	mov eax, [stationarray2ofst]
-	add eax, esi
 	xchg dl, dh
-	mov [eax+station2.platforms], dx
+	mov [esi+station2ofs+station2.platforms], dx
 	xor eax, eax
 	pop edx
 ret
@@ -649,9 +645,7 @@ convertplatformsinremoverailstation:
 .issmall:
 	ret
 .bigstation:
-	mov edx, [stationarray2ofst]
-	add edx, esi
-	mov dx, [edx+station2.platforms]
+	mov dx, [esi+station2ofs+station2.platforms]
 	ret
 
 global convertplatformsincargoacceptlist
@@ -669,9 +663,7 @@ convertplatformsincargoacceptlist:
 .issmall:
 	ret
 .bigstation:
-	mov eax, [stationarray2ofst]
-	add eax, esi
-	mov ax, [eax+station2.platforms]
+	mov ax, [esi+station2ofs+station2.platforms]
 	ret
 	
 global convertplatformsinecx
@@ -689,8 +681,7 @@ convertplatformsinecx:
 .issmall:
 	ret
 .bigstation:
-	mov ecx, [stationarray2ofst]
-	add ecx, esi
-	mov cx, [ecx+station2.platforms]
+	mov cx, [esi+station2ofs+station2.platforms]
 	ret
+
 

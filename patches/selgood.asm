@@ -5,7 +5,7 @@
 #include <flags.inc>
 #include <station.inc>
 
-extern TempCargoOffsetsInCatchmentArea,patchflags,stationarray2ofst
+extern TempCargoOffsetsInCatchmentArea,patchflags
 extern stationcargowaitingnotmask
 
 
@@ -61,9 +61,7 @@ ovar .forgettime,-1, $, inctimesincepickedup
 	testflags newcargos
 	jnc .nonewcargos
 
-	add esi, [stationarray2ofst]
-	mov byte [esi+ebx+station2.cargos+stationcargo2.type], 0xff	// make the slot unused
-	sub esi, [stationarray2ofst]
+	mov byte [esi+station2ofs+ebx+station2.cargos+stationcargo2.type], 0xff	// make the slot unused
 
 .nonewcargos:
 	mov dx,[stationcargowaitingnotmask]

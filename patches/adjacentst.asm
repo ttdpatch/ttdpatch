@@ -10,7 +10,7 @@
 #include <player.inc>
 #include <human.inc>
 
-extern convertplatformsinremoverailstation,newstationspread,ishumanplayer,patchflags,stationarray2ofst,errorpopup,fixstationplatformslength
+extern convertplatformsinremoverailstation,newstationspread,ishumanplayer,patchflags,errorpopup,fixstationplatformslength
 extern RefreshWindows,maxrstationspread, airportdimensions, canbuilddockhere
 extern actionhandler, AdjacentStationBuildNewStation_actionnum, ctrlkeystate, generatesoundeffect, setmousetool
 
@@ -362,9 +362,7 @@ getstationextent:	//esi=station
 	call addcoord2
 	jmp .norail
 .irr:
-	mov edx, esi
-	add edx, [stationarray2ofst]
-	movzx edx, WORD [edx+station2.railxysouth]
+	movzx edx, WORD [esi+station2ofs+station2.railxysouth]
 	or edx, edx
 	jz .notirr
 	pop eax

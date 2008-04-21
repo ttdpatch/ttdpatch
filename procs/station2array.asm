@@ -4,7 +4,7 @@
 #include <bitvars.inc>
 #include <patchproc.inc>
 
-extern malloccrit,miscmodsflags,patchflags,stationarray2ofst
+extern malloccrit,miscmodsflags,patchflags
 extern stationarray2ptr
 
 begincodefragments
@@ -49,6 +49,8 @@ codefragment_call newcalccatchment,calccatchment,7
 
 endcodefragments
 
+ptrvar station2ofs
+
 exported patchstation2array
 	xor ebx,ebx
 	testflags generalfixes
@@ -73,7 +75,8 @@ exported patchstation2array
 	mov [stationarray2endptr], edi
 	sub edi, numstations*station2_size
 	sub edi, [stationarrayptr]
-	mov [stationarray2ofst], edi
+	extern reloc
+	param_call reloc, edi, station2ofs_ptr
 
 .dontdoit:
 	patchcode oldsetupstationstruct_2,newsetupstationstruct_2,1,1,,{test ebx,ebx},nz
