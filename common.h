@@ -193,8 +193,9 @@
 #define articulatedrvs		219	// allow articulated RVs				(119)
 #define newroutes		220	// Enable newRoutes					(120)
 #define newobjects		221	// Enable support for newobjects					(-)
+#define rvovertakeparams	222	// Road vehicle overtaking parameters			(-)
 
-#define lastbitdefaultoff	221	// META: last bit defined not to be set by -a unless DEBUG
+#define lastbitdefaultoff	222	// META: last bit defined not to be set by -a unless DEBUG
 
 // so far unused flags, simply to remember what names I've used already
 // the numbers of these can be changed as desired
