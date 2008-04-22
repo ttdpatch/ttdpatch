@@ -524,6 +524,8 @@ getnewsprite:
 #ifndef RELEASE
 	cmp dword [grfdebug_active],0
 	je .nodebug
+	cmp byte [curcallback],2
+	je .nodebug
 
 	mov cl,[grfdebug_feature]
 	cmp cl,-1
@@ -583,6 +585,9 @@ getnewsprite:
 
 		// also record the spriteblock for code following the getnewsprite call
 	mov [mostrecentspriteblock],edx
+
+	cmp byte [curcallback],2
+	je near .baddata		// just set mostrecentspriteblock et al.
 
 #if 0
 		// skip numveh and vehids

@@ -1086,15 +1086,17 @@ checksoundcallback:
 
 	movzx eax,byte [esi+veh.vehtype]
 	test byte [callbackflags+eax],0x80
-	jz .nosoundcallback
-
 	mov al,0x33
+	jnz .dosoundcallback
+
+.nosoundcallback:
+	mov al, 2	// still have to set mostrecentspriteblock
+.dosoundcallback:
 	push esi
 	call vehcallback
 	pop esi
 	jnc .gotsoundcallback
 
-.nosoundcallback:
 	mov eax,[esp]
 
 .gotsoundcallback:
