@@ -300,7 +300,7 @@
 	YESNO('H',"moretransopts", CFG_MORETRANSOPTS, INTERFACE, "MoreTransparencyOptions:Alpha", moretransopts),
 	YESNO('I',"irregularstations", CFG_IRRSTATIONS, INFST_STATION, "IrregularStations", irrstations),
 	     //J
-	RANGE('K',"rvovertakeparams", CFG_RVOVERTAKEPARAMS, TERRAIN, "", rvovertakeparams, HEX, S32, FLAGDATA(rvovertakeparamsvalue), 0, 0xFFFFFF, 0),
+	RANGE('K',"rvovertakeparams", CFG_RVOVERTAKEPARAMS, VEH_ROAD, "", rvovertakeparams, HEX, S32, FLAGDATA(rvovertakeparamsvalue), 0, 0xFFFFFF, 0),
 	YESNO('L',"advorders", CFG_ADVORDERS, VEH_ORDERS, "", advorders),
 	YESNO('M',"morestatistics", CFG_MORESTATS, INTERFACE, "MoreStatistics", morestats),
 	YESNO('N', "newroutes", CFG_NEWROUTES, INFST, "", newroutes),
