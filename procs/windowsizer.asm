@@ -475,7 +475,7 @@ testmultiflags clonetrain
 	jmp .isclonetrain
 
 .noclonetrain:
-	mov edi, depotwindowconstraints // Special versions of these for clone trains on
+	mov edi, depotwindowconstraints // These are the default
 	mov edx, traindepotwindowsizes
 
 .isclonetrain:
@@ -483,7 +483,11 @@ testmultiflags clonetrain
 	testmultiflags clonetrain
 	jz .noclonetrain2
 	mov word [esi+ebx+1*12+10],1
+
 .noclonetrain2:
+extern TrainDepotElementList
+	mov [TrainDepotElementList], esi
+	add [TrainDepotElementList], ebx // should be the pointer to our 'last element'
 	pop edx
 	sub word [esi+6*12+windowbox.x2], 11
 

@@ -1633,6 +1633,10 @@ extern recalctownpopulations
 	pop bx
 	je .lendofdepots
 
+	// Correct the depot size limits incase the 32 bit flag has changed
+extern ChangeRailDepotSizeLimits
+	call ChangeRailDepotSizeLimits
+	
 	// Resize all open depot windows for the new scaling
 	call ResizeOpenWindows
 

@@ -382,14 +382,15 @@ ResizeWindowElements:
 	
 //same as above, only esi is a pointer to the first windowelement, and ax,bx are size changes instead of absolute sizes
 ResizeWindowElementsDelta:
-	push edi
+	push edi				// Find the extra data, returing a pointer in edi
 	push edx
 	mov edi, esi
 	mov dh, cWinDataSizer
-	call FindWindowData.haveelements
+	mov dl, cWinElemExtraData
+	call FindWindowData.loop
 	jc .normal
-	test word [edi+8], 1
-	jz .normal
+	test word [edi+8], 1	// Do we use the DeltaX variant (supports 3rds)
+	jz .normal				// But uses word sized constraints
 	pop edx
 	pop edi
 	jmp ResizeWindowElementsDeltax
@@ -466,6 +467,9 @@ ResizeWindowElementsDelta:
 .done:
 	ret
 
+// Same as above but supports 1/3 and 2/3
+// Uess a word list for its constraints though, hense its seperate
+// ToDo: add 1/4 and 3/4 so that support for 4ths is complete
 uvarw tmpthird1
 uvarw tmpthird2
 uvarb tmpgood1
@@ -694,9 +698,6 @@ global FindWindowData
 FindWindowData:
 	mov dl, cWinElemExtraData
 	mov edi, [esi+window.elemlistptr]
-.haveelements:
-	cmp byte [esi+window.type], 0x12
-	je .isdepot
 
 .loop:
 	cmp byte [edi], cWinElemLast
@@ -711,37 +712,50 @@ FindWindowData:
 	clc
 	ret
 
-.isdepot:
-	push edx // Used to work out the sub type of depot
-	movzx edx, word [esi+window.id]
-	mov bl, [landscape4(dx, 1)]
-	and bl, 0xF0
-	cmp bl, 0x10
-	pop edx
-	jne .loop // Is not a rail depot so use old code
-
-	bt dword [grfmodflags], 3
-	jnc .loop
-extern patchflags
-testmultiflags clonetrain
-	jz .noclonetrain
-	mov dword [tmpAddress+2], newdepotwindowconstraints
-	mov dword [tmpAddress+6], newtraindepotwindowsizes32
-	jmp .isclonetrain
-.noclonetrain:
-	mov dword [tmpAddress+2], depotwindowconstraints
-	mov dword [tmpAddress+6], traindepotwindowsizes32
-.isclonetrain:
-	mov edi, tmpAddress
-	jmp .found
-
 .fail:
 	stc
 	ret
 
-var tmpAddress // Used to stop a slight oversight by me above (Lakie)
-	db cWinElemExtraData, cWinDataSizer
-	dd 0x0, 0x0
+// Used to correct the size constraints of the depot window
+// (as they alter between 32 and 29px depot modes + clonetrain)
+extern patchflags
+global ChangeRailDepotSizeLimits
+ChangeRailDepotSizeLimits:
+	push ebx
+	push esi
+	mov esi, [TrainDepotElementList]
+	add esi, (1 * 12) + 6	// Move to the size contraints entry
+							// of the cWinElemExtraData
+
+	bt dword [grfmodflags], 3
+	jc .BitEnabled
+
+testmultiflags clonetrain
+	jnz .CloneTrain
+	mov ebx, traindepotwindowsizes
+	jmp .SetSizeLimits
+
+.CloneTrain:
+	mov ebx, newtraindepotwindowsizes
+	jmp .SetSizeLimits
+
+.BitEnabled:
+testmultiflags clonetrain
+	jnz .BitCloneTrain
+	mov ebx, traindepotwindowsizes32
+	jmp .SetSizeLimits
+
+.BitCloneTrain:
+	mov ebx, newtraindepotwindowsizes32
+
+.SetSizeLimits:
+	mov [esi], ebx
+	pop esi
+	pop ebx
+	ret
+
+// Stores the location sizer in the train depot element list
+uvard TrainDepotElementList
 
 global drawwindowelements
 drawwindowelements:
