@@ -3414,7 +3414,7 @@ induwindow_toolclick:
 
 // redraw the window; we show some details of the currently selected industry type
 induwindow_redraw:
-// the tile is different in-game and in the scenario editor - put the correct one on the text ref. stack
+// the title is different in-game and in the scenario editor - put the correct one on the text ref. stack
 	mov word [textrefstack],0x314		// Fund industry
 	cmp byte [gamemode],2
 	jne .notscened
@@ -3529,12 +3529,10 @@ induwindow_redraw:
 	inc ebx				// increase ID to have one more item
 	shl edx,1
 	add edx,[cargotypenamesptr]
-	mov dx,[edx]
-	mov word [edi],statictext(ident2)
-	mov [edi+2],dx			// and store it
+	mov eax, [edx-2]		// load cargo name into second word
+	mov ax, statictext(ident2)	// load first word
+	stosd				// store both
 	call .getcargosubtext
-	mov [edi+4],ax
-	add edi,6
 .skipit:
 	inc byte [callback_extrainfo]
 	inc ecx
@@ -3568,17 +3566,18 @@ induwindow_redraw:
 .firstslotok:
 
 // assume we'll have one output cargo
+	push edi
 	mov bx,statictext(newindu_onecargo)
+	mov edi, textrefstack+2
 // get its name
 	movzx edx,cl
 	shl edx,1
 	add edx,[cargotypenamesptr]
-	mov dx,[edx]
+	mov ax,[edx]
 // and store it
-	mov [textrefstack+2],dx
+	stosw
 	mov byte [callback_extrainfo],3
 	call .getcargosubtext
-	mov [textrefstack+4],ax
 
 // is there a second cargo?
 	test ch,ch
@@ -3588,12 +3587,12 @@ induwindow_redraw:
 	movzx edx,ch
 	shl edx,1
 	add edx,[cargotypenamesptr]
-	mov dx,[edx]
-	mov [textrefstack+6],dx
+	mov ax,[edx]
+	stosw
 	inc byte [callback_extrainfo]
 	call .getcargosubtext
-	mov [textrefstack+8],ax
 .nosecondcargo:
+	pop edi
 // draw the line
 	mov [textrefstack],bx
 	mov bx,ourtext(newinduproduces)
@@ -3663,22 +3662,12 @@ induwindow_redraw:
 
 .getcargosubtext:
 	test byte [industrycallbackflags+ebp],0x40
-	jz .default
+	jz near drawinduacceptlist.default
 
 	mov eax,ebp
 	push esi
 	xor esi,esi
-	call getnewsprite
-	pop esi
-	jc .default
-	cmp al,0xff
-	je .default
-	add ah,0xd4
-	ret
-
-.default:
-	mov ax,6
-	ret
+	jmp near drawinduacceptlist.getsprite	// Much shared code; put it all together.
 
 // Click handler. This includes reactions for pushing the button, selecting an industry type
 // or right-clicking for tooltips
@@ -4772,6 +4761,9 @@ drawinduacceptlist:
 	push ebp
 	push ecx
 	push edx
+	push edi
+
+	mov edi,textrefstack
 
 // check the production callback
 	movzx ebx,byte [ebp+industry.type]
@@ -4784,19 +4776,16 @@ drawinduacceptlist:
 	mov edx,[cargotypenamesptr]
 	mov bx,0x4827-1			// Requires: xxx
 
-	mov esi,textrefstack
 	xor ecx,ecx
 .nextslot:
 	movzx eax,byte [ebp+industry.accepts+ecx]
 	cmp al,-1
 	je .skip
 	inc ebx
-	mov word [esi],statictext(ident2)
-	mov ax,[edx+2*eax]
-	mov [esi+2],ax
+	mov eax,[edx+2*eax-2]		// load cargo name into second (high) word
+	mov ax,statictext(ident2)	// load low word
+	stosd				// store both
 	call .getcargosubtext
-	mov [esi+4],ax
-	add esi,6
 
 .skip:
 	inc byte [callback_extrainfo]
@@ -4806,6 +4795,7 @@ drawinduacceptlist:
 
 	pop edx
 	pop ecx
+	pop edi
 	mov eax,[mostrecentspriteblock]
 	mov [curmiscgrf],eax
 	call [drawtextfn]
@@ -4826,8 +4816,6 @@ drawinduacceptlist:
 // now ebx-> incoming cargo data
 	
 // fill up to three slots on the text reference stack with either message 6 (empty string) or cargo amount messages
-	push edi
-	mov edi,textrefstack
 	xor ecx,ecx
 .cargoloop:
 // fill slot with the empty string if the cargo slot is unused
@@ -4852,15 +4840,13 @@ drawinduacceptlist:
 	add edx,[cargoamount1namesptr]
 
 .plural:
-// store the textID...
+// Store the amount ...
+	mov eax,[ebx+ecx*2-2]
+// ... and the textID
 	mov ax,[edx]
-	stosw
-// ...and the amount
-	mov ax,[ebx+ecx*2]
-	stosw
+	stosd
 
 	call .getcargosubtext
-	stosw
 
 .nextcargo:
 	inc byte [callback_extrainfo]
@@ -4897,17 +4883,23 @@ drawinduacceptlist:
 	test byte [industrycallbackflags+eax],0x40
 	jz .default
 
-	xchg esi,ebp
+	push esi
+	mov esi,ebp
+.getsprite:
 	call getnewsprite
-	xchg esi,ebp
-	jc .default
+	jc .pop
 	cmp al,0xff
-	je .default
+	je .pop
 	add ah,0xd4
+	stosw
+	pop esi
 	ret
 
+.pop:
+	pop esi
 .default:
 	mov ax,6
+	stosw
 	ret
 	
 exported skipproducelist
@@ -4928,12 +4920,13 @@ exported skipfirstproducedcargo
 
 global drawinduproducelist
 drawinduproducelist:
-	mov word [textrefstack+0],statictext(ident2)
-	mov [textrefstack+2],ax
-	mov [textrefstack+4],bx
+	mov edi, textrefstack+2
+	mov word [edi-2], statictext(ident2)
+	stosw
+	xchg eax,ebx
+	stosw
 	mov byte [curcallback],0x37
 	call drawinduacceptlist.getcargosubtext
-	mov [textrefstack+6],ax
 	mov byte [curcallback],0
 	ret
 
