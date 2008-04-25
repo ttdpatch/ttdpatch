@@ -486,8 +486,9 @@ testmultiflags clonetrain
 
 .noclonetrain2:
 extern TrainDepotElementList
-	mov [TrainDepotElementList], esi
-	add [TrainDepotElementList], ebx // should be the pointer to our 'last element'
+	mov [TrainDepotElementList], esi 	// Move to the size contraints entry
+	add ebx, (1 * 12) + 6				// of the cWinElemExtraData
+	add [TrainDepotElementList], ebx
 	pop edx
 	sub word [esi+6*12+windowbox.x2], 11
 

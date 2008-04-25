@@ -718,14 +718,13 @@ FindWindowData:
 
 // Used to correct the size constraints of the depot window
 // (as they alter between 32 and 29px depot modes + clonetrain)
+// **  Effects new windows only, ResizeOpenWindows fixes active windows **
 extern patchflags
 global ChangeRailDepotSizeLimits
 ChangeRailDepotSizeLimits:
 	push ebx
 	push esi
 	mov esi, [TrainDepotElementList]
-	add esi, (1 * 12) + 6	// Move to the size contraints entry
-							// of the cWinElemExtraData
 
 	bt dword [grfmodflags], 3
 	jc .BitEnabled
@@ -1119,9 +1118,9 @@ ResizeOpenWindows:
 	
 	mov al, [esi+window.type]
 	cmp al, 0x0C
-	jbe .nextwindow
+	jbe near .nextwindow
 	cmp al, 0x12
-	jne .nextwindow
+	jne near .nextwindow
 	//depot's
 	movzx ebx, word [esi+window.opclassoff]
 	sub ebx, 80h
@@ -1151,6 +1150,11 @@ ResizeOpenWindows:
 	mov dh, cWinDataSizer
 	call FindWindowData
 	jc .nosizerdata
+	
+	mov ebx, [TrainDepotElementList]	// Update our active windows' size contraints
+	mov ebx, [ebx]						// from the base train depot element list
+	mov [edi+4], ebx
+	
 	push edi
 	mov edi, [edi+4]
 	call HandleSizeConstraints
