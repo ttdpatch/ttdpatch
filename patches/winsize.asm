@@ -383,11 +383,11 @@ ResizeWindowElements:
 %assign changex1	  1
 %assign changex2	  2
 %assign changey1	  4
-%assign changey1	  8
+%assign changey2	  8
 %assign changex1half	  10h
 %assign changex2half	  20h
 %assign changey1half	  40h
-%assign changey1half	  80h
+%assign changey2half	  80h
 %assign changex1third	  100h
 %assign changex2third	  200h
 %assign changex1twothird  400h
@@ -1163,7 +1163,7 @@ ResizeOpenWindows:
 	
 	mov ebx, [TrainDepotElementList]	// Update our active windows' size contraints
 	mov ebx, [ebx]						// from the base train depot element list
-	mov [edi+4], ebx
+	mov [edi+edi+windatabox_sizerextra.eleminfo], ebx
 	
 	push edi
 	mov edi, [edi+windatabox_sizerextra.constraints]
@@ -1199,17 +1199,17 @@ global SaveWindowSizesPrepare
 SaveWindowSizesPrepare:
 	mov edi, [windowsizesbufferptr]
 	mov esi, [mapwindowelementsptr]
-	mov cx, [esi+12*13+8]
+	mov cx, [esi+12*13+windowbox.y2]
 	inc cx
 	shl ecx, 16
-	mov cx, [esi+12*13+4]
+	mov cx, [esi+12*13+windowbox.x2]
 	inc cx
 	mov [edi+32], ecx
 
-	mov cx, [win_newshistory_elements+12*4+8]
+	mov cx, [win_newshistory_elements+12*4+windowbox.y2]
 	inc cx
 	shl ecx, 16
-	mov cx, [win_newshistory_elements+12*4+4]
+	mov cx, [win_newshistory_elements+12*4+windowbox.x2]
 	inc cx
 	mov [edi+36], ecx
 
@@ -1233,7 +1233,7 @@ LoadWindowSizesFinish:
 	jbe .nottoowide
 	mov ax, [reswidth]
 .nottoowide:
-	sub ax, [edi+12*13+4]
+	sub ax, [edi+12*13+windowbox.x2]
 	dec ax
 	lea di, [ebx+34]
 	cmp di, [resheight]
@@ -1245,7 +1245,7 @@ LoadWindowSizesFinish:
 	jae .correctheight
 	mov bx, 234
 .correctheight:
-	sub bx, [esi+12*13+8]
+	sub bx, [esi+12*13+windowbox.y2]
 	dec bx
 	mov edi, mapwindowconstraints
 	call ResizeWindowElementsDelta
@@ -1268,15 +1268,15 @@ LoadWindowSizesFinish:
 	mov bl, 42
 	sub eax, 14
 	div bl
-	mov byte [win_newshistory_elements+12*2+11], al
+	mov byte [win_newshistory_elements+12*2+windowbox.ytiles], al
 	mov ah, 0
 	imul ebx,eax, 42
 	add ebx, 14
 	pop eax
 .nottoohigh2:
-	sub ax, [win_newshistory_elements+12*4+4]
+	sub ax, [win_newshistory_elements+12*4+windowbox.x2]
 	dec ax
-	sub bx, [win_newshistory_elements+12*4+8]
+	sub bx, [win_newshistory_elements+12*4+windowbox.y2]
 	dec bx
 	mov edi, win_newshistory_constraints
 	call ResizeWindowElementsDelta
