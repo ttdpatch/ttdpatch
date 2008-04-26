@@ -295,11 +295,11 @@ procwindowdragmode:
 	//now edi points to the sizer window data (or carry set if not found)
 	jc .nosizerdata
 	push edi
-	mov edi, [edi+4]
+	mov edi, [edi+windatabox_sizerextra.constraints]
 	call HandleSizeConstraints
 	pop edi
 	pusha
-	mov edi, [edi]
+	mov edi, [edi+windatabox_sizerextra.eleminfo]
 	mov bx, cx
 	call ResizeWindowElements
 	popa
@@ -379,7 +379,20 @@ ResizeWindowElements:
 	pop edi
 	pop esi
 	ret
-	
+
+%assign changex1	  1
+%assign changex2	  2
+%assign changey1	  4
+%assign changey1	  8
+%assign changex1half	  10h
+%assign changex2half	  20h
+%assign changey1half	  40h
+%assign changey1half	  80h
+%assign changex1third	  100h
+%assign changex2third	  200h
+%assign changex1twothird  400h
+%assign changex2twothird  800h
+
 //same as above, only esi is a pointer to the first windowelement, and ax,bx are size changes instead of absolute sizes
 ResizeWindowElementsDelta:
 	push edi				// Find the extra data, returing a pointer in edi
@@ -389,7 +402,7 @@ ResizeWindowElementsDelta:
 	mov dl, cWinElemExtraData
 	call FindWindowData.loop
 	jc .normal
-	test word [edi+8], 1	// Do we use the DeltaX variant (supports 3rds)
+	test byte [edi+windatabox_sizerextra.flags], 1	// Do we use the DeltaX variant (supports 3rds)
 	jz .normal				// But uses word sized constraints
 	pop edx
 	pop edi
@@ -398,9 +411,6 @@ ResizeWindowElementsDelta:
 	pop edx
 	pop edi
 	
-;	cmp edi, newdepotwindowconstraints
-;	je near ResizeWindowElementsDeltax
-
 	push ax
 	push bx
 	add ax, [tmpdx]
@@ -408,12 +418,12 @@ ResizeWindowElementsDelta:
 	mov word [tmpdx], 0
 	test ax, 1
 	jz .correctdx
-	mov word [tmpdx], 1
+	inc byte [tmpdx]
 .correctdx:
 	mov word [tmpdy], 0
 	test bx, 1
 	jz .correctdy
-	mov word [tmpdy], 1
+	inc byte [tmpdy]
 .correctdy:	
 	mov cx, ax
 	and cx, 0xfffe
@@ -428,35 +438,35 @@ ResizeWindowElementsDelta:
 	cmp byte [esi+windowbox.type], cWinElemLast
 	je .done
 
-	test byte [edi], 1
+	test byte [edi], changex1
 	jz .nox1
 	add [esi+windowbox.x1], ax
 .nox1:
-	test byte [edi], 2
+	test byte [edi], changex2
 	jz .nox2
 	add [esi+windowbox.x2], ax
 .nox2:
-	test byte [edi], 4
+	test byte [edi], changey1
 	jz .noy1
 	add [esi+windowbox.y1], bx
 .noy1:
-	test byte [edi], 8
+	test byte [edi], changey2
 	jz .noy2
 	add [esi+windowbox.y2], bx
 .noy2:
-	test byte [edi], 10h
+	test byte [edi], changex1half
 	jz .nox1s
 	add [esi+windowbox.x1], cx
 .nox1s:
-	test byte [edi], 20h
+	test byte [edi], changex2half
 	jz .nox2s
 	add [esi+windowbox.x2], cx
 .nox2s:
-	test byte [edi], 40h
+	test byte [edi], changey1half
 	jz .noy1s
 	add [esi+windowbox.y1], dx
 .noy1s:
-	test byte [edi], 80h
+	test byte [edi], changey2half
 	jz .noy2s
 	add [esi+windowbox.y2], dx
 .noy2s:
@@ -468,7 +478,7 @@ ResizeWindowElementsDelta:
 	ret
 
 // Same as above but supports 1/3 and 2/3
-// Uess a word list for its constraints though, hense its seperate
+// Uses a word list for its constraints though, hence it's seperate
 // ToDo: add 1/4 and 3/4 so that support for 4ths is complete
 uvarw tmpthird1
 uvarw tmpthird2
@@ -536,54 +546,54 @@ ResizeWindowElementsDeltax:
 	cmp byte [esi+windowbox.type], cWinElemLast
 	je near .done
 
-	test word [edi], 1
+	test byte [edi], changex1
 	jz .nox1
 	add [esi+windowbox.x1], ax
 .nox1:
-	test word [edi], 2
+	test byte [edi], changex2
 	jz .nox2
 	add [esi+windowbox.x2], ax
 .nox2:
-	test word [edi], 4
+	test byte [edi], changey1
 	jz .noy1
 	add [esi+windowbox.y1], bx
 .noy1:
-	test word [edi], 8
+	test byte [edi], changey2
 	jz .noy2
 	add [esi+windowbox.y2], bx
 .noy2:
-	test word [edi], 10h
+	test byte [edi], changex1half
 	jz .nox1s
 	add [esi+windowbox.x1], cx
 .nox1s:
-	test word [edi], 20h
+	test byte [edi], changex2half
 	jz .nox2s
 	add [esi+windowbox.x2], cx
 .nox2s:
-	test word [edi], 40h
+	test byte [edi], changey1half
 	jz .noy1s
 	add [esi+windowbox.y1], dx
 .noy1s:
-	test word [edi], 80h
+	test byte [edi], changey2half
 	jz .noy2s
 	add [esi+windowbox.y2], dx
 .noy2s:
-	test word [edi], 100h
+	test byte [edi+1], changex1third>>8
 	jz .lnox1
 	mov bp, [tmpthird1]
 	add [esi+windowbox.x1], bp
 .lnox1:
-	test word [edi], 200h
+	test byte [edi+1], changex2third>>8
 	jz .lnox2
 	mov bp, [tmpthird1]
 	add [esi+windowbox.x2], bp
 .lnox2:
-	test word [edi], 400h
+	test byte [edi+1], changex1twothird>>8
 	jz .lnox1s
 	mov bp, [tmpthird2]
 	add [esi+windowbox.x1], bp
 .lnox1s:
-	test word [edi], 800h
+	test byte [edi+1], changex2twothird>>8
 	jz .lnox2s
 	mov bp, [tmpthird2]
 	add [esi+windowbox.x2], bp
@@ -602,61 +612,61 @@ HandleSizeConstraints:
 	push ebp
 	mov ebp, [esi+window.elemlistptr]
 	
-	cmp ax, [edi+0+0]
+	cmp ax, [edi+winsizer_constraints.minwidth]
 	jge .widthenough
-	mov ax, [edi+0+0]
+	mov ax, [edi+winsizer_constraints.minwidth]
 .widthenough:
-	cmp ax, [edi+0+2]
+	cmp ax, [edi+winsizer_constraints.maxwidth]
 	jle .widthsenough
-	mov ax, [edi+0+2]
+	mov ax, [edi+winsizer_constraints.maxwidth]
 .widthsenough:
-	cmp byte [edi+0+4], 1
+	cmp byte [edi+winsizer_constraints.itemwidth], 1
 	jz .widthok
 
 	push cx
-	sub ax, [edi+0+6]
+	sub ax, [edi+winsizer_constraints.basewidth]
 	push edx
-	movsx edx, byte [edi+0+5]
+	movsx edx, byte [edi+winsizer_constraints.widtheleidx]
 	cmp edx, -1
 	je .nocount1
 	shl edx, 2
-	lea edx, [edx*3]
+	lea edx, [edx*3]		//element ofst
 .nocount1:
-	mov cl, [edi+0+4]
+	mov cl, [edi+winsizer_constraints.itemwidth]
 	div cl
 	cmp edx, -1
 	je .nocount2
 	mov [esi+window.itemsvisible], al
-	mov [ebp+edx+10], al
+	mov [ebp+edx+windowbox.extra], al
 .nocount2:
 	mul cl
 	pop edx
-	add ax, [edi+0+6]
+	add ax, [edi+winsizer_constraints.basewidth]
 	pop cx
 
 .widthok:
 
-	cmp cx, [edi+8+0]
+	cmp cx, [edi+winsizer_constraints.minheight]
 	jge .heightenough
-	mov cx, [edi+8+0]
+	mov cx, [edi+winsizer_constraints.minheight]
 .heightenough:
-	cmp cx, [edi+8+2]
+	cmp cx, [edi+winsizer_constraints.maxheight]
 	jle .heightsenough
-	mov cx, [edi+8+2]
+	mov cx, [edi+winsizer_constraints.maxheight]
 .heightsenough:
-	cmp byte [edi+8+4], 1
+	cmp byte [edi+winsizer_constraints.itemheight], 1
 	jz near .heightok
-	sub cx, [edi+8+6]
+	sub cx, [edi+winsizer_constraints.baseheight]
 	push ax
 	push edx
-	movsx edx, byte [edi+8+5]
+	movsx edx, byte [edi+winsizer_constraints.heighteleidx]
 	cmp edx, -1
 	je .nocount3
 	shl edx, 2
 	lea edx, [edx*3]
 .nocount3:
 	mov ax, cx
-	mov cl, [edi+8+4]
+	mov cl, [edi+winsizer_constraints.itemheight]
 	div cl
 	cmp edx, -1
 	je .nocount4
@@ -680,13 +690,13 @@ HandleSizeConstraints:
 .norm1:
 	mov [esi+window.itemsvisible], al
 .anorm1:
-	mov [ebp+edx+11], al
+	mov [ebp+edx+windowbox.extra+1], al
 .nocount4:
 	mul cl
 	mov cx, ax
 	pop edx
 	pop ax
-	add cx, [edi+8+6]
+	add cx, [edi+winsizer_constraints.baseheight]
 .heightok:
 	pop ebp
 	ret
@@ -779,11 +789,11 @@ drawwindowelements:
 	//now edi points to the sizer window data (or carry set if not found)
 	jc .nosizerdata
 	push edi
-	mov edi, [edi+4]
+	mov edi, [edi+windatabox_sizerextra.constraints]
 	call HandleSizeConstraints
 	pop edi
 	pusha
-	mov edi, [edi]
+	mov edi, [edi+windatabox_sizerextra.eleminfo]
 	mov bx, cx
 	call ResizeWindowElements
 	popa
@@ -1085,11 +1095,11 @@ ResetOpenWindows:
 	call FindWindowData
 	jc .nosizerdata
 	push edi
-	mov edi, [edi+4]
+	mov edi, [edi+windatabox_sizerextra.constraints]
 	call HandleSizeConstraints
 	pop edi
 	pusha
-	mov edi, [edi]
+	mov edi, [edi+windatabox_sizerextra.eleminfo]
 	mov bx, cx
 	call ResizeWindowElements
 	popa
@@ -1156,11 +1166,11 @@ ResizeOpenWindows:
 	mov [edi+4], ebx
 	
 	push edi
-	mov edi, [edi+4]
+	mov edi, [edi+windatabox_sizerextra.constraints]
 	call HandleSizeConstraints
 	pop edi
 	pusha
-	mov edi, [edi]
+	mov edi, [edi+windatabox_sizerextra.eleminfo]
 	mov bx, cx
 	call ResizeWindowElements
 	popa

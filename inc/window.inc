@@ -203,6 +203,7 @@ endstruc
 // Data for a window element (usage of last word depends on type)
 struc windowbox
 	.type:		resb 1	// 0h:	type of UI element
+	.subtype:		// 1h:	for extradata boxes, type of extra data
 	.bgcolor:	resb 1	// 1h:	background color
 	.x1:		resw 1	// 2h:	coordinates relative to owner window
 	.x2:		resw 1	// 4h
@@ -220,3 +221,36 @@ endstruc
 //	bits 4..10:  bit mask of elements to disable, based on the above (up to 7 consecutive elements)
 //	bits 11..15: base element ID of IDs to disable when unchecked (0..31)
 
+// If type is 0Dh (extra data), second byte is the subtype for this box. Remaining ten bytes are the extra data.
+struc windatabox_tabextra		// Starting at windowbox+2
+	.elemlistptrs:	resd 1	// 0h: pointer to array of pointers to additional elementlists, one elementlist per tab.
+	.unused:	resd 1
+			resw 1
+endstruc
+
+struc windatabox_sizerextra		// Starting at windowbox+2
+	.eleminfo:	resd 1	// 0h:	pointer to instructions for resizing the windowboxes
+	.constraints:	resd 1	// 4h:	pointer to window size constraints
+	.flags:		resw 1	// 8h:	sizerdata flags.
+endstruc
+// .elements points to an array of instructions, one byte per element:
+//	bits 0..3: Set if that element's x1,x2,y1,y2 are to be changed when resizing
+//	bits 4..7: Same, but the change is only half the window's delta
+// If bit 0 of flags is set, .elelments points to an array of words instead. The additional bits are:
+//	bits 8..9:   Set if that element's x1,x2 is to be changed by one-third the window's delta
+//	bits 10..11: Set if that element's x1,x2 is to be changed by two-third the window's delta
+
+// .constraints points to
+struc winsizer_constraints
+	.minwidth:	resw 1	// 0h: Min and max
+	.maxwidth:	resw 1	// 2h:    window width
+	.itemwidth:	resb 1	// 4h: Width of a single item
+	.widtheleidx:	resb 1	// 5h: Element whose .extra needs to get the item count, or -1. Only if .itemwidth is not 1
+	.basewidth:	resw 1	// 6h: Extra width to be added to an integer number of items. Only if .itemwidth is not 1
+
+	.minheight:	resw 1	// 8h: repeat above for height
+	.maxheight:	resw 1	// Ah
+	.itemheight:	resb 1	// Ch
+	.heighteleidx:	resb 1	// Dh: item count stored in .extra+1
+	.baseheight:	resw 1	// Eh
+endstruc
