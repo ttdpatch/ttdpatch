@@ -410,15 +410,17 @@ codefragment olddrawinduproducelist
 	mov [textrefstack],ax
 	mov [textrefstack+2],bx
 
-codefragment newdrawinduproducelist1
+codefragment newdrawinduproducelist
+	push edi
 	mov byte [callback_extrainfo],3
+noglobal ovar cargonum, -1
 	icall drawinduproducelist
-	setfragmentsize 13
+	setfragmentsize 14
 
-codefragment newdrawinduproducelist2
-	mov byte [callback_extrainfo],4
-	icall drawinduproducelist
-	setfragmentsize 13
+codefragment newfinishinduproducelist
+	stosd
+	pop edi
+	setfragmentsize 5
 
 codefragment oldcreateindustry_chkplacement,-7
 	mov ebp,[ebp+4*edx]
@@ -664,10 +666,13 @@ patchnewindustries:
 	patchcode drawinduacceptlist
 	patchcode skipproducelist
 	patchcode skipfirstproducedcargo
-	patchcode olddrawinduproducelist,newdrawinduproducelist1,1,2
-	add dword [edi+lastediadj+28],4
-	patchcode olddrawinduproducelist,newdrawinduproducelist2,1,0
-	add dword [edi+lastediadj+28],4
+%macro finishproducelist 0
+	add edi, 27+lastediadj
+	storefragment newfinishinduproducelist
+	inc byte [cargonum]
+%endmacro
+	multipatchcode olddrawinduproducelist,newdrawinduproducelist,2,finishproducelist
+
 	stringaddress oldenddrawindustrywindow,1,1
 	chainfunction enddrawindustrywindow,.oldfn
 
