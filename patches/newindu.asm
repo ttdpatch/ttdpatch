@@ -9,6 +9,9 @@
 #include <grf.inc>
 #include <ptrvar.inc>
 #include <patchdata.inc>
+#include <windowext.inc>
+#include <pusha.inc>
+#include <flags.inc>
 
 extern BringWindowToForeground,CreateTooltip,CreateWindowRelative
 extern DestroyWindow,DrawWindowElements,RefreshWindowArea,WindowClicked
@@ -3222,13 +3225,28 @@ db cWinElemLast
 
 varw newindufundtooltips, 0x018b,0x018c,ourtext(newindulist_tooltip),0x0190,ourtext(newinduinfo_tooltip)
 
+guiwindow indulistwin, 508, 190
+guiwinresize cColorSchemeBrown, h,130,930, itemh,10,30
+guicaption cColorSchemeBrown,ourtext(industrydir)
+guiele namesort,cWinElemTextBox,cColorSchemeBrown, x,0, x2,99, y,14, y2,25, data,ourtext(sortorder_name)
+guiele typesort,cWinElemTextBox,cColorSchemeBrown, x,100, x2,199, y,14, y2,25, data,ourtext(sortorder_type)
+guiele prodsort,cWinElemTextBox,cColorSchemeBrown, x,200, x2,299, y,14, y2,25, data,ourtext(sortorder_production)
+guiele transpsort,cWinElemTextBox,cColorSchemeBrown, x,300, x2,399, y,14, y2,25, data,ourtext(sortorder_transported)
+guiele sortind,cWinElemText,cColorSchemeBrown, x,85, y,15, w,10, h,10, data,224h
+guiele ,cWinElemSpriteBox,cColorSchemeBrown, x,400, x2,495, y,14, y2,25, data,0
+guiele indulist,cWinElemSpriteBox,cColorSchemeBrown, x,0, x2,495, y,26, y2,189, data,0, sy2,1
+guiele scrollbar,cWinElemSlider,cColorSchemeBrown, x,496, x2,507, y,14, y2,177, data,0, sy2,1
+endguiwindow
+
 // Called to open the "Fund industry" or "Industry generation" window
 // Our new code uses the same window for both purposes, with small differences in behavior
 // safe: all but edi
 global openfundindustrywindow
 openfundindustrywindow:
-// if it's already open, just bring it to the foreground
+	cmp dx,1
 	mov cl,0x3b		// cWinTypeIndustryGeneration
+	je short .industryDirectory
+// if it's already open, just bring it to the foreground
 	xor edx,edx
 	call [BringWindowToForeground]
 	jnz .alreadyopen
@@ -3268,6 +3286,473 @@ openfundindustrywindow:
 	mov byte [esi+window.data],0xff
 
 .alreadyopen:
+	ret
+
+.industryDirectory:
+	movzx edx,dl
+	call [BringWindowToForeground]
+	jnz .alreadyopen
+
+	mov cx,3Bh	
+	mov ebx,indulistwin_width + (indulistwin_height << 16)
+	or edx,byte -1
+	mov ebp,addr(industrylistwindowhandler)
+	call [CreateWindowRelative]
+	mov dword [esi+window.elemlistptr], indulistwin_elements
+	mov word [esi+window.id],1
+	mov word [esi+window.itemsvisible],16 | (0<<8)
+	mov byte [esi+window.data],0
+	call industrylistwindowhandler.redosort
+	mov al, [industrylistwindowhandler.inducount]
+	mov [esi+window.itemstotal],al
+	or byte [esi+window.flags+1], 8
+	extern patchflags
+	testmultiflags enhancegui
+	extern CopyWindowElementList
+	jnz CopyWindowElementList
+	mov byte [indulistwin_elements.sizer], cWinElemLast
+	add word [indulistwin_elements.scrollbar+windowbox.y2],12
+	ret
+ 
+industrylistwindowhandler:
+	mov bx, cx
+	mov esi, edi
+	cmp dl,cWinEventRedraw
+	je near .draw
+	cmp dl,cWinEventTimer
+	jne .nottimer
+	and dword [esi+window.activebuttons],0
+	extjmp redrawscreen
+
+.nottimer:
+	cmp dl, cWinEventUITick
+	jnz .noGUItick
+	push edx
+	push esi
+	mov ax,0x8000
+	call [WindowClicked]
+	pop esi
+	pop edx
+.noGUItick:
+	cmp dl,cWinEventClick
+	jne .ret
+	call [WindowClicked]
+	js .ret
+	cmp byte [rmbclicked],1
+	jne .leftclick
+.tooltips:
+	mov ax,18Bh
+	add al,cl
+	cmp cl,1
+	jbe .gottip
+	mov ax,ourtext(sortorder_tooltip)
+	cmp cl, indulistwin_elements.transpsort_id
+	jbe .gottip
+	mov ax,190
+	cmp cl, indulistwin_elements.scrollbar_id
+	je .gottip
+.ret:
+	ret
+.gottip:
+	jmp [CreateTooltip]
+.close:
+	jmp [DestroyWindow]
+.titlebar:
+	jmp [WindowTitleBarClicked]
+
+.leftclick:
+	cmp cl, 1
+	jb .close
+	je .titlebar
+	cmp cl, indulistwin_elements.transpsort_id
+	jbe short .changesort
+	cmp cl, indulistwin_elements.indulist_id
+	jne short .noclick
+.listclick:
+	sub bx, [esi+window.y]
+	movzx eax,bx
+	sub eax, 28
+	xor ecx,ecx
+	mov cl,10
+	cdq
+	div ecx
+	add al, [esi+window.itemsoffset]
+	cmp al, [esi+window.itemstotal]
+	jae .noclick
+	mov esi, [.indulist+eax*4]
+	movzx eax,byte [esi+industry.XY]
+	movzx ecx,byte [esi+industry.XY+1]
+	shl eax,4
+	shl ecx,4
+	extern setmainviewxy
+	jmp [setmainviewxy]
+.noclick:
+	ret
+
+.changesort:
+	movzx ecx,cl
+	bts [esi+window.activebuttons],ecx
+	or byte [esi+window.flags],6		// set timer
+	sub cl, indulistwin_elements.namesort_id
+	add cl, cl
+	mov al, [esi+window.data]
+	and al, ~1
+	cmp al, cl
+	mov edi, [esi+window.elemlistptr]
+	je .switchdir
+	mov [esi+window.data], cl
+	mov byte [edi+indulistwin_elements.sortind_id*12+windowbox.extra], 24h
+	imul eax,ecx,50
+	add eax,85
+	mov [edi+indulistwin_elements.sortind_id*12+windowbox.x1],ax
+	add eax,9
+	mov [edi+indulistwin_elements.sortind_id*12+windowbox.x2],ax
+	jmp short .redosort
+.switchdir:
+	xor byte [esi+window.data], 1
+	xor byte [edi+indulistwin_elements.sortind_id*12+windowbox.extra], 1
+.redosort:
+	xor ecx,ecx
+	mov [.oldindu1],ecx
+	mov [.inducount],ecx
+	mov cl, NUMINDUSTRIES
+	mov edi, [industryarrayptr]
+.induloop:
+	cmp word [edi], 0
+	je .nextindu
+	call .insertindu
+.nextindu:
+	add edi, industry_size
+	loop .induloop
+	jmp redrawscreen
+
+
+.draw:
+	call [DrawWindowElements]
+	movzx eax, byte [esi+window.itemsvisible]
+	cmp al, [esi+window.itemstotal]
+	jbe .countok
+	mov al, [esi+window.itemstotal]
+.countok:
+	mov ebp, eax
+	shl eax,1
+	lea edx, [28+(eax-2)*5]
+	add dx, [esi+window.y]	// dx = [esi+window.y] + 28 + ([esi+window.itemsvisible]-1)*10
+	movzx eax, byte [esi+window.itemsoffset]
+	lea eax,[.indulist-4+eax*4]
+.drawline:
+	pusha
+	mov esi, [eax+ebp*4]
+	mov edi, textrefstack
+	mov bx, ourtext(industrydiritem0)
+// For all industries, store town name and industry name
+	mov ecx, [esi+industry.townptr]
+	mov ax, [ecx+town.citynametype]
+	stosw
+	mov eax, [ecx+town.citynameparts]
+	stosd
+	movzx ebp, byte [esi+industry.type]
+	mov ax, [industrynames+2*ebp]
+	stosw
+	mov ecx, [esi+industry.producedcargos]
+
+	test cl, cl
+	jns .hasfirst
+	xchg cl, ch
+	test cl, cl
+	js short .textdone
+.hasfirst:
+// Store texts (name and extra) for first cargo type
+	inc ebx
+	movzx edx,cl
+	shl edx,1
+	add edx,[cargoamountnnamesptr]
+	mov eax,[esi+industry.lastmonthprod-2]
+	mov ax,[edx]
+	stosd
+	mov byte [grffeature], 0Ah
+	mov byte [curcallback], 37h
+	mov word [callback_extrainfo], 203h
+	call .getcargosubtext
+
+	test ch,ch
+	js .nosecondcargo
+// Store texts (name and extra) for second cargo type
+	inc ebx
+	movzx eax,ch
+	shl eax,1
+	add eax,[cargoamountnnamesptr]
+	mov ax,[eax]
+	stosw
+	mov ax,[esi+industry.lastmonthprod+2]
+	stosw
+	inc byte [callback_extrainfo]
+	call .getcargosubtext
+.nosecondcargo:
+//Store percent-transporteds
+	mov cl, 100
+	add esi, byte industry.transpfract
+	lodsb
+	mul cl
+	mov [edi],ah
+
+	test ch,ch
+	js .textdone
+	lodsb
+	mul cl
+	mov [edi+1],ah
+
+.textdone:
+	mov [esp+_pusha.ebx],ebx
+	popa
+	pusha
+	mov cx, [esi+window.x]
+	add ecx, 2
+	mov al, -1
+	call [drawtextfn]
+	popa
+	sub dx,10
+	dec ebp
+	jnz .drawline
+	mov byte [curcallback], 0
+	ret
+
+noglobal uvard .inducount
+noglobal uvard .indulist, 90
+
+.insertindu:		// insert the industry at edi into the sorted list
+	pusha
+	std
+	mov ebx, .inducount
+	mov eax, edi
+	movzx edx, byte [esi+window.data]
+	mov ecx, [ebx]
+	lea edi, [ebx+.indulist-.inducount+ecx*4]
+	lea esi, [edi-4]
+	jecxz .storeit
+.sortloop:
+	pusha
+	mov edi, [esi]
+	mov ebx, .sortfuncs
+	mov ebp, esp
+	call [ebx+edx*4]
+	popa
+	jnb .storeit
+	movsd
+	loop .sortloop
+.storeit:
+	stosd
+	inc dword [ebx]
+	cld
+	popa
+	ret
+
+// return values to compare for [eax] and [edi]
+noglobal vard .sortfuncs
+	dd .name,.invert
+	dd .type,.invert
+	dd .prod,.invert
+	dd .transp,.invert
+endvar
+.invert:
+	call [ebx+(edx-1)*4]
+	cmc
+	ret
+
+.type:
+	mov bl, [eax+industry.type]
+	cmp bl, [edi+industry.type]
+	je short .name
+.prodok:
+	ret
+
+.prod:
+	mov ecx, [eax+industry.lastmonthprod]
+	mov ebx, [edi+industry.lastmonthprod]
+	xchg cx,bx	// data shuffle: ecx = ecxh:bx, ebx = ebxh:cx
+	rol ebx,16	// data shuffle: ebx = cx:ebxh
+	add ecx,ebx	// add:		ecx = (ecxh+cx):(bx+ebxh)
+	movzx ebx,cx	// data unshuffle: ebx = 0:(bx+ebxh)
+	shr ecx,16	// data unshuffle: ecx = 0:(cx+ecxh)
+	cmp ecx,ebx
+	jne short .prodok
+.cargocount:
+	cmp byte [eax+industry.producedcargos],-1
+	je .nofirst1
+	inc ecx
+.nofirst1:
+	cmp byte [eax+industry.producedcargos+1],-1
+	je .nosecond1
+	inc ecx
+.nosecond1:
+	cmp byte [edi+industry.producedcargos],-1
+	je .nofirst2
+	inc ebx
+.nofirst2:
+	cmp byte [edi+industry.producedcargos+1],-1
+	je .nosecond2
+	inc ebx
+.nosecond2:
+	cmp ecx,ebx
+	jne .prodok
+		// Fall through to name sorting if production equal
+
+noglobal uvard .oldindu1
+
+.name:
+	cld
+	mov ebx, baTempBuffer1
+	xor ecx,ecx
+	inc ch
+	lea edx,[ebx+ecx]
+	push ecx	// \		counter
+	push edx	//  }--------+ 	baTempBuffer2
+	push ebx	// /         |	baTempBuffer1
+	push edx	// <------+  |	baTempBuffer2
+	push edi	// <---+  |  |	indu2
+	cmp eax, [.oldindu1] //|  |  |
+	je .gotindu1	//     |  |  |
+	mov [.oldindu1], eax //|  |  |
+	push ebx	// <+  |  |  |	baTempBuffer1
+	xchg esi,eax	//  |  |  |  |
+	call .makename	// <+  |  |  |
+.gotindu1:		//     |  |  |
+	pop esi		// <---+  |  |
+	call .makename	// <------+  |
+	pop esi		// \         |
+	pop edi		//  }--------+
+	pop ecx		// /
+	repe cmpsb
+	std
+	ret
+
+
+.transp:
+	push eax
+	mov edx, [edi+industry.transpfract]
+	mov ecx, [eax+industry.transpfract]
+	mov ebx, [edi+industry.producedcargos]
+	mov eax, [eax+industry.producedcargos]
+	test al,al
+	jns .noswap1
+	xchg ah,al
+	mov cl,ch
+.noswap1:
+	test bl,bl
+	jns .noswap2
+	xchg bh,bl
+	mov dl,dh
+.noswap2:
+	test al,al
+	js short .noprod
+	test bl,bl
+	jns short .goodprod
+.noprod:
+	cmp bl,al
+	jmp short .exit
+.goodprod:
+	test byte [ebp+_pusha.edx],1
+	jz .lowprod
+	test ah,ah
+	js .noswaphigh
+	cmp cl,ch
+	ja .noswaphigh
+	xchg cl,ch
+.noswaphigh:
+	test bh,bh
+	js .docmp
+	cmp dl,dh
+	ja .docmp
+	xchg dl,dh
+.docmp:
+	cmp cl,dl
+.exit:
+	pop eax
+	je short .name
+	ret
+.lowprod:
+	test ah,ah
+	js .noswaplow
+	cmp cl,ch
+	jb .noswaplow
+	xchg cl,ch
+.noswaplow:
+	test bh,bh
+	js .docmp
+	cmp dl,dh
+	jb .docmp
+	xchg dl,dh
+	jmp short .docmp
+
+.makename:
+	mov edi,textrefstack
+	mov edx,[esi+industry.townptr]
+	mov eax,[edx+town.citynametype]
+	stosw
+	mov eax,[edx+town.citynameparts]
+	stosd
+	movzx edx, byte [esi+industry.type]
+	mov ax, [industrynames+2*edx]
+	stosw
+	mov ax,4801h
+	mov edi,[esp+4]
+	extcall newtexthandler
+	ret 4
+
+.getcargosubtext:
+	test byte [industrycallbackflags+ebp],0x40
+	jz near drawinduacceptlist.default
+
+	mov eax, ebp
+	push esi
+	jmp near drawinduacceptlist.getsprite	// Much shared code; put it all together.
+
+
+exported monthlyinduwinupdate
+	call $+5
+ovar .oldfn,-4,$,monthlyinduwinupdate
+	mov cl,cWinTypeIndustryGen
+	mov dx,1
+	extern FindWindow
+	call [FindWindow]
+	jz .ret
+	jmp industrylistwindowhandler.redosort
+.ret:
+	ret
+
+
+exported newinduinduwinupdate
+	call [randomfn]
+	pop ecx
+	call ecx		// finish caller first
+	push esi
+	mov cl,cWinTypeIndustryGen
+	mov dx,1
+	call [FindWindow]
+	pop edi
+	jz .ret
+	call industrylistwindowhandler.insertindu
+	jmp redrawscreen
+.ret:
+	ret
+
+exported closeinduinduwinupdate
+	call $+4
+ovar .oldfn,-4,$,closeinduinduwinupdate
+	push esi
+	mov cl,cWinTypeIndustryGen
+	mov dx,1
+	call [FindWindow]
+	pop eax
+	jz .ret
+	mov edi,industrylistwindowhandler.indulist
+	xor ecx,ecx
+	mov cl,NUMINDUSTRIES
+	rep scasd
+	lea esi, [edi+4]
+	rep movsd
+	jmp redrawscreen
+.ret:
 	ret
 
 // The window handler of our new window. Since most event handlers are rather long, they have

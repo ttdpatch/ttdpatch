@@ -465,6 +465,18 @@ defourtext transopts_ctobjects
 defourtext transopts_ctcompany
 defourtext transopts_ttoneway
 
+defourtext industrydirmenu
+defourtext industrydir
+defourtext industrydiritem0
+defourtext industrydiritem1
+defourtext industrydiritem2
+defourtext sortorder_tooltip
+defourtext sortorder_production
+defourtext sortorder_type
+defourtext sortorder_transported
+defourtext sortorder_name
+
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

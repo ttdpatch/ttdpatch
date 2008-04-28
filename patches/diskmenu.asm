@@ -323,6 +323,8 @@ dropdownmenustrings:
 	je .doToolMenu
 	cmp bx, 180Ah
 	je .doRoadMenu
+	cmp bx, 313h
+	je .doInduMenu
 	pop ebx
 	jmp	.done
 
@@ -352,6 +354,15 @@ dropdownmenustrings:
 	cmp bx,0x2d3
 	jne .done
 	mov bx,ourtext(transopts_option)-1
+	jmp short .done
+
+.doInduMenu:
+	pop ebx
+	testmultiflags newindustries
+	jz .done
+	cmp bx, 313h
+	je .done
+	mov bx,ourtext(industrydirmenu)
 
 .done:
 	test si,1

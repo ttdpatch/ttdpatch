@@ -104,7 +104,7 @@ ovar temp_windowclicked_element, -4
 
 //IN: esi=window
 //OUT: [esi+window.elemlistptr] points to a copy of the element list
-CopyWindowElementList:
+exported CopyWindowElementList
 	pusha
 	
 	push edi

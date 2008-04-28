@@ -545,6 +545,17 @@ codefragment oldindustryproductionquery
 
 codefragment_jmp newindustryproductionquery,industryproductionquery,5
 
+codefragment findmakeindudropdown, -17
+	db 30h
+	dw 313h		// mov word [esi+window.data.menu.firsttext], 313h
+	
+codefragment findCreateIndustry,4
+	mov [esi+industry.owner],al
+	
+codefragment findRemoveIndustry,8
+	mov word [esi],0
+	db 0B1h		// mov cl,cWinTypeIndustry
+
 endcodefragments
 
 ext_frag oldindustryclosedown
@@ -688,6 +699,14 @@ patchnewindustries:
 	storefragment newindustryprodchange_shownewsmsg
 	stringaddress oldmonthlyupdateindustryproc,1,1
 	chainfunction monthlyupdateindustryproc,.oldfn
+	add edi, 9Eh-7Ah
+extern monthlyinduwinupdate, monthlyinduwinupdate.oldfn, newinduinduwinupdate
+extern closeinduinduwinupdate, closeinduinduwinupdate.oldfn
+	chainfunction monthlyinduwinupdate,.oldfn
+	stringaddress findCreateIndustry
+	changereltarget 0,newinduinduwinupdate
+	stringaddress findRemoveIndustry
+	chainfunction closeinduinduwinupdate,.oldfn
 
 	stringaddress oldcheckindustileslope,2-WINTTDX,2
 	storefunctioncall checkindustileslope
@@ -715,6 +734,11 @@ patchnewindustries:
 	patchcode toyfactoryanimation
 
 	patchcode industryproductionquery
+	
+	stringaddress findmakeindudropdown
+	inc byte [edi]
+	mov byte [edi-(564665h+4)+(564641h+3)],16h
+	mov byte [edi-(564665h+4)+(564633h+7)],15h
 	ret
 
 // shares a code fragment
