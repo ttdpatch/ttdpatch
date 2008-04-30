@@ -314,7 +314,7 @@ dropdownmenustrings:
 	call diskmenustrings
 .nodiskmenu:
 	cmp dword [numnewoptionentries],0
-	je .done
+	je near .done
 
 	push ebx
 	mov ebx,[esp+12+4+4]
