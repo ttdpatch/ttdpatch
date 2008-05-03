@@ -1198,13 +1198,20 @@ refitsecondengine:
 	ret
 
 
-// called after setting the new cargo type of road vehicles and ships
+// called after setting the new cargo type of vehicles
 // in:	edx=vehicle
 //	bh=old cargo
 // out:	set [edx+veh.currentload]=0
 // safe:bl, others?
 global setnewcargo
 setnewcargo:
+	cmp byte [edx+veh.class],10h
+	jne .nottrain
+	cmp word [edx+veh.capacity],0
+	je .nocapacity
+	ret				// Trains are handled above, but keep old behaviour if no capacity
+.nottrain:
+.nocapacity:
 	pusha
 	mov cl, [edx+veh.cargotype]
 
