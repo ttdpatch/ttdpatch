@@ -3740,19 +3740,20 @@ exported closeinduinduwinupdate
 	call $+4
 ovar .oldfn,-4,$,closeinduinduwinupdate
 	push esi
+	mov eax, esi
 	mov cl,cWinTypeIndustryGen
 	mov dx,1
 	call [FindWindow]
-	pop eax
 	jz .ret
 	mov edi,industrylistwindowhandler.indulist
 	xor ecx,ecx
 	mov cl,NUMINDUSTRIES
-	rep scasd
+	repne scasd
 	lea esi, [edi+4]
 	rep movsd
-	jmp redrawscreen
+	call redrawscreen
 .ret:
+	pop esi
 	ret
 
 // The window handler of our new window. Since most event handlers are rather long, they have
