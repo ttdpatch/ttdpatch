@@ -112,6 +112,7 @@ patchallowtrainrefit:
 	patchcode oldsetnewengine,newsetnewengine,1,1
 	add edi,byte lastediadj-0x26
 	storefragment newrefitstorecap
+	sub byte [edi+lastediadj+13],18
 	add edi,lastediadj+0x6f
 	storefragment newcalcrefitcost
 	ret
