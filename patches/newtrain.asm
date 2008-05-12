@@ -408,8 +408,12 @@ showlocoinfo:
 	mov bl,vehtype_size
 	div bl
 	movzx ebx,al
-	mov al,[railvehhighwt+ebx]
-	add [edi+5],al
+
+extern TrainWeightGeneric.lshowengine
+	call TrainWeightGeneric.lshowengine
+;	mov al,[railvehhighwt+ebx]
+;	add [edi+5],al
+
 	call TrainTEGeneric
 ;	movzx eax,byte [traintecoeff+ebx]
 	imul eax,10		// gravity
@@ -514,8 +518,10 @@ showwagoninfo:
 	mov ebp,textrefstack
 	push eax
 
-	mov al,[railvehhighwt+ebx]
-	add [ebp+5],al
+extern TrainWeightGeneric.lshowwagon
+	call TrainWeightGeneric.lshowwagon
+;	mov al,[railvehhighwt+ebx]
+;	add [ebp+5],al
 
 	mov ax,[ebp+10]
 	call checkrefittable

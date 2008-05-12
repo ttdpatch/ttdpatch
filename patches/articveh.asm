@@ -584,7 +584,7 @@ RVTrailerProcessing:
 	inc	byte [esi+veh.cycle]
 	cmp	byte [esi+0x6A], 0
 	jz	short .skipCounter
-	dec	byte [esi+0x6A]		;what counter is this?
+	dec	byte [esi+0x6A]		; Break down counter
 .skipCounter:
 	cmp	word [esi+0x68], 0
 	jnz	.ProcessCrashedRV

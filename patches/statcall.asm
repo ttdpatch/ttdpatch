@@ -148,6 +148,46 @@ TrainTEGeneric:
 	pop eax
 	ret
 
+// Used to fetch the weight of a railvehicle
+// Output: ecx - weight (low + high bytes)
+// (Note that output is in ecx and not eax because of multihd.asm)
+global TrainWeightGeneric, TrainWeightGeneric.lshowengine
+global TrainWeightGeneric.lshowwagon
+TrainWeightGeneric:
+	push eax
+	movzx ecx, byte [trainweight+ebx] ; Build up the vehicles weight from its two properties
+	add ch, byte [railvehhighwt+ebx]
+
+	mov ah, 0x16 ; Fetch the weight value (warning return is 15 bits as we do not check both parts)
+	mov al, bl
+	call GetCallback36
+	movzx ecx, ax ; We have a word return for this value
+	pop eax
+	ret
+
+// Variants for the show vehicle info hooks
+// Input: edi - text stack pointer (-6 word) is the weight
+//		  ebx - vehicle type
+.lshowengine:
+	push esi
+	push ecx
+	xor esi, esi
+	call TrainWeightGeneric ; Get our new weight and finally store it
+	mov word [edi + 4], cx
+	pop ecx
+	pop esi
+	ret
+
+.lshowwagon:
+	push esi
+	push ecx
+	xor esi, esi
+	call TrainWeightGeneric ; Get our new weight and finally store it
+	mov word [ebp + 4], cx
+	pop ecx
+	pop esi
+	ret
+
 // Boats Codes
 
 // Gets the speed from callback default if no callback
