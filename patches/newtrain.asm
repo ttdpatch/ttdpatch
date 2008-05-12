@@ -1831,7 +1831,7 @@ startstopveh:
 	cmp word [edx+veh.nextunitidx], 0xFFFF //is there a 'trailer' ?
 	je .cleanuppop
 	movzx edx, word [edx+veh.nextunitidx]
-	shl dx, 7
+	shl edx, 7
 	add edx, [veharrayptr]
 	xor word [edx+veh.vehstatus], 2
 	jmp .looptrailers
