@@ -366,14 +366,16 @@ calcvehweight:
 .notpoweredwagon:
 //	add ebx,[enginepowerstable]
 ;	add al,[trainweight+ebx]
-;
 ;	movzx ebx,byte [esi+veh.vehtype]
 ;	adc ah,[railvehhighwt+ebx]
+	
 	push ecx
 extern TrainWeightGeneric
 	call TrainWeightGeneric
 	add eax, ecx
 	pop ecx
+	
+	mov ebx, eax
 
 	// calculate the tractive effort this vehicle provides
 	test byte [esi+veh.modflags],1<<MOD_POWERED
