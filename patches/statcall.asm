@@ -173,6 +173,11 @@ TrainWeightGeneric:
 	push ecx
 	xor esi, esi
 	call TrainWeightGeneric ; Get our new weight and finally store it
+	test byte [numheads+ebx], 1
+	jz .notdualheaded
+	shl cx, 1
+	
+.notdualheaded:
 	mov word [edi + 4], cx
 	pop ecx
 	pop esi
