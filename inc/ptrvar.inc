@@ -9,6 +9,12 @@ ptrvardec newhousedatablock
 ptrvardec industrydatablock
 ptrvardec player2ofs
 
+// the standard comon vehicle properties for all vehicles as in the exe file (used for grf processing)
+ptrvardec vehtypedata
+ptrvarofs vehtypedata_rv,vehtypedata,vehtypeinfo_size*ROADVEHBASE
+ptrvarofs vehtypedata_ship,vehtypedata,vehtypeinfo_size*SHIPBASE
+ptrvarofs vehtypedata_plane,vehtypedata,vehtypeinfo_size*AIRCRAFTBASE
+
 // the standard vehicle properties for each vehicle class
 
 ptrvardec trainpower

@@ -1557,6 +1557,10 @@ dogeneralpatching:
 	lea edi,[eax+24]
 	mov eax,[eax+1]
 	mov [vehtypedataptr],eax
+	
+	extern vehtypedata_ptr
+	param_call reloc, eax, vehtypedata_ptr
+
 	storefragment newsetintrodate
 
 #if WINTTDX

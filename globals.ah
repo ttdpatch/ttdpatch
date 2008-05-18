@@ -79,7 +79,11 @@ ptrvar ophandler		// Array of pointers to tables of various object handlers
 uvard aiactiontable,1,s		// Array of AI actions
 uvard mainstringtable,1,s	// Array of pointers to non-task-specific strings
 uvard brakespeedtable,1,s	// speed to have at certain points when braking
-uvard vehtypedataptr,1,s	// Array of engine data in .exe file for all the vehicle types
+
+ptrvar vehtypedata		// Array of engine data in .exe file for all the vehicle types,
+					// should not be used outside the grf handling functions (eis_os)
+uvard vehtypedataptr,1,s	// Array of engine data in .exe file for all the vehicle types (legacy code)
+
 uvard stationsizeofs,1,s	// where the station size of a new station dialog is stored
 uvard isbigplanetable,1,s	// Array of plane size, bit 0=1: is big plane
 uvard curfileofsptr,1,s		// Pointer to dword of offset in current file
