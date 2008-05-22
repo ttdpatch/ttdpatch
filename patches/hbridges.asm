@@ -465,9 +465,13 @@ bridgemiddlecheckslopeok:
 	//fix coasts
 	cmp bx, 6*8
 	jne .notwater
-//	cmp dh, 1	// to support rivers
-//	jne .notwater
-//	dec dh
+	
+	cmp dh, 1	// canal part
+	je .fakebuildablewater
+	cmp dh, 3	// river part?
+	je .fakebuildablewater
+	jmp short .notwater
+.fakebuildablewater:
 	mov dh, 0
 .notwater:
 
