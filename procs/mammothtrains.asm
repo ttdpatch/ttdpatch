@@ -14,10 +14,13 @@ codefragment newcounttrainsindepot
 	call runindex(counttrainsindepot)
 	setfragmentsize 10
 
-glob_frag oldfindnexttrain
-codefragment oldfindnexttrain,4
+glob_frag oldfindnexttrain2
+codefragment oldfindnexttrain2,4
 	add dx,15
 	cmp byte [edi+veh.class], 0x10
+	db 0Fh, 85h, 9+12*WINTTDX	// jnz near ...
+
+reusecodefragment oldfindnexttrain,oldfindnexttrain2,4,7
 
 codefragment newchecktrainindepot
 	call runindex(checktrainindepot)

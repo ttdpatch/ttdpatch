@@ -296,7 +296,7 @@ codefragment newAircraftListDrawHandlerCountDec
 
 endcodefragments
 
-ext_frag oldfindnexttrain
+ext_frag oldfindnexttrain2
 
 patchsortvehlist:
 
@@ -366,7 +366,7 @@ patchsortvehlist:
 	multipatchcode oldfindlistvehs,newfindlistvehs,3
 
 // find the next vehicle to show in vehicle lists
-	patchcode oldfindnexttrain,newfindnexttrain,1,1
+	patchcode oldfindnexttrain2,newfindnexttrain,1,1
 	patchcode oldnextveh,newnextveh,1,0
 	patchcode oldfindnextrv,newfindnextrv,1+WINTTDX,3
 	patchcode oldnextveh,newnextveh,1,0
