@@ -375,7 +375,7 @@ extern delvehschedule
 	call [delvehschedule]
 	
 .Trailer:
-	mov esi, edx 
+	mov esi, edx
 	ret
 
 uvard PrepareNewVehicleArrayEntry
@@ -401,7 +401,7 @@ buyRVTrailer:
 .continue:
 	test bl, 1
 	jz near .done
-	mov byte [esi+veh.consistnum], 0	; We don't actually need this as 
+	mov byte [esi+veh.consistnum], 0	; We don't actually need this as
 	push ax								; we are not the head of a consist
 	push ebx
 	push cx
@@ -1755,7 +1755,7 @@ DontStartParentIfTrailersMoving:
 
 	cmp byte [esi+veh.movementstat], 0xFE // Is it in the depot?
 	jne .waitfortrailers
-
+.nexttrailercheck:
 	cmp word [esi+veh.nextunitidx], byte -1
 	jne .nexttrailer
 	pop esi
@@ -1766,6 +1766,14 @@ DontStartParentIfTrailersMoving:
 	retn
 
 .waitfortrailers:
+	push edi
+	mov edi, esi
+	mov esi, [esp+4]
+	call HeadInDepotCheckTrailerDecoupledAndRepair
+	mov esi, edi
+	pop edi
+	//jnc .nexttrailercheck
+	and BYTE [esi+veh.vehstatus], ~2	//unstop vehicle
 	pop esi
 	clc // Fail, to let the trailers enter
 	ret
@@ -1780,9 +1788,12 @@ RVDepotEnterStop:
 	push edi
 	movzx edi, word [edi+veh.engineidx]	// We are only interested in the head to start with
 						// As this will be the first unit in the depot
+	push esi
+
+
 	shl edi, 7
 	add edi, [veharrayptr]
-	push edi				// Store this as the parent for quick access later
+	mov esi, edi				// Store this as the parent for quick access later
 
 .Next:
 	cmp byte [edi+veh.movementstat], 0xFE	// Is this unit in the Depot
@@ -1796,12 +1807,12 @@ RVDepotEnterStop:
 	jmp .Next
 
 .End:
-	pop edi					// We only set the flag and checks things on the parent
-	or word [edi+veh.vehstatus], 2		// This vehicle IS stopped
+						// We only set the flag and checks things on the parent
+	or word [esi+veh.vehstatus], 2		// This vehicle IS stopped
 	push ax
 	push bx
 	mov al, 0x0D				// Update the window to show it has stopped
-	mov bx, [edi+veh.engineidx]
+	mov bx, [esi+veh.engineidx]
 	call [RefreshWindows]
 	pop bx
 	pop ax
@@ -1809,15 +1820,77 @@ RVDepotEnterStop:
 	mov al, [human1]			// Should we give a message to the player only works
 	cmp al, [edi+veh.owner]			// for the human player on the local machine
 
+	pop esi
 	pop edi
 	ret
 
 .Wait:
-	pop edi					// We only set the flag and checks things on the parent
-	and word [edi+veh.vehstatus], ~2	// This vehicle is NOT stopped
+	call HeadInDepotCheckTrailerDecoupledAndRepair
+	jnc .Next
+					// We only set the flag and checks things on the parent
+	and word [esi+veh.vehstatus], ~2	// This vehicle is NOT stopped
 
 	test al, 2				// Zero MUST be cleared for the head to wait
+	pop esi
 	pop edi
+	ret
+
+//esi=head, edi=trailer in question
+//return stc if OK, clc if trailer relocated
+HeadInDepotCheckTrailerDecoupledAndRepair:
+	cmp edi, esi
+	je .normalwait
+	pusha
+	mov ax, [esi+veh.XY]
+	sub ax, [edi+veh.XY]
+	add ax, 0x101				//trailers outside the immediate 9 tile region of the depot are considered bad
+	cmp al, 2
+	ja .forceemergencytrailerteleport
+	cmp ah, 2
+	ja .forceemergencytrailerteleport
+	popa
+.normalwait:
+	stc
+	ret
+
+.forceemergencytrailerteleport:
+	mov bp, [esi+veh.XY]
+	mov [edi+veh.XY], bp
+	mov ax, [esi+veh.xpos]
+	mov [edi+veh.xpos], ax
+	mov cx, [esi+veh.ypos]
+	mov [edi+veh.ypos], cx
+	mov dl, [esi+veh.zpos]
+	mov [edi+veh.zpos], dl
+	//begins copy n' pasted code from buy trailer
+	mov byte [edi+veh.direction], 0
+	mov byte [edi+veh.movementstat], 0FEh
+	mov word [edi+veh.vehstatus], 0Bh
+	mov word [edi+veh.currorder], 0
+	mov word [edi+veh.loadtime], 0
+	mov byte [edi+veh.movementfract], 0
+	mov word [edi+0x64], 0
+	mov byte [edi+0x66], 0
+	mov word [edi+0x6A], 0
+	mov byte [edi+veh.laststation], -1
+	mov word [edi+veh.target], 0FFFFh
+	mov dword [edi+veh.profit], 0
+	mov dword [edi+veh.previousprofit], 0
+	mov word [edi+veh.reliability], 0
+	mov word [edi+veh.reliabilityspeed], 0
+	mov word [edi+veh.maxage], 0
+	mov word [edi+veh.name], 0x902B ; TID902B_RoadVehicleW
+	mov byte [edi+0x68], 0
+	mov byte [edi+veh.currorderidx], 0
+	mov byte [edi+veh.totalorders], 0
+	mov word [edi+veh.lastmaintenance], 0
+	mov word [edi+veh.serviceinterval], 0
+	mov byte [edi+veh.breakdowncountdown], 0
+	mov byte [edi+veh.breakdowns], 0
+	mov byte [edi+veh.breakdownthreshold], 0
+	//ends copy n' pasted code
+	popa
+	clc
 	ret
 
 /************************************************
