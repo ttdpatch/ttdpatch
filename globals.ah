@@ -299,7 +299,7 @@ varw signal2waittime, 0xfd	//  same for a 2-way signal
 			//  253 is the TTD default
 
 
-uvard bridgespritetables,1,s		// Bridge Sprite Tables
+uvard bridgespritetablesttd,1,s	// TTD Bridge Sprite Tables
 
 uvarw newmaglevbridgespeeds,4,z	// new max. speeds on two highest-speed monorail and maglev bridge types
 

@@ -3,8 +3,6 @@
 #include <patchproc.inc>
 #include <grfdef.inc>
 
-patchproc newbridges, patchnewbridges
-
 begincodefragments
 
 codefragment oldvehonbridge
@@ -14,8 +12,6 @@ codefragment newvehonbridge
 	icall vehonbridge
 	setfragmentsize 9
 
-codefragment findpaBridgeNames
-	dw 5012h,5013h
 codefragment findpaRailBridgeNames
 	dw 501Fh,5020h
 
@@ -24,20 +20,67 @@ endcodefragments
 ext_frag findvariableaccess
 extern variabletofind
 
-patchnewbridges:
+exported patchnewbridges
 	patchcode vehonbridge
 	mov word [edi+lastediadj-74],0x368d	// 2-byte nop
 
-	extern paBridgeNames, paRailBridgeNames, waRailBridgeNames
-	storeaddress paBridgeNames
-	mov [variabletofind], edi
-	extern waBridgeNames
-	multipatchcode findvariableaccess, , 2, {mov DWORD [edi], waBridgeNames}
+
 	
+
+	
+
+	
+	extern paRailBridgeNames, bridgerailnames, bridgeroadnames
 	storeaddress paRailBridgeNames
 	sub edi, 8
-	mov eax, waRailBridgeNames
+	mov eax, bridgerailnames
 	stosd
-	add eax, NBRIDGES*2
+	mov eax, bridgeroadnames
 	stosd
+
+
+// based on ttdvar	
+	mov dword [variabletofind], bridgeiconsttd
+	extern bridgeicons
+	multipatchcode findvariableaccess, , 2, {mov DWORD [edi], bridgeicons}
+	
+	mov dword [variabletofind], bridgenamesttd
+	extern bridgenames
+	multipatchcode findvariableaccess, , 2, {mov DWORD [edi], bridgenames}
+
+	mov dword [variabletofind], bridgespeedsttd
+	extern bridgemaxspeed
+	multipatchcode findvariableaccess, , 3, {mov DWORD [edi], bridgemaxspeed}
+	
+// based on specificpropertybase (set by dogeneralpatching)
+	extern specificpropertybase
+	mov edi, [specificpropertybase+6*4]
+	
+	extern bridgeintrodate
+	mov [variabletofind], edi
+	stringaddress findvariableaccess
+	mov dword [edi], bridgeintrodate
+	
+	extern bridgeminlength
+	add dword [variabletofind], NBRIDGES
+	stringaddress findvariableaccess
+	mov dword [edi], bridgeminlength
+	
+	extern bridgemaxlength
+	add dword [variabletofind], NBRIDGES
+	stringaddress findvariableaccess
+	mov dword [edi], bridgemaxlength
+	
+	extern bridgecostfactor
+	add dword [variabletofind], NBRIDGES
+	stringaddress findvariableaccess
+	mov dword [edi], bridgecostfactor
+// the sprite table
+	extern bridgespritetablesttd, bridgespritetables
+	
+	mov edi, [bridgespritetablesttd]
+	mov [variabletofind], edi
+	multipatchcode findvariableaccess, , 2, {mov DWORD [edi], bridgespritetables}
+
+	extcall bridgeresettodefaults	// so grfs can be successfully loaded
 	ret

@@ -322,3 +322,8 @@ ttdvar(autosavesetting, 0x9ef2C)		// B: autosave setting 0=off, 1=3Months, 2=6Mo
 
 ttdvar(selectedairporttype, 0x9ede2)	// B: currently selected airport type
 ttdvar(airporttypeavailmask, 0x7710b)	// B: bit mask of available old airport types
+
+
+ttdvar(bridgeiconsttd, 0x9f6b7)		// D[11]: Bridge Icons (with recolor flags) (note newbridges has an own bigger array)
+ttdvar(bridgenamesttd, 0x9f6e3)		// W[11]: Bridge Names (note newbridges has an own bigger array)
+ttdvar(bridgespeedsttd, 0x9f6f9)		// W[11]: Bridge Speeds (note newbridges has an own bigger array)

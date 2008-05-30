@@ -5,7 +5,7 @@
 	// in:	eax=special prop-num
 	//	ebx=offset (bridgeid)
 	//	ecx=num-info
-	//	edx->feature specific data offset
+	//	
 	//	esi=>data
 	// out:	esi=>after data
 	//	carry clear if successful
@@ -13,20 +13,138 @@
 	// safe:eax ebx ecx edx edi
 
 #include <std.inc>
+#include <flags.inc>
 #include <textdef.inc>
 #include <grfdef.inc>
 
-extern bridgespritetables
+extern patchflags
 
-uvarw waBridgeNames,NBRIDGES
-uvarw waRailBridgeNames,NBRIDGES*2
-global waRoadBridgeNames
-waRoadBridgeNames equ waRailBridgeNames+NBRIDGES*2
+extern bridgespritetablesttd
+
+uvard bridgespritetables, NNEWBRIDGES
+uvard bridgespritetablestables, NNEWBRIDGES*7
+
+uvarb bridgeintrodate, NNEWBRIDGES
+uvarb bridgeminlength, NNEWBRIDGES
+uvarb bridgemaxlength, NNEWBRIDGES
+uvarb bridgecostfactor, NNEWBRIDGES
+uvarw bridgemaxspeed, NNEWBRIDGES
+
+uvard bridgeicons, NNEWBRIDGES
+
+uvarw bridgenames, NNEWBRIDGES
+uvarw bridgerailnames, NNEWBRIDGES
+uvarw bridgeroadnames, NNEWBRIDGES
+
+extern bridgeflags
+	
+exported bridgeresettodefaults
+	testmultiflags newbridges
+	jnz .setuptables
+	ret
+	
+.setuptables:
+	pusha
+
+// 
+	mov edx, NBRIDGES
+	
+	mov esi, [specificpropertybase+6*4]
+	mov edi, bridgeintrodate
+	mov ecx, edx
+	rep movsb
+	
+	mov edi, bridgeminlength
+	mov ecx, edx
+	rep movsb
+	
+	mov edi, bridgemaxlength
+	mov ecx, edx
+	rep movsb
+
+// bridge cost factor
+	mov edi, bridgecostfactor
+	mov ecx, edx
+	rep movsb
+
+// bridge speeds
+	mov esi, bridgespeedsttd
+	mov edi, bridgemaxspeed
+	mov ecx, edx
+	rep movsb
+// bridge icons
+	mov esi, bridgeiconsttd
+	mov edi, bridgeicons
+	mov ecx, edx
+	rep movsd
+	
+// bridge names
+	mov esi, bridgenamesttd
+	mov edi, bridgenames
+	mov ecx, NBRIDGES
+	rep movsw
+	
+	mov eax, ourtext(unnamedairporttype)
+	mov cl, NNEWBRIDGES-NBRIDGES
+	rep stosw
+
+// rail bridge names	
+	mov esi, 0
+ovar paRailBridgeNames
+	mov edi, bridgerailnames
+	mov cl, NBRIDGES
+	rep movsw
+	
+	mov eax, ourtext(unnamedairporttype)
+	mov cl, NNEWBRIDGES-NBRIDGES
+	rep stosw
+
+// road bridge names
+	mov esi, [paRailBridgeNames]
+	add esi, NBRIDGES*2
+	mov edi, bridgeroadnames
+	mov cl, NBRIDGES
+	rep movsw
+	
+	mov eax, ourtext(unnamedairporttype)
+	mov cl, NNEWBRIDGES-NBRIDGES
+	rep stosw
+
+	
+// setup bridge sprite tables
+	mov esi, [bridgespritetablesttd]
+	add esi, NBRIDGES*4
+	
+	mov edi, bridgespritetablestables
+	mov ecx, NBRIDGES*7	// 7 dword entries per bridge
+	rep movsd
+	
+	mov ecx, NNEWBRIDGES
+	mov eax, bridgespritetablestables
+	mov edi, bridgespritetables
+.nextentry:
+	stosd	// create pointer list
+	add eax, 7*4
+	loop .nextentry
+	
+
+	testmultiflags longerbridges
+	jz .notlonger
+
+	mov byte [bridgemaxlength],127
+	mov byte [bridgemaxlength+4],127
+	mov byte [bridgemaxlength+5],127
+	mov byte [bridgemaxlength+0xa],127
+
+.notlonger:
+	popa
+	ret
+
 
 // Byte Data: TableID, Numtables, Data (80h*Numtables), [ TableID, Numtables, Data, ... ]
 global alterbridgespritetable
 alterbridgespritetable:
-	mov edx, dword [bridgespritetables]
+	mov edx, bridgespritetables
 	lea edx, [edx+ebx*4]
 
 .nextbridgeid:

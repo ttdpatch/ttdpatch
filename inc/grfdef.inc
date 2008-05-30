@@ -15,6 +15,8 @@ totalsprites equ 0x131a+6*WINTTDX	// Windows TTD has six more (for Fish UK logo 
 %define NUMFEATURES 16
 
 %assign NBRIDGES	11
+%assign NNEWBRIDGES 128
+
 
 %assign NUMSPRITEBLOCKS	6	// how many different sprite block spaces for larger sprite limit
 

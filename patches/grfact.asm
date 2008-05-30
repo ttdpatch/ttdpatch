@@ -18,6 +18,7 @@
 #include <idf.inc>
 #include <objects.inc>
 #include <transopts.inc>
+#include <ptrvar.inc>
 
 extern tramtracks,numtramtracks
 extern newonewayarrows,numonewayarrows
@@ -105,9 +106,343 @@ uvarb action1lastfeature
 	// *** action 0 handler ***
 action0:
 	// Four extra bytes in front of this sprite data are used this way:
-	// - pointer to feature-specific data, or 0 if none
+	// - (in) length of spritedata
+	// - (out) feature based data: 
+	//         stations: layout buffer ptr
+	//
+processnewinfo:
+	
+	//cmp eax, 5
+	//ja near processnewinfoalt
+	// NOTE: Bridges code can't use the old code...
+	
+proc processnewinfonew
+	local feature,numinfo,offset,maxesi
+	local dataptrofs,orgoffset,ofstrans,curoffset,numofsleft,curprop,ofstranssize
+	local propdescription
+	
+	_enter
 
-proc processnewinfo
+	push edi
+	
+	lea ebx,[esi-6]
+	mov [%$dataptrofs],ebx
+
+	mov [%$feature],eax
+	
+	mov bl,[action0transtablesize+eax]
+	mov [%$ofstranssize],bl
+	mov eax,[action0transtable+ecx]
+	mov [%$ofstrans],eax
+	
+	extern action0properties
+	mov ebx, [action0properties+ecx]
+	mov [%$propdescription], ebx
+	
+	mov ecx,[esi-6]			// length of data
+	lea ecx,[esi-2+ecx+1]		// calculates the first byte after our data
+	mov [%$maxesi],ecx
+
+	xor eax,eax
+	lodsb
+	mov ecx,eax	// num-props
+	lodsb
+	mov [%$numinfo],eax
+	call getextendedbyte	// id
+	add eax,[globalidoffset]
+	mov [%$offset],eax
+	mov [%$orgoffset],eax
+
+// GRM 
+	test byte [expswitches],EXP_MANDATORYGRM
+	jz .notmandatory
+
+	cmp byte [grfstage],0
+	je .resok
+	mov ebx,[%$feature]
+	mov ebx,[grfresbase+ebx*4]
+	test ebx,ebx
+	js .resok
+	add ebx,eax
+	push ecx
+	mov ecx,[%$numinfo]
+	jecxz .noids
+.checknextres:
+	cmp [grfresources+ebx*4],edx
+	jne near .unresid
+	inc ebx
+	loop .checknextres
+.noids:
+	pop ecx
+.resok:
+
+.notmandatory:
+
+	add eax,[%$numinfo]
+	mov ebx,[%$propdescription]
+	
+	movsx ebx, word [ebx+action0prophead.numids]
+	test ebx,ebx
+	js .nextprop	// no simple limit; handled by the functionss
+	
+	cmp eax,ebx
+	jbe .nextprop
+
+	mov al,INVSP_BADID
+
+// error message handling
+.invalid:
+	shl eax,16
+	mov ax,ourtext(invalidsprite)
+
+.seterror:
+	pop edi
+	test ax,ax
+	jz .nomsg
+	call setspriteerror
+.nomsg:
+	or edi,byte -1
+	_ret
+
+.invalidprop:	// invalid property
+	mov al,INVSP_BADPROP
+	jmp short .invalidpop
+.unresid:	// unreserved ID
+	mov al,INVSP_UNRESID
+.invalidpop:
+	pop ecx
+	jmp .invalid	
+	
+// loop	on given properties
+.nextprop:
+	mov al,INVSP_OUTOFDATA
+	cmp esi,[%$maxesi]
+	jae .invalid
+
+	xor eax,eax
+	mov [%$numofsleft],eax
+
+	push ecx
+	mov ecx,[%$numinfo]
+	lodsb
+	mov [%$curprop],eax
+
+	mov ebx,[%$orgoffset]
+.nextsinglevalue:
+	mov [%$curoffset],ebx
+
+// translate id if necessary (like stations and houses)
+	mov edi,[%$ofstrans]
+	test edi,edi
+	jz .doprop
+	
+	cmp al,8		// but not for prop. 08 which *sets* the translation
+	je .doprop
+	
+	cmp byte [%$ofstranssize], 0
+	je .ofstranssize0
+	mov bx,[edi+ebx*2]
+	jmp short .ofstranssize1
+.ofstranssize0:
+	movzx bx, byte [edi+ebx]
+.ofstranssize1:
+	mov [%$offset],bx
+
+	mov [%$numofsleft],ecx
+	mov cl,1		// only process one at a time
+
+	test bx,bx
+	jz .skip		// referring to an undefined offset
+
+.notrans:
+	jmp .doprop	
+	
+.skip:
+	// FIXME: somehow need to skip the data, which however can be about
+	// any arbitrary size, if we have a handler function :/
+	// maybe rewrite all handler functions to accept ID=-1 as "skip" command?
+
+.next:
+	mov ecx,[%$numofsleft]
+	jecxz .notoneatatime
+
+	mov eax,[%$curprop]
+	mov ebx,[%$curoffset]
+	inc ebx
+	loop .nextsinglevalue
+
+.notoneatatime:
+	pop ecx
+	loop .nextprop
+
+.done:
+	pop edi
+
+	_ret
+
+.doprop:
+	// find the property (eax) info for this feature
+	mov ebx, [%$propdescription]
+	
+	// check if this property exceeds the max properties
+	cmp al, byte [ebx+action0prophead.numprops]
+	jae .invalidprop
+
+	lea ebx, [ebx+eax*8+action0prophead_size]	// set ebx to property description
+	movzx edx, byte [ebx+action0propdef.type]
+	
+	cmp dl, 0
+	jz .invalidprop
+	
+	mov edi, dword [ebx+action0propdef.ptr]
+	movzx ebx, byte [ebx+action0propdef.size]
+	
+	mov eax, ebx
+	mul byte [%$offset]
+	add edi,eax
+
+
+	// now:
+	// esi->action 0 property data
+	// edi->first destination entry, or handler function
+	// ebx=how many bytes for each destination array entry
+	// ecx=number of entries
+	//  dl=property type (0, 1, 2, 4, 0x40, 0x80, 0x84)
+	//	(note, dl & 7 is the number of bytes per value)
+
+	movzx eax,dl
+	and eax,7
+	imul eax,ecx
+	add eax,esi
+	cmp eax,[%$maxesi]
+	mov al,INVSP_OUTOFDATA
+	jae .invalidpop
+
+	cmp byte [grfstage],0
+	jne .doprocess
+
+	cmp dl,0x40
+	je .doprocess	// during initialization, only process 40 and 80
+
+	cmp dl,0x80
+	jne near .skipprop	
+
+.doprocess:
+	cmp dl,0x82
+	je near .textid
+
+	cmp dl,1
+	jb .invalidprop		// 0
+	je near .bytevalue	// 1
+	js .pointervalue	// 0x84
+
+	cmp dl,4
+	jb .wordvalue		// 2
+	je .dwordvalue		// 4
+	jp .functionnotranslate	// 0x40 (40-4=3C=PE but 80-4=7C=PO)
+				// 0x80
+
+	// handler functions are called with the following registers:
+	// in:	eax=prop-num
+	//	ebx=offset (translated for type "F", untranslated for type "H")
+	//	ecx=num-info (for type "H" only; type "F" should assume num-info=1)
+	//	esi->data
+	//	ebp=feature
+	//	edx->spritedata-4
+	//		Points to the dword infront of SpriteData
+	//		Stations will overwrite the dword with a buffer ptr
+	//		
+	//		The old description told us:
+	//		edx->feature specific data offset
+	//		same as ebx for anything but vehicles, for vehicles: 
+	//		it's ebx+class base ID, so ebx+116 for RVs, etc.
+	//
+	// out:	esi->after data
+	//	carry clear if successful
+	//	carry set if error, then ax=error message
+	//		  if ax=invalid sprite error, eax(16:23) holds the error code
+	// safe:eax ebx ecx edx edi ebp
+
+.specialfunction:
+	mov eax,[%$curprop]
+	mov ebx,[%$offset]
+	mov edx,[%$dataptrofs]
+	push ebp
+	mov ebp,[%$feature]
+	call edi
+	pop ebp
+	jnc .next
+
+	pop ecx
+	jmp .seterror
+
+.functionnotranslate:
+	mov eax,[%$curprop]
+	mov ebx,[%$orgoffset]
+	mov ecx,[%$numinfo]
+	mov edx,[%$dataptrofs]
+	push ebp
+	mov ebp,[%$feature]
+	call edi
+	pop ebp
+	jnc .notoneatatime
+
+	pop ecx
+	jmp .seterror
+
+.pointervalue:	// for DOS, fall through to .dwordvalue
+#if WINTTDX
+	lodsd
+	test eax,eax
+	jz .zero
+	add eax,datastart
+.zero:
+	mov [edi],eax
+	add edi,ebx
+	loop .pointervalue
+	jmp .next
+#endif
+
+.dwordvalue:
+	lodsd
+	mov [edi],eax
+	add edi,ebx
+	loop .dwordvalue
+	jmp .next
+
+.wordvalue:
+	lodsw
+	mov [edi],ax
+	add edi,ebx
+	loop .wordvalue
+	jmp .next
+
+.textid:
+	lodsw
+	call lookuppersistenttextid
+	mov [edi],ax
+	add edi,ebx
+	loop .textid
+	jmp .next
+
+.bytevalue:
+	lodsb
+	mov [edi],al
+	add edi,ebx
+	loop .bytevalue
+	jmp .next
+
+.skipprop:
+	and edx,7
+	imul edx,ecx
+	add esi,edx
+	jmp .next
+
+endproc // processnewinfo2
+
+#if 0
+// ----------------------------------------------------------------
+proc processnewinfoalt
 	local feature,numinfo,offset, specificnum, speciallist,specialnum, maxesi
 	local dataptrofs,orgoffset,ofstrans,curoffset,numofsleft,curprop,ofstranssize
 
@@ -141,7 +476,7 @@ proc processnewinfo
 	mov ecx,eax	// num-props
 	lodsb
 	mov [%$numinfo],eax
-	call getextendedbyte
+	call getextendedbyte	// id
 	add eax,[globalidoffset]
 	mov [%$offset],eax
 	mov [%$orgoffset],eax
@@ -464,6 +799,7 @@ proc processnewinfo
 	jmp .next
 
 endproc // processnewinfo
+#endif
 
 	// same as above; running during "reserve" pass
 	// only applies cargo properties
@@ -4053,7 +4389,6 @@ specvehdatalength equ \
  NSHIPTYPES*specshipdata_totalsize + \
  NAIRCRAFTTYPES*specplanedata_totalsize
 
-
 uvarb spriteand
 uvard spritebase
 
@@ -4362,13 +4697,15 @@ var newstationdata
 var canalsdata
 	dd canalscallbackflags					// 08
 	dd canalsgraphicflags					// 09
-	
+
 var bridgedata	// (prop 0C is set in patches.ah)
+#if 0
 	dd 0, addr(alterbridgespritetable), bridgeflags		// 0C..0E
 	dd longintrodatebridges					// 0F
 extern waBridgeNames,waRailBridgeNames,waRoadBridgeNames
 	dd waBridgeNames,waRailBridgeNames,waRoadBridgeNames	// 10..12
-
+#endif
+	
 extern sethouseprocessinterval,sethousewatchlist
 var housedata
 	dd addr(setsubstbuilding)				// 08
@@ -4499,7 +4836,7 @@ uvard statcargotriggers,256
 uvard cantrainenterstattile,256/4
 uvard canrventerrailstattile,256*2
 uvard stationanimtriggers,256/2
-uvard bridgeflags,(NBRIDGES+3)/4
+uvard bridgeflags,(NNEWBRIDGES+3)/4
 uvard trainuserbits,NTRAINTYPES/4
 uvard canalfeatureids,256/4
 uvard genericids,NUMFEATURES

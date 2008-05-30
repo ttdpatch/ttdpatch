@@ -22,7 +22,7 @@
 #include <textdef.inc>
 
 extern SwapDockWinPurchaseLandIco,SwapLomoGuiIcons,activatedefault,activatetype
-extern addnewtemperatecargo,basecostmult,bridgespritetables,callbackflags
+extern addnewtemperatecargo,basecostmult,callbackflags
 extern cargoid,cargotypes,catenaryspritebase,clearhousedataids
 extern clearindustiledataids,clearstationgameids,copyorghousedata,costrailmul
 extern costrailmuldefault,currsymsafter,currsymsbefore,currtownname
@@ -318,66 +318,6 @@ proc copyinfo
 	ret
 endproc
 
-
-uvarb bridgedatasaved, NBRIDGES*+4+NBRIDGES*4*7
-
-savebridgespriteinfo:
-	mov ebx,6
-	call getspecificpropertyarea
-	mov edi, bridgedatasaved
-	rep movsb
-
-	mov edx, [bridgespritetables]
-	xor ebx,ebx
-.nextbridge:
-	mov esi, [edx+ebx*4]
-	mov ecx, 7*4
-	rep movsb
-	inc ebx
-	cmp ebx,NBRIDGES
-	jb .nextbridge
-	ret
-
-restorebridgespriteinfo:
-	mov ebx,6
-	call getspecificpropertyarea
-	push esi
-	mov edi,esi
-	mov esi, bridgedatasaved
-	rep movsb
-
-	mov edx, [bridgespritetables]
-	xor ebx,ebx
-.nextbridge:
-	mov edi, [edx+ebx*4]
-	mov ecx, 7*4
-	rep movsb
-	inc ebx
-	cmp ebx,NBRIDGES
-	jb .nextbridge
-
-	// make sure at least one bridge is available before 1930
-	mov edi,[specificpropertybase+6*4]
-	mov cl,11
-	mov al,0
-	repne scasb		// is any bridge available from 1920 up?
-	je .skipbridgedate
-	mov byte [edi-11],0	// no -- set wooden bridge's start year to 1920
-
-.skipbridgedate:
-	pop edx
-
-	testmultiflags longerbridges
-	jz .notlonger
-
-	mov byte [edx+2*NBRIDGES],127
-	mov byte [edx+2*NBRIDGES+4],127
-	mov byte [edx+2*NBRIDGES+5],127
-	mov byte [edx+2*NBRIDGES+0xa],127
-
-.notlonger:
-	ret
-
 	// save all TTD data that is modified in any of preinfoapply,
 	// grfinfoapply or postinfoapply
 global infosave
@@ -401,7 +341,6 @@ infosave:
 	cmp ebx,4
 	jb .nextvehtype
 
-	call savebridgespriteinfo
 	testflags newindustries
 	jnc .dontsaveinddata
 	call saveindustrydata	// in newindu.asm
@@ -418,7 +357,7 @@ inforeset:
 	param_call copyinfo, 1
 	call initttdpatchdata
 	call undogentextnames
-	call restorebridgespriteinfo
+	extcall bridgeresettodefaults
 	call setwagonmaxage
 	popa
 	ret
@@ -959,6 +898,9 @@ preinfoapply:
 	jnc .noclearairportdata
 	call clearairportdata
 .noclearairportdata:
+
+	call bridgeresettodefaults
+
 	ret
 
 // set default wagons to have a max age of FF (available forever)
@@ -974,23 +916,6 @@ setwagonmaxage:
 	add esi,0+vehtypeinfo_size
 	inc cl
 	jnz .setnext
-
-	testmultiflags newbridges
-	jz .nonewbridges
-
-	extern waBridgeNames, waRailBridgeNames
-	mov esi, 0
-ovar paBridgeNames
-	mov edi, waBridgeNames
-	mov cl, NBRIDGES*2
-	rep movsb
-	mov esi, 0
-ovar paRailBridgeNames
-	mov edi, waRailBridgeNames
-	mov cl, NBRIDGES
-	rep movsd
-
-.nonewbridges:
 	ret
 	
 	

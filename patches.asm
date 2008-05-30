@@ -161,6 +161,9 @@
 		// all patch bits that use overrideembeddedsprite must be listed below
 	patchproc generalfixes,canmodifygraphics,morecurrencies,enhancegui,enhancetunnels, patchsetspritecache	// must be after patchmovespriteinfo
 	patchproc canmodifygraphics, patchtranslation		// must be before patchsetnewgraphics
+
+	patchproc newbridges, patchnewbridges	// must be before patchsetnewgraphics (may load grfs with bridges)
+
 	patchproc canmodifygraphics, patchsetnewgraphics	// must be after patchsetspritecache
 	patchprocandor canmodifygraphics,NOTBIT(MISCMODS_SMALLSPRITELIMIT),, patchextendedspritelimit
 	patchprocandor newshistory,enhancegui,, patchnewshistory	// must be before patchmorewindows

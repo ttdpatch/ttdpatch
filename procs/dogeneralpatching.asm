@@ -406,8 +406,6 @@ codefragment findbridgespritetables, -10
 	mov edi, [edi]
 	shl ebx, 3
 
-codefragment findbridgespeeds
-	dw 32, 48, 64
 
 codefragment findaiactiontable,10
 	movzx ebx,byte [esi+player.aiaction]
@@ -1684,12 +1682,11 @@ dogeneralpatching:
 	stosd		//waHouseAvailMaskTable
 	
 	storeaddresspointer findhousespritetable,1,1,housespritetable
-	storeaddresspointer findbridgespritetables,1,1,bridgespritetables
+	extern bridgespritetablesttd
+	storeaddresspointer findbridgespritetables,1,1,bridgespritetablesttd
 
 	sub eax,0x40
 	mov [specificpropertybase+6*4],eax
-
-	storeaddress findbridgespeeds,1,1,bridgedata+0*4
 
 	storeaddresspointer findaiactiontable,1,2,aiactiontable
 

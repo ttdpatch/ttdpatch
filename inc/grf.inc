@@ -147,3 +147,17 @@ struc stsetid
 	.setid:		resb 1	// corresponding setid
 endstruc
 
+
+
+struc action0prophead
+	.numids: resw 1
+	.numprops: resb 1
+	.reserved: resb 1 
+endstruc
+
+struc action0propdef
+	.type: resb 1
+	.size: resb 1
+	.reserved: resw 1 
+	.ptr: resd 1
+endstruc
