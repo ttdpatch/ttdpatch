@@ -37,16 +37,26 @@ uvarw bridgerailnames, NNEWBRIDGES
 uvarw bridgeroadnames, NNEWBRIDGES
 
 extern bridgeflags
+extern specificpropertybase
 	
 exported bridgeresettodefaults
+	pusha
+	// make sure at least one bridge is available before 1930, even when newbridges is off
+	mov edi, [specificpropertybase+6*4] 
+	mov ecx, NBRIDGES 
+	xor eax, eax
+	repne scasb	// is any bridge available from 1920 up? 
+	je .skipbridgedate 
+	mov byte [edi-11], 0     // no -- set wooden bridge's start year to 1920 
+.skipbridgedate:
+
 	testmultiflags newbridges
 	jnz .setuptables
+	popa
 	ret
 	
 .setuptables:
-	pusha
-
-// 
+	 
 	mov edx, NBRIDGES
 	
 	mov esi, [specificpropertybase+6*4]
@@ -201,8 +211,7 @@ alterbridgespritetable:
 
 	// prop 0F: long introduction year
 exported longintrodatebridges
-	extern specificpropertybase
-	mov edi,[specificpropertybase+6*4]
+	mov edi, bridgeintrodate
 	add edi,ebx
 
 .next:
