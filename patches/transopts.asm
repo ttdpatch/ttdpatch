@@ -4,6 +4,7 @@
 #include <transopts.inc>
 #include <textdef.inc>
 #include <human.inc>
+#include <bitvars.inc>
 
 %assign win_transopts_id 115
 
@@ -36,7 +37,7 @@ noglobal ovar overlaydrawstart, windowbox.x1
 guiele oneway,   cWinElemSpriteBox, cColorSchemeDarkGreen, x,240, y,14, w,22, h,22, data,0
 endguiwindow
 
-varw ttdguisprites, 742, 4077, 741, 1299, 1294, 1295, 748, 2594, 4085, 743, 723
+varw ttdguisprites, 742, 4077, 741, 1299, 1294, 1295, 748, 2594, 4085, 743, 0
 
 
 exported changetransparency
@@ -110,19 +111,38 @@ transparencywindow_handler:
 	jnz NEAR .noredraw
 
 // Do we have gui sprites available?
+	mov ecx, [guispritebase]
+	add ecx, 92
+	cmp dword [numguisprites],92
+	seta dl
+	ja .nottdspr
+	mov cx,723
+.nottdspr:
+	mov [ttdguisprites+10*2],cx
 	mov ecx, .spriteloop+1
 	mov eax, [newtransopts]
 	and dword [esi+window.activebuttons], 0
 	mov byte [ecx], 0ABh	// [o16] stosd
 	shl eax, 2
-	cmp dword [numguisprites], 92
-	ja .gotsprites
+	mov bl,.nottrans-(.3overlayjmp+1)
+	test dl, dl
+	jz .noguisprites
+	extern miscmods2flags
+	test byte [miscmods2flags], MISCMODS2_NOTALWAYSTHREESTATETRANS
+	setnz dh
+	jz .gotsprites
+	mov bl,.lock-(.3overlayjmp+1)
+	jmp short .loadoldfirst
 
 // Use the old ones.
-	mov byte [ecx], 0A5h	// [o16] movsd
+.noguisprites:
 	mov [esi+window.activebuttons], eax
+.loadoldfirst:
+	mov byte [ecx], 0A5h	// [o16] movsd
 
 .gotsprites:
+	mov [.3overlayjmp],bl
+	mov ebx,eax
 	and ah, 1<<(TROPT_ONEWAY-8+2)
 	or [esi+window.activebuttons+1], ah
 	push esi
@@ -135,10 +155,24 @@ transparencywindow_handler:
 
 // Store the correct sprites in the windowelements.
 .spriteloop:
-	stosw		// Without new sprites, becomes "movsw"
+	stosw		// Without new sprites or with notalwaysthreestatetrans, becomes "movsw"
+	test dl,dh	// enough gui sprites && notalwaysthreestatetrans
+	jz .nextsprite
+	cmp ecx,1
+	je .spritesdone
+	push ecx
+	neg ecx
+	add ecx, TROPT__COUNT+2
+	bt ebx,ecx
+	jnc .popnext
+	mov [edi-2],ax
+.popnext:
+	pop ecx
+.nextsprite:
 	inc eax
 	add edi, windowbox_size-2
 	loop .spriteloop
+.spritesdone:
 	pop esi
 
 // and draw
@@ -176,7 +210,8 @@ transparencywindow_handler:
 	jbe .useI
 	add bx, [guispritebase]
 	bt [esi+transopts.opts], eax
-	jnc .nottrans
+	jnc short .lock
+noglobal ovar .3overlayjmp, -1
 	inc ebx
 	bt [esi+transopts.invis],eax
 .nottrans:

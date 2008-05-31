@@ -81,6 +81,7 @@ defbitvar miscmods2,miscmods2flags
 defbit MISCMODS2_NOENHANCETREES,	 0 // Force grass under the tree when it's planted on bare land or desert
 defbit MISCMODS2_IGNORETASKBAR,		 1 // Don't consider the size of the Taskbar when positioning the game window
 defbit MISCMODS2_NONEWSIGNALSIGGUI,	 2 // Prevent new signals being used for the signals GUI
+defbit MISCMODS2_NOTALWAYSTHREESTATETRANS,3// Don't use three-state graphics for the transparency gui when normal drawing selected
 enddefbits
 
 

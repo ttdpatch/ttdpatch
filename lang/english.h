@@ -579,6 +579,7 @@ BITSWITCH(miscmods2)
 BIT(noenhancetrees,        "Force grass under the tree when it's planted on bare land or desert")
 BIT(ignoretaskbar,         "Don't consider the size of the Taskbar when positioning the game window")
 BIT(nonewsignalsiggui,     "Prevent new signals being used for the signals GUI")
+BIT(notalwaysthreestatetrans,"Use three-state graphics for the transparency gui only if the transparent or invisible states are selected")
 
 
 // Description for morebuildoptions bits
