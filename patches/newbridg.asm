@@ -71,7 +71,8 @@ exported bridgeresettodefaults
 	mov esi, bridgespeedsttd
 	mov edi, bridgemaxspeed
 	mov ecx, edx
-	rep movsb
+	rep movsw
+	
 // bridge icons
 	mov esi, bridgeiconsttd
 	mov edi, bridgeicons
@@ -111,14 +112,7 @@ ovar paRailBridgeNames
 	rep stosw
 
 	
-// setup bridge sprite tables
-	mov esi, [bridgespritetablesttd]
-	add esi, NBRIDGES*4
-	
-	mov edi, bridgespritetablestables
-	mov ecx, NBRIDGES*7	// 7 dword entries per bridge
-	rep movsd
-	
+// setup bridge sprite tables to table tables
 	mov ecx, NNEWBRIDGES
 	mov eax, bridgespritetablestables
 	mov edi, bridgespritetables
@@ -126,8 +120,25 @@ ovar paRailBridgeNames
 	stosd	// create pointer list
 	add eax, 7*4
 	loop .nextentry
-	
 
+// resets for each bridge the 7 tables
+	xor ebx, ebx
+.nextresettable:
+
+	mov esi, [bridgespritetablesttd]
+	mov esi, [esi+ebx*4]
+	
+	mov edi, bridgespritetables
+	mov edi, [edi+ebx*4]
+	
+	mov ecx, 7	
+	rep movsd
+	
+	
+	inc ebx
+	cmp ebx, NBRIDGES
+	jle .nextresettable
+	
 	testmultiflags longerbridges
 	jz .notlonger
 
@@ -139,7 +150,8 @@ ovar paRailBridgeNames
 .notlonger:
 	popa
 	ret
-
+	
+	
 
 // Byte Data: TableID, Numtables, Data (80h*Numtables), [ TableID, Numtables, Data, ... ]
 global alterbridgespritetable
