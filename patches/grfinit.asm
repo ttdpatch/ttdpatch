@@ -1087,6 +1087,8 @@ postinfoapply:
 	// *********
 
 .nonewbridgespeeds:
+	extcall postbridgeapply
+
 	call initisengine
 	call setdefaultcargo
 

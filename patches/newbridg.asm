@@ -40,23 +40,12 @@ extern bridgeflags
 extern specificpropertybase
 	
 exported bridgeresettodefaults
-	pusha
-	// make sure at least one bridge is available before 1930, even when newbridges is off
-	mov edi, [specificpropertybase+6*4] 
-	mov ecx, NBRIDGES 
-	xor eax, eax
-	repne scasb	// is any bridge available from 1920 up? 
-	je .skipbridgedate 
-	mov byte [edi-11], 0     // no -- set wooden bridge's start year to 1920 
-.skipbridgedate:
-
 	testmultiflags newbridges
 	jnz .setuptables
-	popa
 	ret
 	
 .setuptables:
-	 
+	pusha
 	mov edx, NBRIDGES
 	
 	mov esi, [specificpropertybase+6*4]
@@ -161,7 +150,30 @@ ovar paRailBridgeNames
 	popa
 	ret
 	
+exported postbridgeapply
+	pusha
+	testmultiflags newbridges
+	jnz .newdata
 	
+// make sure at least one bridge is available before 1930, when newbridges is off
+	mov edi, [specificpropertybase+6*4] 
+
+	jmp .setupavailyears
+.newdata:
+
+// make sure at least one of the first bridges is available before 1930
+	mov edi, bridgeintrodate
+	
+.setupavailyears:
+	mov ecx, NBRIDGES 
+	xor eax, eax
+	repne scasb	// is any bridge available from 1920 up? 
+	je .skipbridgedate 
+	mov byte [edi-11], 0     // no -- set wooden bridge's start year to 1920 
+.skipbridgedate:
+	popa
+	ret
+
 
 // Byte Data: TableID, Numtables, Data (80h*Numtables), [ TableID, Numtables, Data, ... ]
 global alterbridgespritetable
