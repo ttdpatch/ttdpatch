@@ -440,367 +440,6 @@ proc processnewinfonew
 
 endproc // processnewinfo2
 
-#if 0
-// ----------------------------------------------------------------
-proc processnewinfoalt
-	local feature,numinfo,offset, specificnum, speciallist,specialnum, maxesi
-	local dataptrofs,orgoffset,ofstrans,curoffset,numofsleft,curprop,ofstranssize
-
-	_enter
-
-	push edi
-
-	lea ebx,[esi-6]
-	mov [%$dataptrofs],ebx
-
-	mov [%$feature],eax
-	mov bl,[action0transtablesize+eax]
-	mov [%$ofstranssize],bl
-	mov ebx,[specificpropertylist+ecx]
-	movzx eax,byte [ebx]		// number of feature-specific properties
-	lea ebx,[ebx+1+eax]
-	mov [%$speciallist],ebx		// feature-special properties
-	mov [%$specificnum],al
-	mov al,[ebx]
-	mov [%$specialnum],al
-	mov eax,[action0transtable+ecx]
-	mov [%$ofstrans],eax
-
-
-	mov ecx,[esi-6]
-	lea ecx,[esi-2+ecx+1]
-	mov [%$maxesi],ecx
-
-	xor eax,eax
-	lodsb
-	mov ecx,eax	// num-props
-	lodsb
-	mov [%$numinfo],eax
-	call getextendedbyte	// id
-	add eax,[globalidoffset]
-	mov [%$offset],eax
-	mov [%$orgoffset],eax
-
-	test byte [expswitches],EXP_MANDATORYGRM
-	jz .notmandatory
-
-	cmp byte [grfstage],0
-	je .resok
-	mov ebx,[%$feature]
-	mov ebx,[grfresbase+ebx*4]
-	test ebx,ebx
-	js .resok
-	add ebx,eax
-	push ecx
-	mov ecx,[%$numinfo]
-	jecxz .noids
-.checknextres:
-	cmp [grfresources+ebx*4],edx
-	jne near .unresid
-	inc ebx
-	loop .checknextres
-.noids:
-	pop ecx
-.resok:
-
-.notmandatory:
-
-	add eax,[%$numinfo]
-	mov ebx,[%$feature]
-
-	mov bl,[vehbnum+ebx]
-	test ebx,ebx
-	jz .nextprop	// no simple limit; handled by the functions
-
-	cmp eax,ebx
-	jbe .nextprop
-
-	mov al,INVSP_BADID
-
-.invalid:
-	shl eax,16
-	mov ax,ourtext(invalidsprite)
-
-.seterror:
-	pop edi
-	test ax,ax
-	jz .nomsg
-	call setspriteerror
-.nomsg:
-	or edi,byte -1
-	_ret
-
-.nextprop:
-	mov al,INVSP_OUTOFDATA
-	cmp esi,[%$maxesi]
-	jae .invalid
-
-	xor eax,eax
-	mov [%$numofsleft],eax
-
-	push ecx
-	mov ecx,[%$numinfo]
-	lodsb
-	mov [%$curprop],eax
-
-	mov ebx,[%$orgoffset]
-.nextsinglevalue:
-	mov [%$curoffset],ebx
-
-	mov edi,[%$ofstrans]
-	test edi,edi
-	jz .notrans		// stations and houses need translation of the offset
-
-	cmp al,8		// but not for prop. 08 which *sets* the translation
-	je .notrans
-	
-	cmp byte [%$ofstranssize], 0
-	je .ofstranssize0
-	mov bx,[edi+ebx*2]
-	jmp short .ofstranssize1
-.ofstranssize0:
-	movzx bx, byte [edi+ebx]
-.ofstranssize1:
-	mov [%$offset],bx
-
-	mov [%$numofsleft],ecx
-	mov cl,1		// only process one at a time
-
-	test bx,bx
-	jz .skip		// referring to an undefined offset
-
-.notrans:
-	cmp al,7
-	jb .genprop
-	je .loadamount
-
-	mov ebx,[%$feature]
-
-	sub al,8
-	cmp al,[%$specificnum]
-	jb .specificprop
-
-	sub al,[%$specificnum]
-	cmp al,[%$specialnum]
-	jb .specialprop
-
-.invalidprop:	// invalid property
-	mov al,INVSP_BADPROP
-	jmp short .invalidpop
-.unresid:	// unreserved ID
-	mov al,INVSP_UNRESID
-.invalidpop:
-	pop ecx
-	jmp .invalid
-
-.skip:
-	// FIXME: somehow need to skip the data, which however can be about
-	// any arbitrary size, if we have a handler function :/
-	// maybe rewrite all handler functions to accept ID=-1 as "skip" command?
-
-.next:
-	mov ecx,[%$numofsleft]
-	jecxz .notoneatatime
-
-	mov eax,[%$curprop]
-	mov ebx,[%$curoffset]
-	inc ebx
-	loop .nextsinglevalue
-
-.notoneatatime:
-	pop ecx
-	loop .nextprop
-
-.done:
-	pop edi
-
-	_ret
-
-.loadamount:
-	xor ebx,ebx
-	inc ebx
-	mov eax,loadamount
-	mov dl,1
-	jmp .getgenprop
-
-.genprop:
-	// need edi=[vehtypedataptr]+(vehbase[type]+offset)*vehtypeinfo_size+eax
-
-	mov ebx,vehtypeinfo_size
-	mov dl,[gendata+1+eax]
-	add eax,[vehtypedataptr]
-
-.getgenprop:
-	mov edi,[%$feature]
-	cmp edi, 4
-	jae .invalidprop
-	movzx edi,byte [vehbase+edi]
-	add edi,[%$offset]
-	imul edi,ebx
-	add edi,eax
-	jmp short .doprop
-
-.specialprop:
-	// need edi=[specialpropbase+eax*4]+offset*entrysize
-
-	mov edi,[specialpropertybase+ebx*4]
-	mov edi,[edi+eax*4]
-	test edi,edi
-	jz .invalidprop
-	mov edx,[%$speciallist]
-	jmp .specprop
-
-.specificprop:
-	// need edi=specpropbase+al*vehbnum[type]+offset*entrysize
-
-	mov edi,[specificpropertybase+ebx*4]
-	mov edx,[specificpropertylist+ebx*4]
-
-	mov bl,[vehbnum+ebx]
-	imul ebx,eax
-	add edi,ebx
-
-.specprop:
-	mov dl,[edx+eax+1]		// size of entry
-	mov al,dl
-	and al,7			// mask out 0x80 bit
-	movzx ebx,al
-	mul byte [%$offset]
-	add edi,eax
-
-.doprop:
-	// now:
-	// esi->action 0 property data
-	// edi->first destination entry, or handler function
-	// ebx=how many bytes for each destination array entry
-	// ecx=number of entries
-	//  dl=property type (0, 1, 2, 4, 0x40, 0x80, 0x84)
-	//	(note, dl & 7 is the number of bytes per value)
-
-	movzx eax,dl
-	and eax,7
-	imul eax,ecx
-	add eax,esi
-	cmp eax,[%$maxesi]
-	mov al,INVSP_OUTOFDATA
-	jae .invalidpop
-
-	cmp byte [grfstage],0
-	jne .doprocess
-
-	cmp dl,0x40
-	je .doprocess	// during initialization, only process 40 and 80
-
-	cmp dl,0x80
-	jne near .skipprop	
-
-.doprocess:
-	cmp dl,0x82
-	je near .textid
-
-	cmp dl,1
-	jb .invalidprop		// 0
-	je near .bytevalue	// 1
-	js .pointervalue	// 0x84
-
-	cmp dl,4
-	jb .wordvalue		// 2
-	je .dwordvalue		// 4
-	jp .functionnotranslate	// 0x40 (40-4=3C=PE but 80-4=7C=PO)
-				// 0x80
-
-	// handler functions are called with the following registers:
-	// in:	eax=prop-num
-	//	ebx=offset (translated for type "F", untranslated for type "H")
-	//	ecx=num-info (for type "H" only; type "F" should assume num-info=1)
-	//	edx->feature specific data offset
-	//		same as ebx for anything but vehicles, for vehicles: 
-	//		it's ebx+class base ID, so ebx+116 for RVs, etc.
-	//	esi->data
-	// out:	esi->after data
-	//	carry clear if successful
-	//	carry set if error, then ax=error message
-	//		  if ax=invalid sprite error, eax(16:23) holds the error code
-	// safe:eax ebx ecx edx edi ebp
-
-.specialfunction:
-	mov eax,[%$curprop]
-	mov ebx,[%$offset]
-	mov edx,[%$dataptrofs]
-	push ebp
-	mov ebp,[%$feature]
-	call edi
-	pop ebp
-	jnc .next
-
-	pop ecx
-	jmp .seterror
-
-.functionnotranslate:
-	mov eax,[%$curprop]
-	mov ebx,[%$orgoffset]
-	mov ecx,[%$numinfo]
-	mov edx,[%$dataptrofs]
-	push ebp
-	mov ebp,[%$feature]
-	call edi
-	pop ebp
-	jnc .notoneatatime
-
-	pop ecx
-	jmp .seterror
-
-.pointervalue:	// for DOS, fall through to .dwordvalue
-#if WINTTDX
-	lodsd
-	test eax,eax
-	jz .zero
-	add eax,datastart
-.zero:
-	mov [edi],eax
-	add edi,ebx
-	loop .pointervalue
-	jmp .next
-#endif
-
-.dwordvalue:
-	lodsd
-	mov [edi],eax
-	add edi,ebx
-	loop .dwordvalue
-	jmp .next
-
-.wordvalue:
-	lodsw
-	mov [edi],ax
-	add edi,ebx
-	loop .wordvalue
-	jmp .next
-
-.textid:
-	lodsw
-	call lookuppersistenttextid
-	mov [edi],ax
-	add edi,ebx
-	loop .textid
-	jmp .next
-
-.bytevalue:
-	lodsb
-	mov [edi],al
-	add edi,ebx
-	loop .bytevalue
-	jmp .next
-
-.skipprop:
-	and edx,7
-	imul edx,ecx
-	add esi,edx
-	jmp .next
-
-endproc // processnewinfo
-#endif
-
 	// same as above; running during "reserve" pass
 	// only applies cargo properties
 action0cargo:
@@ -4299,9 +3938,7 @@ definegrftranslation:
 %define %$d_P 0x84,0,0,0 //a pointer, relative to the data segment (for WINTTDX)
 %define %$d_F 0x80	// call special handler function
 %define %$d_H 0x40	// call special handler function with untranslated offset (for features like newstations and newhouses that translate offsets)
-%define %$d_w 2		// a word for special properties
-%define %$d_t 0x82	// a text id for special properties
-%define %$d_d 4		// a dword for special properties
+
 
 %define %$s_U 1
 %define %$s_B 1
@@ -4311,9 +3948,6 @@ definegrftranslation:
 %define %$s_P 4
 %define %$s_F 1
 %define %$s_H 1
-%define %$s_w 1
-%define %$s_t 1
-%define %$s_d 1
 
 %macro defvehdata 1-*.nolist	// params: name,arraysizes...
 	var %1
@@ -4335,47 +3969,16 @@ definegrftranslation:
 defvehdata gendata, W,B,B,B,B,B				// 00..06
 
 defvehdata spectraindata, B,W,W,B,P,B,B,B,B,B,B,B	// 08..18
-defvehdata spcltraindata, B,F,w,B,d,B,B,B,B,B,B,B,B,B,B,w,w,F	// 19..2A
 
 defvehdata specrvdata, B,B,P,B,B,B,B,B			// 08..12
-defvehdata spclrvdata, B,B,B,d,B,B,B,B,B,B,w,w,F	// 13..1F
 
 defvehdata specshipdata, B,B,B,B,B,W,B,B		// 08..10
-defvehdata spclshipdata, d,B,B,B,B,B,B,w,w,F		// 11..1A
 
 defvehdata specplanedata, B,B,B,B,B,B,B,W,B,B		// 08..12
-defvehdata spclplanedata, d,B,B,B,B,w,w,F		// 13..1A
 
 defvehdata specstationdata				// no properties
-defvehdata spclstationdata, F,H,F,B,B,B,F,F,w,B,F,B,B,B,w,B,w,F	// 08..19
 
 defvehdata specbridgedata, B,B,B,B			// 08..0B
-defvehdata spclbridgedata, w,F,B,F,t,t,t		// 0C..12
-
-defvehdata spechousedata
-defvehdata spclhousedata, F,F,w,B,B,B,B,B,w,B,t,w,B,F,F,d,B,B,B,B,F,B,d,B,F	// 08..20
-
-defvehdata specglobaldata
-defvehdata spclglobaldata, B,F,t,d,w,d,d,w,F		// 08..10
-		
-
-defvehdata specindustiledata
-defvehdata spclindustiledata, F,F,F,F,F,B,B,w,B,B,B	// 08..12
-
-defvehdata specindustrydata
-defvehdata spclindustrydata, F,H,F,B,t,t,t,B, F,F,B,B,B,F,F,B, B,F,d,t,d,d,d,t, d,B,B,d,t		// 08..24
-
-defvehdata speccargodata
-defvehdata spclcargodata, F,t,t,t,t,t,w,B,B,B,F,F,F,F,F,d,B,w,B	// 08..1a
-
-defvehdata specsounddata
-defvehdata spclsounddata, F,F,F				// 08..0A
-
-defvehdata specairportdata
-defvehdata spclairportdata, F,F,B,B,B,B,t			// 08..0d
-
-defvehdata specobjectdata
-defvehdata spclobjectdata, F,F,t						// 08
 
 %undef defvehdata
 
@@ -4620,8 +4223,8 @@ checkfeaturesize vehbnum, 1
 
 	// for action 0, where are the regular vehicle specific properies listed
 var specificpropertylist, dd spectraindata,specrvdata,specshipdata,specplanedata,specstationdata, 0, specbridgedata
-			dd spechousedata,specglobaldata,specindustiledata,specindustrydata,speccargodata,specsounddata
-			dd specairportdata,0,specobjectdata
+			dd 0,0,0,0,0,0
+			dd 0,0,0
 checkfeaturesize specificpropertylist, 4
 
 	// for action 0, where the data for each vehicle class starts
@@ -4631,12 +4234,6 @@ checkfeaturesize specificpropertybase, 4
 
 	// and how much these are offset from the sprite bases
 var specificpropertyofs, db -10,-6,0,0
-
-	// special vehicle properties stored in newvehdatastruc (or with handler func)
-var specialpropertybase, dd newtrainvehdata,newrvvehdata,newshipvehdata,newplanevehdata
-	dd newstationdata, canalsdata, bridgedata, housedata, globaldata, industiledata, industrydata, cargodata, sounddata
-	dd airportdata,0,objectdata
-checkfeaturesize specialpropertybase, 4
 
 	// for those features that need ID translation, put the table here
 var action0transtable, dd 0,0,0,0,curgrfstationlist,0,0,curgrfhouselist,
@@ -4657,145 +4254,7 @@ var newtransbits, db -1,-1,-1,-1
 	db -1,TROPT_STATION,-1,TROPT_OBJECT
 checkfeaturesize newtransbits, 1
 
-	// pointers to the data for each of the special properties
-var newtrainvehdata
-	dd traintractiontype,addr(shuffletrainveh),trainwagonpower // 19,1A,1B
-	dd trainrefitcost,newtrainrefit,traincallbackflags	// 1C,1D,1E
-	dd traintecoeff,trainc2coeff,trainvehlength		// 1F,20,21
-	dd trainviseffect,trainwagonpowerweight,railvehhighwt	// 22,23,24
-	dd trainuserbits,trainphase2dec,trainmiscflags		// 25,26,27
-	dd traincargoclasses,trainnotcargoclasses,longintrodate	// 28,29,2A
 
-var newrvvehdata
-	dd rvpowers, rvweight, rvhspeed, newrvrefit		// 13,14,15,16
-	dd rvcallbackflags, rvtecoeff, rvc2coeff, rvrefitcost	// 17,18,19,1A
-	dd rvphase2dec,rvmiscflags,rvcargoclasses		// 1B,1C,1D
-	dd rvnotcargoclasses,longintrodate			// 1E,1F
-
-var newshipvehdata
-	dd newshiprefit, shipcallbackflags, shiprefitcost	// 11,12,13
-	dd oceanspeedfract, canalspeedfract, shipphase2dec	// 14,15,16
-	dd shipmiscflags,shipcargoclasses,shipnotcargoclasses	// 17,18,19
-	dd longintrodate					// 1A
-
-var newplanevehdata
-	dd newplanerefit, planecallbackflags, planerefitcost	// 13,14,15
-	dd planephase2dec,planemiscflags,planecargoclasses	// 16,17,18
-	dd planenotcargoclasses,longintrodate			// 19,1A
-
-var newstationdata
-	dd addr(setstationclass),addr(setstationspritelayout)	// 08,09
-	dd addr(copystationspritelayout),stationcallbackflags	// 0A,0B
-	dd disallowedplatforms,disallowedlengths		// 0C,0D
-	dd addr(setstationlayout),addr(copystationlayout)	// 0E,0F
-	dd stationcargolots,stationpylons,setstatcargotriggers	// 10,11,12
-	dd stationflags,stationnowires,cantrainenterstattile	// 13,14,15
-	dd stationanimdata,stationanimspeeds			// 16,17
-	dd stationanimtriggers					// 18
-	dd addr(setrailstationrvrouteing)				// 19
-
-var canalsdata
-	dd canalscallbackflags					// 08
-	dd canalsgraphicflags					// 09
-
-var bridgedata	// (prop 0C is set in patches.ah)
-#if 0
-	dd 0, addr(alterbridgespritetable), bridgeflags		// 0C..0E
-	dd longintrodatebridges					// 0F
-extern waBridgeNames,waRailBridgeNames,waRoadBridgeNames
-	dd waBridgeNames,waRailBridgeNames,waRoadBridgeNames	// 10..12
-#endif
-	
-extern sethouseprocessinterval,sethousewatchlist
-var housedata
-	dd addr(setsubstbuilding)				// 08
-	dd addr(sethouseflags)					// 09
-	dd newhouseyears+2*128					// 0a
-	dd newhousepopulations+128				// 0b
-	dd newhousemailprods+128				// 0c
-	dd newhousepassaccept+128				// 0d
-	dd newhousemailaccept+128				// 0e
-	dd newhousefoodorgoodsaccept+128			// 0f
-	dd newhouseremoveratings+2*128				// 10
-	dd newhouseremovemultipliers+128			// 11
-	dd newhousenames+2*128					// 12
-	dd newhouseavailmasks+2*128				// 13
-	dd housecallbackflags					// 14
-	dd addr(sethouseoverride)				// 15
-	dd sethouseprocessinterval				// 16
-	dd housecolors						// 17
-	dd houseprobabs						// 18
-	dd houseextraflags					// 19
-	dd houseanimframes					// 1a
-	dd houseanimspeeds					// 1b
-	dd addr(sethouseclass)					// 1c
-	dd housecallbackflags2					// 1d
-	dd houseaccepttypes					// 1e
-	dd houseminlifespans					// 1f
-	dd sethousewatchlist					// 20
-	
-var globaldata
-	dd basecostmult,addr(setcargotranstbl)			// 08..09
-	dd currtextlist,currmultis,curropts,currsymsbefore	// 0A..0D
-	dd currsymsafter,eurointr,setsnowlinetable		// 0E..10
-
-var industiledata
-	dd addr(setsubstindustile),addr(setindustileoverride)	// 08..09
-	times 3 dd setindustileaccepts				// 0a..0c
-	dd industilelandshapeflags,industilecallbackflags	// 0d..0e
-	dd industileanimframes,industileanimspeeds		// 0f..10
-	dd industileanimtriggers,industilespecflags		// 11..12
-
-extern industrystationname
-var industrydata
-	dd addr(setsubstindustry),addr(setindustryoverride)	// 08..09
-	dd addr(setindustrylayout)				// 0a
-	dd industryproductionflags-1				// 0b
-	dd industryclosuremsgs-2				// 0c
-	dd industryprodincmsgs-2				// 0d
-	dd industryproddecmsgs-2				// 0e
-	dd industryfundcostmultis-1				// 0f
-	dd setinduproducedcargos				// 10
-	dd setindustryacceptedcargos				// 11
-	dd industryprod1rates-1					// 12
-	dd industryprod2rates-1					// 13
-	dd industrymindistramounts-1				// 14
-	dd addr(setindustrysoundeffects),addr(setconflindustry)	// 15..16
-	dd initialindustryprobs-1,ingameindustryprobs-1		// 17..18
-	dd addr(setindustrymapcolors),industryspecialflags-4	// 19..1a
-	dd industrycreationmsgs-2				// 1b
-	dd industryinputmultipliers-4				// 1c
-	dd (industryinputmultipliers+NINDUSTRYTYPES*4)-4	// 1d
-	dd (industryinputmultipliers+2*NINDUSTRYTYPES*4)-4	// 1e
-	dd industrynames-2					// 1f
-	dd fundchances-4					// 20
-	dd industrycallbackflags-1				// 21
-	dd industrycallbackflags2-1				// 22
-	dd industrydestroymultis-4				// 23
-	dd industrystationname-2				// 24
-
-var cargodata
-	dd addr(setcargobit),newcargotypenames,newcargounitnames	//08..0a
-	dd newcargoamount1names,newcargoamountnnames			//0b..0c
-	dd newcargoshortnames,newcargoicons,newcargounitweights		//0d..0f
-	dd newcargodelaypenaltythresholds1				//10
-	dd newcargodelaypenaltythresholds2,addr(setcargopricefactors)	//11..12
-	dd addr(setcargocolors),addr(setcargographcolors)		//13..14
-	dd addr(setfreighttrainsbit),addr(setcargoclasses)		//15,16
-	dd globalcargolabels,cargotowngrowthtype,cargotowngrowthmulti	//17..19
-	dd cargocallbackflags						//1a
-
-var sounddata
-	dd addr(setsoundvolume),addr(setsoundpriority)			//08..09
-	dd addr(overrideoldsound)					//0A
-
-var airportdata
-	dd setairportlayout,setairportmovementdata			//08..09
-	dd airportstarthangarnodes,airportcallbackflags			//0a..0b
-	dd airportspecialflags,airportweight,airporttypenames		//0c..0e
-	
-var objectdata
-	dd addr(setobjectclass), addr(setobjectclasstexid), objectnames 	// 08..0A
 	
 uvard grfvarreinitstart,0
 %define SKIPGUARD 1
