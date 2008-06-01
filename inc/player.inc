@@ -1,3 +1,11 @@
+
+struc playerailoc
+	.xy:		resw 1	// 00h:location
+			resb 0x0a-$
+	.direction:	resb 1	// 0Ah
+	.cargotype:	resb 1	// 0Bh
+			resb 0x14-$
+endstruc
 // starts at offset given in [77914] (normally 52a62)
 struc player
 	.name: 		resw 1	// 00h:name text ID; 0 for non-existing players
@@ -24,6 +32,15 @@ struc player
 	.inaugurated:	resw 1	// 2b6h:year the company was launched (full, not 1920-based)
 			resb 0x2bb-$
 	.aiaction:	resb 1	// 2bbh:current AI action
+			resb 0x2c2-$
+	.AIServiceFrom:	resb playerailoc_size
+			resb 0x2d6-$
+	.AIServiceTo:	resb playerailoc_size
+			resb 0x2ea-$
+	.AIServiceVia1:	resb playerailoc_size
+			resb 0x2fe-$
+	.AIServiceVia2:	resb playerailoc_size
+
 			resb 0x3a3-$
 	.tracktypes:	resb 1	// 3a3h:number of track types available for building
 	.hqlocation: 	resw 1	// 3a4h:location of headquarters

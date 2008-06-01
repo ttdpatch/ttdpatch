@@ -91,16 +91,16 @@ getaiselectioncallback:
 	or al,[ebp+0x327]
 	mov [esi+aiselectioninfo.size],al
 
-	mov ax,[ebp+0x2c2]
+	mov ax,[ebp+player.AIServiceFrom+playerailoc.xy]
 	call findindustrytype
 	mov [esi+aiselectioninfo.sourcetype],al
 
-	mov ax,[ebp+0x2d6]
+	mov ax,[ebp+player.AIServiceTo+playerailoc.xy]
 	call findindustrytype
 	mov [esi+aiselectioninfo.desttype],al
 
-	mov ax,[ebp+0x2d6]
-	mov cx,[ebp+0x2c2]
+	mov ax,[ebp+player.AIServiceTo+playerailoc.xy]
+	mov cx,[ebp+player.AIServiceFrom+playerailoc.xy]
 	sub al,cl
 	jns .notxneg
 	neg al
@@ -469,7 +469,7 @@ aichoosetracktype:
 	dec eax
 	mov bh,[tracktypes+eax]
 	mov bl,0xF
-	mov dl,[esi+0x2cd]
+	mov dl,[esi+player.AIServiceFrom+playerailoc.cargotype]	//was: 0x2cd
 	and edx,0x7f
 	call getaiselectioncallback
 	cmp bh,3
