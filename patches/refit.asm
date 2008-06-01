@@ -89,8 +89,7 @@ shipsrefittable:
 	pusha
 
 	xor edi,edi
-	mov esi,dword [specificpropertybase+2*4]
-	add esi,byte NSHIPTYPES
+	mov esi, shiprefittable
 
 .nextship:
 	xor eax,eax
@@ -121,7 +120,7 @@ shipsrefittable:
 	cmp al,1
 	seta byte [esi+edi]
 
-	mov al,byte [esi+edi+NSHIPTYPES*3]
+	mov al,byte [shipcargotype+edi]
 	mov al,byte [cargotypes+eax]
 	bt ebp,eax
 
@@ -130,7 +129,7 @@ shipsrefittable:
 	// the default cargo is not available in this climate
 	bsf eax,ebp
 	mov al,byte [cargoid+eax]
-	mov [esi+edi+NSHIPTYPES*3],al
+	mov [shipcargotype+edi],al
 
 .goodcargo:
 	inc edi

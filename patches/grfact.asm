@@ -110,15 +110,9 @@ action0:
 	// - (out) feature based data: 
 	//         stations: layout buffer ptr
 	//
-processnewinfo:
-	
-	//cmp eax, 5
-	//ja near processnewinfoalt
-	// NOTE: Bridges code can't use the old code...
-	
-proc processnewinfonew
+proc processnewinfo
 	local feature,numinfo,offset,maxesi
-	local dataptrofs,orgoffset,ofstrans,curoffset,numofsleft,curprop,ofstranssize
+	local dataptrofs,orgoffset,curoffset,numofsleft,curprop
 	local propdescription
 	
 	_enter
@@ -130,14 +124,10 @@ proc processnewinfonew
 
 	mov [%$feature],eax
 	
-	mov bl,[action0transtablesize+eax]
-	mov [%$ofstranssize],bl
-	mov eax,[action0transtable+ecx]
-	mov [%$ofstrans],eax
-	
 	extern action0properties
 	mov ebx, [action0properties+ecx]
 	mov [%$propdescription], ebx
+		
 	
 	mov ecx,[esi-6]			// length of data
 	lea ecx,[esi-2+ecx+1]		// calculates the first byte after our data
@@ -232,14 +222,17 @@ proc processnewinfonew
 	mov [%$curoffset],ebx
 
 // translate id if necessary (like stations and houses)
-	mov edi,[%$ofstrans]
+	mov edx, dword [%$propdescription]
+	mov edi, dword [edx+action0prophead.idtranstable]
+
 	test edi,edi
 	jz .doprop
 	
 	cmp al,8		// but not for prop. 08 which *sets* the translation
 	je .doprop
 	
-	cmp byte [%$ofstranssize], 0
+	// we check here simple the higher byte of the word
+	cmp byte [edx+action0prophead.numids+1], 0
 	je .ofstranssize0
 	mov bx,[edi+ebx*2]
 	jmp short .ofstranssize1
@@ -438,7 +431,7 @@ proc processnewinfonew
 	add esi,edx
 	jmp .next
 
-endproc // processnewinfo2
+endproc // processnewinfo
 
 	// same as above; running during "reserve" pass
 	// only applies cargo properties
@@ -4235,18 +4228,6 @@ checkfeaturesize specificpropertybase, 4
 	// and how much these are offset from the sprite bases
 var specificpropertyofs, db -10,-6,0,0
 
-	// for those features that need ID translation, put the table here
-var action0transtable, dd 0,0,0,0,curgrfstationlist,0,0,curgrfhouselist,
-		       dd 0, curgrfindustilelist, curgrfindustrylist,0,0, curgrfairportlist,0,curgrfobjectgameids
-checkfeaturesize action0transtable, 4
-
-	// for those features that need ID translation in word size, put a 1
-var action0transtablesize, db 0,0,0,0
-	db 0,0,0,0	// curgrfstationlist, 0, 0, curgrfhouselist
-	db 0,0,0,0	// 0, curgrfindustilelist, curgrfindustrylist, 0
-	db 0,0,0,1	// 0, curgrfairportlist, 0, curgrfobjectgameids
-checkfeaturesize action0transtablesize, 1
-
 	// Bit offsets in newtransopts for the transparency for each feature
 var newtransbits, db -1,-1,-1,-1
 	db TROPT_STATION, -1, TROPT_BRIDGE, TROPT_TOWN_BLDG
@@ -4255,7 +4236,6 @@ var newtransbits, db -1,-1,-1,-1
 checkfeaturesize newtransbits, 1
 
 
-	
 uvard grfvarreinitstart,0
 %define SKIPGUARD 1
 

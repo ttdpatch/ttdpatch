@@ -298,9 +298,6 @@ varw signal2waittime, 0xfd	//  same for a 2-way signal
 			//  if this number of time units is exceeded, the train turns back
 			//  253 is the TTD default
 
-
-uvard bridgespritetablesttd,1,s	// TTD Bridge Sprite Tables
-
 uvarw newmaglevbridgespeeds,4,z	// new max. speeds on two highest-speed monorail and maglev bridge types
 
 //	align 4

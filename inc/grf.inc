@@ -153,6 +153,7 @@ struc action0prophead
 	.numids: resw 1
 	.numprops: resb 1
 	.reserved: resb 1 
+	.idtranstable: resd 1
 endstruc
 
 struc action0propdef

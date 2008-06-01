@@ -306,6 +306,7 @@ ttdvar(cargoshortnames,0x76E38)	// W:
 ttdvar(cargoicons,0x76E50)		// W:
 
 ttdvar(aicargovehicletable,0x77068)	// 7*12 bytes list of vehicles per cargo for each vehicle class (see struct aicargovehicle)
+ttdvar(ailastrailengineaiflags, 0x9eddf)// B: AI flags of last rail loco buy attempt
 ttdvar(ailastairank,0x9ede0)		// B: AI rank of last rail loco buy attempt
 
 ttdvar(cargounitweights,0x77155)	// B:

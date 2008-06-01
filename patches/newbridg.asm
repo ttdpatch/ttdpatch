@@ -19,7 +19,17 @@
 
 extern patchflags
 
-extern bridgespritetablesttd
+uvard bridgespecificpropertiesttd, 1
+#if 0
+struct oldbridgedata
+	.bridgeintrodate: resb NBRIDGES
+	.bridgeminlength: resb NBRIDGES
+	.bridgemaxlength: resb NBRIDGES
+	.bridgecostfactor: resb NBRIDGES
+endstruc
+#endif
+uvard bridgespritetablesttd, 1
+
 
 uvard bridgespritetables, NNEWBRIDGES
 uvard bridgespritetablestables, NNEWBRIDGES*7
@@ -48,7 +58,7 @@ exported bridgeresettodefaults
 	pusha
 	mov edx, NBRIDGES
 	
-	mov esi, [specificpropertybase+6*4]
+	mov esi, [bridgespecificpropertiesttd]
 	mov edi, bridgeintrodate
 	mov ecx, edx
 	rep movsb

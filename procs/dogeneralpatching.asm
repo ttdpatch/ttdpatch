@@ -1686,7 +1686,8 @@ dogeneralpatching:
 	storeaddresspointer findbridgespritetables,1,1,bridgespritetablesttd
 
 	sub eax,0x40
-	mov [specificpropertybase+6*4],eax
+	extern bridgespecificpropertiesttd
+	mov [bridgespecificpropertiesttd],eax
 
 	storeaddresspointer findaiactiontable,1,2,aiactiontable
 

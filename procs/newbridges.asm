@@ -23,12 +23,6 @@ extern variabletofind
 exported patchnewbridges
 	patchcode vehonbridge
 	mov word [edi+lastediadj-74],0x368d	// 2-byte nop
-
-
-	
-
-	
-
 	
 	extern paRailBridgeNames, bridgerailnames, bridgeroadnames
 	storeaddress paRailBridgeNames
@@ -53,8 +47,8 @@ exported patchnewbridges
 	multipatchcode findvariableaccess, , 3, {mov DWORD [edi], bridgemaxspeed}
 	
 // based on specificpropertybase (set by dogeneralpatching)
-	extern specificpropertybase
-	mov edi, [specificpropertybase+6*4]
+	extern bridgespecificpropertiesttd
+	mov edi, [bridgespecificpropertiesttd]
 	
 	extern bridgeintrodate
 	mov [variabletofind], edi
