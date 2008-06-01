@@ -431,10 +431,10 @@ proc calc_te_a
 		// count weight and incline forces of all engines+waggons
 .next:
 	mov ch,[%$notallpower]
+	mov edx, [esi+veh.veh2ptr] // should be here because of the jump and use of it afterwards
 	test [esi+veh.modflags],ch
 	jnz .nopowerontile
 
-	mov edx,[esi+veh.veh2ptr]
 	movzx eax,word [edx+veh2.te]
 	add [%$maxte],eax	// tractive effort provided in kN
 
@@ -457,14 +457,30 @@ proc calc_te_a
 	sub  [%$inclforces],ebx
 
 	mov cl,ch
+	
 .noslope:
-
 	movzx esi,word [esi+veh.nextunitidx]
 	cmp si,byte -1
 	je .haveall
 	shl esi,vehicleshift
 	add esi,[veharrayptr]
-	jmp .next
+	
+// We need to make note of artic units (code basically the same as multihead for the same behaviour)
+	cmp byte [esi+veh.artictype], 0xfd // articulated (can be all but first vehicle)
+	jb .next
+	je .reversed
+	jmp .noslope
+
+.reversed:
+	movzx edx,word [esi+veh.nextunitidx]
+	cmp dx, byte -1
+	je .next // was the last articulated piece = the real engine
+	shl edx, 7
+	add edx, [veharrayptr]
+	cmp byte [edx+veh.artictype], 0xfd
+	jb .next
+	mov esi, edx
+	jmp .reversed
 
 .haveall:
 	pop esi
