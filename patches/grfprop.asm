@@ -207,7 +207,7 @@ endaction0props
 // Plane Properties
 action0props planeproperties,NAIRCRAFTTYPES
 	prop 0x00,W, vehtypedata_plane+vehtypeinfo.baseintrodate,vehtypeinfo_size
-	prop 0x01,U,0
+	prop 0x01,U, 0
 	prop 0x02,B, vehtypedata_plane+vehtypeinfo.reliabdecrease,vehtypeinfo_size
 	prop 0x03,B, vehtypedata_plane+vehtypeinfo.lifespan,vehtypeinfo_size
 	prop 0x04,B, vehtypedata_plane+vehtypeinfo.basedurphase2,vehtypeinfo_size
@@ -222,7 +222,7 @@ action0props planeproperties,NAIRCRAFTTYPES
 	prop 0x0C,B, planedefspeed
 	prop 0x0D,B, planeaccel
 	prop 0x0E,B, planeruncostfactor
-	prop 0x0F,B, planepasscap
+	prop 0x0F,W, planepasscap
 	prop 0x10,U, 0
 	prop 0x11,B, planemailcap
 	prop 0x12,B, planesoundeffect
