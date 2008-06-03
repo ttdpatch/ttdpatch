@@ -1556,9 +1556,11 @@ dogeneralpatching:
 	mov eax,[eax+1]
 	mov [vehtypedataptr],eax
 	
+	pusha
 	extern vehtypedata_ptr
 	param_call reloc, eax, vehtypedata_ptr
-
+	popa
+	
 	storefragment newsetintrodate
 
 #if WINTTDX

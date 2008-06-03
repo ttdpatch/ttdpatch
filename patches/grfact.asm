@@ -71,7 +71,6 @@ extern setairportlayout,airportstarthangarnodes,setairportmovementdata
 extern airportcallbackflags,airportspecialflags,airportaction3
 extern airportweight,airporttypenames
 extern setrailstationrvrouteing
-extern longintrodate,longintrodatebridges
 extern newsignalspritenum,newsignalspritebase
 extern setobjectclass,setobjectclasstexid
 extern newpbstrackbase, newpbstracknum

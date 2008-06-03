@@ -33,10 +33,8 @@ extern callbackflags
 %define %$s_F 1
 %define %$s_H 1
 
-%assign action0datanum 0x00
 
-%macro action0props 2-3.nolist 0	// params: name,maxids,idtranslationtable
-	%define %$listname %1
+%macro action0props 2-3.nolist 0	// params: name,maxids, [idtranslationtable]
 	%ifid %3
 		extern %3
 	%endif
@@ -60,12 +58,11 @@ iend
 %if %1<>action0datanum
 	%error "property action0datanum missing"
 %endif
-	db %$d_%2
-	// size of entry
+	db %$d_%2 
 %if %0>3
 	db %4	// offset for non contigues data, like vehtypedata
 %else
-	db %$d_%2 & 7
+	db %$d_%2 & 7	// or normal size of entry
 %endif
 	dw 0
 	dd %3
@@ -78,11 +75,9 @@ iend
 %endmacro
 
 
-extern longintrodate
-
 // Train Properties
 action0props trainproperties,NTRAINTYPES
-	prop 0x00,W, vehtypedata_ship+vehtypeinfo.baseintrodate,vehtypeinfo_size
+	prop 0x00,W, vehtypedata+vehtypeinfo.baseintrodate,vehtypeinfo_size
 	prop 0x01,U, 0
 	prop 0x02,B, vehtypedata+vehtypeinfo.reliabdecrease,vehtypeinfo_size
 	prop 0x03,B, vehtypedata+vehtypeinfo.lifespan,vehtypeinfo_size
@@ -126,7 +121,7 @@ action0props trainproperties,NTRAINTYPES
 	prop 0x27,B, trainmiscflags
 	prop 0x28,W, traincargoclasses
 	prop 0x29,W, trainnotcargoclasses
-	prop 0x2A,F, longintrodate
+	propex 0x2A,F, longintrodate
 endaction0props
 
 
