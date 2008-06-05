@@ -475,10 +475,10 @@ extern TrainWeightGeneric.lshowengine
 	mov al,bl
 	xor esi,esi
 	call vehtypecallback
-	mov ah,0xD4
 	jnc .gotit
-	mov ax,6
+	mov ax,6-0xD400
 .gotit:
+	add ah,0xD4
 	mov [edi+15],ax
 	mov eax,[mostrecentspriteblock]
 	mov [curmiscgrf],eax
@@ -532,10 +532,10 @@ extern TrainWeightGeneric.lshowwagon
 	mov al,bl
 	xor esi,esi
 	call vehtypecallback
-	mov ah,0xD4
 	jnc .gotit
-	mov ax,6
+	mov ax,6-0xD400
 .gotit:
+	add ah,0xD4
 	mov [ebp+22],ax
 	mov eax,[mostrecentspriteblock]
 	mov [curmiscgrf],eax
