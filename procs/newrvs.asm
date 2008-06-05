@@ -11,8 +11,7 @@ extern vehtickproc.oldrv
 
 ext_frag newvehstartsound
 
-rvwindowsize equ 0x8d
-uvarb rvwindowrefit,rvwindowsize
+extern rvwindowrefit,rvwindowsize
 
 global patchnewrvs
 
@@ -21,6 +20,9 @@ begincodefragments
 codefragment oldcreatervwindow,14
 	mov dx,0x88
 	db 0xbd,2	// mov ebp,2
+
+glob_frag findrvwindowptr
+reusecodefragment findrvwindowptr,oldcreatervwindow,14+3
 
 codefragment newcreatervwindow
 	call runindex(creatervwindow)

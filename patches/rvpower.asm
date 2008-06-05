@@ -351,15 +351,27 @@ rvwindowfunc:
 	mov eax,edi
 	call creatervwindow
 
+	test byte [esi+window.flags+1], 1<<(11-8)
+	jnz .haveelemcopy
+
 	cmp ebx,[esi+window.elemlistptr]
 	je .noredrawnecessary
 
+.doredraw:
 	// button has changed, redraw it
 	mov al,[esi+window.type]
 	or al,0x80
 	mov ah,7	// refit/reverse button
 	mov bx,[esi+window.id]
-	call postredrawhandle	// can't use invalidatehandle in window func
+	jmp postredrawhandle	// can't use invalidatehandle in window func
+
+.haveelemcopy:
+	mov eax,ebx				// eax is copied ptr. "Type" at eax+5Eh
+	xchg ebx,[esi+window.elemlistptr]	// ebx is compiled-in data, restore copied ptr.
+	mov bx, [ebx+5Eh]			// bx is window's new type
+	xchg bx, [eax+5Eh]
+	cmp bx, [eax+5Eh]
+	jne .doredraw
 
 .noredrawnecessary:
 	ret

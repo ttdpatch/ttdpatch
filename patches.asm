@@ -108,6 +108,7 @@
 	patchproc officefood, patchofficefood
 	patchproc usesigncheat, patchusesigncheat
 	patchproc moreairports, patchmoreairports
+	patchproc enhancegui, patchresizevehwins	// must be before patchallowtrainrefit and patchnewrvs
 	patchproc allowtrainrefit,newtrains, patchallowtrainrefit
 	patchproc newships,newrvs,newtrains,newplanes, patchrefitting
 	patchproc newships,newrvs,newtrains,newplanes, patchnewvehs

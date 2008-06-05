@@ -34,6 +34,7 @@ codefragment newcalcrefitcap
 	call runindex(calcplanetrainrefitcap)
 	db 0xeb,0x8
 
+glob_frag findtrainwindowelemliststore, trainwindowdata
 codefragment trainwindowdata,-0x66
 	db 0x44,0,0x55,0,0xcb
 
@@ -42,6 +43,8 @@ codefragment oldsetuptrainwindow
 	db 0xc7,0x46,0x24
 normaltrainwindowptr:
 	dd 0
+
+reusecodefragment findtrainwindowelemliststore, oldsetuptrainwindow,3
 
 codefragment newsetuptrainwindow
 	call runindex(setuptrainwindow)
@@ -94,10 +97,15 @@ patchallowtrainrefit:
 	add edi,byte 0x3b+lastediadj+3*WINTTDX
 	storefragment newcalcrefitcap
 
-	storeaddress trainwindowdata,1,1,normaltrainwindowptr
+	stringaddress trainwindowdata
+	extern patchflags
+	testmultiflags enhancegui
+	jnz .nostore
+	mov [normaltrainwindowptr],edi
+.nostore:
 
 		// create the new window setup with refit button
-	mov esi,edi
+	mov esi,[normaltrainwindowptr]
 	mov edi,trainwindowrefit
 	mov ecx,trainwindowsize
 	rep movsb

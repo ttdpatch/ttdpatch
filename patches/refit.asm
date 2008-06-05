@@ -725,10 +725,14 @@ setuptrainwindow:
 global trainwindowfunc
 trainwindowfunc:
 	call setuptrainwindow.checkrefit
+	
+	test byte [esi+window.flags+1], 1<<(11-8)
+	jnz .haveelemcopy
 
 	cmp eax,[esi+window.elemlistptr]
 	je .noredrawnecessary
 
+.doredraw:
 	// button has changed, redraw it
 	mov al,[esi+window.type]
 	or al,0x80
@@ -742,6 +746,14 @@ trainwindowfunc:
 	add edi,[veharrayptr]
 	ret
 
+.haveelemcopy:
+	mov ebx,eax				// ebx is copied ptr. "Type" at ebx+6Ah
+	xchg eax,[esi+window.elemlistptr]	// eax is compiled-in data, restore copied ptr.
+	mov ax, [eax+6Ah]			// ax is window's new type
+	xchg ax, [ebx+6Ah]
+	cmp ax, [ebx+6Ah]
+	je .noredrawnecessary
+	jmp short .doredraw
 
 // in:	vehicle type and default cargotype on stack
 //	ebx->refitinfo

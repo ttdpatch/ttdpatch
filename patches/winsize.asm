@@ -4,6 +4,7 @@
 #include <ptrvar.inc>
 #include <textdef.inc>
 #include <window.inc>
+#include <view.inc>
 
 extern BringWindowToForeground,CreateTooltip,DestroyWindow,FindWindow
 extern RefreshWindowArea,TabClicked,TitleBarClicked,currscreenupdateblock
@@ -362,22 +363,21 @@ uvarw tmpdx
 uvarw tmpdy
 
 ResizeWindowElements:
-	push esi
-	push edi
-	push ax
+	pusha
 	push bx
-	push cx
-	push dx
-	sub ax, [esi+window.width]
+	push ax
+	pop eax		// mov eax[16:31], bx
+	sub eax, [esi+window.width]
 	sub bx, [esi+window.height]
+	mov edx, [esi+window.viewptr]
+	test edx,edx
+	jz .noview
+	add [edx+view.width],eax
+	add [edx+view.scrwidth],eax
+.noview:
 	mov esi, [esi+window.elemlistptr]
 	call ResizeWindowElementsDelta
-	pop dx
-	pop cx
-	pop bx
-	pop ax
-	pop edi
-	pop esi
+	popa
 	ret
 
 %assign changex1	  1
