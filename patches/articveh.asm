@@ -1841,8 +1841,8 @@ HeadInDepotCheckTrailerDecoupledAndRepair:
 	cmp edi, esi
 	je .normalwait
 	pusha
-	cmp BYTE [edi+veh.parentmvstat], 0xFF
-	je .forceemergencytrailerteleport
+//	cmp BYTE [edi+veh.parentmvstat], 0xFF
+//	je .forceemergencytrailerteleport
 	mov ax, [esi+veh.XY]
 	sub ax, [edi+veh.XY]
 	add ax, 0x101				//trailers outside the immediate 9 tile region of the depot are considered bad
