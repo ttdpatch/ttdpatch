@@ -1,4 +1,5 @@
 #include <frag_mac.inc>
+#include <window.inc>
 
 extern normaltrainwindowptr, findwindowstructuse.ptr
 extern newRVWindow_elements,newShipWindow_elements,newAircraftWindow_elements,rvwindowsize
@@ -26,18 +27,29 @@ endcodefragments
 exported patchresizevehwins
 	// Patch window elements:
 	//	Trains
-	mov ebx,normaltrainwindowptr
-	storeaddress trainwindowdata,1,1,ebx
+	mov ebp,normaltrainwindowptr
+	storeaddress trainwindowdata,1,1,ebp
+// Different versions have different code sizes and different vehicle window widths. Deal with this.
+	movzx ebx, word [edi+12*5+windowbox.x2]
+	inc ebx
+	test bh,bh
+	jz .useimm8				// In some versions I need to overwrite add cx, imm8
+	mov edi, .patchsettextofst		// In others, it's add cx, imm16
+	dec byte [edi]
+	inc byte [edi+2]
+.useimm8:
 	stringaddress findtrainwindowelemliststore
 	extern newTrainWindow_elements
-	mov eax,newTrainWindow_elements
-	mov [edi],eax
-	mov [ebx],eax
+	mov esi,newTrainWindow_elements
+	mov [edi],esi
+	mov [ebp],esi
+	call .resizewindowelems
 
 	//	RVs
 	stringaddress findrvwindowptr
 	mov esi,newRVWindow_elements
 	mov [edi],esi
+	call .resizewindowelems
 
 	//	Aircraft
 	mov edi, newAircraftWindow_elements
@@ -65,7 +77,6 @@ exported patchresizevehwins
 
 
 	// patch drawing the start/stop bar
-	xor ecx,ecx
 	mov cl,2		// For trains
 	call .patchloop
 	mov byte [dxadd],105
@@ -78,19 +89,47 @@ exported patchresizevehwins
 	// { patchcode findstartstopbar,%2,ecx,ecx
 		usesearchfragment findstartstopbar
 
+		// param_call dopatchcode, findstartstopbar_start, %%addr2, 3, ecx, ecx, %1_add, %2_len
+		// With variable values for %%addr2, %1_add, and %2_len
 		push findstartstopbar_start
 		test cl,1
 		jnz .callsetflag
 		push settextloc+(0xE8<<24)
+		push 3
+		push ecx
+		push ecx
+		push byte findstartstopbar_add
+		push 8
+noglobal ovar .patchsettextofst,-3
 		jmp short .docall
 	.callsetflag:
 		push setflagloc+(0xE8<<24)
+		push 3
+		push ecx
+		push ecx
+		push byte findstartstopbar_add
+		push 8
 	.docall:
-		param_call dopatchcode, /*%1_start, %%addr2,*/ 3, ecx, ecx, 0+findstartstopbar_add, 8
+		call dopatchcode
 
 		donesearchfragment
 	// }	
 
 	pop ecx
 	loop .patchloop
+	ret
+
+// In:	bx: Width
+//	esi->Window elements
+.resizewindowelems:
+	pusha
+	mov edi, esi
+	mov dh, cWinDataSizer
+	extcall FindWindowData.gotelemlist
+
+	lea eax,[bx-0FAh]
+	xor ebx,ebx
+	mov edi,[edi+windatabox_sizerextra.eleminfo]
+	extcall ResizeWindowElementsDelta
+	popa
 	ret

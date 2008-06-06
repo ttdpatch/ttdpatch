@@ -394,7 +394,7 @@ ResizeWindowElements:
 %assign changex2twothird  800h
 
 //same as above, only esi is a pointer to the first windowelement, and ax,bx are size changes instead of absolute sizes
-ResizeWindowElementsDelta:
+exported ResizeWindowElementsDelta
 	push edi				// Find the extra data, returing a pointer in edi
 	push edx
 	mov edi, esi
@@ -704,10 +704,11 @@ HandleSizeConstraints:
 //IN: esi=window
 //    dh=datatype to find
 //OUT: edi=pointer to data, or carry set if not found
-global FindWindowData
+global FindWindowData,FindWindowData.gotelemlist
 FindWindowData:
-	mov dl, cWinElemExtraData
 	mov edi, [esi+window.elemlistptr]
+.gotelemlist:
+	mov dl, cWinElemExtraData
 
 .loop:
 	cmp byte [edi], cWinElemLast

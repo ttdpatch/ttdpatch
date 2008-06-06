@@ -39,10 +39,6 @@ ptrvar planesprite
 // (this includes all Class*ActionHandler and Class*ClearTile functions in TTD, see TTDMEM.IDB)
 uvarb curplayerctrlkey
 
-// data for the train and road vehicle windows
-global trainwindowsize
-trainwindowsize equ 0x90
-uvarb trainwindowrefit,trainwindowsize
 
 uvard varheap,1,z		// variable size heap (is in the linked list too)
 uvard spriteblockptr,1,s	// Base address of pointers to new sprite data

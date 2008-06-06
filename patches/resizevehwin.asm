@@ -32,8 +32,10 @@ guiele details,cWinElemSpriteBox, cColorSchemeGrey, x,232, x2,249, sx,1, y,86, y
 guiele sponge,cWinElemSpriteBox, cColorSchemeGrey, x,232, x2,249, sx,1, y,104, y2,103, sy2,1, data,0
 endguiwindow
 
-global rvwindowsize,newShipWindow_elements
+global trainwindowsize,rvwindowsize,newShipWindow_elements
+trainwindowsize equ 0xA9
 rvwindowsize equ 0x9D
+uvarb trainwindowrefit,trainwindowsize
 uvarb rvwindowrefit,rvwindowsize
 uvarb newAircraftWindow_elements,rvwindowsize*2
 newShipWindow_elements equ newAircraftWindow_elements+rvwindowsize
