@@ -166,7 +166,7 @@ exported postbridgeapply
 	jnz .newdata
 	
 // make sure at least one bridge is available before 1930, when newbridges is off
-	mov edi, [specificpropertybase+6*4] 
+	mov edi, [bridgespecificpropertiesttd] 
 
 	jmp .setupavailyears
 .newdata:
