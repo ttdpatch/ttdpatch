@@ -3,6 +3,7 @@
 // and make RV's have "realistic" power and acceleration
 
 #include <std.inc>
+#include <flags.inc>
 #include <window.inc>
 #include <veh.inc>
 #include <vehtype.inc>
@@ -36,21 +37,67 @@ global dorvmovement
 dorvmovement:
 	mov byte [.numcycle],1 << maxrvspeedshift
 
+	// Changed here as it wouldn't be effient to do it for every loop
+extern patchflags
+testmultiflags articulatedrvs
+	jnz .nextcycleartic
+	
 .nextcycle:
 	test byte [esi+veh.vehstatus],2
 	jnz .done
-	mov ax,[esi+veh.currorder]
-	and al,0x1f
-	cmp al,4
-	call $+5
-ovar advanceroadvehicle,-4
+
+	call .calloriginal
 
 	dec byte [.numcycle]
 	jnz .nextcycle
 .done:
 	ret
 
+// Basically the same as above but does the extra artic steps
+.nextcycleartic:
+	test byte [esi+veh.vehstatus],2
+	jnz .done
+	
+	push ebp	// Find and get our movement for this 'slot'
+	push edx
+	mov ebp, 0
+extern updateTrailerPosAfterRVProc.clock
+	call updateTrailerPosAfterRVProc.clock
+	mov dword [.ebp], ebp
+	mov byte [.dl], dl
+	pop edx
+	pop ebp
+
+	call .calloriginal
+
+	push ebp	// Now move the trailers based off the results from above
+	push edx
+	mov ebp, dword [.ebp]
+	mov dl, byte [.dl]
+extern updateTrailerPosAfterRVProc.trailers
+	call updateTrailerPosAfterRVProc.trailers
+	pop edx
+	pop ebp
+
+	dec byte [.numcycle]
+	jnz .nextcycleartic
+	ret
+
+// This needs to be assesable to both the normal and artic variants
+.calloriginal:
+	mov ax,[esi+veh.currorder]
+	and al,0x1f
+	cmp al,4
+	call $+5
+ovar advanceroadvehicle,-4
+	ret
+
 .numcycle: db 0
+
+// Used to store the trailers key information
+// (required otherwise it'll crash when any rv enters a depot)
+.ebp: dd 0
+.dl: db 0
 
 ; endp dorvmovement
 

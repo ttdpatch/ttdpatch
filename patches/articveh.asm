@@ -501,7 +501,7 @@ buyRVTrailer:
 	shr ebx, 5
 	ret
 	
-global updateTrailerPosAfterRVProc
+global updateTrailerPosAfterRVProc, updateTrailerPosAfterRVProc.clock, updateTrailerPosAfterRVProc.trailers
 updateTrailerPosAfterRVProc:
 	push	ebx
 	movzx	ebx, word [esi+veh.engineidx]
@@ -509,33 +509,26 @@ updateTrailerPosAfterRVProc:
 	pop	ebx
 	jne	near .justQuit			;engine? continue: not? quit.
 
-/************************************************
- * Road Vehicle Consist Clock Generator		*
- *						*
- * Will the head be moving, if so then store it *
- * in dl, so we can force the trailers to move  *
- * (Make sure we restore the variables though)  *
- *						*
- * Basicly SYNCS a consist keeping it together! *
- ************************************************/
+	// By default, trailer clock, move parent, move trailers and quit.
+	// Mountains 3, move parent* and quit.
+	// * - Which in turn does clock, move parent, move trailers several times
+extern mountaintypes
+	mov dh, [mountaintypes+3]
+	cmp dh , 3
+	je .mountains
+	call .clock
 
-	push ecx
-	xor dl, dl
-	mov cx, [esi+veh.speed]
-	mov dh, [esi+veh.movementfract]
-	call setTrailerMovementFlags // Out ebp as the new temp head (parent otherwise)
-	adc dl, 0
-	mov [esi+veh.speed], cx
-	mov [esi+veh.movementfract], dh
-	pop ecx
-
-/************************************************/
-
+.mountains:
 	pushad
 	call	near $
 ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 	popad
 
+	cmp dh, 3
+	jne .trailers
+	ret
+
+.trailers:
 	cmp	word [esi+veh.nextunitidx], 0xFFFF	;trailers? continue.
 	je	.justQuit
 	;now we need to check if rvproc was actually run, there is a ticker inside that stops it run on every call.
@@ -572,6 +565,28 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 
 .justQuit:
 	retn
+	
+/************************************************
+ * Road Vehicle Consist Clock Generator		*
+ *						*
+ * Will the head be moving, if so then store it *
+ * in dl, so we can force the trailers to move  *
+ * (Make sure we restore the variables though)  *
+ *						*
+ * Basicly SYNCS a consist keeping it together! *
+ ************************************************/
+.clock:
+	push ecx
+	xor dl, dl
+	mov cx, [esi+veh.speed]
+	mov dh, [esi+veh.movementfract]
+	call setTrailerMovementFlags // Out ebp as the new temp head (parent otherwise)
+	adc dl, 0
+	mov [esi+veh.speed], cx
+	mov [esi+veh.movementfract], dh
+	pop ecx
+	ret
+/************************************************/
 
 ;-------------MY HACKY FUNCTION... THIS, in the end, NEEDS TO REPLICATE RVProcessing.
 ; BUT ONLY THE BITS WE NEED... EVERYONE CAN HELP WITH THIS :)))

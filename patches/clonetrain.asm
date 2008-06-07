@@ -41,7 +41,7 @@ extern ForceAttachmentOfUnit
     * Check if the vehicle needs to be charged for a refit (change in cargotype)
     * If all ok, calculate the final amount of money required for the cloning of the consist
   > Creation Loop
-    * Create the rail vehicle (only 1 vehicle at a time (articutated vehicles count as one vehicle)
+    * Create the rail vehicle (only 1 vehicle at a time (articutated vehicles count as one vehicle))
     * Refit the vehicle (and it's artic parts if it has anyway)
     * Attach the constructed vehicle to the last constructed vehicle (Not for the first engine of course)
     * Once done set the type of expenses to put this clone under (New Vehicles)
