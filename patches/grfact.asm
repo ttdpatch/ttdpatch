@@ -888,7 +888,10 @@ initializevehcargomap:
 
 	push eax
 	mov al,[action1lastfeature]
-	mov al,[vehbnum+eax]
+	// mov al,[vehbnum+eax]
+	mov eax, [action0properties+eax*4]
+	movzx eax, word [eax+action0prophead.numids]
+	
 	shl eax,2
 	push eax
 	call calloc
@@ -4099,24 +4102,27 @@ var grfresbase, dd GRM_TRAINS,GRM_RVS,GRM_SHIPS,GRM_PLANES
 checkfeaturesize grfresbase, 4
 	// next one starts with 357
 
+	
+	// Vehicle bases, should someday moved to a different location
+	// (used in several TTDPatch vehicles related code)
+	//
 	// the following variables need to be close in memory
-var vehbase, db TRAINBASE,ROADVEHBASE,SHIPBASE,AIRCRAFTBASE,0,0,0,0,0,0,0,0,0,0,0,0
-checkfeaturesize vehbase, 1
+varb vehbase, TRAINBASE,ROADVEHBASE,SHIPBASE,AIRCRAFTBASE
 
-var vehbnum, db NTRAINTYPES,NROADVEHTYPES,NSHIPTYPES,NAIRCRAFTTYPES
-	db 255,255,NBRIDGES,255		// stations,canals,bridges,houses
-	db 255,255,NINDUSTRYTYPES,32	// generic,industiles,industries,cargos
-	db 0,NUMNEWAIRPORTS,0		// sounds,airports,signals
-	db 255						// objects
-checkfeaturesize vehbnum, 1
+	// How many vehicles for each vehicle class
+	//
+	// It was used for defining the sizes for each feature,
+	// feature based sizes are now handled via grfprop.asm and can be up to word size.
+	//  
+varb vehbnum, NTRAINTYPES,NROADVEHTYPES,NSHIPTYPES,NAIRCRAFTTYPES
 
 	// for action 0, where the data for each vehicle class starts
 	// (set by patching functions)
-var specificpropertybase, times NUMFEATURES dd -1
-checkfeaturesize specificpropertybase, 4
+	// Again only used by vehicles now
+svard specificpropertybase, 4
 
-	// and how much these are offset from the sprite bases
-var specificpropertyofs, db -10,-6,0,0
+	// and how much these are offset from the sprite bases (byte size)
+varb specificpropertyofs, -10,-6,0,0
 
 	// Bit offsets in newtransopts for the transparency for each feature
 var newtransbits, db -1,-1,-1,-1
