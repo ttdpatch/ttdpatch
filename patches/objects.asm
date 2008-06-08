@@ -142,7 +142,7 @@ exported clearobjectdataids
 	pusha
 	xor eax,eax
 	mov edi,objectsdataiddata
-	mov ecx,NOBJECTS*idf_dataid_data_size
+	mov ecx,NOBJECTS*idf_dataid_data_size/4
 	rep stosd
 	popa
 	ret
