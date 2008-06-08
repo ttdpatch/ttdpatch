@@ -20,63 +20,36 @@
 #include <transopts.inc>
 #include <ptrvar.inc>
 
-extern tramtracks,numtramtracks
-extern newonewayarrows,numonewayarrows
-extern newwaterspritebase,numnewwatersprites
-extern guispritebase,numguisprites
-extern extfoundationspritebase,extfoundationspritenum,industileaccepts3
-extern newcargounitnames
-extern newcargounitweights
-extern catenaryspritebase,copystationlayout,industileaccepts2
-extern industileanimspeeds,industilecallbackflags,industryspecialflags
-extern ingameindustryprobs,newcargoamountnnames,newcargoicons
-extern newcargotypenames,numelrailsprites,setcargoclasses,setcargographcolors
-extern setcargopricefactors,setcargotranstbl,setconflindustry
-extern setindustileoverride,setindustryoverride,setsoundpriority
-extern setstationspritelayout
-extern shuffletrainveh,MassageSoundData
-extern alterbridgespritetable,basecostmult,callbackflags,calloc
-extern copystationspritelayout,costrailmul,curcallback,curspriteblock
+
+extern MassageSoundData
+extern costrailmul,curcallback,curspriteblock
 extern errorpopup,exscurfeature,extraindustilegraphdataarr,findgrfid
-extern fundchances,getextendedbyte,gettextintableptr,gettexttableptr
-extern industileaccepts1,industileanimframes,industileanimtriggers
-extern industilelandshapeflags,industrycallbackflags,industrycallbackflags2,industrycreationmsgs
-extern industryinputmultipliers,industrynames,initialindustryprobs
+extern getextendedbyte,gettextintableptr,gettexttableptr
 extern insertactivespriteblock,insertactivespriteblockaction1,lastcalcresult
-extern lookuppersistenttextid,malloc,malloccrit,newcargoamount1names
-extern newcargodelaypenaltythresholds1,newcargodelaypenaltythresholds2
-extern newcargoshortnames,newvehdata,numactsprites,numsiggraphics
-extern orggentextptr,overrideoldsound,overridesprite,patchflags
-extern patchflagsfixed,presignalspritebase,procallsprites_replaygrm
+extern lookuppersistenttextid
+extern malloc,malloccrit,calloc
+
+extern newvehdata,numactsprites,numsiggraphics
+extern orggentextptr,overridesprite,patchflags
+extern patchflagsfixed,procallsprites_replaygrm
 extern procgrffile,refreshrectxleft,refreshrectxright,refreshrectydown
-extern refreshrectyup,setcargobit,setcargocolors,setfreighttrainsbit
-extern sethouseclass,sethouseflags,sethouseoverride,setindustrylayout
-extern setindustrymapcolors,setindustrysoundeffects,setnormalindustryprop
-extern setsoundvolume,setspriteerror,setstationclass,setstationlayout
-extern setsubstbuilding,setsubstindustile,setsubstindustry,specialtext1
-extern specialtext2,specialtext3,spriteblockptr,spriteerror,spriteerrortype
+extern refreshrectyup
+
+
+extern setspriteerror
+extern specialtext1,specialtext2,specialtext3
+extern spriteblockptr,spriteerror,spriteerrortype
 extern spritehandlertable,stationidgrfmap,temp_snowline,totalmem
 extern ttdpatchvercode,ttdplatform
 extern vehtypedataptr,textclass_maxid,restoretranstexts
-extern currtextlist,currmultis,curropts,currsymsbefore,currsymsafter,eurointr
+
 extern languagesettings
-extern cargotowngrowthtype,cargotowngrowthmulti,cargocallbackflags,setindustileaccepts
-extern setinduproducedcargos,setindustryacceptedcargos,industrydestroymultis
-extern allocfonttable,hasaction12,setsnowlinetable,snowytemptreespritebase
-extern numsnowytemptrees,setstatcargotriggers,industilespecflags
+
+extern allocfonttable,hasaction12
 extern ttdpatchversion
-extern stationanimdata,stationanimspeeds
-extern newcoastspritebase, newcoastspritenum
-extern setairportlayout,airportstarthangarnodes,setairportmovementdata
-extern airportcallbackflags,airportspecialflags,airportaction3
-extern airportweight,airporttypenames
-extern setrailstationrvrouteing
-extern newsignalspritenum,newsignalspritebase
-extern setobjectclass,setobjectclasstexid
-extern newpbstrackbase, newpbstracknum
-extern newaquaductbase, newaquaductnum
-// Custom roadside RV stop sprites.
-extern roadsidervstops, roadsidervstopsnum
+
+extern airportaction3
+
 
 
 uvarb action1lastfeature
@@ -4382,7 +4355,11 @@ numgrfvarreinit equ (grfvarreinitend-grfvarreinitstart)/4
 
 	// for action 5, where to store the first sprite number
 	// (the ones that are -1 are safe to be reused)
+extern presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,tramtracks,snowytemptreespritebase,newcoastspritebase,newsignalspritebase,newpbstrackbase,roadsidervstops,newaquaductbase
 var newgraphicsspritebases, dd presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,deftwocolormaps,tramtracks,snowytemptreespritebase,newcoastspritebase,newsignalspritebase,newpbstrackbase,0,roadsidervstops,newaquaductbase
+
+extern numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,
+extern numtramtracks,numsnowytemptrees,newcoastspritenum,newsignalspritenum,newpbstracknum,roadsidervstopsnum,newaquaductnum
 var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,-1,numtramtracks,numsnowytemptrees,newcoastspritenum,newsignalspritenum,newpbstracknum,0,roadsidervstopsnum,newaquaductnum
 
 global numnewgraphicssprites
