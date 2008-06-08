@@ -4094,12 +4094,14 @@ uvard alwaysminusone,1,s
 	// first entry in grf resource list for each feature
 	// must be synchronized with NGRFRESOURCES and grfresources below
 	// -1 = no resources defined yet, -2 = has special handler
-var grfresbase, dd GRM_TRAINS,GRM_RVS,GRM_SHIPS,GRM_PLANES
+vard grfresbase
+	dd GRM_TRAINS,GRM_RVS,GRM_SHIPS,GRM_PLANES
 	dd -1, -1, -1, -1		// stations, canals, bridges houses
 	dd -2, -1, -1			// sprites, industiles, industries,
 	dd GRM_CARGOS,-1,-1,-1		// cargos, sounds, airports, signals
-	dd -1						// objects
+	dd -1				// objects
 checkfeaturesize grfresbase, 4
+endvar
 	// next one starts with 357
 
 	
@@ -4125,12 +4127,13 @@ svard specificpropertybase, 4
 varb specificpropertyofs, -10,-6,0,0
 
 	// Bit offsets in newtransopts for the transparency for each feature
-var newtransbits, db -1,-1,-1,-1
+varb newtransbits
+	db -1,-1,-1,-1
 	db TROPT_STATION, -1, TROPT_BRIDGE, TROPT_TOWN_BLDG
 	db -1,TROPT_INDUSTRY,TROPT_INDUSTRY,-1
 	db -1,TROPT_STATION,-1,TROPT_OBJECT
 checkfeaturesize newtransbits, 1
-
+endvar
 
 uvard grfvarreinitstart,0
 %define SKIPGUARD 1

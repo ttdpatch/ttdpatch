@@ -525,7 +525,7 @@ endaction0props
 
 %pop
 
-var action0properties
+vard action0properties
 	dd trainproperties
 	dd rvproperties
 	dd shipproperties
@@ -543,3 +543,5 @@ var action0properties
 	dd signalproperties
 	dd objectproperties
 checkfeaturesize action0properties, 4
+endvar
+
