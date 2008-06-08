@@ -21,6 +21,8 @@
 #include <font.inc>
 #include <textdef.inc>
 
+#include <vehspecificprops.inc>
+
 extern SwapDockWinPurchaseLandIco,SwapLomoGuiIcons,activatedefault,activatetype
 extern addnewtemperatecargo,basecostmult,callbackflags
 extern cargoid,cargotypes,catenaryspritebase,clearhousedataids
@@ -44,7 +46,7 @@ extern reloadspriteheaders,resolvecargotranslations,restoreindustrydata
 extern rvpowerinit,savedvehclass,saveindustrydata,setactivegrfs
 extern setbasecostmult,setbridgespeedlimits,setcargoclasses
 extern setcharwidthtablefn,setdefaultcargo,soundoverrides
-extern specificpropertybase,specificpropertylist,specificpropertyofs
+extern specificpropertybase,specificpropertyofs
 extern spritecacheptr,spriteerror
 extern stationclassesused,stationidgrfmap,stationpylons,temp_snowline
 extern textcolortablewithcompany,undogentextnames,unimaglevmode
@@ -260,14 +262,23 @@ uvarb ttdvehinfobackup, ttdvehinfo_size
 uvard vehtypedataconvbackupptr	// 0 if the area is not used (see patches.ah/patchunifiedmaglev)
 
 
+var specificpropertylistsizes, dd spectraindata_totalsize,specrvdata_totalsize,specshipdata_totalsize,specplanedata_totalsize
+
+global specvehdatalength
+specvehdatalength equ \
+ totalvehtypes*vehtypeinfo_size + \
+ NTRAINTYPES*spectraindata_totalsize + \
+ NROADVEHTYPES*specrvdata_totalsize + \
+ NSHIPTYPES*specshipdata_totalsize + \
+ NAIRCRAFTTYPES*specplanedata_totalsize
+
 // in:	EBX=class, 0..3 for railway..aircraft
 // out:	ESI->property base
-//	ECX=AX=total length
+//	ECX=EAX=total length
 global getspecificpropertyarea
 getspecificpropertyarea:
 	mov esi,[specificpropertybase+ebx*4]
-	mov ecx,[specificpropertylist+ebx*4]
-	mov al,[ecx]
+	mov eax,[specificpropertylistsizes+ebx*4]
 	mul byte [vehbnum+ebx]
 	movzx ecx,ax
 	ret

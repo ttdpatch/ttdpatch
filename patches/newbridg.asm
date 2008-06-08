@@ -47,7 +47,6 @@ uvarw bridgerailnames, NNEWBRIDGES
 uvarw bridgeroadnames, NNEWBRIDGES
 
 extern bridgeflags
-extern specificpropertybase
 	
 exported bridgeresettodefaults
 	testmultiflags newbridges

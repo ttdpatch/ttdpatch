@@ -3881,82 +3881,6 @@ definegrftranslation:
 	or edi,byte -1
 	ret
 
-
-//
-// Action 0 property info
-//
-
-
-// sizes of each entry in the vehicle specific data tables
-// format: total, sizes...
-// total is the sum of all sizes in the list, anything beyond that
-// is handled by the vehicle specific subroutine.
-// this should be probably moved to vars.ah, eventually
-
-%push defveh	// so we don't need to undef all these temporary identifiers
-
-%define %$d_U 0		// unused/undefined/invalid
-%define %$d_B 1		// a byte
-%define %$d_W 2,0	// a word
-%define %$d_T 0x82,0	// a text id
-%define %$d_D 4,0,0,0	// a dword
-%define %$d_P 0x84,0,0,0 //a pointer, relative to the data segment (for WINTTDX)
-%define %$d_F 0x80	// call special handler function
-%define %$d_H 0x40	// call special handler function with untranslated offset (for features like newstations and newhouses that translate offsets)
-
-
-%define %$s_U 1
-%define %$s_B 1
-%define %$s_W 2
-%define %$s_T 2
-%define %$s_D 4
-%define %$s_P 4
-%define %$s_F 1
-%define %$s_H 1
-
-%macro defvehdata 1-*.nolist	// params: name,arraysizes...
-	var %1
-	%assign %$totalsize 0
-	%rotate 1
-	%rep %0-1
-		%assign %$totalsize %$totalsize+%$s_ %+ %1
-		%rotate 1
-	%endrep
-	db %$totalsize
-	%rotate 1
-	%rep %0-1
-		db %$d_%1
-		%rotate 1
-	%endrep
-	%1_totalsize equ %$totalsize
-%endmacro
-
-defvehdata gendata, W,B,B,B,B,B				// 00..06
-
-defvehdata spectraindata, B,W,W,B,P,B,B,B,B,B,B,B	// 08..18
-
-defvehdata specrvdata, B,B,P,B,B,B,B,B			// 08..12
-
-defvehdata specshipdata, B,B,B,B,B,W,B,B		// 08..10
-
-defvehdata specplanedata, B,B,B,B,B,B,B,W,B,B		// 08..12
-
-defvehdata specstationdata				// no properties
-
-defvehdata specbridgedata, B,B,B,B			// 08..0B
-
-%undef defvehdata
-
-%pop
-
-global specvehdatalength
-specvehdatalength equ \
- totalvehtypes*vehtypeinfo_size + \
- NTRAINTYPES*spectraindata_totalsize + \
- NROADVEHTYPES*specrvdata_totalsize + \
- NSHIPTYPES*specshipdata_totalsize + \
- NAIRCRAFTTYPES*specplanedata_totalsize
-
 uvarb spriteand
 uvard spritebase
 
@@ -4185,12 +4109,6 @@ var vehbnum, db NTRAINTYPES,NROADVEHTYPES,NSHIPTYPES,NAIRCRAFTTYPES
 	db 0,NUMNEWAIRPORTS,0		// sounds,airports,signals
 	db 255						// objects
 checkfeaturesize vehbnum, 1
-
-	// for action 0, where are the regular vehicle specific properies listed
-var specificpropertylist, dd spectraindata,specrvdata,specshipdata,specplanedata,specstationdata, 0, specbridgedata
-			dd 0,0,0,0,0,0
-			dd 0,0,0
-checkfeaturesize specificpropertylist, 4
 
 	// for action 0, where the data for each vehicle class starts
 	// (set by patching functions)
