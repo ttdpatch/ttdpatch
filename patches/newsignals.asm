@@ -11,7 +11,6 @@ extern gettileinfoshort,mostrecentspriteblock,drawspritefn, setsignaloffsets, la
 global newsignalson
 uvarb newsignalson
 uvard newsignalsfeaturebits
-uvard AddSpriteToDisplay
 uvard newsignalspritenum
 uvard newsignalspritebase
 uvard vnewsignalspritenum
@@ -114,11 +113,6 @@ newsignalsdraw:
 	// ebx-4fbh=org signal state, esi*8=(type of signal)*16
 	lea edi,[ebx-0x4fb+esi*8]
 	
-	mov ebx, [esp+32+4]	//addr in drawsignal code
-	mov esi, [ebx+4]
-	lea esi, [esi+ebx+8]
-	mov [AddSpriteToDisplay], esi
-
 	mov esi, [esp+4+4+32]		// landscape offset
 
 	test BYTE [landscape6+esi], 4
@@ -281,7 +275,8 @@ newsignalsdraw:
 	mov di, 1
 	mov si, di
 	mov dh, 0x10
-	call [AddSpriteToDisplay]	// EBX = sprite number & flags (bit 14: transparent, bit 15: recolor)
+	extern addsprite
+	call [addsprite]		// EBX = sprite number & flags (bit 14: transparent, bit 15: recolor)
 					// AX,CX,DL = landscape X,Y,Z base coordinates (preserved by the call)
 					// DI,SI,DH = landscape X,Y,Z extents
 					// Return: DH = 0=added, 1=not added
