@@ -2555,12 +2555,10 @@ exported stationanimhandler
 	test byte [stationflags+edx],4
 	jz .norandom
 
-	push eax
 	call [randomfn]
 	mov [miscgrfvar],eax
-	pop eax
 .norandom:
-
+	mov eax,edx
 	mov byte [grffeature],4
 	mov dword [curcallback],0x141
 	call getnewsprite
