@@ -34,7 +34,7 @@ extern callbackflags
 %define %$s_H 1
 
 
-%macro action0props 2-3.nolist 0	// params: name,maxids, [idtranslationtable]
+%macro action0props 2-4.nolist 0,0	// params: name,maxids, [idtranslationtable]
 	%ifid %3
 		extern %3
 	%endif
@@ -43,6 +43,7 @@ extern callbackflags
 istruc action0prophead
 	at action0prophead.numids, dw %2
 	at action0prophead.numprops, db (%1.end-%1.properties)/8
+	at action0prophead.idtransprop, db %4
 	at action0prophead.idtranstable, dd %3
 iend
 	.properties:
@@ -234,7 +235,7 @@ endaction0props
 
 
 // Station Properties
-action0props stationproperties,255,curgrfstationlist
+action0props stationproperties,255,curgrfstationlist,0x08
 	prop 0x00,U,0
 	prop 0x01,U,0
 	prop 0x02,U,0
@@ -306,7 +307,7 @@ action0props bridgeproperties, NNEWBRIDGES
 endaction0props
 
 
-action0props houseproperties,255,curgrfhouselist
+action0props houseproperties,255,curgrfhouselist,0x08
 	prop 0x00,U,0
 	prop 0x01,U,0
 	prop 0x02,U,0
@@ -366,7 +367,7 @@ action0props globalproperties,255
 endaction0props
 
 
-action0props industileproperties,255,curgrfindustilelist
+action0props industileproperties,255,curgrfindustilelist,0x08
 	prop 0x00,U,0
 	prop 0x01,U,0
 	prop 0x02,U,0
@@ -398,7 +399,7 @@ extern industrynames, fundchances
 extern industrycallbackflags, industrycallbackflags2
 extern industrydestroymultis, industrystationname
 
-action0props industryproperties,NINDUSTRYTYPES,curgrfindustrylist
+action0props industryproperties,NINDUSTRYTYPES,curgrfindustrylist,0x08
 	prop 0x00,U,0
 	prop 0x01,U,0
 	prop 0x02,U,0
@@ -485,7 +486,7 @@ action0props sounddataproperties,-1
 	propex 0x0A,F, overrideoldsound
 endaction0props
 
-action0props airportproperties,NUMNEWAIRPORTS,curgrfairportlist
+action0props airportproperties,NUMNEWAIRPORTS,curgrfairportlist,0x08
 	prop 0x00,U,0
 	prop 0x01,U,0
 	prop 0x02,U,0
@@ -508,7 +509,7 @@ action0props signalproperties,0
 	// none
 endaction0props
 
-action0props objectproperties,255,curgrfobjectgameids
+action0props objectproperties,255,curgrfobjectgameids,0x08
 	prop 0x00,U,0
 	prop 0x01,U,0
 	prop 0x02,U,0

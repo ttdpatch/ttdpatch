@@ -200,7 +200,8 @@ proc processnewinfo
 	test edi,edi
 	jz .doprop
 	
-	cmp al,8		// but not for prop. 08 which *sets* the translation
+	// but not for property which *sets* the translation (prop 8 for stations...)
+	cmp al, byte [edx+action0prophead.idtransprop]
 	je .doprop
 	
 	// we check here simple the higher byte of the word
@@ -256,6 +257,7 @@ proc processnewinfo
 	lea ebx, [ebx+eax*8+action0prophead_size]	// set ebx to property description
 	movzx edx, byte [ebx+action0propdef.type]
 	
+	// is this property valid?
 	cmp dl, 0
 	jz .invalidprop
 	
@@ -283,30 +285,34 @@ proc processnewinfo
 	mov al,INVSP_OUTOFDATA
 	jae .invalidpop
 
-	cmp byte [grfstage],0
-	jne .doprocess
-
+	// during initialization handle types: H,F
 	cmp dl,0x40
-	je .doprocess	// during initialization, only process 40 and 80
-
+	je short .functionnotranslate
+	
 	cmp dl,0x80
-	jne near .skipprop	
-
-.doprocess:
+	je short .specialfunction	
+	
+	// during initialization skip the other ones
+	cmp byte [grfstage],0
+	je near .skipprop
+			
 	cmp dl,0x82
 	je near .textid
 
 	cmp dl,1
-	jb .invalidprop		// 0
-	je near .bytevalue	// 1
-	js .pointervalue	// 0x84
+//	jb .invalidprop		// 0	is now handled at the beginning
+	je short .bytevalue	// 1
+	js short .pointervalue	// 0x84
 
 	cmp dl,4
-	jb .wordvalue		// 2
-	je .dwordvalue		// 4
-	jp .functionnotranslate	// 0x40 (40-4=3C=PE but 80-4=7C=PO)
-				// 0x80
+	jb short .wordvalue		// 2
+	je short .dwordvalue		// 4
+//	0x40 and 0x80 are handled now at the beginning
+//	jp .functionnotranslate	// 0x40 (40-4=3C=PE but 80-4=7C=PO)
+//				// 0x80
 
+	ud2
+	
 	// handler functions are called with the following registers:
 	// in:	eax=prop-num
 	//	ebx=offset (translated for type "F", untranslated for type "H")
@@ -355,6 +361,13 @@ proc processnewinfo
 
 	pop ecx
 	jmp .seterror
+	
+.bytevalue:
+	lodsb
+	mov [edi],al
+	add edi,ebx
+	loop .bytevalue
+	jmp .next
 
 .pointervalue:	// for DOS, fall through to .dwordvalue
 #if WINTTDX
@@ -389,13 +402,6 @@ proc processnewinfo
 	mov [edi],ax
 	add edi,ebx
 	loop .textid
-	jmp .next
-
-.bytevalue:
-	lodsb
-	mov [edi],al
-	add edi,ebx
-	loop .bytevalue
 	jmp .next
 
 .skipprop:
