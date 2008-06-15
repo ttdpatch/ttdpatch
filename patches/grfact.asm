@@ -310,7 +310,8 @@ proc processnewinfo
 	// handler functions are called with the following registers:
 	// in:	eax=prop-num
 	//	ebx=offset (translated for type "F", untranslated for type "H")
-	//	ecx=num-info (for type "H" only; type "F" should assume num-info=1)
+	//	ecx=number of props to process (=num-info, or 1 when ebx is a translated ID)
+	//	
 	//	esi->data
 	//	ebp=feature
 	//	edx->spritedata-4
