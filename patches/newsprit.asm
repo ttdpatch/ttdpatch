@@ -1672,7 +1672,7 @@ getspecialvar:
 	sub eax,0x40
 	movzx ecx,byte [grfvarfeature]
 	cmp al,0x1f
-	je .getrandomtriggers
+	je .getrandomdata
 
 	shl ecx,1
 	add cl,[isother]
@@ -1718,8 +1718,11 @@ getspecialvar:
 	call [vehvarhandler+eax*4]
 	ret
 
-.getrandomtriggers:
-	jmp [getrandombits+ecx*4]
+.getrandomdata:
+	xor eax,eax
+	call [getrandombits+ecx*4]
+	shl eax,8
+	jmp [getrandomtriggers+ecx*4]
 
 // get special parametrized variable for variational sprites
 //
