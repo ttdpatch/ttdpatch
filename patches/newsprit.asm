@@ -1156,6 +1156,9 @@ getvariationalvariable:
 	adc ebx,0		// advance ebx if it is one
 	mov cl,[ebx]		// cl will contain 60+x parameter (or var.num otherwise)
 
+	cmp al, 0x7D
+	jae .paramvar		// 7D, 7E, 7F are always available, with or without structure, special handler, or anything else.
+
 	test esi,esi
 	jz .checkvaravail
 
