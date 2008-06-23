@@ -493,7 +493,8 @@ getrvshiprefitcap:
 	xor edx, edx
 	shl ecx, 16
 	
-.vehicleloop:	
+.vehicleloop:
+	push eax
 	movzx ebx,byte [ebp+veh.vehtype]
 	test byte [callbackflags+ebx],8
 	jz .nocapacallback
@@ -506,6 +507,7 @@ getrvshiprefitcap:
 	add cx, ax
 
 .nocapacallback:
+	pop eax
 	inc edx
 	movzx ebp, word [ebp+veh.nextunitidx]
 	cmp bp, byte -1

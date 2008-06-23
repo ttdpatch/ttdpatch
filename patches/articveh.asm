@@ -1697,7 +1697,7 @@ RVMovementIncrement:
 						// same speed otherwise it will break up
 	mov word [esi+veh.speed], ax		// set the consist's head's current speed
 	stc
-.dontAdjustFract:					// Since the head moved happily we can move
+.dontAdjustFract:				// Since the head moved happily we can move
 	retn
 
 /************************************************
