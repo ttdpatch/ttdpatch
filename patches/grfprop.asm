@@ -187,15 +187,15 @@ action0props shipproperties,NSHIPTYPES
 	prop 0x0F,B, shipruncostfactor
 	prop 0x10,B, shipsoundeffect
 // --- defvehdata spclshipdata, d,B,B,B,B,B,B,w,w,F		// 11..1A
-	prop 0x11,B, newshiprefit
+	prop 0x11,D, newshiprefit
 	prop 0x12,B, shipcallbackflags
 	prop 0x13,B, shiprefitcost
 	prop 0x14,B, oceanspeedfract
 	prop 0x15,B, canalspeedfract
 	prop 0x16,B, shipphase2dec
 	prop 0x17,B, shipmiscflags
-	prop 0x18,B, shipcargoclasses
-	prop 0x19,B, shipnotcargoclasses
+	prop 0x18,W, shipcargoclasses
+	prop 0x19,W, shipnotcargoclasses
 	prop 0x1A,F, longintrodate
 endaction0props 
 
