@@ -28,6 +28,11 @@ codefragment newdisplaytraininfosprite
 	call runindex(displaytraininfosprite)
 	setfragmentsize 8
 
+// We sometimes have our window pointer over wrote (so use the stack value)
+codefragment restorewindowpointer
+	mov esi, [esp]
+	setfragmentsize 3
+
 codefragment oldshowtraindetailssprite,1
 	push edi
 	mov al,1
@@ -179,6 +184,9 @@ endcodefragments
 
 patchnewtrains:
 	patchcode olddisplaytraininfosprite,newdisplaytraininfosprite,1,1
+	sub edi, 36
+	storefragment restorewindowpointer
+
 //	add edi,lastediadj+44
 //	storefragment newshowactivetrainveh
 
