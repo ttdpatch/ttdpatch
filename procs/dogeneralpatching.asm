@@ -731,8 +731,6 @@ codefragment newvehinwindow_color
 	xchg esi,edi
 	icall getvehiclecolor
 	xchg esi,edi
-	mov esi, [esp]	// We sometimes have our window pointer over wrote which leads to
-			// the vehicles being 4px more left in the details window...
 	setfragmentsize 13
 
 codefragment oldbuyvehwindow_color
