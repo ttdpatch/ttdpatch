@@ -85,16 +85,14 @@ codefragment newfixtunnelentry
 	icall fixtunnelentry
 	setfragmentsize 6
 
-codefragment oldtunnelsteamcheck,-7	//win: 572291, dos: ShowSteamPlume, _CS:001602EB
+codefragment oldtunnelsteamcheck,-(5 + 2*WINTTDX)	//win: 572291, dos: ShowSteamPlume, _CS:001602EB
 	jz $+2+0x36
 	push esi
 	mov ax, [esi+1Ah]
 	mov cx, [esi+1Ch]
 	movzx ebx, byte [esi+1Fh]
 
-codefragment newtunnelsteamcheck
-	icall tunnelsteamcheck
-	nop
+codefragment_call newtunnelsteamcheck, tunnelsteamcheck, 5 + 2*WINTTDX
 
 endcodefragments
 
