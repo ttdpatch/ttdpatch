@@ -3298,7 +3298,8 @@ openfundindustrywindow:
 	or edx,byte -1
 	mov ebp,addr(industrylistwindowhandler)
 	call [CreateWindowRelative]
-	mov dword [esi+window.elemlistptr], indulistwin_elements
+	setbase edx, indulistwin_elements
+	mov dword [esi+window.elemlistptr], edx
 	mov word [esi+window.id],1
 	mov word [esi+window.itemsvisible],16 | (0<<8)
 	mov byte [esi+window.data],0
@@ -3310,8 +3311,13 @@ openfundindustrywindow:
 	testmultiflags enhancegui
 	extern CopyWindowElementList
 	jnz CopyWindowElementList
-	mov byte [indulistwin_elements.sizer], cWinElemLast
-	add word [indulistwin_elements.scrollbar+windowbox.y2],12
+
+// Can't copy elements or draw the sizer. Remove the sizer, extend the scrollbar, and reset the sort indicator.
+	mov byte [BASE indulistwin_elements.sizer], cWinElemLast
+	mov byte [BASE indulistwin_elements.scrollbar+windowbox.y2],177+12
+	mov dword [BASE indulistwin_elements.sortind+windowbox.x1], (94<<16)+85	// Also sets .x2
+	mov byte [BASE indulistwin_elements.sortind+windowbox.extra], 24h
+	setbase none
 	ret
  
 industrylistwindowhandler:
