@@ -347,7 +347,7 @@ codefragment_call newcalcupdateblockrect,calcupdateblockrect,6
 
 endcodefragments
 
-patchresolution:	
+patchresolution:
 	// Some sanity checks would be good here ...
 	
 	// Mode 5 / UpdateMode=2 has strange mouse problems, so we don't even try to let the user use it:
@@ -370,6 +370,15 @@ patchresolution:
 	dec bx
 	mov word [dxmaxy_1], bx
 	inc bx
+
+	// "patching" the resolution to 640x480 fails without version data.
+	cmp ax, 640
+	jne .dopatch
+	cmp bx, 480
+	jne .dopatch
+	// Version-collection forces 800x600, so we don't need to explicitly check that.
+	ret
+.dopatch:
 	
 	add ax, 63
 	add bx, 7
