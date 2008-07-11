@@ -2402,6 +2402,7 @@ ret
 //	ebx->selected order
 exported VehOrders@@SelItemToOrderIdx
 	mov     al, [esi+window.selecteditem]
+.useal:
 	movzx   ebx, WORD [esi+window.id]
 	shl     ebx, 7
 	add     ebx, [veharrayptr]
@@ -2761,6 +2762,60 @@ vehorderwinhandlerhook_cancel:
 	mov bx, [esi+window.id]
 	call [RefreshWindows]
 	popad
+	ret
+
+extern RefreshWindowArea, setmainviewxy
+exported clickorderhook
+	add al, [esi+window.itemsoffset]	// Overwritten
+	push byte CTRL_MP
+	call ctrlkeystate
+	jz .locate
+	cmp al, [esi+window.selecteditem]	// Overwritten
+	ret
+
+.locate:
+	pop ebx					// discard return
+	call VehOrders@@SelItemToOrderIdx.useal
+	mov esi, ebx
+	xor eax, eax
+	lodsb
+	and al, 0Fh
+	jz .ret
+	cmp al, 2
+	jb .station
+	je .depot
+	cmp al, 5
+	jne .ret
+
+.special:
+	lodsb
+	cmp al, 24h
+	jb .ret
+	cmp al, 25h
+	ja .ret
+	inc esi
+	jmp .station
+
+.depot:
+	lodsb
+	shl eax,1
+	mov eax,[depotarray+eax*(depot_size/2)+depot.XY]
+	jmp short .gotxy
+
+.station:
+	lodsb
+	imul eax,byte station_size/2
+	mov eax,[stationarray+eax*2+station.XY]
+.gotxy:
+	test ax,ax
+	jz .ret
+	movzx ecx,ah
+	movzx eax,al
+	shl ecx,4
+	shl eax,4
+	jmp [setmainviewxy]
+
+.ret:
 	ret
 
 /*

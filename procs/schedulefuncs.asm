@@ -1,6 +1,7 @@
 #include <defs.inc>
 #include <frag_mac.inc>
 #include <textdef.inc>
+#include <window.inc>
 
 extern orderhints,patchflags,copyvehordersfn
 
@@ -98,6 +99,12 @@ codefragment newshoworderhint
 	call runindex(showorderhint)
 	setfragmentsize 8
 
+codefragment oldclickorder
+	add al, [esi+window.itemsoffset]
+	cmp al, [esi+window.selecteditem]
+
+codefragment_call newclickorder,clickorderhook,6
+
 endcodefragments
 
 patchschedulefuncs:
@@ -123,4 +130,5 @@ patchschedulefuncs:
 	add edi,17
 	storefragment newcopyoldorder
 	patchcode oldshoworderhint,newshoworderhint,1,1
+	patchcode clickorder
 	ret
