@@ -1761,7 +1761,12 @@ checkIfTramsAndKeepTracksUnder:
 	or      byte [landscape4(di)], dh
 	mov     byte [landscape5(di)], dl
 
+	cmp dh, 0x20 // If we have railway tracks we don't want to mess with this.
+	je .roads
+	ret
+
 	//now we need to shift the bytes into L3 (for trams) as well if there are tram tracks around.
+.roads:
 	push	ebx
 	push	edi
 	cmp	al, 04h
