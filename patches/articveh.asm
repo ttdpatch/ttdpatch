@@ -513,20 +513,15 @@ updateTrailerPosAfterRVProc:
 	// Mountains 3, move parent* and quit.
 	// * - Which in turn does clock, move parent, move trailers several times
 extern mountaintypes
+	push edx
 	mov dh, [mountaintypes+3]
 	cmp dh , 3
-	je .mountains
+	pop edx
+	je .DoRvMovement
+
+.Default:
 	call .clock
-
-.mountains:
-	pushad
-	call	near $
-ovar .origfn, -4, $, updateTrailerPosAfterRVProc
-	popad
-
-	cmp dh, 3
-	jne .trailers
-	ret
+	call .DoRvMovement
 
 .trailers:
 	cmp	word [esi+veh.nextunitidx], 0xFFFF	;trailers? continue.
@@ -565,7 +560,14 @@ ovar .origfn, -4, $, updateTrailerPosAfterRVProc
 
 .justQuit:
 	retn
-	
+
+.DoRvMovement:
+	pushad
+	call	near $
+ovar .origfn, -4, $, updateTrailerPosAfterRVProc
+	popad
+	ret
+
 /************************************************
  * Road Vehicle Consist Clock Generator		*
  *						*

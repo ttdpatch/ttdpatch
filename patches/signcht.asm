@@ -2061,7 +2061,7 @@ landdispcheat:
 	call writehexbyte
 	mov dl,[esi+landscape2]
 	call writehexbyte
-	mov edx,[esi*2+landscape3]
+	mov dx,[esi*2+landscape3]
 	xchg dh,dl
 	call writehexbyte
 	dec ebx
