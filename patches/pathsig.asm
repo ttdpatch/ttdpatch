@@ -11,7 +11,7 @@
 
 extern addrailgroundsprite,curstationtile,getplatforminfo,getroutemap
 extern invalidatetile,ishumanplayer,pbssettings
-extern randomstationtrigger, patchflags
+extern randomstationtrigger, patchflags, zfuncdotraceroutehook, curtracertheightvar
 
 uvard traceroutefn		// [TTD] do route tracing
 uvard chkrailroutetargetfn	// [TTD] check if a route has arrived at the target
@@ -1446,12 +1446,13 @@ uvarb lasttileclearedbit,2
 	// in:	ax=new tile XY
 	//	bp=prev tile XY
 	//	dl=new direction
+	//	esi=last vehicle
 	//	[movementstat]=track piece on tile BP (+80h means clear both tiles)
 	// out:
 	// safe:bx
 global lastwagoncleartile
 lastwagoncleartile:
-	pusha
+	pusha	//note that esi is at [esp+4]
 
 	or dword [lasttileclearedptr],byte -1
 	or dword [lasttileclearedptr+4],byte -1
@@ -1515,7 +1516,13 @@ lastwagoncleartile:
 	xor eax,eax
 	push esi
 	push ebp
+	testflags advzfunctions
+	jnc .justdoit
+	mov ecx, [esp+8+4+4]		//input esi=veh ptr
+	call zfuncdotraceroutehook
+.justdoit:
 	call [getroutemap]
+	mov DWORD [curtracertheightvar], 0
 	pop ebp
 	pop esi
 	or al,ah
@@ -1657,7 +1664,7 @@ clearpathtile:
 	cmp bh,4
 	jb near .clearbit
 
-	checkbridgepbs bh,bl,.donenz,short .clearbit
+	checkbridgepbs bh,bl,near .donenz,short .clearbit
 #if 0
 	and bh,11000110b
 	cmp bh,10000000b

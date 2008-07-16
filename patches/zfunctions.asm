@@ -9,9 +9,9 @@ extern fixtunnelentry.enterz, patchflags, Class9RouteMapHandlerTunnel_intc_dir
 uvard curtracertheightvar	//format potentially subject to change
 //0=normal routing
 //signed 16bit non-zero value, relative height to north corner of tile (unimplemented)
-//0x10000=definitely on ground (unimplemented/scrapped)
-//0x10001=on bridge (unimplemented/scrapped)
-//0x2xxxx=absolute (potentially signed?) height/8
+//0x10000=definitely on ground
+//0x10001=on bridge
+//0x2xxxx=absolute (potentially signed?) height/8 (unimplemented)
 
 
 uvard trfs_pzac_retaddr
@@ -102,7 +102,7 @@ loc_578C37:
 
 ret
 
-//ecx=valid veh pointer, edx=stub step function (may be chained by trace restriction), edi=tile coord
+//ecx=valid veh pointer, edi=tile coord
 //trashable=none
 
 exported zfuncdotraceroutehook
