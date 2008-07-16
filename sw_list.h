@@ -524,4 +524,4 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	isignals,
 	advorders,
 	rvovertakeparams,
-	zfunctions,
+	advzfunctions,
