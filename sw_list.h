@@ -299,7 +299,7 @@
 	     //G
 	YESNO('H',"moretransopts", CFG_MORETRANSOPTS, INTERFACE, "MoreTransparencyOptions:Alpha", moretransopts),
 	YESNO('I',"irregularstations", CFG_IRRSTATIONS, INFST_STATION, "IrregularStations", irrstations),
-	     //J
+	YESNO('J',"advzfunctions", CFG_ADVZFUNCTIONS, INFST, "", advzfunctions),
 	RANGE('K',"rvovertakeparams", CFG_RVOVERTAKEPARAMS, VEH_ROAD, "", rvovertakeparams, HEX, S32, FLAGDATA(rvovertakeparamsvalue), 0, 0xFFFFFF, 0),
 	YESNO('L',"advorders", CFG_ADVORDERS, VEH_ORDERS, "", advorders),
 	YESNO('M',"morestatistics", CFG_MORESTATS, INTERFACE, "MoreStatistics", morestats),
@@ -524,3 +524,4 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	isignals,
 	advorders,
 	rvovertakeparams,
+	zfunctions,

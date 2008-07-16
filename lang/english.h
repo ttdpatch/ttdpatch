@@ -260,6 +260,7 @@ TEXTARRAY(halflines,) =
 	  "-ZD: Enables the cloning of trains",
 	  "-ZH: Provide more transparency options",
 	  "-ZI: Enable irregular stations",
+	  "-ZJ: Enable more 3d features",
 	  "-ZK: Road vehicle overtaking params",
 	  "-ZL: Enable advanced orders",
 	  "-ZM: Collect more company statistics",
@@ -527,6 +528,7 @@ SWITCHTEXT(tsignals, "Allows PBS reservations the opposite way through selected 
 SWITCHTEXT(isignals, "Invert the one-way/two-way routing behaviour of selected signals","")
 SWITCHTEXT(advorders, "Enables advanced orders","")
 SWITCHTEXT(rvovertakeparams, "Road vehicle overtaking behaviour parameters","")
+SWITCHTEXT(advzfunctions, "Enables more 3d features","")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -925,6 +927,7 @@ SETTEXT(CFG_TSIGNALS, "`%s' (%s) allows PBS reservations the opposite way throug
 SETTEXT(CFG_ISIGNALS, "`%s' (%s) invert the routing behaviour of selected signals, such that one-way signals behave as two-way signals and vice-versa")
 SETTEXT(CFG_ADVORDERS, "`%s' (%s) enables advanced orders")
 SETTEXT(CFG_RVOVERTAKEPARAMS, "`%s' (%s) road vehicle overtaking behaviour parameters. Hexadecimal bit field: 0=enable overtaking of non-stationary vehicles with same max speed, 1,2,3=disable overtaking (collision) checks on: current tile, next tile, and tile after next respectively, (tile after next always ignored for stationary overtakees), 4=set maximum overtaking counter value to bits 8-15 (TTD default=0x23), 5=set stationary overtakee overtaking count initial value to bits 16-23 (TTD default=0x11), 6=overtake even if on junction tile if overtakee is stationary. Experimental switch, some values may produce adverse/unusual results.")
+SETTEXT(CFG_ADVZFUNCTIONS, "`%s' (%s) enables more 3d features")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')

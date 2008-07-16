@@ -240,6 +240,8 @@ buildtrackonbridgeortunnel:
 	and dl,0xf8	// by the runindex
 	cmp dl,0xc0	// call
 	jne near .notdefault
+	test bh, 0x3C
+	jnz near .notdefault	//catch diagonal under-bridge track
 .end:
 	ret
 
@@ -348,7 +350,7 @@ buildtrackonbridgeortunnel:
 	test dh,0x80	// is it a tunnel?
 	jz .tunnel
 
-	test dh,0x42	// don't convert road bridges and middle pieces
+	test dh,0x42	// don't convert road bridges & middle piece
 	jnz .end
 
 	mov dl,[landscape3+esi*2]	// get convert cost
@@ -390,7 +392,7 @@ buildtrackonbridgeortunnel:
 	add si,[directions+eax*2]	// move to the given direction
 	call checkvehintheway	// if vehicle is here, abort the process
 	je .continueloop
-
+.blockedfail:
 	mov ebx,0x80000000
 	jmp short .exitbridge
 
@@ -442,6 +444,9 @@ buildtrackunderbridge:
 	jnz .end
 
 	movzx esi,si
+	test dh, 20h
+	jz .goodowner		//just (temporarily) ignore owner when building track for first time
+
 	mov dl,[curplayer]	// owner check
 	cmp dl,[landscape1+esi]
 	je .goodowner
@@ -449,25 +454,55 @@ buildtrackunderbridge:
 	cmp eax,eax	// set zf
 .end:
 	ret
+.endnz:
+	test esp, esp
+	ret
+
+.checktrackdirunderbridge:
+	test dh, 0x18	//rail only
+	jnz .endnz
+	//cmp bh, dl	//don't allow track parallel to bridge (yet)
+	//je .endnz
+	jmp .convert
 
 .goodowner:
+	mov dl, 2
 	test dh,1	// landscape5 bit 0 is set if the bridge is in NWSE direction
 	jnz .nwse
 
 	cmp bh,2	// allow only NWSE (perpendicular) rail
-	jne .end
+	jne .checktrackdirunderbridge
 	jmp short .convert
 
 .nwse:
+	xor dl, 3
 	cmp bh,1	// allow only NESW (perpendicular) rail
-	jne .end
+	jne .checktrackdirunderbridge
 
 .convert:
-	mov dl,[landscape3+esi*2]
+	push eax
+	test dh, 0x20			//look for route under bridge
+	jz .addunderroute
+
+	mov al, dl			//al=default undertrack direction
+	mov dx,[landscape3+esi*2]
+	mov ah, dh			//ah=existing L3 high bits
+	xor dh, al			//dh=existing track directions
+	or dh, bh			//add requested track direction
+	xor al, dh			//al=new L3 high bits
+
 	mov dh,dl
 	and dx,0xf00f	// now dh = bridge type, dl = track type
 	call getconvertcost	// get convert cost
-	je .end
+	cmp al, ah
+	mov bh, al			//bh=new l3 upper
+	je .notrackadded
+.trackadded:
+	movsx eax, word [trackcost]
+	add edi, eax
+.notrackadded:
+	or edi, edi
+	je .endp
 
 	test bl,1
 	jz .done
@@ -475,11 +510,35 @@ buildtrackunderbridge:
 	or dh,dl	// dh will be the new landscape3 lower byte
 	mov [landscape3+esi*2],dh
 	call redrawtile
+	mov [landscape3+esi*2+1], bh
 
 .done:
+	pop eax
 	mov ebx,edi	// put the cost in ebx
 	add esp,4
 	ret	// exit handler
+.endp:
+	pop eax
+	ret
+	
+.addunderroute:
+	xor edi, edi
+	xor bh, dl			//xor default (perpendicular) track direction, to requested track direction
+	mov dx,[landscape3+esi*2]
+	and dh, ~0x3F
+	or bh, dh
+	test bl, 1
+	jz .trackadded
+	or BYTE [landscape5(si)], 0x20
+	and BYTE [landscape5(si)], ~0x18
+	mov al, [curplayer]
+	mov [landscape1+esi], al
+//	mov eax, [esp+4+4]	//push, return address, then direction from push ebx
+
+	mov eax,[wantedtracktypeofs]
+	mov dh,[eax]	// al contains what type the user wants
+	and dl, 0xF0
+	jmp .trackadded
 	
 // Called when trying to build on a road/railroad crossing
 // Again, the original code only decides the error message to show, we should exit the handler to

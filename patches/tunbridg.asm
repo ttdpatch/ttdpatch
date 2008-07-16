@@ -40,7 +40,7 @@ uvard traceroutefnjmp
 // in:	ebx=di=landscape XY
 //	esi->vehicle
 //	ebp=vehicle direction
-// out:	
+// out:
 exported enhancetunneltestrailwaytype
 	mov al, [landscape5(di)]	
 	or al, al
@@ -575,6 +575,7 @@ exported enhancetunneladdtrack
 	ret
 
 uvarb tnlrtmppbsflag
+uvarb Class9RouteMapHandlerTunnel_intc_dir
 
 exported Class9RouteMapHandlerTunnel
 	and ah, 0x0C
@@ -620,9 +621,10 @@ exported Class9RouteMapHandlerTunnel
 	//this function should only be called by (within TTD): dotraceroute and derivatives (bx=direction)
 	//AI functions should never get this far as they don't build enhanced tunnels
 	//movetrain->isnexttileconnected (bx=coordinates, always >8), train movement (bx=direction)
-	
-	//exception: test for call by IsNextTileConnected and if so use direction from [esp+8+4] (was ebp)
 
+
+/*
+	//exception: test for call by IsNextTileConnected and if so use direction from [esp+8+4] (was ebp)
 	cmp DWORD [esp+8+4], 8
 	jae .notintc
 	push eax
@@ -637,6 +639,11 @@ exported Class9RouteMapHandlerTunnel
 .popintc:
 	pop eax
 .notintc:
+*/
+	//IsNextTileConnected has now been properly hooked, no need for perambulating upstack checks
+	mov ch, [Class9RouteMapHandlerTunnel_intc_dir]
+	btr ecx, 15
+	jc .gotdirin1
 
 	cmp bx, 8
 	jae .nodir
@@ -765,10 +772,10 @@ exported gettunnelotherendproc
 	ret
 .doit:
 	or si, si
-	jnz .notgood		//absolutely no road tunnels
+	jnz NEAR .notgood		//absolutely no road tunnels
 	movzx edi, di
 	test BYTE [landscape5(di)], 12
-	jnz .notgood		//absolutely no road tunnels
+	jnz NEAR .notgood		//absolutely no road tunnels
 
 
 //	mov eax, [esp+8]
@@ -789,8 +796,14 @@ exported gettunnelotherendproc
 	mov ax, di
 	mov BYTE [tunnelgetclass9routemapflags], 0
 	mov DWORD [esp+8], gettunnelotherendproc.fixdir
+//	testflags advzfunctions
+//	jc .changestack
 	mov WORD [esp+14], 0	//stop reverse check on tunnel entrance (triggers over the top track detection), and would normally find nothing new anyway.
 ret
+//.changestack:
+//	mov WORD [esp+14+4], 0	//see above
+//ret
+
 .fixdir:
 	push edx
 	inc ax
@@ -818,8 +831,12 @@ ret
 	mov ax, di
 	ret
 
+
+global fixtunnelentry.enterz
+
 exported fixtunnelentry
 	mov eax, [esp+8]
+.enterz:
 	sub eax, [traceroutefnptr]
 	cmp eax, 0x350
 	ja .fret	//never let this through

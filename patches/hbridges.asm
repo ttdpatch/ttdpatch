@@ -40,6 +40,10 @@ bridgedrawrailunder:
 	rol cx, 8
 	or si, ax
 	ror si, 4
+	
+	mov bl, [landscape3+esi*2+1]
+	and bl, 0x3F
+	xor dh, bl
 
 	mov bl,[landscape2+esi]			// save L2
 	push bx
@@ -314,11 +318,14 @@ bridgemiddlecheckifwirefit:
 
 global bridgemiddlezcorrect
 bridgemiddlezcorrect:
+	testflags advzfunctions
+	jc .advsimplequit
 	push edi
 //	mov edi, [landscape7ptr]
 //	or edi,edi
 //	jz .no_l7
-	
+
+
 	push cx
 	push ax
 	and al, 0F0h
@@ -335,6 +342,10 @@ bridgemiddlezcorrect:
 	add dl, 8
 	xor dh, dh
 	ret
+
+.advsimplequit:
+	mov dh, 1
+	ret
 ;endp bridgemiddlezcorrect
 
 
@@ -347,8 +358,10 @@ bridgemiddlezcorrectslope:
 	mov dh, 2 // so we set a Y route under the bridge
 .wasydir:
 
+	push ebp
 	mov ebp,addr(gettrackfoundationtype)
 	call correctexactalt.getfoundationtype
+	pop ebp
 	pop ebx
 	mov dh,bh
 	ret

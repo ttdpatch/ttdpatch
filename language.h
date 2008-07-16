@@ -508,6 +508,7 @@ enum langtextids {
 	CFG_ISIGNALS,
 	CFG_ADVORDERS,
 	CFG_RVOVERTAKEPARAMS,
+	CFG_ADVZFUNCTIONS,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS

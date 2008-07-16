@@ -24,6 +24,12 @@ var roadroutemap
 	db 0, 4, 1, 15h, 20h, 26h, 29h, 3Fh
 global class9routemaphandler
 class9routemaphandler:
+	push eax
+	mov al, [landscape5(di)]
+	and al, 0xC0
+	cmp al, 0x80
+	pop eax
+	jne .origfunc
 	test word [landscape3 +2*edi], 3 << 13
 	jz .origfunc
 	test byte [landscape5(di,1)], 6
@@ -83,6 +89,12 @@ class9routemaphandler:
 
 global newclass9drawland
 newclass9drawland:
+	push eax
+	mov al, [landscape5(bx)]
+	and al, 0xC0
+	cmp al, 0x80
+	pop eax
+	jne .old
 	test word [landscape3 +2*ebx], 3 << 13
 	jnz .bridgehead
 
@@ -197,17 +209,57 @@ newclass9drawland:
 
 global removebridgetrack
 removebridgetrack:
+	push eax
+	mov al, [landscape5(si)]
+	and al, 0xC0
+	cmp al, 0x80
+	pop eax
+	jne .notbridgeending
 	test word [landscape3 +2*esi], 3 << 13
 	jz .notbridgeending
+
 	test byte [landscape5(si,1)], 6
 	jnz .notbridgeending	// this isn't a railway bridge
 	jmp  short .bridgeending
 
 .notbridgeending:
+	testflags advzfunctions
+	jc .advremovetrackbridgemiddle
 	mov dl, dh
 	and dl, 0F8h
 	cmp dl, 0E0h
 	ret
+	
+.advremovetrackbridgemiddle:
+	push eax
+	mov dl, dh
+	and dl, 1
+	inc dl
+	xor dl, 3
+	mov al, dl
+	xor dl, [landscape3+1+esi*2]
+
+	test dl, bh
+	jz .errorp	//requested track piece does not exist...
+
+	xor dl, bh	//remove piece
+	setz ah		//no pieces left
+	dec ah		//ah=0 if no pieces left, -1 otherwise
+	and al, ah
+	xor dl, al	//flip default bit (not done if no pieces left)
+
+	test bl, 1
+	jz .dontdoitdave
+	mov [landscape3+1+esi*2], dl
+	or ah, ah
+	jnz .dontdoitdave
+			//no pieces left
+	mov BYTE [landscape1+esi], 0x10
+	and BYTE [landscape5(si)], ~0x38
+
+.dontdoitdave:
+	pop eax
+	jmp .onlytesting
 
 .bridgeending:
 	mov dl, bl
@@ -231,6 +283,8 @@ removebridgetrack:
 	movsx ebx, word [tracksale]
 	ret
 
+.errorp:
+	pop eax
 .error:
 	pop ebx
 	mov ebx, 0x80000000
@@ -238,8 +292,15 @@ removebridgetrack:
 
 global removebridgeroad
 removebridgeroad:
+	push eax
+	mov al, [landscape5(si)]
+	and al, 0xC0
+	cmp al, 0x80
+	pop eax
+	jne .notbridgeending
 	test word [landscape3 +2*esi], 3 << 13
 	jz .notbridgeending
+
 	test byte [landscape5(si,1)], 6
 	jz .notbridgeending	// this is a railway bridge
 	jmp short .bridgeending
@@ -295,8 +356,12 @@ removebridgeroad:
 
 global buildbridgeroad
 buildbridgeroad:
-	test word [landscape3 +2*esi], 3 << 13
-	jz .notbridgeending
+	push eax
+	mov al, [landscape5(si)]
+	and al, 0xC0
+	cmp al, 0x80
+	pop eax
+	jne .notbridgeending
 	test byte [landscape5(si,1)], 6
 	jz .notbridgeending	// rail bridge
 	jmp short .bridgeending
@@ -429,7 +494,16 @@ buildbridgetrack:
 .notbridgeending:
 	mov dl, dh
 	and dl, 0F8h
+	call isrealhumanplayer
+	jnz .nonhumanplayerperponly
+	testflags advzfunctions
+	jc .allownonperpundertrackbuild
+.nonhumanplayerperponly:
 	cmp dl, 0C0h
+	ret
+.allownonperpundertrackbuild:
+	or dl, 20h
+	//clear zf
 	ret
 	
 .bridgeending:

@@ -21,6 +21,7 @@ global robjgameoptionflag,robjflags
 extern cargotypes,newcargotypenames,cargobits,invalidatetile,cargotypes
 extern GenerateDropDownEx,GenerateDropDownExPrepare,DropDownExList
 extern TransmitAction, MPRoutingRestrictionChange_actionnum, actionhandler,patchflags,miscmodsflags,setmainviewxy
+extern zfuncdotraceroutehook,curtracertheightvar
 
 global tr_siggui_btnclick,programmedsignal_turnitred
 
@@ -200,8 +201,6 @@ trpatch_DoTraceRouteWrapper1:
 	mov ecx, [esp+14]
 .common:
 
-	test BYTE [robjflags], 1
-	jz .nomodify
 	cmp ecx, [veharrayendptr]
 	jae .badvehptr
 	mov [curvehicleptr], ecx
@@ -210,12 +209,23 @@ trpatch_DoTraceRouteWrapper1:
 	and ecx, veh_size-1
 	jnz .badvehptr
 
+	testflags advzfunctions
+	jnc .nozfunccall
+	mov ecx, [curvehicleptr]
+	call zfuncdotraceroutehook
+.nozfunccall:
+
+
+	test BYTE [robjflags], 1
+	jz .nomodify
+
 	mov [curstepfuncptr],edx
 	mov edx,trpatch_stubstepfunc
 .nomodify:
 	call $
 	ovar .oldfn, -4, $,trpatch_DoTraceRouteWrapper1
 	mov DWORD [curvehicleptr],0
+	mov DWORD [curtracertheightvar], 0
 ret
 .badvehptr:
 	//Should never be reached
