@@ -39,4 +39,31 @@ exported calcupdateblockrect
 
 	ret
 
+exported drawminimap
+	mov ebx, 0
+ovar edxmaskptr
+	cmp byte [ebx+3],0xFF
+	je .dword
+	cmp byte [ebx+2],0xFF
+	je .3byte
+	cmp byte [ebx+1],0xFF
+	je .word
+	cmp byte [ebx],0xFF
+	jne .ret
+	or [es:esi],dl
+.ret:
+	ret
+
+.3byte:
+	or [es:esi],dx
+	shr edx,16
+	or [es:esi+2],dl
+	ret
+
+.word:
+	o16
+.dword:
+	or [es:esi],edx
+	ret
+
 #endif // WINTTDX
