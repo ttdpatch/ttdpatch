@@ -358,6 +358,23 @@ bridgemiddlezcorrectslope:
 	mov dh, 2 // so we set a Y route under the bridge
 .wasydir:
 
+	testflags advzfunctions
+	jnc .nochange
+	push ebx
+	ror ax, 4
+	ror cx, 4
+	mov bl, al
+	mov bh, cl
+	rol ax, 4
+	ror cx, 4
+	movzx ebx, bx
+	mov bl, [landscape3+ebx*2+1]
+	and bl, 0x3F
+	xor dh, bl
+
+	pop ebx
+
+.nochange:
 	push ebp
 	mov ebp,addr(gettrackfoundationtype)
 	call correctexactalt.getfoundationtype
