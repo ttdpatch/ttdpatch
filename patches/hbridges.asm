@@ -366,7 +366,7 @@ bridgemiddlezcorrectslope:
 	mov bl, al
 	mov bh, cl
 	rol ax, 4
-	ror cx, 4
+	rol cx, 4
 	movzx ebx, bx
 	mov bl, [landscape3+ebx*2+1]
 	and bl, 0x3F
