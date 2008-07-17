@@ -44,7 +44,8 @@ bridgedrawrailunder:
 	mov bl, [landscape3+esi*2+1]
 	and bl, 0x3F
 	xor dh, bl
-
+	mov bh, dh
+	xchg bh, [landscape5(si)]
 	mov bl,[landscape2+esi]			// save L2
 	push bx
 	mov byte [landscape2+esi], 1		// fake L2, on grass, no fences 
@@ -58,6 +59,7 @@ bridgedrawrailunder:
 	call dword [ebp+0x1c]			// normal rail piece draw land
 	pop bx
 	mov [landscape2+esi], bl		// and restore L2
+	mov [landscape5(si)], bh
 	popa
 	ret
 ;endp bridgedrawrouteunder
