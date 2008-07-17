@@ -345,6 +345,11 @@ codefragment findgiantscreenshotmovepointer, 6
 
 codefragment_call newcalcupdateblockrect,calcupdateblockrect,6
 
+codefragment olddrawminimap, -6
+	or [es:esi], edx
+
+codefragment_call newdrawminimap, drawminimap, 9
+
 endcodefragments
 
 patchresolution:
@@ -388,6 +393,12 @@ patchresolution:
 	mov byte [screenblocksx], al
 	mov byte [screenblocksy], bl
 	
+
+	stringaddress olddrawminimap,1,6
+	mov eax, [edi+2]
+	extern edxmaskptr
+	mov [edxmaskptr], eax
+	multipatchcode drawminimap,6
 	
 	
 	/* mov byte [screenblocksx], 16
