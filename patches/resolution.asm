@@ -42,6 +42,7 @@ exported calcupdateblockrect
 exported drawminimap
 	mov ebx, 0
 ovar edxmaskptr
+	and edx, [ebx]
 	cmp byte [ebx+3],0xFF
 	je .dword
 	cmp byte [ebx+2],0xFF
