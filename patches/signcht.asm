@@ -28,7 +28,7 @@ extern resetpathsignalling,setmainviewxy,specialerrtext1,specialerrtext2
 extern subsidyfn,traincost,treenum,treestart,vehtypedataptr
 extern yeartodate,trackcheat,isplaneinflight
 extern convertplatformsinremoverailstation
-extern invalidatetile
+extern invalidatetile,ResetBBlockVehicleLists
 
 
 %assign cheattext "CHT:"	// gives "CHT:" in little endian
@@ -154,6 +154,7 @@ cheatentry "UNRESERVEPBSTRACK",unreservepbstrack,0
 
 #if 1 && DEBUG
 cheatentry "SETINDVAL",setindustrystrucval,0
+cheatentry "RESETBBLIST",ResetBBlockVehicleLists,0
 #endif
 
 #if DEBUGNETPLAY

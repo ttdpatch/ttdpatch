@@ -5,7 +5,7 @@ struc veh
 	.subclass: 	resb 1	// 01h:for trains: 00h=engine, 02h=waggon/secd.engine, 04h=first waggon in a train w/o engine
 				//     for road vehicles and ships always 0 (?)
 				//     for aircraft: 00h=helicopter, 02h=plane, 04h=shadow (and mail compartment), 06h=rotor
-			resw 1	// 02h:index of next vehicle in some list (used to detect collisions?)
+	.nextinbblockidx:resw 1	// 02h:index of next vehicle in some list (used to detect collisions?)
 	.idx:	 	resw 1	// 04h:vehicle number
 	.scheduleptr: 	resd 1	// 06h:pointer to command list
 	.currorder: 	resw 1	// 0ah:next station or depot & special commands (see below)
@@ -36,7 +36,7 @@ struc veh
 	.owner: 	resb 1	// 25h:vehicle owner
 	.XY: 		resw 1	// 26h:index into landscape array
 	.cursprite: 	resw 1	// 28h:current sprite ID (incl. direction and veh. type)
-	.box_coord:	resw 4	// 2ah,2ch,2eh,30h:x1,y1,x2,y2 coordinates of sprite box on screen
+	.box_coord:	resw 4	// 2ah,2ch,2eh,30h:x1,x2,y1,y2 coordinates of sprite box on screen
 	.vehstatus: 	resw 1	// 32h:bit 0=vehicle invisible (in tunnel/depot), bit 1=stopped, bit 7=crashed, ??
 	.speed: 	resw 1	// 34h:current speed in mph/1.6 (trains), mph/3.2 (rv/ships), see also trnspd.asm
 	.speedfract: 	resb 1	// 36h:current speed, fractional part
