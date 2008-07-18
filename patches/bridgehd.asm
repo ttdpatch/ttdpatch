@@ -123,6 +123,7 @@ newclass9drawland:
 	je .old
 
 	push word [landscape2 +ebx]
+	push word [landscape5(bx)]
 	mov byte [landscape2 +ebx], 1
 	test word [landscape3+ebx*2], 8000h
 	jz .nodesert
@@ -137,6 +138,7 @@ newclass9drawland:
 	pop eax
 
 	push ebx
+	mov [landscape5(bx)], dh
 
 	mov esi, ebx
 	mov ebp,[ophandler+1*8]
@@ -145,6 +147,7 @@ newclass9drawland:
 	mov byte [alwaysraiseland], 0
 
 	pop ebx
+	pop word [landscape5(bx)]
 	pop word [landscape2 +ebx]
 	ret
 

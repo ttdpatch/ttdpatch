@@ -12,6 +12,7 @@ extern patchflags
 extern pbssettings
 extern altersignalsbygui_flags
 extern ps_presig_count
+extern curtracertheightvar
 
 	align 4
 var signalchangeopptr, dd -1	// Index to signal change operation. 0=set green, 1=set red
@@ -98,6 +99,8 @@ signalsstart:
 		// which is what this function replaces
 		// it also reserves some extra space for our own variables
 		// and sets everything up properly
+		
+	mov DWORD [curtracertheightvar], 0x10000
 
 	pop eax		// eip
 	mov esi,[esp]	// orig. caller
@@ -325,6 +328,8 @@ signalsend:
 
 .nopathsig:
 	mov al,byte [esi+presignalstack.signalchangeop]
+
+	mov DWORD [curtracertheightvar], 0
 
 	// this fragment replaces sub esp,300h, so clear the data from stack
 	ret 0x300+presignalstack_size

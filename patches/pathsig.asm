@@ -470,7 +470,35 @@ exported getnextdirandtile
 .keepdir:
 	add di,[tiledeltas+ebp]
 	ret
+	
+exported getnextdir
+	test dl,0x3c	// hor/ver direction?
+	jz .keepdir	// no, go straight
 
+	// rotate clockwise
+	inc ebp
+	inc ebp
+	and ebp,7
+
+	cmp dl,[tilebitsclockwise+ebp]
+	je .keepdir
+
+	// oops, should've been counterclockwise
+	xor ebp,4
+
+.keepdir:
+	ret
+
+exported getnextdirandtile_andzadjust
+	testflags advzfunctions
+	jnc getnextdirandtile
+	call getnextdir
+	xchg ebp, ebx
+	push eax
+	call trrtstepadjustxycoordfromdir
+	pop eax
+	xchg ebp, ebx
+	ret
 
 	// figure out and mark rail route
 	//
@@ -541,7 +569,7 @@ markrailroute:
 	// mark path
 	pusha
 	mov ah,0
-	call chkmarksignalroute
+	call chkmarksignalroute //pass veh pointer
 	popa
 	jc .bad
 
@@ -550,7 +578,7 @@ markrailroute:
 
 	pusha
 	mov ah,1
-	call chkmarksignalroute
+	call chkmarksignalroute //pass veh pointer
 	popa
 	jc .undo
 
@@ -562,7 +590,7 @@ markrailroute:
 	// we need undo the partially-reserved route
 
 	mov ah,0x80
-	call chkmarksignalroute
+	call chkmarksignalroute //pass veh pointer
 
 .bad:
 	stc
@@ -665,16 +693,25 @@ tracepath:
 %endmacro
 
 uvarb didmarkroute
+uvard chkmarksignalroute_veh
 
+//esi=veh ptr
 chkmarksignalroute:
 	mov ebx,finaltracert
+	mov edi,[curtracestartxy]
+	mov ecx, esi
+	testflags advzfunctions
+	jnc .noinitz
+	mov [chkmarksignalroute_veh], ecx
+	call zfuncdotraceroutehook
+.noinitz:
+
 	xor ecx,ecx
 	xor edx,edx
 
 	test byte [pbssettings],PBS_ALLOWUNSAFEJUNCTION
 	setnz [didmarkroute]
 
-	mov edi,[curtracestartxy]
 	mov ebp,[curtracestartdir]
 
 	mov esi,landscape6
@@ -700,7 +737,8 @@ chkmarksignalroute:
 	cmp cl,[ebx+finalrt.length]
 	ja near .endofroute
 
-	call getnextdirandtile
+	call getnextdirandtile_andzadjust
+
 	mov dl,[ebx+finalrt.pieces+ecx]
 	inc ecx
 
@@ -869,7 +907,7 @@ chkmarksignalroute:
 
 .cleartile:
 	test [esi+edi],dh
-	jz .fail
+	jz NEAR .fail
 	not dh
 	and [esi+edi],dh
 	jmp .dontmark
@@ -879,7 +917,7 @@ chkmarksignalroute:
 	// see if the track (not just the route) actually ends here, or if
 	// the next tile has a signal
 	mov al,dl
-	call getnextdirandtile
+	call getnextdirandtile_andzadjust
 
 	push eax
 	xor eax,eax
@@ -925,6 +963,7 @@ chkmarksignalroute:
 .done:
 	cmp byte [didmarkroute],1	// set carry if no pieces marked
 	jb .badend
+	mov DWORD [curtracertheightvar], 0
 	ret
 
 .badend:
@@ -954,6 +993,7 @@ chkmarksignalroute:
 	mov [finaltracert+finalrt.pieces+1+ebx],ecx
 	sub ebx,4
 	jnc .nextalt
+	mov esi, [chkmarksignalroute_veh]
 	jmp chkmarksignalroute
 
 .fail:	// we get here when trying to reserve track already reserved
@@ -962,6 +1002,7 @@ chkmarksignalroute:
 
 .bad:
 	stc
+	mov DWORD [curtracertheightvar], 0
 	ret
 
 redrawtileedi:
@@ -1270,6 +1311,8 @@ extern tnlrtmppbsflag
 	jmp short .done
 	
 .checkbridgemiddle:
+	cmp DWORD [curtracertheightvar], 0x10001	//ignore existing reserved bits
+	je .check
 	testflags advzfunctions
 	jnc .check
 	//fall through, treat bridge middles same as bridge heads
