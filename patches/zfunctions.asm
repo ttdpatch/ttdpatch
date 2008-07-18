@@ -102,6 +102,8 @@ loc_578C37:
 
 ret
 
+uvarb zfuncdotraceroutehook_flags
+
 //ecx=valid veh pointer, edi=tile coord
 //trashable=none
 
@@ -119,14 +121,29 @@ exported zfuncdotraceroutehook
 	cmp al, 9
 	jne .norm
 	mov al, [landscape5(di)]
-	and al, 0xC0
+	test al, 0xC0
 	jns .norm	//tunnel
 	jpo .gnd	//bridge head
-	
+
+	test BYTE [zfuncdotraceroutehook_flags], 1
+	jz .skipdircheck
+	mov ah, [ecx+veh.direction]
+	shr ah, 1
+	jnc .gnd
+	xor al, ah
+	and al, 1
+	jnz .gnd
+.skipdircheck:
+
 	//bridge middle part, this is where the work begins
 	call quickgetminmaxtilegndheight
+	shl ah, 3
 	shl al, 3
+	add ah, [landscape7+edi]
+	add ah, 6
 	add al, 6	//vehicle must be at least 6 height levels above max ground under bridge to classify as on bridge
+	cmp [ecx+veh.zpos], ah
+	jb .gnd
 	cmp [ecx+veh.zpos], al
 	jb .gnd
 	//vehicle is on bridge
@@ -260,6 +277,7 @@ exported isnexttileconnectedgetroutemaphook
 	testflags advzfunctions
 	jnc .justdoit
 	xchg ecx, esi
+	movzx edi, di
 	call zfuncdotraceroutehook
 	xchg ecx, esi
 .justdoit:

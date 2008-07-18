@@ -212,6 +212,7 @@ trpatch_DoTraceRouteWrapper1:
 	testflags advzfunctions
 	jnc .nozfunccall
 	mov ecx, [curvehicleptr]
+	movzx edi, di
 	call zfuncdotraceroutehook
 .nozfunccall:
 

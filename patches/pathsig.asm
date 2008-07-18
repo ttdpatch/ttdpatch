@@ -10,8 +10,8 @@
 #include <flags.inc>
 
 extern addrailgroundsprite,curstationtile,getplatforminfo,getroutemap
-extern invalidatetile,ishumanplayer,pbssettings
-extern randomstationtrigger, patchflags, zfuncdotraceroutehook, curtracertheightvar
+extern invalidatetile,ishumanplayer,pbssettings,zfuncdotraceroutehook_flags
+extern randomstationtrigger, patchflags, zfuncdotraceroutehook, curtracertheightvar,trrtstepadjustxycoordfromdir
 
 uvard traceroutefn		// [TTD] do route tracing
 uvard chkrailroutetargetfn	// [TTD] check if a route has arrived at the target
@@ -635,11 +635,19 @@ tracepath:
 	jz %$markhead		// bridge head, must be rail and thus ok
 
 	%ifnidn {%2},{}
+	testflags advzfunctions
+	jnc %%noadv
+	cmp DWORD [curtracertheightvar], 0x10001
+	je %$nomark
+	jmp short %%donecheck
+
+%%noadv:
 	and %1,~2
 	inc %1			// map bit 0 to track piece 1/2
 	test %1,%2		// check direction
 	jnz %$nomark		// same direction -> not under middle piece
 	%endif
+%%donecheck:
 
 	and %1,00111000b	// bit 5 set, bit 4,3=0: rail under it
 	cmp %1,00100000b	// bit 5 clear for middle piece: land under it
@@ -711,7 +719,7 @@ chkmarksignalroute:
 	je near .rail
 
 	cmp al,0x20
-	je .roadcrossing
+	je near .roadcrossing
 
 	cmp al,0x50
 	je near .station
@@ -1078,7 +1086,7 @@ opclass08hroutemaphnd:
 
 	movzx ebp,word [tracertdistance]
 	mov [lastsigdistance],ebp
-	jmp short .done
+	jmp .done
 
 .checkpiece:
 	bsf edx,eax
@@ -1200,7 +1208,7 @@ opclass48hroutemaphnd:
 	cmp al,4
 	jb .checktunnel	// tunnel
 
-	checkbridgepbs al,,,near .check,near .checkhead
+	checkbridgepbs al,,,near .checkbridgemiddle,near .checkhead
 #if 0
 	and al,11000110b
 	cmp al,10000000b
@@ -1260,6 +1268,11 @@ extern tnlrtmppbsflag
 	mov al,[landscape6+edi]
 	not al
 	jmp short .done
+	
+.checkbridgemiddle:
+	testflags advzfunctions
+	jnc .check
+	//fall through, treat bridge middles same as bridge heads
 
 	// on bridge heads, we need to check what the marked pieces are compatible with
 .checkhead:
@@ -1334,7 +1347,7 @@ getnexttileconnection:
 	mov al,[landscape4(di,1)]
 	and al,0xf0
 	cmp al,0x10
-	je .rail
+	je NEAR .rail
 	cmp al,0x90
 	jne near .done
 
@@ -1519,7 +1532,9 @@ lastwagoncleartile:
 	testflags advzfunctions
 	jnc .justdoit
 	mov ecx, [esp+8+4+4]		//input esi=veh ptr
+	mov BYTE [zfuncdotraceroutehook_flags], 1
 	call zfuncdotraceroutehook
+	mov BYTE [zfuncdotraceroutehook_flags], 0
 .justdoit:
 	call [getroutemap]
 	mov DWORD [curtracertheightvar], 0
@@ -1664,7 +1679,7 @@ clearpathtile:
 	cmp bh,4
 	jb near .clearbit
 
-	checkbridgepbs bh,bl,near .donenz,short .clearbit
+	checkbridgepbs bh,bl,near .donenz, near .clearbit
 #if 0
 	and bh,11000110b
 	cmp bh,10000000b
@@ -1876,7 +1891,7 @@ reservecurrenttrack:
 
 	and ah,0xf0
 	cmp ah,0x10
-	je .rail
+	je NEAR .rail
 	cmp ah,0x20
 	je .roadcrossing
 	cmp ah,0x50
@@ -2000,13 +2015,31 @@ cleartrainsignalpath:
 	// clear reserved path ahead
 	call gettraintiledir
 	movzx edi,word [esi+veh.XY]
-	jc .gotedi	// edi is tunnel entrance
-
-	add di,[tiledeltas+ebx]
-.gotedi:
 	mov ebp,ebx
+	jc .gotedi	// edi is tunnel entrance
+	testflags advzfunctions
+	jnc .nozcheck1
+	xchg ecx, esi
+	call zfuncdotraceroutehook
+	xchg ecx, esi
+	call trrtstepadjustxycoordfromdir
+	jmp .gotedi
+.nozcheck1:
+	add di,[tiledeltas+ebx]
 
 .nexttile:
+	testflags advzfunctions
+	jnc .nozcheck2
+	mov edi, ecx
+	xchg ebp, ebx
+	call trrtstepadjustxycoordfromdir
+	xchg ebp, ebx
+.nozcheck2:
+
+.gotedi:
+
+
+
 	xor eax,eax
 	push esi
 	push ebp
@@ -2049,6 +2082,7 @@ cleartrainsignalpath:
 
 .done:
 	popa
+	mov DWORD [curtracertheightvar], 0
 	ret
 
 // clear tile after train
@@ -2089,7 +2123,7 @@ var dirfromdeltaxy, db 4,3,2,4,5,4,1,4,6,7,0
 
 uvard wtrackspriteofsptr
 
-global displayrailsprites
+global displayrailsprites,displayrailsprites.onlygray
 displayrailsprites:
 	mov bx,1005
 	push edx
