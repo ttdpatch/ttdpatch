@@ -328,3 +328,5 @@ ttdvar(airporttypeavailmask, 0x7710b)	// B: bit mask of available old airport ty
 ttdvar(bridgeiconsttd, 0x9f6b7)		// D[11]: Bridge Icons (with recolor flags) (note newbridges has an own bigger array)
 ttdvar(bridgenamesttd, 0x9f6e3)		// W[11]: Bridge Names (note newbridges has an own bigger array)
 ttdvar(bridgespeedsttd, 0x9f6f9)		// W[11]: Bridge Speeds (note newbridges has an own bigger array)
+
+ttdvar(firstVehInBBlockArray, 0x72F72)	// W[1000h]:

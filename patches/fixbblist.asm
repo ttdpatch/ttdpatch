@@ -4,7 +4,7 @@
 #include <bitvars.inc>
 #include <veh.inc>
 
-extern vehicledatafactor, veharrayendptr, veharrayptr
+extern vehicledatafactor
 
 uvard UpdateBBlockVehicleLists
 uvarw maxveh
@@ -39,9 +39,7 @@ exported UpdateBBlockVehicleLists_anticrash_proc
 
 exported ResetBBlockVehicleLists
 	pushad
-	mov edi, [UpdateBBlockVehicleLists]
-	mov edi, [0x55FCB3-0x55FC55+edi]
-	//edi=address of _FirstVehInBBlockArray
+	mov edi, firstVehInBBlockArray
 	mov ecx, 0x800
 	or eax, byte -1
 	rep stosd		//nuke array
