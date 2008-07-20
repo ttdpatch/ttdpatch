@@ -316,3 +316,147 @@ exported removebridgerestoreroutetile
 	mov dh, 0x10
 	add DWORD [esp], 8
 	ret
+
+uvard ztemplocalroutemaphash, 0x200	//old array stores 0x800 records, initialise to -1
+uvard ztemplocalroutemap, 0x1200*4	//a new templocalroutemap which includes z-ness, make it bigger to account for height disparities, make it also wider so more stuff can get fit in
+uvard ztemplocalroutemapleft		//initialise to 0x1200
+uvard ztemplocalroutemapnextnum		//initialise to 0
+uvard ppTempLocalRouteMap
+
+/*
+exported addsignaltoblockhook
+	mov eax, [curtracertheightvar]
+	movzx edi, di
+	mov al, [landscape4(di)]
+	and al, 0xF0
+	ret
+*/
+
+exported addtolocalroutemaphook
+
+	call newaddtolocalroutemap
+
+	pop ebx	//get return address
+	push ax
+	movzx ax, ch
+	jmp ebx
+
+exported newaddtolocalroutemap		//to reduce clashes use lower bits
+	cmp DWORD [ztemplocalroutemapleft], 0
+	jle NEAR .ret
+	pushad
+	mov edx, [curtracertheightvar]
+	movzx ax, ch
+	test cl, 8
+	jz .noswap
+	xchg al, ah
+.noswap:
+	mov bx, di
+	shl bl, 3
+	shr bx, 2
+	and ebx, 0x1FF8>>2
+	mov ebp, [ztemplocalroutemapnextnum]
+	movzx ecx, WORD [ztemplocalroutemaphash+ebx]
+	or cx, cx
+	js .stashdata_blank
+.test_existing:
+	movsx ecx, cx
+	shl ecx, 4
+	js .new
+	lea ebx, [ztemplocalroutemap+ecx]
+	mov cx, [ebx+8]
+	cmp [ebx], di
+	jne .test_existing
+	cmp [ebx+4], edx
+	jne .test_existing
+	//add route bits to existing
+	or [ebx+2], ax
+	jmp .quit
+.new:
+	mov [ebx+8], bp
+	jmp .stashdata
+.stashdata_blank:
+	mov [ztemplocalroutemaphash+ebx], bp
+.stashdata:
+	dec DWORD [ztemplocalroutemapleft]
+	inc DWORD [ztemplocalroutemapnextnum]
+	shl ebp, 4
+	lea ebp, [ztemplocalroutemap+ebp]
+	mov [ebp], di
+	mov [ebp+2], ax
+	mov [ebp+4], edx
+	mov WORD [ebp+8], 0xFFFF
+.quit:
+	popad
+.ret:
+	stc
+	ret
+
+exported addsignaltoblockhook3
+	movsx ebp, WORD [ztemplocalroutemaphash+ebx]
+.next:
+	shl ebp, 4
+	js .fret
+	lea ebx, [ebp+ztemplocalroutemap]
+	movsx ebp, WORD [ebx+8]
+	cmp [ebx], di
+	jne .next
+	mov ecx, [ebx+4]
+	or ecx, ecx
+	jnz .tricky
+.norm:
+	mov cl, [esi+veh.movementstat]
+	mov ch, cl
+	test [ebx+2], cx
+	jz .next
+	ret
+.fret:
+	cmp esp, esp
+.ret:
+	ret
+.normp:
+	pop eax
+	jmp .norm
+
+.tricky:
+	test ecx, 0x10000
+	jz .norm
+	//quick check that this is a bridge
+	push eax
+	mov al, [landscape4(di)]
+	shr al, 4
+	cmp al, 9
+	jne .normp
+	test BYTE [landscape5(di)], 0xC0
+	jz .normp
+	jpo .normp
+	call quickgetminmaxtilegndheight
+	shl ah, 3
+	add ah, [landscape7+edi]
+	add ah, 8
+	cmp [esi+veh.zpos], ah
+	setb al				//al=1 if below bridge
+	xor al, cl	//al now=0 if incorrect height
+	pop eax
+	jz .next
+	mov cl, [esi+veh.movementstat]
+	mov ch, cl
+	test [ebx+2], cx
+	jz .next
+	ret
+
+exported dotraceroutehook
+	pushad
+	cld
+	mov edi, ztemplocalroutemaphash
+	or eax, byte -1
+	mov ecx, 0x200
+	rep stosd
+	mov DWORD [ztemplocalroutemapnextnum], 0
+	mov DWORD [ztemplocalroutemapleft], 0x1200
+	popad
+	xor eax, eax
+	mov ecx, 0x200
+	ret
+
+
