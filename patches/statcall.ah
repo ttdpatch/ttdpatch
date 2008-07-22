@@ -1,0 +1,76 @@
+/*
+
+This file contains the macros for calling callback 36 under various
+circumstances.
+Given a procedure (ProcFoo, below) which finds the default value for the
+property, calls CB36, and returns the result in al or ax:
+
+In patches/statcall.asm:
+  Define ProcFoo.
+  Use "MAKESTRUC_WORD ProcFoo, <elem>" or "MAKESTRUC_BYTE ProcFoo, <elem>" to
+generate ProcFoo.makestruc.
+  Use NOESI ProcFoo to generate ProcFoo.noesi.
+  If this .makestruc is the first that will be called for this vehicle type,
+prefix the MAKESTRUC with "FIRST".
+
+In procs/statcall.asm and other patches files.
+  From TTD's the vehicle structure initialization, overwrite the initializing
+instruction (mov [esi+veh.<elem>],...) with a call to ProcFoo.makestruc.
+  Whenever the callback needs to be called, but esi does not point to a
+vehicle, call ProcFoo.noesi.
+  In all other circumstances, call ProcFoo.
+  If you moved the FIRST macro, change the corresponding
+"mov ebx, OldFirstProc.oldfn" instruction in procs/statcall.asm to
+"mov ebx, ProcFoo.oldfn". Also change the immediately preceeding extern
+declaration.
+
+
+*/
+
+%macro FIRST 1+
+	%define FIRSTENTRY
+	%1
+	%undef FIRSTENTRY
+%endmacro
+
+%macro MAKESTRUC 3	//name, instr, doxchg?
+ovar %1.makestruc, 0
+	pop eax
+	push ebx
+	call eax
+	pop ebx
+%if %3
+	xchg esi,edi
+%endif
+	call %1
+	%2			// overwritten
+%if %3
+	xchg esi,edi
+%endif
+%ifdef FIRSTENTRY
+	pop cx			// overwritten
+	jmp near $+5
+ovar %1.oldfn,-4,$
+%else
+	ret
+%endif
+%endmacro
+
+%macro MAKESTRUC_WORD 2-3 0	// name, element, doxchg?
+	MAKESTRUC %1, {mov [esi+veh.%2], ax}, %3
+%endmacro
+
+%macro MAKESTRUC_BYTE 2-3 0	// Params: Global name, veh structure element, 1 if esi and edi are swapped after calling eax
+	MAKESTRUC %1, {mov [esi+veh.%2], al}, %3
+%endmacro
+
+// This generates %1.noesi, and calls the callback without a vehicle structure
+%macro NOESI 1
+ovar %1.noesi, 0
+	push esi
+	xor esi, esi
+	call %1
+	pop esi
+	ret
+%endmacro
+

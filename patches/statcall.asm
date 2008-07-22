@@ -12,45 +12,17 @@
 #include <newvehdata.inc>
 #include <veh.inc>
 
+#include "statcall.ah"
+
 // Need for the callback finder
 extern miscgrfvar, vehtypecallback, newvehdata
-
-// This generates %1.makestruc, finishes the vehicle-struc initialization, calls the callback, and moves the return value into the veh struc
-%macro MAKESTRUC 1-2 0	// Params: Global name, 1 if esi and edi are swapped after calling eax.
-ovar %1.makestruc, $, 0
-	pop eax
-	push ebx
-	call eax	// For planes, this swaps esi and edi.
-	pop ebx
-%if %2
-	xchg esi,edi
-%endif
-	call %1
-	mov [esi+veh.maxspeed], ax	// overwritten
-%if %2
-	xchg esi,edi
-%endif
-	pop cx				// overwritten
-	jmp near $+5
-ovar %1.oldfn,-4,$
-%endmacro
-
-// This generates %1.noesi, and calls the callback without a vehicle structure
-%macro NOESI 1
-ovar %1.noesi, $, 0
-	push esi
-	xor esi, esi
-	call %1
-	pop esi
-	ret
-%endmacro
 
 // Train Codes
 // Set the global subroutines
 global GetTrainCallbackSpeed.lnews, GetTrainCallbackSpeed.doit
 global GetTrainCallbackSpeed.lmultihead, GetTrainCallbackSpeed.lwagon
 
-MAKESTRUC GetTrainCallbackSpeed
+FIRST MAKESTRUC_WORD GetTrainCallbackSpeed, maxspeed
 NOESI GetTrainCallbackSpeed
 
 // Buy Train Window Changer
@@ -206,7 +178,7 @@ GetShipCallbackSpeed:
 	pop ecx
 	ret
 
-MAKESTRUC GetShipCallbackSpeed
+FIRST MAKESTRUC_WORD GetShipCallbackSpeed, maxspeed
 NOESI GetShipCallbackSpeed
 
 // Plane Codes
@@ -222,7 +194,7 @@ GetPlaneCallbackSpeed:
 	pop ecx
 	ret
 
-MAKESTRUC GetPlaneCallbackSpeed, 1
+FIRST MAKESTRUC_WORD GetPlaneCallbackSpeed, maxspeed, 1
 NOESI GetPlaneCallbackSpeed
 
 // Run callback 36 for vehicles based off the input value
