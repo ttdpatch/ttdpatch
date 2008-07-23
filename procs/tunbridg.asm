@@ -132,14 +132,17 @@ ret
 
 global patchzfunctionsenhtunnelcommon
 patchzfunctionsenhtunnelcommon:
+	mov eax, [traceroutefnptr]
+	testflags advzfunctions
+	jc .overwritten
 	testflags tracerestrict
 	jnc .notoverwritten
-	//Trace restrict overwrites search function offset!
+.overwritten:
+	//Trace restrict/advzfunctions overwrite search function offset!
 	mov eax, [trpatch_DoTraceRouteWrapper1.oldfn]
 	add eax, trpatch_DoTraceRouteWrapper1.oldfn+4
 	mov [traceroutefnptr], eax
 .notoverwritten:
-	//mov eax, [traceroutefnptr] //already there
 	mov [traceroutefnjmp], eax
 	cmp BYTE [eax], 0xE9
 	jne .nocorrect
