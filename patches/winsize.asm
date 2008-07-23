@@ -1163,8 +1163,8 @@ ResizeOpenWindows:
 	jc .nosizerdata
 	
 	mov ebx, [TrainDepotElementList]	// Update our active windows' size contraints
-	mov ebx, [ebx]						// from the base train depot element list
-	mov [edi+edi+windatabox_sizerextra.eleminfo], ebx
+	mov ebx, [ebx]				// from the base train depot element list
+	mov [edi+windatabox_sizerextra.constraints], ebx
 	
 	push edi
 	mov edi, [edi+windatabox_sizerextra.constraints]
