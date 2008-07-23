@@ -320,7 +320,13 @@ ovar .gettraintype,-4,$,canaibuyloco
 
 .checkcargo:
 	// check if it has the right cargo type, if any
-	cmp byte [traincargosize+ebx],0
+//	cmp byte [traincargosize+ebx],0
+	push eax
+extern GetTrainCapacityGeneric.noesi
+	call GetTrainCapacityGeneric.noesi
+	cmp ax, 0
+	pop eax
+
 	je short .passed
 	mov al,[traincargotype+ebx]
 	cmp al,cl

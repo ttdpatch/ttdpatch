@@ -1710,7 +1710,9 @@ getarticcapacities:
 	mov al,8
 	sub al,[trainvehlength+esi]
 	add [articrowlen],al
-	movzx eax,byte [traincargosize+esi]
+//	movzx eax,byte [traincargosize+esi]
+extern GetTrainCapacityGeneric.esi
+	call GetTrainCapacityGeneric.esi
 	shl eax,16
 	jz .getnext
 

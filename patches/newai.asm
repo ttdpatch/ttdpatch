@@ -261,7 +261,12 @@ ai_buildrailvehicle:
 	cmc
 	je .norefit
 
-	cmp byte [traincargosize+ebx],1
+//	cmp byte [traincargosize+ebx],1
+	push eax
+extern GetTrainCapacityGeneric.noesi
+	call GetTrainCapacityGeneric.noesi
+	cmp ax, 1
+	pop eax
 	jb .norefit
 
 	pusha

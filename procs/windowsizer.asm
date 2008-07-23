@@ -656,7 +656,7 @@ extern newDepotWinElemList, newdepotwindowconstraints, newtraindepotwindowsizes
 	mov word [esi+ebx+0*12+windowbox.y2], cx
 	mov byte [esi+ebx+1*12+windowbox.type], cWinElemExtraData
 	mov byte [esi+ebx+1*12+1], cWinDataSizer
-	mov dword [esi+ebx+1*12+2], edi // .constraints
-	mov dword [esi+ebx+1*12+6], edx // .eleminfo
+	mov dword [esi+ebx+1*12+2], edi
+	mov dword [esi+ebx+1*12+6], edx
 	mov word [esi+ebx+1*12+10], 0
 	ret

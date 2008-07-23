@@ -32,6 +32,16 @@ begincodefragments
 	codefragment oldtrainpowergeneric
 		mov ax, [nosplit trainpower+ebx*2]
 	codefragment_call newtrainpowergeneric, TrainPowerGeneric, 8
+	
+	; These fragments as for capacity
+	codefragment oldtraincapacity
+		movzx ax, byte [traincargosize+ebx]
+	codefragment_call newtraincapacity, GetTrainCapacityGeneric.noesi, 8
+	codefragment_call newtraincapacitybuy, GetTrainCapacityGeneric.makestruc, 8
+	codefragment_call newwagoncapacitybuy, GetWagonCapacityGeneric.makestruc, 8
+	codefragment oldtrainattach
+		mov edi, [tempvar+0xC]
+	codefragment_call newtrainattach, UpdateConsistCapacity, 6
 
 // Ships
 	; These fragments are for finding the places where speed is used in ttd
@@ -69,8 +79,24 @@ patchtrainstat:
 	; Speed Fragments
 	multipatchcode trainspeednewwehiclehandler, 2
 	patchcode trainbuyvehiclespeed
-	extern GetTrainCallbackSpeed.oldfn
-	mov ebx, GetTrainCallbackSpeed.oldfn
+
+	; Capacity fragmenets
+	patchcode traincapacity, 1, 5
+	patchcode traincapacity, 1, 4
+	patchcode traincapacity, 3, 3
+	
+	; Hooks the end of attach just before deciding if there is another consist window which needs updating
+	patchcode trainattach, 4, 4
+
+	; The fun part?
+	patchcode oldtraincapacity, newwagoncapacitybuy, 1, 2
+	extern GetWagonCapacityGeneric.oldfn
+	mov ebx, GetWagonCapacityGeneric.oldfn
+	call patchendstrucinit
+	
+	patchcode oldtraincapacity, newtraincapacitybuy, 1, 1
+	extern GetTrainCapacityGeneric.oldfn
+	mov ebx, GetTrainCapacityGeneric.oldfn
 
 // fallthrough
 

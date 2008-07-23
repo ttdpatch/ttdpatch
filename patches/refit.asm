@@ -850,7 +850,9 @@ getenginecargo:
 .nocapacallback:
 //	mov eax,[enginepowerstable]
 //	add eax,edx
-	movzx ebx,byte [traincargosize+edx]
+//	movzx ebx,byte [traincargosize+edx]
+extern GetTrainCapacityGeneric.edx
+	call GetTrainCapacityGeneric.edx
 
 	// adjust for cargo types (e.g. 250 livestock = 1000 passengers)
 	mov ah,[traincargotype+edx]

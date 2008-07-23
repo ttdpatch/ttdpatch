@@ -22,7 +22,7 @@ extern miscgrfvar, vehtypecallback, newvehdata
 global GetTrainCallbackSpeed.lnews, GetTrainCallbackSpeed.doit
 global GetTrainCallbackSpeed.lmultihead, GetTrainCallbackSpeed.lwagon
 
-FIRST MAKESTRUC_WORD GetTrainCallbackSpeed, maxspeed
+MAKESTRUC_WORD GetTrainCallbackSpeed, maxspeed
 NOESI GetTrainCallbackSpeed
 
 // Buy Train Window Changer
@@ -87,7 +87,7 @@ TrainPowerGeneric:
 	push eax
 	movzx ecx, word [trainpower+ebx*2] ; Gets the default speed of the vehicle
 	movzx eax, bl ; Set the system to vehicle id
-	mov ah, 0xB ; Get the speed value
+	mov ah, 0xB ; Get the power value
 	call GetCallback36 ; Get the actual value for the speed
 	mov ecx, eax
 	pop eax
@@ -110,7 +110,7 @@ TrainTEGeneric:
 
 	push ecx
 	movzx ecx, byte [traintecoeff+ebx] ; Get the orginal TE coffient
-	mov ah, 0x1F ; Get the speed value
+	mov ah, 0x1F ; Get the te value
 	mov al, bl ; Set the system to vehicle id
 	call GetCallback36 ; Get the actual value for the TE
 	movzx eax, al ; Byte return from callback
@@ -118,6 +118,87 @@ TrainTEGeneric:
 
 	mov ebx, eax
 	pop eax
+	ret
+
+FIRST MAKESTRUC_WORD GetTrainCapacityGeneric, capacity
+FIRST MAKESTRUC_WORD GetWagonCapacityGeneric, capacity
+NOESI GetTrainCapacityGeneric
+
+global GetTrainCapacityGeneric, GetTrainCapacityGeneric.esi
+global GetTrainCapacityGeneric.edx, GetWagonCapacityGeneric
+GetWagonCapacityGeneric:
+GetTrainCapacityGeneric:
+	push ecx
+	movzx ecx, byte [traincargosize+ebx]
+	mov ah, 0x14 ; Get the capacity
+	mov al, bl
+	call GetCallback36
+	movzx eax, ax
+	pop ecx
+	ret
+
+.esi:
+	push esi
+	push ecx
+	movzx ecx, byte [traincargosize+esi]
+	mov eax, esi
+	mov ah, 0x14 ; Get the capacity
+	xor esi, esi
+	call GetCallback36
+	movzx esi, ax
+	pop ecx
+	pop esi
+	ret
+
+.edx:
+	push eax
+	push ecx
+	movzx ecx, byte [traincargosize+edx]
+	mov ah, 0x14 ; Get the capacity
+	mov al, dl
+	call GetCallback36
+	movzx ebx, ax
+	pop ecx
+	pop eax
+	ret
+
+// Main call for the attach / dettach subroutine
+global UpdateConsistCapacity
+UpdateConsistCapacity:
+	mov edi, [tempvar+0x8]
+	call LoopThroughConsist
+	mov edi, [tempvar+0xC]
+	or edi, edi
+	jnz LoopThroughConsist
+	ret
+
+// This loops through a consist applying callback 46, var 14
+LoopThroughConsist:
+	pusha
+	mov esi, edi
+	movzx ebx, word [esi+veh.engineidx]
+	cmp bx, [esi+veh.idx]
+	jne .bad
+
+.next:
+	movzx ebx, byte [esi+veh.vehtype]
+	call GetTrainCapacityGeneric
+	mov [esi+veh.capacity], ax
+
+	movzx esi, word [esi+veh.nextunitidx]
+	cmp si, byte -1
+	je .done
+	shl esi, 7
+	add esi, [veharrayptr]
+	jmp .next
+
+.bad:
+//	ud2	// As far as I understand the attach / dettach function consist heads
+		// are stored in the tempvar +0x8 and +0xC unless we are part of
+		// the same consist (first vehicle being a wagon results in edi 0)
+
+.done:
+	popa
 	ret
 
 // Used to fetch the weight of a railvehicle
@@ -204,11 +285,13 @@ NOESI GetPlaneCallbackSpeed
 //	  esi as vehicle id if applable
 // out:	eax=callback value
 exported GetCallback36
+	push dword [miscgrfvar] ; Due to "articulatedvehicle" being the same var we need to preserve it
 	mov [miscgrfvar],ah
 	mov ah, 0x36 ; Id for the callback
 	call vehtypecallback ; Get the callback results
 	jnc .lresults
 	mov ax, cx ; Move default value into ax
 .lresults:
-	mov byte [miscgrfvar], 0 ; Set this to 0 to avoid errors
+	pop dword [miscgrfvar] ; Restore the old value of "articulatedvehicle"
+//	mov byte [miscgrfvar], 0 ; Set this to 0 to avoid errors
 	ret
