@@ -460,8 +460,8 @@ codefragment oldindustryprodchange_shownewsmsg
 codefragment_call newindustryprodchange_shownewsmsg, industryprodchange_shownewsmsg, 6
 
 codefragment oldmonthlyupdateindustryproc,11
-	mov cl,NUMINDUSTRIES
-	cmp word [esi+industry.XY],0
+	mov cl,NEWNUMINDUSTRIES			// patchnumindustries gets to this first and changes it.
+	cmp word [esi+industry.XY],0		// Fortunately, it runs under the same conditions as patchnewindustries.
 	jz $+2+9
 	push cx
 
@@ -564,7 +564,7 @@ extern industry2arrayptr
 
 patchnewindustries:
 	// allocate the industry2 array
-	push dword NUMINDUSTRIES*industry2_size
+	push dword NEWNUMINDUSTRIES*industry2_size
 	call malloccrit
 	pop dword [industry2arrayptr]
 

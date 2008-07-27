@@ -2597,7 +2597,7 @@ resetinducheat:
 extern clearindustry2array
 	call clearindustry2array
 	mov edi,[industryarrayptr]
-	mov ecx,NUMINDUSTRIES
+	movzx ecx, byte [numindustries]
 .nextindu:
 	cmp word [edi+industry.XY],0
 	je .skipindu

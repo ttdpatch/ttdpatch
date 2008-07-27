@@ -1,6 +1,8 @@
 
 %assign NINDUSTRYTYPES	37
-%assign NUMINDUSTRIES  90
+%assign OLDNUMINDUSTRIES  90
+%assign NEWNUMINDUSTRIES  250
+#define NUMEXTRAINDUSTRIES  (NEWNUMINDUSTRIES - OLDNUMINDUSTRIES)
 
 // starts at offset given in [7790c] (normally 51766)
 struc industry
@@ -103,3 +105,7 @@ ptrvarofs industryrandomsoundptrs,industrydatablock,$
 resd NINDUSTRYTYPES
 
 endstruc
+
+#ifndef __File_patches_extraindustries__
+extern numindustries
+#endif

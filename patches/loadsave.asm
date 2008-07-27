@@ -95,6 +95,7 @@ varw knownextrachunkids
 	dw 0x8010	// Persistent GRF data
 	dw 0x8011	// New objects ID map
 	dw 0x8012	// Industry2 array
+	dw 0x8013	// Industry array
 	
 knownextrachunknum equ (addr($)-knownextrachunkids)/2
 
@@ -131,6 +132,7 @@ vard knownextrachunkloadfns
 	dd loadpersgrfdata
 	dd loadobjectidmap
 	dd loadindustry2array
+	dd loadextraindustries
 	
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkloadfns)/4
@@ -171,6 +173,7 @@ vard knownextrachunksavefns
 	dd savepersgrfdata
 	dd saveobjectidmap
 	dd saveindustry2array
+	dd saveextraindustries
 
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunksavefns)/4
@@ -213,6 +216,7 @@ vard knownextrachunkqueryfns
 	dd canhavepersgrfdata
 	dd canhaveobjectidmap
 	dd canhaveindustry2array
+	dd canhaveextraindustries
 
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkqueryfns)/4
@@ -262,6 +266,7 @@ uvarw loadremovedsfxs	// ... and this many pseudo-/special vehicles
 %assign LOADED_X3_ROBJARRAY		0x2
 %assign LOADED_X3_OBJECTDATAID	0x4
 %assign LOADED_X3_INDUSTRY2ARRAY	0x8
+%assign LOADED_X3_EXTRAINDUSTRIES	0x10
 
 %define SKIPGUARD 1			// the variables get cleaned by a dword.. 
 uvarb extrachunksloaded1		// a combination of LOADED_X1_*
@@ -393,6 +398,10 @@ presaveadjust:
 	jnc .nofifo
 	extcall buildfifoidx
 .nofifo:
+	testmultiflags newindustries
+	jz .noextraindustries
+	extcall copybackindustrydata
+.noextraindustries:
 
 	ret
 
@@ -522,6 +531,7 @@ preloadadjust:
 
 	call setvehiclearraysize	// probably unnecessary but just in case
 	call cleardata
+	extcall clearindustrydata
 
 	// if no pers.grf data is stored, we don't want to use the
 	// current save's data!
@@ -956,6 +966,12 @@ extern clearindustry2array
 	jnz .hasindustry2
 	call clearindustry2array
 .hasindustry2:
+
+	test byte [extrachunksloaded3],LOADED_X3_EXTRAINDUSTRIES
+	jnz .extraindustries_ok
+	extcall clearextraindustries
+.extraindustries_ok:
+	extcall initextraindustries
 .nonewindus:
 
 	mov byte [lastextraindustiledata],0
@@ -1804,6 +1820,7 @@ canhaveindustrymap:
 canhaveindustileidmap:
 canhaveinduincargodata:
 canhaveindustry2array:
+canhaveextraindustries:
 
 	testflags newindustries
 	ret
@@ -1927,12 +1944,14 @@ loadsavestation2array:
 	ret
 
 loadinduincargodata:
-	cmp eax,8*NUMINDUSTRIES
-	jne badchunk
+	test eax, 7
+	jnz badchunk
+	cmp eax, NEWNUMINDUSTRIES*8
+	ja badchunk
 	jmp short loadsaveinduincargodata
 
 saveinduincargodata:
-	mov eax,8*NUMINDUSTRIES
+	mov eax,8*NEWNUMINDUSTRIES
 	call savechunkheader
 
 loadsaveinduincargodata:
@@ -1944,12 +1963,23 @@ loadsaveinduincargodata:
 	ret
 
 loadindustry2array:
-	cmp eax,NUMINDUSTRIES*industry2_size
-	jne badchunk
-	jmp short loadsaveindustry2array
+	cmp eax, NEWNUMINDUSTRIES*industry2_size
+	je short loadsaveindustry2array
+	push eax
+	cdq
+	xor ecx,ecx
+	mov cl, industry2_size
+	idiv ecx
+	test edx,edx
+	jnz .badchunk
+	cmp eax, NEWNUMINDUSTRIES
+.badchunk:
+	pop eax
+	jb short loadsaveindustry2array 	// carry is always clear after a test
+	jmp badchunk
 
 saveindustry2array:
-	mov eax,NUMINDUSTRIES*industry2_size
+	mov eax,NEWNUMINDUSTRIES*industry2_size
 	call savechunkheader
 
 loadsaveindustry2array:
@@ -1961,6 +1991,36 @@ extern industry2arrayptr
 	or byte [extrachunksloaded3],LOADED_X3_INDUSTRY2ARRAY
 	ret
 
+loadextraindustries:
+	cmp eax, NUMEXTRAINDUSTRIES*industry_size
+	je short loadsaveextraindustries
+	push eax
+	cdq
+	xor ecx,ecx
+	mov cl, industry_size
+	idiv ecx
+	test edx,edx
+	jnz .badchunk
+	cmp eax, NUMEXTRAINDUSTRIES
+.badchunk:
+	pop eax
+	jb short loadsaveextraindustries 	// carry is always clear after a test
+	jmp badchunk
+
+saveextraindustries:
+	mov eax, NUMEXTRAINDUSTRIES*industry_size
+	call savechunkheader
+
+loadsaveextraindustries:
+	xchg eax,ecx
+	mov esi, [industryarrayptr]
+	add esi, OLDNUMINDUSTRIES*industry_size
+	call ebp
+	
+	or byte [extrachunksloaded3],LOADED_X3_EXTRAINDUSTRIES
+	ret
+	
+	
 canhavenewcargotypes:
 	testflags newcargos
 	ret

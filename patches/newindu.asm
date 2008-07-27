@@ -1401,7 +1401,7 @@ struc industryincargodata
 endstruc
 
 // amount of cargo accepted, but not processed by industries
-uvard industryincargos,2*NUMINDUSTRIES
+uvard industryincargos,2*NEWNUMINDUSTRIES
 
 uvard industrydestroymultis,NINDUSTRYTYPES
 
@@ -1422,7 +1422,7 @@ uvard industry2arrayptr
 global clearindustryincargos
 clearindustryincargos:
 	mov edi,industryincargos
-	mov ecx,2*NUMINDUSTRIES
+	mov ecx,2*NEWNUMINDUSTRIES
 	xor eax,eax
 	rep stosd
 	ret
@@ -1441,7 +1441,7 @@ exported clearindustry2array
 	mov edi,[industry2arrayptr]
 	test edi,edi
 	jz .done			// no array - nothing to clear
-	mov ecx,NUMINDUSTRIES*industry2_size
+	mov ecx,NEWNUMINDUSTRIES*industry2_size
 	xor eax,eax
 	rep stosb
 .done:
@@ -2044,7 +2044,7 @@ changeindustrytype:
 	push esi
 	push ecx
 
-	mov ecx,NUMINDUSTRIES
+	movzx ecx, byte [numindustries]
 	mov esi,[industryarrayptr]
 .nextindustry:
 	cmp word [esi+industry.XY],0
@@ -2086,7 +2086,7 @@ exported cleanupindustrytypes
 	jb .clean_unused
 
 // remove industries whose bits are set in the mask
-	mov ecx,NUMINDUSTRIES
+	movzx ecx, byte [numindustries]
 	mov edi,[industryarrayptr]
 .removeindustries:
 	cmp word [edi+industry.XY],0
@@ -3421,7 +3421,7 @@ industrylistwindowhandler:
 	xor ecx,ecx
 	mov [.oldindu1],ecx
 	mov [.inducount],ecx
-	mov cl, NUMINDUSTRIES
+	mov cl, [numindustries]
 	mov edi, [industryarrayptr]
 .induloop:
 	cmp word [edi], 0
@@ -3524,7 +3524,7 @@ industrylistwindowhandler:
 	ret
 
 noglobal uvard .inducount
-noglobal uvard .indulist, 90
+noglobal uvard .indulist, NEWNUMINDUSTRIES
 
 .insertindu:		// insert the industry at edi into the sorted list
 	pusha
@@ -3753,7 +3753,7 @@ ovar .oldfn,-4,$,closeinduinduwinupdate
 	jz .ret
 	mov edi,industrylistwindowhandler.indulist
 	xor ecx,ecx
-	mov cl,NUMINDUSTRIES
+	mov cl,[numindustries]
 	repne scasd
 	lea esi, [edi+4]
 	rep movsd
@@ -4790,7 +4790,7 @@ exported getothertypedistance
 	or eax,byte -1
 	xor ebx,ebx
 	xor edx,edx
-	mov ch,NUMINDUSTRIES
+	mov ch,[numindustries]
 .checknext:
 	cmp word [edi+industry.XY],0
 	je .skip
@@ -4885,7 +4885,7 @@ exported getothertypecountanddist_layout
 	or ebp,byte -1
 	mov edx,[industry2arrayptr]
 
-	mov ch,NUMINDUSTRIES
+	mov ch,[numindustries]
 .checknext:
 	cmp word [edi+industry.XY],0
 	je .skip
@@ -6086,7 +6086,7 @@ getindustryslot:
 
 	add esi,industry_size
 	inc al
-	cmp al,NUMINDUSTRIES
+	cmp al,[numindustries]
 	jb .checknext
 
 	mov word [operrormsg2],ourtext(toomanyindustries)
@@ -6229,7 +6229,7 @@ preventindustryclosedown:
 	test byte [industryspecialflags+ecx*4+2],2
 	jnz .done
 
-	mov ch,NUMINDUSTRIES
+	mov ch,[numindustries]
 
 .next:
 	cmp word [ebx+industry.XY],0
@@ -6375,7 +6375,7 @@ getnumindustries:
 	push esi
 	push ecx
 	mov esi, [industryarrayptr]
-	mov ecx, NUMINDUSTRIES
+	movzx ecx, byte [numindustries]
 .countloop:
 	cmp word [esi], 0
 	je .empty

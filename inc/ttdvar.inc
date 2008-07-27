@@ -115,7 +115,8 @@ ttdvar(vehnameindex,0x76e68)		// text indices for all vehicles (8000+x if defaul
 ttdvar(datasaveend,0x77179)		// End of the part of the TTD data segment that goes into savegames
 
 ttdvar(stationarrayptr,0x77908)		// Pointer to the station array
-ttdvar(industryarrayptr,0x7790c)		// Pointer to the industry array
+ttdvar(industryarrayptr,0x7790c)	// Pointer to the industry array
+ttdvar(oldindustryarray,0x51766)	// TTD's original industry array
 ttdvar(playerarrayptr,0x77914)		// Pointer to the company array
 
 ttdvar(veharrayptr,0x77918)		// This location holds the pointer to the vehicle array
