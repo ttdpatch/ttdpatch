@@ -836,6 +836,8 @@ exported AdjacentStationBuildNewStation
 //ugly hack approaching...
 //make sure that irrcheckistrainstation/buslorry/airport/dock code gets called by fudging temporarily L4 value
 	mov cl, [landscape4(bp,1)-0x101]
+	mov ch, [esp+4+2]
+	xchg ch, [landscape2+ebp-0x101]
 	push ecx
 	and cl,0xF
 	or cl, 0x50
@@ -919,6 +921,7 @@ exported AdjacentStationBuildNewStation
 	pop ebp
 	pop edx
 	mov [landscape4(bp,1)-0x101], dl
+	mov [landscape2+ebp-0x101], dh
 .end:
 	pop ecx
 	pop eax
