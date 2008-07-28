@@ -9,16 +9,15 @@ extern malloccrit
 
 global patchdynamicmemory
 patchdynamicmemory:
-	mov eax, DYNMEMSIZE
+	mov ebx, DYNMEMSIZE
 
-	push eax
+	push ebx
 	call malloccrit
-	pop edi
+	pop eax
 	
-	mov [dynmemstart], edi
-	lea esi, [edi + eax]
-	mov [dynmemend], esi
+	mov [dynmemstart], eax
+	mov [eax], ebx
 
-	sub eax, 4
-	mov dword [edi], eax
+	add eax, ebx
+	mov [dynmemend], eax
 	ret

@@ -4,10 +4,9 @@
 //  bit 31 is 0 if this block is free, and 1 otherwise; the other 31 bits
 //  indicate the size of the block
 // TODO: make dmalloc allocate extra memory if no large enough free block can be found (only possible in WINTTD?)
-// TODO: make dmalloc a best-fit instead of first-fit algorithm?
 
 #include <std.inc>
-
+#include <pusha.inc>
 
 
 uvard dynmemstart,1,s
@@ -17,35 +16,37 @@ uvard dynmemend,1,s
 //OUT: edi = pointer to memory
 global dmalloc
 dmalloc:
-// first try to find a block that is large enough to contain ecx+4, if this can't be found loop through (not yet implemented)
-// the list to merge free blocks together and try again, if still no blocks can be found, fail (allocate extra memory, not possible in dos?)
-	push eax
-	mov edi, [dynmemstart]
+// Search for a block that is large enough to contain ecx+4. If multiple such blocks, use the smallest.
+// If no such blocks, fail (allocate extra memory, not possible in dos?)
+	pusha
+	mov esi, [dynmemstart]
 	add ecx, 7
 	and ecx, ~3
+	or eax, byte -1
 .searchloop:
-	cmp edi, [dynmemend]
-	jae .fail
-	mov eax, [edi]
-	test eax, 80000000h
-	jnz .next
-	and eax, 7fffffffh
-	cmp eax, ecx
-	jae .found
+	cmp esi, [dynmemend]
+	jae .done
+	mov edx, [esi]
+	btr edx, 31
+	jc .next
+	cmp edx, ecx		// Big enough?
+	jb .next
+	cmp edx, eax		// Smaller than previous free block?
+	jae .next
+	mov eax, edx
+	mov edi, esi
 .next:
-	and eax, 7fffffffh
-	cmp eax, 0	//shouldn't happen, but somehow it happens quite a lot of times... luckily with this check it works...
-	jz .fail
-	add edi, eax
+	or edx, edx
+	jz .done	// This can only happen if the arena is corrupt; handle it as gracefully as possible.
+	add esi, edx
 	jmp .searchloop
-	
-.fail:
-	pop eax
-	stc
-	ret
+
+.done:
+	or eax, eax
+	extern outofmemoryerror
+	js outofmemoryerror
 
 .found:
-	push ebx
 	mov ebx, eax
 	sub ebx, ecx
 	cmp ebx, 16
@@ -53,11 +54,11 @@ dmalloc:
 	mov eax, ecx
 	mov [edi+eax], ebx
 .dontsplit:
-	or eax, 80000000h
+	bts eax, 31
 	mov [edi], eax
 	add edi, 4
-	pop ebx
-	pop eax
+	mov [esp+_pusha.edi], edi
+	popa
 	clc
 	ret
 
@@ -91,14 +92,14 @@ exported dmemcompact
 	jc .notempty	// current block not free, can't merge
 
 .mergenext:
-	lea esi,[edi+eax+4]
+	lea esi, [edi+eax]
 	cmp esi, [dynmemend]
 	jae .done
 
-	test dword [esi-4],0x80000000
-	jnz .notempty	// next block not free, can't merge more
+	bt dword [esi],31
+	jc .notempty	// next block not free, can't merge more
 
-	add eax,[esi-4]
+	add eax,[esi]
 	mov [edi],eax
 	jmp .mergenext
 	
