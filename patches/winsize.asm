@@ -542,6 +542,7 @@ noglobal ovar .load, 0
 .nox2q:
 	pop ecx
 	add edi, windowbox_size
+	jmp .loop
 .done:
 	pop ebp
 	ret
