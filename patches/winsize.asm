@@ -163,17 +163,16 @@ CloseWindow:
 	ret
 
 BeginResizeWindow:
-	mov word [tmpdx], 0
-	mov word [tmpdy], 0
-	test word [esi+window.flags], 800h
-	jnz .alreadycopied
+	and dword [ResizeTempData+tmpdx], 0
+	and dword [ResizeTempData+tmpdquarter], 0
+	bts dword [esi+window.flags], 11
+	jc .alreadycopied
 	call CopyWindowElementList
 	jc .fail
-	or word [esi+window.flags], 800h
 .alreadycopied:
 
-	or word [esi+window.flags], 400h
-	bts word [uiflags], 7	// window is being dragged (althoug this is of course not entirely correct)
+	or byte [esi+window.flags+1], 4
+	or byte [uiflags], 1<<7	// window is being dragged (although this is of course not entirely correct)
 	push edi
 	push ecx
 	xor ecx, ecx
@@ -201,7 +200,7 @@ BeginResizeWindow:
 	mov dx, [esi+window.id]
 	push cx
 	push dx
-	mov cl, 3Fh
+	mov cl, cWinTypeDropDownMenu
 	xor dx, dx
 	call [FindWindow]
 	call [DestroyWindow]
@@ -356,12 +355,21 @@ procwindowdragmode:
 	clc
 	ret
 
+struc _resizedata
+	tmpdx:		resw 1
+	tmpdy:		resw 1
+	tmpthird1:	resw 1
+	tmpthird2:	resw 1
+	tmpdquarter:	resw 1
+	tmpquarter:	resw 1
+	tmpgood1:	resb 1
+endstruc
+uvard ResizeTempData, (_resizedata_size+3)/4
+
+
 //in: ESI=window
 //    EDI=constraints (for each window element a byte with bits, bit set means move when size changes; bit0=x1, bit1=x2, bit2=y1, bit3=y2)
 //    AX,BX=new width&height of window
-uvarw tmpdx
-uvarw tmpdy
-
 ResizeWindowElements:
 	pusha
 	push bx
@@ -392,216 +400,148 @@ ResizeWindowElements:
 %assign changex2third	  200h
 %assign changex1twothird  400h
 %assign changex2twothird  800h
+%assign changex1quarter	  1000h
+%assign changex2quarter	  2000h
+// for three-quarter, set both half and quarter
 
 //same as above, only esi is a pointer to the first windowelement, and ax,bx are size changes instead of absolute sizes
 exported ResizeWindowElementsDelta
+	push ebp
+	mov ecx, .load
+	mov word [ecx], 0xAC90	// lodsb
 	push edi				// Find the extra data, returing a pointer in edi
-	push edx
 	mov edi, esi
 	mov dh, cWinDataSizer
 	mov dl, cWinElemExtraData
 	call FindWindowData.loop
-	jc .normal
-	test byte [edi+windatabox_sizerextra.flags], 1	// Do we use the DeltaX variant (supports 3rds)
-	jz .normal				// But uses word sized constraints
-	pop edx
-	pop edi
-	jmp ResizeWindowElementsDeltax
+	test byte [edi+windatabox_sizerextra.flags], 1	// Do we have word-sized constraints?
+	jz .normal
+	mov word [ecx], 0xAD66	// lodsw
 .normal:
-	pop edx
 	pop edi
+	setbase ebp, ResizeTempData
 	
-	push ax
-	push bx
-	add ax, [tmpdx]
-	add bx, [tmpdy]
-	mov word [tmpdx], 0
-	test ax, 1
-	jz .correctdx
-	inc byte [tmpdx]
-.correctdx:
-	mov word [tmpdy], 0
-	test bx, 1
-	jz .correctdy
-	inc byte [tmpdy]
-.correctdy:	
-	mov cx, ax
-	and cx, 0xfffe
-	sar cx, 1
-	mov dx, bx
-	and dx, 0xfffe
-	sar dx, 1
-	pop bx
-	pop ax
-
-.loop:
-	cmp byte [esi+windowbox.type], cWinElemLast
-	je .done
-
-	test byte [edi], changex1
-	jz .nox1
-	add [esi+windowbox.x1], ax
-.nox1:
-	test byte [edi], changex2
-	jz .nox2
-	add [esi+windowbox.x2], ax
-.nox2:
-	test byte [edi], changey1
-	jz .noy1
-	add [esi+windowbox.y1], bx
-.noy1:
-	test byte [edi], changey2
-	jz .noy2
-	add [esi+windowbox.y2], bx
-.noy2:
-	test byte [edi], changex1half
-	jz .nox1s
-	add [esi+windowbox.x1], cx
-.nox1s:
-	test byte [edi], changex2half
-	jz .nox2s
-	add [esi+windowbox.x2], cx
-.nox2s:
-	test byte [edi], changey1half
-	jz .noy1s
-	add [esi+windowbox.y1], dx
-.noy1s:
-	test byte [edi], changey2half
-	jz .noy2s
-	add [esi+windowbox.y2], dx
-.noy2s:
-
-	add esi, windowbox_size
-	inc edi
-	jmp .loop
-.done:
-	ret
-
-// Same as above but supports 1/3 and 2/3
-// Uses a word list for its constraints though, hence it's seperate
-// ToDo: add 1/4 and 3/4 so that support for 4ths is complete
-uvarw tmpthird1
-uvarw tmpthird2
-uvarb tmpgood1
-ResizeWindowElementsDeltax:
-	push ebp
+// Calculate thirds first.
 	push eax
 	push ebx
-	add ax, [tmpdx]
-	add bx, [tmpdy]
-	mov word [tmpdx], 0
-	test ax, 1
-	jz .correctdx
-	mov word [tmpdx], 1
-.correctdx:
-	mov word [tmpdy], 0
-	test bx, 1
-	jz .correctdy
-	mov word [tmpdy], 1
-.correctdy:	
-	mov cx, ax
-	and cx, 0xfffe
-	sar cx, 1
-	mov dx, bx
-	and dx, 0xfffe
-	sar dx, 1
-	pop ebx
-	pop eax
-
-	push eax
-	push ebx
-	push ecx
-	push edx
-	mov byte [tmpgood1], 0
 	test ax, ax
-	jl .notgood
-	inc byte [tmpgood1]
-	jmp .gooda
+	setnl byte [BASE ResizeTempData+tmpgood1]
+	jnl .gooda
 .notgood:
 	neg ax
 .gooda:
-	xor dx, dx
-	cwde
+	cwd
 	mov bx, 3
 	idiv bx
 	mov cx, ax
-	cmp byte [tmpgood1], 1
+	cmp byte [BASE ResizeTempData+tmpgood1], 1
 	je .good
 	neg cx
 .good:
-	mov word [tmpthird1], cx
+	mov word [BASE ResizeTempData+tmpthird1], cx
 	shr dx, 4
 	adc ax, ax
-	cmp byte [tmpgood1], 1
+	cmp byte [BASE ResizeTempData+tmpgood1], 1
 	je .goods
 	neg ax
 .goods:
-	mov word [tmpthird2], ax
-	pop edx
-	pop ecx
+	mov word [BASE ResizeTempData+tmpthird2], ax
 	pop ebx
 	pop eax
+	
+// now halves and quarters
+	push eax
+	push ebx
+	add ax, [BASE ResizeTempData+tmpdx]
+	add bx, [BASE ResizeTempData+tmpdy]
+	mov cx, ax
+	sar cx, 1
+	setc byte [BASE ResizeTempData+tmpdx]
+	mov dx, bx
+	sar dx, 1
+	setc byte [BASE ResizeTempData+tmpdy]
+	mov ax, cx
+	add ax, [BASE ResizeTempData+tmpdquarter]
+	sar ax, 1
+	setc [BASE ResizeTempData+tmpdquarter]
+	mov [BASE ResizeTempData+tmpquarter], ax
+	pop ebx
+	pop ebp
 
+	setbase none
+
+	xor eax,eax
+	xchg esi, edi
+	
 .loop:
-	cmp byte [esi+windowbox.type], cWinElemLast
+	cmp byte [edi+windowbox.type], cWinElemLast
 	je near .done
 
-	test byte [edi], changex1
-	jz .nox1
-	add [esi+windowbox.x1], ax
-.nox1:
-	test byte [edi], changex2
-	jz .nox2
-	add [esi+windowbox.x2], ax
-.nox2:
-	test byte [edi], changey1
-	jz .noy1
-	add [esi+windowbox.y1], bx
-.noy1:
-	test byte [edi], changey2
-	jz .noy2
-	add [esi+windowbox.y2], bx
-.noy2:
-	test byte [edi], changex1half
-	jz .nox1s
-	add [esi+windowbox.x1], cx
-.nox1s:
-	test byte [edi], changex2half
-	jz .nox2s
-	add [esi+windowbox.x2], cx
-.nox2s:
-	test byte [edi], changey1half
-	jz .noy1s
-	add [esi+windowbox.y1], dx
-.noy1s:
-	test byte [edi], changey2half
-	jz .noy2s
-	add [esi+windowbox.y2], dx
-.noy2s:
-	test byte [edi+1], changex1third>>8
-	jz .lnox1
-	mov bp, [tmpthird1]
-	add [esi+windowbox.x1], bp
-.lnox1:
-	test byte [edi+1], changex2third>>8
-	jz .lnox2
-	mov bp, [tmpthird1]
-	add [esi+windowbox.x2], bp
-.lnox2:
-	test byte [edi+1], changex1twothird>>8
-	jz .lnox1s
-	mov bp, [tmpthird2]
-	add [esi+windowbox.x1], bp
-.lnox1s:
-	test byte [edi+1], changex2twothird>>8
-	jz .lnox2s
-	mov bp, [tmpthird2]
-	add [esi+windowbox.x2], bp
-.lnox2s:
+noglobal ovar .load, 0
+	lodsw
 
-	add esi, windowbox_size
-	add edi, 2
-	jmp near .loop
+	test al, changex1
+	jz .nox1
+	add [edi+windowbox.x1], bp
+.nox1:
+	test al, changex2
+	jz .nox2
+	add [edi+windowbox.x2], bp
+.nox2:
+	test al, changey1
+	jz .noy1
+	add [edi+windowbox.y1], bx
+.noy1:
+	test al, changey2
+	jz .noy2
+	add [edi+windowbox.y2], bx
+.noy2:
+	test al, changex1half
+	jz .nox1s
+	add [edi+windowbox.x1], cx
+.nox1s:
+	test al, changex2half
+	jz .nox2s
+	add [edi+windowbox.x2], cx
+.nox2s:
+	test al, changey1half
+	jz .noy1s
+	add [edi+windowbox.y1], dx
+.noy1s:
+	test al, changey2half
+	jz .noy2s
+	add [edi+windowbox.y2], dx
+.noy2s:
+	push ecx
+	mov ecx, [ResizeTempData+tmpthird1]
+	test ah, changex1third>>8
+	jz .lnox1
+	add [edi+windowbox.x1], cx
+.lnox1:
+	test ah, changex2third>>8
+	jz .lnox2
+	add [edi+windowbox.x2], cx
+.lnox2:
+	shr ecx,16		// move [tmpthird2] into cx
+	test ah, changex1twothird>>8
+	jz .lnox1s
+	add [edi+windowbox.x1], cx
+.lnox1s:
+	test ah, changex2twothird>>8
+	jz .lnox2s
+	add [edi+windowbox.x2], cx
+.lnox2s:
+	mov cx, [ResizeTempData+tmpquarter]
+	test ah, changex1quarter>>8
+	jz .nox1q
+	add [edi+windowbox.x1], cx
+.nox1q:
+	test ah, changex2quarter>>8
+	jz .nox2q
+	add [edi+windowbox.x2], cx
+.nox2q:
+	pop ecx
+	add edi, windowbox_size
 .done:
 	pop ebp
 	ret
@@ -729,7 +669,7 @@ FindWindowData:
 
 // Used to correct the size constraints of the depot window
 // (as they alter between 32 and 29px depot modes + clonetrain)
-// **  Effects new windows only, ResizeOpenWindows fixes active windows **
+// **  Affects new windows only, ResizeOpenWindows fixes active windows **
 extern patchflags
 global ChangeRailDepotSizeLimits
 ChangeRailDepotSizeLimits:
@@ -1009,7 +949,7 @@ ResetDefaultWindowSizes:
 	rep movsb
 	call LoadWindowSizesFinish
 
-	mov cl, 0x08	// cWinTypeMap
+	mov cl, cWinTypeMap
 	xor dx, dx
 	call [FindWindow]
 	jz .mapwindownotopen
@@ -1132,7 +1072,7 @@ ResizeOpenWindows:
 	jbe near .nextwindow
 	cmp al, 0x12
 	jne near .nextwindow
-	//depot's
+	//depots
 	movzx ebx, word [esi+window.opclassoff]
 	sub ebx, 80h
 	shr ebx, 1
