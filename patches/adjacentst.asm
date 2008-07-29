@@ -221,18 +221,18 @@ populatelist:
 	sub ebx, eax
 	mov al, [newstationspread]
 	cmp bl, al
-	ja .endloop
+	jae .endloop
 	cmp bh, al
-	ja .endloop
+	jae .endloop
 	or ebp, ebp
 	jz .norailfacility
 	mov ebx, ebp
 	sub ebx, edi
 	mov al, [maxrstationspread]
 	cmp bl, al
-	ja .endloop
+	jae .endloop
 	cmp bh, al
-	ja .endloop
+	jae .endloop
 .norailfacility:
 	mov eax, [numinlist]
 	lea edx, [ecx-numstations]
