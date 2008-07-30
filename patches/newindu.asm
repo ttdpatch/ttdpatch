@@ -12,6 +12,7 @@
 #include <windowext.inc>
 #include <pusha.inc>
 #include <flags.inc>
+#include <human.inc>
 
 extern BringWindowToForeground,CreateTooltip,CreateWindowRelative
 extern DestroyWindow,DrawWindowElements,RefreshWindowArea,WindowClicked
@@ -30,6 +31,7 @@ extern texthandler,mostrecentgrfversion,drawsplittextfn
 extern lookuptranslatedcargo,miscgrfvar
 extern fundcostmultipliers,CreateNewRandomIndustry
 extern failpropwithgrfconflict,lastextragrm,curextragrm
+extern ctrlkeystate
 
 
 // --- Industry tile stuff ---
@@ -3272,7 +3274,7 @@ openfundindustrywindow:
 	cmp dword [industrydataidtogameid+eax*8+industrygameid.grfid],0
 	je .noinc
 
-.inc:	
+.inc:
 	inc byte [esi+window.itemstotal]
 .noinc:
 	inc eax
@@ -3293,7 +3295,7 @@ openfundindustrywindow:
 	call [BringWindowToForeground]
 	jnz .alreadyopen
 
-	mov cx,3Bh	
+	mov cx,3Bh
 	mov ebx,indulistwin_width + (indulistwin_height << 16)
 	or edx,byte -1
 	mov ebp,addr(industrylistwindowhandler)
@@ -3319,7 +3321,7 @@ openfundindustrywindow:
 	mov byte [BASE indulistwin_elements.sortind+windowbox.extra], 24h
 	setbase none
 	ret
- 
+
 industrylistwindowhandler:
 	mov bx, cx
 	mov esi, edi
@@ -4140,7 +4142,7 @@ induwindow_redraw:
 	mov ebx,eax
 	mov ecx,[mostrecentspriteblock]
 	mov [curmiscgrf],ecx
-	
+
 	mov cx,[esi+window.x]
 	mov dx,[esi+window.y]
 	add cx,4
@@ -4193,7 +4195,7 @@ induwindow_click:
 // the button?
 	cmp cl,5
 	je .button
-.exit:	
+.exit:
 	ret
 
 .tooltip:
@@ -4226,6 +4228,9 @@ induwindow_click:
 // the player clicked on the button - we need to find out whether it's in the build mode or the prospect mode
 	cmp byte [gamemode],2
 	je .build				// in the scenario editor, it's always build mode
+	push byte CTRL_ANY
+	call ctrlkeystate
+	jz .build
 	movzx eax,byte [esi+window.data]
 	test byte [industryproductionflags+eax],3	// is it an organic or extracting industry?
 	jz .build
