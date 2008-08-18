@@ -1363,6 +1363,20 @@ consistcallbacks:
 
 	cmp byte [esi+veh.class], 0x10 // Only applies to trains
 	jne .nottrain
+	
+	// Update consist capacities (CB 36)
+	push ebx
+    push edx
+	movzx edx,word [esi+veh.vehtype]
+extern GetTrainCapacityNoDefault
+    call GetTrainCapacityNoDefault
+    cmp bx,0xFFFF
+	je .noadjust
+    mov word [esi+veh.capacity],bx
+.noadjust:
+    pop edx
+    pop ebx
+	
 extern calcaccel		// Changes Speed and Power based off Callback 36 returns
 	call calcaccel		// this changes the whole consist, multihead not required
 .nottrain:

@@ -162,6 +162,28 @@ GetTrainCapacityGeneric:
 	pop eax
 	ret
 
+global GetTrainCapacityNoDefault
+GetTrainCapacityNoDefault:
+	push eax
+	push ecx
+	push dword [miscgrfvar] ; Due to "articulatedvehicle" being the same var we need to preserve it
+	
+	movzx ecx, byte [traincargosize+edx]
+	mov al, dl
+	mov byte [miscgrfvar], 0x14 ; Get the capacity
+	mov ah, 0x36 ; Id for the callback
+	call vehtypecallback ; Get the callback results
+	jnc .lresults
+	mov ax, 0xFFFF ; Indicate error
+.lresults:
+	movzx ebx, ax
+	
+	pop dword [miscgrfvar] ; Restore the old value of "articulatedvehicle"
+	pop ecx
+	pop eax
+	ret
+
+
 // Main call for the attach / dettach subroutine
 global UpdateConsistCapacity
 UpdateConsistCapacity:
