@@ -942,6 +942,8 @@ procallsprites:
 	mov ecx,numgrfvarreinitsigned
 	rep stosd
 
+	extcall bridgeresetbeforegrf
+
 	mov esi,curextragrm
 	mov edi,lastextragrm
 	mov ecx,GRM_EXTRA_NUM

@@ -6,7 +6,6 @@
 #include <house.inc>
 
 extern l8switches, patchflags
-ptrvar landscape8
 
 //
 // Usage of L8 Array

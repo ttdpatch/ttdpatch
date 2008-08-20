@@ -204,6 +204,13 @@ proc processnewinfo
 	cmp al, byte [edx+action0prophead.idtransprop]
 	je .doprop
 	
+	cmp byte [%$feature], 0x06 // bridges
+	jne .nobridge
+	// check the first entries, they are always right
+	cmp ebx, NBRIDGES
+	jb .doprop
+	
+.nobridge:
 	// we check here simple the higher byte of the word
 	cmp byte [edx+action0prophead.numids+1], 0
 	je .ofstranssize0
@@ -1258,8 +1265,25 @@ grfcalltable action3storeid, dd addr(action3storeid.generic)
 	extcall idf_bindaction3togameids
 	pop edx
 	ret
-.getsignals:
+	
 .getbridges:
+	lodsb
+	add eax,[globalidoffset]
+	extern curgrfbridgelist
+	movzx eax,byte [curgrfbridgelist+eax]
+	test eax,eax
+	jz .skipbridge
+	
+	extern bridgeaction3
+	test ebx,[bridgeaction3+eax*4]
+	jnz .skipbridge
+	mov [bridgeaction3+eax*4], ebp
+.skipbridge:
+	loop .getbridges
+	ret
+
+.getsignals:
+
 .getgeneric:
 .getsounds:
 	ud2
@@ -4181,7 +4205,7 @@ uvard statcargotriggers,256
 uvard cantrainenterstattile,256/4
 uvard canrventerrailstattile,256*2
 uvard stationanimtriggers,256/2
-uvard bridgeflags,(NNEWBRIDGES+3)/4
+
 uvard trainuserbits,NTRAINTYPES/4
 uvard canalfeatureids,256/4
 uvard genericids,NUMFEATURES

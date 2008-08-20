@@ -267,6 +267,7 @@ uvarw loadremovedsfxs	// ... and this many pseudo-/special vehicles
 %assign LOADED_X3_OBJECTDATAID	0x4
 %assign LOADED_X3_INDUSTRY2ARRAY	0x8
 %assign LOADED_X3_EXTRAINDUSTRIES	0x10
+%assign LOADED_X3_BRIDGEPERSDATA	0x20
 
 %define SKIPGUARD 1			// the variables get cleaned by a dword.. 
 uvarb extrachunksloaded1		// a combination of LOADED_X1_*
@@ -1077,6 +1078,14 @@ extern clearindustry2array
 	extcall clearobjectdataids
 .haveobjectsdataids:
 .nonewobjects:
+
+	testflags newbridges
+	jnc .nonewbridges
+	test byte [extrachunksloaded3],LOADED_X3_BRIDGEPERSDATA
+	jnz .havebridgedataids
+	extcall clearbridgepersdata
+.havebridgedataids:
+.nonewbridges:
 
 	call updategamedata
 	
@@ -2269,7 +2278,27 @@ loadsaveobjectidmap:
 	or byte [extrachunksloaded3],LOADED_X3_OBJECTDATAID
 	ret
 
-	
+canhaveobridgeidmap:
+	testflags newbridges
+	ret
+
+loadbridgepersistentdata:
+	cmp eax,8*NNEWBRIDGES
+	jne badchunk
+	jmp short loadsavebridgepersistentdata
+
+savebridgepersistentdata:
+	mov eax,8*NNEWBRIDGES
+	call savechunkheader
+
+loadsavebridgepersistentdata:
+	xchg ecx,eax
+	extern bridgepersistentdata
+	mov esi,bridgepersistentdata
+	call ebp
+	or byte [extrachunksloaded3],LOADED_X3_BRIDGEPERSDATA
+	ret
+
 //
 // End of extra chunk load/save/query functions
 //

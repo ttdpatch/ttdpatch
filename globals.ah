@@ -332,6 +332,11 @@ ptrvar landscape6
 //	town buildings: newhouses
 ptrvar landscape7
 
+// Pointer to the new landscape8 array
+// usage:
+//	any bridges: type, buildyear
+ptrvar landscape8
+
 // Pointer to the temporary (not saved) vehicle data array
 uvard veh2ptr
 

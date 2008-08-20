@@ -51,7 +51,7 @@
 	patchproc morestationtracks,pathbasedsignalling,irrstations, patchstationtarget
 	patchproc generalfixes,feederservice, patchenroutetime
 	patchproc gradualloading,newcargos, patchloadtimedone
-	patchproc higherbridges,enhancetunnels, patchhigherbridges	// must be before buildonslopes, destroys oldcanstartendbridgehere
+	patchproc higherbridges, newbridges, enhancetunnels, patchhigherbridges	// must be before buildonslopes, destroys oldcanstartendbridgehere
 	patchproc buildonslopes, autoslope, patchbuildonslopes	// must be before manuconv (which destroys a search string)
 	patchproc buildonslopes,newplanes, patchaircraftdispatch
 	patchproc manualconvert, patchmanuconv		// must be before patchbridgeheads

@@ -891,6 +891,12 @@ extern clearindustry2array
 	call clearairportdataids
 .nonewairports:
 
+
+	testflags newbridges
+	jnc .nonewbridges
+	extcall clearbridgepersdata
+.nonewbridges:
+
 	cmp dword [landscape8_ptr],0
 	jle .no_l8
 	call landscape8clear	// new game -> init landscape8 if present

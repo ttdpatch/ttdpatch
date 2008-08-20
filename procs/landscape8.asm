@@ -3,7 +3,7 @@
 #include <patchproc.inc>
 
 // all switches that use landscape8 must be listed here
-patchproc newroutes, patchlandscape8
+patchproc newroutes, newbridges, patchlandscape8
 
 
 extern malloccrit, landscape8_ptr, reloc

@@ -34,7 +34,7 @@ extern callbackflags
 %define %$s_H 1
 
 
-%macro action0props 2-4.nolist 0,0	// params: name,maxids, [idtranslationtable]
+%macro action0props 2-4.nolist 0,0	// params: name,maxids, [idtranslationtable,propertyoftranslation]
 	%ifid %3
 		extern %3
 	%endif
@@ -282,8 +282,8 @@ endaction0props
 
 
 // Bridge Properties (Unfinished)
-action0props bridgeproperties, NNEWBRIDGES
-	prop 0x00,U,0
+action0props bridgeproperties,NNEWBRIDGES,curgrfbridgelist,0x00
+	propex 0x00,B,bridgefallbacktyp
 	prop 0x01,U,0
 	prop 0x02,U,0
 	prop 0x03,U,0

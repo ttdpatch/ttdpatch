@@ -544,13 +544,20 @@ bridgemiddlecheckslopeok:
 global bridgeendsaveinlandscape
 bridgeendsaveinlandscape:
 	mov byte [landscape2+esi], dl
-//	push edi
-//	mov edi, [landscape7ptr]
-//	or edi,edi
-//	jz .no_l7
+
 	mov byte [landscape7+esi], 0
-//.no_l7:
-//	pop edi
+	
+	// we may not have L8, (no newbridges loaded)
+	extern landscape8_ptr
+	cmp dword [landscape8_ptr],0
+	jle .no_l8
+	push eax
+	extern tempbridgetypenew
+	mov al, byte [tempbridgetypenew]	// in newbridg.asm, should be zero if not used
+	mov ah, byte [currentyear]
+	mov word [landscape8+esi*2], ax
+	pop eax
+.no_l8:
 	ret
 ;endp bridgeendsaveinlandscape
 
@@ -563,11 +570,15 @@ bridgemiddlesaveinlandscape:
 	mov dh, [buildbridgeheight] 	
 	sub dh, dl
 	
-//	mov edi, [landscape7ptr]
-//	or edi,edi
-//	jz .no_l7
 	mov byte [landscape7+esi], dh
-//.no_l7:
+
+	// we may not have L8, (no newbridges loaded)
+	cmp dword [landscape8_ptr],0
+	jle .no_l8
+	mov al, byte [tempbridgetypenew]	// in newbridg.asm, should be zero if not used
+	mov ah, 0
+	mov word [landscape8+esi*2], ax
+.no_l8:
 	popa
 	ret
 ;endp bridgemiddlesaveinlandscape
@@ -575,14 +586,14 @@ bridgemiddlesaveinlandscape:
 
 global getnormalclassunderbridge
 getnormalclassunderbridge:
-//	push esi
 	movzx edi, di
-//	mov esi, [landscape7ptr]
-//	or esi,esi
-//	jz .no_l7
 	mov byte [landscape7+edi], 0
-//.no_l7:
-//	pop esi
+
+	// we may not have L8, (no newbridges loaded)
+	cmp dword [landscape8_ptr],0
+	jle .no_l8
+	mov word [landscape8+edi*2], 0
+.no_l8:
 // overwritten
 	mov dl, al
 	and eax, 0x18
