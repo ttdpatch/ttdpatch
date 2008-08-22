@@ -52,7 +52,23 @@ begincodefragments
 		// movzx ax, byte [shipspeed-0xCC+ebx]
 	; Replacement Fragments for speed usage
 	codefragment_call newshipspeednewwehiclehandler, GetShipCallbackSpeed.noesi, 7
-	codefragment_call newshipspeedbuyvehiclespeed, GetShipCallbackSpeed.makestruc, 12
+	codefragment_call newshipspeedbuyvehiclespeed, GetShipCallbackSpeed, 12
+
+	; Places that Ship's value mainly buy menu
+	codefragment oldshipvalue
+		movzx eax, byte [shipcostfactor+ebx-0xCC]
+	codefragment oldshipvaluereturn
+		movzx ebx, byte [shipcostfactor+ebx-0xCC]
+	; Our replacements for these places in TTD  (all no esi)
+	codefragment_call newshipvalue, GetShipValue.noesi, 7
+	codefragment_call newshipvaluereturn, GetShipValueEbx.noesi, 7
+
+	; Places in TTD where ship capacity it feteched
+	codefragment oldshipcapacity
+		mov ax, word [nosplit shipcapacity-0x198+ebx*2]
+	; Our replacements for this.
+	codefragment_call newshipcapacity, GetShipCapacity.noesi, 7
+	codefragment_call newshipcapacitybuild, GetShipCapacity.makestruc, 7
 
 // Planes
 	; These fragments are for finding the places where speed is used in ttd
@@ -107,11 +123,20 @@ patchendstrucinit:
 	ret
 
 patchshipstat:
+	; Value fragments (all no edi), (GGBG)
+	multipatchcode shipvalue, 3
+	patchcode shipvaluereturn
+
 	; Speed Fragments
 	multipatchcode shipspeednewwehiclehandler, 2
 	patchcode shipspeedbuyvehiclespeed
-	extern GetShipCallbackSpeed.oldfn
-	mov ebx, GetShipCallbackSpeed.oldfn
+
+	; Capacity hooks, 2 noesi, one build, (GBG)
+	patchcode shipcapacity, 1, 3
+	patchcode shipcapacity, 2, 2
+	patchcode oldshipcapacity, newshipcapacitybuild, 1, 1
+	extern GetShipCapacity.oldfn
+	mov ebx, GetShipCapacity.oldfn
 	jmp patchendstrucinit
 
 patchplanestat:
