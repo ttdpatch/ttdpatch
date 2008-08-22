@@ -7,6 +7,7 @@
 #include <house.inc>
 #include <airport.inc>
 #include <industry.inc>
+#include <objects.inc>
 
 extern newvehdata
 extern callbackflags
@@ -509,7 +510,7 @@ action0props signalproperties,0
 	// none
 endaction0props
 
-action0props objectproperties,255,curgrfobjectgameids,0x08
+action0props objectproperties,NOBJECTS,curgrfobjectgameids,0x08
 	prop 0x00,U,0
 	prop 0x01,U,0
 	prop 0x02,U,0

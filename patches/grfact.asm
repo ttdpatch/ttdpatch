@@ -4227,6 +4227,7 @@ uvard objectsgameidcount
 // Properties for objects (gameid based)
 uvard objectclass, NOBJECTS/2						// a word id to the actuall objectclasses
 uvard objectnames, NOBJECTS/2						// a TextID
+uvard objectspriteblock, NOBJECTS					// to get GRF specific TextIDs
 
 // Properties for classes of objects
 uvard objectclasses, NOBJECTSCLASSES				// the actual defined classes

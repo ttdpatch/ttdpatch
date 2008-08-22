@@ -52,6 +52,7 @@ endvar
 // Properties for objects (gameid based)
 extern objectclass				// a word id to the actuall objectclasses
 extern objectnames				// a TextID
+extern objectspriteblock			// to get GRF specific TextIDs
 
 // Properties for classes of objects
 extern objectclasses			// the actual defined classes
@@ -127,6 +128,10 @@ exported setobjectclass
 .ok:
 	mov ecx, [curobjectclass]
 	mov word [objectclass+eax*2], cx
+	
+	mov ecx, dword [curspriteblock]
+	mov dword [objectspriteblock+eax*4],ecx
+
 .endofthisdefine:
 	pop ecx
 	inc ebx
@@ -160,6 +165,12 @@ exported setobjectclasstexid
 .nextobjectclass:
 	lodsw
 	movzx edx, word [objectclass+ebx*2]
+	cmp ah, 0xD0
+	jb .nofix
+	cmp ah, 0xD3
+	ja .nofix
+	add ah, 0x04
+.nofix:
 	mov word [objectclassesnames+edx*2], ax
 	mov eax, [curspriteblock]
 	mov dword [objectclassesnamesprptr+edx*4], eax
@@ -198,7 +209,7 @@ guiwindow win_objectgui,200,250
 endguiwindow
 
 svarw win_objectgui_curclass
-uvard win_objectgui_curobject
+svard win_objectgui_curobject
 
 exported win_objectgui_create
 	bts dword [esi+window.activebuttons], 26
@@ -269,7 +280,9 @@ win_objectgui_redraw:
 	call dword [DrawWindowElements]	
 	mov cx, [esi+window.x]
 	mov dx, [esi+window.y]
-	
+		
+	push ecx
+	push edx
 	cmp word [win_objectgui_curclass], -1
 	je .noclassselected
 	
@@ -278,12 +291,30 @@ win_objectgui_redraw:
 	extern curmiscgrf
 	mov [curmiscgrf], eax
 	movzx eax, word [objectclassesnames+ebx*2]
+	
 	mov [textrefstack],eax
 	mov bx,statictext(blacktext)
-	add cx, win_objectgui_padding+2
-	add dx, win_objectgui_drop1y+2
+	add cx, win_objectgui_elements.dropdown1_text_x+2
+	add dx, win_objectgui_elements.dropdown1_text_y+2
 	call [drawtextfn]
 .noclassselected:
+
+	pop edx
+	pop ecx
+
+	cmp word [win_objectgui_curobject], -1
+	je .noobjectselected
+
+	movzx ebx, word [win_objectgui_curobject]
+	mov eax, dword [objectspriteblock+ebx*4]
+	mov [curmiscgrf], eax
+	movzx eax, word [objectnames+ebx*2]
+	mov [textrefstack],eax
+	mov bx,statictext(blacktext)
+	add cx, win_objectgui_elements.dropdown2_text_x+2
+	add dx, win_objectgui_elements.dropdown2_text_y+2
+	call [drawtextfn]
+.noobjectselected:
 	ret
 	
 win_objectgui_clickhandler:
