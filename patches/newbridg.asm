@@ -700,7 +700,7 @@ exported createbridgeaccesstypeforyear
 // bl = build flags
 // out: ebx = bridge type+buildflags merged in new format
 exported bridgelistpasstype
-	and ebx, 0x0F
+	and ebx, 0xFFF
 	and eax, 0xFF
 	cmp al, 0x0D
 	jb .old
