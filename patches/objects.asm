@@ -387,13 +387,13 @@ win_objectgui_objectdropdown:
 	push ecx
 	movzx ecx, cl
 	bt dword [esi+window.disabledbuttons], ecx
+	pop ecx
 	jc .ret
 
 	extcall GenerateDropDownExPrepare
 	jnc .noolddrop
 
 .ret:
-	pop ecx
 	ret
 
 .noolddrop:
