@@ -453,7 +453,7 @@ skipnextcolor:
 vard getttdpatchtables
 	dd addr(getstationtexttable)	// C000
 	dd addr(gethousetexttable)	// C800
-	dd addr(getmiscgrftable)	// D000
+	dd addr(getmiscgrftable)	// D000	(note for displaying you need to use D400+x)
 	dd addr(getpersistentgrftable)	// D800
 	dd addr(getextratranstable)	// E000
 	dd addr(getnewstexttable)	// E800
