@@ -270,7 +270,29 @@ TrainWeightGeneric:
 
 // Boats Codes
 
+// Gets the value from the callback / default
+GetShipValue:
+	push ecx
+	movzx ecx, byte [shipcostfactor+ebx-0xCC]
+	mov ah, 0xA
+	mov al, bl
+	call GetCallback36
+	movzx eax, al
+	pop ecx
+	ret
+
+GetShipValueEbx:
+	push eax
+	call GetShipValue
+	mov ebx, eax
+	pop eax
+	ret
+
+NOESI GetShipValue
+NOESI GetShipValueEbx
+
 // Gets the speed from callback default if no callback
+global GetShipCallbackSpeed
 GetShipCallbackSpeed:
 	push ecx
 	movzx cx, byte [shipspeed-0xCC+ebx] ; Gets the default speed of the vehicle
@@ -281,8 +303,21 @@ GetShipCallbackSpeed:
 	pop ecx
 	ret
 
-FIRST MAKESTRUC_WORD GetShipCallbackSpeed, maxspeed
 NOESI GetShipCallbackSpeed
+
+// Gets the capacity for the gui and buyShip routine
+GetShipCapacity:
+	push ecx
+	movzx cx, byte [nosplit shipcapacity-0x198+ebx*2]
+	mov ah, 0xD
+	mov al, bl
+	call GetCallback36
+	movzx eax, ax ; Capacity can be upto a word
+	pop ecx
+	ret
+
+FIRST MAKESTRUC_WORD GetShipCapacity, capacity
+NOESI GetShipCapacity
 
 // Plane Codes
 
