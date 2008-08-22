@@ -44,8 +44,8 @@ istruc idfsystem
 	at idfsystem.gameid_dataptr,		dd objectsgameiddata
 	at idfsystem.gameid_lastnumptr,		dd objectsgameidcount
 	at idfsystem.curgrfidtogameidptr,	dd curgrfobjectgameids
-	at idfsystem.dataidcount,			dd NOBJECTS
-	at idfsystem.gameidcount,			dd NOBJECTS
+	at idfsystem.dataidcount,		dd NOBJECTS
+	at idfsystem.gameidcount,		dd NOBJECTS
 iend
 endvar
 
@@ -57,7 +57,7 @@ extern objectspriteblock			// to get GRF specific TextIDs
 // Properties for classes of objects
 extern objectclasses			// the actual defined classes
 extern objectclassesnames		// the TextID for the name
-extern objectclassesnamesprptr	// the spriteblockptr for this TextID
+extern objectclassesnamesprptr		// the spriteblockptr for this TextID
 extern numobjectclasses			// how many classes we have have loaded already
 
 // special functions to handle special object properties
@@ -295,10 +295,10 @@ win_objectgui_redraw:
 	mov [textrefstack],eax
 	mov bx,statictext(blacktext)
 	add cx, win_objectgui_elements.dropdown1_text_x+2
-	add dx, win_objectgui_elements.dropdown1_text_y+2
+	add dx, win_objectgui_elements.dropdown1_text_y+1
 	call [drawtextfn]
-.noclassselected:
 
+.noclassselected:
 	pop edx
 	pop ecx
 
@@ -309,11 +309,17 @@ win_objectgui_redraw:
 	mov eax, dword [objectspriteblock+ebx*4]
 	mov [curmiscgrf], eax
 	movzx eax, word [objectnames+ebx*2]
+	cmp ax, 0xD000
+	jb .nofix
+	or ax, 0x400
+
+.nofix:
 	mov [textrefstack],eax
 	mov bx,statictext(blacktext)
 	add cx, win_objectgui_elements.dropdown2_text_x+2
-	add dx, win_objectgui_elements.dropdown2_text_y+2
+	add dx, win_objectgui_elements.dropdown2_text_y+1
 	call [drawtextfn]
+
 .noobjectselected:
 	ret
 	
@@ -334,6 +340,12 @@ win_objectgui_clickhandler:
 	je near win_objectgui_classdropdown.text
 	cmp cl, win_objectgui_elements.dropdown1_id
 	je near win_objectgui_classdropdown
+	
+	cmp cl, win_objectgui_elements.dropdown2_text_id
+	je near win_objectgui_objectdropdown.text
+	cmp cl, win_objectgui_elements.dropdown2_id
+	je near win_objectgui_objectdropdown
+	
 	ret
 	
 	
@@ -350,29 +362,119 @@ win_objectgui_classdropdown:
 .loop:
 	cmp al, MAXDROPDOWNEXENTRIES
 	jae .done
+	cmp al,[numobjectclasses]
+	jae .done
 
 	movzx ecx, word [objectclassesnames+eax*2]
 	mov dword [DropDownExList+4*eax],ecx
 	mov ecx, dword [objectclassesnamesprptr+eax*4]
 	mov dword [DropDownExListGrfPtr+4*eax],ecx
 	inc eax
-	cmp al, MAXDROPDOWNEXENTRIES
-	jae .done
-	cmp al,[numobjectclasses]
-	jb .loop
+	jmp .loop
+	
 .done:
 	mov dword [DropDownExList+4*eax],-1	// terminate it
 	mov byte [DropDownExMaxItemsVisible], 16
 	mov word [DropDownExFlags], 11b
 	pop ecx
 	extjmp GenerateDropDownEx
+
+// Notes: ids' are always >0 due to the way idf works
+win_objectgui_objectdropdown.text:
+	inc cl
+
+win_objectgui_objectdropdown:
+	push ecx
+	movzx ecx, cl
+	bt dword [esi+window.disabledbuttons], ecx
+	jc .ret
+
+	extcall GenerateDropDownExPrepare
+	jnc .noolddrop
+
+.ret:
+	pop ecx
+	ret
+
+.noolddrop:
+	push ecx
+	push ebx
+	push edx
+	xor eax,eax
+	xor ebx,ebx
+	xor edx, edx
+
+	// Generate our list?
+	mov bx, [win_objectgui_curclass]
+.loop:
+	inc edx
+	cmp al, MAXDROPDOWNEXENTRIES
+	jae .done
+	cmp edx, [objectsgameidcount]
+	ja .done // First ids are always +1 against the actual count
 	
+	cmp [objectclass+edx*2], bx
+	jne .loop
+
+	movzx ecx, word [objectnames+edx*2]
+	cmp ecx, 0xD000
+	jb .nofix
+	or ecx, 0x400
+
+.nofix:
+	mov dword [DropDownExList+4*eax], ecx
+	mov ecx, dword [objectspriteblock+edx*4]
+	mov dword [DropDownExListGrfPtr+eax*4], ecx
+	inc eax
+	jmp .loop
+
+.done:
+	mov dword [DropDownExList+4*eax],-1	// terminate it
+	mov byte [DropDownExMaxItemsVisible], 16
+	mov word [DropDownExFlags], 11b
+	pop edx
+	pop ebx
+	pop ecx
+	extjmp GenerateDropDownEx
+
 win_objectgui_dropdowncallback:
 	cmp cl, win_objectgui_elements.dropdown1_id
 	je .selectclass
+	cmp cl, win_objectgui_elements.dropdown2_id
+	je .selectobject
 	ret
+
 .selectclass:
 	mov word [win_objectgui_curclass],ax
+	mov word [win_objectgui_curobject], -1
+	mov al,[esi]
+	mov bx,[esi+window.id]
+	call dword [invalidatehandle]
+	ret
+
+.selectobject:
+	push ecx
+	push ebx
+	xor ecx, ecx
+	mov bx, [win_objectgui_curclass]
+	mov word [win_objectgui_curobject], -1
+	inc ax
+
+.loop:
+	inc ecx
+	cmp ecx, [objectsgameidcount]
+	ja .done
+
+	cmp word [objectclass+ecx*2], bx
+	jne .loop
+
+	dec ax
+	jnz .loop
+	mov word [win_objectgui_curobject], cx
+
+.done:
+	pop ebx
+	pop ecx
 	mov al,[esi]
 	mov bx,[esi+window.id]
 	call dword [invalidatehandle]
