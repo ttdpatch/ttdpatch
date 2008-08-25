@@ -53,9 +53,13 @@ codefragment oldcreatebridgecalcecost, -16
 	mov ebx, edx
 	
 codefragment newcreatebridgecalcecost
+	ijmp createbridgecalcecost
+	setfragmentsize 10
+#if 0
 	extern tempbridgetypenew
 	movzx ebx, byte [tempbridgetypenew]
 	setfragmentsize 10
+#endif 
 
 endcodefragments
 
@@ -110,7 +114,8 @@ exported patchnewbridges
 	extern bridgecostfactor
 	add dword [variabletofind], NBRIDGES
 	stringaddress findvariableaccess
-	mov dword [edi], bridgecostfactor
+	//mov dword [edi], bridgecostfactor	// not needed, patched by createbridgecalcecost
+	
 // the sprite table
 	extern bridgespritetablesttd, bridgespritetables
 	

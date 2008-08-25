@@ -149,7 +149,8 @@ grfcalltable getaction3, dd addr(getaction3.generic)
 
 .getbridges:
 	mov edx,eax
-	xor eax,eax	// no data
+	extern bridgeaction3
+	mov eax, [bridgeaction3+eax*4]
 	ret
 
 .getstations:
@@ -459,6 +460,7 @@ grfcalltable getaction2spritenum
 	movzx eax,word [ebx]
 	clc
 	ret
+	
 
 .getcanals:
 .getcargos:
@@ -469,9 +471,6 @@ grfcalltable getaction2spritenum
 	ret
 
 .getbridges:
-	mov ebx,edx
-	ud2
-
 .gethouses:
 .getindustiles:
 .getairports:

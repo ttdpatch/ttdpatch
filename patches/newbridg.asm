@@ -37,7 +37,7 @@ uvard bridgespritetablestables, NNEWBRIDGES*7
 uvarb bridgeintrodate, NNEWBRIDGES
 uvarb bridgeminlength, NNEWBRIDGES
 uvarb bridgemaxlength, NNEWBRIDGES
-uvarb bridgecostfactor, NNEWBRIDGES
+uvarw bridgecostfactor, NNEWBRIDGES
 uvarw bridgemaxspeed, NNEWBRIDGES
 
 uvard bridgeicons, NNEWBRIDGES
@@ -96,122 +96,6 @@ exported bridgeresettodefaults
 	popa
 	ret
 
-#if 0
-	pusha
-	mov edx, NBRIDGES
-	
-	mov esi, [bridgespecificpropertiesttd]
-	mov edi, bridgeintrodate
-	mov ecx, edx
-	rep movsb
-	
-	mov edi, bridgeminlength
-	mov ecx, edx
-	rep movsb
-	
-	mov edi, bridgemaxlength
-	mov ecx, edx
-	rep movsb
-
-// bridge cost factor
-	mov edi, bridgecostfactor
-	mov ecx, edx
-	rep movsb
-
-// bridge speeds
-	mov esi, bridgespeedsttd
-	mov edi, bridgemaxspeed
-	mov ecx, edx
-	rep movsw
-	
-// bridge icons
-	mov esi, bridgeiconsttd
-	mov edi, bridgeicons
-	mov ecx, edx
-	rep movsd
-	
-// bridge names
-	mov esi, bridgenamesttd
-	mov edi, bridgenames
-	mov ecx, NBRIDGES
-	rep movsw
-	
-	mov eax, ourtext(unnamedairporttype)
-	mov cl, NNEWBRIDGES-NBRIDGES
-	rep stosw
-
-// rail bridge names	
-	mov esi, 0
-ovar paRailBridgeNames
-	mov edi, bridgerailnames
-	mov cl, NBRIDGES
-	rep movsw
-	
-	mov eax, ourtext(unnamedairporttype)
-	mov cl, NNEWBRIDGES-NBRIDGES
-	rep stosw
-
-// road bridge names
-	mov esi, [paRailBridgeNames]
-	add esi, NBRIDGES*2
-	mov edi, bridgeroadnames
-	mov cl, NBRIDGES
-	rep movsw
-	
-	mov eax, ourtext(unnamedairporttype)
-	mov cl, NNEWBRIDGES-NBRIDGES
-	rep stosw
-
-	
-// setup bridge sprite tables to table tables
-	mov ecx, NNEWBRIDGES
-	mov eax, bridgespritetablestables
-	mov edi, bridgespritetables
-.nextentry:
-	stosd	// create pointer list
-	add eax, 7*4
-	loop .nextentry
-
-// resets for each bridge the 7 tables
-	xor ebx, ebx
-.nextresettable:
-
-	mov esi, [bridgespritetablesttd]
-	mov esi, [esi+ebx*4]
-	
-	mov edi, bridgespritetables
-	mov edi, [edi+ebx*4]
-	
-	mov ecx, 7
-	rep movsd
-	
-	inc ebx
-	cmp ebx, NBRIDGES
-	jle .nextresettable
-.variousos:
-// reset various variables with different sizes
-	mov edx, NNEWBRIDGES
-	xor eax, eax
-%macro resetbridgevarzero 2
-	mov edi,%2
-	mov ecx, edx
-	rep stos%1
-%endmacro
-
-	resetbridgevarzero d,bridgeaction3
-	
-	testmultiflags longerbridges
-	jz .notlonger
-
-	mov byte [bridgemaxlength],127
-	mov byte [bridgemaxlength+4],127
-	mov byte [bridgemaxlength+5],127
-	mov byte [bridgemaxlength+0xa],127
-
-.notlonger:
-	popa
-	ret
-#endif
 	
 // Reset one bridge slot to default, won't reset the grf gameid mapping however
 // edx = slot
@@ -233,7 +117,7 @@ bridgeslotresettodefault:
 	mov byte [bridgeintrodate+edx], 0
 	mov byte [bridgeminlength+edx], 0
 	mov byte [bridgemaxlength+edx], 0	
-	mov byte [bridgecostfactor+edx], 0
+	mov word [bridgecostfactor+edx*2], 0
 
 	mov word [bridgemaxspeed+edx*2], dx
 	
@@ -253,7 +137,7 @@ bridgeslotresettodefault:
 	mov byte [bridgeintrodate+edx], 2005-1920
 	mov byte [bridgeminlength+edx], 2
 	mov byte [bridgemaxlength+edx], 127
-	mov byte [bridgecostfactor+edx], 255
+	mov word [bridgecostfactor+edx*2], 255
 
 	mov word [bridgemaxspeed+edx*2], 370
 	
@@ -304,7 +188,7 @@ bridgeslotresettodefault:
 	mov byte [bridgeintrodate+edx], 2010-1920
 	mov byte [bridgeminlength+edx], 2
 	mov byte [bridgemaxlength+edx], 127
-	mov byte [bridgecostfactor+edx], 255
+	mov word [bridgecostfactor+edx*2], 280
 
 	mov word [bridgemaxspeed+edx*2], 400
 	
@@ -359,8 +243,8 @@ bridgeslotresettodefault:
 	mov byte [bridgeminlength+edx], al
 	mov al, [esi+NBRIDGES*2]
 	mov byte [bridgemaxlength+edx], al
-	mov al, [esi+NBRIDGES*3]
-	mov byte [bridgecostfactor+edx], al
+	movzx ax, byte [esi+NBRIDGES*3]
+	mov word [bridgecostfactor+edx*2], ax
 
 	mov ax, [bridgespeedsttd+edx*2]
 	mov word [bridgemaxspeed+edx*2], ax
@@ -695,6 +579,21 @@ exported createbridgeaccesstypeforyear
 	stc
 	ret
 
+	
+exported createbridgecalcecost
+	movzx ebx, byte [tempbridgetypenew]
+	extern newbridgelenmult
+	movzx eax, word [bridgecostfactor+ebx*2]
+	
+	mul edx
+	// now edx:eax result
+	shrd eax, edx, 8
+	pop edx
+	add ebx, eax
+	pop ecx
+	pop eax
+	ret
+	
 	
 // in al = bridge type
 // bl = build flags

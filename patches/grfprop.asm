@@ -296,7 +296,7 @@ action0props bridgeproperties,NNEWBRIDGES,curgrfbridgelist,0x00
 	propex 0x08,B, bridgeintrodate
 	propex 0x09,B, bridgeminlength
 	propex 0x0A,B, bridgemaxlength
-	propex 0x0B,B, bridgecostfactor
+	propex 0x0B,B, bridgecostfactor,2		// was a byte value, now we can use 0x13 for it
 // -- defvehdata spclbridgedata, w,F,B,F,t,t,t		// 0C..12
 	propex 0x0C,W, bridgemaxspeed // should be set via patches.ah ?
 	propex 0x0D,F, alterbridgespritetable
@@ -305,6 +305,7 @@ action0props bridgeproperties,NNEWBRIDGES,curgrfbridgelist,0x00
 	propex 0x10,T, bridgenames
 	propex 0x11,T, bridgerailnames
 	propex 0x12,T, bridgeroadnames
+	propex 0x13,W, bridgecostfactor
 endaction0props
 
 
