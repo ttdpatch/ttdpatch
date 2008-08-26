@@ -59,6 +59,7 @@ begincodefragments
 		movzx eax, byte [shipcostfactor+ebx-0xCC]
 	codefragment oldshipvaluereturn
 		movzx ebx, byte [shipcostfactor+ebx-0xCC]
+
 	; Our replacements for these places in TTD  (all no esi)
 	codefragment_call newshipvalue, GetShipValue.noesi, 7
 	codefragment_call newshipvaluereturn, GetShipValueEbx.noesi, 7
@@ -66,9 +67,10 @@ begincodefragments
 	; Places in TTD where ship capacity it feteched
 	codefragment oldshipcapacity
 		mov ax, word [nosplit shipcapacity-0x198+ebx*2]
+
 	; Our replacements for this.
-	codefragment_call newshipcapacity, GetShipCapacity.noesi, 7
-	codefragment_call newshipcapacitybuild, GetShipCapacity.makestruc, 7
+	codefragment_call newshipcapacity, GetShipCapacity.noesi, 8
+	codefragment_call newshipcapacitybuild, GetShipCapacity.makestruc, 8
 
 // Planes
 	; These fragments are for finding the places where speed is used in ttd
