@@ -16,8 +16,10 @@
 #include <flags.inc>
 #include <textdef.inc>
 #include <grf.inc>
+#include <bitvars.inc>
 
 extern patchflags
+extern gettileinfoshort
 
 uvard bridgespecificpropertiesttd, 1
 #if 0
@@ -611,3 +613,73 @@ exported bridgelistpasstype
 	shl al, 4
 	or bh, al
 	ret
+
+	
+	
+//------- Action2 ------
+
+exported getbridgeage
+	push ebx
+	movzx ebx, word [esi]
+	xor eax,eax
+	mov al, byte [currentyear]
+	sub al, byte [landscape8+ebx*2+1]
+	pop ebx
+	ret
+	
+
+extern getdesertmap, snowline
+extern miscmodsflags
+// out:	eax:	0 for grass
+//		1 for desert
+//		2 for rainforest
+//		4 for snow
+exported gettileterrainbridge
+	push ebx
+	push esi
+	movzx esi, word [esi]
+	
+	xor eax, eax
+	cmp byte [climate],2	// 0=temp, 1=arctic, 2=trop, 3=toyland
+	je .tropic
+	cmp byte [climate],1
+	je .snowtest
+	testflags tempsnowline
+	jnc .gotclimate
+	cmp byte [climate],0
+	je .snowtest
+.gotclimate:
+	pop ebx
+	pop esi
+	ret
+.snowtest:
+	
+	push edx
+	push edi
+	
+	
+	call [gettileinfoshort]
+	
+	test di,di
+	jz .noadjust
+	test dword [miscmodsflags],MISCMODS_DONTCHANGESNOW
+	jnz .noadjust
+	add dl,8
+.noadjust:
+	cmp dl,[snowline]
+	seta al
+	shl al, 2
+	
+	pop edi
+	pop edx
+	
+	pop ebx
+	pop esi
+	ret
+.tropic:
+	mov ebx,esi
+	call [getdesertmap]
+	pop ebx
+	pop esi
+	ret
+

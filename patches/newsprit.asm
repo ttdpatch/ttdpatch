@@ -186,6 +186,8 @@ grfcalltable getaction3, dd addr(getaction3.generic)
 	ud2	// another ud2 to distinguish it from the above by different address
 
 
+uvard bridgecuractiontype
+
 // find right entry in action 3
 //
 // in:	ecx->action3info struct
@@ -215,7 +217,6 @@ grfcalltable getaction3cargo
 	jnz .foundit
 
 .getcanals:
-.getbridges:
 .gethouses:
 .getindustiles:
 .getindustries:
@@ -226,6 +227,13 @@ grfcalltable getaction3cargo
 .default:
 	movzx eax,word [ecx+action3info.defcid]
 .foundit:
+	ret
+	
+.getbridges:
+	mov ebx, dword [bridgecuractiontype]
+	movzx eax,word [ecx+action3info.cargo+ebx*2]
+	test eax,eax
+	jz .default
 	ret
 
 .stationdefault:
@@ -1649,15 +1657,18 @@ grfcalltable getother
 	ret
 
 .getcanals:
-.getbridges:
 .getgeneric:
 .getcargos:
 .getsounds:
 .getsignals:
 	ret
 
+.getbridges:
+	mov esi, [esi]
+	jmp short .gethouses_nopush
 .gethouses:
 	pusha
+.gethouses_nopush:
 	mov ebp,[ophandler+(3*8)]
 	xor ebx,ebx
 	mov bl,1
@@ -2125,7 +2136,7 @@ varb featurevarofs
 	db -0x80, -0x80
 	db -0x80+0x10, -0x80	// stations: skip up to .platforms for the station structure; don't do this with the town struc
 	db -0x80, 0		// canals don't have "other things"
-	db 0, 0			// bridges don't use action 2 at all
+	db -0x80, -0x80		// bridges (currently only have a other thing - a town struc)
 	db 0, -0x80		// houses; they don't have a normal struc, but have a town struc for "the other thing"
 	db 0, 0			// generic callbacks don't use action 2
 	db 0, -0x80		// industry tiles are like houses, but "the other thing" is an industry struc
@@ -2231,6 +2242,21 @@ endvar
 vard canalsparamvarhandler
 %ifndef PREPROCESSONLY
 %assign n_canalsparamvarhandler (addr($)-canalsparamvarhandler)/4
+%endif
+endvar
+
+extern getbridgeage, gettileterrainbridge
+vard bridgevarhandler
+	dd getbridgeage
+	dd gettileterrainbridge
+%ifndef PREPROCESSONLY
+%assign n_bridgevarhandler (addr($)-bridgevarhandler)/4
+%endif
+endvar
+
+vard bridgeparamvarhandler
+%ifndef PREPROCESSONLY
+%assign n_bridgeparamvarhandler (addr($)-bridgeparamvarhandler)/4
 %endif
 endvar
 
@@ -2354,7 +2380,7 @@ vard specialvarhandlertable
 	dd vehvarhandler,vehvarhandler
 	dd stationvarhandler,townvarhandler
 	dd canalsvarhandler,0
-	dd 0,0
+	dd bridgevarhandler, townvarhandler
 	dd housesvarhandler, townvarhandler
 	dd 0,0
 	dd industilesvarhandler, industryvarhandler
@@ -2377,7 +2403,7 @@ vard specialvars
 	db n_vehvarhandler,n_vehvarhandler
 	db n_stationvarhandler,n_townvarhandler
 	db n_canalsvarhandler,0
-	db 0,0
+	db n_bridgevarhandler,n_townvarhandler
 	db n_housesvarhandler,n_townvarhandler
 	db 0,0
 	db n_industilesvarhandler,n_industryvarhandler
@@ -2400,7 +2426,7 @@ vard specialparamvarhandlertable
 	dd vehparamvarhandler,vehparamvarhandler
 	dd stationparamvarhandler,townparamvarhandler
 	dd canalsparamvarhandler,0
-	dd 0,0
+	dd bridgeparamvarhandler, townparamvarhandler
 	dd housesparamvarhandler, townparamvarhandler
 	dd 0,0
 	dd industilesparamvarhandler, industryparamvarhandler
@@ -2423,7 +2449,7 @@ varb specialparamvars
 	db n_vehparamvarhandler,n_vehparamvarhandler
 	db n_stationparamvarhandler,n_townparamvarhandler
 	db n_canalsparamvarhandler,0
-	db 0,0
+	db n_bridgeparamvarhandler,n_townparamvarhandler
 	db n_housesparamvarhandler,n_townparamvarhandler
 	db 0,0
 	db n_industilesparamvarhandler,n_industryparamvarhandler

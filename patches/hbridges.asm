@@ -576,7 +576,7 @@ bridgemiddlesaveinlandscape:
 	cmp dword [landscape8_ptr],0
 	jle .no_l8
 	mov al, byte [tempbridgetypenew]	// in newbridg.asm, should be zero if not used
-	mov ah, 0
+	mov ah, byte [currentyear]
 	mov word [landscape8+esi*2], ax
 .no_l8:
 	popa
