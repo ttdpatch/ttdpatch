@@ -628,7 +628,7 @@ exported getbridgeage
 	ret
 	
 
-extern getdesertmap, snowline
+extern getdesertmap
 extern miscmodsflags
 // out:	eax:	0 for grass
 //		1 for desert
