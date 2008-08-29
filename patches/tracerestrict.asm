@@ -341,8 +341,7 @@ ret
 	or ebx,ebx
 	jz NEAR .tret
 	
-	shl ebx, 3
-	add ebx, robjs
+	lea ebx, [robjs+ebx*8]
 	mov edx, [ebx]
 	or dl,dl
 	jz NEAR .tret
@@ -504,22 +503,41 @@ ret
 	push DWORD .orderin
 .nextorderin:
 	movzx edx, BYTE [eax+veh.currorderidx]
+	mov ecx, [eax+veh.scheduleptr]
+	movzx ecx, word [ecx+edx*2]
+	and cl, 1Fh
+	cmp cl, 5
+	jne .notadvorder
+	shr ecx, 13
+	add edx, ecx
+.notadvorder:
 	inc edx
 	movzx ecx, BYTE [eax+veh.totalorders]
 	cmp edx, ecx
 	jb .nosubecx
 	sub edx, ecx
 	.nosubecx:
-	mov ecx, [eax+veh.scheduleptr]
-	mov cx, [ecx+edx*2]
+	shl edx,1
+	add edx, [eax+veh.scheduleptr]
+	mov cx, [edx]
 	ret
 
 .curorder:
 	mov cx, [eax+veh.currorder]
+	// Not initializing edx here: current order cannot be advanced.
 .orderin:
 	and ecx,0xff0f
 	cmp cl,1
 	je .curordernbl
+	cmp cl,5
+	jne .curorderbl
+	and ch, ~11100001b
+	cmp ch, 4
+	jne .curorderbl
+	mov cx, [edx+2]
+	jmp short .curordernbl
+
+.curorderbl:
 	mov ecx, -1
 .curordernbl:
 	shr ecx,8
