@@ -942,8 +942,7 @@ endvar
 
 varw pre_op_array
 dw statictext(empty)
-endvar
-varw op_array
+op_array:
 dw statictext(trdlg_lt)
 dw statictext(trdlg_gt)
 dw statictext(trdlg_lte)
@@ -984,8 +983,7 @@ endvar
 %assign var_end_mark 26
 varw pre_var_array
 dw ourtext(tr_vartxt)
-endvar
-varw var_array
+var_array:
 dw ourtext(tr_trainlen)
 dw ourtext(tr_maxspeed_kph)
 dw ourtext(tr_curorder)
@@ -1017,8 +1015,7 @@ endvar
 
 varw pre_var_array2
 dw ourtext(tr_vartxt)
-endvar
-varw var_array2
+var_array2:
 dw ourtext(tr_trainlen)
 dw ourtext(tr_maxspeed_kph)
 dw ourtext(tr_curorder)
@@ -1080,8 +1077,7 @@ endvar
 
 varw pre_var_compat_id
 db -1
-endvar
-varb var_compat_id
+var_compat_id:
 db 0
 db 1
 db 2
