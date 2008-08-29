@@ -148,4 +148,16 @@ extern overflowhandler,realoverflowreturn
 	jmp %1
 %endmacro
 
+%macro _our_extern_ 1-*
+	%rep %0
+		%ifdef %1_abs
+			%define var %1
+			%error "var is a ttdvar, not an extern."
+		%endif
+		[extern %1]
+		%rotate 1
+	%endrep
+%endmacro
+#define extern _our_extern_
+
 #endif // HAVE_DEFS_INC
