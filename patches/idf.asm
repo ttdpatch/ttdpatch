@@ -87,11 +87,11 @@ proc idf_createnewgameid
 	_ret
 	
 .founddateid:
-	mov ax, word [%$gameid]
+	movzx eax, word [%$gameid]
 	mov edi, dword [edx+idfsystem.dataidtogameidptr]
 	mov word [edi+ecx*2], ax
 	mov edi, dword [edx+idfsystem.gameid_dataptr]
-	mov word [edi+idf_gameid_data.dataid], cx
+	mov word [edi+eax*idf_gameid_data_size+idf_gameid_data.dataid], cx
 .done:
 	mov eax, dword [%$gameid]
 	pop ecx
@@ -123,24 +123,29 @@ exported idf_increaseusage
 	push edi
 	push ebx
 	mov edi, [edx+idfsystem.gameid_dataptr]
+
 	movzx ebx, word [edi+eax*idf_gameid_data_size+idf_gameid_data.dataid]
+
 	cmp ebx, 0
 	jz .nodataid
 	// ebx = dataid
+
+.havedataid:
 	mov edi, [edx+idfsystem.dataid_dataptr]
 	inc word [edi+ebx*idf_dataid_data_size+idf_dataid_data.numtiles]
+
 .done:
 	mov eax, ebx
 	pop ebx
 	pop edi
 	ret
-	
-	
+
 .nodataid:
 	push esi
 	// edi = idf_gameid_data
 	mov esi, [edx+idfsystem.dataid_dataptr]
 	xor ebx, ebx
+
 .nextentry:
 	inc ebx
 	add esi, idf_dataid_data_size			// the first entry is invalid
@@ -155,6 +160,7 @@ exported idf_increaseusage
 	xor ebx, ebx
 	pop esi
 	jmp .done
+
 .foundemptyslot:
 	// eax = gameid
 	// ebx = dataid to be used
@@ -181,9 +187,8 @@ exported idf_increaseusage
 	mov word [esi+ebx*2], ax
 	
 	pop esi
-	jmp near .done
-	
-	
+	jmp near .havedataid
+
 // in:
 // ax = dataid
 exported idf_decreaseusage
