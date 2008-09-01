@@ -18,8 +18,7 @@ codefragment oldgetstationspriteset
 	and ebp,byte 0xF
 	imul ebp,byte 82
 
-codefragment newgetstationspriteset
-	call runindex(getnewstationsprite_noelrails)
+codefragment_call newgetstationspriteset,drawstationtile,6
 
 codefragment olddisplaystationorient
 	movzx eax,al
@@ -72,8 +71,5 @@ patchstationgraphics:
 	add edi,lastediadj+50
 	storefragment newgetstationtracktrl
 
-	mov dword [getnewstationsprite_noelrails_indirect],addr(drawstationtile)
-
-.notelectrified:
 	patchcode drawstationimageinrailselectwin
 	ret

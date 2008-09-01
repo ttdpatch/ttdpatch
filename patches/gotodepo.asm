@@ -1137,7 +1137,7 @@ skipbutton:
 	ret
 ; endp skipbutton 
 
-// called when an order is selected in the order list
+// called when drawing the selected order in the order list
 // don't disable "full load" for depots -- we use it for "only if service"
 // also enable "Delete" for the "End of orders" entry (or if nothing is selected - we can't tell at this point)
 // in:	[ebx]=new order type

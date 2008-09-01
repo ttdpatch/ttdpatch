@@ -1209,14 +1209,6 @@ uvard curstationtile	// station tile currently having its graphics drawn
 //	other registers from GetTileInfo except ebx and esi are swapped
 // out:	ebp=new offset
 // safe:---
-global getnewstationsprite_noelrails
-getnewstationsprite_noelrails:
-	// we get here if elrails is off
-	// otherwise we get to getnewstationsprite directly
-	// with the following done already
-	and ebp,byte 0xF
-	imul ebp,byte 82
-
 global getnewstationsprite
 getnewstationsprite:
 	push eax
