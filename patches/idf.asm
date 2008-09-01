@@ -123,9 +123,7 @@ exported idf_increaseusage
 	push edi
 	push ebx
 	mov edi, [edx+idfsystem.gameid_dataptr]
-
 	movzx ebx, word [edi+eax*idf_gameid_data_size+idf_gameid_data.dataid]
-
 	cmp ebx, 0
 	jz .nodataid
 	// ebx = dataid
@@ -152,7 +150,7 @@ exported idf_increaseusage
 	cmp dword [esi+idf_dataid_data.grfid], 0
 	je .foundemptyslot
 
-	cmp ebx, [esi+idfsystem.dataidcount]
+	cmp ebx, [edx+idfsystem.dataidcount]
 	jb .nextentry
 	
 	// no more dataids, bad :/
