@@ -2370,9 +2370,6 @@ displayrailspriteifgray:
 	test di, 1+4+8
 	jz .finishoffset
 
-; Never try to fix TTD this way, adjust the sprite offsets instead... - Lakie
-;	add dl, 8 // for corners and 'straights' the offset should be 8 pixels up
-
 	// Add back when some action5 support has been added for the orignial offset
 	test di, 1+2
 	jz .flatslope
@@ -2383,6 +2380,8 @@ displayrailspriteifgray:
 	test di, 1+8
 	jz .flatslope
 
+	// We aren't flat but the only type left needs an offset of 8
+	add dl, 8
 	jmp .finishoffset
 
 
