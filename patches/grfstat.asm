@@ -1061,6 +1061,7 @@ endvar
 uvarb grfstatusdebugfinish,5
 
 uvarb grfstatusbuffer, 4048	// for grf creators who get overexcited
+varb statusandmd5, " A: F: MD5:"
 
 // in esi = buffer to output
 grfstatuscreatedebugstrout:
@@ -1167,24 +1168,34 @@ grfstatuscreatedebug:
 	mov esi, grfdebug_txtdeactive
 .donestatus:
 	call grfstatuscreatedebugstrout
-	
+
 	pusha
 	mov edi, grfstatusbuffer
-	mov dword [edi], " A: "
-	mov dword [edi+4], "  F:"
-	mov dword [edi+8], 0
-	add edi, 3
-	movzx eax, byte [ebp+spriteblock.active]
+	mov esi, statusandmd5
+	times 3 movsb
+	mov al, [ebp+spriteblock.active]
 	mov cl, 2
 	call hexnibbles
-	add edi, 3
-	movzx eax, byte [ebp+spriteblock.flags]
+	times 3 movsb
+	mov al, [ebp+spriteblock.flags]
 	mov cl, 2
 	call hexnibbles
+	movsb
+	movsd
+	lea esi, [ebp+spriteblock.md5]
+	mov cl, 16
+.loop:
+	push ecx
+	mov cl, 2
+	lodsb
+	call hexnibbles
+	pop ecx
+	loop .loop
+	mov byte [edi],0
 	popa
 	mov esi, grfstatusbuffer
 	call grfstatuscreatedebugstrout
-		
+
 // error message
 	pusha
 	mov esi, grfstatusdebugtextcom

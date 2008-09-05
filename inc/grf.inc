@@ -31,6 +31,8 @@ struc spriteblock
 				// +4=forced active
 				// 80=faulty (will be skipped)
 				// (2,3: is in list, but not processed yet)
+	.nsigact5data:	resd 2	// act5 feature 0E, base sprite and num sprites
+	.md5:		resd 4	// md5 checksum
 	.newactive:	resb 1	// new active status that should be set via grf status window
 	.flags:		resb 1	// Bit mask of flags
 				// bit 0: off by default
@@ -38,7 +40,6 @@ struc spriteblock
 				// bit 2: did reserve extra action A sprites
 				// bit 3: needs to import sounds from other GRF
 				// bit 4: loaded automatically (not in newgrf(w).cfg)
-	.nsigact5data:	resd 2	// act5 feature 0E, base sprite and num sprites
 endstruc
 
 %macro checkfeaturesize 2.nolist
@@ -152,13 +153,13 @@ endstruc
 struc action0prophead
 	.numids: resw 1
 	.numprops: resb 1
-	.idtransprop: resb 1 
+	.idtransprop: resb 1
 	.idtranstable: resd 1
 endstruc
 
 struc action0propdef
 	.type: resb 1
 	.size: resb 1
-	.reserved: resw 1 
+	.reserved: resw 1
 	.ptr: resd 1
 endstruc

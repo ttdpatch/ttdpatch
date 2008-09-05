@@ -113,6 +113,31 @@ proc initializegraphics
 	_ret
 endproc initializegraphics
 
+// In:	bx: filehandle
+//Out:	edx: file size
+//	File rewound to beginning
+//Uses:	ax, ecx
+getfilesize:
+	mov ax,0x4202
+	xor edx,edx
+
+	CALLINT21
+	jc .fail
+
+	shl edx,16
+	mov dx,ax
+	push edx	// size
+
+	// Got size. Rewind.
+	mov ax,0x4200
+	xor edx,edx
+	CALLINT21
+
+	pop edx
+.fail:
+	ret
+
+
 proc processnewgrf
 	local txtbuf,txtofs,txtlen,numparam,hnd,prevspriteblock
 	// countonly,
@@ -124,39 +149,24 @@ proc processnewgrf
 	mov edx,eax
 	mov ax,0x3d40
 	CALLINT21
-	jc near .fail
+	jc short .fail
 
 	xchg eax,ebx
-
-	// find the file length
-	mov ax,0x4202
-	xor ecx,ecx
-	xor edx,edx
-
-	CALLINT21
+	call getfilesize
 	jc .fail
 
-	shl edx,16
-	mov dx,ax
-	push edx
+	mov ecx,edx
 
 	add edx,4
 	push edx
 	call malloc
-	pop dword [%$txtbuf]
+	pop edx
 	jc .fail	// leave clears up the stack too
 
-	// and rewind
-	mov ax,0x4200
-	xor ecx,ecx
-	xor edx,edx
-	CALLINT21
 
-	pop ecx		// now ecx=file size
 	mov [%$txtlen],ecx
-	mov edx,[%$txtbuf]
+	mov [%$txtbuf],edx
 	mov [%$txtofs],edx
-	jc .fail
 
 	// read entire file
 	mov ah,0x3f
@@ -489,10 +499,39 @@ proc readgrffile
 	call dword [decodespritefn]
 
 	cmp dword [%$sprite],byte -1
-	jne short .notspritenum
+	jne near .notspritenum
 
 	call makespriteblock
-	jc .outofmem
+	jc near .outofmem
+
+// Get MD5 sum
+	mov bx, [tempspritefilehandle]
+	call getfilesize
+	jc near .fail
+
+	mov ecx,edx
+	push edx
+	call malloc
+	pop edx
+	mov ah, 3Fh
+	CALLINT21
+	jc near .fail
+
+	extern _md5_buffer
+	lea eax, [esi+spriteblock.md5]
+	param_call _md5_buffer, eax, ecx, edx
+
+	xor ecx,ecx
+	push ecx		// Release the file buffer
+	extcall realloc
+	// leave will finish cleaning the stack.
+
+	// [copyspriteinfofn] reads 2000h bytes into a buffer.
+	// If the first sprite causes more bytes to be read, cmp dword [%$len],4 will disable the GRF.
+	mov ax, 4200h
+	mov dx, 2000h
+	CALLINT21
+	jc near .fail
 
 	// first sprite in the file, tells us how many sprites there are
 	mov eax,[%$filename]
@@ -512,8 +551,7 @@ proc readgrffile
 	cmp dword [%$len],4
 	jne .notttdpatchgrf
 
-	sub edi,[%$len]		// edi-%$len = sprite data
-	mov eax,[edi]		// = number of sprites
+	mov eax,[edi-4]		// = number of sprites
 
 	cmp eax,0x7fff
 	ja .notttdpatchgrf

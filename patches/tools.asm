@@ -423,7 +423,7 @@ calloc:
 //	carry clear if successful
 //	carry set if address wasn't last malloc, or size could not be
 //		accomodated; in this case nothing at all is done
-realloc:
+exported realloc
 	push eax
 	push esi
 	mov eax,[esp+16]
