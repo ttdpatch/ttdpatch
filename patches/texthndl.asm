@@ -382,6 +382,7 @@ endvar
 vard extstringformat
 	dd print64bitcost,print64bitcost,skipnextcolor,pushword		//0-3
 	dd backup,ptrtextid						//4-5
+	dd printhex.byte, printhex.word, printhex.dword			//6-8
 numextstringformat equ ($-extstringformat)/4
 endvar
 
@@ -437,6 +438,57 @@ ptrtextid:
 	call newtexthandler
 	pop esi
 	ret
+
+printhex:
+.dword:
+	push ecx
+	push esi
+	mov esi, textrefstack
+	push edi
+	mov edi, esi
+	lodsd
+	mov ecx, 8
+	jmp .eaxtohexascii
+.word:
+	push ecx
+	push esi
+	xor eax, eax
+	mov esi, textrefstack
+	push edi
+	mov edi, esi
+	lodsw
+	movsw
+	mov ecx, 4
+	jmp .eaxtohexascii
+.byte:
+	push ecx
+	push esi
+	xor eax, eax
+	mov esi, textrefstack
+	push edi
+	mov edi, esi
+	lodsb
+	movsb
+	movsw
+	mov ecx, 2
+	
+.eaxtohexascii:
+	times 7 movsd
+	pop edi
+	pop esi
+	mov word [edi], '0x'
+	add edi, 2
+
+	push ecx
+	push edx
+	extcall hexnibbles
+	pop edx
+	pop ecx
+
+	mov byte [edi], ' '
+	inc edi
+	pop ecx
+	ret	
 
 noglobal uvarb skipcolor
 
