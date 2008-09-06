@@ -35,7 +35,7 @@ vehmulttoolow="\94Warnung: Spielstand wurde mit Fahrzeuganzahl-Faktor \7e gespei
 	".  \7e Fahrzeuge in \7e Einheiten und \7e spezielle Objekte wurden entfernt."
 rchunknotloaded="\94Warnung: Spielstand benötigt TTDPatch Features, die momentan "
 	"deaktiviert oder nicht verfügbar sind. Dies kann zu Datenverlust "
-	"führen."
+	"führen. ID: \9A\07"
 loadgame="Spiel laden"
 gotodepot="Nach \80"
 gotodepotonly="Wartung in \80"
