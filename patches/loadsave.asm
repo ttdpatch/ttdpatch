@@ -233,10 +233,12 @@ uvarb chunkstosave,(knownextrachunknum+8)/8	// bit map of chunks to be saved (in
 				// +8 not +7 because bits are indexed by loop counter...
 uvarb loadstage		// used to retry the loading after checking veh. multiplier if lowmemory
 uvarb loadproblem
+uvarw loadproblemchunk	// chunk not loaded
 uvarb loadreduced	// nonzero: had to reduce vehicle array from this value
 uvarw loadremovedvehs	// had to remove this many vehicles
 uvarw loadremovedcons	// ...in this many consists (these 2 vars are also accessed as a single DWORD)
 uvarw loadremovedsfxs	// ... and this many pseudo-/special vehicles
+
 
 %assign LOADPROBLEM_UNKNOWNCHUNK	0x1
 %assign LOADPROBLEM_BADCHUNK		0x2
@@ -1211,7 +1213,8 @@ skipchunkonload:
 	test byte [esi+extrachunkhdr.id+1],0x80	// is it a non-optional chunk?
 	jz .notrequired
 	or byte [loadproblem],LOADPROBLEM_RCHUNKNOTLOADED
-
+	mov cx, word [esi+extrachunkhdr.id]
+	mov word [loadproblemchunk], cx
 .notrequired:
 	xor ecx,ecx
 	inc ecx				// load byte by byte (no need to optimize, the load function does the same)
@@ -2556,6 +2559,10 @@ ovar endofloadtarget,-4
 	pusha
 	mov bx,ourtext(rchunknotloaded)
 	or edx,byte -1
+	mov esi,textrefstack
+	movzx eax, word [loadproblemchunk]
+	mov [esi], eax
+	
 	jmp short .showerror
 
 .reduced:
@@ -2785,15 +2792,17 @@ canhavelandscape8array:
 loadlandscape8array:
 	cmp eax, 0x20000+4
 	jne badchunk
-	call loadsavelandscape8array
-	ret
+	jmp loadsavelandscape8array
 
 savelandscape8array:
 	mov eax, 0x20000+4
 	call savechunkheader
 	xor ecx, ecx
 // Patches which use this should go in here
-
+	testflags newbridges
+	jnc .nonewbridgesl8
+	or ecx,L8_NEWBRIDGES	
+.nonewbridgesl8:
 	mov [l8switches], ecx
 
 loadsavelandscape8array:
@@ -2806,7 +2815,7 @@ loadsavelandscape8array:
 	pop ecx
 	mov esi, landscape8
 	call ebp
-
+	or byte [extrachunksloaded3],LOADED_X3_L8ARRAY
 	ret
 
 // In:	CF=0 for loading, CF=1 for saving

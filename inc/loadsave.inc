@@ -29,5 +29,5 @@
 %assign S2_FIFOLOADING2			0x20	// fifo loading v2
 
 // Flags to indicate what switches were active when saving the L8 array
-%assign L8_NEWROUTES			0x1	// newRoutes
+%assign L8_NEWBRIDGES			0x1	// bridge data
 
