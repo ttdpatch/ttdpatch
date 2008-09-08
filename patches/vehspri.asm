@@ -1366,13 +1366,13 @@ consistcallbacks:
 	
 	// Update consist capacities (CB 36)
 	push ebx
-    push edx
+	push edx
 	movzx edx,word [esi+veh.vehtype]
 extern GetTrainCapacityNoDefault
-    call GetTrainCapacityNoDefault
-    cmp bx,0xFFFF
-	je .noadjust
-    mov word [esi+veh.capacity],bx
+	call GetTrainCapacityNoDefault
+	jc .noadjust
+	mov word [esi+veh.capacity],bx
+
 .noadjust:
     pop edx
     pop ebx
