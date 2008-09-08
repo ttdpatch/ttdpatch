@@ -173,54 +173,13 @@ GetTrainCapacityNoDefault:
 	mov byte [miscgrfvar], 0x14 ; Get the capacity
 	mov ah, 0x36 ; Id for the callback
 	call vehtypecallback ; Get the callback results
-	jnc .lresults
-	mov ax, 0xFFFF ; Indicate error
-.lresults:
+	jc .lnoresults
 	movzx ebx, ax
-	
+
+.lnoresults:
 	pop dword [miscgrfvar] ; Restore the old value of "articulatedvehicle"
 	pop ecx
 	pop eax
-	ret
-
-
-// Main call for the attach / dettach subroutine
-global UpdateConsistCapacity
-UpdateConsistCapacity:
-	mov edi, [tempvar+0x8]
-	call LoopThroughConsist
-	mov edi, [tempvar+0xC]
-	or edi, edi
-	jnz LoopThroughConsist
-	ret
-
-// This loops through a consist applying callback 46, var 14
-LoopThroughConsist:
-	pusha
-	mov esi, edi
-	movzx ebx, word [esi+veh.engineidx]
-	cmp bx, [esi+veh.idx]
-	jne .bad
-
-.next:
-	movzx ebx, byte [esi+veh.vehtype]
-	call GetTrainCapacityGeneric
-	mov [esi+veh.capacity], ax
-
-	movzx esi, word [esi+veh.nextunitidx]
-	cmp si, byte -1
-	je .done
-	shl esi, 7
-	add esi, [veharrayptr]
-	jmp .next
-
-.bad:
-//	ud2	// As far as I understand the attach / dettach function consist heads
-		// are stored in the tempvar +0x8 and +0xC unless we are part of
-		// the same consist (first vehicle being a wagon results in edi 0)
-
-.done:
-	popa
 	ret
 
 // Used to fetch the weight of a railvehicle

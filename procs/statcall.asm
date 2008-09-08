@@ -37,11 +37,8 @@ begincodefragments
 	codefragment oldtraincapacity
 		movzx ax, byte [traincargosize+ebx]
 	codefragment_call newtraincapacity, GetTrainCapacityGeneric.noesi, 8
-	codefragment_call newtraincapacitybuy, GetTrainCapacityGeneric.makestruc, 8
-	codefragment_call newwagoncapacitybuy, GetWagonCapacityGeneric.makestruc, 8
-	codefragment oldtrainattach
-		mov edi, [tempvar+0xC]
-	codefragment_call newtrainattach, UpdateConsistCapacity, 6
+	codefragment_call newtraincapacitybuy, GetTrainCapacityGeneric.makestruc, 12
+	codefragment_call newwagoncapacitybuy, GetWagonCapacityGeneric.makestruc, 12
 
 // Ships
 	; These fragments are for finding the places where speed is used in ttd
@@ -52,7 +49,7 @@ begincodefragments
 		// movzx ax, byte [shipspeed-0xCC+ebx]
 	; Replacement Fragments for speed usage
 	codefragment_call newshipspeednewwehiclehandler, GetShipCallbackSpeed.noesi, 7
-	codefragment_call newshipspeedbuyvehiclespeed, GetShipCallbackSpeed, 12
+	codefragment_call newshipspeedbuyvehiclespeed, GetShipCallbackSpeed, 8
 
 	; Places that Ship's value mainly buy menu
 	codefragment oldshipvalue
@@ -70,7 +67,7 @@ begincodefragments
 
 	; Our replacements for this.
 	codefragment_call newshipcapacity, GetShipCapacity.noesi, 8
-	codefragment_call newshipcapacitybuild, GetShipCapacity.makestruc, 8
+	codefragment_call newshipcapacitybuild, GetShipCapacity.makestruc, 12
 
 // Planes
 	; These fragments are for finding the places where speed is used in ttd
@@ -102,9 +99,6 @@ patchtrainstat:
 	patchcode traincapacity, 1, 5
 	patchcode traincapacity, 1, 4
 	patchcode traincapacity, 3, 3
-	
-	; Hooks the end of attach just before deciding if there is another consist window which needs updating
-	patchcode trainattach, 4, 4
 
 	; The fun part?
 	patchcode oldtraincapacity, newwagoncapacitybuy, 1, 2
