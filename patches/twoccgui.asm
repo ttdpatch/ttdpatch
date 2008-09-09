@@ -1327,7 +1327,7 @@ globalcoloursdisable:
 	mov edx, eax // Move the new offset out of the counter
 	pop eax // Restore the counter
 	add edx, [playerarrayptr] // Move to the player arraies
-	cmp dword [edx+player.name], 0 // IF the player doesn't exist don't disable a colour
+	cmp word [edx+player.name], 0 // IF the player doesn't exist don't disable a colour
 	jz .skip
 
 	cmp byte [edx+player.colourscheme], cl // Is it the same colour
