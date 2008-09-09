@@ -439,9 +439,18 @@ newsaveproc:
 	bt [chunkstosave],ecx
 	jnc .nextchunk
 	mov [ebx+extrachunkhdr.id],ax
+#if DEBUG
+	or dword [chunksize], byte -1
+#endif
 	pusha
 	call [edx]
 	popa
+#if DEBUG
+	cmp dword [chunksize],0
+	je .ok
+	ud2	//	SF clear: Insufficient bytes saved. SF set: savechunkheader not called.
+.ok:
+#endif
 
 .nextchunk:
 	add edx,byte 4
@@ -633,7 +642,18 @@ newloadtitleproc:
 	popa
 	jnc .skipchunk
 
+#if DEBUG
+	mov [chunksize], eax
+	mov [realloadsavefn], ebp
+	mov ebp, loadsavechunkhelper
+#endif
 	call dword [knownextrachunkloadfns+ecx*4]
+#if DEBUG
+	cmp dword [chunksize], 0
+	je .ok
+	ud2	// Insufficient bytes read/written.
+.ok:
+#endif
 
 .nextchunk:
 	popa
@@ -1050,6 +1070,12 @@ deleteconsist:
 // also assumes ES=DS, EBP->save function
 // preserves all registers
 savechunkheader:
+#if DEBUG
+	cmp ebp,loadsavechunkhelper
+	jne .ok
+	ud2	// savechunkheader called twice
+.ok:
+#endif
 	pusha
 	mov esi,extrachunkheader
 	mov [esi+extrachunkhdr.length],eax
@@ -1057,7 +1083,24 @@ savechunkheader:
 	mov cl,extrachunkhdr_size
 	call ebp
 	popa
+#if DEBUG
+	mov [realloadsavefn],ebp
+	mov [chunksize],eax
+	mov ebp,loadsavechunkhelper
+#endif
 	ret
+	
+#if DEBUG
+uvard chunksize
+uvard realloadsavefn
+	
+loadsavechunkhelper:
+	sub [chunksize], ecx
+	jns .ok
+	ud2	// too many bytes read/written.
+.ok:
+	jmp [realloadsavefn]
+#endif
 
 
 // Bad chunk (see below for registers)
@@ -2458,3 +2501,4 @@ adjaivehicleptrssave:
 
 .done:
 	ret
+
