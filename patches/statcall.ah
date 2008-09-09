@@ -27,28 +27,35 @@ declaration.
 
 */
 
+%define CallbackBeforeSecond 2
+%define CallbackAfterSecond 1
+
 %macro FIRST 1+
 	%define FIRSTENTRY
 	%1
 	%undef FIRSTENTRY
 %endmacro
 
-%macro MAKESTRUC 3	//name, instr, doxchg?
+%macro MAKESTRUC 3
 ovar %1.makestruc, 0
 	pop eax
 	push ebx
 	call eax
 	pop ebx
-%if %3
+%if %3 == CallbackAfterSecond
 	xchg esi,edi
 %endif
 	call %1
 	%2			// overwritten
-%if %3
+%if %3 == CallbackAfterSecond
 	xchg esi,edi
 %endif
 %ifdef FIRSTENTRY
-	pop cx			// overwritten
+	%if %3 == CallbackBeforeSecond
+		push esi		// overwritten
+	%else
+		pop cx			// overwritten
+	%endif
 	jmp near $+5
 ovar %1.oldfn,-4,$
 %else
@@ -56,11 +63,12 @@ ovar %1.oldfn,-4,$
 %endif
 %endmacro
 
-%macro MAKESTRUC_WORD 2-3 0	// name, element, doxchg?
+%macro MAKESTRUC_WORD 2-3 0	// as below
 	MAKESTRUC %1, {mov [esi+veh.%2], ax}, %3
 %endmacro
 
-%macro MAKESTRUC_BYTE 2-3 0	// Params: Global name, veh structure element, 1 if esi and edi are swapped after calling eax
+// Params: Global name, veh structure element, style (FIRST only)
+%macro MAKESTRUC_BYTE 2-3 0
 	MAKESTRUC %1, {mov [esi+veh.%2], al}, %3
 %endmacro
 

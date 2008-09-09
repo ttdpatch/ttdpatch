@@ -80,9 +80,12 @@ begincodefragments
 	; Replace it with a special menu one (for no vehicle)
 	codefragment_call newplanespeednewwehiclehandler2, GetPlaneCallbackSpeed.noesi, 8
 
-	codefragment endstrucinit
-		pop cx
-		pop ebx
+codefragment endstrucinit
+	pop cx
+	pop ebx
+
+codefragment initsecondhead, -7
+	movzx ebx, word [edi+veh.vehtype]
 
 endcodefragments
 
@@ -110,12 +113,9 @@ patchtrainstat:
 	extern GetTrainCapacityGeneric.oldfn
 	mov ebx, GetTrainCapacityGeneric.oldfn
 
-// fallthrough
-
-patchendstrucinit:
-	stringaddress endstrucinit, 1, 0
-	mov byte [edi], 0xC3
-	storerelative ebx, edi+2
+	stringaddress initsecondhead, 1, 0
+	call patchendstrucinit.gotedi
+	dec dword [ebx]
 	ret
 
 patchshipstat:
@@ -133,7 +133,15 @@ patchshipstat:
 	patchcode oldshipcapacity, newshipcapacitybuild, 1, 1
 	extern GetShipCapacity.oldfn
 	mov ebx, GetShipCapacity.oldfn
-	jmp patchendstrucinit
+
+// fallthrough
+
+patchendstrucinit:
+	stringaddress endstrucinit, 1, 0
+.gotedi:
+	mov byte [edi], 0xC3
+	storerelative ebx, edi+2
+	ret
 
 patchplanestat:
 	; Speed Fragments

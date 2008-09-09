@@ -120,7 +120,7 @@ TrainTEGeneric:
 	pop eax
 	ret
 
-FIRST MAKESTRUC_WORD GetTrainCapacityGeneric, capacity
+FIRST MAKESTRUC_WORD GetTrainCapacityGeneric, capacity, CallbackBeforeSecond
 FIRST MAKESTRUC_WORD GetWagonCapacityGeneric, capacity
 NOESI GetTrainCapacityGeneric
 
@@ -291,7 +291,7 @@ GetPlaneCallbackSpeed:
 	pop ecx
 	ret
 
-FIRST MAKESTRUC_WORD GetPlaneCallbackSpeed, maxspeed, 1
+FIRST MAKESTRUC_WORD GetPlaneCallbackSpeed, maxspeed, CallbackAfterSecond
 NOESI GetPlaneCallbackSpeed
 
 // Run callback 36 for vehicles based off the input value
