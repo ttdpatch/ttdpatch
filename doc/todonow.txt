@@ -37,10 +37,6 @@
 - !!! Improve/automate defining flags for patchflags in action 7. Also have
   them set by C code, not in assembly to save some protected code bytes
 
-- at least for debug versions, add check to chunk loadsave code to verify
-  correct size of chunk; e.g. change ebp to a helper function that does the
-  accounting
-
 - callback for wagon capacity and weight
 
 - callback for cost factor/running cost factor
