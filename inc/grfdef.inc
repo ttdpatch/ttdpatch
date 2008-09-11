@@ -103,6 +103,6 @@ foundationtypes equ 14+8
 #define INVSP_INVTEST 28	// invalid condition type in action 7/9
 #define INVSP_INVINDUSTILE 29	// invalid industry tile in layout
 #define INVSP_INVLAYOUTSIZE 30	// invalid industry layout size
-
+#define INVSP_INVSUBID 31	// invalid subid for features like bridges
 #endif	// ndef __GRF_INC__
 

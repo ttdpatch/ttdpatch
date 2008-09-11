@@ -953,6 +953,7 @@ initializevehcargomap:
 	ret
 
 setvehcargomap:
+	mov [action1lastfeature], al
 	test byte [expswitches],EXP_MANDATORYGRM
 	jz .notmandatory
 
@@ -1016,7 +1017,10 @@ setvehcargomap:
 
 	mov edx,[curspriteblock]
 	mov edx,[edx+spriteblock.cargotransptr]
-
+	
+	cmp byte [action1lastfeature], 6	// bridges use subids instead of cargos
+	je .subids
+	
 	xor eax,eax
 	lodsb
 	mov ecx,eax
@@ -1068,6 +1072,30 @@ setvehcargomap:
 
 .done:
 	ret
+
+.subids:
+// for non real cargo ids (subids) we don't do any mapping, simply copy the relevant data
+	xor eax,eax
+	lodsb
+	mov ecx,eax
+	jecxz .defid
+.nextsubid:
+	lodsb
+	movsx ebx,al
+	lodsw
+	cmp ebx,byte -2
+	jae .nextsubidok
+	cmp ebx, NUMCARGOS
+	jae .nextsubidfail
+
+.nextsubidok:
+	mov [ebp+action3info.subids+ebx*2],ax
+	loop .nextsubid
+	jmp .defid
+	
+.nextsubidfail:
+	mov dh,INVSP_INVSUBID
+	jmp newcargoid.invalid
 
 .badres:
 	pop esi

@@ -77,6 +77,7 @@ struc action3info
 	.cargolist:
 	.nodefcargoid:	resw 1	// -2: cargoid to use instead of default (if this is defined)
 	.nocargocid:	resw 1	// -1: cargoid to use if no vehicle data available
+	.subids:		// subids share the NUMCARGOS slots
 	.cargo:		resw NUMCARGOS	// cargoids to use for each cargo type (not bit!)
 	.defcid:	resw 1	// default cargoid
 	%ifndef PREPROCESSONLY
