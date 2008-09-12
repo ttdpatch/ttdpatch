@@ -2264,6 +2264,7 @@ checkhouseslopes:
 	test di,0x10				// overwritten - don't allow steep slopes
 	ret
 
+// Called to access variable 46 (animation info) for town buildings
 global gethouseanimframe
 gethouseanimframe:
 	movzx eax,byte [landscape5(si)]
@@ -2282,6 +2283,14 @@ exported getotherhouseanimframe
 	mov ah,[landscape1+ecx]
 	shr ah,6
 	shr eax,3
+	ret
+
+// Called to access variable 47 (XY) for town buildings
+// Doubleword sized to accomodate Open's larger maps.
+exported gethouseXY
+	mov eax, esi	// 0000YYXX
+	shl eax, 8	// 00YYXX00
+	shr ax, 8	// 00YY00XX
 	ret
 
 // Called to decide if the current house is an old animated type that needs re-randomizing

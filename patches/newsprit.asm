@@ -2260,6 +2260,7 @@ vard bridgeparamvarhandler
 %endif
 endvar
 
+extern gethouseXY
 vard housesvarhandler
 	dd addr(gethousebuildstate)
 	dd addr(gethouseage)
@@ -2268,6 +2269,7 @@ vard housesvarhandler
 	dd addr(gethousecount)
 	dd addr(getexpandstate)
 	dd addr(gethouseanimframe)
+	dd gethouseXY
 %ifndef PREPROCESSONLY
 %assign n_housesvarhandler (addr($)-housesvarhandler)/4
 %endif
