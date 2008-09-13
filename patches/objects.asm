@@ -201,8 +201,6 @@ exported setobjectclasstexid
 	
 
 // Select window
-%assign win_objectgui_id cPatchWindowObjectGUI	// should be removed as soon Lakie merges new object code
-
 %assign win_objectgui_padding 10 
 
 %assign win_objectgui_dropwidth 12 
@@ -233,8 +231,8 @@ exported win_objectgui_create
 	bts dword [esi+window.activebuttons], 26
 	call [RefreshWindowArea]
 	pusha
-	mov cl, 0x2A
-	mov dx, win_objectgui_id // window.id
+	mov cl, cWinTypeTTDPatchWindow
+	mov dx, cPatchWindowObjectGUI // window.id
 	call dword [BringWindowToForeground]
 	test esi,esi
 	jz .noold
@@ -246,12 +244,12 @@ exported win_objectgui_create
 .noold:
 	mov eax, 100 + (100<<16) // x + (y << 16)
 	mov ebx, win_objectgui_width + (win_objectgui_height << 16)
-	mov cx, 0x2A			// window type
+	mov cx, cWinTypeTTDPatchWindow		// window type
 	mov dx, -1				// -1 = direct handler
 	mov ebp, addr(win_objectgui_winhandler)
 	call dword [CreateWindow]
 	mov dword [esi+window.elemlistptr], addr(win_objectgui_elements)
-	mov word [esi+window.id], win_objectgui_id // window.id
+	mov word [esi+window.id], cPatchWindowObjectGUI // window.id
 	mov byte [esi+window.data], 26
 	or byte [esi+window.flags], 7
 	call doesclasshaveusableobjects
@@ -652,7 +650,7 @@ win_objectgui_setmousetool:
 
 	push esi
 	mov dx, [esi+window.id]
-	mov ah, 0x2A
+	mov ah, cWinTypeTTDPatchWindow
 	mov al, 0x1
 	mov ebx, 0xFF9
 
@@ -690,7 +688,7 @@ extern setmousetool
 	ret
 
 win_objectgui_mousetoolcallback:
-	cmp byte [curmousetoolwintype], 0x2A // Is this depot clone vehicle active?
+	cmp byte [curmousetoolwintype], cWinTypeTTDPatchWindow // Is this depot clone vehicle active?
 	jne .notactive
 
 	movzx edx, word [win_objectgui_curobject]
@@ -781,8 +779,8 @@ doesclasshaveusableobjects:
 	push ecx // called upon newgrf change to update the window
 	push edx
 	push esi
-	mov cl, 0x2A
-	mov dx, win_objectgui_id
+	mov cl, cWinTypeTTDPatchWindow
+	mov dx, cPatchWindowObjectGUI
 	call [FindWindow]
 	jz .notopen
 	call doesclasshaveusableobjects
