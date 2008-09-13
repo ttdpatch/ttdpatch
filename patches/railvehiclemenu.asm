@@ -8,8 +8,6 @@
 #include <imports/gui.inc>
 #include <ptrvar.inc>
 
-%assign win_railvehmenu_id 114
-
 extern actionhandler
 extern actionrailvehmenu_actionnum
 
@@ -64,8 +62,8 @@ OpenRailVehicleMenu:
 	pusha
 	push edi
 	 
-	mov cl, 0x2A
-	mov dx, win_railvehmenu_id
+	mov cl, cWinTypeTTDPatchWindow
+	mov dx, cPatchWindowRailVehMenu
 	call [FindWindow]
 	test esi,esi
 	jz .noold
@@ -77,11 +75,11 @@ OpenRailVehicleMenu:
 	
 	//mov eax, 286 + (22<<16) // x + (y << 16)
 	mov ebx, win_railvehmenu_width + (win_railvehmenu_height << 16)
-	mov cx, 0x2A	// window type
+	mov cx, cWinTypeTTDPatchWindow  	// window type
 	mov dx, -1	// operation class offset
 	mov ebp, RailVehicleMenu_WinHandler
 	call dword [CreateWindow]
-	mov word [esi+window.id], win_railvehmenu_id
+	mov word [esi+window.id], cPatchWindowRailVehMenu
 	mov dword [esi+window.elemlistptr], win_railvehmenu_elements
 	pop edi
 	

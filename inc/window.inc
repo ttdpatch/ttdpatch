@@ -150,6 +150,17 @@
 %define cWinElem14 0E00h
 %define cWinElem15 0F00h
 
+// cWinTypeTTDPatchWindow Window ids
+%define cPatchWindowEnhGUI		100
+%define cPatchWindowGRFStatus		105
+%define cPatchWindowGRFHelper		108
+%define cPatchWindowSignalGUI		110
+%define cPatchWindowTraceRestrict	111
+%define cPatchWindowRailVehMenu		114
+%define cPatchWindowTransOpts		115
+%define cPatchWindowObjectGUI		120
+
+
 // Window data
 struc window
 	.type:			resb 1	// 00h:	window type (0..3fh)

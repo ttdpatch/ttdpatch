@@ -23,8 +23,6 @@ extern newsignalsdrawsprite, miscmods2flags, patchflags
 
 %assign win_signalgui_timeout 5
 
-%assign win_signalgui_id 110
-
 %assign win_signalgui_signalx 7
 %assign win_signalgui_signaly 15
 %assign win_signalgui_signalboxwidth 20
@@ -133,8 +131,8 @@ exported win_signalgui_create
 .signalpresent:
 	pusha
 	push ecx
-	mov cl, 0x2A
-	mov dx, win_signalgui_id // window.id
+	mov cl, cWinTypeTTDPatchWindow
+	mov dx, cPatchWindowSignalGUI // window.id
 	call [FindWindow]
 	pop ecx
 	test esi,esi
@@ -170,12 +168,12 @@ exported win_signalgui_create
 		
 	mov ebx, [sigguiwindimensions]
 
-	mov cx, 0x2A			// window type
+	mov cx, cWinTypeTTDPatchWindow  	// window type
 	mov dx, -1				// -1 = direct handler
 	mov ebp, addr(win_signalgui_winhandler)
 	call dword [CreateWindow]
 	mov dword [esi+window.elemlistptr], addr(win_signalgui_elements)
-	mov word [esi+window.id], win_signalgui_id // window.id
+	mov word [esi+window.id], cPatchWindowSignalGUI // window.id
 	mov dword [win_signalgui_winptr], esi
 	popa
 	

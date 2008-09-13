@@ -502,20 +502,20 @@ db cWinElemLast
 global win_etoolbox_create
 win_etoolbox_create:
 	pusha
-	mov cl, 0x2A
-	mov dx, 100 // window.id
+	mov cl, cWinTypeTTDPatchWindow
+	mov dx, cPatchWindowEnhGUI // window.id
 	call dword [BringWindowToForeground]
 	jnz .alreadywindowopen
 	
 	mov eax, 236 + (180 << 16) // x, y
   	mov ebx, 168 + (124 << 16) // width , height
 
-	mov cx, 0x2A			// window type
+	mov cx, cWinTypeTTDPatchWindow	// window type
 	mov dx, -1				// -1 = direct handler
 	mov ebp, addr(win_etoolbox_winhandler)
 	call dword [CreateWindow]
 	mov dword [esi+24h], addr(win_etoolbox_elements)
-	mov word [esi+6h], 100 // window.id
+	mov word [esi+window.id], cPatchWindowEnhGUI // window.id
 .alreadywindowopen:
 	popa
 	ret

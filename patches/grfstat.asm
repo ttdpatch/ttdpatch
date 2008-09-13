@@ -95,8 +95,8 @@ do_win_grfstat_create:
 
 win_grfstat_create:
 	pusha
-	mov cl, 0x2A
-	mov dx, 105 // window.id
+	mov cl, cWinTypeTTDPatchWindow
+	mov dx, cPatchWindowGRFStatus // window.id
 	call dword [BringWindowToForeground]
 	jnz .alreadywindowopen
 
@@ -109,12 +109,12 @@ win_grfstat_create:
 	mov eax, (640-win_grfstat_width)/2 + (((480-win_grfstat_height)/2) << 16) // x, y
 	mov ebx, win_grfstat_width + (win_grfstat_height << 16) // width , height
 
-	mov cx, 0x2A			// window type
+	mov cx, cWinTypeTTDPatchWindow  // window type
 	mov dx, -1				// -1 = direct handler
 	mov ebp, addr(win_grfstat_winhandler)
 	call dword [CreateWindow]
 	mov dword [esi+window.elemlistptr], addr(win_grfstat_elements)
-	mov word [esi+window.id], 105 // window.id
+	mov word [esi+window.id], cPatchWindowGRFStatus // window.id
 
 	call win_grfstat_setnewactive	// set .newactive in each spriteblock
 	mov dx, 0
@@ -202,8 +202,8 @@ win_grfstat_setgrfactivation:
 	// and set the real activation back, keep the new one
 	call win_grfstat_swapnewactive
 
-	mov al,0x2a
-	mov bx,105
+	mov al, cWinTypeTTDPatchWindow
+	mov bx, cPatchWindowGRFStatus
 	call dword [invalidatehandle]
 
 .bad:
@@ -271,8 +271,8 @@ actiongrfstat:
 
 	mov al,[newgameclimate]
 	mov [grfstat_titleclimate],al
-	mov al,0x2a
-	mov bx,105
+	mov al, cWinTypeTTDPatchWindow
+	mov bx, cPatchWindowGRFStatus
 	call dword [invalidatehandle]	// need to refresh whole window
 
 .regularreset:
@@ -348,8 +348,8 @@ actiongrfstat:
 	call makegrfidlist
 
 .nottitle:
-	mov cl, 0x2A
-	mov dx, 105 // window.id
+	mov cl, cWinTypeTTDPatchWindow
+	mov dx, cPatchWindowGRFStatus // window.id
 	call [FindWindow]
 	test esi,esi
 	jz .done
@@ -364,8 +364,8 @@ actiongrfstat:
 // out:	esi->window, or 0 (and ZF set) if none exists
 // uses:all
 grfstat_flashhandle:
-	mov cl,0x2a
-	mov dx,105
+	mov cl, cWinTypeTTDPatchWindow
+	mov dx, cPatchWindowGRFStatus
 	call [FindWindow]
 	jz .nowindow
 
@@ -374,8 +374,8 @@ grfstat_flashhandle:
 	or byte [esi+4],5
 
 	mov ah,al
-	mov al,0x2a+0x80
-	mov bx,105
+	mov al, cWinTypeTTDPatchWindow+0x80
+	mov bx, cPatchWindowGRFStatus
 	call dword [invalidatehandle]
 	test esp,esp		// clear ZF
 

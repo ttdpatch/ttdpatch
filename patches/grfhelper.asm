@@ -112,8 +112,8 @@ win_grfhelper_getspriteinfo:
 global win_grfhelper_create
 win_grfhelper_create:
 	pusha
-	mov cl, 0x2A
-	mov dx, 108 // window.id
+	mov cl, cWinTypeTTDPatchWindow
+	mov dx, cPatchWindowGRFHelper  // window.id
 	call dword [BringWindowToForeground]
 	jnz .alreadywindowopen
 
@@ -125,12 +125,12 @@ win_grfhelper_create:
 	mov eax, (640-win_grfhelper_width)/2 + (((480-win_grfhelper_height)/2) << 16) // x, y
 	mov ebx, win_grfhelper_width + (win_grfhelper_height << 16) // width , height
 
-	mov cx, 0x2A			// window type
+	mov cx, cWinTypeTTDPatchWindow	// window type
 	mov dx, -1				// -1 = direct handler
 	mov ebp, addr(win_grfhelper_winhandler)
 	call dword [CreateWindow]
 	mov dword [esi+window.elemlistptr], addr(win_grfhelper_elements)
-	mov word [esi+window.id], 108 // window.id
+	mov word [esi+window.id], cPatchWindowGRFHelper
 
 .alreadywindowopen:
 	popa
@@ -253,8 +253,8 @@ win_grfhelper_clickchangesprite:
 	mov dword [baTempBuffer1], 0
 	mov ch, 8
 	mov bl, 80
-	mov cl, 0x2A
-	mov dx, 108 // window.id
+	mov cl, cWinTypeTTDPatchWindow
+	mov dx, cPatchWindowGRFHelper  // window.id
 	call [CreateTextInputWindow]
 	popa
 	ret

@@ -201,7 +201,7 @@ exported setobjectclasstexid
 	
 
 // Select window
-%assign win_objectgui_id 114
+%assign win_objectgui_id cPatchWindowObjectGUI	// should be removed as soon Lakie merges new object code
 
 %assign win_objectgui_padding 10 
 

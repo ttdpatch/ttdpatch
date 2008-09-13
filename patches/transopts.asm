@@ -41,7 +41,7 @@ varw ttdguisprites, 742, 4077, 741, 1299, 1294, 1295, 748, 2594, 4085, 743, 0
 
 
 exported changetransparency
-	mov cl, 2Ah
+	mov cl, cWinTypeTTDPatchWindow
 	mov dx, win_transopts_id
 	extern FindWindow
 	call [FindWindow]
@@ -51,7 +51,7 @@ exported changetransparency
 	pusha
 	mov eax, 22 << 16
 	mov ebx, win_transopts_width + (win_transopts_height << 16)
-	mov cx, 2Ah	// window type
+	mov cx, cWinTypeTTDPatchWindow	// window type
 	mov dx, -1	// operation class offset
 	mov ebp, transparencywindow_handler
 	extern CreateWindow

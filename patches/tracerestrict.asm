@@ -1273,12 +1273,12 @@ tracerestrict_createwindow:
 	mov al, 0x10
 	call tr_window_init
 
-	mov cx, 0x2A
-	mov dx,111
+	mov cx, cWinTypeTTDPatchWindow
+	mov dx, cPatchWindowTraceRestrict
 	call dword [BringWindowToForeground]
 	jnz NEAR .alreadywindowopen
 
-	mov cx, 0x2A
+	mov cx, cWinTypeTTDPatchWindow
 	mov dx, -1
 	mov eax, (640-winwidth)/2 + (((480-winheight)/2) << 16) // x, y
 	mov ebx, winwidth + (winheight << 16) // width , height
@@ -1292,7 +1292,7 @@ tracerestrict_createwindow:
 	je .nodisvar
 	or BYTE [esi+window.disabledbuttons], 0x20
 	.nodisvar:
-	mov word [esi+window.id], 111
+	mov word [esi+window.id], cPatchWindowTraceRestrict
 	mov byte [esi+window.itemstotal], 0
 	mov byte [esi+window.itemsoffset],0
 	
@@ -1929,8 +1929,8 @@ CreateTextInputWindow
 	mov dword [baTempBuffer1], 0
 .nblank:
 	mov bl, 0xFF
-	mov cx, 0x1E2A
-	mov dx, 111
+	mov cx, 0x1E00+cWinTypeTTDPatchWindow
+	mov dx, cPatchWindowTraceRestrict
 	mov bp, ourtext(tr_enternumber)
 	jmp [CreateTextInputWindow]
 .valuebtnret:
@@ -1942,7 +1942,7 @@ ret
 	btc     DWORD [esi+window.activebuttons], 8
 	jb      .undomtool
 	mov     dx, [esi+window.id]
-	mov     ax, 2A01h
+	mov     ax, (cWinTypeTTDPatchWindow<<8)+01h
 	mov     ebx, -1
 	mov     esi, waAnimGoToCursorSprites
 	call    [setmousetool]          ; AL = tool type (0 = none)
@@ -3073,7 +3073,7 @@ copysharelistbtn:
 	mov [copyshareaction], al
 	
 	mov     dx, [esi+window.id]
-	mov     ax, 2A01h
+	mov     ax, (cWinTypeTTDPatchWindow<<8)+01h
 	mov     ebx, -1
 	mov     esi, waAnimGoToCursorSprites
 	call    [setmousetool]          // AL = tool type (0 = none)
