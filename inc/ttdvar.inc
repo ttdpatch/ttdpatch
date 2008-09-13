@@ -249,7 +249,7 @@ ttdvar(displayoptions,0x9ea37)		// B: Bits for each of the display options
 ttdvar(gamesemaphore,0x9ea38)		// B: Game progress semaphore, nonzero=paused
 ttdvar(currentexpensetype,0x9ed31)	// B: Current type of expenses, see the expenses_* constants below
 ttdvar(numplayers,0x9ed32)		// B: 1=single player, 2=multi player
-ttdvar(gamemode,0x9ed33)			// B: 0=title screen, 1=normal game, 2=scenario editor
+ttdvar(gamemode,0x9ed33)		// B: 0=title screen, 1=normal game, 2=scenario editor
 ttdvar(scenarioeditmodeactive,0x9ea36)	// B: 
 ttdvar(mpcomputer,0x9ed37)		// B: 1=is host computer, 0=is client computer (only valid in multiplayer)
 ttdvar(currenttextcolor,0x9ed39)	// W: current text colours

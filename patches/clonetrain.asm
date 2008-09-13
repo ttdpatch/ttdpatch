@@ -137,14 +137,14 @@ testmultiflags clonetrain
 	je near CloneTrainMain
 	cmp dl, cWinEventMouseToolClose
 	je near CloneDepotDeActiveMouseTool
-.noclonetrain:
 
+.noclonetrain:
 testmultiflags enhancegui
 	jz .noresizer
 	cmp dl, cWinEventResize
 	je traindepotwindowhandler.resizewindow
-.noresizer:
 
+.noresizer:
 	cmp dl, cWinEventRedraw // For the orginal subroutine
 	ret
 

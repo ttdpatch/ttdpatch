@@ -13,6 +13,8 @@
 #include <house.inc>
 #include <proc.inc>
 #include <transopts.inc>
+#include <idf.inc>
+#include <objects.inc>
 
 extern acttriggers,cachevehvar40x,canalfeatureids,cargoaction3,curcallback
 extern curgrffile,curgrfsprite,curstationtile,curtriggers,ecxcargooffset
@@ -182,6 +184,13 @@ grfcalltable getaction3, dd addr(getaction3.generic)
 	mov eax,[airportaction3+eax*4]
 	ret
 
+.getObjects:
+	// Retreive our setid and the action3
+extern objectsgameiddata
+	movzx edx, word [objectsgameiddata+eax*idf_gameid_data_size+idf_gameid_data.setid]
+	mov eax, [objectsgameiddata+eax*idf_gameid_data_size+idf_gameid_data.act3info]
+	ret
+
 .invalidfeature:
 	ud2	// another ud2 to distinguish it from the above by different address
 
@@ -223,10 +232,18 @@ grfcalltable getaction3cargo
 .getcargos:
 .getairports:
 .getsignals:
-
 .default:
 	movzx eax,word [ecx+action3info.defcid]
 .foundit:
+	ret
+
+.getObjects:
+	test esi, esi
+	jnz .default
+
+	movzx eax,word [ecx+action3info.nocargocid]
+	test eax, eax
+	jz .default
 	ret
 	
 .getbridges:
@@ -482,6 +499,7 @@ grfcalltable getaction2spritenum
 .gethouses:
 .getindustiles:
 .getairports:
+.getObjects:
 	//for houses and industry tiles, we return a pointer to the real data
 	// in eax instead of a sprite number
 	lea eax,[ebx+3]
@@ -1112,6 +1130,12 @@ grfcalltable getrandombits
 	movzx eax,word [esi+industry.random]
 	ret
 
+.getObjects:
+	cmp byte [isother], 0
+	jnz .norandom
+	movzx eax, byte [landscape6+esi] // Bits are in L6
+	ret
+
 grfcalltable getrandomtriggers
 
 .gettrains:
@@ -1138,6 +1162,7 @@ grfcalltable getrandomtriggers
 .norandom:
 .getsounds:
 .getairports:
+.getObjects:
 	ret
 
 .gethouses:
@@ -1688,6 +1713,13 @@ grfcalltable getother
 	mov esi,[esi+industry.townptr]
 	ret
 
+.getObjects:
+	movzx esi, word [landscape3+esi*2]
+extern objectpool
+	imul esi, object_size
+	movzx esi, word [objectpool+esi+object.origin]
+	ret
+
 #if MEASUREVAR40X
 	// this measures the number of CPU ticks spent for calculating
 	// each feature's 40+x in total, compared to the rest of the game
@@ -2021,6 +2053,7 @@ grfcalltable readpersistentreg
 .getsignals:
 .gethouses:
 .gettowns:
+.getObjects:
 	ud2		// not supported yet
 
 .getindustiles:
@@ -2069,6 +2102,7 @@ grfcalltable writepersistentreg
 .getsignals:
 .gethouses:
 .gettowns:
+.getObjects:
 	ud2		// not supported yet
 
 .getindustiles:
@@ -2145,7 +2179,7 @@ varb featurevarofs
 	db 0, 0			// sounds neither
 	db -0x80+0x10, -0x80	// airports: same as stations
 	db 0,0			// signals: no structures
-	db 0, -0x80		// objects
+	db 0, -0x80		// objects: current tile, northen tile
 checkfeaturesize featurevarofs, 2
 
 endvar
@@ -2366,13 +2400,28 @@ vard airportparamvarhandler
 %assign n_airportparamvarhandler (addr($)-airportparamvarhandler)/4
 %endif
 
-endvar
-
 vard signalsparamvarhandler
 	dd getsigtiledata
 %ifndef PREPROCESSONLY
 %assign n_signalsparamvarhandler (addr($)-signalsparamvarhandler)/4
 %endif
+
+extern getObjectVar40, getObjectVar41, getObjectVar42, getObjectVar43
+
+vard objectvarhandler
+	dd getObjectVar40
+	dd getObjectVar41
+	dd getObjectVar42
+	dd getObjectVar43
+%ifndef PREPROCESSONLY
+%assign n_objectvarhandler (addr($)-objectvarhandler)/4
+%endif
+
+vard objectparamvarhandler
+%ifndef PREPROCESSONLY
+%assign n_objectparamvarhandler (addr($)-objectparamvarhandler)/4
+%endif
+
 endvar
 
 vard specialvarhandlertable
@@ -2391,7 +2440,7 @@ vard specialvarhandlertable
 	dd 0,0
 	dd airportvarhandler,townvarhandler
 	dd 0,0
-	dd 0,0						//objects					
+	dd objectvarhandler, objectvarhandler		//objects
 checkfeaturesize specialvarhandlertable, (4*2)
 
 endvar
@@ -2414,7 +2463,7 @@ vard specialvars
 	db 0,0
 	db n_airportvarhandler,n_townvarhandler
 	db 0,0
-	db 0,0						//objects
+	db n_objectvarhandler, n_objectvarhandler	//objects
 %endif
 
 checkfeaturesize specialvars, (1*2)
@@ -2437,7 +2486,7 @@ vard specialparamvarhandlertable
 	dd 0,0
 	dd airportparamvarhandler,townparamvarhandler
 	dd signalsparamvarhandler,0
-	dd 0,0							// objects
+	dd objectparamvarhandler,0			// objects
 checkfeaturesize specialparamvarhandlertable, (4*2)
 
 endvar
@@ -2460,7 +2509,7 @@ varb specialparamvars
 	db 0,0
 	db n_airportparamvarhandler,n_townparamvarhandler
 	db n_signalsparamvarhandler,0
-	db 0,0							// objects
+	db n_objectparamvarhandler,0			// objects
 %endif
 
 checkfeaturesize specialparamvars, (1*2)

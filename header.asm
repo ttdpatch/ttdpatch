@@ -131,6 +131,7 @@ startpatchactions			// this is a macro, not a label...
 	patchaction SetTTDpatchVar
 	patchaction MenuStartNewGame
 	patchaction actionrailvehmenu
+	patchaction BuildObject
 
 uvard newvehdata, newvehdatastruc_size/4
 uvard persgrfdata, persgrfdatastruc_size/4

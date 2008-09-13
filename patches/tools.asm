@@ -903,6 +903,12 @@ extern clearindustry2array
 	call landscape8init
 .no_l8:
 
+extern objectpool_ptr, objectpoolclear
+	cmp dword [objectpool_ptr], 0
+	jle .no_objectpool
+	call objectpoolclear
+.no_objectpool:
+
 	mov eax,[currtownnametitle]
 	mov [currtownname],eax
 

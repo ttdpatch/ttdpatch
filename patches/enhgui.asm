@@ -1559,7 +1559,8 @@ uvarb TempActionFlags
 uvard TempActionCost
 uvard TempCAActionErrorCount
 global cleararea
-cleararea:		//bl|=0x10 for no explosion animation
+cleararea:
+	//bl|=0x10 for no explosion animation
 	mov word [operrormsg1], 0x00B5
 	mov [TempActionFlags], bl
 	mov dword [TempActionCost], 0

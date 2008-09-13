@@ -476,6 +476,18 @@ defourtext sortorder_type
 defourtext sortorder_transported
 defourtext sortorder_name
 
+defourtext objectbuild
+defourtext objecterr
+defourtext objecterr_wrongclimate
+defourtext objecterr_wronggamemode
+defourtext objecterr_noaction3
+defourtext objecterr_tooearly
+defourtext objecterr_toolate
+defourtext objecterr_invalidsize
+defourtext objecterr_poolfull
+defourtext objectgui_title
+defourtext objectgui_cost
+defourtext objectgui_size
 
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 

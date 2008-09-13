@@ -3,7 +3,7 @@
 #include <patchproc.inc>
 
 // all switches that use landscape6 must be listed here
-patchproc abandonedroads,newstations,newhouses,pathbasedsignalling,newindustries,irrstations, patchlandscape6
+patchproc abandonedroads,newstations,newhouses,pathbasedsignalling,newindustries,irrstations,newobjects, patchlandscape6
 
 
 extern malloccrit,landscape6_ptr, reloc

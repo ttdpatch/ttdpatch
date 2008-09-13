@@ -505,7 +505,6 @@ newcargoid:
 //	cmp byte [action1lastfeature], al
 //      mov dh,INVSP_WRONGFEATURE
 //	jnz near .invalid
-
 	push eax
 
 	xor ebp,ebp
@@ -550,6 +549,8 @@ newcargoid:
 	je .houseid
 	cmp byte [esi-3],9
 	je .industileid
+	cmp byte [esi-3],0xF
+	je .objectid
 	mov edx,eax
 	lodsb
 	add edx,eax
@@ -580,6 +581,7 @@ newcargoid:
 // if their bit 31 is clear
 .houseid:
 .industileid:
+.objectid:
 	or al,al
 	jnz .advancedtileid
 
@@ -810,6 +812,8 @@ activatecargoid:
 	je .industileid
 	cmp byte [esi-3],0xa
 	je .industryid
+	cmp byte [esi-3],0xF
+	je .objectid
 	mov ecx,eax
 	lodsb
 	add ecx,eax
@@ -818,6 +822,7 @@ activatecargoid:
 	test byte [esi+1],0x80
 	jnz .callback
 	add [esi],bx
+
 .callback:
 	inc esi
 	inc esi
@@ -828,6 +833,7 @@ activatecargoid:
 // bit 31 is set
 .houseid:
 .industileid:
+.objectid:
 	or al,al
 	jnz .advancedtileid
 	lodsd
@@ -1021,7 +1027,7 @@ setvehcargomap:
 	
 	cmp byte [action3lastfeature], 6	// bridges use subids instead of cargos
 	je .subids
-	
+
 	xor eax,eax
 	lodsb
 	mov ecx,eax
@@ -1287,7 +1293,7 @@ grfcalltable action3storeid, dd addr(action3storeid.generic)
 	loop .nextvid
 	ret
 
-.getobjects:
+.getObjects:
 	push edx
 	extern objectidf
 	mov edx, objectidf		// the feature needs translation
@@ -3412,6 +3418,7 @@ grfcalltable grfresource
 .getsounds:
 .getairports:
 .getsignals:
+.getObjects:
 .fail:
 	stc
 	ret
@@ -4250,19 +4257,25 @@ uvard canalsgraphicflags,256/4
 
 // objects id management
 uvard objectsdataidtogameid, NOBJECTS/2
-uvard objectsgameiddata, NOBJECTS*idf_gameid_data_size
+uvard objectsgameiddata, (NOBJECTS*idf_gameid_data_size)/4
 uvard objectsgameidcount
 
 // Properties for objects (gameid based)
-uvard objectclass, NOBJECTS/2						// a word id to the actuall objectclasses
-uvard objectnames, NOBJECTS/2						// a TextID
-uvard objectspriteblock, NOBJECTS					// to get GRF specific TextIDs
+uvard objectclass, NOBJECTS/2					// a word id to the actuall objectclasses
+uvard objectnames, NOBJECTS/2					// a TextID
+uvard objectspriteblock, NOBJECTS				// to get GRF specific TextIDs
+uvard objectsizes, NOBJECTS/4					// a byte representing size (15x15 maximum)
+uvard objectavailability, NOBJECTS/4				// a byte representing the climates it is available in
+uvard objectcostfactors, NOBJECTS/4				// a byte which contains the cost factor
+uvard objectstartdates, NOBJECTS				// a dword representing intro date from 1/1/0000
+uvard objectenddates, NOBJECTS					// a dword representing outtro date from 1/1/0000
+uvard objectflags, NOBJECTS/2					// a dword of flags which control how objects behave
 
 // Properties for classes of objects
 uvard objectclasses, NOBJECTSCLASSES				// the actual defined classes
-uvard numobjectclasses								// how many classes we have have loaded already
+uvard numobjectclasses						// how many classes we have have loaded already
 uvard objectclassesnames, NOBJECTSCLASSES/2			// the TextID for the name
-uvard objectclassesnamesprptr, NOBJECTSCLASSES/2	// the spriteblockptr for this TextID
+uvard objectclassesnamesprptr, NOBJECTSCLASSES/2		// the spriteblockptr for this TextID
 
 	// other variables
 uvard newstationnum

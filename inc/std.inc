@@ -6,6 +6,7 @@
 ptrvardec landscape6
 ptrvardec landscape7
 ptrvardec landscape8
+ptrvardec objectpool
 
 %ifndef param_call
 // call a procedure with parameters on the stack

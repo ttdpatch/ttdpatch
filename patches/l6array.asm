@@ -8,10 +8,6 @@
 extern l6switches,patchflags,randomfn
 extern resetpathsignalling,FIRSTBUILDABANDON
 
-
-
-
-
 //
 // Use of L6
 //

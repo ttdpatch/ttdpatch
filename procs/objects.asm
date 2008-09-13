@@ -3,6 +3,7 @@
 #include <ptrvar.inc>
 #include <patchproc.inc>
 #include <window.inc>
+#include <objects.inc>
 
 
 patchproc newobjects, patchobjects
@@ -21,7 +22,44 @@ codefragment newobjectsdefandclassnames
 	extern objectsdefandclassnames
 	nop
 	mov esi, [objectsdefandclassnames+eax*4]
-	
+
+codefragment newobjectdefercleartile, 7
+	or dh, dh
+	db 0x78, 0x1D // js $+0x1D
+	cmp dh, 3
+
+codefragment findobjectcleartile, -4
+	db 0x44 + (6 * WINTTDX)
+	push ebx
+	push edx
+
+codefragment oldobjecthookcompanycleartile, -7
+	dw 0x013B
+	mov dl, byte [landscape1+edi]
+
+codefragment newobjecthookcompanycleartile, 9
+extern RemoveObject
+	icall RemoveObject
+	jc $+3
+	ret
+
+codefragment newobjectdeferdrawtile, 8
+	pop cx
+	pop ax
+	ret
+	cmp dh, 3
+
+codefragment oldobjecthookdrawtile, 6
+	pop ax
+	ret
+	movzx ebp, bx
+
+codefragment newobjecthookdrawtile, 14
+extern DrawObject
+	icall DrawObject
+	jnc $+8
+	ret
+
 endcodefragments
 
 
@@ -52,7 +90,7 @@ exported patchobjects
 	// store the new fragment
 	mov edi,[eax+8]
 	storefragment newobjectsdefandclassnames
-			
+
 	stringaddress findmaintoolbartooltiptable
 	mov eax, edi
 	mov esi, [eax]
@@ -82,7 +120,7 @@ exported patchobjects
 	// we assume that the click list follows the window element list 
 	dec edi
 	cmp dword [edi-3], 0x0B02D300	// check end marker
-	jne .notfoundelelist
+	jne near .notfoundelelist
 	
 	extern reswidth
 	cmp word [reswidth], 680
@@ -114,8 +152,34 @@ exported patchobjects
 .small:
 	mov ecx, toolbar_newelements_end-toolbar_newelements
 	rep movsb
+
+	// Our Object Array
+extern malloccrit, objectpool_ptr, reloc
+	push dword NACTIVEOBJECTS*object_size
+	call malloccrit
+	// leave on stack for reloc
+	push objectpool_ptr
+	call reloc
+
+	stringaddress newobjectdefercleartile
+	mov byte [edi], 0x73 // jae
+
+extern ObjectClearTile
+	stringaddress findobjectcleartile
+	mov dword [ObjectClearTile], edi
+	patchcode objecthookcompanycleartile, 2, 2
 	
+	stringaddress newobjectdeferdrawtile, 1, 1
+	mov byte [edi], 0x73 // jae
+	patchcode objecthookdrawtile, 1, 2
+
+extern ClassAAnimationHandler
+	mov eax, [ophandler+(0xA * 8)]
+	mov dword [eax+(12 * 4)], ClassAAnimationHandler
 	ret
+
 .notfoundelelist:
 	ud2
+
+
 

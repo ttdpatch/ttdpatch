@@ -155,6 +155,9 @@ cheatentry "UNRESERVEPBSTRACK",unreservepbstrack,0
 #if 1 && DEBUG
 cheatentry "SETINDVAL",setindustrystrucval,0
 cheatentry "RESETBBLIST",ResetBBlockVehicleLists,0
+cheatentry "CREATEOBJECT", createnewobject, 0 
+extern win_objectgui_create
+cheatentry "OBJECTGUI", win_objectgui_create, 0
 #endif
 
 #if DEBUGNETPLAY
@@ -2981,6 +2984,30 @@ var inddispl, db "##:  "
 var inddisp2, db "##-##-##-## --> "
 var inddisp3, db "##-##-##-##", 0,0
 
+createnewobject: 
+	call gethexnumber // Result in dx
+	shl edx, 8
+
+	call getsignxy // results in esi
+	mov edi, esi
+	rol di, 4 // Store the x, y in the ax, cx registors
+	mov eax, edi
+	mov ecx, edi
+	rol cx, 8
+	and ax, 0x0FF0
+	and cx, 0x0FF0
+	ror di, 4
+extern BuildObject_actionnum
+	mov bl, [actionnestlevel]
+	pusha
+	mov bl, 0xB
+	and byte [actionnestlevel], 0
+	mov word [operrormsg1], ourtext(objecterr)
+	dopatchaction BuildObject
+	popa
+	mov [actionnestlevel], bl
+	clc
+	ret
 #endif
 
 #if DEBUGNETPLAY

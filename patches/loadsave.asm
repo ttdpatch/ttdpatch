@@ -96,6 +96,7 @@ varw knownextrachunkids
 	dw 0x8011	// New objects ID map
 	dw 0x8012	// Industry2 array
 	dw 0x8013	// Industry array
+	dw 0x8014	// New Objects Pool
 	
 knownextrachunknum equ (addr($)-knownextrachunkids)/2
 
@@ -133,6 +134,7 @@ vard knownextrachunkloadfns
 	dd loadobjectidmap
 	dd loadindustry2array
 	dd loadextraindustries
+	dd loadobjectpool
 	
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkloadfns)/4
@@ -174,6 +176,7 @@ vard knownextrachunksavefns
 	dd saveobjectidmap
 	dd saveindustry2array
 	dd saveextraindustries
+	dd saveobjectpool
 
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunksavefns)/4
@@ -217,6 +220,7 @@ vard knownextrachunkqueryfns
 	dd canhaveobjectidmap
 	dd canhaveindustry2array
 	dd canhaveextraindustries
+	dd canhaveobjectpool
 
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkqueryfns)/4
@@ -266,10 +270,11 @@ uvarw loadremovedsfxs	// ... and this many pseudo-/special vehicles
 
 %assign LOADED_X3_L8ARRAY		0x1
 %assign LOADED_X3_ROBJARRAY		0x2
-%assign LOADED_X3_OBJECTDATAID	0x4
+%assign LOADED_X3_OBJECTDATAID		0x4
 %assign LOADED_X3_INDUSTRY2ARRAY	0x8
 %assign LOADED_X3_EXTRAINDUSTRIES	0x10
 %assign LOADED_X3_BRIDGEPERSDATA	0x20
+%assign LOADED_X3_OBJECTPOOL		0x40
 
 %define SKIPGUARD 1			// the variables get cleaned by a dword.. 
 uvarb extrachunksloaded1		// a combination of LOADED_X1_*
@@ -1098,9 +1103,15 @@ extern clearindustry2array
 	test byte [extrachunksloaded3],LOADED_X3_OBJECTDATAID
 	jnz .haveobjectsdataids
 	extcall clearobjectdataids
-.haveobjectsdataids:
-.nonewobjects:
 
+.haveobjectsdataids:
+	test byte [extrachunksloaded3], LOADED_X3_OBJECTPOOL
+	jnz .haveobjectpool
+extern objectpoolclear
+	call objectpoolclear
+	
+.haveobjectpool:
+.nonewobjects:
 	testflags newbridges
 	jnc .nonewbridges
 	test byte [extrachunksloaded3],LOADED_X3_BRIDGEPERSDATA
@@ -2322,6 +2333,26 @@ loadsaveobjectidmap:
 	mov esi,objectsdataiddata
 	call ebp
 	or byte [extrachunksloaded3],LOADED_X3_OBJECTDATAID
+	ret
+
+canhaveobjectpool:
+	testflags newobjects
+	ret
+
+loadobjectpool:
+	cmp eax, NACTIVEOBJECTS*object_size
+	ja badchunk
+	jmp short loadsaveobjectpool
+
+saveobjectpool:
+	mov eax, NACTIVEOBJECTS*object_size
+	call savechunkheader
+
+loadsaveobjectpool:
+	xchg ecx, eax
+	mov esi, objectpool
+	call ebp
+	or byte [extrachunksloaded3], LOADED_X3_OBJECTPOOL
 	ret
 
 canhaveobridgeidmap:

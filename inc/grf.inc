@@ -61,7 +61,7 @@ endstruc
 		dd addr(.gettrains),addr(.getrvs),addr(.getships),addr(.getplanes)
 		dd addr(.getstations),addr(.getcanals),addr(.getbridges),addr(.gethouses)
 		dd addr(.getgeneric),addr(.getindustiles),addr(.getindustries),addr(.getcargos),addr(.getsounds)
-		dd addr(.getairports),addr(.getsignals)
+		dd addr(.getairports),addr(.getsignals), addr(.getObjects)
 	endvar
 %endmacro
 
