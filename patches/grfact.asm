@@ -868,6 +868,7 @@ activatecargoid:
 	// no sprite numbers here, so we're done
 	ret
 
+uvarb action3lastfeature
 
 	// *** action 3 handler ***
 action3:
@@ -953,7 +954,7 @@ initializevehcargomap:
 	ret
 
 setvehcargomap:
-	mov [action1lastfeature], al
+	mov [action3lastfeature], al
 	test byte [expswitches],EXP_MANDATORYGRM
 	jz .notmandatory
 
@@ -1018,7 +1019,7 @@ setvehcargomap:
 	mov edx,[curspriteblock]
 	mov edx,[edx+spriteblock.cargotransptr]
 	
-	cmp byte [action1lastfeature], 6	// bridges use subids instead of cargos
+	cmp byte [action3lastfeature], 6	// bridges use subids instead of cargos
 	je .subids
 	
 	xor eax,eax
