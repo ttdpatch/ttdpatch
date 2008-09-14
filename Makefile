@@ -353,13 +353,12 @@ ttdprot%.pe ttdprot%.map:
 	${_E} [LDEXP] $@
 	${_C}$(LDEXP) $(LDEXPFLAGS) -Map ttdprot$*.map -o ttdprot$*.pe $^ ${LD_NO_INFO_${V}}
 
-ttdcode%.bin: ttdprot%.pe
-	${_E} [OBJCOPY] $@
+ttdprot%.bin: ttdprot%.pe ttdprot.asm 
+	${_E} [OBJCOPY/GZIP] $@
 	${_C}$(OBJCOPY) -O binary -j .ptext $< $@
-
-ttdprot%.bin: ttdprot.asm ttdcode%.bin.gz
-	${_E} [NASM] $@
-	${_C}$(NASM) $(NASMOPT) -f bin $(NASMDEF) -dINCFILE=\"$(filter %.gz,$^)\" $< -o $@	
+	${_C} gzip -f9n $@
+	${_C}$(NASM) $(NASMOPT) -f bin $(NASMDEF) -dINCFILE=\"$@.gz\" $(filter %.asm,$^) -o $@
+	@rm -f $@.gz
 
 loader%.bin: ttdprot%.pe
 	${_E} [OBJCOPY] $@
@@ -544,10 +543,6 @@ versions/%.ver: $(wildcard procs/*.asm)
 	${_C}cp	versions/empty.dat $@
 
 # automatically gzip files
-%.bin.gz : %.bin
-	${_E} [GZIP] $@
-	${_C} gzip -f9n $<
-
 %.gz : %
 	${_E} [GZIP] $@
 	${_C} gzip -f $<
