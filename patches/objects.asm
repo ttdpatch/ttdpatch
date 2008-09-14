@@ -228,29 +228,33 @@ svarw win_objectgui_curclass
 svard win_objectgui_curobject
 
 exported win_objectgui_create
-	bts dword [esi+window.activebuttons], 26
+	bts dword [esi+window.activebuttons], ebx
 	call [RefreshWindowArea]
 	pusha
 	mov cl, cWinTypeTTDPatchWindow
 	mov dx, cPatchWindowObjectGUI // window.id
+	push ebx
 	call dword [BringWindowToForeground]
+	pop ebx
 	test esi,esi
 	jz .noold
-	mov byte [esi+window.data], 26
+	mov byte [esi+window.data], bl
 	or byte [esi+window.flags], 7
 	popa
 	ret
 
 .noold:
+	push ebx
 	mov eax, 100 + (100<<16) // x + (y << 16)
 	mov ebx, win_objectgui_width + (win_objectgui_height << 16)
 	mov cx, cWinTypeTTDPatchWindow		// window type
 	mov dx, -1				// -1 = direct handler
 	mov ebp, addr(win_objectgui_winhandler)
 	call dword [CreateWindow]
+	pop ebx
 	mov dword [esi+window.elemlistptr], addr(win_objectgui_elements)
 	mov word [esi+window.id], cPatchWindowObjectGUI // window.id
-	mov byte [esi+window.data], 26
+	mov byte [esi+window.data], bl
 	or byte [esi+window.flags], 7
 	call doesclasshaveusableobjects
 	popa

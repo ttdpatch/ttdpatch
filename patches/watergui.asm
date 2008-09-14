@@ -486,18 +486,20 @@ guiwindow win_waterconstgui,152,36
 	guiele dock,cWinElemDummyBox,cColorSchemeDarkBlue,x,0,x2,0,y,0,y2,0,data,0
 	guiele shipdepot,cWinElemDummyBox,cColorSchemeDarkBlue,x,0,x2,0,y,0,y2,0,data,0
 	guiele buoy,cWinElemDummyBox,cColorSchemeDarkBlue,x,0,x2,0,y,0,y2,0,data,0
-	guiele dynamite,cWinElemSpriteBox,cColorSchemeDarkGreen,x,0,w,21,y,14,h,21,data,703
-	guiele lowerland,cWinElemSpriteBox,cColorSchemeDarkGreen,x,22,w,21,y,14,h,21,data,695
-	guiele raiseland,cWinElemSpriteBox,cColorSchemeDarkGreen,x,44,w,21,y,14,h,21,data,694
+	guiele dynamite,cWinElemSpriteBox,cColorSchemeDarkGreen,x,0,w,22,y,14,h,22,data,703
+	guiele lowerland,cWinElemSpriteBox,cColorSchemeDarkGreen,x,22,w,22,y,14,h,22,data,695
+	guiele raiseland,cWinElemSpriteBox,cColorSchemeDarkGreen,x,44,w,22,y,14,h,22,data,694
 	guiele purchaseland,cWinElemDummyBox,cColorSchemeDarkBlue,x,0,x2,0,y,0,y2,0,data,0
-	guiele canals,cWinElemSpriteBox,cColorSchemeDarkGreen,x,66,w,21,y,14,h,21,data,0
-	guiele aqueduct,cWinElemSpriteBox,cColorSchemeDarkGreen,x,88,w,41,y,14,h,21,data,2598
-	guiele river,cWinElemSpriteBox,cColorSchemeDarkGreen,x,130,w,21,y,14,h,21,data,4083
+	guiele canals,cWinElemSpriteBox,cColorSchemeDarkGreen,x,66,w,22,y,14,h,22,data,0
+	guiele aqueduct,cWinElemSpriteBox,cColorSchemeDarkGreen,x,88,w,42,y,14,h,22,data,2598
+	guiele river,cWinElemSpriteBox,cColorSchemeDarkGreen,x,130,w,22,y,14,h,22,data,4083
 endguiwindow
 
 exported CreateScenWaterConstrWindow
-	bts dword [esi+window.activebuttons], 24
+	bts dword [esi+window.activebuttons], ebx
+	call [RefreshWindowArea]
 
+	push ebx
 	mov bx, [esi+window.id]
 	mov al, [esi+window.type]
 	or al, 0x80
@@ -517,11 +519,10 @@ exported CreateScenWaterConstrWindow
 	mov ebp, 1						// function number
 	call dword [CreateWindow]
 	mov dword [esi+window.elemlistptr], win_waterconstgui_elements
-	mov byte [esi+window.data], 24
-	or word [esi+window.flags], 5
-	ret
+
 .windowopen:
-	mov byte [esi+window.data], 24
+	pop ebx
+	mov byte [esi+window.data], bl
 	or word [esi+window.flags], 5
 	ret
 
