@@ -973,25 +973,22 @@ endvar
 varw pre_op_array3
 dw statictext(empty)
 dw statictext(empty)
-endvar
 
 // four words between ourtext(tr_sigval_is_g) and first statictext(empty)
 // if robj.type==0
 // op_array3-8 + robj.type*2 --> first statictext(empty)
 
-varw op_array2
+op_array2:
 dw ourtext(trdlg_eq)
 dw ourtext(trdlg_neq)
 dw 0xffff
-endvar
 
-varw op_array3
+op_array3:
 dw ourtext(tr_sigval_is_g)
 dw ourtext(tr_sigval_is_r)
 dw 0xffff
-endvar
 
-varw op_array4
+op_array4:
 dw ourtext(tr_sigval_is_green)
 dw ourtext(tr_sigval_is_red)
 dw 0xffff
