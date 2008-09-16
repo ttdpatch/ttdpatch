@@ -82,10 +82,7 @@ largeufodestroynews:
 	// in:	ax=XY
 pushnearesttownonrefstack:
 	push	edi
-	mov	ebp,[ophandler+(3*8)]
-	xor	ebx,ebx
-	mov	bl,1
-	call	dword [ebp+4]		// returns the nearest town ptr in EDI and distance in BP; scrambles BX,ESI
+	extcall findnearesttown
 	mov	esi,textrefstack
 	mov	ax,word [edi+town.citynametype]
 	mov	[esi],ax

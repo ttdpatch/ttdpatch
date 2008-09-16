@@ -6,7 +6,7 @@
 
 extern BusLorryStationDrawHandler,Class5ClearTileBusStopError
 extern Class5CreateBusStationAction,Class5CreateLorryWinOrient
-extern newbusorienttooltips,oldclass5createbusstation
+extern newbusorienttooltips
 extern Class5CreateTruckStationAction,oldclass5createtruckstation
 extern oldclass5createlorrywinorient
 extern paStationbusstop1,paStationbusstop2,rvmovementscheme
@@ -133,6 +133,21 @@ codefragment_call newgetstationspritetrl, getstationspritetrl
 codefragment_call newgetstationspritelayout, getstationspritelayout, 10
 codefragment_call newgetstationtracktrl, getstationtracktrl
 
+codefragment oldcheckremoveeverything,-2
+	dd 80000000h
+	pop di
+	pop dx
+	pop bx
+	jz short $+2+1Bh
+
+codefragment_call newcheckremoveeverything, Class5CreateStationCheckRemove, 6
+codefragment_call newsetlandscape, Class5CreateStation, 6
+
+codefragment oldcleardrivethroughtile, -6
+	pop ax
+	test bl, 1
+	jz $+2+21h
+
 endcodefragments
 
 patchbusstop:
@@ -144,13 +159,11 @@ patchbusstop:
 	mov eax, [ophandler+0x5*8]
 	mov eax, [eax+op.ActionHandler]
 	mov edi, [eax+9]
-	mov eax, [edi+5*4]
-	mov dword [oldclass5createbusstation], eax
-	mov dword [edi+5*4], addr(Class5CreateBusStationAction)
+	mov eax, addr(Class5CreateBusStationAction)
+	xchg eax, [edi+5*4]
+	extern Class5CreateBusStationAction.oldfn
+	add [Class5CreateBusStationAction.oldfn], eax
 
-	mov eax, [ophandler+0x5*8]
-	mov eax, [eax+op.ActionHandler]
-	mov edi, [eax+9]
 	mov eax, [edi+6*4]
 	mov dword [oldclass5createtruckstation], eax
 	mov dword [edi+6*4], addr(Class5CreateTruckStationAction)
@@ -281,5 +294,33 @@ patchbusstop:
 	mov byte [edi+lastediadj+24],0x7f
 	add edi,byte 33+lastediadj
 	storefragment newgetstationtracktrl
+
+%macro storesetlandscape 0
+	add edi, lastediadj + 247h + 4*WINTTDX
+	storefragment newsetlandscape
+	mov word [edi + lastediadj + 2Dh + 6*WINTTDX], 8EBh
+%endmacro
+
+	multipatchcode oldcheckremoveeverything,newcheckremoveeverything, 2, storesetlandscape
+
+	xor ecx,ecx
+	mov cl,2
+
+.patchloop:
+	push ecx
+	stringaddress oldcleardrivethroughtile,ecx,2
+	pop ecx
 	
+	cmp ecx,1
+	je .done
+
+	chainttdfunction Class5RemoveDriveThrough
+	
+	add edi, 1-oldcleardrivethroughtile_add	// make sure we find the next occurence, not this one again
+
+	loop .patchloop
+
+.done:
+	changereltarget 0, Class5RemoveDriveThrough, edi
+
 	ret

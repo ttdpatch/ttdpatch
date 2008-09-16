@@ -26,7 +26,7 @@ extern insertTramsIntoGetGroundAltitude, insertTramsIntoGetGroundAltitude.origfn
 extern stopTramOvertaking, rvcheckovertake, patchflags, editTramMode,stdRoadElemListPtr
 extern tramtracks,saTramConstrWindowElemList,tramtracksprites
 extern setTramXPieceTool,setTramYPieceTool, drawTramTracksInTunnel, addgroundsprite
-extern bTempNewBridgeDirection, checkIfThisShouldBeATramStop, addsprite,paRoadConstrWinClickProcs
+extern bTempNewBridgeDirection, addsprite,paRoadConstrWinClickProcs
 extern drawTramTracksUnderBridge, checkIfTramsAndKeepTracksUnder, newSendVehicleToDepotAuto
 extern busstationwindow, oldbusstoptext, busdepotwindow, oldbusdepottext, DestroyWindow
 extern buildtruckstopprocarea, buildtruckstopfunction, buildbuslorryorientation
@@ -229,22 +229,6 @@ begincodefragments
 		push	di
 		push	ebp
 		push	bx
-
-	codefragment oldBuildBusStop, -10
-		push	bx
-		push	dx
-		push	edi
-		push	si
-		push	bp
-		rol	di, 4
-		mov	ax, di
-		mov	cx, di
-
-
-	codefragment newBuildBusStop
-		icall checkIfThisShouldBeATramStop
-		setfragmentsize 10
-		
 
 	codefragment findRVMovementArray
 		db 0x00, 0x00, 0x00, 0x10, 0x00, 0x02, 0x08, 0x1A, 0x00, 0x04
@@ -554,8 +538,6 @@ patchtrams:
 
 	patchcode oldRVProcCheckOvertake,newRVProcCheckOvertake,1,1
 
-	patchcode oldBuildBusStop, newBuildBusStop, 1, 2
-	
 	patchcode storeClass9LandPointerForBridgeOld,storeClass9LandPointerForBridgeNew, 1, 1
 	patchcode drawTramTracksUnderBridgeOld, drawTramTracksUnderBridgeNew, 1, 1
 	patchcode oldDrawBridgeSlope, newDrawBridgeSlope, 1, 1

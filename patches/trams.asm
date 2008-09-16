@@ -810,17 +810,6 @@ setTramYPieceTool:
 	mov	al, 1
 	retn
 
-global checkIfThisShouldBeATramStop
-checkIfThisShouldBeATramStop:
-	cmp	byte [editTramMode], 1
-	jne	.dontSetTramStopFlag
-	bts	word [landscape3+edi*2],4
-	jmp	short .skipOldLoadingOfL3
-.dontSetTramStopFlag:
-	mov	word [landscape3+edi*2], 0
-.skipOldLoadingOfL3:
-	retn
-
 global insertTramDepotFlag
 insertTramDepotFlag:
 	mov	byte [landscape5(di)], bh

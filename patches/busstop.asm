@@ -6,6 +6,9 @@
 #include <veh.inc>
 #include <flags.inc>
 #include <newvehdata.inc>
+#include <pusha.inc>
+#include <town.inc>
+#include <callttd.inc>
 
 extern DrawStationImageInSelWindow,generatesoundeffect,isrvbus,redrawscreen
 extern editTramMode
@@ -276,7 +279,6 @@ Class5VehEnterLeaveBusStop:
 	jmp .busstopdone
 
 
-uvard oldclass5createbusstation,1,z
 global Class5CreateBusStationAction
 Class5CreateBusStationAction:
 	cmp bh, 4
@@ -290,7 +292,7 @@ Class5CreateBusStationAction:
 .dontAddTramStopOffset:
 	add bh, 8-2					//set it to be a tram stop
 .done:
-	jmp [oldclass5createbusstation]
+	jmpttd Class5CreateBusStationAction
 
 uvard oldclass5createtruckstation,1,z
 global Class5CreateTruckStationAction
@@ -307,6 +309,141 @@ Class5CreateTruckStationAction:
 	add bh, 0x0E
 .done:
 	jmp [oldclass5createtruckstation]
+
+// in:	Return from DoAction RemoveEverythingOnTile
+//	on stack: di, dx, bx
+//		bh: direction
+//
+// out:	ebx: price
+//	zf set for cmp ebx, 80000000h
+extern gettileinfo
+exported Class5CreateStationCheckRemove
+	cmp ebx, 80000000h
+	jne short .done
+	pusha
+	mov bh, [esp+20h+4+4+1]
+	cmp bh, 3			// Building old-style stations.
+	jbe .nogood
+	push ebx
+	call [gettileinfo]
+	cmp bx, 2*8
+	pop ebx
+	jne .nogood
+
+// Overbuilding a road tile
+
+	test dh, 0F0h
+	jnz .nogood
+
+// Not a depot or crossing.
+
+	mov al, [esi+landscape1]
+	test al, 80h
+	jnz .ownerOK
+	
+	cmp al, [curplayer]
+	jne .nogood
+	
+.ownerOK:
+	mov dl, [esi*2+landscape3]	// dx is ????ROAD????TRAM
+	mov cl, bh
+	and cl, 1			// cl == 1 if station in X dir
+	shl edx, cl			// Now, for a valid tile, no bits in dh/dl other than 1 and 3 may be set
+	
+	// Check road pieces.
+	test dx, ~0A0Ah
+	jnz .nogood
+
+	test bh, 2
+	jnz .roadlayoutok
+
+	// this is a road station; don't remove tram tracks
+	test dl, dl
+	jnz short .nogood
+
+.roadlayoutok:
+	popa
+	extern stationbuildcostptr
+	mov edi, [stationbuildcostptr]
+	sub [edi], ebx
+	test esp,esp			// clz
+.done:
+	ret
+	
+.nogood:
+	popa
+	cmp esp, esp			// stz
+	ret
+
+exported Class5CreateStation
+	mov word [landscape3+edi*2], 0
+	cmp byte [editTramMode], 1
+	jne .notTramStop
+	or byte [landscape3+edi*2], 1<<4
+.notTramStop:
+	mov al, [landscape4(di,1)]	// overwritten
+	cmp al, 20h
+	jb .notoverbuilding
+	test byte [landscape1+edi], 80h
+	jz .notoverbuilding
+	or byte [landscape3+edi*2], 1<<7
+.notoverbuilding:
+#if !WINTTDX
+	and al, F0h			// overwritten
+#endif
+	ret
+
+exported Class5RemoveDriveThrough
+	test bl, 1
+	jz short .ret
+	pusha
+	call [gettileinfo]
+	test byte [landscape3+esi*2], 80h
+	jz short .notOverbuilt
+
+	xor eax,eax
+	mov [landscape2+esi], al
+	mov [landscape3+esi*2], ax
+
+
+	mov al, [landscape4(si,1)]
+	and al, 0Fh
+	or al, 20h
+	mov [landscape4(si,1)], al
+
+	inc dh
+	mov cl, dh
+	and cl, 1
+	mov al, 0Ah
+	shr al, cl
+	mov byte [landscape5(si,1)],al
+	test dh, 2
+	jz .notrams
+	mov [landscape3+esi*2], al
+.notrams:
+
+	xchg eax, esi
+	extcall findnearesttown
+	xchg eax, esi
+
+	// Get town index
+	sub edi, townarray
+	xor eax, eax
+	mov al, town_size
+	xchg eax, edi
+	cdq			// edx:eax is array offset, edi is town_size
+	div edi
+	or al, 80h
+	mov [landscape1+esi], al
+	popa
+
+.ret:
+	ret
+	
+.notOverbuilt:
+	popa
+	chainjmp Class5RemoveDriveThrough
+
 
 global Class5ClearTileBusStop
 Class5ClearTileBusStop:

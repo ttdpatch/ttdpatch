@@ -573,7 +573,7 @@ isscheduleshared:
 	push eax
 	and dword [numvehshared],0
 	mov eax,[veharrayptr]
-	
+
 .checkvehicle:
 	cmp byte [eax+veh.class],0
 	je .nextveh
@@ -1420,7 +1420,7 @@ drawtextlen:
 	jbe .loop
 	add esi, 2
 	jmp .loop
-	
+
 .skipnext:
 	inc esi
 	jmp .loop
@@ -1430,7 +1430,7 @@ drawtextlen:
 .font1C0:
 	mov ebx, 0x1C0
 	jmp .loop
-	
+
 .toolong:
 	dec esi
 	mov byte [esi], 0
@@ -1509,7 +1509,7 @@ resetcolmapcache:
 	and dword [eax+veh2.colormap],0
 	sub esi,byte -veh_size
 	cmp esi,[veharrayendptr]
-	jb .next	
+	jb .next
 	ret
 
 exported lookuptranslatedcargo_usebit
@@ -1566,3 +1566,13 @@ lookuptranslatedcargo:
 
 	mov bl,[cargoid+ebx]
 	jmp short .found
+
+// in:	ax=XY
+// out: edi->town
+//	bp=distance
+// clobbers: ebx, ebp:16-31, esi
+exported findnearesttown
+	mov	ebp,[ophandler+(3*8)]
+	xor	ebx,ebx
+	mov	bl,1
+	jmp	dword [ebp+4]		// returns the nearest town ptr in EDI and distance in BP; scrambles BX,ESI
