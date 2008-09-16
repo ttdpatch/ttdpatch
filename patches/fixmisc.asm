@@ -239,8 +239,6 @@ aibuilding:
 	jz short .haveit
 
 	// also, if experimentalfeatures.cooperative is on, 75% owned AI counts as player
-	testmultiflags experimentalfeatures
-	jz .isai
 	test byte [expswitches],EXP_COOPERATIVE
 	jz .isai
 
