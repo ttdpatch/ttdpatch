@@ -397,3 +397,8 @@ vard doallplayeractions, 0x40139d
 vard transmitendofactionsfn, 0x401e7e
 vard restartgame, 0x4018c0
 #endif
+
+// Workaround: COFF does not support relative offsets to absolute addresses
+global _absolute_0_, _absolute_4_
+_absolute_0_ equ 0
+_absolute_4_ equ 4

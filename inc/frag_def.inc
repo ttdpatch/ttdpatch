@@ -645,6 +645,24 @@ extern dopatchcode,calldofindstring,store_cj_fragment
 	%undef instrsize
 %endmacro
 
+// as above, but for chainttdcall/chainttdjmp
+%macro copyttdrelative 1-3 0,0 // params: target [,relofs,isbyte]
+	%if %3
+		movsx eax,byte [edi+%2]
+		%define instrsize 1
+	%else
+		mov eax,[edi+%2]
+		%define instrsize 4
+	%endif
+	%if %2+instrsize == 4
+		add eax, edi
+	%else
+		lea eax,[eax+edi+%2+instrsize-4]
+	%endif
+	add [%1],eax
+	%undef instrsize
+%endmacro
+
 // like storerelative, but target is in TTD code
 %macro changereltarget 2-3 edi	// params: targetofs,newdest [,targetreg]
 	%ifidni %3,eax
@@ -713,6 +731,14 @@ extern dopatchcode,calldofindstring,store_cj_fragment
 		%define %%target %1 %+ %2
 	%endif
 	copyrelative %%target,%3
+	changereltarget %3,%1
+%endmacro
+
+// as above, but for chainjmpttd/chaincallttd
+%macro chainttdfunction 1-3 .oldfn,0	// params: newfn,orgoffvar [,relofs]
+	%define %%target %1 %+ %2
+	extern %1, %%target
+	copyttdrelative %%target,%3
 	changereltarget %3,%1
 %endmacro
 
