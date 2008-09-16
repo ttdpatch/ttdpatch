@@ -14,7 +14,7 @@ extern airportstarthangarnodes
 extern CheckForVehiclesInTheWay, CreateAirportCheck
 extern CreateAirportTiles, RemoveAirportCheck
 extern AirportHighligtDeactivate, CalcAirportBuyCost
-extern TempStationCost, FetchAirportStationNumber
+extern stationbuildcostptr, FetchAirportStationNumber
 extern drawairportselwindow
 
 begincodefragments
@@ -180,13 +180,6 @@ codefragment newdeactivehighlight
 	icall AirportHighligtDeactivate
 	setfragmentsize 6
 
-codefragment findtempstationcost, 17
-	imul edi, [costs+0x42]
-	push esi
-	movzx esi, dh
-	imul edi, esi
-	pop esi
-
 codefragment oldcalcstationcosts, -3
 	imul edi, [costs+0x42]
 	push esi
@@ -305,10 +298,7 @@ exported patchnewairports
 	// Patches the Hightlight Area Subroutine for Irregular Airport Layouts
 	patchcode olddeactivehighlight, newdeactivehighlight
 
-	// Tries to fix the costs to work with Irregular Airport Layouts
-	stringaddress findtempstationcost // Get the Tempary Station Cost for future use
-	mov edi, [edi] // Due to the way stringaddress only fetches where it was found
-	mov [TempStationCost], edi
+	mov edi, [stationbuildcostptr]
 	mov dword [oldcalcstationcleartile.ptr], edi
 	patchcode oldcalcstationcosts, newcalcstationcosts // Clear the old function, to stop double charging
 	patchcode oldcalcstationcleartile, newcalcstationcleartile, 2, 4

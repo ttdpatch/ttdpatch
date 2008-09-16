@@ -949,15 +949,13 @@ RemoveAirportCheck:
 	add dword [esp], 0x2D
 	ret
 
-// Used to store the tempary station cost location
-uvard TempStationCost 
-
+extern stationbuildcostptr
 // Calculates the cost, for buying Irregular Airport Layouts (does it tile by tile)
 global CalcAirportBuyCost
 CalcAirportBuyCost:
 	push edi
 	push ecx
-	mov edi, [TempStationCost] // Get the place to store the values
+	mov edi, [stationbuildcostptr] // Get the place to store the values
 	add [edi], ebx
 	mov ecx, [costs+0x42] // Get the cost value
 	add [edi], ecx // Add the cost of the tile
