@@ -395,7 +395,7 @@ exported Class5CreateStation
 
 exported Class5RemoveDriveThrough
 	test bl, 1
-	jz short .ret
+	jz near .ret
 	pusha
 	call [gettileinfo]
 	test byte [landscape3+esi*2], 80h
