@@ -2,7 +2,7 @@
 #include <frag_mac.inc>
 #include <patchproc.inc>
 
-patchprocandor experimentalfeatures,BIT(EXP_INCVEHCONSIST),, patchincvehconsists
+patchproc BIT(EXP_INCVEHCONSIST), patchincvehconsists
 
 begincodefragments
 

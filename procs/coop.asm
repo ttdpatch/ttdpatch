@@ -2,7 +2,7 @@
 #include <frag_mac.inc>
 #include <patchproc.inc>
 
-patchprocandor experimentalfeatures,BIT(EXP_COOPERATIVE),, patchcoop
+patchproc BIT(EXP_COOPERATIVE), patchcoop
 
 begincodefragments
 
