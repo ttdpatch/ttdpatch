@@ -1,6 +1,6 @@
-#if WINTTDX
 #include <defs.inc>
 #include <frag_mac.inc>
+#if WINTTDX
 #include <win32.inc>
 
 extern int21handler, int21seekfrombegin, int21restofhandler
@@ -147,6 +147,41 @@ patchwin2k:
 	multipatchcode movfsmem,6
 	multipatchcode lfserx,9
 	ret
+#else
 
+begincodefragments
 
+codefragment oldenumserialports, 3
+	or cx, cx
+	jz $+2+0x4F
+	mov dx, cx
+
+codefragment newenumserialports
+	jmp $+2+0x4F
+
+codefragment oldbiosdrawmousecursor
+	bt word [uiflags], 4
+
+codefragment newbiosdrawmousecursor
+	setfragmentsize 29+11
+
+codefragment olddisablesoundcall,-11
+	dec byte [counter17ms]
+
+codefragment newdisablesoundcall
+	setfragmentsize 5
+
+endcodefragments
+	
+	
+global patchwin2k
+patchwin2k:
+	// Will disable direct access on com ports that will fail under NT
+	patchcode enumserialports
+	// based on Marcins test, tries to avoid doing problematical drawing of cursor,
+	// but we don't kill the whole sub so we still detect mouse changes...
+	patchcode biosdrawmousecursor
+
+	patchcode disablesoundcall
+	ret
 #endif

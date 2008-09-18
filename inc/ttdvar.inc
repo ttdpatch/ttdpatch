@@ -296,6 +296,7 @@ ttdvar(currentfont,0x77938)		// W: current font base character (0, 224, 448)
 ttdvar(charwidthtables,0x9ea39)		// B: 3 tables of 224 chars widths each for three different font sizes
 
 ttdvar(keypressedscan,0x9c577)		// B: scancode of the last pressed key
+ttdvar(counter17ms,0x9c579)		// B: counter for 17ms ticks
 
 ttdvar(cargopricefactors,0x4C5A)	// W: table of price factors of all 12 cargo types
 

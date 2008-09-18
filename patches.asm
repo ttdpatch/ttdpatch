@@ -88,8 +88,9 @@
 	patchproc newairports, patchnewairports			// must be after patchgeneralfixes
 	patchproc generalfixes,sharedorders, patchsaveschedule
 
-#if WINTTDX
+// patchwin2k is different for DOS and Windows
 	patchproc win2k, patchwin2k
+#if WINTTDX
 	patchproc generalfixes,win2k,enhancedkbdhandler, patchscreenshots
 	patchproc generalfixes,win2k, patchpanning
 	patchproc generalfixes,win2k,disconnectontimeout,enhancemultiplayer, patchnetplay
