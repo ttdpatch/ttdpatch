@@ -3,7 +3,7 @@
 #include <frag_mac.inc>
 #include <patchproc.inc>
 
-patchprocandor experimentalfeatures,BIT(EXP_NEWTERRAINGEN),, patchterraingen
+patchproc BIT(EXP_NEWTERRAINGEN), patchterraingen
 
 begincodefragments
 

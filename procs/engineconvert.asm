@@ -7,7 +7,7 @@
 
 extern ConvertEngineHook
 
-patchprocandor experimentalfeatures,BIT(EXP_ENGINECONVERT),, patchconvertengine
+patchproc BIT(EXP_ENGINECONVERT), patchconvertengine
 
 begincodefragments
 

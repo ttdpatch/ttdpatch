@@ -2,7 +2,7 @@
 #include <frag_mac.inc>
 #include <patchproc.inc>
 
-patchprocandor experimentalfeatures,BIT(EXP_RAILVEHMENU),, patchrailvehmenu
+patchproc BIT(EXP_RAILVEHMENU), patchrailvehmenu
 
 begincodefragments
 

@@ -2,7 +2,7 @@
 #include <frag_mac.inc>
 #include <patchproc.inc>
 
-patchprocandor experimentalfeatures,BIT(EXP_SIGNALGUI),, patchsignalgui
+patchproc BIT(EXP_SIGNALGUI), patchsignalgui
 
 begincodefragments
 
