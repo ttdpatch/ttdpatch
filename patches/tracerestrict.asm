@@ -21,7 +21,7 @@ global robjgameoptionflag,robjflags
 extern cargotypes,newcargotypenames,cargobits,invalidatetile,cargotypes
 extern GenerateDropDownEx,GenerateDropDownExPrepare,DropDownExList
 extern TransmitAction, MPRoutingRestrictionChange_actionnum, actionhandler,patchflags,miscmodsflags,setmainviewxy
-extern zfuncdotraceroutehook,curtracertheightvar
+extern zfuncdotraceroutehook,curtracertheightvar, chkrailroutetargetfn
 
 global tr_siggui_btnclick,programmedsignal_turnitred
 
@@ -216,7 +216,8 @@ trpatch_DoTraceRouteWrapper1:
 	call zfuncdotraceroutehook
 .nozfunccall:
 
-
+	testflags tracerestrict
+	jnc .nomodify
 	test BYTE [robjflags], 1
 	jz .nomodify
 
@@ -242,6 +243,10 @@ jmp .nomodify
 trpatch_stubstepfunc:
 	//test BYTE [robjflags], 1
 	//jz .norm
+	mov al,[landscape4(di)]
+	shr al, 4
+	cmp al, 9
+	jne .norm
 	mov al,[landscape5(di)]
 	xor al,0x40
 	and al,0xC0
@@ -283,8 +288,18 @@ trpatch_stubstepfunc:
 
 .fret:
 	popa
+	cmp DWORD [tr_pbs_sigblentertile], 0
+	jne .pbsfret
 	stc
 	ret
+.pbsfret:
+	push DWORD [chkrailroutetargetfn]
+	add DWORD [chkrailroutetargetfn], 0x4F + (4*WINTTDX)
+	call DWORD [curstepfuncptr]
+	//don't modify flags
+	pop DWORD [chkrailroutetargetfn]
+	ret
+
 	
 var trackpiecesignalmask2, db 0x80,0x80,0x80,0x20,0x40,0x10,0,0,0x40,0x40,0x40,0x10,0x80,0x20,0,0
 

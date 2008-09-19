@@ -1303,7 +1303,9 @@ extern tnlrtmppbsflag
 	mov al,0
 	call checkignoredistance
 	jae .exit
+	mov BYTE [tnlrtmppbsflag], 1
 	call .exit
+	mov BYTE [tnlrtmppbsflag], 0
 	mov si,ax
 //	mov ebp,[landscape6ptr]
 	mov al,[landscape6+edi]
