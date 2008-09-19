@@ -158,6 +158,7 @@ cheatentry "RESETBBLIST",ResetBBlockVehicleLists,0
 cheatentry "CREATEOBJECT", createnewobject, 0 
 extern win_objectgui_create
 cheatentry "OBJECTGUI", win_objectgui_create, 0
+cheatentry "SETLANDVAL", setlandarrayval, 0
 #endif
 
 #if DEBUGNETPLAY
@@ -2911,7 +2912,7 @@ setindustrystrucval:
 	jae NEAR .fret
 	push edx
 	call gethexnumber
-	jc NEAR .fret
+	jc NEAR .pfret
 	xchg edx, [esp]
 	call getsignxy
 
@@ -2983,6 +2984,123 @@ var inddisp, db 94h, "INDUSTRY:  "
 var inddispl, db "##:  "
 var inddisp2, db "##-##-##-## --> "
 var inddisp3, db "##-##-##-##", 0,0
+
+vard getlandscapearrayoffsets
+dd getlandscape1
+dd getlandscape2
+dd getlandscape3
+dd getlandscape4
+dd getlandscape5
+dd getlandscape6
+dd getlandscape7
+dd getlandscape8
+endvar
+
+vard setlandscapearrayoffsets
+dd setlandscape1
+dd setlandscape2
+dd setlandscape3
+dd setlandscape4
+dd setlandscape5
+dd setlandscape6
+dd setlandscape7
+dd setlandscape8
+endvar
+
+getlandscape1:
+	movzx eax, BYTE [landscape1+esi]
+	ret
+setlandscape1:
+	mov [landscape1+esi], al
+	ret
+getlandscape2:
+	movzx eax, BYTE [landscape2+esi]
+	ret
+setlandscape2:
+	mov [landscape2+esi], al
+	ret
+getlandscape3:
+	movzx eax, WORD [landscape3+esi*2]
+	ret
+setlandscape3:
+	mov [landscape3+esi*2], ax
+	ret
+getlandscape4:
+	movzx eax, BYTE [landscape4(si)]
+	ret
+setlandscape4:
+	mov [landscape4(si)], al
+	ret
+getlandscape5:
+	movzx eax, BYTE [landscape5(si)]
+	ret
+setlandscape5:
+	mov [landscape5(si)], al
+	ret
+getlandscape6:
+	movzx eax, BYTE [landscape6+esi]
+	ret
+setlandscape6:
+	mov [landscape6+esi], al
+	ret
+getlandscape7:
+	movzx eax, BYTE [landscape7+esi]
+	ret
+setlandscape7:
+	mov [landscape7+esi], al
+	ret
+getlandscape8:
+	movzx eax, WORD [landscape8+esi*2]
+	ret
+setlandscape8:
+	mov [landscape8+esi*2], ax
+	ret
+
+	//parameters: hex word new values, hex word bit mask, hex byte array (1-8), flag: (0/1) call display land info afterwards
+setlandarrayval:
+	pusha
+	call gethexnumber
+	jc NEAR .fret
+	mov ecx, edx
+	call gethexnumber
+	jc NEAR .fret
+	mov ebp, edx
+	call gethexnumber
+	jc NEAR .fret
+	dec edx
+	cmp edx, 8
+	jae NEAR .fret
+	push edx
+	call gethexnumber
+	jc NEAR .pfret
+	xchg edx, [esp]
+	call getsignxy
+	movzx esi, si
+
+	//esi=coords
+
+	call DWORD [getlandscapearrayoffsets+edx*4]	//puts landscape value in eax
+	and ecx, ebp
+	not ebp
+	and eax, ebp
+	or eax, ecx
+	call DWORD [setlandscapearrayoffsets+edx*4]
+	pop eax
+	or eax, eax
+	jz .tret
+	popa
+	jmp landinfocheat
+.tret:
+	clc
+.ret:
+	popa
+	ret
+.pfret:
+	add esp, 4
+.fret:
+	popa
+	stc
+	ret
 
 createnewobject: 
 	call gethexnumber // Result in dx
