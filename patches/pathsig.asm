@@ -916,6 +916,21 @@ chkmarksignalroute:
 	// found end of traced route
 	// see if the track (not just the route) actually ends here, or if
 	// the next tile has a signal
+	
+	//it is now *verboten* to end a PBS route on a tunnel entrance tile when the entrance signal is red
+	mov al, [landscape4(di)]
+	shr al, 4
+	cmp al, 9
+	jne .endofroutechecknotunnin
+	movzx ecx, BYTE [landscape5(di)]
+	cmp cl, 4
+	jae .endofroutechecknotunnin
+	lea ecx, [ecx*2+1]
+	cmp ebp, ecx
+	je .notsignal	//alert! PBS tried to end a route on a tunnel entrance
+
+.endofroutechecknotunnin:
+
 	mov al,dl
 	call getnextdirandtile_andzadjust
 
@@ -947,8 +962,8 @@ chkmarksignalroute:
 	test [landscape3+edi*2],al
 	jnz .done	// next track piece has a signal
 
-.notsignal:
 #endif
+.notsignal:
 	// route doesn't end either at a signal or a dead end
 	// if the signal into the PBS block is red, we wait no matter what
 	cmp byte [curtracesigstate],0
