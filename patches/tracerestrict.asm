@@ -245,7 +245,7 @@ trpatch_stubstepfunc:
 	//jz .norm
 	mov al,[landscape4(di)]
 	shr al, 4
-	cmp al, 9
+	cmp al, 1
 	jne .norm
 	mov al,[landscape5(di)]
 	xor al,0x40
