@@ -461,6 +461,12 @@ begincodefragments
 	codefragment newFirstTruckArrivesNewsMsg
 		icall	updateFirstTruckArrivesNewsItem
 		setfragmentsize 8
+	
+	codefragment oldcheckbuildovertunnel,1
+		ret
+		cmp bl, 48h
+
+	codefragment_call newcheckbuildovertunnel, CheckTramOverbuilding, 5
 
 endcodefragments
 
@@ -598,5 +604,8 @@ patchtrams:
 	patchcode oldInsertLevelCrossing, newInsertLevelCrossing, 1, 1
 
 	or byte [newgraphicssetsenabled+1],1 << (11 - 8)
+	
+	patchcode checkbuildovertunnel
+
 	retn
 

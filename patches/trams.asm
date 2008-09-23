@@ -206,27 +206,15 @@ noOneWaySetTramTurnAround:
 global insertTramTrackL3Value
 insertTramTrackL3Value:
 	call	[gettileinfo]			//the original call
-	push	bx
-	xor	bx, bx
-	mov	bl, byte [human1]
-	cmp	byte [curplayer], bl		//check that we are player 1
-	pop	bx
+	cmp	bl, 10h
+	jne	.notroad
+	mov	dl, byte [human1]
+	cmp	byte [curplayer], dl		//check that we are player 1
 	jne	.dontLoadTramArray
 	cmp	byte [editTramMode], 0		//are we building trams?
 	jz	.dontLoadTramArray
-	push	dx
-	and	dh, 10h
-	cmp	dh, 10h
-	pop	dx
-	je	.levelCrossing			//we have a level crossing
-	cmp	bl, 08h				//this is rail we are trying to apply trams to!
-	je	.levelCrossing			//we have a level crossing
-
-	test	byte [landscape5(si)], 20h	//DEPOT! skip... this fixed $4mil bug
-	jne	.dontLoadTramArray
-
-	cmp	bl, 0x48		//check if it's a bridge and DON'T insert tram tracks
-	je	.dontLoadTramArray
+	test	dh, 30h
+	jnz	.dontLoadTramArray		//we have a depot or level crossing
 
 	mov	byte dh, [landscape3+esi*2]	//move in tram track data...
 
@@ -236,7 +224,8 @@ insertTramTrackL3Value:
 	;actually... just let this go and then patch later after it's converted the tile to a rail crossing.
 
 .dontLoadTramArray:
-	cmp	bl, 10h
+	cmp esp,esp	// stz
+.notroad:
 	retn
 
 global tramLevelCrossing
@@ -250,20 +239,90 @@ tramLevelCrossing:
 global insertTramTrackIntoRemove
 insertTramTrackIntoRemove:
 	call	[gettileinfo]			;get the standard tile info
-	push	bx
-	xor	bx, bx
-	mov	bl, byte [human1]
-	cmp	byte [curplayer], bl		;check if we're player one
-	pop	bx
+	cmp	byte [editTramMode], 0		;removing... trams or roads?
+	jz	.dontLoadTramArray
+	mov	dl, byte [human1]
+	cmp	byte [curplayer], dl		;check if we're player one
 	jne	.dontLoadTramArray
 	cmp	byte [demolishroadflag],1	;are we dynamiting? or removing?
 	je	.dontLoadTramArray		;if we're dynamiting, then just continue, all gets removed
-	cmp	byte [editTramMode], 0		;removing... trams or roads?
-	jz	.dontLoadTramArray
+	cmp	bl, 28h
+	je	.removetramfromstation
 	mov	byte dh, [landscape3+esi*2]	;trams... move in the current tram tracks
 .dontLoadTramArray:
+.ret:
 	cmp	bl, 48h				;original code.
 	retn
+
+.removetramfromstation:
+	cmp	dh, 53h
+	jb	.ret
+	mov	dl, 5
+	mov	bh, [esp+5]	// bh on stack above return address
+	test	dh, 1
+	jnz	.Y
+	mov	dl, 0Ah
+.Y:
+	test	bh, dl
+	jnz	.ret	// removing perpendicular to station
+	test	dh, 3
+	jpe	.ret	// nothing to remove
+	
+	pop	ebx
+	pop	bx
+	test	bl, 1
+	jz	.onlytesting
+	sub	byte [landscape5(si)],2
+
+.onlytesting:
+	movzx	ebx, word [roadremovecost]
+	shl	ebx, 1
+	ret
+
+exported CheckTramOverbuilding
+	cmp	bl, 48h
+	je	.ret
+	cmp	byte [editTramMode], 1
+	jne	.tryRemoveAll
+	cmp	bl, 28h
+	je	.station
+
+.tryRemoveAll:
+	add	dword [esp], 6Ah+5*WINTTDX		// take the overwritten jcc
+.ret:
+	ret
+
+.station:
+	cmp	dh, 53h
+	jb	.tryRemoveAll
+
+	mov	dl, 5
+	mov	bl, [esp+5]	// bh on stack above return address
+	test	dh, 1
+	jnz	.Y
+	mov	dl, 0Ah
+.Y:
+	test	bl, dl
+	jnz	.tryRemoveAll		// building tracks perpendicular to station
+
+	pop	ebx
+	pop	bx
+	test	dh, 3
+	jpo	.ignorefailure
+	test	bl, 1
+	jz	.onlytesting
+	add	byte [landscape5(si)],2
+
+.onlytesting:
+	movzx	ebx, word [roadbuildcost]
+	shl	ebx, 1
+	ret
+
+.ignorefailure:
+	mov	word [operrormsg2],1007h	// Magically causes the failure to be ignored
+	mov	ebx, 80000000h			// This is the same system as is used for creating level crossings
+	ret
+
 
 global newSendVehicleToDepot
 newSendVehicleToDepot:
@@ -311,13 +370,8 @@ attemptRemoveTramTracks:
 	cmp	byte [demolishroadflag],1 //dynamite? trash it ALLL!
 	jz	short .dynamiteBoth
 	cmp	byte [editTramMode], 1
-	jz	short .onlyDeleteTramTracks
-	jmp	short .onlyDeleteRoads
+	jnz	short .onlyDeleteRoads
 
-.deleteTracksAndRoads:
-	cmp	byte [landscape5(si)], 0
-	jz	short .onlyDeleteTramTracks
-	xor	[landscape5(si)], bh
 .onlyDeleteTramTracks:
 	cmp	byte [landscape3+esi*2], 0
 	jz	short .finaliseDeleting
