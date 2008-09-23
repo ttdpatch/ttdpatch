@@ -987,12 +987,12 @@ proc LoopTiles
 	and dword [%$tilecount], 0
 	xor ecx, ecx
 
-.nextx:
+.nexty:
 	and cl, 0xF0
 	push edx
 	push edi
 
-.nexty:
+.nextx:
 	push eax
 	push edx
 	movzx eax, word [%$id]
@@ -1012,14 +1012,14 @@ proc LoopTiles
 	lea edi, [edi+1]
 	inc cl
 	dec dl
-	jnz .nexty
+	jnz .nextx
 
 	pop edi
 	pop edx
 	lea edi, [edi+256]
 	add cl, 0x10
 	dec dh
-	jnz .nextx
+	jnz .nexty
 
 	pop edi
 	pop edx
@@ -1618,7 +1618,7 @@ RemoveObjectTile:
 	cmp cl, 0
 	ja .normaltile
 
-	imul ecx, object_size
+	imul edx, object_size
 	test word [objectpool+edx+object.flags], OF_ANIMATED
 	jz .normaltile
 
