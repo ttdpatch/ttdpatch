@@ -13,6 +13,7 @@
 #include <pusha.inc>
 #include <flags.inc>
 #include <human.inc>
+#include <callttd.inc>
 
 extern BringWindowToForeground,CreateTooltip,CreateWindowRelative
 extern DestroyWindow,DrawWindowElements,RefreshWindowArea,WindowClicked
@@ -3608,7 +3609,7 @@ endvar
 noglobal uvard .oldindu1
 
 .name:
-	cld
+	cld		// This is (yay) called with df set.
 	mov ebx, baTempBuffer1
 	xor ecx,ecx
 	inc ch
@@ -5797,35 +5798,62 @@ fundindustry_chkplacement:
 	push eax
 	ret
 
-// pointers to parts of the random production change proc that...
-uvard industry_closedown,1,s		// ...initate imminent closedown
-uvard industry_primaryprodchange,1,s	// ...decides production change for primary industries
-
-uvard industry_showchangemsg,1,s	// show industry message in ebx
-
 uvarb prodchange_suppressnewsmsg
-
 uvarw prodchangemsg_custommsg		// custom message for the prod. change event, or 0 if none
 
 // Called in the beginning of the random production change proc
 // Handle callback 29 (random production change) here if enabled
 // in:	ebx: industry type
 //	esi-> industry
-// out:	al: industry production flags, if exiting normally
-// safe: all
+//	al: industry production flags
+// out:	ax: TextID for industry name, if exiting normally
+//	dx: TextID to display as a news message, if exiting normally
+// safe: all except esi.
+// bh is used as a byte-sized zero throuhout.
 global industryrandomprodchange
 industryrandomprodchange:
-	mov al,[industryproductionflags+ebx]	// recreation of overwritten code
+	lea edi, [esi+industry.prodmultiplier]
 // check for the callback
-	mov byte [prodchange_suppressnewsmsg],0
+	mov byte [prodchange_suppressnewsmsg],bh
 	and word [prodchangemsg_custommsg],0
 	test byte [industrycallbackflags+ebx],0x10
 	jnz .docallback
+	test al, 3
+	jnz .checkIndustryChangeProd
+	test al, 4
+	jz .ret1
 
+.checkIndustryCloseDown:
+	mov al,[currentyear]
+	sub al,[esi+industry.lastyearprod]
+	cmp al,5
+	jb .ret1
+
+	call [randomfn]
+	cmp ax, 8000h
+	ja near .IndustryCloseDown
+.ret1:
 	ret
 
+.checkIndustryChangeProd:
+	call inducantincrease
+	jz  .j_IndustryDecreaseProd
+	call [randomfn]
+	cmp ax, 5555h
+	ja .ret1
+	shr eax, 10h
+	cmp byte [esi+industry.lastmonthtransp], 99h
+	ja .goodService
+	cmp ax, 5555h
+	ja .IndustryDecreaseProd
+	jmp short .IndustryIncreaseProd
+.goodService:
+	cmp ax, 5555h
+	ja .IndustryIncreaseProd
+.j_IndustryDecreaseProd:
+	jmp short .IndustryDecreaseProd
+
 .docallback:
-	pop eax					// remove return address - we'll return from the caller
 	mov byte [curcallback],0x29
 .callit:
 // give a random value to the GRF
@@ -5835,9 +5863,8 @@ industryrandomprodchange:
 	mov eax,ebx
 	mov byte [grffeature],0xa
 	call getnewsprite
-	mov byte [curcallback],0
-	jnc .goodcallback
-	ret
+	mov byte [curcallback],bh
+	jc .ret1
 
 .goodcallback:
 	// bit 7 is set if the news message should be suppressed
@@ -5862,41 +5889,44 @@ industryrandomprodchange:
 	jnz .notnothing
 
 	test ah,1		// if there is a custom message, invoke the change message even though there is no change
-	jz .nothing
+	jz .ret2
 
-	jmp [industry_showchangemsg]
+	jmp .showmessage
 
 .notnothing:
-
-// values above 12 are an error
-	cmp al,12
-	ja .error
 
 	cmp al,1
 	jne .nohalve
 
-	mov ecx,1
+.IndustryDecreaseProd:
+	xor ecx,ecx
+	inc ecx
 	jmp short .decrease
 
 .nohalve:
 	cmp al,2
 	jne .nodouble
 
-	mov ecx,1
+.IndustryIncreaseProd:
+	xor ecx, ecx
+	inc ecx
 	jmp short .increase
 
 .nodouble:
 	cmp al,3
-	jne .noclosedown
-.closedown:
-	call preventindustryclosedown
-	jz .nothing
-	jmp [industry_closedown]
+	je .IndustryCloseDown
 
 .noclosedown:
 	cmp al,4
-	jne .noprimaryprodchange
-	jmp [industry_primaryprodchange]
+	je .checkIndustryChangeProd
+
+	cmp al, 14
+	ja .ret2
+	cmp al, 13
+	ja .inc
+	je .dec
+
+// all remaining values are multi increase/decrease
 
 .noprimaryprodchange:
 	movzx ecx,al
@@ -5905,52 +5935,97 @@ industryrandomprodchange:
 	jbe .decrease
 
 	sub ecx,4
-	jmp short .increase
-
-.nothing:
-.error:
-	ret
 
 .decrease:
 .decloop:
-	cmp byte [esi+industry.prodmultiplier],4
-	je .closedown
-	shr byte [esi+industry.prodmultiplier],1
-	add byte [esi+industry.prodrates],1
-	sbb byte [esi+industry.prodrates],0
-	shr byte [esi+industry.prodrates],1
-	add byte [esi+industry.prodrates+1],1
-	sbb byte [esi+industry.prodrates+1],0
-	shr byte [esi+industry.prodrates+1],1
+	cmp byte [edi],4
+	jbe .IndustryCloseDown
+	shr byte [edi],1
 	loop .decrease
 
-	movzx ebx,byte [esi+industry.type]
-	mov dx,[industryproddecmsgs+ebx*2]
-	jmp [industry_showchangemsg]
+	cmp byte [edi], 4
+	jae .showdecmessage
+	mov byte [edi], 4
+
+.showdecmessage:
+	mov edx,industryproddecmsgs
+	jmp short .changedprodmultiplier
 
 .increase:
-	cmp byte [esi+industry.prodmultiplier],0x80
-	je .nothing
+	cmp byte [edi],0x80
+	je .ret2
 .incloop:
-	cmp byte [esi+industry.prodmultiplier],0x80
-	je .stop
-	shl byte [esi+industry.prodmultiplier],1
-
-	shl byte [esi+industry.prodrates],1
-	jnc .nooverflow1
-	mov byte [esi+industry.prodrates],0xff
-.nooverflow1:
-	
-	shl byte [esi+industry.prodrates+1],1
-	jnc .nooverflow2
-	mov byte [esi+industry.prodrates+1],0xff
-.nooverflow2:
+	shl byte [edi],1
+	jc .stop
 	loop .incloop
-
+	cmp byte [edi],0x80
+	jbe .showincmessage
 .stop:
+	mov byte [edi],0x80
+.showincmessage:
+	mov edx,industryprodincmsgs
+	jmp short .changedprodmultiplier
+
+.ret2:			// two of these to keep the jumps short.
+	ret
+
+.IndustryCloseDown:
+	call preventindustryclosedown
 	movzx ebx,byte [esi+industry.type]
-	mov dx,[industryprodincmsgs+ebx*2]
-	jmp [industry_showchangemsg]
+	jz .ret2
+	testmultiflags stableindustry
+	jz .doclose
+	cmp [economy],bh
+	je .ret2
+.doclose:
+	mov [edi],bh
+	mov dx, [industryclosuremsgs+ebx*2]
+	jmp short .showmessage
+
+.inc:
+	cmp byte [edi],80h
+	je .ret2
+	inc byte [edi]
+	jmp short .showincmessage
+
+.dec:
+	cmp byte [edi],4
+	je .IndustryCloseDown
+	dec byte [edi]
+	jmp short .showdecmessage
+
+.changedprodmultiplier:
+	mov cl, [edi]
+	mov al, [industryprod1rates+ebx]
+	call .makerate
+	mov [esi+industry.prodrates], al
+	mov al, [industryprod2rates+ebx]
+	call .makerate
+	mov [esi+industry.prodrates+1], al
+	mov dx, [edx+ebx*2]
+
+.showmessage:
+	cmp byte [prodchange_suppressnewsmsg],bh
+	jnz .ret2
+
+.nosuppress:
+	mov ax,[prodchangemsg_custommsg]
+	test ax,ax
+	jz .nocustom
+	mov dx,ax				// override message
+.nocustom:
+	call getindunameaxesi
+	jmpttd industryrandomprodchange, .DisplayMessage
+
+.makerate:
+	mul cl
+	shr ax, 4
+	adc ax, 0
+	test ah, ah
+	jz .rateOK
+	mov al, 0FFh
+.rateOK:
+	ret
 
 global monthlyupdateindustryproc
 monthlyupdateindustryproc:
@@ -5971,22 +6046,8 @@ ovar .oldfn,-4,$,monthlyupdateindustryproc
 	mov byte [prodchange_suppressnewsmsg],0
 	and word [prodchangemsg_custommsg],0
 	mov byte [curcallback],0x35
+	lea edi, [esi+industry.prodmultiplier]
 	jmp industryrandomprodchange.callit
-
-global industryprodchange_shownewsmsg
-industryprodchange_shownewsmsg:
-	mov [textrefstack+6],ax			// overwritten
-	cmp byte [prodchange_suppressnewsmsg],0
-	jz .nosuppress
-	pop eax					// remove return address
-.nosuppress:
-
-	mov ax,[prodchangemsg_custommsg]
-	test ax,ax
-	jz .nocustom
-	mov dx,ax				// override message
-.nocustom:
-	ret
 
 // Called while looking for the closest industry accepting a cargo type, when a vehicle unloads cargo
 // Adjust bx so it points to the middle tile of the industry, not the north corner
@@ -6173,51 +6234,6 @@ indutilesellouthandler:
 .exit:
 	ret
 
-// check whether secondary industry should close down
-//
-// in:	esi->industry
-// out:	al=years since last production (will close if >4)
-// safe:ax ebx cx dx ebp
-exported checkinduclosedown
-	mov al,[currentyear]
-	sub al,[esi+industry.lastyearprod]
-	cmp al,5
-	jb .ok
-	call preventindustryclosedown
-	jnz .ok
-	mov al,2
-.ok:
-	ret
-
-// check whether primary industry should reduce production
-//
-// in:	esi->industry
-// out:	CF=1 close down
-//	CF=0 ZF=1 do nothing
-//	CF=0 ZF=0 reduce production
-// safe:ax ebx cx dx ebp
-exported checkindudecprod
-	cmp byte [esi+industry.prodmultiplier],4
-	ja .reduce	// return with CF=0 ZF=0
-
-	call preventindustryclosedown
-	clc
-	jz .done	// don't reduce, don't close: CF=0 ZF=1
-
-	stc		// set CF=1 -> close down
-
-.done:
-	ret
-
-.reduce:	// overwritten code with added overflow protection
-	shr byte [esi+industry.prodmultiplier],1
-	add byte [esi+industry.prodrates],1
-	sbb byte [esi+industry.prodrates],0
-	shr byte [esi+industry.prodrates],1
-	add byte [esi+industry.prodrates+1],1
-	sbb byte [esi+industry.prodrates+1],0
-	test esp,esp	// clear ZF,CF
-	ret
 
 // check whether industry is the last of its type on the map, and prevent
 // closedown if it is (except for industries with oil wells flag set)

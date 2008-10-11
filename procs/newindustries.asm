@@ -10,12 +10,12 @@ extern CreateNewRandomIndustry,baIndustryTileTransformBack
 extern baIndustryTileTransformOnDistr,canindubuiltonwater,caninduonlybigtown
 extern caninduonlyneartown,caninduonlytown,checkindustileslope
 extern createinitialindustry_nolookup,fundcostmultipliers,getindunamebp
-extern getindunamebx,industilespritetable,industry_closedown,industry_primaryprodchange
+extern getindunamebx,industilespritetable
 extern malloccrit,newinduwindowitemlist
 extern oldinduwindowitemlist,displayfoundation,correctexactalt.chkslope
 extern monthlyupdateindustryproc,monthlyupdateindustryproc.oldfn
 extern callback_extrainfo,enddrawindustrywindow,enddrawindustrywindow.oldfn
-extern indutilesellouthandler,industry_showchangemsg
+extern indutilesellouthandler
 
 #include <industry.inc>
 #include <textdef.inc>
@@ -253,14 +253,6 @@ codefragment newputfarmfields2
 	setfragmentsize 10
 	db 0x74		// jnz -> jz
 
-codefragment oldinducantincrease
-	cmp bl,0x0b
-	jnz $+2+0x9
-
-codefragment newinducantincrease
-	icall inducantincrease
-	setfragmentsize 12
-
 codefragment oldrandominducantcreate
 	cmp bl,0x0b
 	jnz $+2+0xf
@@ -446,18 +438,11 @@ codefragment oldfundindustry_overwriteerrmsg,2
 codefragment newfundindustry_overwriteerrmsg
 	setfragmentsize 9
 
-codefragment oldindustryrandomprodchange,-6
+codefragment oldindustryrandomprodchange
 	test al,3
 	jnz $+2+0x29
 
-codefragment newindustryrandomprodchange
-	icall industryrandomprodchange
-
-codefragment oldindustryprodchange_shownewsmsg
-	mov [textrefstack+6],ax
-	mov ebp,[esi+industry.townptr]
-
-codefragment_call newindustryprodchange_shownewsmsg, industryprodchange_shownewsmsg, 6
+codefragment_jmp newindustryrandomprodchange,industryrandomprodchange,5
 
 codefragment oldmonthlyupdateindustryproc,11
 	mov cl,NEWNUMINDUSTRIES			// patchnumindustries gets to this first and changes it.
@@ -513,24 +498,6 @@ codefragment oldFundNewIndustry_restoreplayer,2
 
 codefragment_call newFundNewIndustry_restoreplayer, FundNewIndustry_restoreplayer
 
-codefragment oldcheckinduclosedown
-	mov al,[currentyear]
-	sub al,[esi+industry.lastyearprod]
-
-codefragment newcheckinduclosedown
-	icall checkinduclosedown
-	setfragmentsize 8
-
-codefragment oldindudecreaseprod
-	cmp byte [esi+industry.prodmultiplier],4
-	jz fragmentstart-0x2b	// jz .closedown
-
-codefragment newindudecreaseprod
-	icall checkindudecprod
-	jc fragmentstart-0x2b	// jc .closedown
-	jz fragmentstart+0x33	// jz .done
-	setfragmentsize 18
-
 codefragment oldtoyfactoryanimation,8
 	mov [nosplit landscape3+ebx*2],ax
 	cmp ah,8
@@ -557,8 +524,6 @@ codefragment findRemoveIndustry,8
 	db 0B1h		// mov cl,cWinTypeIndustry
 
 endcodefragments
-
-ext_frag oldindustryclosedown
 
 extern industry2arrayptr
 
@@ -608,7 +573,7 @@ patchnewindustries:
 	storefunctioncall getindunamebp
 	patchcode getindunameaxecx
 	patchcode getindunameaxedi
-	multipatchcode oldgetindunameaxesi,newgetindunameaxesi,2
+	patchcode oldgetindunameaxesi,newgetindunameaxesi,2,2
 
 	patchcode putfarmfields1
 	patchcode cutlmilltrees
@@ -623,9 +588,6 @@ patchnewindustries:
 	storefunctioncall caninduonlyneartown
 	patchcode caninduonlytown2
 	patchcode putfarmfields2
-	stringaddress oldinducantincrease,1,1
-	mov [industry_primaryprodchange],edi
-	storefragment newinducantincrease
 	patchcode randominducantcreate
 	patchcode oldaioilrigcheck1,newaioilrigcheck,1,1
 	patchcode oldaioilrigcheck2,newaioilrigcheck,1,1
@@ -692,11 +654,9 @@ patchnewindustries:
 	patchcode fundindustry_overwriteerrmsg
 
 	patchcode industryrandomprodchange
-	storeaddress oldindustryclosedown,1,1,industry_closedown
-	stringaddress oldindustryprodchange_shownewsmsg,1,1
-	lea eax,[edi-9]
-	mov [industry_showchangemsg],eax
-	storefragment newindustryprodchange_shownewsmsg
+	add edi, lastediadj+0EDh-14h
+	extern industryrandomprodchange.DisplayMessage
+	add [industryrandomprodchange.DisplayMessage], edi
 	stringaddress oldmonthlyupdateindustryproc,1,1
 	chainfunction monthlyupdateindustryproc,.oldfn
 	add edi, 9Eh-7Ah
@@ -726,9 +686,6 @@ extern closeinduinduwinupdate, closeinduinduwinupdate.oldfn
 	multipatchcode oldFundNewIndustry_restoreplayer,newFundNewIndustry_restoreplayer,2
 	mov eax,[ophandler+8*8]
 	mov dword [eax+0x38],indutilesellouthandler
-
-	patchcode checkinduclosedown
-	patchcode indudecreaseprod
 
 // fix toy factory animations messing up the high byte of L3
 	patchcode toyfactoryanimation
