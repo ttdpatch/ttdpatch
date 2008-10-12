@@ -19,6 +19,7 @@
 #include <objects.inc>
 #include <transopts.inc>
 #include <ptrvar.inc>
+#include <patchdata.inc>
 
 
 extern MassageSoundData
@@ -2342,7 +2343,9 @@ skipspriteif:
 	xchg eax,ebx		// ebx=condition type
 	jb near .bittest
 
-	mov edx,[edx]
+	xchg eax,edx
+	extcall getglobalvar
+	xchg eax,edx
 
 	mov bh,ah		// bh=1 if externalvar, 0 if param
 
@@ -2935,6 +2938,9 @@ setparam:
 	call .getparam
 	pop ebp
 	je .done
+	jnc .invalidvar
+	bt ebp,31
+	cmc		// clc if bit 31 is set -- cannot write to a calculated var
 .invalidvar:
 	mov dh,INVSP_INVVAR
 .invalidjmp:
@@ -3151,7 +3157,9 @@ endvar
 	je .zero1
 	ja .invalidvar
 
-	mov ecx,[ecx]
+	xchg eax,ecx
+	call getglobalvar
+	xchg eax,ecx
 
 .zero1:
 	push eax
@@ -3160,7 +3168,9 @@ endvar
 	je .zero2
 	ja .invalidvar
 
-	mov ebx,[ebx]
+	xchg eax,ebx
+	call getglobalvar
+	xchg eax,ebx
 
 .zero2:
 	xchg ecx,eax
@@ -4116,6 +4126,8 @@ var spritereserveaction
 
 uvard callback_extrainfo
 
+// When bit 31 is set, the pointer is a function pointer instead of a data pointer.
+// Such functions must return the value in eax and must preserve all other registers.
 var externalvars		// for variational cargo IDs and action 7/9/D
 	dd currentdate		// 00	80 (first number var.cargoID;
 	dd currentyear		// 01	81  second number action 7/9/D param-num)
@@ -4152,11 +4164,29 @@ var externalvars		// for variational cargo IDs and action 7/9/D
 	dd snowline		// 20	A0
 	dd alwaysminusone	// 21	A1 (placeholder for OpenTTD version)
 	dd difficultylevel	// 22	A2
+	dd getlongdate + 80000000h	// 23	A3
+	dd getlongyear + 80000000h	// 24	A4
 
 global numextvars
 numextvars equ (addr($)-externalvars)/4
 
 uvard alwaysminusone,1,s
+
+// procs for faux variables 23 and 24
+getlongdate:
+	movzx eax, word [currentdate]
+	add eax, [landscape3+ttdpatchdata.daysadd]
+	add eax, 701265
+	ret
+
+getlongyear:
+	push ebx
+	movzx eax, byte [currentyear]
+	movzx ebx, word [landscape3+ttdpatchdata.yearsadd]
+	lea eax, [eax+ebx+1920]
+	pop ebx
+	ret
+
 
 	// first entry in grf resource list for each feature
 	// must be synchronized with NGRFRESOURCES and grfresources below

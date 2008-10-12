@@ -1252,7 +1252,7 @@ getvariationalvariable:
 	jae .gotval
 
 	mov eax,[externalvars+eax*4]
-	mov eax,[eax]
+	call getglobalvar
 
 .gotval:
 	mov cl,[ebx+1]		// shiftnum
@@ -1863,6 +1863,19 @@ exported savevar40x
 	popa
 	ret
 #endif
+
+// get the value for a global variable
+// in:	eax-> variable or function
+// out:	eax: value
+exported getglobalvar
+	int3
+	btr eax,31
+	jnc .notcalculated
+	int3
+	jmp eax
+.notcalculated:
+	mov eax, [eax]
+	ret
 
 // get special variable for variational sprites
 //
