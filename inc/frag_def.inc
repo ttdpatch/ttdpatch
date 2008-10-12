@@ -107,7 +107,14 @@
 	%define %1_cj_type %4
 	%define %1_target %2
 	%assign %1_len %3
-	%assign %1_adj -%3
+	%if %3<13		// pads of <8 bytes (5..12 byte frag) are done with pad X
+		%assign %1_adj -%3
+	%elif %3<87h		// pads of 8..81h (13..86h byte frag) are done with jmp short
+		%assign %1_adj -7
+	%else			// all longer pads require jmp near (not implemented!)
+		%assign %1_adj -10
+		%error "Runtime-generated fragments longer than 86h bytes are not supported."
+	%endif
 	extern %2
 %endmacro
 
