@@ -4595,6 +4595,12 @@ getincargo:
 	pop edx
 	ret
 
+exported getlongbuilddate
+	movzx eax, word [esi+industry.consdate]
+	add eax, [landscape3+ttdpatchdata.daysadd]
+	add eax, 701265				// 1920
+	ret
+
 // get parametrized variable 60 - type of tile at given offset
 // the parameter in ah contains the X offset in the low nibble and
 // the Y offset in the high nibble
