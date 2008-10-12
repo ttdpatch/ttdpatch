@@ -1868,10 +1868,8 @@ exported savevar40x
 // in:	eax-> variable or function
 // out:	eax: value
 exported getglobalvar
-	int3
 	btr eax,31
 	jnc .notcalculated
-	int3
 	jmp eax
 .notcalculated:
 	mov eax, [eax]
