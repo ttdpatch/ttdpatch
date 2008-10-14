@@ -1610,7 +1610,6 @@ getconsistcargo:
 
 getplayerinfo.gotwindow:
 // Generate var 43 based on the window's owner
-	pop ecx
 	mov [esp+1Ch], eax
 	popa
 	mov al, [eax+window.company]
@@ -1645,56 +1644,30 @@ getplayerinfo.gotwindow:
 	ret
 
 getplayerinfo.vehtype:
-	mov ecx,[curgrffeature]
 	movzx eax,byte [vehbase+ecx]
 	add eax,[curgrfid]
 	push eax
 
-extern CloneTrainCompany // Saves this function from death when clonetrain is used!
-	mov al, [CloneTrainCompany] // We may have the company window already (from CloneTrain)
-	cmp al, 8 // Lower than 8 is valid, higher means not clonetrain calling
-	jb getplayerinfo.gotwindow.gotcompany
-
 	// find window struct pointer
-	// It appears on the stack at least three times between [esp+4]
-	// and [esp+A0h]
-	// I looked for a reliable offset, but could not find one, so we get to search.
+	// If present, it appears on the stack between [esp+4] and [esp+A0h]
 	pusha
 	xor ecx, ecx
 	mov cl, 27h
-	lea esi, [esp+4+20+4]
-.outer:
-	lodsd
-	// zero and the above-pushed EAX appear two or more times, so ignore them.
-	test eax,eax
-	jz .loop
-	cmp eax, [esp+1Ch]
-	je .loop
-
-	xor edx, edx
-	push ecx
-	mov edi, esi
-.inner:
-	scasd
-	jnz .next
-	inc edx
-	cmp edx, 2
-	db 2Eh // BPL: branch not taken
-	je getplayerinfo.gotwindow
-.next:
-	loop .inner
-	pop ecx
+	lea esi, [esp+24h]
 .loop:
-	loop .outer
-#ifdef RELEASE
+	lodsd
+	extern windowstack
+	cmp eax, [windowstack]
+	jb .next
+	cmp eax, [windowstacktop]
+	db 2Eh // BPL: branch not taken
+	jbe getplayerinfo.gotwindow
+.next:
+	loop .loop
+// No window found; revert to curplayer
 	popa
-	pop ecx
-	mov eax, 0xFF
-	ret
-#else
-	add esp, 24h	// undo the push eax/pusha
-	ud2
-#endif
+	mov al, [curplayer]
+	jmp short getplayerinfo.gotwindow.gotcompany
 
 	// 43: get current player info
 	// out:	Ccttmmnn
@@ -1703,7 +1676,8 @@ extern CloneTrainCompany // Saves this function from death when clonetrain is us
 global getplayerinfo
 getplayerinfo:
 	extern curgrffeature,player2array
-	cmp byte [curgrffeature],4
+	mov ecx,[curgrffeature]
+	cmp cl,4
 	jae .novehicle
 	test esi,esi
 	jz .vehtype
