@@ -1663,14 +1663,8 @@ getplayerinfo.vehtype:
 	add eax,[curgrfid]
 	push eax
 
-extern CloneTrainCompany // Saves this function from death when clonetrain is used!
-	mov al, [CloneTrainCompany] // We may have the company window already (from CloneTrain)
-	cmp al, 8 // Lower than 8 is valid, higher means not clonetrain calling
-	jb getplayerinfo.gotwindow.gotcompany
-
 	// find window struct pointer
-	// It appears on the stack between [esp+4] and [esp+A0h]
-	// I looked for a reliable offset, but could not find one, so we get to search.
+	// If present, it appears on the stack between [esp+4] and [esp+A0h]
 	pusha
 	xor ecx, ecx
 	mov cl, 27h
@@ -1685,15 +1679,10 @@ extern CloneTrainCompany // Saves this function from death when clonetrain is us
 	jbe getplayerinfo.gotwindow
 .next:
 	loop .loop
-#ifdef RELEASE
+// No window found; revert to curplayer
 	popa
-	pop ecx
-	mov eax, 0xFF
-	ret
-#else
-	add esp, 24h	// undo the push eax/pusha
-	ud2
-#endif
+	mov al, [curplayer]
+	jmp short getplayerinfo.gotwindow.gotcompany
 
 // indu variable 45 (like veh var 43)
 exported getplayerinfo_indu

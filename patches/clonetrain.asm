@@ -363,7 +363,6 @@ CloneTrainMain:
 // A few Variables to keep cloning working correctly
 uvard CloneTrainCost // Stores the total cost of cloning
 uvarw CloneTrainLastIdx // Stores the last created unit id
-uvarb CloneTrainCompany, 1, s // Stores the Company which started the building
 
 // Handles the actual operation of cloning the consist
 // Input:	esi = Depot Window Pointer
@@ -381,7 +380,6 @@ exported CloneTrainBuild
 	test bl, 1
 	jz near CloneTrainCalcOnly
 
-	mov byte [CloneTrainCompany], bh // Used for var 43 to work correctly (ie. stop a fatal crash)
 	mov word [CloneTrainLastIdx], 0xFFFF // Blank this otherwise the attach loop will fail
 	jmp .loop
 
@@ -478,7 +476,6 @@ exported CloneTrainBuild
 	add esi, [veharrayptr]
 	movzx edi, word [edi+veh.engineidx] // Get and store the engine head's id for the next subroutine
 	mov [CloneTrainLastIdx], di
-	mov byte [CloneTrainCompany], -1 // Blank this so it goesn't cause an issue after clonetrain finishes
 
 	cmp byte [esi+veh.totalorders], 0 // If it has no orders then don't copy or share orders
 	je .donesharingorders
