@@ -34,39 +34,21 @@ extern bridgedrawrailunder, displayfoundation
 extern addrailfence1,addrailfence2,addrailfence3,addrailfence4,addrailfence5,addrailfence6,addrailfence7,addrailfence8
 
 uvard	tramVehPtr,1,s
-uvard	RVMovementArrayPtr
 uvarw	tramtracks,1,s
-uvard	Class0DrawLand, 1, s
-uvard	roadtoolbarelemlisty2
 uvard	oldClass2DrawLand,1,s
-uvard	oldRoadTile,1,s
-uvard	Class5LandPointer,1,s
 uvard	Class2LandPointer,1,s
 uvard	Class9LandPointer,1,s
-uvard	stdRoadElemListPtr,1,s
 uvarb	editTramMode
 uvarb	curTileMap
 uvarb	tmpSpriteOffset
 uvarb	townIsExpanding
-uvard	bTempNewBridgeDirection
-uvard	tramTracksSWNE
-uvard	tramTracksNWSE
-uvard	paRoadConstrWinClickProcs,1,s
-uvard	paRoadDepotSpriteTable
-uvarw	tmpDI,1,s
-var	numtramtracks, dd 107
+uvard	numtramtracks
 //var	tramfrontwiresprites,	db 0h, 37h, 37h, 3Fh, 37h, 37h, 43h, 37h, 37h, 3Fh, 37h, 37h, 3Fh, 37h, 37h, 37h
 var	tramfrontwiresprites,	db 0h, 54h, 55h, 5Bh, 54h, 54h, 5Eh, 5Ah, 55h, 5Ch, 55h, 58h, 5Dh, 57h, 59h, 56h
 var	trambackpolesprites,	db 0h, 38h, 39h, 40h, 38h, 38h, 43h, 3Eh, 39h, 41h, 39h, 3Ch, 42h, 3Bh, 3Dh, 3Ah
 var	tramtracksprites,	db 0h, 16h, 15h, 0Bh, 14h, 04h, 0Eh, 09h, 13h, 0Ch, 05h, 08h, 0Dh, 07h, 0Ah, 06h, 00h, 01h, 02h, 03h, 30h
 var	tramMovement,		db 0h, 02h, 01h, 10h, 02h, 02h, 08h, 1Ah, 01h, 04h, 01h, 15h, 20h, 26h, 29h, 3Fh
 uvarw	removeamount,1,s
-uvard	busstationwindow,1,s
-uvarw	oldbusstoptext,1,s
-uvard	busdepotwindow,1,s
-uvarw	oldbusdepottext,1,s
-uvard	buildtruckstopfunction,1,s
-uvard	buildtruckstopprocarea,1,s
 uvard	checkdepot3jump,1,s
 uvard	checkdepot4jump,1,s
 uvard	checkdepot5jump,1,s
@@ -133,8 +115,6 @@ var paStationtramfreightstop2
 	db 0,4,4,1,2,8
 	dd 4079
 	db 80h
-
-uvard roadmenuelemlisty2
 
 global setTramPtrWhilstRVProcessing
 setTramPtrWhilstRVProcessing:
@@ -534,7 +514,8 @@ ovar .origfn, -4, $, DrawTramTracks
 	movzx	bx, byte [curTileMap]
 	movzx	bx, [trambackpolesprites+ebx]
 	xor	edi,edi
-	mov	di, word [tmpDI]
+	mov	di, 0
+ovar tmpDI, -2
 	or	di, di
 	jz	short .skipSlopesRearElec
 	mov	bx, 44h
@@ -712,36 +693,20 @@ createRoadConstructionWindow:
 	mov	al, byte [lastroadmenuselection]
 .dontShiftInLastValue:
 	cmp	al, 1
-	jne	near .moveInZero
-	mov	byte [editTramMode], 1
-	push	edi
-	push	ecx
-	mov	edi, dword [busstationwindow]
-	mov	word [edi], ourtext(txtetramstationheader)
-	mov	edi, dword [busdepotwindow]
-	mov	word [edi], ourtext(txtetramdepotheader)
-;	mov	edi, dword [buildtruckstopprocarea]
-;	mov	dword [edi], null_proc
-	pop	ecx
-	pop	edi
-	jmp	.movedInData
-.moveInZero:
-	mov	byte [editTramMode], 0
-	push	eax
-	push	edi
-	mov	edi, dword [busstationwindow]
-	mov	ax, [oldbusstoptext]
-	mov	word [edi], ax
-	mov	edi, dword [busdepotwindow]
-	mov	ax, [oldbusdepottext]
-	mov	word [edi], ax
-;	mov	edi, dword [buildtruckstopprocarea]
-;	mov	eax, dword [buildtruckstopfunction]
-;	mov	dword [edi], eax
-	pop	edi
-	pop	eax
-.movedInData:
 	mov	byte [lastroadmenuselection], al
+	mov	eax, 0
+ovar busstationwindow
+	mov	ebx, 0
+ovar busdepotwindow
+	sete	byte [editTramMode]
+	jne	short .buildRoads
+	mov	word [eax], ourtext(txtetramstationheader)
+	mov	word [ebx], ourtext(txtetramdepotheader)
+	jmp	.movedInData
+.buildRoads:
+	mov	word [eax], 3042h
+	mov	word [ebx], 1806h
+.movedInData:
 	mov	eax, 356 + (22 << 16)
 	mov	ebx, 284 + (36 << 16)
 	mov	cx, 3h
@@ -754,7 +719,8 @@ createRoadConstructionWindow:
 	mov	edi, addr(saTramConstrWindowElemList)
 	jmp	short .doneElemList
 .drawInRoads:
-	mov	edi, [stdRoadElemListPtr]
+	mov	edi, 0
+ovar stdRoadElemListPtr
 .doneElemList:
 	mov	dword [esi+window.elemlistptr], edi
 ;	cmp	byte [editTramMode], 1
@@ -787,7 +753,8 @@ roadmenudropdown:
 	pop	ebx
 
 .noTramTrackImagery:
-	mov	eax,[roadmenuelemlisty2]
+	mov	eax,0
+ovar roadmenuelemlisty2
 	mov	ecx,1h
 	add	ecx,1h //add one line to the menu TRAMS!
 	imul	ebx,ecx,10
@@ -838,8 +805,7 @@ setTramXPieceTool:
 	jle	.moveRoadToolIn
 	cmp	byte [editTramMode], 1
 	jne	.moveRoadToolIn
-	mov	ebx, 13h
-	movzx	bx, byte [tramtracksprites+ebx]
+	mov	bx, 3 // byte [tramtracksprites+13h]
 	add	bx, [tramtracks]
 	jmp	.leaveTramToolIn
 .moveRoadToolIn:
@@ -854,8 +820,7 @@ setTramYPieceTool:
 	jle	.moveRoadToolIn
 	cmp	byte [editTramMode], 1
 	jne	.moveRoadToolIn
-	mov	ebx, 12h
-	movzx	bx, byte [tramtracksprites+ebx]
+	mov	bx, 2 // byte [tramtracksprites+12h]
 	add	bx, [tramtracks]
 	jmp	.leaveTramToolIn
 .moveRoadToolIn:
@@ -1980,10 +1945,6 @@ updateDisableStandardRVStops:
 	mov	dword [esi+window.disabledbuttons], 0h
 	retn
 
-global null_proc
-null_proc:
-	retn
-
 global deSelectNormalBusStops
 deSelectNormalBusStops:
 	add	bp, 7
@@ -2225,7 +2186,8 @@ throwInTramDepots:
 	push	eax
 	cmp	byte [editTramMode], 0
 	jne	.insertTramDepots
-	mov	eax, [paRoadDepotSpriteTable]
+	mov	eax, 0
+ovar paRoadDepotSpriteTable
 	jmp	short .continueDrawing
 .insertTramDepots:
 	mov	eax, paTramDepotSpriteTable

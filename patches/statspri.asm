@@ -31,7 +31,7 @@ extern piececonnections,randomfn,randomstationtrigger
 extern setstationdisabledbuttons,station2ofs_ptr,stationcallbackflags
 extern stationcargowaitingmask,stationclass,stationclassesused,stationflags
 extern stationspritelayout,stsetids
-extern unimaglevmode, Class5LandPointer, paStationtramstop
+extern unimaglevmode, paStationtramstop
 extern lookuptranslatedcargo,mostrecentspriteblock,statcargotriggers
 extern lookuptranslatedcargo_usebit,gettileterrain
 extern failpropwithgrfconflict,lastextragrm,curextragrm,setspriteerror
@@ -1452,10 +1452,6 @@ uvard ttdstationspritelayout
 // safe:ebx
 global getstationspritelayout
 getstationspritelayout:
-
-	//---------INSERTED BY STEVEN HOEFEL-----------------
-	mov dword [Class5LandPointer], ebx
-	//-------------------------------------------------------
 
 	cmp dh,0xff
 	je .modtype

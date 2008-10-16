@@ -18,17 +18,16 @@ patchproc trams, patchtrams
 extern setTramPtrWhilstRVProcessing, setTramPtrWhilstRVProcessing.origfn
 extern shiftTramBytesIntoL5, insertTramTrackL3Value
 extern DrawTramTracks, DrawTramTracks.origfn, newgraphicssetsenabled, grabLandData, RefreshWindows, gettileinfo
-extern Class2RouteMapHandlerChunk1, Class2RouteMapHandlerChunk2, roadtoolbarelemlisty2
+extern Class2RouteMapHandlerChunk1, Class2RouteMapHandlerChunk2
 extern invalidatetile,oldClass2DrawLand, newStartToClass2DrawLand, attemptRemoveTramTracks
 extern insertTramTrackIntoRemove, noOneWaySetTramTurnAround,noOneWaySetTramTurnAround.rvmovement
-extern RoadToolBarDropDown,Class0DrawLand, updateRoadRemovalConditions, checkroadremovalconditions
+extern RoadToolBarDropDown,updateRoadRemovalConditions, checkroadremovalconditions
 extern insertTramsIntoGetGroundAltitude, insertTramsIntoGetGroundAltitude.origfn
 extern stopTramOvertaking, rvcheckovertake, patchflags, editTramMode,stdRoadElemListPtr
 extern tramtracks,saTramConstrWindowElemList,tramtracksprites
 extern setTramXPieceTool,setTramYPieceTool, drawTramTracksInTunnel, addgroundsprite
-extern bTempNewBridgeDirection, addsprite,paRoadConstrWinClickProcs
 extern drawTramTracksUnderBridge, checkIfTramsAndKeepTracksUnder, newSendVehicleToDepotAuto
-extern busstationwindow, oldbusstoptext, busdepotwindow, oldbusdepottext, DestroyWindow
+extern busstationwindow, busdepotwindow, DestroyWindow
 extern buildtruckstopprocarea, buildtruckstopfunction, buildbuslorryorientation
 
 extern roadmenudropdown,roadmenuelemlisty2,roadDropdownCode,createRoadConstructionWindow
@@ -151,11 +150,6 @@ begincodefragments
 	codefragment newClass2End
 		icall	noOneWaySetTramTurnAround
 		setfragmentsize 8
-
-	codefragment findClass0DrawLand
-		push	ebx
-		mov	bl, dh
-		and	ebx, 1Ch
 
 	codefragment oldRoadRemovalConditions, -21
 		mov	word [operrormsg2], 0FFFFh
@@ -359,8 +353,6 @@ begincodefragments
 		db 0x0A,0x07,0x0B,0x00,0xCF,0x00,0x00,0x00,0x0D,0x00,0x42,0x30
 	codefragment findwindowbusdepotelements, 10
 		db 0x0A,0x07,0x0B,0x00,0x8B,0x00,0x00,0x00,0x0D,0x00,0x06,0x18
-	codefragment findroadconsproctable, 42
-		dw 0x1810,0x1811,0x329
 
 	codefragment oldSetSelectedBusStop
 		add	bp, 7
@@ -491,27 +483,10 @@ patchtrams:
 
 	patchcode oldRemoveTrainTrack, newRemoveTrainTrack, 1, 1
 
-	stringaddress findwindowbusstationelements, 1, 1
-	mov	dword [busstationwindow], edi
-	push	ax
-	mov	ax, [edi]
-	mov	word [oldbusstoptext], ax
-	pop	ax
-	stringaddress findwindowbusdepotelements, 1, 1
-	mov	dword [busdepotwindow], edi
-	push	ax
-	mov	ax, [edi]
-	mov	word [oldbusdepottext], ax
-	pop	ax
-	stringaddress findroadconsproctable, 1, 1
-	mov	dword [buildtruckstopprocarea], edi
-	push	eax
-	mov	eax, dword [edi]
-	mov	dword [buildtruckstopfunction], eax
-	pop	eax
+	storeaddress findwindowbusstationelements, busstationwindow
+	storeaddress findwindowbusdepotelements, busdepotwindow
 
-	patchcode oldfindcreatebusORtruckstationwindow, newfindcreatebusORtruckstationwindow, 2, 2	//trucks
-	patchcode oldfindcreatebusORtruckstationwindow, newfindcreatebusORtruckstationwindow, 1, 1	//buses
+	multipatchcode oldfindcreatebusORtruckstationwindow, newfindcreatebusORtruckstationwindow, 2
 	patchcode oldSetSelectedBusStop, newSetSelectedBusStop, 1, 1
 
 	stringaddress oldGroundAltidudeGetTileInfo, 1
@@ -536,7 +511,6 @@ patchtrams:
 	patchcode stopTownFromSeeingTramsOld2, stopTownFromSeeingTramsNew, 1, 1
 	patchcode oldGetTileHeightMapChunk, newGetTileHeightMapChunk, 1, 1
 
-	storeaddress findClass0DrawLand, 1, 1, Class0DrawLand
 	patchcode oldSendRoadBytesToL5, newSendRoadBytesToL5, 1, 1
 	patchcode oldRemoveRoadL5Area, newRemoveRoadL5Area, 1, 1
 	patchcode oldRemoveRoadGetTileInfo,newRemoveRoadGetTileInfo, 1, 1
