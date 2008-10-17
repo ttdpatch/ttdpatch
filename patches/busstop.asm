@@ -283,14 +283,11 @@ global Class5CreateBusStationAction
 Class5CreateBusStationAction:
 	cmp bh, 4
 	jb .done
-	testmultiflags trams				//trams enabled?
-	jz .dontAddTramStopOffset
-	cmp byte [editTramMode], 1			//currently adding trams?
-	jnz .dontAddTramStopOffset
-	add bh, 8					//set it to be a standard bus stop
-	jmp short .done
+	bt ebx, 7
+	jnc .dontAddTramStopOffset
+	add bh, 2					//set it to be a tram stop
 .dontAddTramStopOffset:
-	add bh, 8-2					//set it to be a tram stop
+	add bh, 6					//set it to be a bus stop
 .done:
 	jmpttd Class5CreateBusStationAction
 
@@ -299,12 +296,9 @@ global Class5CreateTruckStationAction
 Class5CreateTruckStationAction:
 	cmp bh, 4
 	jb .done
-	testmultiflags trams
-	jz .dontAddTramFreightStopOffset
-	cmp byte [editTramMode], 1
-	jnz .dontAddTramFreightStopOffset
-	add bh, 0x10
-	jmp short .done
+	bt ebx, 7
+	jnc .dontAddTramFreightStopOffset
+	add bh, 2
 .dontAddTramFreightStopOffset:
 	add bh, 0x0E
 .done:
@@ -376,9 +370,9 @@ exported Class5CreateStationCheckRemove
 	ret
 
 exported Class5CreateStation
-	mov word [landscape3+edi*2], 0
-	cmp byte [editTramMode], 1
-	jne .notTramStop
+	and word [landscape3+edi*2], 0
+	test bh, 2
+	jz .notTramStop
 	or byte [landscape3+edi*2], 1<<4
 .notTramStop:
 	mov al, [landscape4(di,1)]	// overwritten
@@ -395,15 +389,16 @@ exported Class5CreateStation
 
 exported Class5RemoveDriveThrough
 	test bl, 1
-	jz near .ret
+	jz short .ret
 	pusha
 	call [gettileinfo]
-	test byte [landscape3+esi*2], 80h
+	lea edi, [landscape3+esi*2]
+	test byte [edi], 80h
 	jz short .notOverbuilt
 
 	xor eax,eax
 	mov [landscape2+esi], al
-	mov [landscape3+esi*2], ax
+	mov [edi], ax
 
 
 	mov al, [landscape4(si,1)]
@@ -411,15 +406,15 @@ exported Class5RemoveDriveThrough
 	or al, 20h
 	mov [landscape4(si,1)], al
 
-	inc dh
-	mov cl, dh
-	and cl, 1
 	mov al, 0Ah
-	shr al, cl
+	test dh,1 
+	jnz .ok
+	mov al, 5
+.ok:
 	mov byte [landscape5(si,1)],al
-	test dh, 2
-	jz .notrams
-	mov [landscape3+esi*2], al
+	test dh, 3
+	jp .notrams
+	mov [edi], al
 .notrams:
 
 	xchg eax, esi

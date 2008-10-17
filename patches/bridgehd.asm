@@ -319,16 +319,11 @@ removebridgeroad:
 	pop ebx
 	pop bx
 
-	mov bl, bh
-	and bx, 0Fh
-	shl bx, 4
-
-	testmultiflags trams
-	jz .checkforroad
-	cmp byte [editTramMode], 1
-	jne .checkforroad
-	shl bx, 4
-.checkforroad:
+	and bx, 0F80h
+	btr ebx, 7
+	jc .istram
+	shr bx, 4
+.istram:
 	test [landscape3 +2*esi], bx
 	jz .error
 
@@ -343,10 +338,6 @@ removebridgeroad:
 .continueaftertramhack:
 	call [invalidatetile]
 
-	testmultiflags trams
-	jz .onlytesting
-	cmp byte [editTramMode], 1
-	jne .onlytesting
 	call invalidateBridgeIfExists
 
 .onlytesting:
@@ -379,33 +370,25 @@ buildbridgeroad:
 	mov dl, bl
 	pop ebx
 	pop bx
-
-	mov bl, bh
-	and bx, 0Fh
-	shl bx, 4
 	
-	testmultiflags trams
-	jz .checkforroad
-	cmp byte [editTramMode], 1
-	jne .checkforroad
-	shl bx, 4
-.checkforroad:
+	push ecx
+	xor ecx,ecx
+	mov cl, 8
+
+	and bx, 0F80h
+	btr ebx, 7
+	jc .istram
+	mov cl, 4
+	shr bx, cl
+.istram:
 	test [landscape3 +2*esi], bx
-	jnz near .error
+	jnz short .error
 	
 	// see if this can be build with this slope
 	push ebx
 	push edx
-	push ecx
-	testmultiflags trams
-	jz .shift4
-	cmp byte [editTramMode], 1
-	jne .shift4
-	shr bx, 4 //shift 8 (4+4)
-.shift4:
-	shr bx, 4
+	shr ebx, cl		// Shift route bits into low 4 bits -- shr 8 if trams, shr 4 if roads
 	mov dl, bl
-	pop ecx
 	push edi
 	and edi, 0x0F
 	mov dh, byte [bh_slopedirmask + edi]
@@ -421,10 +404,10 @@ buildbridgeroad:
 	mov bh, dh
 	not bh		// bh contains bits not in dh
 	and dl, bh
-	jnz .wrongslope
-	
 	pop edx
 	pop ebx
+	jnz .wrongslope
+	pop ecx
 
 	test dl, 1
 	jz .onlytesting
@@ -434,10 +417,6 @@ buildbridgeroad:
 
 	call [invalidatetile]
 
-	testmultiflags trams
-	jz .onlytesting
-	cmp byte [editTramMode], 1
-	jne .onlytesting
 	call invalidateBridgeIfExists
 
 .onlytesting:
@@ -445,11 +424,10 @@ buildbridgeroad:
 	ret
 
 .wrongslope:
-	pop edx
-	pop ebx
 	mov word [operrormsg2], 1000h
 	
 .error:
+	pop ecx
 	mov ebx, 0x80000000
 	ret
 	

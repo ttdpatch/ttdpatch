@@ -188,11 +188,8 @@ insertTramTrackL3Value:
 	call	[gettileinfo]			//the original call
 	cmp	bl, 10h
 	jne	.notroad
-	mov	dl, byte [human1]
-	cmp	byte [curplayer], dl		//check that we are player 1
-	jne	.dontLoadTramArray
-	cmp	byte [editTramMode], 0		//are we building trams?
-	jz	.dontLoadTramArray
+	bt	dword [esp+4], 7		// The trams flag, saved on the stack by our caller.
+	jnc	.dontLoadTramArray
 	test	dh, 30h
 	jnz	.dontLoadTramArray		//we have a depot or level crossing
 
@@ -219,11 +216,8 @@ tramLevelCrossing:
 global insertTramTrackIntoRemove
 insertTramTrackIntoRemove:
 	call	[gettileinfo]			;get the standard tile info
-	cmp	byte [editTramMode], 0		;removing... trams or roads?
+	test	byte [esp+4], 80h		;test the trams flag, as saved by our caller
 	jz	.dontLoadTramArray
-	mov	dl, byte [human1]
-	cmp	byte [curplayer], dl		;check if we're player one
-	jne	.dontLoadTramArray
 	cmp	byte [demolishroadflag],1	;are we dynamiting? or removing?
 	je	.dontLoadTramArray		;if we're dynamiting, then just continue, all gets removed
 	cmp	bl, 28h
@@ -262,8 +256,8 @@ insertTramTrackIntoRemove:
 exported CheckTramOverbuilding
 	cmp	bl, 48h
 	je	.ret
-	cmp	byte [editTramMode], 1
-	jne	.tryRemoveAll
+	test	byte [esp+4], 80h		// Test the trams indicator
+	jz	.tryRemoveAll
 	cmp	bl, 28h
 	je	.station
 
@@ -323,14 +317,8 @@ newSendVehicleToDepotAuto:
 
 global shiftTramBytesIntoL5
 shiftTramBytesIntoL5:
-	push	bx
-	xor	bx, bx
-	mov	bl, byte [human1]
-	cmp	byte [curplayer], bl
-	pop	bx
-	jne	near .dontMakeTramTracks
-	cmp	byte [editTramMode], 0
-	je	near .dontMakeTramTracks
+	test	bl, 80h
+	jz	.dontMakeTramTracks
 	or	byte [landscape3+esi*2], bh		;this is where the tram tracks are stored
 	//now lets check if we are next to a bridge
 	jmp	short .dontMakeRoads
@@ -344,43 +332,36 @@ shiftTramBytesIntoL5:
 	retn
 
 
+// Out:	Appropriate landscape bits cleared.
+//	zf set if the tile has no road/tram bits left.
 global attemptRemoveTramTracks
 attemptRemoveTramTracks:
 	call	invalidateBridgeIfExists
 	cmp	byte [demolishroadflag],1 //dynamite? trash it ALLL!
-	jz	short .dynamiteBoth
-	cmp	byte [editTramMode], 1
-	jnz	short .onlyDeleteRoads
+	je	short .dynamiteBoth
+	test	bl, 80h
+	jz	short .onlyDeleteRoads
 
 .onlyDeleteTramTracks:
 	cmp	byte [landscape3+esi*2], 0
-	jz	short .finaliseDeleting
+	jz	.checkhasroad
 	xor	[landscape3+esi*2], bh
-	test	byte [landscape3+esi*2], 0Fh
-	jnz	.finaliseDeleting
-	test	byte [landscape5(si)], 0Fh
-	jmp	short .finaliseDeleting
+	jmp	short .checkhasroad
 
 .onlyDeleteRoads:
 	xor	[landscape5(si)], bh
+
+.checkhasroad:
 	test	byte [landscape5(si)], 0Fh
-	jnz	.finaliseDeleting
+	jnz	.hasroad
 	test	byte [landscape3+esi*2], 0Fh
-	jmp	.finaliseDeleting
-
-.dynamiteBoth:
-	cmp	byte [landscape5(si)], 0
-	jz	short .dynamiteTramTracks
-	mov	byte [landscape5(si)], 0
-.dynamiteTramTracks:
-	cmp	byte [landscape3+esi*2], 0
-	jz	short .finaliseDeleting
-	mov	byte [landscape3+esi*2], 0
-	test	byte [landscape3+esi*2], 0Fh
-
-.finaliseDeleting:
+.hasroad:
 	retn
 
+.dynamiteBoth:
+	mov	byte [landscape5(si)], 0
+	and	byte [landscape3+esi*2], 0	// Set zf.
+	ret
 
 
 
@@ -573,15 +554,11 @@ ovar tmpDI, -2
 global updateRoadRemovalConditions
 updateRoadRemovalConditions:
 	movzx	edi, di
-	push	bx
-	xor	bx, bx
-	mov	bl, byte [human1]
-	cmp	byte [curplayer], bl
-	pop	bx
-	jne	.runNormalCheck
-	cmp	byte [editTramMode], 1
-	jz	short .dontCheckWithAuthority
-.runNormalCheck:
+//	cmp	byte [demolishroadflag],0
+//	jne	.docheck
+ 	test	bl, 80h
+	jnz	.dontCheckWithAuthority		// test always clears cf
+.docheck:
 	call	[checkroadremovalconditions]
 .dontCheckWithAuthority:
 	retn
@@ -723,10 +700,6 @@ ovar busdepotwindow
 ovar stdRoadElemListPtr
 .doneElemList:
 	mov	dword [esi+window.elemlistptr], edi
-;	cmp	byte [editTramMode], 1
-;	jne	.dontSetTruckStopDisabled
-;	mov	dword [esi+window.disabledbuttons], 200h
-;.dontSetTruckStopDisabled:
 	pop	edi
 	retn
 
@@ -831,21 +804,13 @@ setTramYPieceTool:
 
 global insertTramDepotFlag
 insertTramDepotFlag:
+	test	bl, 80h			// Trams flag
+	jz	.nottram
+	// Also check movzx (DOS)
+	mov	byte [landscape3+edi*2], 1
+.nottram:
 	mov	byte [landscape5(di)], bh
 	mov	word [esi+depot.XY], di
-	push	bx
-	xor	bx, bx
-	mov	bl, byte [human1]
-	cmp	byte [curplayer], bl
-	pop	bx
-	jne	.dontSetTramFlag
-	cmp	byte [editTramMode], 1
-	jne	.dontSetTramFlag
-	push	edi
-	movzx	edi, di
-	mov	byte [landscape3+edi*2], 1
-	pop	edi
-.dontSetTramFlag:
 	retn
 
 global drawTramOrRoadDepot
@@ -1079,7 +1044,7 @@ drawTramTracksInTunnel:
 	call	[addsprite]
 	pop	ebx
 
-	mov	bx, [tmpSpriteOffset]
+	movzx	bx, byte [tmpSpriteOffset]
 	add	bx, [tramtracks]
 	mov	di, 0Fh
 	mov	si, 0Fh

@@ -1511,20 +1511,39 @@ chkrecordactionxy:
 
 // Record the control key state in the high bit(s) of ESI
 // before (possibly) sending the action to the other player
+// Also record the tram state in ebx:7, if relevant to the current action.
 global recordcurplayerctrlkey
 recordcurplayerctrlkey:
 	push eax
 	mov al,[curplayer]
 	cmp al,[human1]
-	pop eax
 	jne .done
 
 	push byte CTRL_ANY+CTRL_MP
 	call ctrlkeystate
-	jnz .done
+	jnz .notctrl
 	bts esi,31
 
+.notctrl:
+	extern editTramMode
+	cmp byte [editTramMode], 0
+	je .nottrams
+	mov eax,esi
+	cmp al, 10h	// CreateRoad, RemoveRoad, CreateRoadDepot, RemoveRoadDepot
+	je .recordtrams
+	cmp al, 28h
+	jne .nottrams
+	shr eax, 16
+	cmp al, 5	// CreateBusStation
+	je .recordtrams
+	cmp al, 6	// CreateLorryLoadingArea
+	jne .nottrams	
+.recordtrams:
+	or bl, 80h
+
+.nottrams:
 .done:
+	pop eax
 	or word [operrormsg2],byte -1		// overwritten
 	ret
 
