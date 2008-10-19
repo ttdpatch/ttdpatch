@@ -471,12 +471,3 @@ BusLorryStationWindowClickHandler:
 	mov byte [buslorrystationorientation], cl
 	jmp redrawscreen
 
-uvard oldclass5createlorrywinorient,1,z
-
-global Class5CreateLorryWinOrient
-Class5CreateLorryWinOrient:
-	cmp byte [buslorrystationorientation], 4
-	jb .done
-	mov byte [buslorrystationorientation], 0
-.done:
-	jmp [oldclass5createlorrywinorient]
