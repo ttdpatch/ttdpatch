@@ -967,8 +967,6 @@ proc newbuyrailvehicle
 	and dword [%$cost],0
 	and dword [%$veh],0
 
-	mov dh, [curplayer]
-
 	movzx edx,bh
 	cmp byte [buildingroadvehicle], 1
 	je .skipcheckengine2check
