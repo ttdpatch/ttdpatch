@@ -457,6 +457,7 @@ BusLorryStationWindowClickHandler:
 	mov eax, 0x13
 	call [generatesoundeffect]
 	popa
+	pop esi			// Return from caller. ESI because it is popped again after we return.
 	sub cl, 3
 .done:
 	testmultiflags trams
