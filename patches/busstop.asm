@@ -636,6 +636,7 @@ BusLorryStationWindowClickHandler:
 	mov eax, 0x13
 	call [generatesoundeffect]
 	popa
+	pop esi			// Return from caller. ESI because it is popped again after we return.
 	sub cl, 3
 .done:
 	testmultiflags trams
@@ -648,17 +649,6 @@ BusLorryStationWindowClickHandler:
 .dontDefaultToDriveThrough:
 	mov byte [buslorrystationorientation], cl
 	jmp redrawscreen
-
-uvard oldclass5createlorrywinorient,1,z
-
-global Class5CreateLorryWinOrient
-Class5CreateLorryWinOrient:
-	cmp byte [buslorrystationorientation], 4
-	jb .done
-	mov byte [buslorrystationorientation], 0
-.done:
-	jmp [oldclass5createlorrywinorient]
-
 
 // Inspired by steven's tram station code.
 // Updates sprite numbers in station layouts to use custom sprites

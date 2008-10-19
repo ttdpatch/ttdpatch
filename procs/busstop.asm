@@ -5,10 +5,9 @@
 #include <op.inc>
 
 extern BusLorryStationDrawHandler,Class5ClearTileBusStopError
-extern Class5CreateBusStationAction,Class5CreateLorryWinOrient
+extern Class5CreateBusStationAction
 extern newbusorienttooltips
 extern Class5CreateTruckStationAction,oldclass5createtruckstation
-extern oldclass5createlorrywinorient
 extern paStationbusstop1,paStationbusstop2,rvmovementscheme
 extern paStationtruckstop1,paStationtruckstop2
 extern rvmovementschemestops,salorrystationguielements
@@ -265,15 +264,7 @@ patchbusstop:
 
 	stringaddress findwindowbusstationtooltipdisp,1,1
 	mov dword [edi], newbusorienttooltips
-	add edi, 13
-	mov dword [edi], newtruckorienttooltips
-
-	mov eax, [ophandler+0x5*8]
-	mov eax, [eax+op.FunctionHandler]
-	mov edi, [eax+3]
-	mov eax, [edi+7*4]
-	mov dword [oldclass5createlorrywinorient], eax
-	mov dword [edi+7*4], addr(Class5CreateLorryWinOrient)
+	mov dword [edi+13], newtruckorienttooltips
 
 	// Some Error Handler...
 	patchcode oldclass5queryhandlerbusstop, newclass5queryhandlerbusstop,1,1
