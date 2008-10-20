@@ -445,8 +445,9 @@ codefragment oldindustryrandomprodchange
 codefragment_jmp newindustryrandomprodchange,industryrandomprodchange,5
 
 codefragment oldmonthlyupdateindustryproc,11
-	mov cl,NEWNUMINDUSTRIES			// patchnumindustries gets to this first and changes it.
-	cmp word [esi+industry.XY],0		// Fortunately, it runs under the same conditions as patchnewindustries.
+	mov cl,0				// patchnumindustries gets to this first and changes it.
+ovar industrycount, -1
+	cmp word [esi+industry.XY],0
 	jz $+2+9
 	push cx
 
@@ -529,7 +530,7 @@ extern industry2arrayptr
 
 patchnewindustries:
 	// allocate the industry2 array
-	push dword NEWNUMINDUSTRIES*industry2_size
+	push dword MAXNUMINDUSTRIES*industry2_size
 	call malloccrit
 	pop dword [industry2arrayptr]
 
@@ -657,6 +658,8 @@ patchnewindustries:
 	add edi, lastediadj+0EDh-14h
 	extern industryrandomprodchange.DisplayMessage
 	add [industryrandomprodchange.DisplayMessage], edi
+	mov al, [maxindustries]
+	mov [industrycount], al
 	stringaddress oldmonthlyupdateindustryproc,1,1
 	chainfunction monthlyupdateindustryproc,.oldfn
 	add edi, 9Eh-7Ah

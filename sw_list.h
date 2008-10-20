@@ -148,7 +148,7 @@
 	YESNO('g',"gradualloading", CFG_GRADUALLOADING, INFST_STATION, "GradualLoading", gradualloading),
 	YESNO('h',"newhouses", CFG_NEWHOUSES, HOUSESTOWNS, "NewHouses", newhouses),
 	YESNO('i',"stableindustry", CFG_STABLEINDUSTRY, INDUSTRIESCARGO, "StableIndustries", stableindustry),
-	     //j
+	RANGE('j',"moreindustries", CFG_MOREINDUSTRIES, INDUSTRIESCARGO, "MoreIndustries:Alpha", moreindustries, AUTO, U8, FLAGDATA(numindustries), 90, 250, 140),
 	     //k
 	YESNO('l',"canals", CFG_CANALS, INFST, "Canals", canals),
 	YESNO('m',"diskmenu", CFG_DISKMENU, INTERFACE, "LoadEntryInTheDiskMenu", diskmenu),
@@ -525,3 +525,4 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	advorders,
 	rvovertakeparams,
 	advzfunctions,
+	moreindustries,

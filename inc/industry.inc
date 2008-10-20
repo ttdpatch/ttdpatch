@@ -1,8 +1,8 @@
 
 %assign NINDUSTRYTYPES	37
 %assign OLDNUMINDUSTRIES  90
-%assign NEWNUMINDUSTRIES  250
-#define NUMEXTRAINDUSTRIES  (NEWNUMINDUSTRIES - OLDNUMINDUSTRIES)
+%assign MAXNUMINDUSTRIES  250
+#define NUMEXTRAINDUSTRIES  (MAXNUMINDUSTRIES - OLDNUMINDUSTRIES)
 
 // starts at offset given in [7790c] (normally 51766)
 struc industry
@@ -107,5 +107,6 @@ resd NINDUSTRYTYPES
 endstruc
 
 #ifndef __File_patches_extraindustries__
-extern numindustries
+extern maxindustries			// Industry array size (90 or 250)
 #endif
+extern numindustries			// Industry count limit from config

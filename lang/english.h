@@ -296,6 +296,7 @@ SETTEXT(LANG_FULLSWITCHES, "\n"
 	  "-Xa #:   Automatically renew vehicles # months after end of their life span\n"
 	  "-Xc #:   Control the occurence of plane crashes\n"
 	  "-Yr #:   Modify train/road veh. crashes to the given type (1/2)\n"
+	  "-Xj #:   Raise maximum number of industries on map.\n"
 	  "-Xt #:   Set the maximum size a town expands to\n"
 	  "-Xv #:   Sort vehicle lists and set the time between two updates\n"
 	  "-Xz #:   Snap windows together\n"
@@ -529,6 +530,7 @@ SWITCHTEXT(isignals, "Invert the one-way/two-way routing behaviour of selected s
 SWITCHTEXT(advorders, "Enables advanced orders","")
 SWITCHTEXT(rvovertakeparams, "Road vehicle overtaking behaviour parameters","")
 SWITCHTEXT(advzfunctions, "Enables more 3d features","")
+SWITCHTEXT(moreindustries, "Increase the maximum number of industries", " to %d.")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -928,6 +930,7 @@ SETTEXT(CFG_ISIGNALS, "`%s' (%s) invert the routing behaviour of selected signal
 SETTEXT(CFG_ADVORDERS, "`%s' (%s) enables advanced orders")
 SETTEXT(CFG_RVOVERTAKEPARAMS, "`%s' (%s) road vehicle overtaking behaviour parameters. Hexadecimal bit field: 0=enable overtaking of non-stationary vehicles with same max speed, 1,2,3=disable overtaking (collision) checks on: current tile, next tile, and tile after next respectively, (tile after next always ignored for stationary overtakees), 4=set maximum overtaking counter value to bits 8-15 (TTD default=0x23), 5=set stationary overtakee overtaking count initial value to bits 16-23 (TTD default=0x11), 6=overtake even if on junction tile if overtakee is stationary. Experimental switch, some values may produce adverse/unusual results.")
 SETTEXT(CFG_ADVZFUNCTIONS, "`%s' (%s) enables more 3d features")
+SETTEXT(CFG_MOREINDUSTRIES, "`%s' (%s) increases the maximum number of industries on the map")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')
@@ -941,7 +944,7 @@ SETTEXT(LANG_SHOWSWITCHINTRO, "    Switch settings:   (%c enabled, %c disabled)\
 
 // Five characters: vertical line for the table; enabled switch; disabled switch;
 // table heading; table heading column separator.
-SETTEXT(LANG_SWTABLEVERCHAR, "³*úÄÂ")
+SETTEXT(LANG_SWTABLEVERCHAR, "*")
 
 // 1-way and 2-way captions after "New train wait time on red signals"
 SETTEXT(LANG_SWONEWAY, "One-way: ")

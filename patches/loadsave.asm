@@ -406,12 +406,16 @@ presaveadjust:
 	jnc .nofifo
 	extcall buildfifoidx
 .nofifo:
+
 	testmultiflags newindustries
-	jz .noextraindustries
+	jnz .haveextraindustries
+	testmultiflags moreindustries
+	jnz .noextraindustries	
+.haveextraindustries:
 	extcall copybackindustrydata
 .noextraindustries:
 
-	ret
+ 	ret
 
 postsaveadjust:
 	mov edx,addr(adjaivehicleptrsload)
@@ -994,13 +998,14 @@ extern clearindustry2array
 	jnz .hasindustry2
 	call clearindustry2array
 .hasindustry2:
+.nonewindus:
 
 	test byte [extrachunksloaded3],LOADED_X3_EXTRAINDUSTRIES
-	jnz .extraindustries_ok
+	jnz .extraindustries_loaded
 	extcall clearextraindustries
-.extraindustries_ok:
+.extraindustries_loaded:
 	extcall initextraindustries
-.nonewindus:
+.extraindustries_ok:
 
 	mov byte [lastextraindustiledata],0
 
@@ -1886,9 +1891,13 @@ canhaveindustrymap:
 canhaveindustileidmap:
 canhaveinduincargodata:
 canhaveindustry2array:
-canhaveextraindustries:
 
 	testflags newindustries
+	ret
+
+canhaveextraindustries:
+	testflags moreindustries
+	jnc canhaveindustrymap
 	ret
 
 loadindustileidmap:
@@ -2010,14 +2019,14 @@ loadsavestation2array:
 	ret
 
 loadinduincargodata:
-	test eax, 7
-	jnz badchunk
-	cmp eax, NEWNUMINDUSTRIES*8
-	ja badchunk
-	jmp short loadsaveinduincargodata
+	cmp eax, MAXNUMINDUSTRIES*8
+	je loadsaveinduincargodata
+	cmp eax, OLDNUMINDUSTRIES*8
+	je loadsaveinduincargodata
+	jmp badchunk
 
 saveinduincargodata:
-	mov eax,8*NEWNUMINDUSTRIES
+	mov eax, MAXNUMINDUSTRIES*8
 	call savechunkheader
 
 loadsaveinduincargodata:
@@ -2029,23 +2038,14 @@ loadsaveinduincargodata:
 	ret
 
 loadindustry2array:
-	cmp eax, NEWNUMINDUSTRIES*industry2_size
-	je short loadsaveindustry2array
-	push eax
-	cdq
-	xor ecx,ecx
-	mov cl, industry2_size
-	idiv ecx
-	test edx,edx
-	jnz .badchunk
-	cmp eax, NEWNUMINDUSTRIES
-.badchunk:
-	pop eax
-	jb short loadsaveindustry2array 	// carry is always clear after a test
+	cmp eax, MAXNUMINDUSTRIES*industry2_size
+	je loadsaveindustry2array
+	cmp eax, OLDNUMINDUSTRIES*industry2_size
+	je loadsaveindustry2array
 	jmp badchunk
 
 saveindustry2array:
-	mov eax,NEWNUMINDUSTRIES*industry2_size
+	mov eax,MAXNUMINDUSTRIES*industry2_size
 	call savechunkheader
 
 loadsaveindustry2array:
@@ -2060,17 +2060,6 @@ extern industry2arrayptr
 loadextraindustries:
 	cmp eax, NUMEXTRAINDUSTRIES*industry_size
 	je short loadsaveextraindustries
-	push eax
-	cdq
-	xor ecx,ecx
-	mov cl, industry_size
-	idiv ecx
-	test edx,edx
-	jnz .badchunk
-	cmp eax, NUMEXTRAINDUSTRIES
-.badchunk:
-	pop eax
-	jb short loadsaveextraindustries 	// carry is always clear after a test
 	jmp badchunk
 
 saveextraindustries:

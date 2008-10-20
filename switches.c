@@ -342,6 +342,7 @@ static void initvalues(int preferred)
 	flags->data.townminpopulationdesert = 0;	// important!
 	flags->data.moresteamsetting = 0x22;
 	flags->data.windowsize = 640;
+	flags->data.numindustries = 90;
   }
 }
 

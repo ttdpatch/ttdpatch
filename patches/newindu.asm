@@ -1404,7 +1404,7 @@ struc industryincargodata
 endstruc
 
 // amount of cargo accepted, but not processed by industries
-uvard industryincargos,2*NEWNUMINDUSTRIES
+uvard industryincargos,2*MAXNUMINDUSTRIES
 
 uvard industrydestroymultis,NINDUSTRYTYPES
 
@@ -1425,7 +1425,7 @@ uvard industry2arrayptr
 global clearindustryincargos
 clearindustryincargos:
 	mov edi,industryincargos
-	mov ecx,2*NEWNUMINDUSTRIES
+	mov ecx,2*MAXNUMINDUSTRIES
 	xor eax,eax
 	rep stosd
 	ret
@@ -1444,7 +1444,7 @@ exported clearindustry2array
 	mov edi,[industry2arrayptr]
 	test edi,edi
 	jz .done			// no array - nothing to clear
-	mov ecx,NEWNUMINDUSTRIES*industry2_size
+	mov ecx,MAXNUMINDUSTRIES*industry2_size
 	xor eax,eax
 	rep stosb
 .done:
@@ -3527,7 +3527,7 @@ industrylistwindowhandler:
 	ret
 
 noglobal uvard .inducount
-noglobal uvard .indulist, NEWNUMINDUSTRIES
+noglobal uvard .indulist, MAXNUMINDUSTRIES
 
 .insertindu:		// insert the industry at edi into the sorted list
 	pusha
@@ -5807,7 +5807,7 @@ fundindustry_chkplacement:
 uvarb prodchange_suppressnewsmsg
 uvarw prodchangemsg_custommsg		// custom message for the prod. change event, or 0 if none
 
-// Called in the beginning of the random production change proc
+// Replaces TTD's random production change proc, except for "create new industry"
 // Handle callback 29 (random production change) here if enabled
 // in:	ebx: industry type
 //	esi-> industry

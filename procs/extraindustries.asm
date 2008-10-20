@@ -2,7 +2,7 @@
 #include <patchproc.inc>
 #include <industry.inc>
 
-patchproc newindustries, patchnumindustries
+patchproc newindustries,moreindustries, patchnumindustries
 
 begincodefragments
 codefragment al5A_1, 1
@@ -40,10 +40,16 @@ codefragment cx5A, 1
 codefragment oldptr
 	dd oldindustryarray
 #endif
+
+codefragment oldmakerandomindu,-5
+	cmp ax, 1C71h
+
+codefragment_call newmakerandomindu,makerandomindu,5
+
 endcodefragments
 
 patchnumindustries:
-	push dword NEWNUMINDUSTRIES * industry_size
+	push dword MAXNUMINDUSTRIES * industry_size
 	extcall malloc
 #if WINTTDX
 	pop ebx
@@ -53,7 +59,7 @@ patchnumindustries:
 #else
 	pop dword [industryarrayptr]
 #endif
-	mov bl, NEWNUMINDUSTRIES	//	Saves one byte per mov.
+	mov bl, MAXNUMINDUSTRIES	//	Saves one byte per mov.
 	stringaddress al5A_1
 	mov byte [edi], bl
 	stringaddress al5A_2
@@ -71,5 +77,8 @@ patchnumindustries:
 	stringaddress cx5A
 	mov byte [edi], bl
 #endif
-	mov byte [numindustries], bl
+	mov byte [maxindustries], bl
+
+	patchcode makerandomindu
+
 	ret

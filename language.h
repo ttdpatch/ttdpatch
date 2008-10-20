@@ -509,6 +509,7 @@ enum langtextids {
 	CFG_ADVORDERS,
 	CFG_RVOVERTAKEPARAMS,
 	CFG_ADVZFUNCTIONS,
+	CFG_MOREINDUSTRIES,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS
