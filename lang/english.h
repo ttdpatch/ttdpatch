@@ -684,6 +684,41 @@ BIT(autosave3months,	"Set autosave to 3 months")
 BIT(autosave6months,	"Set autosave to 6 months")
 BIT(autosave12months,	"Set autosave to 12 months")
 
+// Description for moretransopts bits
+BITSWITCH(moretransopts)
+BIT(transtrees,		"Make trees transparent")
+BIT(transhouses,	"Make houses transparent")
+BIT(transindustries,	"Make industries transparent")
+BIT(transstations,	"Make stations transparent")
+BIT(transraildepots,	"Make rail depots transparent")
+BIT(transroaddepots,	"Make road and tram depots transparent")
+BIT(transshipdepots,	"Make ship depots transparent")
+BIT(transbridges,	"Make bridges transparent")
+BIT(transobjects,	"Make objects (lighthouses, transmitters, newobjects) transparent")
+BIT(transcompany,	"Make company property (HQ, statues, &c.) transparent")
+BIT(hideoneway,		"Hide one-way indicators when road toolbar is closed")
+BIT(invistrees,		"Make trees invisible when transparent")
+BIT(invishouses,	"Make houses invisible when transparent")
+BIT(invisindustries,	"Make industries invisible when transparent")
+BIT(invisstations,	"Make stations invisible when transparent")
+BIT(invisraildepots,	"Make rail depots invisible when transparent")
+BIT(invisroaddepots,	"Make road depots invisible when transparent")
+BIT(invisshipdepots,	"Make ship depots invisible when transparent")
+BIT(invisbridges,	"Make bridges invisible when transparent")
+BIT(invisobjects,	"Make objects invisible when transparent")
+BIT(inviscompany,	"Make company property invisible when transparent")
+BIT(locktrees,		"Lock (do not toggle with [t]) settings for trees")
+BIT(lockhouses,		"Lock settings for houses ")
+BIT(lockindustries,	"Lock settings for industries")
+BIT(lockstations,	"Lock settings for stations")
+BIT(lockraildepots,	"Lock settings for rail depots")
+BIT(lockroaddepots,	"Lock settings for road depots")
+BIT(lockshipdepots,	"Lock settings for ship depots")
+BIT(lockbridges,	"Lock settings for bridges")
+BIT(lockobjects,	"Lock settings for objects")
+BIT(lockcompany,	"Lock settings for company property")
+BIT(lockoneway,		"Lock setting for one-way indicators")
+
 // A cfg file (%s) could not be found and is ignored.
 SETTEXT(LANG_CFGFILENOTFOUND, "Couldn't find cfg file %s.  Ignored.\n")
 
@@ -923,7 +958,7 @@ SETTEXT(CFG_ADJSTATIONS, "%s (%s) allows new station facilities to be merged to 
 SETTEXT(CFG_NEWSIGNALS, "`%s' (%s) enables new graphics for signals.")
 SETTEXT(CFG_NEWOBJECTS, "`%s' (%s) enables new objects.")
 SETTEXT(CFG_VRUNCOSTS, "`%s' (%s) enables grfs to have variable running costs for vehicles (no warnings will be given when the costs change).")
-SETTEXT(CFG_MORETRANSOPTS, "`%s' (%s) provides more options for transparent buildings mode.")
+SETTEXT(CFG_MORETRANSOPTS, "`%s' (%s) provides more options for transparent buildings mode, and sets the initial values for these options.")
 SETTEXT(CFG_PSIGNALS, "`%s' (%s) allows signals states to be controlled by user criteria, requires presignals")
 SETTEXT(CFG_TSIGNALS, "`%s' (%s) allows PBS reservations the opposite way through selected one-way signals, requires PBS")
 SETTEXT(CFG_ISIGNALS, "`%s' (%s) invert the routing behaviour of selected signals, such that one-way signals behave as two-way signals and vice-versa")
@@ -944,7 +979,7 @@ SETTEXT(LANG_SHOWSWITCHINTRO, "    Switch settings:   (%c enabled, %c disabled)\
 
 // Five characters: vertical line for the table; enabled switch; disabled switch;
 // table heading; table heading column separator.
-SETTEXT(LANG_SWTABLEVERCHAR, "*")
+SETTEXT(LANG_SWTABLEVERCHAR, "³*úÄÂ")
 
 // 1-way and 2-way captions after "New train wait time on red signals"
 SETTEXT(LANG_SWONEWAY, "One-way: ")

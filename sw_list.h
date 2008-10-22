@@ -297,7 +297,7 @@
 	     //E
 	BITS ('F',"toylandfeatures", CFG_TOYLANDFEATURES, TERRAIN, "ToylandFeatures", moretoylandfeatures, U8, FLAGDATA(toylandfeatures), 1),
 	     //G
-	YESNO('H',"moretransopts", CFG_MORETRANSOPTS, INTERFACE, "MoreTransparencyOptions:Alpha", moretransopts),
+	BITS ('H',"moretransopts", CFG_MORETRANSOPTS, INTERFACE, "MoreTransparencyOptions:Alpha", moretransopts, S32, FLAGDATA(cfgtransbits), 0x94000400),
 	YESNO('I',"irregularstations", CFG_IRRSTATIONS, INFST_STATION, "IrregularStations", irrstations),
 	YESNO('J',"advzfunctions", CFG_ADVZFUNCTIONS, INFST, "", advzfunctions),
 	RANGE('K',"rvovertakeparams", CFG_RVOVERTAKEPARAMS, VEH_ROAD, "", rvovertakeparams, HEX, S32, FLAGDATA(rvovertakeparamsvalue), 0, 0xFFFFFF, 0),

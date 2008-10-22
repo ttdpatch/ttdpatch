@@ -10,10 +10,7 @@ begincodefragments
 codefragment oldtesttrans
 	test byte [displayoptions], 10h
 
-codefragment newtesttrans
-	push byte 0
-ovar transbit, -1
-	db 0e8h		// call (disp32)
+codefragment_call newtesttrans, testtransparency, 5
 
 codefragment oldchangetransparency
 	xor byte [displayoptions], 10h
@@ -71,31 +68,22 @@ exported patchmoretransopts
 
 .patchloop:
 	push ecx
-#if WINTTDX
-	cmp ecx, 3
-#else
-	cmp ecx, eax
-#endif
-	jne .nottoolbar
 	stringaddress oldtesttrans, 1, eax
+	pop ecx
+	cmp ecx, 12 - 9*WINTTDX
+	jne .nottoolbar
 	mov byte [edi+7], 0xEB			// jnz short -> jmp short
 	inc edi		// skip this instance in the next search
 	jmp short .continue
 .nottoolbar:
-	mov cl, [transpatchdata + (ecx-1)]
-	mov [transbit], cl
-
-	patchcode testtrans, 1, eax
-	extern testtransparency
-	mov eax, testtransparency - 4
-	sub eax, edi
-	stosd
+	mov ah, [transpatchdata + (ecx-1)]
+	mov al, 6Ah
+	stosw
+	storefragment newtesttrans
 
 .continue:
-	pop ecx
 	xor eax,eax		// continue searches
-	dec ecx
-	jnz near .patchloop
+	loop .patchloop
 
 // Transparency toggling
 	patchcode changetransparency
@@ -114,5 +102,14 @@ exported patchmoretransopts
 // Make getnewsprite update [displayoptions] correctly
 	extern skiptransfix
 	mov word [skiptransfix], 0D8Bh	// jmp disp8 -> mov ecx, ([addr32])
+
+	extern cfgtransbits,newtransopts
+	mov eax, [cfgtransbits]
+	mov edi, newtransopts
+	stosw		// bits 0..10
+	ror eax, 21
+	stosw		// bits 21..31
+	rol eax, 21-11
+	stosw		// bits 11..20
 
 	ret

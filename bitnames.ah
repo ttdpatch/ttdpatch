@@ -190,3 +190,39 @@ defbit forcegameoptions_autosave3months, 11 // Set autosave to 3 months
 defbit forcegameoptions_autosave6months, 12 // Set autosave to 6 months
 defbit forcegameoptions_autosave12months, 13 // Set autosave to 12 months
 enddefbits
+
+
+defbitvar moretransopts,cfgtransbits
+defbit transtrees,				0 // Make trees transparent
+defbit transhouses,				1 // Make houses transparent
+defbit transindustries,				2 // Make industries transparent
+defbit transstations,				3 // Make stations transparent
+defbit transraildepots,				4 // Make rail depots transparent
+defbit transroaddepots,				5 // Make road depots transparent
+defbit transshipdepots,				6 // Make ship depots transparent
+defbit transbridges,				7 // Make bridges transparent
+defbit transobjects,				8 // Make objects (lighthouses, transmitters, newobjects) transparent
+defbit transcompany,				9 // Make company property (HQ, statues, &c.) transparent
+defbit hideoneway,				10 // Hide one-way indicators when road toolbar is closed
+defbit invistrees,				11 // Make trees invisible when transparent
+defbit invishouses,				12 // Make houses invisible when transparent
+defbit invisindustries,				13 // Make industries invisible when transparent
+defbit invisstations,				14 // Make stations invisible when transparent
+defbit invisraildepots,				15 // Make rail depots invisible when transparent
+defbit invisroaddepots,				16 // Make road depots invisible when transparent
+defbit invisshipdepots,				17 // Make ship depots invisible when transparent
+defbit invisbridges,				18 // Make bridges invisible when transparent
+defbit invisobjects,				19 // Make objects (lighthouses, invismitters, newobjects) invisible when transparent
+defbit inviscompany,				20 // Make company property (HQ, statues, &c.) invisible when transparent
+defbit locktrees,				21 // Make trees transparent
+defbit lockhouses,				22 // Make houses transparent
+defbit lockindustries,				23 // Make industries transparent
+defbit lockstations,				24 // Make stations transparent
+defbit lockraildepots,				25 // Make rail depots transparent
+defbit lockroaddepots,				26 // Make road depots transparent
+defbit lockshipdepots,				27 // Make ship depots transparent
+defbit lockbridges,				28 // Make bridges transparent
+defbit lockobjects,				29 // Make objects (lighthouses, transmitters, newobjects) transparent
+defbit lockcompany,				30 // Make company property (HQ, statues, &c.) transparent
+defbit lockoneway,				31 // Hide one-way indicators when road toolbar is closed
+enddefbits

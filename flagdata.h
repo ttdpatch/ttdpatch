@@ -25,6 +25,7 @@ deflong(autoslopevalue)		// setting for autoslope cost
 deflong(forcegameoptionssettings)	// game options settings in ttdpatch bit format
 deflong(mapsize)			// map size, for special var 13.
 deflong(rvovertakeparamsvalue)	//flag bits for road vehicle overtaking behaviour modificaton
+deflong(cfgtransbits)		// bits for initial transparency options
 
 #define flags_long_end newservint
 

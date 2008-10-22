@@ -544,7 +544,7 @@ enum langtextids {
 
 #define TRAINTYPENUM 4		// number of train types for -mc display
 
-#define BITSWITCHNUM 14		// number of bit switches
+#define BITSWITCHNUM 15		// number of bit switches
 
 // Index numbers of the strings in language.dat file. Must be increasing.
 #define LANGCODE_NAME(i) (-0x4000-(i))

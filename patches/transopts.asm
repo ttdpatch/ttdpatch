@@ -12,12 +12,8 @@
 // For code that is called by or promptly after getnewsprite,
 // testing [displayoptions] is preferred, especially if it may draw sprites
 // for multiple features.
-varw newtransopts
-	dw 1<<TROPT_ONEWAY	// default "transparent"  -- aka hidden, for oneway signs.
-	dw 1<<TROPT_ROADDEPOT | 1<<TROPT_BRIDGE | 1<<TROPT_ONEWAY	// default not toggled by [t]
-	dw 0			// default invisible
-endvar
-	
+uvarw newtransopts,3
+
 
 // This order much match the order of the defines in transopts.inc
 guiwindow win_transopts, 262, 36
