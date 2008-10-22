@@ -373,7 +373,15 @@ extern lastsearchfragmentname
 
 	%%_storefragment_%1_:
 	%ifdef %1_cj_type
-		param_call store_cj_fragment,%1_target+(%1_cj_type<<24),%1_len
+		%if %1_len = 5
+			mov al, %1_cj_type
+			stosb
+			mov eax, %1_target - 4
+			sub eax, edi
+			stosd
+		%else
+			param_call store_cj_fragment,%1_target+(%1_cj_type<<24),%1_len
+		%endif
 	%else
 	// then write the new code to it
 	mov esi,%1_start
