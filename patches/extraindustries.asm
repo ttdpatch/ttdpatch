@@ -43,7 +43,6 @@ exported initextraindustries
 // out: eax: random bits	( >=1C71h to prohibit)
 // safe: all except esi
 exported makerandomindu
-	int3
 	mov edi, [industryarrayptr]
 	xor eax, eax
 	xor ecx, ecx
