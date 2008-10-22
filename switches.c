@@ -487,9 +487,10 @@ static int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int s
 	if ( (switches[switchid].range[0] != -1) ||
 	     (switches[switchid].range[1] != -1) ) {	// with a range (value)
 		int bitswid = switches[switchid].bitswitchid, i=0;
-		if (cfgpar == NULL || *cfgpar == 0)
+		if (cfgpar == NULL || *cfgpar == 0) {
 			parvalue = switches[switchid].range[2];	//default
-		else {
+			if (cfgsub == NULL) bitswid = -1;		// If this is a bitswitch set to "on", do not mark bits as old.
+		} else {
 			if (*cfgpar == '#') { // We have bin format
 			cfgpar++;
 			parvalue = strtol(cfgpar, &endptr, 2);
@@ -539,7 +540,7 @@ static int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int s
 			if (bitswid >= 0 && parvalue)
 				do {
 					setbits[bitswid] |= ((u32)1)<<(i++);
-				} while (parvalue >>= 1);
+				} while ((parvalue = (u32)parvalue >> 1));
 		}
 	}
 
