@@ -5,6 +5,9 @@
 #include <textdef.inc>
 #include <human.inc>
 #include <bitvars.inc>
+#include <flags.inc>
+
+extern patchflags
 
 %assign win_transopts_id 115
 
@@ -170,6 +173,13 @@ transparencywindow_handler:
 	loop .spriteloop
 .spritesdone:
 	pop esi
+
+	testmultiflags onewayroads
+	jnz .haveoneway						
+	or byte [esi+window.disabledbuttons+1], 1<<4		// Oneway roads is off, so disable,
+	and byte [esi+window.activebuttons+1], ~(1<<4)		// unpush,
+	and byte [newtransopts+transopts.locked+1], ~(1<<2)	// and unlock its button.
+.haveoneway:
 
 // and draw
 	call [DrawWindowElements]
