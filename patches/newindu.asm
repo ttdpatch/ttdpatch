@@ -5926,8 +5926,9 @@ industryrandomprodchange:
 	cmp al,4
 	je .checkIndustryChangeProd
 
-	cmp al, 14
+	cmp al, 15
 	ja .ret2
+	je near .set
 	cmp al, 13
 	ja .inc
 	je .dec
@@ -5998,6 +5999,19 @@ industryrandomprodchange:
 	cmp byte [edi],4
 	je .IndustryCloseDown
 	dec byte [edi]
+	jmp short .shownomessage
+
+.set:
+	mov cl, byte [specialgrfregisters+0*4+2]
+	cmp cl, 80h
+	jbe .ok1
+	mov cl, 80h
+.ok1:
+	cmp cl, 4
+	jae .ok2
+	mov cl, 4
+.ok2:
+	mov [edi], cl
 
 .shownomessage:
 	xor edx,edx
