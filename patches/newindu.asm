@@ -5992,22 +5992,25 @@ industryrandomprodchange:
 	cmp byte [edi],80h
 	je .ret2
 	inc byte [edi]
-	jmp short .showincmessage
+	jmp short .shownomessage
 
 .dec:
 	cmp byte [edi],4
 	je .IndustryCloseDown
 	dec byte [edi]
-	jmp short .showdecmessage
+
+.shownomessage:
+	xor edx,edx
 
 .changedprodmultiplier:
-	mov cl, [edi]
 	mov al, [industryprod1rates+ebx]
 	call .makerate
 	mov [esi+industry.prodrates], al
 	mov al, [industryprod2rates+ebx]
 	call .makerate
 	mov [esi+industry.prodrates+1], al
+	test edx,edx
+	jz .showmessage
 	mov dx, [edx+ebx*2]
 
 .showmessage:
@@ -6021,10 +6024,12 @@ industryrandomprodchange:
 	mov dx,ax				// override message
 .nocustom:
 	call getindunameaxesi
+	test dx,dx
+	jz .ret2
 	jmpttd industryrandomprodchange, .DisplayMessage
 
 .makerate:
-	mul cl
+	mul byte [edi]
 	shr ax, 4
 	adc ax, 0
 	test ah, ah
