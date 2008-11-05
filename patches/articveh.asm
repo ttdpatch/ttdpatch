@@ -16,7 +16,7 @@
 extern newbuyrailvehicle, discard, vehcallback, articulatedvehicle, delveharrayentry, sellroadvehicle
 extern RefreshWindows, LoadUnloadCargo, checkgototype, isrvbus, curplayerctrlkey, drawtextfn, currscreenupdateblock
 extern newtexthandler, drawsplittextfn, movbxcargoamountname2
-extern searchcollidingvehs
+extern searchcollidingvehs, tiledeltas
 
 uvard DrawRVImageInWindow,1,s
 
@@ -1861,16 +1861,33 @@ HeadInDepotCheckTrailerDecoupledAndRepair:
 //	cmp BYTE [edi+veh.parentmvstat], 0xFF
 //	je .forceemergencytrailerteleport
 	mov ax, [esi+veh.XY]
-	sub ax, [edi+veh.XY]
+	movzx ecx, ax
+	movzx edx, WORD [edi+veh.XY]
+	sub ax, dx 
 	add ax, 0x101				//trailers outside the immediate 9 tile region of the depot are considered bad
 	cmp al, 2
 	ja .forceemergencytrailerteleport
 	cmp ah, 2
 	ja .forceemergencytrailerteleport
+	or ax, ax
+	jnz .rigorouscheck
+.p_normalwait:
 	popa
 .normalwait:
 	stc
 	ret
+.rigorouscheck:
+	mov bl, [landscape5(cx,1)]
+	test bl, 0x20
+	jz .p_normalwait
+	and ebx, BYTE 3
+	movzx ebp, WORD [tiledeltas+ebx*2]
+	add ebp, ecx
+	cmp ebp, edx
+	je .p_normalwait
+	
+//fall through
+	
 
 .forceemergencytrailerteleport:
 	mov bp, [esi+veh.XY]
