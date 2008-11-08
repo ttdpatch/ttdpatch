@@ -2840,19 +2840,33 @@ exported class1routemapsigthrough	//high eax=map of signals which are green/non-
 	movzx	 eax, ax
 	push	 ebx
 
-	mov	 bl, byte [landscape3+edi*2]
-	
+	mov	 bl, [landscape3+edi*2]	//signal existence
+	mov	 bh, [landscape2+edi]	//signal green flags
+
 //new code begins
 	test BYTE [landscape6+edi], 4
 	jz .nothroughsignal
-	push DWORD .nothroughsignal
-	push ebx
-	not bl
-	jmp class1routemapsigthrough_in		//count non-existant signals as green, if through signal
+
+	mov al, bl			//add signal existance and green flags for through signals
+	and al, 0xC0			//0xC0 and 0x30 form pairs, if only one is set in existence, set the other in both
+	jz .next1
+	xor al, 0xC0
+	or bl, al
+	or bh, al	
+.next1:
+
+	mov al, bl
+	and al, 0x30
+	jz .next2
+	xor al, 0x30
+	or bl, al
+	or bh, al	
+.next2:
+
+	mov al, ah	
 .nothroughsignal:
 //new code ends
 
-	mov	 bh, [landscape2+edi]
 	test	 bl, 0C0h
 	jnz	 short loc_547B97
 	or	 bx, 0C0C0h
@@ -2890,6 +2904,11 @@ exported chkrailroutetargettsigchk	//set ZF on blockage
 	ret
 .maybe:
 	test BYTE [landscape6+edi], 4
+	jnz .pass
+	ret
+.pass:
+	sub DWORD [esp], 14
+	cmp esp, esp	//set zf
 	ret
 
 //_CS:00161093,573067			//set ZF if one-way signal
