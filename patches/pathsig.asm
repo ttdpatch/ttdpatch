@@ -831,7 +831,7 @@ chkmarksignalroute:
 	test byte [landscape3+edi*2],0x80
 	jz near .fail
 	and byte [landscape3+edi*2],~0x80
-	jmp short .redraw
+	jmp .redraw
 
 .rail:
 	test dh,0xc0
@@ -854,18 +854,27 @@ chkmarksignalroute:
 	jz near .done			//is this a through signal, if no, done
 	test [landscape3+edi*2], dh
 	jnz near .done			//terminate route if signal is present in train's direction
+	
+	//reverse direction through through signal
+
+		// check that signal isn't [either a red two-way or] one
+		// which has a PBS path reserved through it (or else this
+		// train would assume the path is reserved for it!)
+	//mov dh,[sigbitsonpiece+edx]
+	test [esi+edi],al
+	jnz NEAR .fail	// has a PBS path reserved, don't go there
+	
+	mov dl, ch
+	mov ch, 0	
+	jmp NEAR .nexttile
+
 .nsig:
 	mov dl,ch
 	mov ch,0
 	jmp short .mark
 
 #if 0
-.signal:	// check that signal isn't either a red two-way or one
-		// which has a PBS path reserved through it (or else this
-		// train would assume the path is reserved for it!)
-	mov dh,[sigbitsonpiece+edx]
-	test [esi+edi],dh
-	jnz .badend	// has a PBS path reserved, don't go there
+
 
 	mov dl,dh
 	and dh,[landscape3+edi*2]
@@ -964,16 +973,21 @@ chkmarksignalroute:
 
 #endif
 .notsignal:
-	// route doesn't end either at a signal or a dead end
-	// if the signal into the PBS block is red, we wait no matter what
-	cmp byte [curtracesigstate],0
-	jnz .bad
+
+//	The fact that the entrance is green is no excuse for badly ended routes
+//	It is especially problematic with tsignals
+	jmp .bad
+
+//	// route doesn't end either at a signal or a dead end
+//	// if the signal into the PBS block is red, we wait no matter what
+//	cmp byte [curtracesigstate],0
+//	jnz .bad
 
 //&*&	IS THIS STILL USEFUL?
 
 	// signal is green, this route is acceptable if we've found the target
-	cmp byte [ebx+finalrt.type],2
-	jb .badend
+//	cmp byte [ebx+finalrt.type],2
+//	jb .badend
 
 .done:
 	cmp byte [didmarkroute],1	// set carry if no pieces marked
