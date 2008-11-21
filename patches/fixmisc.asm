@@ -21,6 +21,7 @@
 #include <house.inc>
 #include <newvehdata.inc>
 #include <grf.inc>
+#include <spritedesc.inc>
 
 extern GetMainViewWindow,RefreshLandscapeRect,Sleep
 extern TransmitAction,UpdateStationAcceptList,aircraftbboxtable

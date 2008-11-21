@@ -126,22 +126,7 @@ struc heap
 endstruc
 
 
-
-struc spritedesc
-	.sprite:	resd 1	// 00h
-	.pixelX1:	resw 1	// 04h
-	.pixelY1:	resw 1	// 06h
-	.pixelX2:	resw 1	// 08h
-	.pixelY2:	resw 1	// 0ah
-	.X1:		resw 1	// 0ch
-	.Y1:		resw 1	// 0eh
-	.Z1:		resb 1	// 10h
-	.Z2:		resb 1	// 11h
-	.X2:		resw 1	// 12h
-	.Y2:		resw 1	// 14h
-	.flags:		resw 1	// 16h
-	.linked:	resd 1	// 18h
-endstruc
+// spritedesc moved to spritedesc.inc
 
 struc scrnblockdesc
 	.buffer:	resd 1	// 00h
