@@ -117,6 +117,7 @@ endproc initializegraphics
 //Out:	edx: file size
 //	File rewound to beginning
 //Uses:	ax, ecx
+global getfilesize
 getfilesize:
 	mov ax,0x4202
 	xor edx,edx

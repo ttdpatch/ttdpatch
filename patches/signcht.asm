@@ -151,6 +151,7 @@ cheatentry "CLONETILE", clonetilecheat,0
 #endif
 
 cheatentry "UNRESERVEPBSTRACK",unreservepbstrack,0
+cheatentry "HEIGHTMAP",loadheightmapcheat,0
 
 #if 1 && DEBUG
 cheatentry "SETINDVAL",setindustrystrucval,0
@@ -164,6 +165,7 @@ cheatentry "SETLANDVAL", setlandarrayval, 0
 #if DEBUGNETPLAY
 cheatentry "LOGRANDOM",lograndomcheat,0
 #endif
+
 endvar
 
 uvard activesign	// pointer to current sprite structure, or -1 if about to set
@@ -3169,3 +3171,10 @@ lograndomcheat:
 	jmp short .disable
 	
 #endif
+
+
+loadheightmapcheat:
+	pusha
+	extcall loadheightmap
+	popa
+	ret
