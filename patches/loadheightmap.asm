@@ -12,6 +12,10 @@ proc loadheightmap
 	local filehandle
 	
 	_enter
+	cmp byte [gamemode], 2
+	jnz near .fail
+	
+	call resetland
 	
 	mov edx, loadheightmap_filename
 	mov ax, 0x3d00
@@ -190,18 +194,49 @@ proc loadheightmap
 	
 	dec eax
 	jnz .loop2
-
-.fail:
-	mov ax, 0x3E00
-	mov bx, [%$filehandle]
-	CALLINT21
-.failopen:
-	stc
-	_ret
+	
 .ok:
 	mov ax, 0x3E00
 	mov bx, [%$filehandle]
 	CALLINT21
+	
+	extern redrawscreen
+	call redrawscreen
+	
 	clc
 	_ret
+	
+.fail:
+	mov ax, 0x3E00
+	mov bx, [%$filehandle]
+	CALLINT21
+	
+.failopen:
+	call redrawscreen
+	stc
+	_ret
 endproc
+
+
+
+
+exported resetland
+	pusha
+	mov ah, 0x2C
+	CALLINT21
+	xor ch, dl
+	xor cl, dh
+	mov ax, cx
+	xor ch, ch
+	xor al, al
+	shr ax, 4
+	xor cx, ax
+	mov dx, cx
+	
+	mov ebp,[ophandler+0xC*8]
+	mov ebx, 1
+	call dword [ebp+4]
+	mov byte [human1], 0x10
+	mov byte [canrandomizelandscape], 1
+	popa
+	ret
