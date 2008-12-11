@@ -3442,6 +3442,9 @@ industrylistwindowhandler:
 	cmp al, [esi+window.itemstotal]
 	jbe .countok
 	mov al, [esi+window.itemstotal]
+	or al, al
+	jnz .countok
+	ret
 .countok:
 	mov ebp, eax
 	shl eax,1
