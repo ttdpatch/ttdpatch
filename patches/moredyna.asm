@@ -71,14 +71,12 @@ ovar .getroadowner,-4,$,roadremovable
 ; endp roadremovable 
 
 
-global demolishroadcall
-demolishroadcall:
+exported DemolishRoad		// This is now a patchaction, so demolishroadflag gets set on the correct side of DoAction.
 	or byte [demolishroadflag],1
-	mov esi,0x10010			// overwritten by runindex call
-	call dword [actionhandler]
+	mov esi,0x10010
+	call dword [actionhandler]		// nested call to DoAction
 	and byte [demolishroadflag],0
 	ret
-; endp demolishroadcall 
 
 
 	// called to check if the player can remove a bridge

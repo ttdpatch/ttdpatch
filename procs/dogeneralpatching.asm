@@ -1328,13 +1328,9 @@ codefragment findrvcheckovertake, 5
 	pop     ebx
 	retn
 	
-codefragment olddemolishroadcall,1
+codefragment olddemolishroadcall,2
 	push edi
 	mov esi,0x10010
-
-codefragment newdemolishroadcall
-	call runindex(demolishroadcall)
-	setfragmentsize 10
 
 codefragment findAddRailFenceSprite1,-3
         push    edi
@@ -1651,9 +1647,10 @@ dogeneralpatching:
 	storefunctionaddress findcallcheckvehiclesintheway,1,1,checkvehiclesinthewayfn
 	storefunctionaddress findcheckroadremovalconditions,1,1,checkroadremovalconditions
 	
-	patchcode olddemolishroadcall,newdemolishroadcall,1,1
-	add edi,byte 0x33+lastediadj
-	storefragment newdemolishroadcall
+	stringaddress olddemolishroadcall
+	extern DemolishRoad_actionnum
+	mov dword [edi], DemolishRoad_actionnum
+	mov dword [edi+0x33+lastediadj], DemolishRoad_actionnum
 
 	stringaddress findhousepopulationtable,1,1
 	mov eax,[edi]
