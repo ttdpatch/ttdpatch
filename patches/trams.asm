@@ -554,8 +554,8 @@ ovar tmpDI, -2
 global updateRoadRemovalConditions
 updateRoadRemovalConditions:
 	movzx	edi, di
-//	cmp	byte [demolishroadflag],0
-//	jne	.docheck
+	cmp	byte [demolishroadflag],0
+	jne	.docheck
  	test	bl, 80h
 	jnz	.dontCheckWithAuthority		// test always clears cf
 .docheck:
