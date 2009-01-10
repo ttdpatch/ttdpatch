@@ -132,6 +132,7 @@ startpatchactions			// this is a macro, not a label...
 	patchaction MenuStartNewGame
 	patchaction actionrailvehmenu
 	patchaction BuildObject
+	patchaction DemolishRoad		// Just like RemoveRoad, but for dynamite.
 
 uvard newvehdata, newvehdatastruc_size/4
 uvard persgrfdata, persgrfdatastruc_size/4
