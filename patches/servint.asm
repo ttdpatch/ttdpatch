@@ -56,7 +56,7 @@ needsmaintcheck:
 .incthennextcmd:
 	add ebx,byte 2
 	dec ah
-	jnz .nextcommand
+	jg .nextcommand
 
 .nocommands:
 
@@ -82,11 +82,20 @@ needsmaintcheck:
 .itsaspecial:
 	testflags advorders
 	jnc .incthennextcmd
-	cmp BYTE [ebx+1], 1
-	ja .incthennextcmd
+	mov al, [ebx+1]
+	cmp al, 1
+	jbe .itsadepot
+	push ecx
+	movzx ecx, al
+	shr ecx, 5
+	sub ah, cl
+	add ebx, ecx
+	add ebx, ecx
+	pop ecx
+	jmp .incthennextcmd
 
 .itsadepot:
-	cmp al,1
+	cmp esp, 0
 	pop ebx
 	ret
 
