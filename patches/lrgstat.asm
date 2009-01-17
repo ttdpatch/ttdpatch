@@ -13,6 +13,7 @@ extern newstationlayout,newstationpos,newstationtracks,patchflags
 extern stationsizeofs
 extern usenewstationlayout
 extern newstationspread
+extern tr_pbs_sigblentertile,lastsigdistance
 
 
 
@@ -407,13 +408,16 @@ readplatformarray:
 ; endp readplatformarray
 #endif
 
+//uvarw nextisroutetargetplatformtile
+//uvarw isroutetargetrouteshortenfactor
+
 	// called when checking whether current tile is the train route target
 	//
 	// in:	al=station index, FF if target isn't station
 	//	bx=target tile (north corner of station if station)
 	//	edi=tile index to check
 	// out:	ZF set if is target, clear if not
-	// safe:ax bx
+	// safe:ax bx	
 exported isroutetarget
 	cmp al,0xff
 	jne .station
@@ -436,6 +440,59 @@ exported isroutetarget
 	cmp byte [landscape5(di,1)],7
 	ja .done	// not rail station tile (ZF is clear)
 
+	cmp DWORD [tr_pbs_sigblentertile], 0
+	je .found
+	mov ax, [tracertdistance]
+	cmp ax, [lastsigdistance]
+	ja .found
+
+
+	//this is to prevent PBS routefinding resolving half-reserved station platforms as available (particularly when tsignals is used)
+
+	mov al, bl
+
+	mov ebx, -1
+	test cl, 1
+	jz .noydir
+	mov ebx, 0x100
+.noydir:
+	test cl, 8
+	jz .noneg
+	neg ebx
+.noneg:
+	add ebx, edi
+	
+//	//deal with tile counting for route shortening
+//	push ebx
+//	xchg bx, [nextisroutetargetplatformtile]
+//	cmp ebx, edi
+//	je .noresetcount
+//	mov WORD [isroutetargetrouteshortenfactor], 0
+//.noresetcount:
+//	pop ebx
+
+
+	cmp al,[landscape2+ebx]
+	jne .found	// followed by wrong station	
+
+	mov al,[landscape4(bx,1)]
+	and al,0xf0
+	cmp al,0x50
+	jne .found	// not followed by a station
+	
+	mov al, [landscape5(bx,1)]
+	cmp al,7
+	ja .found	// followed by wrong station type
+	xor al, cl
+	and al, 1	// zero if tiles in same directions, ie. not found
+	jnz .found
+	
+//	inc WORD [isroutetargetrouteshortenfactor]	//this will never overflow ;)
+	test esp, esp
+	
+	ret
+	
+.found:
 	test al,0
 .done:
 	ret

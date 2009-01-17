@@ -308,7 +308,7 @@ railroutechkcont:
 global railroutetargetshortest
 railroutetargetshortest:
 	mov byte [currouteresult],0x82
-
+	
 	// don't make the route longer after having found the first station tile
 	cmp ax,[currouteclosest]
 	ja railroutetargetnotshortest
@@ -796,7 +796,7 @@ chkmarksignalroute:
 	jne .nexttile
 
 	test ah,ah
-	jz near .dontmark
+	jz .dontmarkcrossing
 	js .clearcrossing
 
 	test byte [landscape5(di,1)],4
@@ -810,9 +810,14 @@ chkmarksignalroute:
 	and byte [landscape5(di,1)],~4
 	jmp .redraw
 
+.dontmarkcrossing:
+	test byte [landscape5(di,1)],4
+	jnz near .fail	
+	jmp .havemarked
+
 .station:
 	test ah,ah
-	jz near .dontmark
+	jz .dontmarkstation
 	js .clearstation
 
 	test byte [landscape3+edi*2],0x80
@@ -832,6 +837,11 @@ chkmarksignalroute:
 	jz near .fail
 	and byte [landscape3+edi*2],~0x80
 	jmp .redraw
+	
+.dontmarkstation:
+	test byte [landscape3+edi*2],0x80
+	jnz near .fail	
+	jmp .havemarked
 
 .rail:
 	test dh,0xc0
@@ -905,9 +915,13 @@ chkmarksignalroute:
 	or [esi+edi],dh
 
 .redraw:
-	call redrawtileedi
+	push DWORD .havemarked
+	jmp redrawtileedi
 
 .dontmark:
+	test [esi+edi],dh		//sanity check to help suppress annoying edge case errors with malformed/half-finished routes and evil crud like that
+	jnz near .fail
+.havemarked:
 	mov byte [didmarkroute],1
 
 	test ecx,ecx
@@ -1073,12 +1087,13 @@ activatestationpbstrigger:
 	//
 	// in:	edi=tile XY
 	// out:	ebp=current trace route distance
-	//	cc=AE if no need to ignore reserved pieces
-	//	cc=B if need to ignore reserved pieces
+	//	cc=AE if no need to ignore reserved pieces		// is this comment correct ??
+	//	cc=B if need to ignore reserved pieces			// ^
 	// returns to previous stack frame with eax=0 if route loops
+global checkignoredistance
 checkignoredistance:
-	cmp byte [ignorereservedpieces],0
-	je .done
+//	cmp byte [ignorereservedpieces],0
+//	je .done
 
 	cmp edi,[curtracestartxy]
 	je .abort
@@ -1088,9 +1103,9 @@ checkignoredistance:
 	ja .done
 
 	or dword [lastsigdistance],byte -1	// we resumed a route before that signal
-	stc
-
-.done:
+	cmp byte [ignorereservedpieces],1
+	cmc
+.done:	
 	ret
 
 .abort:
@@ -1099,8 +1114,9 @@ checkignoredistance:
 	ja .done2
 
 	or dword [lastsigdistance],byte -1	// we resumed a route before that signal
-	stc
 
+	cmp byte [ignorereservedpieces],1
+	cmc
 .done2:
 	call [esp]	// call code that would run if we returned
 
@@ -1131,13 +1147,11 @@ opclass08hroutemaphnd:
 .rail:
 	movzx eax,byte [landscape5(di,1)]
 
-	call checkignoredistance
-	jae NEAR .done
-
-	mov ebp,landscape6
+	cmp DWORD [tr_pbs_sigblentertile], 0
+	je NEAR .done
 
 	test al,0xc0
-	jle .checkreserved	// not a signal
+	jle NEAR .checkreserved	// not a signal
 
 	// signal on this piece?
 	push edx
@@ -1154,8 +1168,12 @@ opclass08hroutemaphnd:
 	mov al,ah
 	jz NEAR .done	// no, it was on the other piece apparently
 
-	movzx ebp,word [tracertdistance]
-	mov [lastsigdistance],ebp
+	call checkignoredistance
+
+	//movzx ebp,word [tracertdistance]
+	cmp ebp, [lastsigdistance]
+	ja NEAR .done
+	mov [lastsigdistance],ebp	//this variable should be updated even if ignoring reserved pieces
 	jmp .done
 
 .checkpiece:
@@ -1182,16 +1200,25 @@ opclass08hroutemaphnd:
 
 .nosignal:
 	// no signal, remove piece if it's reserved
-	test [edi+ebp],dh
+	test [edi+landscape6],dh
 	jz .nextpiece	// not reserved
 
 	mov dh,0
 	add edx,8
 	btr eax,edx
+	
+	pop edx
+	call checkignoredistance
+	jae .resetdone
+	push edx
+	
 	jmp .nextpiece
 
 .checkreserved:
-	mov ah,[edi+ebp]
+	call checkignoredistance
+	jae .done
+	
+	mov ah,[edi+landscape6]
 	and ah,0x3f
 	jz .done
 
@@ -1215,6 +1242,10 @@ opclass08hroutemaphnd:
 .done:
 	test al,0
 	jmp .exit
+	
+.resetdone:
+	movzx eax,byte [landscape5(di,1)]
+	jmp .done
 
 	// similar as the above, but return al=1 if piece is reserved
 	// (preserve ah)
@@ -1252,11 +1283,13 @@ opclass28hroutemaphnd:
 	cmp al,8
 	jae .noignore
 
-	mov al,[landscape3+edi*2]
-	shr al,7
 	cmp byte [ignorereservedpieces],0
 	je .noignore
 
+	mov al,[landscape3+edi*2]
+	
+	
+	shr al,7
 	call checkignoredistance
 	jb .exit
 
