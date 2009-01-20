@@ -5,6 +5,7 @@
 #include <flags.inc>
 #include <station.inc>
 #include <human.inc>
+#include <newvehdata.inc>
 
 extern ctrlkeystate,curcallback,curselstationid,curstattiletype,getnewsprite
 extern getplatforminfo.getccpp,grffeature,irrcheckistrainstation
@@ -13,7 +14,7 @@ extern newstationlayout,newstationpos,newstationtracks,patchflags
 extern stationsizeofs
 extern usenewstationlayout
 extern newstationspread
-extern tr_pbs_sigblentertile,lastsigdistance
+extern tr_pbs_sigblentertile,lastsigdistance,persgrfdata
 
 
 
@@ -432,7 +433,7 @@ exported isroutetarget
 	mov al,[landscape4(di,1)]
 	and al,0xf0
 	cmp al,0x50
-	jne .done	// not a station
+	jne NEAR .done	// not a station
 
 	cmp bl,[landscape2+edi]
 	jne .done	// wrong station
@@ -480,9 +481,15 @@ exported isroutetarget
 	cmp al,0x50
 	jne .found	// not followed by a station
 	
-	mov al, [landscape5(bx,1)]
+	movzx eax, BYTE [landscape5(bx,1)]
 	cmp al,7
 	ja .found	// followed by wrong station type
+	
+	movzx ebx, BYTE [landscape3+ebx*2+1]
+	movzx ebx, BYTE [stationnonenter+ebx]
+	bt ebx, eax
+	jc .found	//followed by impassable station tile
+	
 	xor al, cl
 	and al, 1	// zero if tiles in same directions, ie. not found
 	jnz .found
