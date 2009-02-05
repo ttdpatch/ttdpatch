@@ -109,7 +109,7 @@ proc loadheightmap
 	push eax
 	sub eax, 0x100
 	and eax, 0xFFFF
-	mov dl, [landscape4(ax)]	// top edge
+	mov dl, [landscape4(ax,1)]	// top edge
 	and dx, 0xF
 	pop eax
 
@@ -118,7 +118,7 @@ proc loadheightmap
 	push eax
 	dec eax
 	and eax, 0xFFFF
-	mov dl, [landscape4(ax)]	// left edge
+	mov dl, [landscape4(ax,1)]	// left edge
 	and dx, 0xF
 	pop eax
 
@@ -129,7 +129,7 @@ proc loadheightmap
 
 	push eax
 	and eax, 0xFFFF
-	mov dl, [landscape4(ax)]	// the tile
+	mov dl, [landscape4(ax,1)]	// the tile
 	and dx, 0xF
 	pop eax
 	
@@ -140,7 +140,7 @@ proc loadheightmap
 	dec bx
 	and bl, 0xF
 	and eax, 0xFFFF
-	mov byte [landscape4(ax)], bl
+	mov byte [landscape4(ax,1)], bl
  .nocorrection:
 	
 	inc eax
@@ -158,7 +158,7 @@ proc loadheightmap
 	push eax
 	add eax, 0x100
 	and eax, 0xFFFF
-	mov dl, [landscape4(ax)]	// bottom edge
+	mov dl, [landscape4(ax,1)]	// bottom edge
 	and dx, 0xF
 	pop eax
 
@@ -167,7 +167,7 @@ proc loadheightmap
 	push eax
 	inc eax
 	and eax, 0xFFFF
-	mov dl, [landscape4(ax)]	// right edge
+	mov dl, [landscape4(ax,1)]	// right edge
 	and dx, 0xF
 	pop eax
 
@@ -178,7 +178,7 @@ proc loadheightmap
 
 	push eax
 	and eax, 0xFFFF
-	mov dl, [landscape4(ax)]	// the tile
+	mov dl, [landscape4(ax,1)]	// the tile
 	and dx, 0xF
 	pop eax
 	
@@ -189,7 +189,7 @@ proc loadheightmap
 	dec bx
 	and bl, 0xF
 	and eax, 0xFFFF
-	mov byte [landscape4(ax)], bl
+	mov byte [landscape4(ax,1)], bl
  .nocorrection2:
 	
 	dec eax
