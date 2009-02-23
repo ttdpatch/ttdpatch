@@ -5,6 +5,7 @@
 #include <patchproc.inc>
 #include <ptrvar.inc>
 #include <window.inc>
+#include <imports/gui.inc>
 
 patchproc VARBSET(hasaction12), patchunicode
 
@@ -26,9 +27,29 @@ codefragment oldtextinputchar,-16
 	db 0x0f,0x84	// jz CloseWindow
 
 codefragment newtextinputchar
+	push 0x5a0	// cWinTypeTextEdit or cWinElemRel or cWinElem5
+	push 0		// no window ID needed
+	push dword [bTextInputMaxLength]	// the max. length and max. width vars
+						// are adjacent in memory, so this really pushes both
 	icall textinputchar
-	jc fragmentstart+19
-	jz fragmentstart+27
+	jc .esc
+	jz fragmentstart+162
+	ret
+.esc:
+	jmp [DestroyWindow]
+
+codefragment oldtextinputchar_savewindow, -11
+	jz near $+6+0x23f
+
+codefragment newtextinputchar_savewindow
+	push 21h+80h+(7 << 8)			// cWinTypeLoadSave+80h+(7 shl 8)
+	movzx eax, word [esi+window.id]
+	push eax
+	push 46 + (240 << 8)			// max. lenght is 46 chars, max. width is 240 pixels
+	icall textinputchar
+	jc .done	// ignore ESC
+	jz fragmentstart-0x269
+.done:
 	ret
 
 codefragment oldsetwindowtitle,9
@@ -37,6 +58,8 @@ codefragment oldsetwindowtitle,9
 codefragment_call newsetwindowtitle,setwindowtitle,5
 
 codefragment_call newtextinputokbutton,textinputokbutton,5
+
+codefragment_call newtextinputokbutton_savewindow,textinputokbutton_savewindow,5
 #endif
 
 codefragment oldbuildcompanyname
@@ -102,6 +125,11 @@ patchunicode:
 	patchcode textinputchar
 	add edi,lastediadj+162
 	storefragment newtextinputokbutton
+
+	patchcode textinputchar_savewindow
+	add edi,lastediadj-0x269
+	storefragment newtextinputokbutton_savewindow
+
 	patchcode setwindowtitle
 #endif
 
