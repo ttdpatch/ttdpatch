@@ -11,7 +11,7 @@
 #include <bitvars.inc>
 #include <win32.inc>
 #include <textdef.inc>
-
+#include <window.inc>
 
 extern fonttables,drawspriteonscreen,malloc,patchflags
 extern tempSplittextlinesNumlinesptr,splittextlines_done
@@ -664,6 +664,10 @@ uvard unicodechar
 // process input character
 //
 // in:	
+//	on stack: (in order of pushing)
+//		dword: parameter to be given to invalidatehandle
+//		dword: window ID to be given to invalidatehandle
+//		dword: bits 0-7: max length, bits 8-15: max width
 // out:	CF=1 ZF=1 if Escape key
 //	CF=0 ZF=1 if Enter/Return key
 //	otherwise ax=character
@@ -676,7 +680,7 @@ exported textinputchar
 
 .ret:
 	test esp,esp	// clear ZF,CF
-	ret
+	ret 12
 
 .gotchar:
 	push esi
@@ -742,7 +746,7 @@ exported textinputchar
 	// now edx=new string length incl. final 0
 	test dh,dh
 	jnz .done
-	cmp dl,[bTextInputMaxLength]
+	cmp dl,[esp+8]		// max. length
 	jnb .donenz
 
 	mov ebp,eax
@@ -756,7 +760,7 @@ exported textinputchar
 	test bh,bh
 	jnz .done
 
-	cmp bl,[bTextInputMaxWidth]
+	cmp bl,[esp+9]		// max. width
 	ja .done
 
 	lea edi,[esi-1]
@@ -764,8 +768,8 @@ exported textinputchar
 	mov byte [edi],0
 
 .refresh:
-	mov ax,0x5a0	// cWinTypeTextEdit or cWinElemRel or cWinElem5
-	xor ebx,ebx
+	mov ax,[esp+16]
+	mov ebx,[esp+12]
 	call [invalidatehandle]
 
 .donenz:
@@ -773,7 +777,7 @@ exported textinputchar
 
 .done:
 	pop esi
-	ret
+	ret 12
 
 .delete:
 	test ecx,ecx
@@ -798,6 +802,25 @@ exported textinputokbutton
 	call checklatin1conv
 	mov edi,baTextInputBuffer
 	pop esi
+	ret
+
+// Like the above, but called from the Save Game window, so it needs
+// to save different registers
+exported textinputokbutton_savewindow
+	bts dword [esi+window.activebuttons],9	// overwritten
+
+	push eax
+	push ecx
+	push esi
+	push edi
+	mov esi,baTextInputBuffer
+	mov ecx, 46
+	call checklatin1conv
+	pop edi
+	pop esi
+	pop ecx
+	pop eax
+
 	ret
 #endif
 
