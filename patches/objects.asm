@@ -16,6 +16,7 @@
 #include <misc.inc>
 #include <imports/dropdownex.inc>
 #include <patchdata.inc>
+#include <pusha.inc>
 
 extern failpropwithgrfconflict
 extern curspriteblock,grfstage
@@ -627,7 +628,7 @@ win_objectgui_dropdowncallback:
 	mov al,[esi]
 	mov bx,[esi+window.id]
 	call dword [invalidatehandle]
-	ret
+	jmp win_objectgui_setmousetool.noobject
 
 .selectobject:
 	push ebx
@@ -1350,6 +1351,7 @@ BuildObjectFlags:
 //	di = slope information
 //	cl = offset from northen corner
 // Out:	zero flag = set for not allowed
+global CheckObjectSlope
 CheckObjectSlope:
 	push eax
 	push ecx
@@ -1803,7 +1805,7 @@ DrawObjectFoundations:
 	ret
 
 .override:
-	sub dl, 8
+	xor bp, bp
 
 .nofondations:
 	ret
@@ -1886,7 +1888,7 @@ ClassAAnimationHandler:
 
 // **************************************** Newgrf Vars *******************************************
 global getObjectVar40, getObjectVar41, getObjectVar42, getObjectVar43
-extern gettileterrain
+extern gettileterrain, gettileinfoshort
 
 // Var:	40, Relative Position
 // Out:	eax = 00xyXXYY
@@ -1907,12 +1909,21 @@ getObjectVar40:
 	ret
 
 // Var:	41, Tile Type
-// Out:	000000tt (same as var 43 houses)
+// Out:	0000sstt (tt - same as var 43 houses, ss - slope data)
 getObjectVar41:
 	test esi, esi
 	jz .gui
 
-	call gettileterrain
+	pusha
+	call [gettileinfoshort] // First we get the tile information
+	shl di, 8
+
+	call gettileterrain // And we add the terrain information
+	or ax, di
+
+	movzx eax, ax
+	mov dword [esp+_pusha.eax], eax // Since getTileInfo changes most registors pusha was needed.
+	popa
 	ret
 
 .gui:
