@@ -4,8 +4,12 @@
 // cross platform
 // add costs
 
+#include <flags.inc>
+#include <misc.inc>
 #include <std.inc>
 #include <human.inc>
+#include <objects.inc>
+#include <pusha.inc>
 
 extern autoslopevalue,curplayerctrlkey,gettileinfoshort,ishumanplayer
 extern getindustileid,industilecallbackflags
@@ -64,7 +68,7 @@ autoslopechecklandscape:
 	cmp ah, 0x90
 	je near .bridgetile
 	cmp ah, 0xA0
-	je near .noroutetiles
+	je near .objecttiles
 
 .oldcode:
 	//or eax, eax
@@ -265,6 +269,7 @@ autoslopechecklandscape:
 	mov esi, ebx
 	call [gettileinfoshort]
 
+.normalobject:
 	mov bl, byte [bTempRaiseLowerDirection]		// bTempRaiseLowerDirection
 	cmp bl, 1
 	je .up
@@ -483,6 +488,83 @@ ovar tempraiseloweraffectedtilearray, -4
 	mov dh, dl
 	mov ecx, railgetol5
 	jmp .routecommon
+
+.objecttiles:
+	pusha
+	mov esi, ebx
+	call [gettileinfoshort]
+
+extern patchflags
+	testmultiflags newobjects // If objects aren't loaded then there isn't much point continuing
+	jz near .normalobject
+
+	cmp dh, NOBJECTTYPE // Is it an object tile?
+	jne near .normalobject
+
+extern objectsdataidtogameid
+	movzx eax, word [landscape3+esi*2] // Get the object id (no pool then we die but that should be unlikely)
+	imul eax, object_size
+	movzx eax, word [objectpool+eax+object.dataid]
+	movzx eax, word [objectsdataidtogameid+eax*2]
+	test eax, eax // No gameid?, object data isn't loaded then so we assume no changes allowed
+	jz near .exit
+
+	// So we do have an object
+extern miscgrfvar, CheckObjectSlope
+	call CalcProposedSlope // Get the proposed corner layout, and tile
+	mov cl, byte [landscape2+esi]
+	mov dword [miscgrfvar], edi
+	call CheckObjectSlope // Check if this object allows this combination
+	jnz near .exit
+
+	mov eax, dword [esp+_pusha.eax] // We reset the altered values
+	mov edi, dword [esp+_pusha.edi]
+	jmp near .oktochange
+
+// Used to calculate the new di (fudged for steep slopes) for the CheckObjectSlope function
+// In:	di - original corner map
+// Out:	di - new corner map (possibly fudged)
+CalcProposedSlope:
+	push eax
+	movzx eax, byte [bTempRaiseLowerCorner] // Store the two values needed to make a new di
+	mov ah, byte [cornerbits+eax]
+	mov al, byte [bTempRaiseLowerDirection]
+	cmp al, 1
+	je .up
+
+	// Down
+	movzx ax, ah
+	test di, di // Is is currently flat?
+	jnz .flat
+	or di, 0xF // If so we set all the corners as higher than the tile level
+
+.flat:
+	btc di, ax // Now we know this bit isn raised, we lower it
+	jnc .steep
+
+	pop eax
+	ret
+
+.up:
+	movzx ax, ah
+	bts di, ax // Now we know this bit isn't raised, we raise it
+	jc .steep
+
+	cmp di, 0xF
+	jne .done
+	xor di, 0xF
+
+.done:
+	pop eax
+	ret
+
+.steep:
+	bts di, 4 // Steep slope, invalid other bits
+	pop eax
+	ret
+
+var cornerbits
+	db 3, 2, 1, 0
 
 uvarb tmpautoslopebuff,4E2h/2
 
