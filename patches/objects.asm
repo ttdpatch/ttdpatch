@@ -17,10 +17,14 @@
 #include <imports/dropdownex.inc>
 #include <patchdata.inc>
 #include <pusha.inc>
+#include <player.inc>
 
 extern failpropwithgrfconflict
-extern curspriteblock,grfstage
+extern curspriteblock
+extern grfstage
 extern RefreshWindowArea
+extern newgraphicssetsavail
+extern player2array
 
 uvard objectsdataiddata,256*idf_dataid_data_size
 uvard objectsdataidcount
@@ -458,23 +462,25 @@ extern exscurfeature, exsspritelistext, randomfn
 // In:	esi = window pointer
 // Out:	ebx = sprite plus recolour 
 recolourobjectsprite:
-	push eax
-	rol ebx, 16
+	push edx
+	push ebx
+
+	mov edx, 0x10
 	cmp byte [gamemode], 2
-	je .scenarioeditor
-	movzx eax, byte [human1]
-	movzx eax, byte [companycolors+eax]
+	je .noowner
+	movzx edx, byte [human1]
 
-.gotcolour:
-	add ax, 775
-	mov bx, ax
-	ror ebx, 16
-	pop eax
+.noowner:
+	push edx // Owner of the window
+	push dword 0 // No tile index
+	push dword [win_objectgui_curobject] // Current selected object id
+
+	call GetObjectColourMap
+	shl ebx, 16
+	mov bx, [esp]
+	pop edx // We don't want to change ebx back
+	pop edx
 	ret
-
-.scenarioeditor:
-	xor ax, ax
-	jmp .gotcolour
 
 win_objectgui_clickhandler:
 	call dword [WindowClicked]
@@ -830,6 +836,7 @@ extern curplayerctrlkey
 extern invalidatetile
 extern getyear4fromdate
 extern reduceyeartoword
+extern deftwocolormaps
 
 // *************************************** Helper functions ***************************************
 
@@ -1081,8 +1088,7 @@ SetObjectPoolEntry:
 	cmp byte [gamemode], 2
 	jne .companyowned
 	call [randomfn]
-	and al, 0xF0
-	or byte [objectpool+ecx+object.animation], al
+	mov byte [objectpool+ecx+object.colour], al
 
 .companyowned:
 	pop ebx
@@ -1129,6 +1135,108 @@ IsObjectTile:
 
 .isNotObjectTile:
 	stc
+	ret
+
+// Out: bx as the recolour map
+proc GetObjectColourMap
+	arg owner, tile, gameid
+
+	_enter
+	push eax
+	push ecx
+	push edx
+
+	cmp dword [%$tile], 0
+	je near .gui
+	
+	movzx edx, word [%$tile]
+	movzx edx, word [landscape3+edx*2]
+	imul edx, object_size
+	mov dword [%$tile], edx
+
+	movzx edx, word [%$gameid]
+	cmp byte [%$owner], 0x10
+	jb .owned
+
+	mov eax, dword [%$tile]
+	movzx ax, byte [objectpool+eax+object.colour]
+	mov cx, ax
+	and ax, 0x0F
+	and cx, 0xF0
+
+	jmp .hascolours
+
+.owned:
+	movzx eax, byte [%$owner]
+	call GetOwnerColours
+
+.hascolours:
+	test edx, edx // No game id, so only 1cc is possible
+	jz .onecc
+
+	bt dword [newgraphicssetsavail], 10 // No 2cc maps loaded so we can only do 1cc
+	jnc .onecc
+
+	mov edx, [%$tile]
+	test word [objectpool+edx+object.flags], OF_TWOCC
+	jnz .twocc
+
+.onecc:
+	mov bx, ax
+	add bx, 775
+	pop edx
+	pop ecx
+	pop eax
+	_ret
+
+.twocc:
+	mov bx, ax
+	or bx, cx
+	add bx, [deftwocolormaps]
+	pop edx
+	pop ecx
+	pop eax
+	_ret
+
+.gui:
+	movzx edx, word [%$gameid]
+	mov eax, 0x00 // Dark Blue
+	mov ecx, 0x10 // Pale Green
+
+	cmp byte [gamemode], 2
+	je .guichecks
+
+	movzx eax, byte [%$owner]
+	call GetOwnerColours
+
+.guichecks:
+	bt dword [newgraphicssetsavail], 10 // No 2cc maps loaded so we can only do 1cc
+	jnc .onecc
+
+	test word [objectflags+edx*2], OF_TWOCC // We only have the grf raw data of flags for thr gui
+	jnz .twocc
+	jmp .onecc
+
+// In:	eax - owner
+// Out:	al - first colour [lower nibble]
+//		cl - second colour [upper bibble] (same as first if no second colour defined) 
+GetOwnerColours:
+	push edx
+	mov ecx, eax
+	mov edx, eax
+
+	imul edx, player2_size
+	add edx, dword [player2array]
+	movzx eax, byte [companycolors+eax]
+	movzx ecx, byte [edx+player2.col2]
+
+	bt dword [edx+player2.colschemes], 0 // Have standard second colour?
+	jc .hascolour
+	mov ecx, eax
+
+.hascolour:
+	shl ecx, 4
+	pop edx
 	ret
 
 // **************************************** Object Creation ***************************************
@@ -1576,9 +1684,12 @@ RemoveObjectFlags:
 	ret
 
 .unremovable:
-	mov word [operrormsg2], 0
+	mov word [operrormsg2], 0x013B
 	cmp byte [curplayerctrlkey], 1
 	jz .done
+
+	cmp byte [gamemode], 2 // Objects are always removeable in the scenerio editor
+	je .done
 
 .fail:
 	stc
@@ -1701,8 +1812,7 @@ DrawObject:
 
 .fallback:
 	call DrawObjectFoundations
-	call GetObjectColourMap
-	add ebp, 775
+	call GetObjectColourMapWrapper
 	shl ebp, 16
 
 	push ebp
@@ -1763,9 +1873,9 @@ DrawObject:
 
 	push ebx
 	mov ebx, [esp+0x14]
-	call GetObjectColourMap
+	call GetObjectColourMapWrapper
 	pop ebx
-	add ebp, 775
+
 	push ebp	// defcolor for processtileaction2
 
 	movzx eax, word [esp+0x20]
@@ -1812,19 +1922,24 @@ DrawObjectFoundations:
 
 // In:	ebx = tile
 // Out:	ebp = colour / recolour map
-GetObjectColourMap:
-	cmp byte [landscape1+ebx], 0x10
-	je .noowner
+GetObjectColourMapWrapper:
+	push ebx
+	push edx
 
-	movzx ebp, byte [landscape1+ebx]
-	movzx ebp, byte [companycolors+ebp]
-	ret
-
-.noowner:
+	movzx edx, byte [landscape1+ebx]
 	movzx ebp, word [landscape3+ebx*2]
 	imul ebp, object_size
-	movzx ebp, byte [objectpool+ebp+object.animation]
-	shr bp, 4
+	movzx ebp, word [objectpool+ebp+object.dataid]
+	movzx ebp, byte [objectsdataidtogameid+ebp*2]
+
+	push edx // Object owner
+	push ebx // Tile index
+	push ebp // Object game id
+
+	call GetObjectColourMap
+	mov bp, bx
+	pop edx
+	pop ebx
 	ret
 
 // Used to increment the animation of the object
