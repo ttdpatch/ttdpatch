@@ -2034,6 +2034,7 @@ getObjectVar41:
 	shl di, 8
 
 	call gettileterrain // And we add the terrain information
+	movzx ax, al
 	or ax, di
 
 	movzx eax, ax
