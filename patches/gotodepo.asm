@@ -1281,11 +1281,14 @@ global isgoingtohangar
 isgoingtohangar:
 	mov ax,word [esi+veh.currorder]	// overwritten by...
 	and al,0x1f			// ... the runindex call
+	cmp al,5
+	je .scheduled
 	cmp al,2
 	jne short .continue
 
 	test byte [esi+veh.currorder],0x20	// scheduled?
 	jz short .continue
+.scheduled:
 	mov al,1		// con TTD's routine into thinking it's a regular order
 
 	// Note: after the CMP AL,2 (see codefragment oldisgoingtohangar),
@@ -1305,10 +1308,11 @@ isgoingtohangar:
 // safe:al,ebx
 global newaircrafttarget
 newaircrafttarget:
-	mov bx,ax
 	and al,0x1f
 	cmp al,5
 	je short .isspecial
+	mov BYTE [esi+veh.currorderflags], 0
+	mov bx,[ebx]
 	cmp al,2
 	jne short .isstation
 
@@ -1333,9 +1337,6 @@ newaircrafttarget:
 	mov word [esi+veh.currorder],bx
 	ret
 .isspecial:
-	mov al, ah
-	shr al, 5
-	add [esi+veh.currorderidx], al		//correction for special orders >2 bytes
 	and ah, 0x1F
 	cmp ah, 5
 	ja .skiporder
@@ -1361,9 +1362,23 @@ newaircrafttarget:
 .loadorderskip:
 	call newordertarget.loadorderskip
 	jmp .skiporder2
+
 .noloadunload:
-	call newordertarget.noloadunload
-	jmp .isstation
+	mov ah, [ebx+3]
+	mov al, 1
+	cmp ax, [esi+veh.currorder]
+	je .sameaslast
+
+	mov ah, [ebx+1]
+	and ah, 1Fh
+	jmp newordertarget.noloadunload
+
+.sameaslast:
+	// Return to two bytes before the call with zf set
+	// Indicates "This is the same order as last time."
+	sub dword [esp], 8
+	cmp esp, esp		// ste
+	ret
 
 ; endp newaircrafttarget 
 
