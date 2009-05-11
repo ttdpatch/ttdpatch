@@ -112,4 +112,4 @@ exported patchmoretransopts
 	rol eax, 21-11
 	stosw		// bits 11..20
 
-	ret
+	extjmp setonewayflag
