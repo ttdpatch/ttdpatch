@@ -3294,7 +3294,7 @@ fixorders:
 	mov dword [specialerrtext1],fixorderdisp
 	
 #if WINTTDX
-	sub esp, 512
+	sub esp, 1024
 	mov edi, esp
 	mov ax, statictext(specialerr1)
 	call newtexthandler
@@ -3304,7 +3304,7 @@ fixorders:
 	push edi
 	push byte 0
 	call [MessageBoxA]
-	add esp, 512
+	add esp, 1024
 #else	
 	mov bx, statictext(specialerr1)
 	mov dx, -1
