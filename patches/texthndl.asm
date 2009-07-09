@@ -383,6 +383,7 @@ vard extstringformat
 	dd print64bitcost,print64bitcost,skipnextcolor,pushword		//0-3
 	dd backup,ptrtextid						//4-5
 	dd printhex.byte, printhex.word, printhex.dword			//6-8
+	dd ptrwordpush, ptrdwordpush					//9-10
 numextstringformat equ ($-extstringformat)/4
 endvar
 
@@ -437,6 +438,23 @@ ptrtextid:
 	push esi
 	call newtexthandler
 	pop esi
+	ret
+	
+ptrwordpush:
+	lodsd
+	movzx eax, WORD [eax]
+	xor edx, edx
+	jmp pushword.loop
+	
+ptrdwordpush:
+	lodsd
+	mov eax, [eax]
+	xor edx, edx
+.loop:
+	xchg eax, [textrefstack+edx]
+	add edx, 4
+	cmp edx, 0x20
+	jb .loop
 	ret
 
 printhex:
