@@ -15,6 +15,7 @@
 #include <player.inc>
 #include <industry.inc>
 #include <ptrvar.inc>
+#include <win32.inc>
 
 extern actionhandler,actionmakewater_actionnum,addexpenses
 extern clearfifodata,clearindustryincargos,deleteconsist
@@ -29,6 +30,7 @@ extern subsidyfn,traincost,treenum,treestart,vehtypedataptr
 extern yeartodate,trackcheat,isplaneinflight
 extern convertplatformsinremoverailstation
 extern invalidatetile,ResetBBlockVehicleLists
+extern newtexthandler
 
 
 %assign cheattext "CHT:"	// gives "CHT:" in little endian
@@ -160,6 +162,7 @@ cheatentry "CREATEOBJECT", createnewobject, 0
 extern win_objectgui_create
 cheatentry "OBJECTGUI", win_objectgui_create, 0
 cheatentry "SETLANDVAL", setlandarrayval, 0
+cheatentry "FIXORDERS", fixorders, 0
 #endif
 
 #if DEBUGNETPLAY
@@ -3128,6 +3131,315 @@ extern BuildObject_actionnum
 	mov [actionnestlevel], bl
 	clc
 	ret
+
+uvard fixorderserr1
+uvard fixorderserr2
+uvard fixorderserr3
+uvard fixorderserr4
+uvard fixorderserr5
+uvard fixorderserr6
+uvard fixorderserr7
+uvard fixorderserr8
+uvard fixorderserr9
+uvard fixorderserr10
+uvard fixorderserr11
+uvard fixorderserr12
+uvard fixorderserr13
+
+fixorders:
+	pushad
+	
+	xor eax, eax
+	cld
+	mov ecx, 13
+	mov edi, fixorderserr1
+	rep stosd
+	
+	mov edi,[veharrayptr]
+.next:
+	cmp byte [edi+veh.class],0x10
+	jb NEAR .iterate
+	cmp byte [edi+veh.class],0x13
+	ja NEAR .iterate
+	mov eax, [edi+veh.scheduleptr]
+	movzx ebx, BYTE [edi+veh.totalorders]
+	cmp eax, -1
+	je NEAR .iterate
+	cmp eax, scheduleheap
+	jb NEAR .err1
+	cmp eax, scheduleheapend
+	jae NEAR .err2
+	cmp eax, [scheduleheapfree]
+	jae NEAR .err3
+	
+	//inconsistent share length check
+	call schedulesharecheck
+	shr ecx, 16
+	jz .doneshlcheck	//not the last vehicle with this shared order
+	
+	xor ecx, ecx
+	mov edx, [veharrayptr]
+.shlnext:
+	cmp byte [edx+veh.class],0x10
+	jb .shliterate
+	cmp byte [edx+veh.class],0x13
+	ja .shliterate
+	cmp eax, [edx+veh.scheduleptr]
+	jne .shliterate
+	cmp bl, [edx+veh.totalorders]
+	je .shliterate
+	or cl, 1
+.shliterate:
+	sub edx,byte -veh_size
+	cmp edx,[veharrayendptr]
+	jb .shlnext
+	add DWORD [fixorderserr13], ecx
+.doneshlcheck:
+
+	lea ecx, [eax+ebx*2]
+	cmp WORD [ecx], 0
+	jne NEAR .err4
+	cmp ecx, scheduleheapend
+	ja NEAR .err5
+	je .noprecheck
+	cmp eax, scheduleheap
+	je .noprecheck
+	cmp WORD [eax-2], 0
+	jne NEAR .err6
+.noprecheck:
+	
+	mov esi, eax
+	jmp .orderloopcheck
+.orderloop:
+	mov dx, [esi]
+	and dl, 0x1F
+	cmp dl, 0
+	jne NEAR .noerr7
+	pushad
+	lea eax, [esi+2]
+	mov edx, [veharrayptr]
+	mov ecx, 0x10001
+	call schedulesharecheck.next
+	shr ecx, 16
+	jnz .noclash
+	//clashing orders, help!
+	popad
+	jmp .err12	
+	
+.noclash:
+	popad
+	jmp .err7
+.noerr7:
+	cmp dl, 5
+	ja NEAR .err8
+	jb .orderloopcheckadv
+	
+	//specials
+	mov dl, dh
+	shr dh, 5	//number of extra words
+	and dl, 0x1F	//special order type
+	cmp dl, 6
+	ja NEAR .err9
+	cmp dl, 3
+	setae dl
+	cmp dl, dh
+	ja NEAR .err10
+	
+.orderloopspecialerradv:
+	movzx edx, dh
+	lea esi,  [esi+edx*2]
+	
+	
+.orderloopcheckadv:
+	inc esi
+	inc esi
+.orderloopcheck:
+	cmp esi, ecx
+	jb NEAR .orderloop
+	ja NEAR .err11
+	
+.iterate:
+	sub edi,byte -veh_size
+	cmp edi,[veharrayendptr]
+	jb NEAR .next
+
+/*	xor eax, eax
+	xchg eax, [fixorderserr1]
+	mov [textrefstack], ax
+	xor eax, eax
+	xchg eax, [fixorderserr2]
+	mov [textrefstack+2], ax
+	xor eax, eax
+	xchg eax, [fixorderserr3]
+	mov [textrefstack+4], ax
+	xor eax, eax
+	xchg eax, [fixorderserr4]
+	mov [textrefstack+6], eax
+	xor eax, eax
+	xchg eax, [fixorderserr5]
+	mov [textrefstack+10], eax
+	xor eax, eax
+	xchg eax, [fixorderserr6]
+	mov [textrefstack+14], eax
+	xor eax, eax
+	xchg eax, [fixorderserr7]
+	mov [textrefstack+18], eax
+	xor eax, eax
+	xchg eax, [fixorderserr8]
+	mov [textrefstack+22], eax
+	xor eax, eax
+	xchg eax, [fixorderserr9]
+	mov [textrefstack+26], eax*/	
+
+	mov dword [specialerrtext1],fixorderdisp
+	
+#if WINTTDX
+	sub esp, 512
+	mov edi, esp
+	mov ax, statictext(specialerr1)
+	call newtexthandler
+	mov edi, esp
+	push byte 0
+	push fixordertitletext
+	push edi
+	push byte 0
+	call [MessageBoxA]
+	add esp, 512
+#else	
+	mov bx, statictext(specialerr1)
+	mov dx, -1
+	xor ax, ax
+	xor cx, cx
+	call dword [errorpopup]
+#endif
+
+	popad
+	clc
+	ret
+.err1:
+	inc DWORD [fixorderserr1]
+	jmp .iterate	
+.err2:
+	inc DWORD [fixorderserr2]
+	jmp .iterate
+.err3:
+	inc DWORD [fixorderserr3]
+	jmp .iterate
+.err4:
+	call schedulesharecheck
+	add DWORD [fixorderserr4], ecx
+	jmp .iterate	
+.err5:
+	call schedulesharecheck
+	add DWORD [fixorderserr5], ecx
+	jmp .iterate
+.err6:
+	call schedulesharecheck
+	add DWORD [fixorderserr6], ecx
+	jmp .iterate
+.err7:
+	pushad
+	call schedulesharecheck
+	add DWORD [fixorderserr7], ecx
+	popad
+	jmp .orderloopcheckadv
+.err12:
+	pushad
+	call schedulesharecheck
+	add DWORD [fixorderserr7], ecx
+	add DWORD [fixorderserr12], ecx
+	popad
+	jmp .orderloopcheckadv
+.err8:
+	pushad
+	call schedulesharecheck
+	add DWORD [fixorderserr8], ecx
+	popad
+	jmp .orderloopcheckadv
+.err9:
+	pushad
+	call schedulesharecheck
+	add DWORD [fixorderserr9], ecx
+	popad
+	jmp .orderloopspecialerradv
+.err10:
+	pushad
+	call schedulesharecheck
+	add DWORD [fixorderserr10], ecx
+	popad
+	jmp .orderloopspecialerradv
+.err11:
+	call schedulesharecheck
+	add DWORD [fixorderserr11], ecx
+	jmp .iterate
+	
+schedulesharecheck:
+	mov ecx, 0x10001
+	mov edx, edi
+	jmp .iterate
+.next:
+	cmp byte [edx+veh.class],0x10
+	jb .iterate
+	cmp byte [edx+veh.class],0x13
+	ja .iterate
+	cmp eax, [edx+veh.scheduleptr]
+	je .foundshare
+	
+.iterate:
+	sub edx,byte -veh_size
+	cmp edx,[veharrayendptr]
+	jb .next
+	ret
+.foundshare:
+	sub ecx, 0x10000
+	ret	
+	
+varb fixorderdisp
+db 0x94
+db 0x9A, 0x9
+dd fixorderserr1
+db "1: Below heap start: ", 0x7E, 13, 10
+db 0x9A, 0x9
+dd fixorderserr2
+db "2: Past heap end: ", 0x7E, 13, 10
+db 0x9A, 0x9
+dd fixorderserr3
+db "3: Past heap free point: ", 0x7E, 13, 10
+db 0x9A, 0xA
+dd fixorderserr4
+db "4: Badly terminated orders: ", 0x7E, " (", 0x7E, ")", 13, 10
+db 0x9A, 0xA
+dd fixorderserr5
+db "5: Order extends beyond allocated heap area: ", 0x7E, " (", 0x7E, ")", 13, 10
+db 0x9A, 0xA
+dd fixorderserr6
+db "6: Order not preceded by terminator: ", 0x7E, " (", 0x7E, ")", 13, 10
+db 0x9A, 0xA
+dd fixorderserr7
+db "7: Order type 0 in middle of order: ", 0x7E, " (", 0x7E, ")", 13, 10
+db 0x9A, 0xA
+dd fixorderserr12
+db "12: of which the following word was the beginning of another vehicle's orders: ", 0x7E, " (", 0x7E, ")", 13, 10
+db 0x9A, 0xA
+dd fixorderserr8
+db "8: Order type >5 in order: ", 0x7E, " (", 0x7E, ")", 13, 10
+db 0x9A, 0xA
+dd fixorderserr9
+db "9: Advanced order type >6: ", 0x7E, " (", 0x7E, ")", 13, 10
+db 0x9A, 0xA
+dd fixorderserr10
+db "10: Advanced order extra word count not consistent with type: ", 0x7E, " (", 0x7E, ")", 13, 10
+db 0x9A, 0xA
+dd fixorderserr11
+db "11: Orders overrun declared length: ", 0x7E, " (", 0x7E, ")", 13, 10
+db 0x9A, 0x9
+dd fixorderserr13
+db "13: Shared orders with inconsistent lengths: ", 0x7E, 13, 10
+db 0
+endvar
+
+var fixordertitletext, db "Fix Order Sign Cheat Report", 0	
+	
 #endif
 
 #if DEBUGNETPLAY
