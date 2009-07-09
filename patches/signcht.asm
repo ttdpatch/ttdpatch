@@ -3145,13 +3145,21 @@ uvard fixorderserr10
 uvard fixorderserr11
 uvard fixorderserr12
 uvard fixorderserr13
+uvard fixorderserr14
 
 fixorders:
 	pushad
+	call getnumber
+	jc .passive
+	cmp edx, 1
+	jne .passive
+	call orderfixmethod1
+	
+.passive:
 	
 	xor eax, eax
 	cld
-	mov ecx, 13
+	mov ecx, 14
 	mov edi, fixorderserr1
 	rep stosd
 	
@@ -3171,6 +3179,8 @@ fixorders:
 	jae NEAR .err2
 	cmp eax, [scheduleheapfree]
 	jae NEAR .err3
+	test eax, 1
+	jnz NEAR .err14
 	
 	//inconsistent share length check
 	call schedulesharecheck
@@ -3261,57 +3271,11 @@ fixorders:
 .iterate:
 	sub edi,byte -veh_size
 	cmp edi,[veharrayendptr]
-	jb NEAR .next
-
-/*	xor eax, eax
-	xchg eax, [fixorderserr1]
-	mov [textrefstack], ax
-	xor eax, eax
-	xchg eax, [fixorderserr2]
-	mov [textrefstack+2], ax
-	xor eax, eax
-	xchg eax, [fixorderserr3]
-	mov [textrefstack+4], ax
-	xor eax, eax
-	xchg eax, [fixorderserr4]
-	mov [textrefstack+6], eax
-	xor eax, eax
-	xchg eax, [fixorderserr5]
-	mov [textrefstack+10], eax
-	xor eax, eax
-	xchg eax, [fixorderserr6]
-	mov [textrefstack+14], eax
-	xor eax, eax
-	xchg eax, [fixorderserr7]
-	mov [textrefstack+18], eax
-	xor eax, eax
-	xchg eax, [fixorderserr8]
-	mov [textrefstack+22], eax
-	xor eax, eax
-	xchg eax, [fixorderserr9]
-	mov [textrefstack+26], eax*/	
+	jb NEAR .next	
 
 	mov dword [specialerrtext1],fixorderdisp
-	
-#if WINTTDX
-	sub esp, 1024
-	mov edi, esp
-	mov ax, statictext(specialerr1)
-	call newtexthandler
-	mov edi, esp
-	push byte 0
-	push fixordertitletext
-	push edi
-	push byte 0
-	call [MessageBoxA]
-	add esp, 1024
-#else	
-	mov bx, statictext(specialerr1)
-	mov dx, -1
-	xor ax, ax
-	xor cx, cx
-	call dword [errorpopup]
-#endif
+
+	call orderfixoutmess
 
 	popad
 	clc
@@ -3323,6 +3287,9 @@ fixorders:
 	inc DWORD [fixorderserr2]
 	jmp .iterate
 .err3:
+	inc DWORD [fixorderserr3]
+	jmp .iterate
+.err14:
 	inc DWORD [fixorderserr3]
 	jmp .iterate
 .err4:
@@ -3392,6 +3359,115 @@ schedulesharecheck:
 	ret
 .foundshare:
 	sub ecx, 0x10000
+	ret
+	
+orderfixoutmess:
+#if WINTTDX
+	sub esp, 1024
+	mov edi, esp
+	mov ax, statictext(specialerr1)
+	call newtexthandler
+	mov edi, esp
+	push byte 0
+	push fixordertitletext
+	push edi
+	push byte 0
+	call [MessageBoxA]
+	add esp, 1024
+#else	
+	mov bx, statictext(specialerr1)
+	mov dx, -1
+	xor ax, ax
+	xor cx, cx
+	call dword [errorpopup]
+#endif
+	ret
+
+uvard orderfix1truncated
+uvard orderfix1extended
+uvard orderfix1addedzero
+	
+orderfixmethod1:	//autofix order termination and length
+			//you should probably not run this if errors 1, 2, 3 or 14 are present
+			//this will perhaps "fix" errors 4,5,6,11,13
+	pushad
+	
+	xor eax, eax
+	mov [orderfix1truncated], eax
+	mov [orderfix1extended], eax
+	mov [orderfix1addedzero], eax
+
+	mov edx, [veharrayptr]
+	jmp .iterate
+.next:
+	cmp byte [edx+veh.class],0x10
+	jb .iterate
+	cmp byte [edx+veh.class],0x13
+	ja .iterate
+	mov eax, [edx+veh.scheduleptr]
+	cmp eax, -1
+	je .iterate
+	cmp eax, scheduleheap
+	jb .iterate
+	cmp eax, [scheduleheapfree]
+	jae .iterate
+	
+	//found order starting at eax for vehicle edx
+	//ebx is next order in list
+	mov ebx, [scheduleheapfree]
+	
+	//inner iteration
+	mov edi, [veharrayptr]
+.loop:
+	cmp byte [edi+veh.class],0x10
+	jb .inneriterate
+	cmp byte [edi+veh.class],0x13
+	ja .inneriterate
+	mov ecx, [edi+veh.scheduleptr]
+	cmp ecx, eax
+	jbe .inneriterate
+	cmp ecx, ebx
+	jae .inneriterate
+	mov ebx, ecx	//new closest order above eax
+	
+.inneriterate:
+	sub edi,byte -veh_size
+	cmp edi,[veharrayendptr]
+	jb .loop
+
+	//ebx is the next order in the list from eax
+	lea ecx, [ebx-2]
+	sub ebx, eax
+	shr ebx, 1
+	dec ebx
+	
+	xor edi, edi
+	xchg di, [ecx]
+	or di, di
+	jz .nozeroset
+	//this is mildly bad
+	inc DWORD [orderfix1addedzero]
+.nozeroset:
+	
+	
+	cmp [edx+veh.totalorders], bl 
+	je .iterate
+	//this is rather bad
+	mov [edx+veh.totalorders], bl
+	ja .trunc
+	inc DWORD [orderfix1extended]
+	jmp .iterate
+.trunc:
+	inc DWORD [orderfix1truncated]
+		
+.iterate:
+	sub edx,byte -veh_size
+	cmp edx,[veharrayendptr]
+	jb .next
+
+	mov dword [specialerrtext1], fixordermethod1
+	call orderfixoutmess
+	popad
 	ret	
 	
 varb fixorderdisp
@@ -3405,6 +3481,10 @@ db "2: Past heap end: ", 0x7E, 13, 10
 db 0x9A, 0x9
 dd fixorderserr3
 db "3: Past heap free point: ", 0x7E, 13, 10
+db 0x9A, 0xA
+dd fixorderserr14
+db "14: Odd order addresses: ", 0x7E, " (", 0x7E, ")", 13, 10
+db "---", 13, 10
 db 0x9A, 0xA
 dd fixorderserr4
 db "4: Badly terminated orders: ", 0x7E, " (", 0x7E, ")", 13, 10
@@ -3438,7 +3518,21 @@ db "13: Shared orders with inconsistent lengths: ", 0x7E, 13, 10
 db 0
 endvar
 
-var fixordertitletext, db "Fix Order Sign Cheat Report", 0	
+var fixordertitletext, db "Fix Order Sign Cheat Report", 0
+
+varb fixordermethod1
+db 0x94
+db 0x9A, 0xA
+dd orderfix1truncated
+db "Orders truncated: ", 0x7B, 13, 10
+db 0x9A, 0xA
+dd orderfix1extended
+db "Orders extended: ", 0x7B, 13, 10
+db 0x9A, 0xA
+dd orderfix1addedzero
+db "Additional zero markers added: ", 0x7B, 13, 10
+db 0
+endvar	
 	
 #endif
 
