@@ -168,6 +168,10 @@ codefragment oldcanvehiclebreakdown
 
 codefragment newcanvehiclebreakdown
 	icall canvehiclebreakdown
+	
+codefragment newvehiclebreakdowndayhook
+	icall vehiclebreakdowndayhook
+	setfragmentsize 7
 
 codefragment oldtrainignoredepotsignal,-10
 	cmp byte [esi+veh.ignoresignals],0
@@ -1045,6 +1049,10 @@ patchgeneralfixes:
 
 .norle2:
 	// fix trains breaking down while waiting on a red signal
+	stringaddress oldcanvehiclebreakdown
+	sub edi, 0x29
+	storefragment newvehiclebreakdowndayhook
+
 	patchcode oldcanvehiclebreakdown,newcanvehiclebreakdown,1,1,,{test ebx,MISCMODS_BREAKDOWNATSIGNAL},z
 
 	patchcode trainignoredepotsignal

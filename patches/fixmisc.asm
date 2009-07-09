@@ -3154,6 +3154,22 @@ canvehiclebreakdown:
 .normalcheck:
 	test byte [esi+veh.vehstatus],2	// a shorter form of the overwritten instruction
 	ret
+	
+global vehiclebreakdowndayhook
+vehiclebreakdowndayhook:
+	mov bx, ax
+	cmp BYTE [esi+veh.movementstat], 0x80
+	je .depot
+	sub ax, [esi+veh.reliabilityspeed] 
+	ret
+
+.depot:
+	push ecx
+	mov cx, [currentdate]
+	mov [esi+veh.lastmaintenance], cx
+	pop ecx
+	or ax, ax
+	ret
 
 // Called to check whether train should ignore the depot signal
 //

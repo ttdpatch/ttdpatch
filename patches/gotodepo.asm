@@ -770,6 +770,8 @@ newordertarget:
 	mov eax,[depotarray+ebx]
 	or ax,ax
 	jz short .skiporder
+	cmp ax, [esi+veh.XY]
+	je short .skiporder
 
 	mov ebx,eax
 	mov byte [esi+veh.laststation],-1
@@ -794,6 +796,8 @@ newordertarget:
 	call needsmaintcheck.always
 	ja .skiporder
 .alwaysfinddepot:
+	cmp BYTE [esi+veh.movementstat], 0x80
+	je .skiporder
 	pushad
 	call [FindNearestTrainDepot]
 	or ebx, ebx
