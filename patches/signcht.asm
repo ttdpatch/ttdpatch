@@ -3132,6 +3132,7 @@ extern BuildObject_actionnum
 	clc
 	ret
 
+uvard fixordermessflags
 uvard fixorderserr1
 uvard fixorderserr2
 uvard fixorderserr3
@@ -3149,19 +3150,24 @@ uvard fixorderserr14
 
 fixorders:
 	pushad
-	call getnumber
-	jc .passive
+	
+	xor eax, eax
+	cld
+	mov ecx, 15
+	mov edi, fixordermessflags
+	rep stosd
+	
+	call gethexnumber
+	jc .passivenocheckflags
 	cmp edx, 1
 	jne .passive
 	call orderfixmethod1
 	
 .passive:
-	
-	xor eax, eax
-	cld
-	mov ecx, 14
-	mov edi, fixorderserr1
-	rep stosd
+	call gethexnumber
+	jc .passivenocheckflags
+	mov [fixordermessflags], edx
+.passivenocheckflags:
 	
 	mov edi,[veharrayptr]
 .next:
@@ -3281,37 +3287,56 @@ fixorders:
 	clc
 	ret
 .err1:
+	mov ecx, 1<<1
+	call messagevehicleifflag
 	inc DWORD [fixorderserr1]
 	jmp .iterate	
 .err2:
+	mov ecx, 1<<2
+	call messagevehicleifflag
 	inc DWORD [fixorderserr2]
 	jmp .iterate
 .err3:
+	mov ecx, 1<<3
+	call messagevehicleifflag
 	inc DWORD [fixorderserr3]
 	jmp .iterate
 .err14:
+	push ecx
+	mov ecx, 1<<14
+	call messagevehicleifflag
 	inc DWORD [fixorderserr3]
 	jmp .iterate
 .err4:
+	mov ecx, 1<<4
+	call messagevehicleifflag
 	call schedulesharecheck
 	add DWORD [fixorderserr4], ecx
 	jmp .iterate	
 .err5:
+	mov ecx, 1<<5
+	call messagevehicleifflag
 	call schedulesharecheck
 	add DWORD [fixorderserr5], ecx
 	jmp .iterate
 .err6:
+	mov ecx, 1<<6
+	call messagevehicleifflag
 	call schedulesharecheck
 	add DWORD [fixorderserr6], ecx
 	jmp .iterate
 .err7:
 	pushad
+	mov ecx, 1<<7
+	call messagevehicleifflag
 	call schedulesharecheck
 	add DWORD [fixorderserr7], ecx
 	popad
 	jmp .orderloopcheckadv
 .err12:
 	pushad
+	mov ecx, 1<<12 | 1<<7
+	call messagevehicleifflag
 	call schedulesharecheck
 	add DWORD [fixorderserr7], ecx
 	add DWORD [fixorderserr12], ecx
@@ -3319,23 +3344,31 @@ fixorders:
 	jmp .orderloopcheckadv
 .err8:
 	pushad
+	mov ecx, 1<<8
+	call messagevehicleifflag
 	call schedulesharecheck
 	add DWORD [fixorderserr8], ecx
 	popad
 	jmp .orderloopcheckadv
 .err9:
 	pushad
+	mov ecx, 1<<9
+	call messagevehicleifflag
 	call schedulesharecheck
 	add DWORD [fixorderserr9], ecx
 	popad
 	jmp .orderloopspecialerradv
 .err10:
 	pushad
+	mov ecx, 1<<10
+	call messagevehicleifflag
 	call schedulesharecheck
 	add DWORD [fixorderserr10], ecx
 	popad
 	jmp .orderloopspecialerradv
 .err11:
+	mov ecx, 1<<11
+	call messagevehicleifflag
 	call schedulesharecheck
 	add DWORD [fixorderserr11], ecx
 	jmp .iterate
@@ -3383,6 +3416,7 @@ orderfixoutmess:
 #endif
 	ret
 
+uvard orderfix1flags
 uvard orderfix1truncated
 uvard orderfix1extended
 uvard orderfix1addedzero
@@ -3396,34 +3430,40 @@ orderfixmethod1:	//autofix order termination and length
 	mov [orderfix1truncated], eax
 	mov [orderfix1extended], eax
 	mov [orderfix1addedzero], eax
+	mov [orderfix1flags], eax
+	
+	call gethexnumber
+	jc .noflags
+	mov [orderfix1flags], edx
+.noflags:
 
-	mov edx, [veharrayptr]
+	mov edi, [veharrayptr]
 	jmp .iterate
 .next:
-	cmp byte [edx+veh.class],0x10
-	jb .iterate
-	cmp byte [edx+veh.class],0x13
-	ja .iterate
-	mov eax, [edx+veh.scheduleptr]
+	cmp byte [edi+veh.class],0x10
+	jb NEAR .iterate
+	cmp byte [edi+veh.class],0x13
+	ja NEAR .iterate
+	mov eax, [edi+veh.scheduleptr]
 	cmp eax, -1
-	je .iterate
+	je NEAR .iterate
 	cmp eax, scheduleheap
-	jb .iterate
+	jb NEAR .iterate
 	cmp eax, [scheduleheapfree]
-	jae .iterate
+	jae NEAR .iterate
 	
 	//found order starting at eax for vehicle edx
 	//ebx is next order in list
 	mov ebx, [scheduleheapfree]
 	
 	//inner iteration
-	mov edi, [veharrayptr]
+	mov edx, [veharrayptr]
 .loop:
-	cmp byte [edi+veh.class],0x10
+	cmp byte [edx+veh.class],0x10
 	jb .inneriterate
-	cmp byte [edi+veh.class],0x13
+	cmp byte [edx+veh.class],0x13
 	ja .inneriterate
-	mov ecx, [edi+veh.scheduleptr]
+	mov ecx, [edx+veh.scheduleptr]
 	cmp ecx, eax
 	jbe .inneriterate
 	cmp ecx, ebx
@@ -3431,8 +3471,8 @@ orderfixmethod1:	//autofix order termination and length
 	mov ebx, ecx	//new closest order above eax
 	
 .inneriterate:
-	sub edi,byte -veh_size
-	cmp edi,[veharrayendptr]
+	sub edx,byte -veh_size
+	cmp edx,[veharrayendptr]
 	jb .loop
 
 	//ebx is the next order in the list from eax
@@ -3441,34 +3481,70 @@ orderfixmethod1:	//autofix order termination and length
 	shr ebx, 1
 	dec ebx
 	
-	xor edi, edi
-	xchg di, [ecx]
-	or di, di
+	xor edx, edx
+	xchg dx, [ecx]
+	or dx, dx
 	jz .nozeroset
 	//this is mildly bad
 	inc DWORD [orderfix1addedzero]
+	mov ecx, 8
+	call messagevehiclemeth1
 .nozeroset:
 	
-	
-	cmp [edx+veh.totalorders], bl 
+	cmp [edi+veh.totalorders], bl 
 	je .iterate
 	//this is rather bad
-	mov [edx+veh.totalorders], bl
+	mov [edi+veh.totalorders], bl
 	ja .trunc
 	inc DWORD [orderfix1extended]
+	mov ecx, 2
+	call messagevehiclemeth1
 	jmp .iterate
 .trunc:
 	inc DWORD [orderfix1truncated]
+	mov ecx, 4
+	call messagevehiclemeth1
 		
 .iterate:
-	sub edx,byte -veh_size
-	cmp edx,[veharrayendptr]
+	sub edi,byte -veh_size
+	cmp edi,[veharrayendptr]
 	jb .next
 
 	mov dword [specialerrtext1], fixordermethod1
 	call orderfixoutmess
 	popad
-	ret	
+	ret
+
+messagevehiclemeth1:
+	test [orderfix1flags], ecx
+	jnz .teststop
+	ret
+.teststop:
+	test BYTE [orderfix1flags], 1
+	jz messagevehicle
+	jmp messagevehicleandstop
+
+messagevehicleifflag:	
+	test [fixordermessflags], ecx
+	jnz .teststop
+	ret
+.teststop:
+	test BYTE [fixordermessflags], 1
+	jz messagevehicle
+messagevehicleandstop:
+	cmp BYTE [edi+veh.class], 13h		//don't bother with planes
+	je messagevehicle
+	cmp DWORD [edi+veh.scheduleptr], BYTE -1
+	je messagevehicle
+	or BYTE [edi+veh.vehstatus], 2
+	ret					//things seem to go wrong if both stop and open window are run (fixme?)
+messagevehicle:
+	pushad
+	movzx eax,byte [edi+veh.class]
+	mov eax,[ophandler+eax*8]
+	call [eax+0x18]		// mouse click handler
+	popad
+ret	
 	
 varb fixorderdisp
 db 0x94
@@ -3524,13 +3600,13 @@ varb fixordermethod1
 db 0x94
 db 0x9A, 0xA
 dd orderfix1truncated
-db "Orders truncated: ", 0x7B, 13, 10
+db "1: Orders truncated: ", 0x7B, 13, 10
 db 0x9A, 0xA
 dd orderfix1extended
-db "Orders extended: ", 0x7B, 13, 10
+db "2: Orders extended: ", 0x7B, 13, 10
 db 0x9A, 0xA
 dd orderfix1addedzero
-db "Additional zero markers added: ", 0x7B, 13, 10
+db "3: Additional zero markers added: ", 0x7B, 13, 10
 db 0
 endvar	
 	
