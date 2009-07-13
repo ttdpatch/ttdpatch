@@ -226,10 +226,12 @@ removebridgetrack:
 	jmp  short .bridgeending
 
 .notbridgeending:
-	testflags advzfunctions
-	jc .advremovetrackbridgemiddle
 	mov dl, dh
 	and dl, 0F8h
+	jns .tunnelquit
+	testflags advzfunctions
+	jc .advremovetrackbridgemiddle
+.tunnelquit:
 	cmp dl, 0E0h
 	ret
 	
