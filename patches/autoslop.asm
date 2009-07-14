@@ -123,7 +123,7 @@ autoslopechecklandscape:
 	pusha
 	mov esi, ebx
 	call [gettileinfoshort]
-	xor ecx, ecx
+//	xor ecx, ecx
 	mov ecx, railgetol5
 	
 	mov dl, dh
@@ -190,8 +190,7 @@ autoslopechecklandscape:
 	test dh, dl
 	jz .roaddown_noroute1
 
-	xor eax, eax
-	mov al, byte [cornerchecktile1+ebx]
+	movzx eax, byte [cornerchecktile1+ebx]
 	bt di, ax
 	jnc near .exit
 .roaddown_noroute1:
@@ -227,8 +226,7 @@ autoslopechecklandscape:
 	test dh, dl
 	jz .roadup_noroute1
 
-	xor eax, eax
-	mov al, byte [cornerchecktile1+ebx]
+	movzx eax, byte [cornerchecktile1+ebx]
 	bt di, ax
 	jnc near .exit
 .roadup_noroute1:
@@ -321,13 +319,13 @@ autoslopechecklandscape:
 	mov ah, byte [bTempRaiseLowerCorner]
 	xor al, al
 	add esp, 8		// we get called by canraiselowertrack
-	mov ebp,[raiselowercost]
+//	mov ebp,[raiselowercost]
 
-	push ebp
+//	push ebp
 	mov ebp, [raiselowercost]
 	imul ebp, dword [autoslopevalue]
 	add edx, ebp 	// cost to change
-	pop ebp
+//	pop ebp
 
 	movzx ebp, word [0x447BD0]
 ovar tempraiseloweraffectedtilearraycount, -4

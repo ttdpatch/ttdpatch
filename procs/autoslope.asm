@@ -52,6 +52,10 @@ and	 cx, 0FF0h
 //call	 sub_401E15
 db 0xE8
 
+codefragment newincvalfixfudgefrag
+	jb $+2+0xB-4
+	ret
+
 
 
 endcodefragments
@@ -81,4 +85,6 @@ patchautoslope:
 	chainfunction correctlandscapeonraiselower,.oldfn
 	add edi,101+(WINTTDX*7)
 	chainfunction correctlandscapeonraiselower2,.oldfn
+	add edi, 0x58425A-0x584200
+	storefragment newincvalfixfudgefrag
 	ret
