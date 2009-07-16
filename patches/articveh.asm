@@ -1316,6 +1316,7 @@ global dontLetARVsInNormalRVStops
 //	 al = vehicle class
 //	 facilities check already done
 dontLetARVsInNormalRVStops:
+	jecxz .done	//depot
 	cmp word [esi+veh.nextunitidx], 0xFFFF
 	je .done		// no following vehicle
 	cmp al, 0x11	// following vehicle, are we a road vehicle with a trailer?
