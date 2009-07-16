@@ -98,6 +98,8 @@ newbuyroadvehicle:
 	cmp	bx, word [edi+veh.XY]
 	pop	ebx
 	jnz	short .doLoop
+	cmp	byte [edi+veh.consistnum], 0
+	je	short .doLoop
 	mov	dword [vehicleToAttachTo], edi
 	jmp	short .doneFindingRVInDepot
 .doLoop:
