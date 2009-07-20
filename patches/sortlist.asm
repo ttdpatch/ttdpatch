@@ -12,8 +12,9 @@
 #include <veh.inc>
 #include <misc.inc>
 #include <station.inc>
+#include <flags.inc>
 
-extern FindWindow,GenerateDropDownMenu,invalidatehandle,sortfrequency
+extern FindWindow,GenerateDropDownMenu,invalidatehandle,sortfrequency, patchflags
 
 extern addr
 
@@ -555,6 +556,10 @@ setvehlisttext:
 // Apply the last selected sorting method, force reordering and
 // disable the "New vehicles" button if necessary.
 // in:	esi -> window
+// The initialization here that is specific to sortvehlist is
+// safe/harmless when that switch is off:
+// -- The GUI timer goes off once, and has no handler, so expires
+// -- The sort is stored, but the sort functions are never called
 global createlistwindow
 createlistwindow:
 	mov [esi+window.id],dx		// overwritten
