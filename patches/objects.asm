@@ -23,8 +23,8 @@ extern failpropwithgrfconflict
 extern curspriteblock
 extern grfstage
 extern RefreshWindowArea
-extern newgraphicssetsavail
 extern player2array
+extern numtwocolormaps
 
 uvard objectsdataiddata,256*idf_dataid_data_size
 uvard objectsdataidcount
@@ -1174,7 +1174,7 @@ proc GetObjectColourMap
 	test edx, edx // No game id, so only 1cc is possible
 	jz .onecc
 
-	bt dword [newgraphicssetsavail], 10 // No 2cc maps loaded so we can only do 1cc
+	cmp byte dword [numtwocolormaps+1], 1 // No 2cc maps loaded so we can only do 1cc
 	jnc .onecc
 
 	mov edx, [%$tile]
@@ -1210,7 +1210,7 @@ proc GetObjectColourMap
 	call GetOwnerColours
 
 .guichecks:
-	bt dword [newgraphicssetsavail], 10 // No 2cc maps loaded so we can only do 1cc
+	cmp byte [numtwocolormaps+1], 1 // No 2cc maps loaded so we can only do 1cc
 	jnc .onecc
 
 	test word [objectflags+edx*2], OF_TWOCC // We only have the grf raw data of flags for thr gui
