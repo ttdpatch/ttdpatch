@@ -2036,10 +2036,6 @@ checknewgraphicsblock:
 	test ebx,ebx
 	jle .invalid	// signed or zero = bad value
 
-	cmp dword [edx+spriteblock.grfid],byte -1
-	jne .notstandard
-	bts [newgraphicssetsavail],ebp
-.notstandard:
 	ret
 
 	// jmp here with al=INVSP_* error code
@@ -4402,7 +4398,7 @@ numgrfvarreinit equ (grfvarreinitend-grfvarreinitstart)/4
 	// for action 5, where to store the first sprite number
 	// (the ones that are -1 are safe to be reused)
 var newgraphicsspritebases, dd presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,deftwocolormaps,tramtracks,snowytemptreespritebase,newcoastspritebase
-var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,-1,numtramtracks,numsnowytemptrees,newcoastspritenum
+var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,numtwocolormaps,numtramtracks,numsnowytemptrees,newcoastspritenum
 
 global numnewgraphicssprites
 numnewgraphicssprites equ (newgraphicsspritenums-newgraphicsspritebases)/4
@@ -4413,8 +4409,6 @@ numnewgraphicssprites equ (newgraphicsspritenums-newgraphicsspritebases)/4
 %endif
 
 uvard newgraphicssetsenabled	// bit mask of action 5 sets that are turned on
-uvard newgraphicssetsavail	// bit mask of action 5 sets that are available
-				// (counting only those with an FFFFFFFF GRFID)
 
 %macro grfswitchpar 1.nolist
 	db %1_OFS
@@ -4448,6 +4442,7 @@ uvard grfswitchparam,numgrfswitchparam
 
 global deftwocolormaps
 deftwocolormaps equ grfswitchparam+4*0x11	// sprite numbers for 2nd CC translation tables
+extern numtwocolormaps
 
 // cargo types available in each climate
 // for each of the values in the cargotypes list below, that bit is set

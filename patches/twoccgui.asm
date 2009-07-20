@@ -37,30 +37,30 @@ extern getnewsprite,grffeature
 %assign numtabs 4
 
 /************************************* Constants for ingame **************************************/
-var twoccguitabrows
+noglobal varb twoccguitabrows
 	db 0x09
 	db 0x03
 	db 0x02
 	db 0x04
 
-var twoccguitabbits
+noglobal varb twoccguitabbits
 	db 0x01
 	db 0x0A
 	db 0x0D
 	db 0x0F
+endvar
 
 /************************************* Variables For Ingame **************************************/
 uvarb twoccguilasttabclicked, 8 // One for each Company (n-player games)
-
+uvard numtwocolormaps
 
 /********************* This Changes the Company Window Sprite to support 2cc *********************/
 extern deftwocolormaps
-extern newgraphicssetsavail
 global recolourcompanywindowsprite
 recolourcompanywindowsprite:
 	movzx ebx, byte [ebx+player.colourscheme] // Get the current colour scheme
-	bt dword [newgraphicssetsavail], 10 // Is a 2cc mappings grf loaded
-	jnc .nomappings // If not skip the next part
+	cmp byte [numtwocolormaps+1], 0x1 // Are at least 256 colormaps loaded?
+	jb .nomappings // If not skip the next part
 	push ecx // Backup what was in this registor
 	movzx ecx, byte [esi+window.company] // Get the company the winodw belongs to
 	imul ecx, player2_size // Number of bytes to skip to get to entry
