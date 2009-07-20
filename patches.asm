@@ -23,7 +23,7 @@
 #if WINTTDX
 	patchproc resolutionwidth,resolutionheight, patchresolution	// must be after patchrailvehiclelist -- may create a search string
 #endif
-	patchproc enhancegui,locomotiongui, patchdynamicmemory	// only used currently by enhancegui
+	patchproc enhancegui,locomotiongui,BIT(EXP_NEWTERRAINGEN), patchdynamicmemory
 
 	patchproc uselargerarray,enhancemultiplayer, newsavename
 	patchproc uselargerarray, patchuselargerarray
