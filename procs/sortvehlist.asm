@@ -5,6 +5,7 @@
 #include <patchproc.inc>
 
 patchproc sortvehlist, patchsortvehlist
+patchproc enhancegui,sortvehlist, patchdrawvehlist
 
 extern vehlistwindowsizes,patchflags,vehlistwindowconstraints
 
@@ -219,7 +220,8 @@ codefragment oldcreatelistwindow1,2
 	mov byte [esi+window.itemsvisible],7
 
 codefragment newcreatelistwindow
-	use_indirect push DWORD, createlistwindow
+	extern createlistwindow
+	push createlistwindow
 	setfragmentsize 7
 
 codefragment oldcreatelistwindow2,2
@@ -415,10 +417,7 @@ patchsortvehlist:
 	multipatchcode oldsetvehlisttext,newsetvehlisttext,4
 // show the two buttons on the bottom even for AI player windows...
 	multipatchcode oldislistwindowhuman,newislistwindowhuman,4
-// ...but disable the "New Vehicles" button. Then apply the last selected
-// sorting method and start the timer.
-	multipatchcode oldcreatelistwindow1,newcreatelistwindow,4
-	multipatchcode oldcreatelistwindow2,newcreatelistwindow,4
+//	(finished in patchdrawvehlist)
 
 // make sure lists are reordered when deleting/creating vehicles
 	patchcode olddelveharrayentry,newdelveharrayentry,1,1
@@ -467,4 +466,11 @@ patchsortvehlist:
 	add ebx, 4
 	mov byte [edi+4*12+windowbox.type], cWinElemLast
 .noresize:
+	ret
+
+// ...but disable the "New Vehicles" button. Then apply the last selected
+// sorting method and start the timer.
+patchdrawvehlist:
+	multipatchcode oldcreatelistwindow1,newcreatelistwindow,4
+	multipatchcode oldcreatelistwindow2,newcreatelistwindow,4
 	ret
