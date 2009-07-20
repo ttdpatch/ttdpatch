@@ -2120,10 +2120,6 @@ checknewgraphicsblock:
 	test ebx,ebx
 	jle .invalid	// signed or zero = bad value
 
-	cmp dword [edx+spriteblock.grfid],byte -1
-	jne .notstandard
-	bts [newgraphicssetsavail],ebp
-.notstandard:
 	ret
 
 	// jmp here with al=INVSP_* error code
@@ -4390,8 +4386,8 @@ extern presignalspritebase,catenaryspritebase,extfoundationspritebase,guispriteb
 var newgraphicsspritebases, dd presignalspritebase,catenaryspritebase,extfoundationspritebase,guispritebase,newwaterspritebase,newonewayarrows,deftwocolormaps,tramtracks,snowytemptreespritebase,newcoastspritebase,newsignalspritebase,newpbstrackbase,0,roadsidervstops,newaquaductbase
 
 extern numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,
-extern numtramtracks,numsnowytemptrees,newcoastspritenum,newsignalspritenum,newpbstracknum,roadsidervstopsnum,newaquaductnum
-var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,-1,numtramtracks,numsnowytemptrees,newcoastspritenum,newsignalspritenum,newpbstracknum,0,roadsidervstopsnum,newaquaductnum
+extern numtramtracks,numsnowytemptrees,newcoastspritenum,newsignalspritenum,newpbstracknum,roadsidervstopsnum,newaquaductnum,numtwocolormaps
+var newgraphicsspritenums, dd numsiggraphics,numelrailsprites,extfoundationspritenum,numguisprites,numnewwatersprites,numonewayarrows,numtwocolormaps,numtramtracks,numsnowytemptrees,newcoastspritenum,newsignalspritenum,newpbstracknum,0,roadsidervstopsnum,newaquaductnum
 
 global numnewgraphicssprites
 numnewgraphicssprites equ (newgraphicsspritenums-newgraphicsspritebases)/4
@@ -4402,8 +4398,6 @@ numnewgraphicssprites equ (newgraphicsspritenums-newgraphicsspritebases)/4
 %endif
 
 uvard newgraphicssetsenabled	// bit mask of action 5 sets that are turned on
-uvard newgraphicssetsavail	// bit mask of action 5 sets that are available
-				// (counting only those with an FFFFFFFF GRFID)
 
 %macro grfswitchpar 1.nolist
 	db %1_OFS
@@ -4439,6 +4433,7 @@ uvard grfswitchparam,numgrfswitchparam
 
 global deftwocolormaps
 deftwocolormaps equ grfswitchparam+4*0x11	// sprite numbers for 2nd CC translation tables
+extern numtwocolormaps
 
 // cargo types available in each climate
 // for each of the values in the cargotypes list below, that bit is set

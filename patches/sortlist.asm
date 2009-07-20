@@ -12,9 +12,8 @@
 #include <veh.inc>
 #include <misc.inc>
 #include <station.inc>
-#include <flags.inc>
 
-extern FindWindow,GenerateDropDownMenu,invalidatehandle,sortfrequency, patchflags
+extern FindWindow,GenerateDropDownMenu,invalidatehandle,sortfrequency
 
 extern addr
 

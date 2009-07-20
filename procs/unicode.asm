@@ -9,7 +9,7 @@
 
 patchproc VARBSET(hasaction12), patchunicode
 
-extern newgraphicssetsavail,newspritexsize,setcharwidthtablefn
+extern newspritexsize,setcharwidthtablefn
 extern getcharsprite,drawstringfn,storetextcharacter,gettextwidth
 extern splittextlines,hasaction12,setwindowtitle
 
