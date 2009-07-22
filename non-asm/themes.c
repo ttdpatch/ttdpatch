@@ -132,9 +132,11 @@ void freeForm (int hills, int water, uint8_t forced, gridArray** desert_,  gridA
 * creates a classic arctic/tropic terrain (half one thing, half another)
 */
 
+#if 0	// never used
 void classic (uint8_t forced, gridArray** desert_, gridArray** this_)
 {
  }
+#endif
 
 /*
 * creates a valley themed terrain
@@ -245,6 +247,7 @@ void mountains (int width, uint8_t forced, gridArray** desert_, gridArray** this
 * par2 - angle
 */
 
+#if 0	// never used
 void shoreline (int height, int angle, uint8_t forced, gridArray** desert_, gridArray** this_)
 {
  }
@@ -266,3 +269,4 @@ void atolTheme ( uint8_t forced, gridArray** this_)
 void longmap (int hills, uint8_t forced,  gridArray** desert_, gridArray** this_)
 {
  }
+#endif

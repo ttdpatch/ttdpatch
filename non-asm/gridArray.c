@@ -25,6 +25,9 @@ extern uint32_t (*randomfn)(void) asm("randomfn");
 
 // #define DEBUG
 
+static void cellularAutomata(ulong pop1, ulong pop2, ulong iters, gridArray** this_);
+static void infest(gridArray* source, ulong i_x, ulong i_y, gridArray* this_);
+
 #define TRAP
 
 /*
@@ -33,7 +36,7 @@ extern uint32_t (*randomfn)(void) asm("randomfn");
 *
 */
 
-void snipArray (gridArray* source_,ulong size_x_,ulong size_y_,gridArray** this_) {
+static void snipArray (gridArray* source_,ulong size_x_,ulong size_y_,gridArray** this_) {
 
     ulong limit_x = 0;
     ulong limit_y = 0;
@@ -449,7 +452,7 @@ for (i_x = 0;i_x < limit_x;++i_x)
 
 #ifndef NOBMP
 
-void image(const char* filename,gridArray* this_) {
+static void image(const char* filename,gridArray* this_) {
 
     ulong i_x = 0;
     ulong i_y = 0;
@@ -678,6 +681,8 @@ void mulArray(gridArray* source_,gridArray* this_) {
     }
 }
 
+#if 0	// never used
+
 /* move a given rown one place */
 
 void shift_x (int dir, ulong row, gridArray* this_) {
@@ -737,9 +742,11 @@ void shift_y (int dir, ulong row, gridArray* this_) {
      }
 }
 
+#endif
+
 /* cellular automata */
 
-void infest(gridArray* source, ulong i_x, ulong i_y, gridArray* this_)
+static void infest(gridArray* source, ulong i_x, ulong i_y, gridArray* this_)
 {
     if (val (i_x, i_y, source) != 0.0)
         return;
@@ -797,7 +804,7 @@ void infest(gridArray* source, ulong i_x, ulong i_y, gridArray* this_)
 
 #define SOURCE_SIZE 64
 
-void cellularAutomata(ulong pop1, ulong pop2, ulong iters, gridArray** this_)
+static void cellularAutomata(ulong pop1, ulong pop2, ulong iters, gridArray** this_)
 {
 
      

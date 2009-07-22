@@ -32,7 +32,7 @@ typedef struct {
     ulong size_y; /* size of the array */
 } gridArray;
 
-void snipArray (gridArray* source_,ulong  size_x_,ulong  size_y_,gridArray** this_);
+//void snipArray (gridArray* source_,ulong  size_x_,ulong  size_y_,gridArray** this_);
 /* copy constructor for creating the array from another
    array with its sub-cutted elements */
 
@@ -67,7 +67,7 @@ void normalize(float hi, gridArray* this_);
 /* normalize the array to the low-hi range */
 
 #ifndef NOBMP
-void image(const char* filename, gridArray* this_);
+static void image(const char* filename, gridArray* this_);
 /* inputs the map as a bmp image */
 #endif
 
@@ -77,6 +77,8 @@ void ttMap(ulong cutDown, ulong cutUp, gridArray* this_);
 
 void ttDesert(gridArray** this_);
 /* make TT desert */
+
+#if 0	// never used
 
 void print (gridArray* this_);
 /* print the contents of the array */
@@ -90,6 +92,7 @@ void shift_y (int dir, ulong row, gridArray* this_);
 /* in both cases - if dir is negative, shift low->hi
 else shift hi->lo */
 
+#endif
 
 /*stomp a circle of normal terrain to make a shoreline green
 for desert creation */
@@ -186,8 +189,8 @@ static inline int dist(ulong otherSize, ulong other, ulong mySize, ulong indice,
 }
 
 
-void cellularAutomata(ulong pop1, ulong pop2, ulong iters, gridArray** this_);
-void infest(gridArray* source, ulong i_x, ulong i_y, gridArray* this_);
+//void cellularAutomata(ulong pop1, ulong pop2, ulong iters, gridArray** this_);
+//void infest(gridArray* source, ulong i_x, ulong i_y, gridArray* this_);
 
 inline static void normalizePoint(ulong i_x, ulong i_y, double low, double hi, double range, gridArray* this_) 
 {
