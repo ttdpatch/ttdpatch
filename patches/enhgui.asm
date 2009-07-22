@@ -1169,7 +1169,7 @@ ovar .buttontype, -4, $, drawtitlebar
 
 //IN: ESI=window
 //OUT: cf set if this window can't be stickyfied
-WindowCanSticky:
+exported WindowCanSticky
 	cmp byte [esi+window.type], 15h
 	jz .nosticky
 	cmp byte [esi+window.type], 16h

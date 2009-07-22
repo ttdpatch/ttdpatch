@@ -8,13 +8,14 @@
 #include <window.inc>
 #include <view.inc>
 #include <ptrvar.inc>
+#include <misc.inc>
 
 extern FindTopmostWindowAtXY,FindWindow,RefreshWindowArea,mousewheelsettings
 extern patchflags
 extern windowstretchinv
 
 
-
+ptrvar window2ofs
 
 
 #define WHEEL_DELTA 120
@@ -32,6 +33,8 @@ uvard ScreenToClient
 uvard wheelscrollines
 
 uvard wheel_msg		// number of wheel message for legacy drivers
+
+uvarb mbutton		// was wheel button instead
 
 // called in the window procedure instead of a cmp
 // capture mouse wheel messages and store their data
@@ -59,10 +62,23 @@ handlemouseeventmsgs:
 .nolegacy:
 	cmp eax,0x20a			// WM_MOUSEWHEEL
 	je .wheel
+	
+	cmp eax,0x207			// WM_MBUTTONDOWN
+	je .mbutton
 
 	cmp eax,0x30f			// WM_QUERYNEWPALETTE, overwritten
 	ret
 
+.mbutton:
+	mov byte [mbutton],1
+	pop eax				// remove return address again
+	mov eax,[ebp+0x14]
+	movzx ebx,ax			// WM_MWHEELDOWN sends coordinates relative to the client area.
+	mov [LastWheelX],ebx
+	shr eax,16
+	mov [LastWheelY],eax
+	jmp short .notwheel
+	
 .wheel:
 	mov eax,[ebp+0x10]		// save message data
 	sar eax,16
@@ -77,6 +93,7 @@ handlemouseeventmsgs:
 	push lastwheelpos
 	push dword [ebp+8]
 	call [ScreenToClient]
+.notwheel:
 	testflags stretchwindow
 	jnc .notstretched
 	mov eax,[LastWheelX]
@@ -105,6 +122,7 @@ processmouseevents:
 	je .processwheeldelta
 
 	mov dword [wheeldelta],0
+	mov byte [mbutton],0
 	jmp short .nomove
 
 // According to Microsoft, we should notice wheel rolls only when
@@ -122,12 +140,17 @@ processmouseevents:
 .notup:
 
 	cmp dword [wheeldelta],-WHEEL_DELTA
-	jg .nomove
+	jg .notdown
 
 	mov byte [wheeldir],1
 	call wheelmove
 	add dword [wheeldelta],WHEEL_DELTA
 	jmp short .processwheeldelta
+
+.notdown:
+	cmp byte [mbutton], 0
+	je .nomove
+	call wheelclick
 
 .nomove:
 	popa
@@ -136,6 +159,11 @@ processmouseevents:
 	add esp,4
 .noexit:
 	ret
+
+
+wheelclick:
+	mov byte [mbutton], 0
+	mov byte [wheeldir], cWinEventWheelClick-cWinEventWheelUp
 
 wheelmove:
 	mov eax,[LastWheelX]		// first of all, find which window received
@@ -182,7 +210,61 @@ wheelmove:
 	extcall GuiSendEventEDI
 #endif
 	cmp byte [wheelhandled],0
-	jne .exit
+	jne .exit2
+
+	cmp byte [wheeldir], cWinEventWheelClick-cWinEventWheelUp
+	jne .notmbutton
+
+
+// The window didn't handle the middle click. Shade the window if clicked on the titlebar.
+	extcall WindowCanSticky
+	jc .exit2
+extern WindowClicked
+	call [WindowClicked]
+	js .exit2
+	movzx ecx, cl
+	imul ecx,windowbox_size
+	add ecx,[esi+window.elemlistptr]
+	cmp byte [ecx+windowbox.type], cWinElemTitleBar
+	jne .exit2
+	mov ebx, RefreshWindowArea
+	mov eax, ShadedWinHandler
+	cmp [esi+window.function], eax
+	jne .shade
+
+.unshade:
+	mov eax, [esi+window2ofs+window2.height]	// also window2.opclassoff
+	mov [esi+window.height], eax			// also window.opclassoff
+
+	mov eax, [esi+window2ofs+window2.function]
+	mov [esi+window.function],eax
+
+	cmp byte [esi+window.type], cWinTypeFinances
+	jne .uns_notfinances
+	add word [esi+window.width], 14
+
+.uns_notfinances:
+	jmp [ebx]					// RefreshWindowArea
+
+.shade:
+	call [ebx]					// RefreshWindowArea
+	//mov eax, ShadedWinHandler
+	xchg eax, [esi+window.function]
+	mov [esi+window2ofs+window2.function], eax
+
+	mov eax, 0xFFFF000E
+	xchg eax, [esi+window.height]			// also window.opclassoff
+	mov [esi+window2ofs+window2.height], eax	// also window2.opclassoff
+
+	cmp byte [esi+window.type], cWinTypeFinances
+	jne .shd_notfinances
+	sub word [esi+window.width], 14
+
+.shd_notfinances:
+.exit2:
+	ret
+
+.notmbutton:
 
 // The window didn't handle the scrolling itself - we try the
 // default behaviour: if the window has a scroll bar, it
@@ -247,6 +329,54 @@ wheelmove:
 
 .exit:
 	ret
+
+extern currscreenupdateblock
+
+ShadedWinHandler:
+	cmp dl, cWinEventRedraw
+	jne .callreal
+
+	mov esi, [edi+window.elemlistptr]
+.loop:
+	add esi, windowbox_size
+	cmp byte [esi-windowbox_size], cWinElemTitleBar
+	jne .loop
+
+	push esi
+	mov bl, cWinElemLast
+	xchg bl, [esi]
+	push ebx
+
+	mov ebx, [currscreenupdateblock]
+	mov word [ebx+scrnblockdesc.height], 14
+
+	call .callreal
+
+	pop ebx
+	pop esi
+	mov [esi],bl
+	ret
+
+.callreal:
+	mov bx, [edi+window2ofs+window2.opclassoff]
+	mov [edi+window.opclassoff], bx
+	mov ebx, [edi+window2ofs+window2.function]
+	mov [edi+window.function], ebx
+	extcall GuiEventFuncEDI
+
+	// Now on stack: Function to call. ebx set if necessary.
+
+	or word [edi+window.opclassoff], byte -1
+	mov dword [edi+window.function], ShadedWinHandler
+
+	// call [esp] / add esp, 4 / ret
+	//	becomes:
+	// add esp, 4 / call [esp-4] / ret
+	//	becomes:
+	// add esp, 4 / jmp [esp-4]
+	//	becomes:
+	ret
+
 
 // Called instead of a near jump in the handler of the main window
 // Capture mouse wheel events and zoom the view according to them

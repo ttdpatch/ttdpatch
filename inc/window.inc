@@ -24,6 +24,10 @@
 #endif
 %define cWinEventResize			13h
 %define cWinEventGRFChanges		14h
+#if WINTTDX
+// mouse wheel messages sent by patched TTD only
+%define cWinEventWheelClick		15h
+#endif
 
 %define cWinElemDummyBox	0
 %define cWinElemSpriteBox	1
@@ -209,6 +213,14 @@ struc window
 	.company:		resb 1	// 28h:	company the window belongs to
 				resb 1	// 29h:	??
 	.data:			resb 10	// 2ah:	contains class-specific extra window data
+endstruc
+
+// More window data. Same size as struc window.
+struc window2
+	.height:		resw 1	// 0h: Backup of window structure 
+	.opclassoff:		resw 1	// 2h: ...
+	.function:		resd 1	// 4h: when the window is shaded
+			resb window_size-$
 endstruc
 
 // Data for a window element (usage of last word depends on type)
