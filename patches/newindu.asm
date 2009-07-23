@@ -5131,7 +5131,7 @@ fundprospecting_newindu:
 	push eax
 	push edx
 
-	movzx edi, word [numberofindustries]
+	movsx edi, word [numberofindustries]
 	movzx cx, byte [edi + minnumberofindustriesallowed]
 	
 	call getnumindustries
@@ -5263,7 +5263,8 @@ var fundchances // chance * 0xffffffff
 
 // if the numer of industries is below this number, the chance will be used, 
 //     else chance^(n-m) where m is this number will be used
-var minnumberofindustriesallowed
-	db 1, 3, 5
-
+noglobal varb _minnumberofindustriesallowed
+	db 0, 1, 3, 5
+minnumberofindustriesallowed equ _minnumberofindustriesallowed+1
+endvar
 // end of Oskar's code

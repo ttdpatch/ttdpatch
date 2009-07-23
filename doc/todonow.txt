@@ -99,8 +99,6 @@
 - make clicking on news history item open that one immediately (maybe even
   in paused mode?), instead of adding it to the end of the list
 
-- crash if # of industries set to none but load without that switch
-
 - change station rating calc with wagonspeedlimits
 
 - airport problem, http://www.tt-forums.net/viewtopic.php?p=237282#237282

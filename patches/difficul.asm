@@ -12,3 +12,19 @@ createInitialRandomIndustries:
 	pop esi
 .normal:
 	ret
+
+extern int21handler
+
+exported fixindustriesnone
+#if !WINTTDX
+	mov ecx, 22		// overwritten
+	mov ah, 3Fh		// ...
+#endif
+	push edx
+	CALLINT21		// and again
+	pop edx
+	cmp word [edx+6], byte -1
+	jne .ok
+	and word [edx+6], 0
+.ok:
+	ret

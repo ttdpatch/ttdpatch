@@ -1427,6 +1427,11 @@ codefragment findFlashWindow, 6
 	mov cl, 23
 	xor dx, dx
 
+codefragment oldreaddiffset, 7*WINTTDX
+	mov ecx, 22h
+
+codefragment_call newreaddiffset,fixindustriesnone,9 - 4*WINTTDX
+
 endcodefragments
 
 ptrvarall industrydatablock
@@ -2231,6 +2236,9 @@ dogeneralpatching:
 
 	stringaddress findCheckForVehiclesInTheWay
 	storeaddress CheckForVehiclesInTheWay // Stores the address of this
+
+	patchcode oldreaddiffset, newreaddiffset, 2, 2, , testmultiflags enhanceddiffsettings, z
+
 	ret
 
 global newsavename
