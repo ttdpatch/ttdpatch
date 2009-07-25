@@ -389,7 +389,8 @@ GetWindowDeltaWidth:
 
 extern currscreenupdateblock
 
-ShadedWinHandler:
+global ShadedWinHandler.drawwindowelements_ret
+exported ShadedWinHandler
 	cmp dl, cWinEventRedraw
 	jne .callreal
 
@@ -404,10 +405,8 @@ ShadedWinHandler:
 	xchg bl, [esi]
 	push ebx
 
-	mov ebx, [currscreenupdateblock]
-	mov word [ebx+scrnblockdesc.height], 14
-
 	call .callreal
+.drawwindowelements_ret:
 
 	pop ebx
 	pop esi

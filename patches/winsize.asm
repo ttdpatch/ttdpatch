@@ -5,6 +5,7 @@
 #include <textdef.inc>
 #include <window.inc>
 #include <view.inc>
+#include <bitvars.inc>
 
 extern BringWindowToForeground,CreateTooltip,DestroyWindow,FindWindow
 extern RefreshWindowArea,TabClicked,TitleBarClicked,currscreenupdateblock
@@ -751,6 +752,28 @@ drawwindowelements:
 .alreadycopied:
 	mov ebp, [esi+window.elemlistptr]
 	mov edi, [currscreenupdateblock]
+	
+#if WINTTDX
+	extern ShadedWinHandler, ShadedWinHandler.drawwindowelements_ret
+	cmp dword [esi+window.function], ShadedWinHandler
+	jne .done
+
+	pop ebx
+	call ebx
+
+// If we're here, then ShadedWinHandler was used to handle a cWinEventRedraw
+// Find it on the stack, and return there.
+	xor ecx, ecx
+	mov cl, 8
+.loop:
+	cmp dword [esp], ShadedWinHandler.drawwindowelements_ret
+	je .done
+	add esp, 2			// One TTD window pushes bp before calling DrawWindowElements
+	loop .loop
+	ud2		// ShadedWinHandler not found in top 4 dwords
+			// (twice the current maximum stack usage)
+.done:
+#endif	// WINTTDX (Window shading is Windows only. For now.)
 	ret
 	
 //Called to check if a window element can be clicked
