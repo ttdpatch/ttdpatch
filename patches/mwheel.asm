@@ -213,7 +213,7 @@ wheelmove:
 	jne .exit2
 
 	cmp byte [wheeldir], cWinEventWheelClick-cWinEventWheelUp
-	jne .notmbutton
+	jne near .notmbutton
 
 
 // The window didn't handle the middle click. Shade the window if clicked on the titlebar.
@@ -242,10 +242,20 @@ extern WindowClicked
 	cmp byte [esi+window.type], cWinTypeFinances
 	jne .uns_notfinances
 	add word [esi+window.width], 14
-
 .uns_notfinances:
+
+	mov edi, [esi+window.viewptr]
+	or edi, edi
+	jz .uns_noview
+	
+	mov eax, [esi+window2ofs+window2.viewwidth]
+	mov [edi+view.scrwidth], ax
+.uns_noview:
+
 	jmp [ebx]					// RefreshWindowArea
 
+.exit2:
+	ret
 .shade:
 	call [ebx]					// RefreshWindowArea
 	//mov eax, ShadedWinHandler
@@ -259,9 +269,17 @@ extern WindowClicked
 	cmp byte [esi+window.type], cWinTypeFinances
 	jne .shd_notfinances
 	sub word [esi+window.width], 14
-
 .shd_notfinances:
-.exit2:
+
+	mov edi, [esi+window.viewptr]
+	or edi, edi
+	jz .shd_noview
+	
+	xor eax, eax
+	xchg ax, [edi+view.scrwidth]
+	mov [esi+window2ofs+window2.viewwidth], ax
+.shd_noview:
+
 	ret
 
 .notmbutton:
@@ -471,7 +489,7 @@ mainwindowhandler:
 	jne .dozoomin
 	shl ax,1
 	shl bx,1
-	
+
 .dozoomin:
 // shift the view by the calculated coordinates
 	add [esi+window.data+2],ax
@@ -533,7 +551,7 @@ mainwindowhandler:
 	xchg esi,edi
 	call [RefreshWindowArea]
 	mov byte [esi+window.itemsoffset],0
-	
+
 .exit:
 	ret
 

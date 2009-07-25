@@ -217,9 +217,10 @@ endstruc
 
 // More window data. Same size as struc window.
 struc window2
-	.height:		resw 1	// 0h: Backup of window structure 
-	.opclassoff:		resw 1	// 2h: ...
-	.function:		resd 1	// 4h: when the window is shaded
+	.height:		resw 1	// 0h:	Backup of window structure 
+	.opclassoff:		resw 1	// 2h:	...
+	.function:		resd 1	// 4h:	when the window is shaded
+	.viewwidth:		resw 1	// 8h:	Backup of view width
 			resb window_size-$
 endstruc
 
