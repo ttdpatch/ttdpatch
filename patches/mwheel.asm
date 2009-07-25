@@ -217,7 +217,7 @@ wheelmove:
 
 
 // The window didn't handle the middle click. Shade the window if clicked on the titlebar.
-	extcall WindowCanSticky
+	call WindowCanShade
 	jc .exit2
 extern WindowClicked
 	call [WindowClicked]
@@ -239,11 +239,6 @@ extern WindowClicked
 	mov eax, [esi+window2ofs+window2.function]
 	mov [esi+window.function],eax
 
-	cmp byte [esi+window.type], cWinTypeFinances
-	jne .uns_notfinances
-	add word [esi+window.width], 14
-.uns_notfinances:
-
 	mov edi, [esi+window.viewptr]
 	or edi, edi
 	jz .uns_noview
@@ -251,6 +246,9 @@ extern WindowClicked
 	mov eax, [esi+window2ofs+window2.viewwidth]
 	mov [edi+view.scrwidth], ax
 .uns_noview:
+
+	call GetWindowDeltaWidth
+	add [esi+window.width], ax
 
 	jmp [ebx]					// RefreshWindowArea
 
@@ -266,11 +264,6 @@ extern WindowClicked
 	xchg eax, [esi+window.height]			// also window.opclassoff
 	mov [esi+window2ofs+window2.height], eax	// also window2.opclassoff
 
-	cmp byte [esi+window.type], cWinTypeFinances
-	jne .shd_notfinances
-	sub word [esi+window.width], 14
-.shd_notfinances:
-
 	mov edi, [esi+window.viewptr]
 	or edi, edi
 	jz .shd_noview
@@ -279,6 +272,9 @@ extern WindowClicked
 	xchg ax, [edi+view.scrwidth]
 	mov [esi+window2ofs+window2.viewwidth], ax
 .shd_noview:
+
+	call GetWindowDeltaWidth
+	sub [esi+window.width], ax
 
 	ret
 
@@ -346,6 +342,49 @@ extern WindowClicked
 	call [RefreshWindowArea]
 
 .exit:
+	ret
+
+
+WindowCanShade:
+	extcall WindowCanSticky
+	jc .ret
+	cmp byte [esi+window.type], cWinTypeNewsMessage
+	je .noshade
+	cmp byte [esi+window.type], cWinTypeLinkSetup
+	je .noshade
+	
+.shade:
+	clc
+	ret
+
+.noshade:
+	stc
+.ret:
+	ret
+
+GetWindowDeltaWidth:
+	xor eax,eax
+	cmp byte [esi+window.type], cWinTypeFinances
+	jne .notfinances
+	mov al,14
+	ret
+
+.notfinances:
+	cmp byte [esi+window.type], cWinTypeIncome            //25h
+	jb .notgraph
+	cmp byte [esi+window.type], cWinTypeOperatingProfit   //26h
+	jbe .graph
+	cmp byte [esi+window.type], cWinTypeCargoDelivered    //2Eh
+	jb .notgraph
+	cmp byte [esi+window.type], cWinTypeCompanyValues     //30h
+	ja .notgraph
+
+.graph:
+	mov edx, [esi+window.elemlistptr]
+	mov eax, [edx+windowbox_size*2+windowbox.x2]
+	sub eax, [edx+windowbox_size*2+windowbox.x1]
+	inc eax
+.notgraph:
 	ret
 
 extern currscreenupdateblock
