@@ -10,6 +10,20 @@ patchproc mousewheel, patchwindow2
 
 extern malloc, newwindowcount, patchflags, windowstack, reloc, window2ofs_ptr
 
+begincodefragments
+
+codefragment oldfinishclosewindow, -2
+	rep movsw
+
+codefragment_call newfinishclosewindow, FinishCloseWindow, 5
+
+codefragment oldbringtofront, -7
+	xchg ax, [esi+window_size]
+
+codefragment_call newbringtofront, BringToFront, 20
+
+endcodefragments
+
 patchwindow2:
 	testmultiflags morewindows
 	jnz .morewins
@@ -26,6 +40,9 @@ patchwindow2:
 	pop eax
 	sub eax, [windowstack]
 	param_call reloc, eax, window2ofs_ptr
+
+	patchcode finishclosewindow
+	patchcode bringtofront
 	ret
 
 #endif
