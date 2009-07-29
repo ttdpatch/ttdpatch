@@ -1194,8 +1194,9 @@ drawtitlebar:
 	mov [ebp+windowbox.x2], ax
 
 	mov ebx, [temp_drawwindow_active_ptr]
+	rcr dword [ebx],1
 	bt eax, 16
-	setc byte [ebx]
+	rcl dword [ebx],1
 
 	jmp [ecx]
 
@@ -1612,9 +1613,9 @@ cleararea:
 	//bl|=0x10 for no explosion animation
 	mov word [operrormsg1], 0x00B5
 	mov [TempActionFlags], bl
-	mov dword [TempActionCost], 0
+	and dword [TempActionCost], 0
 	or byte [TempActionFlags], 80h
-	mov DWORD [TempCAActionErrorCount], 0
+	and DWORD [TempCAActionErrorCount], 0
 	pusha
 	and ax, 0xFFF0
 	and cx, 0xFFF0
