@@ -1,12 +1,9 @@
-#if WINTTDX
-
 #include <frag_mac.inc>
 #include <patchproc.inc>
 #include <window.inc>
 
 // all switches that use window2 must be listed here.
-// ***** Note also #if WINTTDX, above. *****
-patchproc mousewheel, patchwindow2
+patchproc enhancegui, patchwindow2
 
 extern malloc, newwindowcount, patchflags, windowstack, reloc, window2ofs_ptr
 
@@ -44,5 +41,3 @@ patchwindow2:
 	patchcode finishclosewindow
 	patchcode bringtofront
 	ret
-
-#endif

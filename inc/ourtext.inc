@@ -489,6 +489,8 @@ defourtext objectgui_title
 defourtext objectgui_cost
 defourtext objectgui_size
 
+defourtext winshadetooltip
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

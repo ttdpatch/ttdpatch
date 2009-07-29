@@ -386,3 +386,6 @@ stxt_cont dd landinfotxtptr2
 stxt_cont db ", ", 0x9A, 0x5
 stxt_cont dd landinfotxtptr3
 stxt_cont db 0
+
+stxt shadebutton_shaded, 0x98, 0xAA, 0
+stxt shadebutton_unshaded, 0x98, 0xA0, 0

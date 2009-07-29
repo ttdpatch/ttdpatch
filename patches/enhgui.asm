@@ -1118,42 +1118,54 @@ drawtitlebar:
 	mov byte [esi], 0xC3	// ret
 	pop esi
 	
+	push eax
+
 	sub word [ebp+windowbox.x2], 11
+	extcall WindowCanShade
+	pushf
+	jc .drawtitle
+	sub word [ebp+windowbox.x2], 11
+.drawtitle:
 	call [olddrawtitlebar]
 
-	push ax
-	mov ax, [ebp+windowbox.x2]
-	inc ax
-	mov [ebp+windowbox.x1], ax
-	add ax, 10
-	mov [ebp+windowbox.x2], ax
+	popf		// call WindowCanShade
+	jc .noshade
 
-	mov word [ebp+windowbox.extra], statictext(stickybutton)
-	
-	mov ax, [guispritebase]
-	cmp ax, -1
-	jz .noextrasprites
-	mov dword [.buttontype], winelemdrawptrs+4*cWinElemSpriteBox
-	inc ax
+	mov ax, statictext(shadebutton_unshaded)
+	mov ecx, 4*(cWinElemTextBox-cWinElemSpriteBox)
 
-	test word [esi+window.flags], 0x4000
+	extern ShadedWinHandler
+	cmp dword [esi+window.function], ShadedWinHandler
+	jne .notshaded
+	dec eax
+	bts eax,16
+
+.notshaded:
+	call .dodraw
+
+.noshade:
+	xor eax, eax
+	inc eax
+
+	test byte [esi+window.flags+1], 0x40
 	jz .notsticky1
-	inc ax
+	inc eax
+	bts eax,16
 .notsticky1:
-	
-	mov word [ebp+windowbox.extra], ax
-.noextrasprites:
-	test word [esi+window.flags], 0x4000
-	jz .notsticky2
-	push esi
-	mov esi, [temp_drawwindow_active_ptr]
-	or byte [esi], 1
-	pop esi
-.notsticky2:
 
-	pop ax
-	call [winelemdrawptrs+4*cWinElemTextBox]
-ovar .buttontype, -4, $, drawtitlebar
+	xor ecx, ecx
+	cmp [numguisprites], ax
+	jbe .notenough
+	add ax, [guispritebase]
+	jmp short .drawstick
+
+.notenough:
+	mov ax, statictext(stickybutton)
+	mov ecx, 4*(cWinElemTextBox-cWinElemSpriteBox)
+.drawstick:
+	call .dodraw	
+
+	pop eax
 
 	push esi
 	mov esi, [winelemdrawptrs+4*cWinElemDummyBox]
@@ -1165,7 +1177,28 @@ ovar .buttontype, -4, $, drawtitlebar
 	pop dword [ebp+4]
 	pop dword [ebp]
 	jmp [winelemdrawptrs+4*cWinElemDummyBox]
-	ret
+
+
+//  In:	ax: sprite number or text ID
+//	eax:16 Set if button is to be depressed
+//	ebp->element to the immediate left of this button
+//	ecx: offset to pointer to element function
+.dodraw:
+	mov [ebp+windowbox.extra], ax
+	add ecx, winelemdrawptrs+4*cWinElemSpriteBox
+
+	mov ax, [ebp+windowbox.x2]
+	inc ax
+	mov [ebp+windowbox.x1], ax
+	add ax, 10
+	mov [ebp+windowbox.x2], ax
+
+	mov ebx, [temp_drawwindow_active_ptr]
+	bt eax, 16
+	setc byte [ebx]
+
+	jmp [ecx]
+
 
 //IN: ESI=window
 //OUT: cf set if this window can't be stickyfied
@@ -1196,9 +1229,9 @@ TitleBarClicked:
 
 	mov dx, [ebp+windowbox.x2]
 	add dx, [esi+window.x]
-	sub dx, 10
+	sub dx, 11
 	cmp ax, dx
-	jbe .return
+	jbe .notstick
 	mov cx, -1
 	cmp byte [rmbclicked], 0
 	jnz .rightclicked
@@ -1209,7 +1242,23 @@ TitleBarClicked:
 	
 .rightclicked:
 	mov ax, ourtext(stickytooltip)
+.createtip:
 	jmp [CreateTooltip]
+
+.notstick:
+	call WindowCanShade
+	jc .return
+	sub dx, 11
+	cmp ax, dx
+	jbe .return
+	mov cx, -1
+	cmp byte [rmbclicked], 0
+	extern ShadeWindowHandler.toggleshade
+	je ShadeWindowHandler.toggleshade
+
+.rightclicked2:
+	mov ax, ourtext(winshadetooltip)
+	jmp short .createtip
 
 .return:
 	ret

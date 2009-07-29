@@ -8,14 +8,12 @@
 #include <window.inc>
 #include <view.inc>
 #include <ptrvar.inc>
-#include <misc.inc>
 
 extern FindTopmostWindowAtXY,FindWindow,RefreshWindowArea,mousewheelsettings
 extern patchflags
 extern windowstretchinv
 
 
-ptrvar window2ofs
 
 
 #define WHEEL_DELTA 120
@@ -210,73 +208,11 @@ wheelmove:
 	extcall GuiSendEventEDI
 #endif
 	cmp byte [wheelhandled],0
-	jne .exit2
+	jne .exit
 
 	cmp byte [wheeldir], cWinEventWheelClick-cWinEventWheelUp
-	jne near .notmbutton
-
-
-// The window didn't handle the middle click. Shade the window if clicked on the titlebar.
-	call WindowCanShade
-	jc .exit2
-extern WindowClicked
-	call [WindowClicked]
-	js .exit2
-	movzx ecx, cl
-	imul ecx,windowbox_size
-	add ecx,[esi+window.elemlistptr]
-	cmp byte [ecx+windowbox.type], cWinElemTitleBar
-	jne .exit2
-	mov ebx, RefreshWindowArea
-	mov eax, ShadedWinHandler
-	cmp [esi+window.function], eax
-	jne .shade
-
-.unshade:
-	mov eax, [esi+window2ofs+window2.height]	// also window2.opclassoff
-	mov [esi+window.height], eax			// also window.opclassoff
-
-	mov eax, [esi+window2ofs+window2.function]
-	mov [esi+window.function],eax
-
-	mov edi, [esi+window.viewptr]
-	or edi, edi
-	jz .uns_noview
-	
-	mov eax, [esi+window2ofs+window2.viewwidth]
-	mov [edi+view.scrwidth], ax
-.uns_noview:
-
-	call GetWindowDeltaWidth
-	add [esi+window.width], ax
-
-	jmp [ebx]					// RefreshWindowArea
-
-.exit2:
-	ret
-.shade:
-	call [ebx]					// RefreshWindowArea
-	//mov eax, ShadedWinHandler
-	xchg eax, [esi+window.function]
-	mov [esi+window2ofs+window2.function], eax
-
-	mov eax, 0xFFFF000E
-	xchg eax, [esi+window.height]			// also window.opclassoff
-	mov [esi+window2ofs+window2.height], eax	// also window2.opclassoff
-
-	mov edi, [esi+window.viewptr]
-	or edi, edi
-	jz .shd_noview
-	
-	xor eax, eax
-	xchg ax, [edi+view.scrwidth]
-	mov [esi+window2ofs+window2.viewwidth], ax
-.shd_noview:
-
-	call GetWindowDeltaWidth
-	sub [esi+window.width], ax
-
-	ret
+	extern ShadeWindowHandler
+	je near ShadeWindowHandler
 
 .notmbutton:
 
@@ -342,95 +278,6 @@ extern WindowClicked
 	call [RefreshWindowArea]
 
 .exit:
-	ret
-
-
-WindowCanShade:
-	extcall WindowCanSticky
-	jc .ret
-	cmp byte [esi+window.type], cWinTypeNewsMessage
-	je .noshade
-	cmp byte [esi+window.type], cWinTypeLinkSetup
-	je .noshade
-	
-.shade:
-	clc
-	ret
-
-.noshade:
-	stc
-.ret:
-	ret
-
-GetWindowDeltaWidth:
-	xor eax,eax
-	cmp byte [esi+window.type], cWinTypeFinances
-	jne .notfinances
-	mov al,14
-	ret
-
-.notfinances:
-	cmp byte [esi+window.type], cWinTypeIncome            //25h
-	jb .notgraph
-	cmp byte [esi+window.type], cWinTypeOperatingProfit   //26h
-	jbe .graph
-	cmp byte [esi+window.type], cWinTypeCargoDelivered    //2Eh
-	jb .notgraph
-	cmp byte [esi+window.type], cWinTypeCompanyValues     //30h
-	ja .notgraph
-
-.graph:
-	mov edx, [esi+window.elemlistptr]
-	mov eax, [edx+windowbox_size*2+windowbox.x2]
-	sub eax, [edx+windowbox_size*2+windowbox.x1]
-	inc eax
-.notgraph:
-	ret
-
-extern currscreenupdateblock
-
-global ShadedWinHandler.drawwindowelements_ret
-exported ShadedWinHandler
-	cmp dl, cWinEventRedraw
-	jne .callreal
-
-	mov esi, [edi+window.elemlistptr]
-.loop:
-	add esi, windowbox_size
-	cmp byte [esi-windowbox_size], cWinElemTitleBar
-	jne .loop
-
-	push esi
-	mov bl, cWinElemLast
-	xchg bl, [esi]
-	push ebx
-
-	call .callreal
-.drawwindowelements_ret:
-
-	pop ebx
-	pop esi
-	mov [esi],bl
-	ret
-
-.callreal:
-	mov bx, [edi+window2ofs+window2.opclassoff]
-	mov [edi+window.opclassoff], bx
-	mov ebx, [edi+window2ofs+window2.function]
-	mov [edi+window.function], ebx
-	extcall GuiEventFuncEDI
-
-	// Now on stack: Function to call. ebx set if necessary.
-
-	or word [edi+window.opclassoff], byte -1
-	mov dword [edi+window.function], ShadedWinHandler
-
-	// call [esp] / add esp, 4 / ret
-	//	becomes:
-	// add esp, 4 / call [esp-4] / ret
-	//	becomes:
-	// add esp, 4 / jmp [esp-4]
-	//	becomes:
 	ret
 
 

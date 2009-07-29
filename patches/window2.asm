@@ -1,10 +1,7 @@
-#if WINTTDX
-
 #include <window.inc>
 #include <ptrvar.inc>
 
-extern window2ofs_ptr
-ptrvardec window2ofs
+ptrvar window2ofs
 
 // Shift both window and window2 arrays.
 exported FinishCloseWindow
@@ -39,5 +36,3 @@ exported BringToFront
 	loop .loop
 	pop edi
 	ret
-
-#endif
