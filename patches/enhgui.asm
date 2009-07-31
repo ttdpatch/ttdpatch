@@ -1236,6 +1236,24 @@ mapwindowclicked:
 	btc dword [esi+window.activebuttons], 15
 	jmp [RefreshWindowArea]
 
+uvarw taMapWinTips, 17
+
+exported mapwindowrclicked
+	cmp ax, byte -1			// overwritten
+	jne .ret
+
+.mapclick:
+	add dword [esp], 16h		// overwritten jcc
+	and byte [esi+window.activebuttons+1], ~(1<<7)
+.ret:
+	ret
+
+exported mapwindowdrag
+	test byte [esi+window.activebuttons+1], 1<<7
+	jnz .ret
+	mov byte [lmbstate], 0
+.ret:
+	ret
 
 //Dragable bulldozer
 uvard RailToolMouseDragDirectionPtr,1
