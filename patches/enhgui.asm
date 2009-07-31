@@ -1112,7 +1112,6 @@ drawtitlebar:
 	push dword [ebp]
 	push dword [ebp+4]
 	push dword [ebp+8]
-	push dword [temp_drawwindow_active_ptr]
 	push esi
 	mov esi, [winelemdrawptrs+4*cWinElemDummyBox]
 	mov byte [esi], 0xC3	// ret
@@ -1172,7 +1171,6 @@ drawtitlebar:
 	mov byte [esi], 0x83
 	pop esi
 
-	pop dword [temp_drawwindow_active_ptr]
 	pop dword [ebp+8]
 	pop dword [ebp+4]
 	pop dword [ebp]
