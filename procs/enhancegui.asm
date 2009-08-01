@@ -111,6 +111,8 @@ codefragment newRailConstrMouseToolClose
 	icall RailConstrOrigMouseToolClose
 	setfragmentsize 7
 
+codefragment_call newRClickMapWin, mapwindowrclicked, 6
+codefragment_call newmapwindowdrag, mapwindowdrag, 7
 
 endcodefragments
 
@@ -154,6 +156,20 @@ patchenhancegui:
 
 	// Fixable map window
 	patchcode oldmapwindowclicked,newmapwindowclicked,1,1
+	add edi, byte lastediadj+8Bh-13h
+	extern taMapWinTips
+	mov eax, taMapWinTips
+	mov esi, [edi]
+	stosd
+	push edi
+	mov edi, eax
+	xor ecx, ecx
+	mov cl, 14*2
+	rep movsb
+	pop edi
+	storefragment newRClickMapWin
+	add edi, lastediadj+1DAh-8Fh
+	storefragment newmapwindowdrag
 
 	// Draggable dynamite
 	patchcode oldDemolishTile,newDemolishTile,1,1
