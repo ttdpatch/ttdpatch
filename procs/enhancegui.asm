@@ -2,6 +2,7 @@
 #include <frag_mac.inc>
 #include <window.inc>
 #include <patchproc.inc>
+#include <textdef.inc>
 
 patchproc enhancegui, patchenhancegui
 
@@ -166,6 +167,7 @@ patchenhancegui:
 	xor ecx, ecx
 	mov cl, 14*2
 	rep movsb
+	mov word [edi+2], ourtext(minimapautocentertip)
 	pop edi
 	storefragment newRClickMapWin
 	add edi, lastediadj+1DAh-8Fh

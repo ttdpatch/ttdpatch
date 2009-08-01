@@ -490,7 +490,7 @@ defourtext objectgui_cost
 defourtext objectgui_size
 
 defourtext winshadetooltip
-
+defourtext minimapautocentertip
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
