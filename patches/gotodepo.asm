@@ -1438,12 +1438,29 @@ isdelstationorder:
 	cmp dl,1		// ... the runindex call
 	je short .done
 
+	cmp dl, 5
+	je .special
+
 	cmp dl,2
 	jne short .done
 
 	cmp byte [edi+veh.class],0x13
-
 .done:
+	ret
+.special:
+	movzx ebx, dh
+	shr ebx, 5
+	and dh, 0x1F
+	cmp dh, 4
+	jb .finish
+	cmp dh, 5
+	ja .finish
+	cmp [ebp+1], al
+	jne .finish
+	mov DWORD [ebp-2], 0x01000100
+.finish:
+	lea ebp, [ebp+ebx*2]
+	or esp, esp                     //skip station test
 	ret
 ; endp isdelstationorder 
 
