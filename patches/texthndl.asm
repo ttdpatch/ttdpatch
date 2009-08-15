@@ -8,6 +8,8 @@
 #include <ptrvar.inc>
 #include <flags.inc>
 #include <bitvars.inc>
+#include <station.inc>
+#include <town.inc>
 
 extern curspriteblock,customtextptr,gethousetexttable,getmiscgrftable
 extern getstationtexttable,gettextintableptr,ntxtptr
@@ -383,7 +385,8 @@ vard extstringformat
 	dd print64bitcost,print64bitcost,skipnextcolor,pushword		//0-3
 	dd backup,ptrtextid						//4-5
 	dd printhex.byte, printhex.word, printhex.dword			//6-8
-	dd ptrwordpush, ptrdwordpush					//9-10
+	dd ptrwordpush, ptrdwordpush, printhex.qword			//9-11
+	dd printstname                                                  //12
 numextstringformat equ ($-extstringformat)/4
 endvar
 
@@ -458,6 +461,31 @@ ptrdwordpush:
 	ret
 
 printhex:
+.qword:
+	push esi
+	push ecx
+	push edx
+	mov word [edi], '0x'
+	add edi, 2
+	mov esi, textrefstack
+	lodsd
+	push eax
+	lodsd
+	mov ecx, 8
+	extcall hexnibbles
+	pop eax
+	mov ecx, 8
+	extcall hexnibbles
+	push edi
+	//mov esi, textrefstack+8
+	mov edi, textrefstack
+	mov ecx, 6
+	rep movsd
+	pop edi
+	pop edx
+	pop ecx
+	pop esi
+	ret
 .dword:
 	push ecx
 	push esi
@@ -497,16 +525,60 @@ printhex:
 	mov word [edi], '0x'
 	add edi, 2
 
-	push ecx
 	push edx
 	extcall hexnibbles
 	pop edx
-	pop ecx
 
-	mov byte [edi], ' '
-	inc edi
+//	mov byte [edi], ' '
+//	inc edi
 	pop ecx
-	ret	
+	ret
+
+printstname:
+	push edx
+        push esi
+        
+	push DWORD [textrefstack+2]
+	push DWORD [textrefstack+6]
+	push DWORD [textrefstack+10]
+	push DWORD [textrefstack+14]
+	push DWORD [textrefstack+18]
+	push DWORD [textrefstack+22]
+	push DWORD [textrefstack+26]
+	movzx edx, WORD [textrefstack+30]
+	push edx
+        
+	movzx eax, WORD [textrefstack]
+	cmp eax, 250
+	ja NEAR .fail
+	imul edx, eax, 0x8E
+	add edx, stationarray
+	cmp WORD [edx+station.XY], 0
+	je NEAR .fail
+	mov ax, [edx+station.name]
+	or ax, ax
+	jz NEAR .fail
+	mov esi, [edx+station.townptr]
+	or esi, esi
+	jz NEAR .fail
+	mov dx, [esi+town.citynametype]
+	mov [textrefstack], dx
+	mov edx, [esi+town.citynameparts]
+	mov [textrefstack+2], edx
+	call newtexthandler
+.fail:
+	pop DWORD [textrefstack+28]
+	pop DWORD [textrefstack+24]
+	pop DWORD [textrefstack+20]
+	pop DWORD [textrefstack+16]
+	pop DWORD [textrefstack+12]
+	pop DWORD [textrefstack+8]
+	pop DWORD [textrefstack+4]
+	pop DWORD [textrefstack]
+
+	pop esi
+	pop edx
+	ret
 
 noglobal uvarb skipcolor
 
