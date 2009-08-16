@@ -63,6 +63,7 @@
 //	INTERFACE_NEWS		- news
 //	INTERFACE_VEH		- vehicles
 //	INTERFACE_WINDOW	- windows
+//	CARGODEST		- cargo destinations
 //
 //	NONE		Only for patches that aren't written to ttdpatch.cfg/switches.xml
 
@@ -296,7 +297,7 @@
 	YESNO('D', "clonetrain", CFG_CLONETRAIN, VEH_RAIL, "CloneTrain:Alpha", clonetrain),
 	     //E
 	BITS ('F',"toylandfeatures", CFG_TOYLANDFEATURES, TERRAIN, "ToylandFeatures", moretoylandfeatures, U8, FLAGDATA(toylandfeatures), 1),
-	     //G
+	YESNO('G',"cargodest", CFG_CARGODEST, CARGODEST, "", cargodest),
 	BITS ('H',"moretransopts", CFG_MORETRANSOPTS, INTERFACE, "MoreTransparencyOptions:Alpha", moretransopts, S32, FLAGDATA(cfgtransbits), 0x94000400),
 	YESNO('I',"irregularstations", CFG_IRRSTATIONS, INFST_STATION, "IrregularStations", irrstations),
 	YESNO('J',"advzfunctions", CFG_ADVZFUNCTIONS, INFST, "", advzfunctions),
@@ -352,6 +353,9 @@
 	RANGE(156,"townminpopulationdesert", CFG_TOWNMINPOPULATIONDESERT, HOUSESTOWNS, "NewTownGrowthSwitches", noswitch, AUTO, U8, FLAGDATA(townminpopulationdesert), 0, 255, 60),
 	YESNO(157,"newobjects", CFG_NEWOBJECTS, INFST, "", newobjects),
 	SPCL (158,"hidetranstrees", 0, NONE, "", OBSOLETE),
+	RANGE(159,"cdstrtcmpfactor", CFG_CDSTRTCMPFACTOR, CARGODEST, "", noswitch, AUTO, S32, FLAGDATA(cargodestroutecmpfactor), 65536, 2147483647, 91750),
+	RANGE(160,"cdstrtexprthrshld", CFG_CDSTRTCOSTEXPRTHRSHLD, CARGODEST, "", noswitch, AUTO, U16, FLAGDATA(cdstrtcostexprthrshld), 0, 3653, 45),
+	RANGE(161,"cdstcargopacketttl", CFG_CDSTCARGOPACKETINITTTL, CARGODEST, "", noswitch, AUTO, U8, FLAGDATA(cdstcargopacketinitttl), 0, 255, 100),
 
 //
 // Here follows the switch order list
@@ -526,3 +530,4 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	rvovertakeparams,
 	advzfunctions,
 	moreindustries,
+	cargodest,

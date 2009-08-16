@@ -39,6 +39,7 @@ extern generatesoundeffect,redrawtile,stationanimtriggers,callback_extrainfo
 extern miscgrfvar,irrgetrailxysouth,getirrplatformlength
 extern DrawStationImageInSelWindow,MakeTempScrnBlockDesc
 extern convertplatformsinecx,convertplatformsincargoacceptlist,convertplatformsinremoverailstation
+extern addcargotostation_cargodesthook
 
 extern paStationbusstop1, paStationbusstop2, 
 extern paStationtruckstop1, paStationtruckstop2
@@ -2831,6 +2832,10 @@ cargoinstation:
 	pusha
 	
 	shr ebx,3
+	testflags cargodest
+	jnc .nocargodest
+	call addcargotostation_cargodesthook
+.nocargodest:
 
 	mov [statanim_cargotype],bl
 	mov edx,1

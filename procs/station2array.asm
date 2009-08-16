@@ -62,6 +62,8 @@ exported patchstation2array
 	jc .doit
 	testflags stationsize
 	jc .doit
+	testflags cargodest
+	jc .doit
 	testflags newcargos
 	jnc .dontdoit
 .doit:

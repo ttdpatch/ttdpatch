@@ -12,10 +12,10 @@
 #include <veh.inc>
 #include <misc.inc>
 #include <station.inc>
+#include <flags.inc>
 
 extern FindWindow,GenerateDropDownMenu,invalidatehandle,sortfrequency
-
-extern addr
+extern addr, patchflags
 
 
 // Called in a loop to count all vehicles to go in the train list
@@ -655,6 +655,12 @@ clicklist_next_aircraft:
 global delveharrayentry_sort
 delveharrayentry_sort:
 	pusha
+	testflags cargodest
+	jnc .continue
+	extcall cargodestdelvehentryhook
+	popad
+	pushad
+.continue:
 	mov cl,[esi+veh.class]
 	cmp cl,0x13		// no special objects
 	ja .done

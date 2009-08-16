@@ -20,6 +20,7 @@
 #include <airport.inc>
 #include <idf.inc>
 #include <objects.inc>
+#include <win32.inc>
 
 extern LoadWindowSizesFinish,SaveWindowSizesPrepare
 extern actionhandler,activatedefault,animarraysize,calcaccel
@@ -60,6 +61,7 @@ extern disabledoldhouses,savevar40x
 extern clearairportdataids,airportdataidtogameid
 extern landscape8_ptr, landscape8clear, landscape8init
 extern robjflags,robjgameoptionflag,clearrobjarrays
+extern cargopacketstore_size,cargopacketstore,cargodestdata_size,cargodestdata
 
 // Known (defined) extra chunks.
 // The first table defines chunk IDs.
@@ -97,6 +99,8 @@ varw knownextrachunkids
 	dw 0x8012	// Industry2 array
 	dw 0x8013	// Industry array
 	dw 0x8014	// New Objects Pool
+//	dw 0x8015	// Cargo Packet Store
+	dw 0x8015	// Routing Tables and Other Cargodest Store
 	
 knownextrachunknum equ (addr($)-knownextrachunkids)/2
 
@@ -135,6 +139,8 @@ vard knownextrachunkloadfns
 	dd loadindustry2array
 	dd loadextraindustries
 	dd loadobjectpool
+//	dd loadcargopacketstore
+	dd loadcargodestdata
 	
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkloadfns)/4
@@ -177,6 +183,8 @@ vard knownextrachunksavefns
 	dd saveindustry2array
 	dd saveextraindustries
 	dd saveobjectpool
+//	dd savecargopacketstore
+	dd savecargodestdata
 
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunksavefns)/4
@@ -221,6 +229,8 @@ vard knownextrachunkqueryfns
 	dd canhaveindustry2array
 	dd canhaveextraindustries
 	dd canhaveobjectpool
+//	dd canhavecargodest
+	dd canhavecargodest
 
 %ifndef PREPROCESSONLY
 %if knownextrachunknum <> (addr($)-knownextrachunkqueryfns)/4
@@ -275,6 +285,8 @@ uvarw loadremovedsfxs	// ... and this many pseudo-/special vehicles
 %assign LOADED_X3_EXTRAINDUSTRIES	0x10
 %assign LOADED_X3_BRIDGEPERSDATA	0x20
 %assign LOADED_X3_OBJECTPOOL		0x40
+//%assign LOADED_X3_CARGOPACKETSTORE	0x80
+%assign LOADED_X3_CARGODESTDATA		0x80
 
 %define SKIPGUARD 1			// the variables get cleaned by a dword.. 
 uvarb extrachunksloaded1		// a combination of LOADED_X1_*
@@ -1102,6 +1114,19 @@ extern clearindustry2array
 	jnz .robj_loadend
 	call clearrobjarrays
 .robj_loadend:
+
+	// check cargo dest
+	testflags cargodest
+	jnc .cdest_loadend
+	test byte [extrachunksloaded3],LOADED_X3_CARGODESTDATA
+	jz .cdest_init
+	test byte [extrachunksloaded2],LOADED_X2_STATION2
+	jnz .cdest_loadend
+	extcall freecargodestdata
+.cdest_init:
+	extcall initcargodestmemory
+	extcall cargodestinitstationroutingtable_all
+.cdest_loadend:
 
 	testflags newobjects
 	jnc .nonewobjects
@@ -2000,6 +2025,11 @@ savestation2array:
 	jnc .nostationsize
 	or ecx,S2_STATIONSIZE
 .nostationsize:
+
+	testflags cargodest
+	jnc .nocargodest
+	or ecx,S2_CARGODEST
+.nocargodest:
 
 	mov [station2switches],ecx
 
@@ -2908,4 +2938,72 @@ loadsaverobjarray:
 	mov esi, robjflags
 	call ebp			//ecx=num bytes, esi=data ptr
 	or BYTE [extrachunksloaded3],LOADED_X3_ROBJARRAY
+	ret
+	
+// In:	CF=0 for loading, CF=1 for saving
+// Out:	CF=1 if chunk is to be saved/loaded, CF=0 if not
+canhavecargodest:
+	testflags cargodest
+	ret
+
+/*
+loadcargopacketstore:
+	test eax, 0xFFFF
+	jnz badchunk
+#if WINTTDX
+	extcall freecargopacketstore
+	pushad
+	push byte 4				// PAGE_READWRITE
+	push 0x1000				// AllocateType MEM_COMMIT
+	push eax				// dwSize
+	push DWORD [cargopacketstore]		// Address
+	call dword [VirtualAlloc]
+	popad
+	mov DWORD [cargopacketstore_size], eax
+#else
+	cmp [cargopacketstore_size], eax
+	jne badchunk
+#endif
+	jmp loadsavecargopacketstore
+
+savecargopacketstore:
+	mov eax, [cargopacketstore_size]
+	call savechunkheader
+
+loadsavecargopacketstore:
+	mov ecx, eax
+	mov esi, [cargopacketstore]
+	call ebp			//ecx=num bytes, esi=data ptr
+	or BYTE [extrachunksloaded3],LOADED_X3_CARGOPACKETSTORE
+	ret
+*/
+	
+loadcargodestdata:
+	test eax, 0xFFFF
+	jnz badchunk
+#if WINTTDX
+	extcall freecargodestdata
+	pushad
+	push byte 4				// PAGE_READWRITE
+	push 0x1000				// AllocateType MEM_COMMIT
+	push eax				// dwSize
+	push DWORD [cargodestdata]			// Address
+	call dword [VirtualAlloc]
+	popad
+	mov DWORD [cargodestdata_size], eax
+#else
+	cmp [cargodestdata_size], eax
+	jne badchunk
+#endif
+	jmp loadsavecargodestdata
+
+savecargodestdata:
+	mov eax, [cargodestdata_size]
+	call savechunkheader
+
+loadsavecargodestdata:
+	mov ecx, eax
+	mov esi, [cargodestdata]
+	call ebp			//ecx=num bytes, esi=data ptr
+	or BYTE [extrachunksloaded3],LOADED_X3_CARGODESTDATA
 	ret

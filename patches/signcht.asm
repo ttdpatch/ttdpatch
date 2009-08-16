@@ -33,6 +33,10 @@ extern invalidatetile,ResetBBlockVehicleLists
 extern newtexthandler
 
 
+//uncoment for debugging purposes
+//#undef DEBUG
+//#define DEBUG 1
+
 %assign cheattext "CHT:"	// gives "CHT:" in little endian
 var cheatok, db "  ",0xac,0	// gives a tick mark
 var cheatbad, db "  ",0xad,0	// gives an X mark
@@ -163,6 +167,7 @@ extern win_objectgui_create
 cheatentry "OBJECTGUI", win_objectgui_create, 0
 cheatentry "SETLANDVAL", setlandarrayval, 0
 cheatentry "FIXORDERS", fixorders, 0
+cheatentry "LOGCARGODEST", logcargodest, 0
 #endif
 
 #if DEBUGNETPLAY
@@ -3609,6 +3614,16 @@ dd orderfix1addedzero
 db "3: Additional zero markers added: ", 0x7B, 13, 10
 db 0
 endvar	
+
+extern cargodestdebugflag
+logcargodest:
+	call gethexnumber
+	jnc .param
+	or edx, BYTE -1
+.param:
+	mov DWORD [cargodestdebugflag], edx
+	clc
+	ret
 	
 #endif
 

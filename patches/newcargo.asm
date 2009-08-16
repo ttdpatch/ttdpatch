@@ -23,6 +23,7 @@ extern cargobits,cargotypes,spriteblockptr
 extern updatestationgraphics,newvehdata
 extern callback_extrainfo,curcallback,grfstage,grfresources
 extern statanim_cargotype,stationanimtrigger
+extern addcargotostation_cargodesthook
 
 
 // In most places, the cargo type is stored in at least a byte, so it isn't too hard to
@@ -126,9 +127,13 @@ global addcargotostation_2
 addcargotostation_2:
 	// find cargo slot for this type
 	push ebx
-	mov ecx, ebx
-	shr ecx, 3
+	shr ebx, 3
 	movzx eax, ah
+	testflags cargodest
+	jnc .nocargodest
+	call addcargotostation_cargodesthook
+.nocargodest:
+	mov ecx, ebx
 
 // now we need to find the right slot
 	xor ebx, ebx

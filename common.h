@@ -196,15 +196,16 @@
 #define rvovertakeparams	222	// Road vehicle overtaking parameters			(-)
 #define advzfunctions		223	// Support for more 3d features				(-)
 #define moreindustries		224	// Increase the size of the industry array		(-)
+#define cargodest		225	// Specific cargo destinations		(-)
 
-#define lastbitdefaultoff	224	// META: last bit defined not to be set by -a unless DEBUG
+#define lastbitdefaultoff	225	// META: last bit defined not to be set by -a unless DEBUG
 
 // so far unused flags, simply to remember what names I've used already
 // the numbers of these can be changed as desired
 //#define moresignals		 ?	// make tunnels&bridges behave as if there were signals
 //#define hugeairport		 ?	// build huge airports
 
-#define lastbitcommandline	224	// META: last bit that can be set by -a
+#define lastbitcommandline	225	// META: last bit that can be set by -a
 					// 	 i.e. all but the last DWORD
 
 // END PATCHFLAGS

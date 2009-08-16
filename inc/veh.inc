@@ -87,6 +87,7 @@ struc veh
 			resw 1	// 68h:rv:??
 			resb 1	// 6ah:rv:turn-around counter
 				// So far it's the last entry identified as used by TTD.
+	.prevstid:	resb 1	// 6bh:id of previous station at which routed cargo could be loaded +1 (0 means blank), (reset to 0 on unload, to a value on load). This is set on every vehicle of a consist for the sake of convenience.
 			resb 0x6C-$
 	.currorderflags:resb 1 	// 6Ch:Current order additional flags (mainly for advorders)
 	.parentmvstat2:	resb 1	// 6Dh:stores the extra parent stat information (mainly needed for uturns)

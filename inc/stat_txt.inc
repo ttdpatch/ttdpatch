@@ -389,3 +389,5 @@ stxt_cont db 0
 
 stxt shadebutton_shaded, 0x98, 0xAA, 0
 stxt shadebutton_unshaded, 0x98, 0xA0, 0
+
+stxt outstation, 0x9A, 12, 0

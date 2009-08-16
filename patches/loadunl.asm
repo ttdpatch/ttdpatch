@@ -25,6 +25,7 @@ extern stationplatformtrigger,totalloadamount,transferprofit
 extern updatestationgraphics
 extern vehcallback,stationplatformanimtrigger
 extern convertplatformsinremoverailstation
+extern acceptcargoatstationflag,acceptcargotimetravelledlasthop,cargodestloadflags
 
 
 
@@ -35,7 +36,7 @@ extern convertplatformsinremoverailstation
 
 %push LoadUnloadCargo
 
-%define %$framesize 18		// size of all local vars defined below
+%define %$framesize 24		// size of all local vars defined below
 
 %define %$engine		(ebp+0)		// D: points to the engine of the consist
 %define %$income		(ebp+4)		// D: income of the load/unload
@@ -47,20 +48,25 @@ extern convertplatformsinremoverailstation
 						//	bit 1 - vehicle and station windows must be redrawn
 %define %$stationlength		(ebp+0x10)	// B: length of the current station, may contain junk if not called for trains
 %define %$cargooffset		(ebp+0x11)	// B: offset to the current cargo from station.cargos
+%define %$cdeststrttbl          (ebp+0x12)      // D: relative pointer to station's cargo destination routing table
+%define %$cdeststnxtordr        (ebp+0x16)      // B: station of next order or -1
 
 // Helper function for newcargos support. With newcargos, the current cargo may not
 // have a slot allocated. If you need to be sure there's a slot allocated for your
 // cargo, call this with ecx=offset returned by ecxcargooffset. The function will
 // try allocating a new slot and return it in ecx. If there's no free slot, cl
 // will be FFh
+global ensurecargoslot
 ensurecargoslot:
 	testflags newcargos
 	jnc	.offset_ok
 	or	cl,cl
 	jns	.offset_ok
 
+	push eax
 	mov	al, [esi+veh.cargotype]
 	call	ecxcargooffset_force
+	pop eax
 
 	mov	[%$cargooffset],cl
 
@@ -84,10 +90,51 @@ UnloadCargoToStation:
 	ret
 
 .offset_ok:
+	push ebx
+// the next step is deciding how much to unload in this step
+	mov	ax, [esi+veh.currentload]
+	mov     bx, ax
+	testflags gradualloading
+	jnc	.unloadamountok
+
+	// with gradualloading, don't allow the full amount to be unloaded instantly
+	call	maxloadamount
+	cmp	ax,word [esi+veh.currentload]
+	jb	.notdoneyet
+
+	dec	byte [numvehstillunloading]		// vehicle will be empty
+	jmp	.nomoreleft
+
+.notdoneyet:
+	or	byte [esi+veh.modflags],(1 << MOD_MORETOUNLOAD)+(1 << MOD_NOTDONEYET)
+
+.nomoreleft:
+	sub	[totalloadamount],ax
+
+.unloadamountok:
+	mov edx, eax
+	testflags cargodest
+	jnc .nocargodest
+	mov BYTE [acceptcargoatstationflag], 4
+	extcall AcceptCargoAtStation_CargoDestAdjust
+	mov BYTE [acceptcargoatstationflag], 0
+.nocargodest:
+	add	[%$cargomoved],ax			// BUGFIX
+	
+	xchg ebx, [esp]
+		//ebx becomes station ptr
+		//[esp] becomes amount of unrouted cargo (to charge, and also if zero don't bother changing cargo origin values at the station)
+
+	push edx
+
+	push eax
 // Old code to update enroutefrom and enroutetime if needed
 	mov	byte [ebx+station.timesinceunload], 0
 	mov	dx, [ebx+station.cargos+ecx+stationcargo.amount]
 	and	edx, [stationcargowaitingmask]
+	cmp	WORD [esp+8], 0
+	je	.cargosourceok
+	or	edx, edx
 	jnz	.cargoalreadywaiting
 	mov	al, [esi+veh.cargotransittime]
 	mov	[ebx+station.cargos+ecx+stationcargo.enroutetime], al
@@ -109,31 +156,19 @@ UnloadCargoToStation:
 	mov	[ebx+station.cargos+ecx+stationcargo.enroutefrom], al
 
 .cargosourceok:
-// the next step is deciding how much to unload in this step
-	mov	ax, [esi+veh.currentload]
-
-	testflags gradualloading
-	jnc	.unloadamountok
-
-	// with gradualloading, don't allow the full amount to be unloaded instantly
-	call	maxloadamount
-	cmp	ax,word [esi+veh.currentload]
-	jb	.notdoneyet
-
-	dec	byte [numvehstillunloading]		// vehicle will be empty
-	jmp	.nomoreleft
-
-.notdoneyet:
-	or	byte [esi+veh.modflags],(1 << MOD_MORETOUNLOAD)+(1 << MOD_NOTDONEYET)
-
-.nomoreleft:
-	sub	[totalloadamount],ax
-
-.unloadamountok:
-	add	[%$cargomoved],ax			// BUGFIX
-	movzx	eax,ax
-	add	eax, edx
-	sub	edx, eax			//now dx=-unload_amount
+	pop eax
+	
+	//ax=quantity actually unloaded
+	//edx=amount currently in station
+	//W[esp+4]=amount to charge
+	//W[esp]=amount to update station fields by
+	
+	xchg eax, edx
+	neg dx
+	add ax, [esp]	//overflow should be impossible
+	
+	//dx=-vehicle unload amount
+	//eax=cargo in station
 
 	cmp	eax, [stationcargowaitingmask]	// if amount>mask, it won't fit when putting back the amount, so truncate it
 	jb	.nounloadoverflow
@@ -155,7 +190,8 @@ UnloadCargoToStation:
 	pusha
 	mov	al,byte [esi+veh.cargosource]
 	mov	ah,byte [%$currstationidx]
-	mov	bx,word [esi+veh.currentload]
+	//mov	bx,word [esi+veh.currentload]
+	mov	bx,word [esp+32+4]
 	mov	ch,byte [esi+veh.cargotype]
 	mov	dl,byte [esi+veh.cargotransittime]
 	call	transferprofit
@@ -164,11 +200,17 @@ UnloadCargoToStation:
 	popa
 
 .nocash:
-	add	[esi+veh.currentload], dx
-	jnz	.notempty
 
+	add esp, 8		//eat cargo amounts on stack
+
+	
+	add	[esi+veh.currentload], dx
+	jz	.doneunload
+	test	BYTE [acceptcargoatstationflag], 16
+	jz	.notempty
+.doneunload:
 //if the vehicle finished unloading, clear the cash flag
-	and	byte [esi+veh.modflags],~ (1 << MOD_DIDCASHIN)
+	and	byte [esi+veh.modflags],~ ((1 << MOD_DIDCASHIN)|(1 << MOD_MORETOUNLOAD))
 
 .notempty:
 	//actually add cargo to the station
@@ -179,12 +221,16 @@ UnloadCargoToStation:
 	or	byte [%$flags], 2	// both the vehicle and the station windows need redrawing
 	ret
 
+
+
 // Accept vehicle cargo at station (the cargo goes away, player gets money)
 // in:	ebx -> station
 //	esi -> current vehicle
 //	edi -> engine
 // safe: eax, ebx, ecx, edx
 AcceptCargoAtStation:
+	mov BYTE [acceptcargoatstationflag], 1
+.inforcargodestnoaccept:
 	mov	byte [ebx+station.timesinceunload], 0
 	mov	ax, [esi+veh.currentload]
 	mov	bx, ax	// for [acceptcargofn]
@@ -209,6 +255,10 @@ AcceptCargoAtStation:
 .stillnottoomuch:
 	sub	[totalloadamount],ax
 .amountok:
+	testflags cargodest
+	jnc .nocargodest
+	extcall AcceptCargoAtStation_CargoDestAdjust
+.nocargodest:
 	sub	[esi+veh.currentload], ax
 	add	[%$cargomoved], ax			// BUGFIX
 
@@ -219,12 +269,17 @@ AcceptCargoAtStation:
 							// the cargo is unloaded always)
 	jc	.dontcashin
 
+	or bx, bx
+	jz .recordaccept
+	
 	mov	al, [esi+veh.cargosource]
 	mov	ah, [%$currstationidx]
 	mov	dl, [esi+veh.cargotransittime]
 	mov	ch, [esi+veh.cargotype]
 	call	dword [acceptcargofn]
 	add	[%$income], eax
+
+.recordaccept:
 
 	extern stationarray2ptr
 	cmp dword [stationarray2ptr],0
@@ -240,14 +295,17 @@ AcceptCargoAtStation:
 
 .cashindone:
 .dontcashin:
+	test BYTE [acceptcargoatstationflag], 16
+	jnz .doneunload
 	cmp	word [esi+veh.currentload], 0
 	jne	.notemptyyet
-
+.doneunload:
 //if the vehicle finished unloading, clear the cash and unload flags
 	and	byte [esi+veh.modflags],~ ((1 << MOD_MORETOUNLOAD)+(1 << MOD_DIDCASHIN))
 
 .notemptyyet:
 	or	byte [%$flags], 1		// only the vehicle window needs update, station cargo hasn't changed
+	mov BYTE [acceptcargoatstationflag], 0
 	ret
 
 // limit cargo if freighttrains is on so the train can start
@@ -287,6 +345,8 @@ freighttrains_limitcargo:
 
 .nottoomuch:
 	ret
+
+uvarw loadcargounroutedquantity
 
 // Load cargo from station
 // in:	ebx->station
@@ -448,6 +508,8 @@ LoadCargoFromStation:
 
 	call	checkrandomcargotrigger
 
+	testflags cargodest
+	jc .donthurtflags
 	testflags gradualloading
 	jnc	.donthurtflags
 	or	byte [esi+veh.modflags],1 << MOD_NOTDONEYET
@@ -457,7 +519,8 @@ LoadCargoFromStation:
 // with gradualloading, we don't load the whole amount in one step
 	testflags gradualloading
 	jnc	.gotloadamount
-
+	
+//	push	eax
 	call	maxloadamount
 
 	testflags freighttrains
@@ -476,8 +539,27 @@ LoadCargoFromStation:
 
 .nolimitcargo:
 	sub	[totalloadamount],ax
-
+//	cmp	ax, [esp]
+//	je	.gotloadamount_pop
+//	mov	BYTE [cargodestloadflags], 2
+//.gotloadamount_pop:
+//	add	esp, 4
 .gotloadamount:
+
+	//ax=max amount to load
+	//dx=amount of cargo in station
+
+	mov [loadcargounroutedquantity], ax
+
+	testflags cargodest
+	jnc .nocargodest
+	extcall LoadCargoFromStation_CargoDestAdjust
+	mov BYTE [cargodestloadflags], 0
+.nocargodest:
+	//ax=amount actually loaded (this obviously excludes cargo that isn't routable on this veh)
+	//dx=amount of cargo in station
+	//loadcargounroutedquantity adjusted downwards as necessary
+
 	cmp	ax,dx
 	jne	.notempty
 
@@ -496,13 +578,14 @@ LoadCargoFromStation:
 
 	pusha
 
-	push ax
+	//push ax
 
 	// was it en-route?
 	mov	al,[ecx+station.cargos+stationcargo.enroutefrom+ebx]
 	mov	ah,[%$currstationidx]
 
-	pop bx
+	//pop bx
+	mov bx, [loadcargounroutedquantity]
 
 	cmp	al,ah
 	je	.noadjustprofit_pop
@@ -532,7 +615,7 @@ LoadCargoFromStation:
 	mov	byte [ebx+station.timesinceload], 0
 	add	[%$cargomoved], ax
 	add	[esi+veh.currentload], ax
-	test	ax,ax
+	cmp     WORD [loadcargounroutedquantity], 0
 	jz	.nothingmoved
 	mov	dl, [ebx+station.cargos+ecx+stationcargo.enroutefrom]
 	mov	[esi+veh.cargosource], dl
@@ -847,25 +930,79 @@ LoadUnloadCargo:
 	mov	[%$currstationidx], al
 
 	testmultiflags losttrains,lostrvs,lostships,lostaircraft	// actually, this won't hurt even without lostvehs
-	jz .nolostvehs							// we skip it just to save some cycles
+	jz NEAR .nolostvehs								// we skip it just to save some cycles
 
 	// with lost vehicles, reset traveltime if this is a scheduled stop
 	mov	ecx,[esi+veh.scheduleptr]
 	movzx	ebx,byte [esi+veh.currorderidx]
-	mov 	ecx,[ecx+2*ebx]
-	cmp	ch,al
+	mov 	dx,[ecx+2*ebx]
+	cmp	dh,al
 	jne	.notgoodstop
-	and 	cl,0x1f
-	cmp	cl,1
+	and 	dl,0x1f
+	cmp	dl,1
 	jne	.notgoodstop
-	and	word [esi+veh.traveltime],0
+	mov	WORD [esi+veh.traveltime], 0
 
 .notgoodstop:
+	testflags cargodest
+	jnc .donecargodestnextstcheck
+	push	edi
+	mov     edi, ecx
+	mov     ah, -1
+	mov     dh, bl
+	mov     dl, [esi+veh.totalorders]
+.nexttestorder:
+	inc     bl
+	cmp     bl, dl
+	jb      .nowraporder
+	mov     bl, 0
+.nowraporder:
+	cmp     bl, dh
+	je      .donecargodestnextstcheck_pop       //went all the way round without finding anything useful
+	mov 	ecx, [edi+2*ebx]
+	test    cl, 0xC0                //quick and dirty check to weed out full load and non-stop orders
+	jnz     .nexttestorder
+	and	cl, 0x1F
+	cmp     cl, 1
+	jne     .notst
+	cmp	ch, al
+	je      .nexttestorder          //don't count orders pointing to the current station
+	mov     ah, ch
+	jmp .donecargodestnextstcheck_pop
+.notst:
+	cmp     cl, 5
+	jne	.nexttestorder
+	mov	cl, ch
+	shr     cl, 5                   //number of extra words
+	and	ch, 0x1F
+	cmp     ch, 5
+	jne     .wrongspec
+	mov     ah, [edi+2*ebx+3]       //station id
+	cmp     ah, al
+	jne     .donecargodestnextstcheck_pop
+	mov	ah, -1
+.wrongspec:
+	add     bl, cl
+	jmp     .nexttestorder
+
+	
+	
+	
+.donecargodestnextstcheck_pop:
+	mov	[%$cdeststnxtordr], ah
+        xor     ah, ah
+	pop	edi
+.donecargodestnextstcheck:
+
 .nolostvehs:
 	imul    ax, station_size
 	add	eax, [stationarrayptr]
 	mov	[%$currstationptr], eax
-
+	mov     ebx, [station2ofs_ptr]
+	add     ebx, eax
+	mov	ebx, [ebx+station2.cargoroutingtableptr]
+	mov     [%$cdeststrttbl], ebx
+	
 // get the length of the station (this will only be used for trains)
 	testflags irrstations
 	jc .irrgetstationlen
@@ -973,8 +1110,11 @@ LoadUnloadCargo:
 .noaccept:
 // The cargo isn't accepted - unload it if it's a forced unload, start loading otherwise
 	test	word [edi+veh.currorder], 20h
-	jz	.DoLoad
-	
+	jnz	.DoUnload
+	testflags cargodest
+	jnc .DoLoad
+	call    AcceptCargoAtStation.inforcargodestnoaccept     //cargos routed to this station will be "accepted" even if the cargo isn't accepted, lesser of two evils...
+	jmp .UnloadAcceptDone
 .DoUnload:						// unload cargo to station, cargo isn't accepted but stays there
 	call	UnloadCargoToStation
 	jmp	short .UnloadAcceptDone

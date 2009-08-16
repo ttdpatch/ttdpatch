@@ -6,6 +6,7 @@
 
 patchproc sortvehlist, patchsortvehlist
 patchproc enhancegui,sortvehlist, patchdrawvehlist
+patchproc cargodest,sortvehlist, patchnewdelveharrayentry
 
 extern vehlistwindowsizes,patchflags,vehlistwindowconstraints
 
@@ -349,7 +350,7 @@ patchsortvehlist:
 	lea edi, [ebx+0x53DC7F-0x53DCD5]
 	storefragment newTrainListClickHandlerAddOffset
 //ENDS
-//JGR more than 256 Ships in listing
+//JGR more than 256 Aircraft in listing
 	stringaddress aircraftlistfragment
 	mov ebx, edi
 	xor ecx, ecx
@@ -419,9 +420,6 @@ patchsortvehlist:
 	multipatchcode oldislistwindowhuman,newislistwindowhuman,4
 //	(finished in patchdrawvehlist)
 
-// make sure lists are reordered when deleting/creating vehicles
-	patchcode olddelveharrayentry,newdelveharrayentry,1,1
-	patchcode oldnewveharrayentry,newnewveharrayentry,1,1
 	ret
 
 // Create two buttons instead of the old empty button
@@ -475,3 +473,10 @@ patchdrawvehlist:
 	multipatchcode oldcreatelistwindow1,newcreatelistwindow,4
 	multipatchcode oldcreatelistwindow2,newcreatelistwindow,4
 	ret
+
+patchnewdelveharrayentry:
+// make sure lists are reordered when deleting/creating vehicles
+	patchcode olddelveharrayentry,newdelveharrayentry,1,1
+	patchcode oldnewveharrayentry,newnewveharrayentry,1,1
+	ret
+

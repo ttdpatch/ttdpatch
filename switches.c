@@ -1615,6 +1615,7 @@ categoryinfo category_info[] = {
 	{ CAT_INTERFACE,	"interfacenewsmessages","News messages" },
 	{ CAT_INTERFACE,	"interfacevehicles",	"Vehicles" },
 	{ CAT_INTERFACE,	"interfacewindows",	"Windows" },
+	{ CAT_NONE,		"cargodest",		"Cargo Destinations" },
 
 	{ CAT_NONE, NULL, NULL },
 };

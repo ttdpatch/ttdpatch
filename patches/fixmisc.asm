@@ -756,7 +756,7 @@ getsubsidyowner:
 // in:	ESI->station being deleted
 //	AL=station idx
 // out: EDI->start of vehicle array
-// safe:EBP,DX
+// safe:EBP,EDX
 global deletestationrefs
 deletestationrefs:
 	mov edi,subsidyarray
@@ -781,38 +781,62 @@ deletestationrefs:
 	jnz .loop
 
 	mov edi,[veharrayptr]
+	push ecx
 .checknext:
 	cmp byte [edi+veh.class],0
 	je .nextveh
-	cmp word [edi+veh.currentload],0
+	mov cx, [edi+veh.currentload]
+	or cx, cx
 	je .nextveh
+	testflags cargodest
+	jnc .nocargodestcheck
+	extcall cargodestdelstationpervehhook
+.nocargodestcheck:
 	cmp byte [edi+veh.cargosource],al
 	jne .nextveh
 
-	mov word [edi+veh.currentload],0
+	sub word [edi+veh.currentload],cx
 
 .nextveh:
 	sub edi,byte -veh_size
 	cmp edi,[veharrayendptr]
 	jb .checknext
+//	pop ecx
 
+//	push ecx
 	mov edi,[stationarrayptr]
 	mov dl,numstations
 .checkstat:
 	cmp word [edi+station.XY],0
 	je .nextstat
 
+testflags cargodest
+	jnc .normstat
+	extcall cargodestdelstationperstationhook2
+.normstat:
+
 	xor ebp,ebp
 .checkcargo:
+	xor ecx, ecx
+        testflags cargodest
+	jnc .normcargo
+	push eax
+	extcall cargodestdelstationperstationhook
+	pop eax
+.normcargo:
 	cmp byte [edi+station.cargos+ebp+stationcargo.enroutefrom],al
 	jne .nextcargo
 
-	and word [edi+station.cargos+ebp+stationcargo.amount], 0
+	or cx, cx
+	jnz .clearenroute
+	//and word [edi+station.cargos+ebp+stationcargo.amount], 0
 	mov byte [edi+station.cargos+ebp+stationcargo.timesincevisit], 0
-	mov byte [edi+station.cargos+ebp+stationcargo.enroutefrom], 0xFF
 	mov byte [edi+station.cargos+ebp+stationcargo.rating], 175
 	mov byte [edi+station.cargos+ebp+stationcargo.lastspeed], 0
 	mov byte [edi+station.cargos+ebp+stationcargo.lastage], -1
+.clearenroute:
+	mov byte [edi+station.cargos+ebp+stationcargo.enroutefrom], 0xFF
+	mov [edi+station.cargos+ebp+stationcargo.amount], cx
 
 .nextcargo:
 	add ebp,byte stationcargo_size
@@ -823,6 +847,12 @@ deletestationrefs:
 	add edi,station_size
 	dec dl
 	jnz .checkstat
+	pop ecx
+
+	testflags cargodest
+	jnc .nocdestcheck
+	extcall cargodestdelstationfinalhook
+.nocdestcheck:
 
 	mov edi,[veharrayptr]		// overwritten by runindex call
 	ret

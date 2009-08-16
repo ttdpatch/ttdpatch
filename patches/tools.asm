@@ -911,7 +911,11 @@ extern objectpool_ptr, objectpoolclear
 
 	mov eax,[currtownnametitle]
 	mov [currtownname],eax
-
+	
+	testflags cargodest
+	jnc .nocargodest
+	extcall initcargodestmemory
+.nocargodest:
 	popa
 	ret
 uvard initializeveharraysizeptr

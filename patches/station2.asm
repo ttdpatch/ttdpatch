@@ -8,7 +8,7 @@
 
 extern clearfifodata,miscmodsflags,patchflags,station2switches
 extern stationarray2ptr,station2ofs_ptr
-
+extern cargodeststationperiodicproc
 
 
 global station2clear
@@ -42,7 +42,6 @@ station2init:
 	jz .fifo_clear		// Game contains no FIFO info; just clear the remainder.
 
 // Now set it appropriately
-
 	mov eax, [stationarray2ptr]
 .stationloop:
 
@@ -177,6 +176,12 @@ setupstation2:
 	mov [edi+station2.acceptedthismonth],ecx
 	mov [edi+station2.acceptedlastmonth],ecx
 	mov [edi+station2.everaccepted],ecx
+	mov [edi+station2.cargoroutingtableptr],ecx
+	
+	testflags cargodest
+	jnc .nocargodest
+	extcall cargodestinitstationroutingtable
+.nocargodest:
 
 	xor ecx,ecx
 .nextcargo:
@@ -199,16 +204,22 @@ setupoilfield:
 // in: esi->station
 // out: zf set if station.exclusive is zero
 exported monthlystationupdate
-	push esi
+	push edi
 	push eax
-	add esi,[station2ofs_ptr]
+	mov edi, esi
+	add edi,[station2ofs_ptr]
 
 	xor eax,eax
-	xchg eax,[esi+station2.acceptedthismonth]
-	mov [esi+station2.acceptedlastmonth],eax
+	xchg eax,[edi+station2.acceptedthismonth]
+	mov [edi+station2.acceptedlastmonth],eax
+
+	testflags cargodest
+	jnc .nocdupdate
+	call cargodeststationperiodicproc
+.nocdupdate:
 
 	pop eax
-	pop esi
+	pop edi
 
 	cmp byte [esi+station.exclusive],0		// overwritten
 	ret

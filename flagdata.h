@@ -26,6 +26,7 @@ deflong(forcegameoptionssettings)	// game options settings in ttdpatch bit forma
 deflong(mapsize)			// map size, for special var 13.
 deflong(rvovertakeparamsvalue)	//flag bits for road vehicle overtaking behaviour modificaton
 deflong(cfgtransbits)		// bits for initial transparency options
+deflong(cargodestroutecmpfactor)	// factor to multiply minimum route by then shift right 16 to produce route threshold
 
 #define flags_long_end newservint
 
@@ -52,6 +53,7 @@ defword(tgrpassinmax)		// maximum number of passengers accepted that will influe
 
 defword(branchprobab)		// probability of a road branch
 defword(semaphoreyear)		// year before which semaphores are built
+defword(cdstrtcostexprthrshld)	// time after which an unused single hop route expires
 
 #define flags_word_end townmingrowthrate
 
@@ -121,6 +123,7 @@ defbyte(newsoundsettings)	// bit settings for newsounds
 defbyte(replaceminreliab)	// minimum reliability for autoreplace
 defbyte(stationsizevalue)	// maximum size of a railway station complex (as well as station spread)
 defbyte(numindustries)		// industry count limit
+defbyte(cdstcargopacketinitttl)	// the ttl for newly created cargo packets
 
 #define flags_ubyte_end replaceage
 

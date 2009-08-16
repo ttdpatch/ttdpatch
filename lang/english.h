@@ -258,6 +258,7 @@ TEXTARRAY(halflines,) =
 	  "-ZA: Enable new airports",
 	  "-ZC: Enable AI transport type chances",
 	  "-ZD: Enables the cloning of trains",
+	  "-ZG: Enables cargo destinations",
 	  "-ZH: Provide more transparency options",
 	  "-ZI: Enable irregular stations",
 	  "-ZJ: Enable more 3d features",
@@ -531,6 +532,7 @@ SWITCHTEXT(advorders, "Enables advanced orders","")
 SWITCHTEXT(rvovertakeparams, "Road vehicle overtaking behaviour parameters","")
 SWITCHTEXT(advzfunctions, "Enables more 3d features","")
 SWITCHTEXT(moreindustries, "Increase the maximum number of industries", " to %d.")
+SWITCHTEXT(cargodest, "Enables cargo destinations","")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -966,6 +968,10 @@ SETTEXT(CFG_ADVORDERS, "`%s' (%s) enables advanced orders")
 SETTEXT(CFG_RVOVERTAKEPARAMS, "`%s' (%s) road vehicle overtaking behaviour parameters. Hexadecimal bit field: 0=enable overtaking of non-stationary vehicles with same max speed, 1,2,3=disable overtaking (collision) checks on: current tile, next tile, and tile after next respectively, (tile after next always ignored for stationary overtakees), 4=set maximum overtaking counter value to bits 8-15 (TTD default=0x23), 5=set stationary overtakee overtaking count initial value to bits 16-23 (TTD default=0x11), 6=overtake even if on junction tile if overtakee is stationary. Experimental switch, some values may produce adverse/unusual results.")
 SETTEXT(CFG_ADVZFUNCTIONS, "`%s' (%s) enables more 3d features")
 SETTEXT(CFG_MOREINDUSTRIES, "`%s' (%s) increases the maximum number of industries on the map")
+SETTEXT(CFG_CARGODEST, "`%s' (%s) enables cargo destinations")
+SETTEXT(CFG_CDSTRTCMPFACTOR, "`%s' (%s) sets route comparison threshold for cargodest switch. Route cost threshold (in days) at a node is equal to minimum found cost * this value / 65536. Set to 65536 to only ever allow one route to any destination. Set to an enormous value to disable any semblence of intelligent routing. Range %ld (100%%)..%ld (3276800%%).  Default %ld (about 140%%).")
+SETTEXT(CFG_CDSTRTCOSTEXPRTHRSHLD, "`%s' (%s) sets the time in days after which an unused single hop route expires. Range %ld..%ld.  Default %ld.")
+SETTEXT(CFG_CDSTCARGOPACKETINITTTL, "`%s' (%s) sets the ttl (time to live) for newly created cargo packets, each hop decrements this value, even if the packet stays on the vehicle. Any packets which run out of life will be exterminated without payment. This is to prevent any errant packets from circling the network indefinitely. Range %ld..%ld.  Default %ld.")
 
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')
