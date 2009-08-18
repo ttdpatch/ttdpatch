@@ -443,7 +443,7 @@ lang/%.o:	proclang.c lang/%.h types.h error.h common.h language.h bitnames.h
 	${_E} [CC] $@
 	${_C}$(CC) -c -o $@ $(CFLAGS) -DLANGUAGE=$* proclang.c
 
-host/lang/%.o:	lang/%.h
+host/lang/%.o:	proclang.c lang/%.h types.h error.h common.h language.h bitnames.h
 	${_E} [HOSTCC] $@
 	${_C}$(HOSTCC) -c -o $@ $(HOSTCFLAGS) -DLANGUAGE=$* proclang.c
 
