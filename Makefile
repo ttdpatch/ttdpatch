@@ -439,7 +439,7 @@ host/makelang${HOSTEXE}:	LDLIBS = -lz
 makelang${EXEW}:		${makelangobjs} $(langobjs)
 host/makelang${HOSTEXE}:	${makelangobjs:%.o=host/%.o} $(hostlangobjs)
 
-lang/%.o:	lang/%.h
+lang/%.o:	proclang.c lang/%.h types.h error.h common.h language.h bitnames.h
 	${_E} [CC] $@
 	${_C}$(CC) -c -o $@ $(CFLAGS) -DLANGUAGE=$* proclang.c
 
@@ -449,7 +449,7 @@ host/lang/%.o:	lang/%.h
 
 # test versions of makelang with a single language: make lang/<language> and run
 # the executable to make a single-language language.dat file
-lang/%:		makelang.c lang/%.o switches.o codepage.o texts.o
+lang/%:		makelang.c lang/%.o switches.o codepage.o texts.o langerr.h
 	${_E} [CC] $@
 	${_C}$(CC) -o $@ $(CFLAGS) $(LDOPT) $(foreach DEF,$(WINDEFS),-D$(DEF)) -DSINGLELANG=${patsubst lang/%,%,$@} $^ -L. -lz
 
