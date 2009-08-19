@@ -511,13 +511,13 @@ host/makelang${HOSTEXE}:	LDLIBS = -lz
 makelang${EXEW}:		${makelangobjs} $(langobjs)
 host/makelang${HOSTEXE}:	${makelangobjs:%.o=host/%.o} $(hostlangobjs)
 
-lang/%.o:	lang/%.h lang/english.h
+lang/%.o:	lang/%.h lang/english.h proclang.c types.h error.h common.h language.h bitnames.h
 	${_E} [PERL/CC] $@
 	${_C}perl perl/langmerge.pl lang/english.h $< > lang/$*.tmp 2> lang/$*.err || (tail -5 lang/$*.err; false)
 	${_C}$(CC) -c -o $@ $(CFLAGS) -DLANGUAGE=$* proclang.c
 	@rm -f lang/$*.tmp
 
-host/lang/%.o:	lang/%.h lang/english.h
+host/lang/%.o:	lang/%.h lang/english.h proclang.c types.h error.h common.h language.h bitnames.h
 	${_E} [PERL/HOSTCC] $@
 	${_C}perl perl/langmerge.pl lang/english.h $< > lang/$*.tmp 2> lang/$*.err || (tail -5 lang/$*.err; false)
 	${_C}$(HOSTCC) -c -o $@ $(HOSTCFLAGS) -DLANGUAGE=$* proclang.c
@@ -525,6 +525,7 @@ host/lang/%.o:	lang/%.h lang/english.h
 
 # test versions of makelang with a single language: make lang/<language> and run
 # the executable to make a single-language language.dat file
+lang/%:		makelang.c lang/%.o switches.o codepage.o texts.o langerr.h
 lang/%${EXEW}:		makelang.c lang/%.o switches.o codepage.o texts.o
 	${_E} [CC] $@
 	${_C}$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $(foreach DEF,$(WINDEFS),-D$(DEF)) -DSINGLELANG=$* $^ -L. -lz

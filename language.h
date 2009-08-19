@@ -594,7 +594,7 @@ ISEXTERN int numhalflines;
 ISEXTERN const char *switchnames[SWITCHNUMT*2];
 
 // Bit switch descriptions
-ISEXTERN const char *bitswitchdesc[BITSWITCHNUM][32];
+ISEXTERN const char *bitswitchdesc[BITSWITCHNUM][33];
 
 // Array of country IDs for which this language is the right one
 ISEXTERN u16 *countries;
