@@ -78,6 +78,8 @@ exported WindowCanShade
 	jc .ret
 	testmultiflags enhancegui
 	jz .noshade			// Forbid shading without enhancegui
+	cmp byte [esi+window.type], cWinTypeMainView
+	je .noshade
 	cmp byte [esi+window.type], cWinTypeNewsMessage
 	je .noshade
 	cmp byte [esi+window.type], cWinTypeLinkSetup
