@@ -71,6 +71,7 @@ extern WindowClicked
 
 	call GetWindowDeltaWidth
 	sub [esi+window.width], ax
+	ret
 
 
 exported WindowCanShade
