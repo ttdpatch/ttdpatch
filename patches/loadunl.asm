@@ -995,7 +995,7 @@ LoadUnloadCargo:
 .donecargodestnextstcheck:
 
 .nolostvehs:
-	imul    ax, station_size
+	imul    eax, station_size
 	add	eax, [stationarrayptr]
 	mov	[%$currstationptr], eax
 	mov     ebx, [station2ofs_ptr]

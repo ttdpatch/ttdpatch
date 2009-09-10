@@ -160,8 +160,7 @@ freecargodestdata:
 global unlinkcargopacket			//eax=cargo packet relative ptr
 unlinkcargopacket:				//ebp=[cargodestdata]
 						//trashes: ecx, edx
-	xor ecx, ecx
-	xchg ecx, [eax+ebp+cargopacket.location]
+	mov ecx, [eax+ebp+cargopacket.location]
 	mov edx, ecx
 	shr edx, 16
 	jz .end
@@ -170,6 +169,7 @@ unlinkcargopacket:				//ebp=[cargodestdata]
 	jb .station
 	int3
 .end:
+	mov DWORD [eax+ebp+cargopacket.location], 0
 	ret	
 .veh:
 	xor edx, edx
@@ -182,7 +182,7 @@ unlinkcargopacket:				//ebp=[cargodestdata]
 	xchg ecx, [eax+ebp+cargopacket.nextptr]
 	mov [edx], ecx
 	mov DWORD [ecx+ebp+cargopacket.prevptr], 0
-	ret
+	jmp .end
 .station:
 	xor edx, edx
 	xchg edx, [eax+ebp+cargopacket.prevptr]
@@ -197,7 +197,7 @@ unlinkcargopacket:				//ebp=[cargodestdata]
 	or edx, edx
 	jz .frontunlink
 	mov [edx+ebp+cargopacket.nextptr], ecx
-	ret
+	jmp .end
 .s1:
 	or edx, edx
 	jz .lastunlink
@@ -207,20 +207,20 @@ unlinkcargopacket:				//ebp=[cargodestdata]
 	pop ecx
 	mov [edx+ebp+routingtable.cargopacketsrear], ecx
 	mov DWORD [ecx+ebp+cargopacket.nextptr], 0
-	ret
+	jmp .end
 .frontunlink:
 	push ecx
 	call getstroutetablefromcp
 	pop ecx
 	mov [edx+ebp+routingtable.cargopacketsfront], ecx
 	mov DWORD [ecx+ebp+cargopacket.prevptr], 0
-	ret
+	jmp .end
 .lastunlink:
 	call getstroutetablefromcp
 	xor ecx, ecx
 	mov [edx+ebp+routingtable.cargopacketsrear], ecx
 	mov [edx+ebp+routingtable.cargopacketsfront], ecx
-	ret
+	jmp .end
 
 .simpleunlink:
 	//edx=previous
@@ -229,7 +229,8 @@ unlinkcargopacket:				//ebp=[cargodestdata]
 	xchg ecx, [eax+ebp+cargopacket.nextptr]
 	mov [edx+ebp+cargopacket.nextptr], ecx
 	mov [ecx+ebp+cargopacket.prevptr], edx
-	ret
+	jmp .end
+
 	
 getstroutetablefromcp:		//cargo packet in eax
 				//returns cargo routing table in edx
@@ -260,7 +261,7 @@ fastunlinkstationcargopacket:			//eax=cargo packet relative ptr
 	mov [edx+ebp+cargopacket.nextptr], ecx
 	jmp .a2
 .a1:
-        mov DWORD [ebx+ebp+routingtable.cargopacketsfront], 0
+        mov [ebx+ebp+routingtable.cargopacketsfront], ecx
 .a2:
 
 	or ecx, ecx
@@ -268,7 +269,7 @@ fastunlinkstationcargopacket:			//eax=cargo packet relative ptr
 	mov [ecx+ebp+cargopacket.prevptr], edx
 	jmp .b2
 .b1:
-        mov DWORD [ebx+ebp+routingtable.cargopacketsrear], 0
+        mov [ebx+ebp+routingtable.cargopacketsrear], edx
 .b2:
 
 	ret
@@ -377,11 +378,11 @@ uvarw acceptcargotemplaststationandcargo
 global AcceptCargoAtStation_CargoDestAdjust
 AcceptCargoAtStation_CargoDestAdjust:
 	mov BYTE [acceptcargotempcargooffsetval], 0
-	push eax
-	push ebx
-	push edi
-	push ebp
-	push eax
+	push eax	//max load amount
+	push ebx	//becomes unrouted amount
+	push edi	//engine
+	push ebp	//stack frame
+	push eax	//unload amount left
 
 	movzx ecx, BYTE [ebp+0xE]
 	or ecx, 0x10000
@@ -707,7 +708,10 @@ AcceptCargoAtStation_CargoDestAdjust:
 	pop ecx                         //eat return address
 	jmp .unloadfail
 
-
+	//[esp]=unload amount left
+	//[esp+4]=stack frame
+	//[esp+8]=engine
+	//[esp+12]=unrouted amount left
 .cploop:
 	mov dx, [eax+ebp+cargopacket.amount]
 	sub [esp+12], dx
@@ -894,6 +898,7 @@ LoadCargoFromStation_CargoDestAdjust:
 	jz NEAR .quit
 	mov eax, [ebx+ebp+routingtable.cargopacketsrear]
 	jmp .startcploop
+
 .loadpacket:
 	mov cx, [eax+ebp+cargopacket.amount]
 	mov bx, [esp]
@@ -929,7 +934,7 @@ LoadCargoFromStation_CargoDestAdjust:
 	push edx
 	mov dx, cx
 	call .loadmoneydatefunc
-	push DWORD [eax+ebp+cargopacket.nextptr]
+	push DWORD [eax+ebp+cargopacket.prevptr]
 	mov ebx, [edi+0x12]			//routing table ptr of station
 	call fastunlinkstationcargopacket
 	mov ebx, 0x20000
@@ -943,7 +948,7 @@ LoadCargoFromStation_CargoDestAdjust:
 	sub [esp], bx
 	push edx
 	mov dx, bx
-	call .loadmoneydatefunc
+	call .loadmoneydatefunc			//this is suboptimal
 	call splitcargopacket
 	push eax
 	mov eax, ebx
@@ -994,6 +999,7 @@ LoadCargoFromStation_CargoDestAdjust:
 	
 	//routing check
 	
+	mov ebx, [edi+0x12]
 	mov ecx, [ebx+ebp+routingtable.destrtptr]
 	or ecx, ecx
 	jz .cploopnext
@@ -1004,10 +1010,10 @@ LoadCargoFromStation_CargoDestAdjust:
 	jne .nextroutecheckiteration
 	cmp [ecx+ebp+routingtableentry.dest], ebx
 	jne .nextroutecheckiteration
-	//push edx
+	push edx
 	mov dh, [ecx+ebp+routingtableentry.cargo]
 	cmp dh, [esi+veh.cargotype]
-	//pop edx
+	pop edx
 	je .loadpacket
 	
 .nextroutecheckiteration:
@@ -1029,13 +1035,16 @@ LoadCargoFromStation_CargoDestAdjust:
 	pop ebx		//amount of unrouted cargo in station
 	
 	pop eax		//original max load amount
-	sub ax, dx
+
+	sub ax, dx	//ax=routed amount loaded so far
 
 	mov cx, dx
 	cmp bx, dx
 	jae .ok1
 	mov cx, bx
-.ok1:
+.ok1:			//cx=min(bx,dx)=extra amount of unrouted cargo that can be loaded
+
+
 	add ax, cx
 	mov [loadcargounroutedquantity], cx     //amount of unrouted cargo loaded in this step
 
@@ -1629,6 +1638,7 @@ addcargotostation_cargodesthook:
 	mov [eax+ebp+cargopacket.ttl], cl
 	mov ecx, [ebp+edx+routingtable.location]
 	mov [eax+ebp+cargopacket.location], ecx
+	mov BYTE [eax+ebp+cargopacket.lastboardedst], -1
 	call linkcargopacket.quickstation
 	push ebx
 
@@ -2143,8 +2153,8 @@ stos_stationname:       //trashes eax, ecx
 	stosw
 	ret
 
-			//esi=location, edi=textrefstack cur ptr (adds up to 4 bytes)
-stos_locationname:      //trashes eax, esi
+global stos_locationname	//esi=location, edi=textrefstack cur ptr (adds up to 4 bytes)
+stos_locationname:      	//trashes eax, esi
 	ror esi, 16
 	dec si
 	jz .st
