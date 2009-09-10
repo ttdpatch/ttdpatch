@@ -3,7 +3,7 @@
 // [esi+0x31]: number of sorting method
 // [esi+0x32]: time until next reordering (in 7-tick units)
 
-// [esi+0x33,2F]: used to provide more than 256 train support
+// [esi+window2ofs+window2.extitemshift,+window2ofs+window2.extactualvisible]: used to provide more than 256 train support
 
 #include <std.inc>
 #include <textdef.inc>
@@ -16,6 +16,8 @@
 
 extern FindWindow,GenerateDropDownMenu,invalidatehandle,sortfrequency
 extern addr, patchflags
+
+ptrvardec window2ofs
 
 
 // Called in a loop to count all vehicles to go in the train list
@@ -574,7 +576,7 @@ createlistwindow:
 	xor dl,dl
 .correct:
 	mov al, [esi+window.itemsvisible]
-	mov BYTE [esi+0x2F], al	// for default size only
+	mov BYTE [esi+window2ofs+window2.extactualvisible], al	// for default size only
 	mov [esi+0x31],dl
 	mov WORD [esi+0x32],0	// the first reordering will be a forced one, clear shift factor
 	or byte [esi+window.flags],7	// start the GUI timer
@@ -741,10 +743,10 @@ TrainListDrawHandlerCountTrains:
 	jnz .shr1
 
 	mov [esi+window.itemstotal], bl
-	mov dh, [esi+0x33]
+	mov dh, [esi+window2ofs+window2.extitemshift]
 	cmp dh, dl
 	je .itemsoffset_good
-	mov [esi+0x33], dl
+	mov [esi+window2ofs+window2.extitemshift], dl
 	push ecx
 	push ebx
 	movzx ebx, BYTE [esi+window.itemsoffset]
@@ -753,12 +755,12 @@ TrainListDrawHandlerCountTrains:
 	mov cl, dl
 	shr ebx, cl
 	mov [esi+window.itemsoffset], bl
-	movzx ebx, BYTE [esi+0x2F]
+	movzx ebx, BYTE [esi+window2ofs+window2.extactualvisible]
 	shr ebx, cl
 	mov [esi+window.itemsvisible], bl
 	pop ebx
 	pop ecx
-	.itemsoffset_good:
+.itemsoffset_good:
 	push ecx
 	mov cl, dh
 	mov ah, bl
@@ -774,7 +776,7 @@ TrainListClickHandlerAddOffset:
 
 	movzx edx, al
 	movzx eax, BYTE [esi+window.itemsoffset]
-	mov cl, [esi+0x33]
+	mov cl, [esi+window2ofs+window2.extitemshift]
 	shl eax, cl
 	add edx, eax
 	mov edi, [veharrayptr]

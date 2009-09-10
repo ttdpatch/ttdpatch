@@ -11,8 +11,9 @@ extern RefreshWindowArea,TabClicked,TitleBarClicked,currscreenupdateblock
 extern dfree,dmalloc,errorpopup,fillrectangle,redrawscreen
 extern win_newshistory_constraints,win_newshistory_elements
 extern windowstack,CheckBoxClicked,patchflags
-extern grfmodflags
+extern grfmodflags,CargoPacketWin_elements._sizer_constraints
 
+ptrvardec window2ofs
 
 uvard windowsizesbufferptr
 
@@ -133,7 +134,10 @@ exported CopyWindowElementList
 	rep movsb
 	pop edi
 	pop esi
-	mov [esi+window.elemlistptr], edi
+	xchg [esi+window.elemlistptr], edi
+	mov [esi+window2ofs+window2.origelemlist], edi
+	mov edi, [esi+window.width]
+	mov [esi+window2ofs+window2.origsize], edi
 	pop edi
 
 	popa
@@ -285,6 +289,35 @@ procwindowdragmode:
 	mov [realwinsize+2], cx
 	call [RefreshWindowArea]
 
+	call doresizewinfunc
+
+#if 0
+	pusha
+	mov edi, esi
+	mov dl, cWinEventResize
+	mov si, [edi+window.opclassoff]
+	cmp si, -1
+	jz .winfunc
+	mov ebx, [edi+window.function]
+	movzx esi, si
+	mov ebp, [ophandler+esi]
+	call dword [ebp+4]
+	jmp .calldone
+.winfunc:
+	call dword [edi+window.function]
+.calldone:
+	popa
+#endif
+
+	call [RefreshWindowArea]
+	pop word [sizewindowprevy]
+	pop word [sizewindowprevx]
+	clc
+	ret
+
+//ax=width, cx=height, esi=window
+global doresizewinfunc
+doresizewinfunc:
 	push esi
 	push edx
 	push ebp
@@ -321,38 +354,15 @@ procwindowdragmode:
 	pop ebp
 	pop edx
 	pop esi
-	
+
 	mov [esi+window.width], ax
 	mov [esi+window.height], cx
-	
-	
+
+
 	push edx
 	mov dl, cWinEventResize
 	extcall GuiSendEventESI
 	pop edx
-
-#if 0
-	pusha
-	mov edi, esi
-	mov dl, cWinEventResize
-	mov si, [edi+window.opclassoff]
-	cmp si, -1
-	jz .winfunc
-	mov ebx, [edi+window.function]
-	movzx esi, si
-	mov ebp, [ophandler+esi]
-	call dword [ebp+4]
-	jmp .calldone
-.winfunc:
-	call dword [edi+window.function]
-.calldone:
-	popa
-#endif
-
-	call [RefreshWindowArea]
-	pop word [sizewindowprevy]
-	pop word [sizewindowprevx]
-	clc
 	ret
 
 struc _resizedata
@@ -611,6 +621,8 @@ HandleSizeConstraints:
 	div cl
 	cmp edx, -1
 	je .nocount4
+	cmp edi, CargoPacketWin_elements._sizer_constraints
+	je .notnorm1
 	cmp edi, trainlistwindowsizes
 	je .notnorm1
 	cmp edi, shipairlistwindowsizes
@@ -621,8 +633,8 @@ HandleSizeConstraints:
 	testflags sortvehlist
 	jnc .norm1
 	push ecx
-	mov cl, [esi+0x33]
-	mov [esi+0x2F], al
+	mov cl, [esi+window2ofs+window2.extitemshift]
+	mov [esi+window2ofs+window2.extactualvisible], al
 	mov ch, al
 	shr ch, cl
 	mov [esi+window.itemsvisible], ch
@@ -1492,7 +1504,7 @@ lastrailvehdrawn:
 	mov al,0xFF
 ovar railvehoffset,-1
 	push edx
-	mov dl, [esi+0x2F]
+	mov dl, [esi+window2ofs+window2.extactualvisible]
 	movzx ax, al
 	jmp lastvehdrawn.hasdl
 
@@ -1502,7 +1514,7 @@ lastroadvehdrawn:
 	mov al,0xFF
 ovar roadvehoffset,-1
 	push edx
-	mov dl, [esi+0x2F]
+	mov dl, [esi+window2ofs+window2.extactualvisible]
 	movzx ax, al
 	jmp lastvehdrawn.hasdl
 
@@ -1512,7 +1524,7 @@ lastairvehdrawn:
 	mov ax, 0xFFFF
 ovar airvehoffset, -2
 	push edx
-	mov dl, [esi+0x2F]
+	mov dl, [esi+window2ofs+window2.extactualvisible]
 	jmp lastvehdrawn.hasdl
 
 global lastshipvehdrawn
@@ -1521,7 +1533,7 @@ lastshipvehdrawn:
 	mov ax, 0xFFFF
 ovar shipvehoffset, -2
 	push edx
-	mov dl, [esi+0x2F]
+	mov dl, [esi+window2ofs+window2.extactualvisible]
 	jmp lastvehdrawn.hasdl
 
 #if 0

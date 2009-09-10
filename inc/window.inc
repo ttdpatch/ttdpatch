@@ -68,6 +68,7 @@
 %define cColorSchemeBrown	0Dh
 %define cColorSchemeGrey	0Eh
 %define cColorSchemeWhite	0Fh
+%define cColorSchemeBlack	10h
 
 // window type ids and refresh bits
 // enum enWindowTypes
@@ -217,10 +218,16 @@ endstruc
 
 // More window data. Same size as struc window.
 struc window2
-	.height:		resw 1	// 0h:	Backup of window structure 
-	.opclassoff:		resw 1	// 2h:	...
-	.function:		resd 1	// 4h:	when the window is shaded
-	.viewwidth:		resw 1	// 8h:	Backup of view width
+	.height:		resw 1	// 00h:	Backup of window structure
+	.opclassoff:		resw 1	// 02h:	...
+	.function:		resd 1	// 04h:	when the window is shaded
+	.viewwidth:		resw 1	// 08h:	Backup of view width
+	.data1:			resw 1	// 0Ah: class-specific word, (because misaligned dword fetches are bad...)
+	.origelemlist:		resd 1	// 0Ch: Backup of original element list, valid is flags bit 12 is set
+	.origsize:		resd 1	// 10h: Backup of orignial window size, valid if above is
+	.data2:			resd 4	// 14h: 4 class-specific dwords
+	.extitemshift:		resb 1	// 24h: amount by which itemstotal, itemsvisible and itemsoffset are left shifted
+	.extactualvisible:	resb 1	// 25h:	actual number of items visible, not shifted
 			resb window_size-$
 endstruc
 

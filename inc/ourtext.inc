@@ -491,6 +491,28 @@ defourtext objectgui_size
 
 defourtext winshadetooltip
 defourtext minimapautocentertip
+
+defourtext cargopacketwintitle
+defourtext moredetailstooltip
+defourtext cpgui_dest
+defourtext cpgui_full
+defourtext cpgui_nexthop
+defourtext cpgui_tree
+defourtext cpgui_packetdump
+defourtext cpgui_routing
+
+defourtext cpgui_pd_amount
+defourtext cpgui_pd_cargo
+defourtext cpgui_pd_source
+defourtext cpgui_pd_dest
+defourtext cpgui_pd_lastst
+defourtext cpgui_pd_startdate
+defourtext cpgui_pd_laststopdate
+defourtext cpgui_pd_ttl
+defourtext cpgui_pd_flags
+
+defourtext cpgui_cargosum
+defourtext cpgui_destline
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

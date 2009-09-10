@@ -1125,7 +1125,18 @@ drawtitlebar:
 	jc .drawtitle
 	sub word [ebp+windowbox.x2], 11
 .drawtitle:
+	extcall CanDispMiscButton
+	jne .drawtitle2
+	sub word [ebp+windowbox.x2], 11
+.drawtitle2:
 	call [olddrawtitlebar]
+
+	extcall CanDispMiscButton
+	jne .nomiscmorebtn
+	mov ax, statictext(numplus)
+	mov ecx, 4*(cWinElemTextBox-cWinElemSpriteBox)
+	call .dodraw
+.nomiscmorebtn:
 
 	popf		// call WindowCanShade
 	jc .noshade
@@ -1246,17 +1257,26 @@ TitleBarClicked:
 
 .notstick:
 	call WindowCanShade
-	jc .return
+	jc .noshade
+	sub dx, 11
+	cmp ax, dx
+	jbe .noshade
+	mov cx, -1
+	cmp byte [rmbclicked], 0
+	extern ShadeWindowHandler.toggleshade
+	je ShadeWindowHandler.toggleshade
+	mov ax, ourtext(winshadetooltip)
+	jmp short .createtip
+.noshade:
+
 	sub dx, 11
 	cmp ax, dx
 	jbe .return
 	mov cx, -1
 	cmp byte [rmbclicked], 0
-	extern ShadeWindowHandler.toggleshade
-	je ShadeWindowHandler.toggleshade
-
-.rightclicked2:
-	mov ax, ourtext(winshadetooltip)
+	extern cdestmoredetailswintoggle
+	je NEAR cdestmoredetailswintoggle
+	mov ax, ourtext(moredetailstooltip)
 	jmp short .createtip
 
 .return:

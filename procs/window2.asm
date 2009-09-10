@@ -3,7 +3,7 @@
 #include <window.inc>
 
 // all switches that use window2 must be listed here.
-patchproc enhancegui, patchwindow2
+patchproc sortvehlist, cargodest, enhancegui, patchwindow2
 
 extern malloc, newwindowcount, patchflags, windowstack, reloc, window2ofs_ptr
 
