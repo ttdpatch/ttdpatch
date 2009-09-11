@@ -2028,8 +2028,49 @@ statdeathdelrteobj:
 #endif
         jmp freecargodestdataobj
 
-#if WINTTDX && DEBUG
+global stos_locationname	//esi=location, edi=textrefstack cur ptr (adds up to 4 bytes)
+stos_locationname:      	//trashes eax, esi
+	ror esi, 16
+	dec si
+	jz .st
+	dec si
+	jz .veh
+.err:
+	mov ax, statictext(empty)
+	stosw
+	ret
+.st:
+	shr esi, 16
+	cmp esi, 250
+	ja .err
+        //imul esi, esi, 0x8E
+	//add esi, stationarray
+	//jmp stos_stationname
+	mov ax, statictext(outstation)
+	stosw
+	mov eax, esi
+	stosw
+	ret
+.veh:
+	shr esi, 16-vehicleshift
+	and esi, 0xFFFF<<vehicleshift
+	add esi, [veharrayptr]
+stos_vehname:
+	movzx eax, WORD [esi+veh.engineidx]
+	cmp ax, -1
+	je .noengine
+	mov esi, eax
+	shl esi, 7
+	add esi, [veharrayptr]
+.noengine:
+	mov ax, [esi+veh.name]
+	stosw
+	movzx ax, BYTE [esi+veh.consistnum]
+	stosw
+	ret
+
 uvard cargodestdebugflag
+#if WINTTDX && DEBUG
 uvard cdestdbgloghndl
 //uvard outputdebugstring
 //uvarb cdestodstempstring, 0x400
@@ -2151,47 +2192,6 @@ stos_stationname:       //trashes eax, ecx
 	ret
 .badstation:
 	mov ax, statictext(empty)
-	stosw
-	ret
-
-global stos_locationname	//esi=location, edi=textrefstack cur ptr (adds up to 4 bytes)
-stos_locationname:      	//trashes eax, esi
-	ror esi, 16
-	dec si
-	jz .st
-	dec si
-	jz .veh
-.err:
-	mov ax, statictext(empty)
-	stosw
-	ret
-.st:
-	shr esi, 16
-	cmp esi, 250
-	ja .err
-        //imul esi, esi, 0x8E
-	//add esi, stationarray
-	//jmp stos_stationname
-	mov ax, statictext(outstation)
-	stosw
-	mov eax, esi
-	stosw
-	ret
-.veh:
-	shr esi, 16-vehicleshift
-	and esi, 0xFFFF<<vehicleshift
-	add esi, [veharrayptr]
-stos_vehname:
-	movzx eax, WORD [esi+veh.engineidx]
-	cmp ax, -1
-	je .noengine
-	mov esi, eax
-	shl esi, 7
-	add esi, [veharrayptr]
-.noengine:
-	mov ax, [esi+veh.name]
-	stosw
-	movzx ax, BYTE [esi+veh.consistnum]
 	stosw
 	ret
 
