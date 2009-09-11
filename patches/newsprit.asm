@@ -2220,6 +2220,7 @@ checkfeaturesize varavailability, (4*2*2)
 
 endvar
 
+extern showyearbuilt
 	// list of handlers for each variable
 vard vehvarhandler
 	dd addr(getvehnuminconsist)
@@ -2231,6 +2232,7 @@ vard vehvarhandler
 	dd addr(getmotioninfo)
 	dd addr(getvehiclecargo)
 	dd addr(getvehtypeflags)
+	dd showyearbuilt
 %ifndef PREPROCESSONLY
 %assign n_vehvarhandler (addr($)-vehvarhandler)/4
 %endif

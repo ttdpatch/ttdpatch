@@ -274,12 +274,13 @@ getgraphstartyear:
 
 // correct the year a vehicle was built in
 // in:	EDI -> vehicle struct
-// out:	AX = year (full)
+// out:	EAX = year (full)
 // safe:BX,ESI,EDI
+// Also used for veh var 49
 global showyearbuilt
 showyearbuilt:
-	movzx ax,[edi+veh.yearbuilt]
-	add ax,1920
-	add eax,[landscape3+ttdpatchdata.yearsadd]	// upper word is not relevant
+	movzx eax, byte [edi+veh.yearbuilt]
+	add eax,1920
+	add ax,[landscape3+ttdpatchdata.yearsadd]	// won't overflow -- yearsadd stops at 65535-2070
 	ret
 ; endp showyearbuilt
