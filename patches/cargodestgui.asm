@@ -616,6 +616,8 @@ getnextcp:	//nz=continue, new packet in eax
 	jne .zret
 .testnext:
 	mov eax, [cpguicurvehid]
+	cmp eax, 0xFFFF
+	je .zret
 	shl eax, vehicleshift
 	add eax, [veharrayptr]
 	movzx eax, WORD [eax+veh.nextunitidx]
