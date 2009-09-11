@@ -110,6 +110,7 @@ alloccargodestdataobj:		//ebp = [cargodestdata]
 	cmp eax, ecx
 	jne NEAR outofmemoryerror
 	add DWORD [ebp+cargodestgamedata.cddfreeleft], 0x10000
+	add DWORD [cargodestdata_size], 0x10000
 	sub eax, ebp
 	popad
 	ret
