@@ -19,7 +19,9 @@ extern grffeature,curcallback,getnewsprite
 
 
 ptrvar bTempRaiseLowerDirection
-ptrvar bTempRaiseLowerCorner
+ptrvarofs pTempRaiseLowerTileArray,bTempRaiseLowerDirection,6
+ptrvarofs wTempRaiseLowerTileCount,bTempRaiseLowerDirection,0Ch
+ptrvarofs bTempRaiseLowerCorner,bTempRaiseLowerDirection,1Ch
 
 //WSEN
 var cornerchecktile1, db 3,0,1,2
@@ -327,15 +329,12 @@ autoslopechecklandscape:
 	add edx, ebp 	// cost to change
 //	pop ebp
 
-	movzx ebp, word [0x447BD0]
-ovar tempraiseloweraffectedtilearraycount, -4
-      cmp bp, 0x271
+	movzx ebp, word [wTempRaiseLowerTileCount]
+	cmp bp, 0x271
 	jnb .oktochangeproblem
-	inc word [0x447BD0]
-ovar tempraiseloweraffectedtilearraycount2, -4
+	inc word [wTempRaiseLowerTileCount]
 	shl bp, 1
-	add ebp, dword [0x447BCA]
-ovar tempraiseloweraffectedtilearray, -4
+	add ebp, dword [pTempRaiseLowerTileArray]
 	mov [ebp+0], bx
 	xor al, al
 	ret

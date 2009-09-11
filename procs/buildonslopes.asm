@@ -11,7 +11,7 @@ extern displstationgroundsprite,initchkhqflatland
 extern initchkhqflatland.oldfnoffset,newgraphicssetsenabled
 extern displbridgeendgroundsprite,chkrailstationflatland
 
-ext_frag oldbuslorrystationflatland,oldcanstartendbridgehere,oldcanraiselowertrack
+ext_frag oldbuslorrystationflatland,oldcanstartendbridgehere
 
 def_indirect displbridgeendgroundsprite
 def_indirect chkrailstationflatland
@@ -193,6 +193,10 @@ codefragment newchklighthouseflatland
 	call runindex(chklighthouseflatland)
 	setfragmentsize 8
 
+codefragment oldcanraiselowertrack,-18,-20
+	cmp ah,2
+	jb short $+2+0xe
+	jz short $+2+0x12
 
 endcodefragments
 
