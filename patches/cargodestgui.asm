@@ -65,11 +65,16 @@ guiele routing,cWinElemTextBox,cColorSchemeGrey,btnwidths(routing),data,ourtext(
 endguiwindow
 
 exported CanDispMiscButton
+	testflags cargodest
+	jnc .neret
 	cmp byte [esi+window.type], cWinTypeStation
 	je .ret
 	cmp byte [esi+window.type], cWinTypeVehicleDetails
 .ret:
-ret
+	ret
+.neret:
+	or esp, esp
+	ret
 
 exported cdestmoredetailswintoggle
 	pushad

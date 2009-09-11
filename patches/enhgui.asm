@@ -1235,7 +1235,7 @@ exported WindowCanSticky
 global TitleBarClicked
 TitleBarClicked:
 	call WindowCanSticky
-	jc .return
+	jc NEAR .return
 
 	mov dx, [ebp+windowbox.x2]
 	add dx, [esi+window.x]
@@ -1269,6 +1269,8 @@ TitleBarClicked:
 	jmp short .createtip
 .noshade:
 
+	extcall CanDispMiscButton
+	jne .return
 	sub dx, 11
 	cmp ax, dx
 	jbe .return
