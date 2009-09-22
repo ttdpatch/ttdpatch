@@ -28,7 +28,7 @@
 // category is the category from the manual, see below
 // bitname is the name of the switch in common.h
 // radix is AUTO for autodetect, OCT for octal, DEC for decimal,
-//		HEX for hexadecimal. Append _I to invert bitwise
+//		HEX for hexadecimal, QUAT for quaternary. Append _I to invert bitwise
 // varsize is U8 for unsigned char, U16 for unsigned short
 //		S16 for signed short(2), S32 for signed long(4)
 //		S8 for signed char

@@ -141,7 +141,7 @@ static void copyflagdata(void)
 
 #define OBSOLETE ((void*)-1L)
 
-static int radix[4] = { 0, 8, 10, 16 };
+static int radix[5] = { 0, 8, 10, 16, 4 };
 
 #define YESNO(ch, txt, comment, cat, manpage, sw) \
 	{ ch, txt, comment, manpage, sw,  0, 0, CAT_ ## cat, {-1, -1, -1}, 0, NULL, -1 }
@@ -165,8 +165,9 @@ static int radix[4] = { 0, 8, 10, 16 };
 #define RADIX_OCT	1
 #define RADIX_DEC	2
 #define RADIX_HEX	3
-#define RADIX_MASK	3
-#define RADIX_INVERT	4
+#define RADIX_QUAT	4
+#define RADIX_MASK	7
+#define RADIX_INVERT	8
 #define RADIX_AUTO_I	RADIX_AUTO|RADIX_INVERT
 #define RADIX_OCT_I	RADIX_OCT |RADIX_INVERT
 #define RADIX_DEC_I	RADIX_DEC |RADIX_INVERT
@@ -753,6 +754,7 @@ static void writerangedswitch(int switchid, const char **const formatstring, s32
   } else {
 	tempstr[0] = 0;
 	*formatstring = tempstr;
+	*parvalue = getswitchvar(switchid);		
 	switch (switches[switchid].radix & RADIX_MASK) {
 		case RADIX_OCT:
 			strcat(tempstr, "%s %lo");
@@ -760,11 +762,32 @@ static void writerangedswitch(int switchid, const char **const formatstring, s32
 		case RADIX_HEX:
 			strcat(tempstr, "%s %lx");
 			break;
+		case RADIX_QUAT:
+			{
+				unsigned long value;
+				int flag=0;
+				int i;
+				char a[2]="0";
+				strcat(tempstr, "%s ");				
+				if(*parvalue < 0) {
+					strcat(tempstr, "-");
+					value = -*parvalue;
+				}
+				else
+					value=*parvalue;
+				for(i=30; i>=0; i-=2) {
+					a[0]=((value>>i)&3)+'0';
+					if(i==0 || a[0]!='0' || flag) {
+						strcat(tempstr, a);
+						flag=1;
+					}
+				}
+			}
+			break;
 		default:
 			strcat(tempstr, "%s %ld");
 			break;
 	}
-	*parvalue = getswitchvar(switchid);
   }
 }
 
