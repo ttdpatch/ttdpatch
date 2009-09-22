@@ -513,6 +513,9 @@ defourtext cpgui_pd_flags
 
 defourtext cpgui_cargosum
 defourtext cpgui_destline
+defourtext cpgui_cargosum_extra
+defourtext cpgui_destunroutable
+defourtext cpgui_nexthopline
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

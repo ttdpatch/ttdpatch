@@ -231,14 +231,21 @@ cdestmoredetailswinhandler:
 	mov edi, textrefstack
 	mov al, [esi+window.type]
 	movzx esi, WORD [esi+window.id]
+	mov DWORD [curstcargorttbl], 0
 	cmp al, cWinTypeStation
 	jne .notst
+	push eax
+	imul eax, esi, station_size
+	add eax, [stationarray2ptr]
+	mov eax, [eax+station2.cargoroutingtableptr]
+	mov [curstcargorttbl], eax
+	pop eax
 	or esi, 0x10000
 .notst:
 	cmp al, cWinTypeVehicleDetails
 	jne .notveh
 	or esi, 0x20000
-	or BYTE [ecx+window.disabledbuttons+1], 1<<3
+	or BYTE [ecx+window.disabledbuttons+1], (1<<3) + 1
 .notveh:
 	call stos_locationname
 	pop esi
@@ -254,34 +261,25 @@ cdestmoredetailswinhandler:
 	jnz NEAR packetdumpmode
 	test eax, 1<<0x6
 	jnz destmode
+	test eax, 1<<0x7
+	jnz NEAR fullmode
+	test eax, 1<<0x8
+	jnz NEAR nexthopmode
 	pop ebp
 	ret
 
 uvard stsortlist, 32*0x100/4
 uvard stamountlist, 32*0x100
+uvard stflaglist, 32*0x100
 uvard cargototal, 32
 uvard cargorouted, 32
+uvard cargounroutable, 32
+uvard curstcargorttbl           //relative ptr or 0
 
 destmode:
 	push edi
 	mov [scrblkupddesc], edi
-	mov edi, stsortlist
-	mov ecx, 32*0x100/4
-	cld
-	or eax, BYTE -1
-	rep stosd
-	mov edi, stamountlist
-	mov ecx, 32*0x100
-	xor eax, eax
-	rep stosd
-	mov edi, cargototal
-	mov ecx, 32
-	xor eax, eax
-	rep stosd
-	mov edi, cargorouted
-	mov ecx, 32
-	xor eax, eax
-	rep stosd
+	call clearstarrays
 	
 	call gettotalcargocount
 	call getfirstcp
@@ -295,9 +293,11 @@ destmode:
 	movzx ebx, BYTE [eax+ebp+cargopacket.destst]
 	add ecx, ebx
 	add [stamountlist+ecx*4], edx
+	sub ecx, ebx
+	mov DWORD [packetroutingcheck_flags], 0
+	call packetroutingcheck
 	imul edx, ebx, station_size
 	movzx edx, BYTE [edx+stationarray+station.displayidx]
-	sub ecx, ebx
 	mov [stsortlist+edx+ecx], bl
 	call getnextcp
 	jnz .routecountloop
@@ -312,6 +312,100 @@ destmode:
 	call cargocountloop
 	call TrainListDrawHandlerCountTrains
 	
+	mov WORD [destlinetextid], ourtext(cpgui_destline)
+	call commonprint
+	pop edi
+	pop ebp
+	ret
+
+//ebp=[cargodestdata]
+//eax=packet
+//ebx=destst
+//ecx=cargo<<8
+//edx=amount
+//[packetroutingcheck_flags]=flags: 1=add cargo quantity to next hop stations' amount
+//trashes: none
+uvard packetroutingcheck_flags
+packetroutingcheck:
+	pushad
+	mov esi, [curstcargorttbl]
+	or esi, esi
+	jz NEAR .fail
+	
+	xor edi, edi	//found count
+	or ebx, 0x10000
+	
+	mov esi, [ebp+esi+routingtable.nexthoprtptr]
+	or esi, esi
+	jz .nonexthops
+.nexthoploop:
+	cmp ebx, [ebp+esi+routingtableentry.dest]
+	jne .notitnh
+	cmp ch, [ebp+esi+routingtableentry.cargo]
+	jne .notitnh
+	inc edi
+	test BYTE [packetroutingcheck_flags], 1
+	jz .notitnh
+	add cx, bx
+	add [stamountlist+ecx*4], edx
+	sub cx, bx
+	push edx
+	movzx edx, bx
+	imul edx, edx, station_size
+	movzx edx, BYTE [edx+stationarray+station.displayidx]
+	mov [stsortlist+edx+ecx], bl
+	pop edx
+.notitnh:
+	mov esi, [ebp+esi+routingtableentry.next]
+	or esi, esi
+	jnz .nexthoploop
+.nonexthops:
+
+	mov esi, [curstcargorttbl]
+	mov esi, [ebp+esi+routingtable.destrtptr]
+	or esi, esi
+	jz .nodest
+.destloop:
+	cmp ebx, [ebp+esi+routingtableentry.dest]
+	jne .notitd
+	cmp ch, [ebp+esi+routingtableentry.cargo]
+	jne .notitd
+	inc edi
+	test BYTE [packetroutingcheck_flags], 1
+	jz .notitd
+	push ebx
+	push edx
+	movzx ebx, WORD [ebp+esi+routingtableentry.nexthop]
+	add ecx, ebx
+	add [stamountlist+ecx*4], edx
+	sub ecx, ebx
+	imul edx, ebx, station_size
+	movzx edx, BYTE [edx+stationarray+station.displayidx]
+	mov [stsortlist+edx+ecx], bl
+	pop edx
+	pop ebx
+.notitd:
+	mov esi, [ebp+esi+routingtableentry.next]
+	or esi, esi
+	jnz .nexthoploop
+.nodest:
+
+	or edi, edi
+	jnz .ok
+	//OH NOES: packet stranded
+	add cx, bx
+	or BYTE [stflaglist+ecx*4], 1
+	movzx ecx, ch
+	add [cargounroutable+ecx*4], edx
+.ok:
+
+.fail:
+	popad
+	ret
+	
+uvarw destlinetextid
+commonprint:
+	push edi
 	mov edx, [trainlistoffset]
 	neg edx
 	dec edx
@@ -325,6 +419,14 @@ destmode:
 	cmp edx, ecx
 	jae .skipheader
 	mov bx, ourtext(cpgui_cargosum)
+	mov eax, [cargounroutable+edi*4]
+	or eax, eax
+	jz .noextra
+	cmp DWORD [curstcargorttbl], 0
+	je .noextra
+	mov bx, ourtext(cpgui_cargosum_extra)
+.noextra:
+	mov [textrefstack+14], eax
 	mov cx, [newcargotypenames+edi*2]
 	mov [textrefstack], cx
 	mov ecx, [cargototal+edi*4]
@@ -350,11 +452,17 @@ destmode:
 	movzx ecx, BYTE [esi+window2ofs+window2.extactualvisible]
 	cmp edx, ecx
 	jae .skipdest
-	mov [textrefstack+4], ax
+	mov [textrefstack+6], ax
 	add eax, edi
+	mov bx, [destlinetextid]
+	mov [textrefstack], bx
+	mov bx, statictext(ident)
+	test BYTE [stflaglist+eax*4], 1
+	jz .notbadrtdest
+	mov bx, ourtext(cpgui_destunroutable)
+.notbadrtdest:
 	mov eax, [stamountlist+eax*4]
-	mov [textrefstack], eax
-	mov bx, ourtext(cpgui_destline)
+	mov [textrefstack+2], eax
 	mov cx, 15
 	call outlistline
 .skipdest:
@@ -371,7 +479,6 @@ destmode:
 	jb .cargoprintloop
 	
 	pop edi
-	pop ebp
 	ret
 	
 cargocountloop:
@@ -381,6 +488,62 @@ cargocountloop:
 .noinc:
 	add eax, 4
 	loop cargocountloop
+	ret
+	
+fullmode:
+	push edi
+	mov [scrblkupddesc], edi
+	call clearstarrays
+
+	call gettotalcargocount
+	call getfirstcp
+	or eax, eax
+	jz .doneroutedcount
+.routecountloop:
+
+	call getnextcp
+	jnz .routecountloop
+.doneroutedcount:
+
+
+	pop edi
+	pop ebp
+	ret
+	
+nexthopmode:
+	push edi
+	mov [scrblkupddesc], edi
+	call clearstarrays
+
+	call gettotalcargocount
+	call getfirstcp
+	or eax, eax
+	jz .doneroutedcount
+.routecountloop:
+	movzx ecx, BYTE [eax+ebp+cargopacket.cargo]
+	movzx edx, WORD [eax+ebp+cargopacket.amount]
+	add [cargorouted+ecx*4], edx
+	shl ecx, 8
+	movzx ebx, BYTE [eax+ebp+cargopacket.destst]
+	mov DWORD [packetroutingcheck_flags], 1
+	call packetroutingcheck
+	call getnextcp
+	jnz .routecountloop
+.doneroutedcount:
+
+	xor ebx, ebx
+	mov eax, cargototal
+	mov ecx, 32
+	call cargocountloop
+	mov eax, stamountlist
+	mov ecx, 32*0x100
+	call cargocountloop
+	call TrainListDrawHandlerCountTrains
+
+	mov WORD [destlinetextid], ourtext(cpgui_nexthopline)
+	call commonprint
+	pop edi
+	pop ebp
 	ret
 
 packetdumpmode:
@@ -684,4 +847,32 @@ gettotalcargocount:	//trashes: none
 	cmp ecx, 12
 	jb .stloop
 	popad
+	ret
+
+clearstarrays:
+	mov edi, stsortlist
+	mov ecx, 32*0x100/4
+	cld
+	or eax, BYTE -1
+	rep stosd
+	mov edi, stamountlist
+	mov ecx, 32*0x100
+	xor eax, eax
+	rep stosd
+	mov edi, stflaglist
+	mov ecx, 32*0x100
+	xor eax, eax
+	rep stosd
+	mov edi, cargototal
+	mov ecx, 32
+	xor eax, eax
+	rep stosd
+	mov edi, cargorouted
+	mov ecx, 32
+	xor eax, eax
+	rep stosd
+	mov edi, cargounroutable
+	mov ecx, 32
+	xor eax, eax
+	rep stosd
 	ret
