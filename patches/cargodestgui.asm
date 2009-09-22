@@ -265,6 +265,8 @@ cdestmoredetailswinhandler:
 	jnz NEAR fullmode
 	test eax, 1<<0x8
 	jnz NEAR nexthopmode
+	test eax, 1<<0xB	
+	jnz NEAR routedumpmode
 	pop ebp
 	ret
 
@@ -547,13 +549,15 @@ nexthopmode:
 	ret
 
 packetdumpmode:
-	call getfirstcp
 	xor ebx, ebx
+	call getfirstcp
+	or eax, eax
+	jz .nomultiveh
 .packetcountloop:
 	inc ebx
 	call getnextcp
 	jnz .packetcountloop
-	dec ebx 
+	//dec ebx 
 
 .nomultiveh:
 	call TrainListDrawHandlerCountTrains
@@ -561,6 +565,8 @@ packetdumpmode:
 	push edi
 	mov [scrblkupddesc], edi
 	call getfirstcp
+	or eax, eax
+	jz NEAR .done
 	mov edi, eax
 
 	mov ax, [esi+window.x]
@@ -693,6 +699,170 @@ outtableline:				//ebp=[cargodestdata]
 	
 	mov bx, statictext(printhexword)
 	mov cx, [ebp+edi+cargopacket.flags]
+	mov [textrefstack], cx
+	mov cx, 75
+	call outtablevalue
+	
+	pop edx
+	inc edx
+	ret
+	
+routedumpmode:
+	push edi
+	mov [scrblkupddesc], edi
+	xor ebx, ebx
+	call getfirstroute
+	jz .noroutes
+.routecountloop:
+	inc ebx
+	call getnextroute
+	jnz .routecountloop
+.noroutes:
+
+	call TrainListDrawHandlerCountTrains
+
+
+	mov ax, [esi+window.x]
+	mov cx, [esi+window.width]
+	add cx, ax
+	mov [cpguirightedge], cx
+	add ax, 4
+	mov dx, [esi+window.y]
+	add dx, 18
+	
+	mov bx, ourtext(cpgui_pd_cargo)
+	mov cx, 75
+	call outtablevalue
+	mov cx, 100
+	mov bx, ourtext(cpgui_pd_dest)
+	call outtablevalue
+	mov bx, ourtext(cpgui_rd_via)
+	call outtablevalue
+	mov bx, ourtext(cpgui_rd_days)
+	mov cx, 50
+	call outtablevalue
+	mov bx, ourtext(cpgui_rd_lastupdate)
+	mov cx, 90
+	call outtablevalue
+	mov bx, ourtext(cpgui_rd_oldestwaiting)
+	call outtablevalue
+	mov bx, ourtext(cpgui_pd_flags)
+	mov cx, 75
+	call outtablevalue
+
+	mov edx, 1
+
+	call getfirstroute
+	jz NEAR .done
+	mov ecx, [trainlistoffset]
+	jecxz .draw
+.skiploop:
+	call getnextroute
+	jz NEAR .done
+	loop .skiploop
+.draw:
+
+.drawloop:
+	call outroutetableline
+	call getnextroute
+	jz .done
+	cmp dl, [esi+window2ofs+window2.extactualvisible]
+	jbe .drawloop
+.done:
+	pop edi
+	pop ebp
+	ret
+
+uvarb getfirstroute_flag
+getfirstroute:	//sets zf on fail
+	mov BYTE [getfirstroute_flag], 0
+	mov edi, [curstcargorttbl]
+	or edi, edi
+	jz .end
+	mov edi, [ebp+edi+routingtable.nexthoprtptr]
+	or edi, edi
+	jnz .end
+	mov BYTE [getfirstroute_flag], 1
+	mov edi, [curstcargorttbl]
+	mov edi, [ebp+edi+routingtable.destrtptr]
+	or edi, edi
+.end:
+	ret
+	
+getnextroute:
+	or edi, edi
+	jz .trynext
+	mov edi, [ebp+edi+routingtableentry.next]
+	or edi, edi
+	jz .trynext
+.ret:
+	ret
+.trynext:
+	cmp BYTE [getfirstroute_flag], 1
+	je .ret
+	mov edi, [curstcargorttbl]
+	mov edi, [ebp+edi+routingtable.destrtptr]
+	mov BYTE [getfirstroute_flag], 1
+	or edi, edi
+	ret
+	
+outroutetableline:				//ebp=[cargodestdata]
+					//edx=vertical position
+					//edi=cargo packet
+					//trashes: ecx, eax
+	push edx
+	mov ax, [esi+window.x]
+	mov cx, [esi+window.width]
+	//sub cx, 15
+	add cx, ax
+	mov [cpguirightedge], cx
+	add ax, 4
+	shl edx, 2
+	lea edx, [edx+edx*2+18]
+	add dx, [esi+window.y]
+	
+	movzx ebx, BYTE [edi+ebp+routingtableentry.cargo]
+	mov bx, [newcargotypenames+ebx*2]
+	mov cx, 75
+	call outtablevalue
+
+	mov bx, statictext(ident)
+	pushad
+	mov esi, [ebp+edi+routingtableentry.dest]
+	mov edi, textrefstack
+	call stos_locationname
+	popad
+	mov cx, 100
+	call outtablevalue
+	
+	mov bx, statictext(ident)
+	pushad
+	mov esi, [ebp+edi+routingtableentry.nexthop]
+	mov edi, textrefstack
+	call stos_locationname
+	popad
+	mov cx, 100
+	call outtablevalue
+	
+	mov bx, statictext(printword)
+	mov cx, [ebp+edi+routingtableentry.mindays]
+	mov [textrefstack], cx
+	mov cx, 50
+	call outtablevalue
+	
+	mov bx, statictext(printdate)
+	mov cx, [ebp+edi+routingtableentry.lastupdated]
+	mov [textrefstack], cx
+	mov cx, 90
+	call outtablevalue
+	
+	mov cx, [ebp+edi+routingtableentry.oldestwaiting]
+	mov [textrefstack], cx
+	mov cx, 90
+	call outtablevalue
+	
+	mov bx, statictext(printhexword)
+	mov cx, [ebp+edi+routingtableentry.flags]
 	mov [textrefstack], cx
 	mov cx, 75
 	call outtablevalue

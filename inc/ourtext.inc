@@ -516,6 +516,11 @@ defourtext cpgui_destline
 defourtext cpgui_cargosum_extra
 defourtext cpgui_destunroutable
 defourtext cpgui_nexthopline
+
+defourtext cpgui_rd_via
+defourtext cpgui_rd_days
+defourtext cpgui_rd_lastupdate
+defourtext cpgui_rd_oldestwaiting
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
