@@ -393,3 +393,4 @@ stxt shadebutton_unshaded, 0x98, 0xA0, 0
 stxt outstation, 0x9A, 12, 0
 stxt printdate, 0x82, 0
 stxt printhexword, 0x9A, 7, 0
+stxt printhexbyte, 0x9A, 6, 0

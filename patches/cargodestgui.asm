@@ -747,7 +747,7 @@ routedumpmode:
 	mov bx, ourtext(cpgui_rd_oldestwaiting)
 	call outtablevalue
 	mov bx, ourtext(cpgui_pd_flags)
-	mov cx, 75
+	mov cx, 50
 	call outtablevalue
 
 	mov edx, 1
@@ -861,10 +861,10 @@ outroutetableline:				//ebp=[cargodestdata]
 	mov cx, 90
 	call outtablevalue
 	
-	mov bx, statictext(printhexword)
-	mov cx, [ebp+edi+routingtableentry.flags]
+	mov bx, statictext(printhexbyte)
+	movzx cx, BYTE [ebp+edi+routingtableentry.flags]
 	mov [textrefstack], cx
-	mov cx, 75
+	mov cx, 50
 	call outtablevalue
 	
 	pop edx
