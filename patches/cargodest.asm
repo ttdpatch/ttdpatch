@@ -1704,10 +1704,10 @@ addcargotostation_cargodesthook:
 	shl eax, 3
 	test BYTE [ebp+station.cargos+eax+stationcargo.amount+1], 80h
 	jnz .accept
-	jmp .calcnext
+	jmp .zeroscore
 .newcargos_testaccept:
 	bt dword [ebp+station2ofs+station2.acceptedcargos], ebx
-	jnc .calcnext
+	jnc .zeroscore
 .accept:
 	
 	neg edi
