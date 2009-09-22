@@ -1053,14 +1053,15 @@ LoadCargoFromStation_CargoDestAdjust:
 
 	mov cx, [esi+veh.capacity]
 	sub cx, [esi+veh.currentload]
-	cmp cx, ax
-	je .doneload
-	cmp bx, dx
-	ja .notdoneload
+	jz .doneload
+//	cmp cx, ax
+//	je .doneload
 	test BYTE [cargodestloadflags], 1
-	jz .doneload	//no cargo left
+	jnz .notdoneload	//no cargo left
+	cmp bx, dx
+	jbe .doneload
 .notdoneload:
-	or byte [edi+veh.modflags],1 << MOD_NOTDONEYET
+	or byte [esi+veh.modflags],1 << MOD_NOTDONEYET
 .doneload:
 	
 	pop ecx		//cargo

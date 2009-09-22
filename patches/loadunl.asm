@@ -824,6 +824,9 @@ SetupGradualLoad:
 	test	byte [edi+veh.modflags],1 << MOD_MORETOUNLOAD
 	jz	.getnextveh
 
+	testflags cargodest
+	jc .canunload			//hamfisted hack, but ensures no edge-cases are unaccounted for
+
 		// check whether the vehicle is going to try unloading
 	test	byte [esi+veh.currorder],0x20	// forced unload
 	jnz	.canunload
@@ -1076,8 +1079,12 @@ LoadUnloadCargo:
 	cmp	al, [%$currstationidx]
 	jne	.cargonotfromhere
 	test	word [edi+veh.currorder], 20h
-	jz	.DoLoad
-	jmp	short .DoUnload
+	jnz	NEAR .DoUnload
+	testflags cargodest
+	jnc	NEAR .DoLoad
+	mov BYTE [acceptcargoatstationflag], 0
+	call    AcceptCargoAtStation.inforcargodestnoaccept
+	jmp 	.UnloadAcceptDone
 
 .cargonotfromhere:
 
@@ -1113,6 +1120,7 @@ LoadUnloadCargo:
 	jnz	.DoUnload
 	testflags cargodest
 	jnc .DoLoad
+	mov BYTE [acceptcargoatstationflag], 0
 	call    AcceptCargoAtStation.inforcargodestnoaccept     //cargos routed to this station will be "accepted" even if the cargo isn't accepted, lesser of two evils...
 	jmp .UnloadAcceptDone
 .DoUnload:						// unload cargo to station, cargo isn't accepted but stays there
