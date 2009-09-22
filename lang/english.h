@@ -972,7 +972,11 @@ SETTEXT(CFG_CARGODEST, "`%s' (%s) enables cargo destinations")
 SETTEXT(CFG_CDSTRTCMPFACTOR, "`%s' (%s) sets route comparison threshold for cargodest switch. Route cost threshold (in days) at a node is equal to minimum found cost * this value / 65536. Set to 65536 to only ever allow one route to any destination. Set to an enormous value to disable any semblence of intelligent routing. Range %ld (100%%)..%ld (3276800%%).  Default %ld (about 140%%).")
 SETTEXT(CFG_CDSTRTCOSTEXPRTHRSHLD, "`%s' (%s) sets the time in days after which an unused single hop route expires. Range %ld..%ld.  Default %ld.")
 SETTEXT(CFG_CDSTCARGOPACKETINITTTL, "`%s' (%s) sets the ttl (time to live) for newly created cargo packets, each hop decrements this value, even if the packet stays on the vehicle. Any packets which run out of life will be exterminated without payment. This is to prevent any errant packets from circling the network indefinitely. Range %ld..%ld.  Default %ld.")
-
+SETTEXT(CFG_CDSTCARGOCLASSGENTYPE, "`%s' (%s) controls cargo generation for the cargodest switch for each cargo class. One digit per cargo class: 0 for the rightmost up to 10 for the leftmost. Digit value: 0: all cargo is by preferance routed, 1: all cargo is routed (or dropped at source), 2: all cargo is unrouted (old behaviour), 3: mix of routed and unrouted cargo generated. See: http://wiki.ttdpatch.net/tiki-index.php?page=Action0Cargos#Cargo_classes_16_ for list of cargo classes. Where a cargo is in multiple classes the bitwise OR of specified values is used. Range 0..33333333333. Default 33333333333.")
+SETTEXT(CFG_CDSTUNROUTEDSCORE, "`%s' (%s) cargo generation destination selector: unrouted cargo score. Range %ld..%ld.  Default %ld.")
+SETTEXT(CFG_CDSTNEGDISTFACTOR, "`%s' (%s) cargo generation destination selector: factor to multiply manhattan distance by before subtracting from score for routed cargo. Range %ld..%ld.  Default %ld.")
+SETTEXT(CFG_CDSTNEGDAYSFACTOR, "`%s' (%s) cargo generation destination selector: factor to multiply minimum cost in days by before subtracting from score for routed cargo. Range %ld..%ld.  Default %ld.")
+SETTEXT(CFG_CDSTROUTEDINITSCORE, "`%s' (%s) cargo generation destination selector: initial score for routed cargo before distance and day costs subtracted, note negative scores result in exclusion. Range %ld..%ld.  Default %ld.")
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')
 //----------------------------------------------------

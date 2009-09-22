@@ -23,7 +23,7 @@ extern cargobits,cargotypes,spriteblockptr
 extern updatestationgraphics,newvehdata
 extern callback_extrainfo,curcallback,grfstage,grfresources
 extern statanim_cargotype,stationanimtrigger
-extern addcargotostation_cargodesthook
+extern addcargotostation_cargodesthook,cdstcargoclassgentypeval,cargodestgenflags
 
 
 // In most places, the cargo type is stored in at least a byte, so it isn't too hard to
@@ -1095,6 +1095,15 @@ setcargoclasses:
 	// now edi=cargo class, ebx=cargo ID
 	movzx edx, byte [cargotypes+ebx]		// edx=cargo bit
 	bts [cargoclasscargos+edi*4],edx	// set cargo bit in given class
+	push ecx
+	mov ecx, edi
+	mov edi, [cdstcargoclassgentypeval]
+	add ecx, ecx
+	shr edi, cl
+	mov ecx, edi
+	and cl, 3
+	or BYTE [cargodestgenflags+ebx], cl
+	pop ecx
 	jmp .nextclass
 
 .gotclasses:

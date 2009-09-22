@@ -27,6 +27,11 @@ deflong(mapsize)			// map size, for special var 13.
 deflong(rvovertakeparamsvalue)	//flag bits for road vehicle overtaking behaviour modificaton
 deflong(cfgtransbits)		// bits for initial transparency options
 deflong(cargodestroutecmpfactor)	// factor to multiply minimum route by then shift right 16 to produce route threshold
+deflong(cdstcargoclassgentypeval)//cargo generation flags for cargo classes
+deflong(cdstunroutedscoreval)	//cargo generation destination selector: unrouted cargo score
+deflong(cdstnegdistfactorval)	//cargo generation destination selector: factor to multiply manhattan distance by before subtracting from score for routed cargo
+deflong(cdstnegdaysfactorval)	//cargo generation destination selector: factor to multiply minimum cost in days by before subtracting from score for routed cargo
+deflong(cdstroutedinitscoreval)	//cargo generation destination selector: initial score for routed cargo before distance and day costs subtracted, note negative scores result in exclusion
 
 #define flags_long_end newservint
 

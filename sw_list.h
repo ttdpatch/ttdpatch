@@ -354,8 +354,13 @@
 	YESNO(157,"newobjects", CFG_NEWOBJECTS, INFST, "", newobjects),
 	SPCL (158,"hidetranstrees", 0, NONE, "", OBSOLETE),
 	RANGE(159,"cdstrtcmpfactor", CFG_CDSTRTCMPFACTOR, CARGODEST, "", noswitch, AUTO, S32, FLAGDATA(cargodestroutecmpfactor), 65536, 2147483647, 91750),
-	RANGE(160,"cdstrtexprthrshld", CFG_CDSTRTCOSTEXPRTHRSHLD, CARGODEST, "", noswitch, AUTO, U16, FLAGDATA(cdstrtcostexprthrshld), 0, 3653, 45),
+	RANGE(160,"cdstrtexprthrshld", CFG_CDSTRTCOSTEXPRTHRSHLD, CARGODEST, "", noswitch, AUTO, U16, FLAGDATA(cdstrtcostexprthrshld), 0, 3653, 100),
 	RANGE(161,"cdstcargopacketttl", CFG_CDSTCARGOPACKETINITTTL, CARGODEST, "", noswitch, AUTO, U8, FLAGDATA(cdstcargopacketinitttl), 0, 255, 100),
+	RANGE(162,"cdstcargoclassgentype", CFG_CDSTCARGOCLASSGENTYPE, CARGODEST, "", noswitch, QUAT, S32, FLAGDATA(cdstcargoclassgentypeval), 0, 0x3FFFFF, 0x3FFFFF),
+	RANGE(164,"cdstunroutedscore", CFG_CDSTUNROUTEDSCORE, CARGODEST, "", noswitch, AUTO, S32, FLAGDATA(cdstunroutedscoreval), 0, 0x7FFFFFFF, 500),
+	RANGE(165,"cdstnegdistfactor", CFG_CDSTNEGDISTFACTOR, CARGODEST, "", noswitch, AUTO, S32, FLAGDATA(cdstnegdistfactorval), 0, 1000, 2),
+	RANGE(166,"cdstnegdaysfactor", CFG_CDSTNEGDAYSFACTOR, CARGODEST, "", noswitch, AUTO, S32, FLAGDATA(cdstnegdaysfactorval), 0, 1000, 3),
+	RANGE(167,"cdstroutedinitscore", CFG_CDSTROUTEDINITSCORE, CARGODEST, "", noswitch, AUTO, S32, FLAGDATA(cdstroutedinitscoreval), 0, 0x7FFFFFFF-0xFFFF, 1500),
 
 //
 // Here follows the switch order list

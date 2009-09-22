@@ -6,6 +6,7 @@
 #include <flags.inc>
 #include <textdef.inc>
 #include <town.inc>
+#include <pusha.inc>
 
 extern outofmemoryerror
 extern stationarray2ptr,station2ofs_ptr
@@ -18,6 +19,7 @@ extern loadcargounroutedquantity
 extern cdstcargopacketinitttl
 extern specialtext1, newtexthandler, newcargotypenames
 extern kernel32hnd
+extern cdstunroutedscoreval, cdstnegdistfactorval, cdstnegdaysfactorval, cdstroutedinitscoreval
 
 //uncoment for debugging purposes
 //#undef DEBUG
@@ -33,6 +35,8 @@ uvard cargodestdata_size
 //uvarb cargodestgameoptionflag
 
 uvarb cargodestroutecomparisonshiftfactor
+
+uvarb cargodestgenflags, 32
 
 global initcargodestmemory
 initcargodestmemory:
@@ -364,6 +368,7 @@ uvarb acceptcargotempcargooffsetval
 
 uvard acceptcargotemplastengine
 uvarw acceptcargotemplaststationandcargo
+uvarw acceptcargoroutedaccepted
 
 // Accept vehicle cargo at station (the cargo goes away, player gets money)
 // in:	esi -> current vehicle
@@ -379,6 +384,7 @@ uvarw acceptcargotemplaststationandcargo
 global AcceptCargoAtStation_CargoDestAdjust
 AcceptCargoAtStation_CargoDestAdjust:
 	mov BYTE [acceptcargotempcargooffsetval], 0
+	mov WORD [acceptcargoroutedaccepted], 0
 	push eax	//max load amount
 	push ebx	//becomes unrouted amount
 	push edi	//engine
@@ -540,6 +546,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	mov bx, dx
 .nosubfrompacket:
 	sub [eax+ebp+cargopacket.amount], bx
+	add [acceptcargoroutedaccepted], bx
 	
 	sub [esp+4], bx
 	
@@ -838,6 +845,17 @@ AcceptCargoAtStation_CargoDestAdjust:
 	xor dx, dx
 .nodenynormalaccept:
 
+	push edi
+	mov edi, [station2ofs_ptr]
+	add edi, [ebp+0xA]		//station ptr
+	mov cx, [acceptcargoroutedaccepted]
+	add cx, bx
+	add WORD [edi+station2.activitythismonth], cx
+	jnc .actok
+	mov WORD [edi+station2.activitythismonth], -1	//saturate
+.actok:
+	pop edi
+
 #if WINTTDX && DEBUG
 	test BYTE [cargodestdebugflag], 0x80
 	jz .nooutacceptendmess
@@ -1113,6 +1131,9 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 .preloop:
 	cmp WORD [esi+station.XY], 0
 	je NEAR .prenext
+	xor ebx, ebx
+	xchg WORD [edi+station2.activitythismonth], bx
+	mov WORD [edi+station2.activitylastmonth], bx
 	mov ebx, [edi+station2.cargoroutingtableptr]
 	or ebx, ebx
 	jz NEAR .prenext
@@ -1609,7 +1630,219 @@ cargodestinitstationroutingtable_all:
 //dl=station id
 //ebx=cargo type
 //ax=amount
-//trshable: none
+//trashable: none
+
+//some inspiration stolen from: http://hg.openttd.org/developers/celestar/cargodest.hg/file/5cef98ae76ac/src/routing.cpp#l595
+
+uvard cdestgencurscoretotal
+
+global addcargotostation_cargodesthook
+addcargotostation_cargodesthook:
+	or ax, ax
+	jz NEAR .finalret
+	pushad
+	sub esp, 0x100*4
+		//low word=min days
+		//score=init score + dest st last month activity - manhatten distance * factor1 - min days * factor2
+		//negative scores excluded
+	mov ebp, eax
+	xor eax, eax
+	mov [cdestgencurscoretotal], eax	//total score: if this overflows, the user is obviously doing something wrong
+	mov ecx, 0x100
+	cld
+	mov edi, esp
+	rep stosd
+	movzx eax, bp
+	mov ebp, [cargodestdata]
+	mov cl, [cargodestgenflags+ebx]	//0: all cargo is by preferance routed
+	cmp cl, 2			//1: all cargo is routed (or dropped at source)
+	je NEAR .popret			//2: all cargo is unrouted (old behaviour)
+	cmp cl, 3			//3: mix of routed and unrouted cargo generated.
+	jne .nounroute
+	mov edi, [cdstunroutedscoreval]
+	mov DWORD [esp+0xFF*4], edi
+	add [cdestgencurscoretotal], edi
+.nounroute:
+	mov edi, [station2ofs_ptr]
+	mov edi, [edi+esi+station2.cargoroutingtableptr]
+
+//gather data on available detsinations and their minumum costs
+	push esi
+	lea esi, [esp+4]
+	mov ecx, [ebp+edi+routingtable.nexthoprtptr]
+	or ecx, ecx
+	jz .nonexthop
+.nexthop:
+	call dorouteassimilation
+	mov ecx, [ebp+ecx+routingtableentry.next]	
+	or ecx, ecx
+	jnz .nexthop
+.nonexthop:
+	mov ecx, [ebp+edi+routingtable.destrtptr]
+	or ecx, ecx
+	jz .nodest
+.dest:
+	call dorouteassimilation
+	mov ecx, [ebp+ecx+routingtableentry.next]	
+	or ecx, ecx
+	jnz .dest
+.nodest:
+	pop esi
+//------
+
+//calculate scores and total
+	xor ecx, ecx
+	mov ebp, stationarray
+.calcloop:
+	movzx edi, WORD [esp+ecx*4]
+	or edi, edi
+	jz NEAR .calcnext
+	
+	testflags newcargos
+	jc .newcargos_testaccept
+	mov eax, ebx
+	shl eax, 3
+	test BYTE [ebp+station.cargos+eax+stationcargo.amount+1], 80h
+	jnz .accept
+	jmp .calcnext
+.newcargos_testaccept:
+	bt dword [ebp+station2ofs+station2.acceptedcargos], ebx
+	jnc .calcnext
+.accept:
+	
+	neg edi
+	imul edi, DWORD [cdstnegdaysfactorval]
+	call getstmanhattandistance
+	imul eax, DWORD [cdstnegdistfactorval]
+	sub edi, eax
+	add edi, [ebp+station2ofs+station2.activitylastmonth]
+	add edi, [cdstroutedinitscoreval]
+	jns .scoreok
+	//negative score, don't bother trying to route cargo there...
+.zeroscore:
+	xor edi, edi
+.scoreok:
+	mov [esp+ecx*4], edi
+	add [cdestgencurscoretotal], edi
+.calcnext:
+	inc ecx
+	add ebp, station_size
+	cmp ecx, numstations
+	jb .calcloop
+//------
+
+//try (in vain?) to make the random-seed more random...
+	mov ecx, [randomseed1]
+	//begin lame bit-shuffling
+	mov ebp, 32
+.bitfiddleloop:
+	xor ecx, 0xAAAAAAAA
+	ror ecx, cl
+	add ecx, 0x55555555
+	dec ebp
+	jnz .bitfiddleloop
+
+	mov ebp, edx	//source station id
+
+	//to get a random number between 0 and [cdestgencurscore]
+	//	seed*[cdestgencurscore] >> 32
+	mov eax, [cdestgencurscoretotal]
+	or eax, eax
+	jz NEAR .noroutedestfounderr
+	mul ecx
+	//result is in edx
+	
+	xor ecx, ecx
+.getloop:
+	sub edx, [esp+ecx*4]
+	js .founddest
+	inc cl
+	jnz .getloop
+	//boo, something went wrong
+	jmp .noroutedestfounderr
+.founddest:
+	cmp cl, 0xFF
+	je NEAR .popret	//type 3 unrouted cargo
+	
+	push ebp
+	mov ebp, [cargodestdata]
+	push ecx
+	call alloccargodestdataobj
+	pop ecx
+	mov [eax+ebp+cargopacket.destst], cl
+	pop ecx
+	mov [eax+ebp+cargopacket.sourcest], cl
+	mov cx, [esp+0x400+_pusha.eax]
+	mov [eax+ebp+cargopacket.amount], cx
+	mov [eax+ebp+cargopacket.cargo], bl
+	mov cx, [currentdate]
+	mov [eax+ebp+cargopacket.dateleft], cx
+	mov [eax+ebp+cargopacket.datearrcurloc], cx
+	mov ecx, [station2ofs_ptr]
+	mov edx, [esi+ecx+station2.cargoroutingtableptr]
+	mov cl, [cdstcargopacketinitttl]
+	mov [eax+ebp+cargopacket.ttl], cl
+	mov ecx, [ebp+edx+routingtable.location]
+	mov [eax+ebp+cargopacket.location], ecx
+	mov BYTE [eax+ebp+cargopacket.lastboardedst], -1
+	call linkcargopacket.quickstation
+
+.popret:
+	mov eax, [esp+0x400+_pusha.eax]
+	mov edi, [station2ofs_ptr]
+	add WORD [edi+esi+station2.activitythismonth], ax
+	jnc .finalpopret
+	mov WORD [edi+esi+station2.activitythismonth], -1	//saturate
+.finalpopret:
+	add esp, 0x100*4
+	popad
+.finalret:
+	ret
+.noroutedestfounderr:
+	cmp BYTE [cargodestgenflags+ebx], 1
+	jne .popret
+	xor ax, ax		//unrouted cargo is verbotten, drop cargo
+	jmp .finalpopret
+	
+dorouteassimilation:
+	push eax
+	push ebx
+	cmp bl, [ebp+ecx+routingtableentry.cargo]
+	jne .nostore
+	movzx eax, BYTE [ebp+ecx+routingtableentry.dest]
+	mov bx, [esi+eax*4]
+	mov dx, [ebp+ecx+routingtableentry.mindays]
+	or bx, bx
+	jz .store
+	cmp bx, dx
+	jbe .nostore
+.store:
+	mov [esi+eax*4], dx
+.nostore:
+	pop ebx
+	pop eax
+	ret
+
+//ebp=dest station ptr, esi=source station ptr
+//returns value in eax
+getstmanhattandistance:
+	movzx eax, WORD [ebp+station.XY]
+	sub al, [esi+station.XY]
+	jns .noneg1
+	neg al
+.noneg1:
+	sub ah, [esi+station.XY+1]
+	jns .noneg2
+	neg ah
+.noneg2:
+	add al, ah
+	movzx eax, al
+	adc ah, 0
+	ret
+
+
+//old shitty version follows
+#if 0
 global addcargotostation_cargodesthook
 addcargotostation_cargodesthook:
 	or ax, ax
@@ -1759,6 +1992,9 @@ addcargotostation_cargodesthook:
 //var testmess1, db "TTDP: Test Message 1", 0
 //var testmess2, db "TTDP: Test Message 2", 0
 #endif
+
+#endif
+
 
 global cargodestdelvehentryhook
 cargodestdelvehentryhook:       //esi=vehicle ptr being deleted
@@ -1944,7 +2180,7 @@ cargodestdelstationfinalhook:
 	xor edx, edx
 	xchg edx, [edi+station2.cargoroutingtableptr]
 	or edx, edx
-	jz .noroutingtable
+	jz NEAR .noroutingtable
 
 	mov eax, [edx+ebp+routingtable.cargopacketsfront]
 	or eax, eax

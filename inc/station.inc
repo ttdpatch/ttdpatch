@@ -92,7 +92,9 @@ struc station2
 	.acceptedthismonth:	resd 1				// 78h: bitmask of cargoes accepted this month
 	.acceptedlastmonth:	resd 1				// 7ch: ...last month
 	.everaccepted:		resd 1				// 80h: bitmask of cargoes ever accepted
-	.cargoroutingtableptr:	resd 1				// this pointer is relative, zero = unset
+	.cargoroutingtableptr:	resd 1				// 84h: this pointer is relative, zero = unset
+	.activitythismonth:	resw 1				// 88h: the amount of cargo generated or accepted this month, if cargodest active
+	.activitylastmonth:	resw 1				// 8Ah: the amount of cargo generated or accepted last month, if cargodest active
 				resb station_size - $
 endstruc
 
