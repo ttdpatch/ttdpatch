@@ -1801,7 +1801,7 @@ addcargotostation_cargodesthook:
 .noroutedestfounderr:
 	cmp BYTE [cargodestgenflags+ebx], 1
 	jne .popret
-	xor ax, ax		//unrouted cargo is verbotten, drop cargo
+	mov DWORD [esp+0x400+_pusha.eax], 0		//unrouted cargo is verbotten, drop cargo
 	jmp .finalpopret
 	
 dorouteassimilation:
