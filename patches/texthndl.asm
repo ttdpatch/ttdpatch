@@ -106,6 +106,8 @@ newtexthandler:
 
 .classtext:
 	mov ebp,[ophandler+esi*8-8]
+	or ebp, ebp
+	jz .done
 	call [ebp+8]
 
 .done:

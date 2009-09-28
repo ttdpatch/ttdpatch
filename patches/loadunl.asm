@@ -184,7 +184,7 @@ UnloadCargoToStation:
 	call	ishumanplayer
 	jne	.nocash
 
-	bts	dword [esi+veh.modflags],MOD_DIDCASHIN 	// did we do this already?
+	bts	word [esi+veh.modflags],MOD_DIDCASHIN 	// did we do this already?
 	jc	.nocash
 
 	pusha
@@ -264,7 +264,7 @@ AcceptCargoAtStation:
 
 //Get the money for the delivery. Be careful to do it only once, since with gradualloading, there may me more steps
 
-	bts	dword [esi+veh.modflags],MOD_DIDCASHIN	// it's OK to set this even with gradualloading off, since
+	bts	word [esi+veh.modflags],MOD_DIDCASHIN	// it's OK to set this even with gradualloading off, since
 							// the next cmp will always set zf (if gradualloading is off, all
 							// the cargo is unloaded always)
 	jc	.dontcashin
@@ -404,7 +404,7 @@ LoadCargoFromStation:
 	jz	.nextveh1		// no capacity
 	cmp	al, [esi+veh.cargotype]
 	jne	.nextveh1		// wrong cargo
-	bt	dword [esi+veh.modflags], MOD_HASRESERVED
+	bt	word [esi+veh.modflags], MOD_HASRESERVED
 	sbb	ah, 0			// dec ah if this vehicle is loading
 	jz	.consistreserve		// if ah hits 0, all loading vehicles are in this consist
 .nextveh1:
@@ -424,7 +424,7 @@ LoadCargoFromStation:
 	jz	.nextveh2		// no capacity
 	cmp	al, [esi+veh.cargotype]
 	jne	.nextveh2		// wrong cargo
-	bts	dword [esi+veh.modflags], MOD_HASRESERVED
+	bts	word [esi+veh.modflags], MOD_HASRESERVED
 	jc	.nextveh2		// already reserved
 	extcall dequeueveh
 	inc	byte [ebx+station2.cargos+ecx+stationcargo2.rescount]
@@ -1079,7 +1079,7 @@ LoadUnloadCargo:
 // We start loading only if the "more to unload" flag is clear.
 	testflags gradualloading
 	jnc	.dontcheckmods
-	btr	dword [esi+veh.modflags],MOD_MORETOUNLOAD
+	btr	word [esi+veh.modflags],MOD_MORETOUNLOAD
 	jnc	near .DoLoad
 
 .dontcheckmods:

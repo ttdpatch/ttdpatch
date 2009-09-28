@@ -166,9 +166,9 @@ cheatentry "CREATEOBJECT", createnewobject, 0
 extern win_objectgui_create
 cheatentry "OBJECTGUI", win_objectgui_create, 0
 cheatentry "SETLANDVAL", setlandarrayval, 0
-cheatentry "FIXORDERS", fixorders, 0
 cheatentry "LOGCARGODEST", logcargodest, 0
 #endif
+cheatentry "FIXORDERS", fixorders, 0
 
 #if DEBUGNETPLAY
 cheatentry "LOGRANDOM",lograndomcheat,0
@@ -3137,6 +3137,18 @@ extern BuildObject_actionnum
 	clc
 	ret
 
+extern cargodestdebugflag
+logcargodest:
+	call gethexnumber
+	jnc .param
+	or edx, BYTE -1
+.param:
+	mov DWORD [cargodestdebugflag], edx
+	clc
+	ret
+	
+#endif
+
 uvard fixordermessflags
 uvard fixorderserr1
 uvard fixorderserr2
@@ -3165,7 +3177,13 @@ fixorders:
 	call gethexnumber
 	jc .passivenocheckflags
 	cmp edx, 1
-	jne .passive
+	jb .passive
+	cmp edx, 2
+	jb .fix1
+	ja .passive
+	call orderfixmethod2
+	jmp .passive
+.fix1:
 	call orderfixmethod1
 	
 .passive:
@@ -3282,7 +3300,7 @@ fixorders:
 .iterate:
 	sub edi,byte -veh_size
 	cmp edi,[veharrayendptr]
-	jb NEAR .next	
+	jb NEAR .next
 
 	mov dword [specialerrtext1],fixorderdisp
 
@@ -3549,7 +3567,36 @@ messagevehicle:
 	mov eax,[ophandler+eax*8]
 	call [eax+0x18]		// mouse click handler
 	popad
-ret	
+ret
+
+orderfixmethod2:
+	pushad
+	mov edi,[veharrayptr]
+.next:
+	cmp byte [edi+veh.class],0x10
+	jb .iterate
+	cmp byte [edi+veh.class],0x13
+	ja .iterate
+	mov eax, [edi+veh.scheduleptr]
+	cmp eax, -1
+	je .iterate
+	cmp eax, scheduleheap
+	jb .err
+	cmp eax, scheduleheapend
+	jae .err
+	cmp eax, [scheduleheapfree]
+	jae .err
+	test eax, 1
+	jz .iterate
+.err:
+	mov DWORD [edi+veh.scheduleptr], -1
+	mov BYTE [edi+veh.totalorders], 0
+.iterate:
+	sub edi,byte -veh_size
+	cmp edi,[veharrayendptr]
+	jb NEAR .next
+	popad
+	ret
 	
 varb fixorderdisp
 db 0x94
@@ -3596,6 +3643,12 @@ db "11: Orders overrun declared length: ", 0x7E, " (", 0x7E, ")", 13, 10
 db 0x9A, 0x9
 dd fixorderserr13
 db "13: Shared orders with inconsistent lengths: ", 0x7E, 13, 10
+db "---", 13, 10
+db "cht: fixorders 1	autofix order termination and length", 13, 10
+db "		you should probably not run this if errors 1, 2, 3 or 14 are present", 13, 10
+db "		this will perhaps 'fix' errors 4, 5, 6, 11 and 13", 13, 10
+db "cht: fixorders 2	reset bad pointers to -1", 13, 10
+db "		this *might* fix errors 1, 2, 3 and 14", 13, 10
 db 0
 endvar
 
@@ -3613,19 +3666,7 @@ db 0x9A, 0xA
 dd orderfix1addedzero
 db "3: Additional zero markers added: ", 0x7B, 13, 10
 db 0
-endvar	
-
-extern cargodestdebugflag
-logcargodest:
-	call gethexnumber
-	jnc .param
-	or edx, BYTE -1
-.param:
-	mov DWORD [cargodestdebugflag], edx
-	clc
-	ret
-	
-#endif
+endvar
 
 #if DEBUGNETPLAY
 /*
