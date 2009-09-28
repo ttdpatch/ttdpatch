@@ -197,7 +197,8 @@ Class5VehEnterLeaveBusStop:
 	mov	byte al, [landscape5(bx)]
 	cmp	al, 0x53
 	jge	.notArticulated
-	mov	byte [esi+0x6A], 180 	//UTURN!
+	mov	byte [edi+0x6A], 180 	//UTURN!
+	//mov	byte [esi+0x6A], 180 	//UTURN!	<-- JGR: as far as I can tell this is invalid and therefore a bug
 	or	ebx, 0x80000000
 	jmp	.quit
 
