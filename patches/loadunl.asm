@@ -932,8 +932,8 @@ LoadUnloadCargo:
 	movzx	eax,byte [esi+veh.laststation]
 	mov	[%$currstationidx], al
 
-	testmultiflags losttrains,lostrvs,lostships,lostaircraft	// actually, this won't hurt even without lostvehs
-	jz NEAR .nolostvehs								// we skip it just to save some cycles
+//	testmultiflags losttrains,lostrvs,lostships,lostaircraft	// actually, this won't hurt even without lostvehs
+//	jz NEAR .nolostvehs								// we skip it just to save some cycles
 
 	// with lost vehicles, reset traveltime if this is a scheduled stop
 	mov	ecx,[esi+veh.scheduleptr]
@@ -963,13 +963,31 @@ LoadUnloadCargo:
 	cmp     bl, dh
 	je      .donecargodestnextstcheck_pop       //went all the way round without finding anything useful
 	mov 	ecx, [edi+2*ebx]
-	test    cl, 0xC0                //quick and dirty check to weed out full load and non-stop orders
+	test    cl, 0x40                //quick and dirty check to weed out full load
 	jnz     .nexttestorder
+	
+	//nonstop check
+	testflags usenewnonstop
+	jnc .nononstopcheck
+	test    cl, 0x80                //quick and dirty check to weed out non-stop orders
+	jnz     .nexttestorder
+.nononstopcheck:
+	
 	and	cl, 0x1F
 	cmp     cl, 1
 	jne     .notst
 	cmp	ch, al
 	je      .nexttestorder          //don't count orders pointing to the current station
+	
+	//waypoint check
+	push ebx
+	movzx ebx, ch
+	imul ebx, ebx, station_size
+	add ebx, [stationarrayptr]
+	test BYTE [ebx+station.flags], 1<<6
+	pop ebx
+	jnz .nexttestorder
+	
 	mov     ah, ch
 	jmp .donecargodestnextstcheck_pop
 .notst:
