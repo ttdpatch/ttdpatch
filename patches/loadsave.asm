@@ -1209,23 +1209,40 @@ deleteconsist:
 	call cleartrainsignalpath
 .dontclearpbs:
 
+.startkill:
 	cmp byte [esi+veh.class],0x14
 	jae short .delspec
 	inc word [loadremovedcons]
 
 .delloop:
+	cmp byte [esi+veh.class],0x10
+	jb short .delnofollow
+	cmp byte [esi+veh.class],0x13
+	ja short .delnofollow
 	inc word [loadremovedvehs]
 	jmp short .delschedule
 
 .delspec:
+	cmp byte [esi+veh.class],0x15
+	ja short .delnofollow
 	inc word [loadremovedsfxs]
 
 .delschedule:
-	cmp dword [esi+veh.scheduleptr],byte -1
-	jz short .delveh
 	pusha
-	mov edx,esi
+	mov edx, [esi+veh.scheduleptr]
+	cmp edx,byte -1
+	jz .donedelschedule
+	cmp edx, scheduleheap
+	jb .donedelschedule
+	cmp edx, scheduleheapend
+	jae .donedelschedule
+	cmp edx, [scheduleheapfree]
+	jae .donedelschedule
+	test edx, 1
+	jnz .donedelschedule
+	mov edx, esi
 	call [delvehschedule]
+.donedelschedule:
 	popa
 
 .delveh:
@@ -1234,8 +1251,19 @@ deleteconsist:
 	cmp si,byte -1
 	jne .next
 
+.end:
+//end
+//if the original vehicle is still here, see that it is exterminated
+	cmp BYTE [ecx+veh.class], 0
+	je .quit
+//uh oh, we have a decoupled trailer
+	mov esi, ecx
+	jmp .startkill
+.quit:
 	ret
-
+.delnofollow:
+	call dword [delveharrayentry]		// preserves all registers
+	jmp .end
 .next:
 	shl esi,vehicleshift
 	add esi,eax
