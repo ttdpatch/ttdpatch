@@ -512,8 +512,7 @@ action2:
 	// - random ID:
 	//   (unused)
 	// - variational ID:
-	//   for regular variables: unused
-	//   for var. 7E: <W:spritenum> (sprite number of referred var.action 2)
+	//   offset to allocated buffer as long as sprite data or -1
 	//
 	// Also all sprite numbers are translated into numbers relative
 	// to the action 1 sprite number.
@@ -709,6 +708,7 @@ newcargoid:
 
 .variationalid:
 	lea ecx,[esi-8]
+	or dword [ecx],byte -1
 	xor ebx,ebx
 	inc ebx
 	test al,0xc
@@ -740,8 +740,23 @@ newcargoid:
 	test eax,eax
 	mov dh,INVSP_INVCID
 	jz .invalid
-	mov [ecx],ax
 	xor eax,eax
+
+	mov edx,[ecx]
+	test edx,edx
+	jg .havebuffer
+
+	lea edx,[ebp-4]
+	sub edx,ecx	// now edx=length of sprite data
+	push edx
+	call malloc
+	pop edx
+	sub edx,ecx
+	sub edx,4	// now edx=offset from start of sprite data
+	mov [ecx],edx
+
+.havebuffer:
+	mov [esi+edx-2],ax
 
 .noparam:
 	lodsb

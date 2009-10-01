@@ -658,3 +658,4 @@ CHANGELOG
     indirect.
   * Make early departure of overweight trains work with fullloadany off.
   * Make enhancetunnels work with manualconvert off.
+- allow unlimited var.action 2 procedure calls in one var.action 2
