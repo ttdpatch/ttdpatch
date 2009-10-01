@@ -662,7 +662,6 @@ CHANGELOG
   * (devel) remove some dead code
   * (devel) fix buffer overrun and use correct variables
 - added generic feature 0C (newsounds) callback for new ambient sounds
-- allow unlimited var.action 2 procedure calls in one var.action 2
 - implement action 13 to allow translating D000/DC00 texts of another grf
 - add generic "must be loaded before/after" messages to action B
 - by JGR:
@@ -708,3 +707,4 @@ CHANGELOG
     indirect.
   * Make early departure of overweight trains work with fullloadany off.
   * Make enhancetunnels work with manualconvert off.
+- allow unlimited var.action 2 procedure calls in one var.action 2
