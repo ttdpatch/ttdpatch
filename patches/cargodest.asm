@@ -589,7 +589,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	push ecx
 	mov ebp, [esp+8]			//stack frame
 	mov ebx, [ebp+0xA]                      //station ptr
-	mov cl, [ebp+0x11]                      //cargo offset
+	movzx ecx, BYTE [ebp+0x11]                      //cargo offset
 	call	ensurecargoslot                 //this means that a cargo slot must be available for unloading to occur
 	mov ebx, ebp
 	mov ebp, [cargodestdata]
@@ -698,12 +698,14 @@ AcceptCargoAtStation_CargoDestAdjust:
         mov ebx, [esp+12]		//stack frame
 	add ecx, [ebx+0xA]		//station ptr
 	mov bp, [station.cargos+ecx+stationcargo.amount]
+	push ecx
 	mov bx, bp
 	mov cx, [stationcargowaitingnotmask]
-	and bx,cx
+	and bx, cx
 	xor bp, bx                      //bp=cargo amount
 	add bp, dx
 	test bp, cx
+	pop ecx
 	jnz .checkspaceandunload_fail
 	or bx, bp
 	mov [station.cargos+ecx+stationcargo.amount], bx
@@ -712,6 +714,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	ret
 
 .checkspaceandunload_fail:
+	pop ecx
 	mov ebp, [cargodestdata]
 	pop ecx                         //eat return address
 	jmp .unloadfail
@@ -1262,7 +1265,7 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	add edi, station2_size
 	inc cl
 	cmp cl, numstations
-	jbe .preloop
+	jb .preloop
 	popad
 	pushad
 	mov ebp, [cargodestdata]
@@ -1351,7 +1354,7 @@ addroutesreachablefromthisnodeandrecurse:
 	jz NEAR .next
 	cmp esi, eax
 	je NEAR .next
-	cmp [esi+ebp+routingtableentry.cargo], bl
+	cmp [edx+ebp+routingtableentry.cargo], bl
 	jne NEAR .next
 	cmp esi, [curnexthoproutingtable]
 	je NEAR .next
@@ -1433,19 +1436,28 @@ addroutesreachablefromthisnodeandrecurse:
 	//old route (eax length esi) is no good, exterminate it
 	mov esi, [eax+ebp+routingtableentry.next]
 	
-	call freecargodestdataobj				//this is potentially interesting, memory is used after "freeing" it!!! :0, fix this if the "freeing" algorithm changes
+	call freecargodestdataobj
 	
 	mov ecx, [tempprevroutingtableentrystore]	//this always works, is fudged if first attached
 	mov [ecx+ebp+routingtableentry.next], esi
-	
+	mov eax, esi
+
+	//cloned from below, keep in sync
+        mov esi, [edx+ebp+routingtableentry.destrttable]
+	mov ecx, [esi+ebp+routingtable.location]
+	mov esi, [curnexthoproutingtable]
+
+	jmp .iteratecheck
 	
 .done_differentnodecheck:
+	//see above
         mov esi, [edx+ebp+routingtableentry.destrttable]
 	mov ecx, [esi+ebp+routingtable.location]
 	mov esi, [curnexthoproutingtable]
 .nextcheck:
         mov [tempprevroutingtableentrystore], eax
-	mov eax, [eax+ebp+routingtableentry.next]		// <-- ^
+	mov eax, [eax+ebp+routingtableentry.next]
+.iteratecheck:
 	or eax, eax
 	jnz .checkloop
 .donecheck:	
@@ -1808,18 +1820,20 @@ addcargotostation_cargodesthook:
 dorouteassimilation:
 	push eax
 	push ebx
+	push edx
 	cmp bl, [ebp+ecx+routingtableentry.cargo]
 	jne .nostore
 	movzx eax, BYTE [ebp+ecx+routingtableentry.dest]
-	mov bx, [esi+eax*4]
+	mov bx, [esi+eax*4]	//current minimum number of days
 	mov dx, [ebp+ecx+routingtableentry.mindays]
-	or bx, bx
+	or bx, bx		//no minimum (existing value = 0)
 	jz .store
 	cmp bx, dx
 	jbe .nostore
 .store:
-	mov [esi+eax*4], dx
+	mov [esi+eax*4], dx	//change stored minimum if new value is lower
 .nostore:
+	pop edx
 	pop ebx
 	pop eax
 	ret
