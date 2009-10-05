@@ -36,7 +36,7 @@ exported removeconsistfromqueue
 	add ebx, [station2ofs_ptr]
 	or cl, cl
 	js .next
-	btr dword [esi+veh.modflags], MOD_HASRESERVED
+	btr word [esi+veh.modflags], MOD_HASRESERVED
 	jnc .dequeue
 // Unreserve cargo
 	mov dx, [esi+veh.capacity]

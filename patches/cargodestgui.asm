@@ -185,13 +185,15 @@ exported cdestmoredetailswintoggle
 	ret
 	
 cdestmoredetailswinhandler:
-	mov bx, cx
  	mov esi, edi
+	pushad
+	mov bx, cx
 
 	cmp dl, cWinEventClick
 	je .click
 	cmp dl, cWinEventRedraw
 	jz .redraw
+	popad
 	ret
 
 .click:
@@ -207,21 +209,30 @@ cdestmoredetailswinhandler:
 
 	or cl,cl // Was the Close Window Button Pressed
 	jnz .notdestroywindow // Close the Window
+	popad
 	jmp dword [DestroyWindow]
 .notdestroywindow:
 
 	cmp cl, 1 // Was the Title Bar clicked
 	jne .notwindowtitlebarclicked
+	popad
 	jmp dword [WindowTitleBarClicked] // Allow moving of Window
 .notwindowtitlebarclicked:
 	cmp cl, 6
 	jae .btn
 .ret:
+	popad
 	ret
 .btn:
 	mov eax, 1
 	shl eax, cl
-	mov [esi+window.activebuttons], eax
+	mov ecx, eax
+	xchg [esi+window.activebuttons], eax
+	cmp eax, ecx
+	je .noresetscroll
+	mov BYTE [esi+window.itemsoffset], 0
+.noresetscroll:
+	popad
 	jmp [RefreshWindowArea]
 	
 .redraw:
@@ -245,14 +256,15 @@ cdestmoredetailswinhandler:
 	cmp al, cWinTypeVehicleDetails
 	jne .notveh
 	or esi, 0x20000
-	or BYTE [ecx+window.disabledbuttons+1], (1<<3) + 1
+	or BYTE [ecx+window.disabledbuttons+1], (1<<3) + 1 + 2
 .notveh:
 	call stos_locationname
 	pop esi
 	pop edi
 	call dword [DrawWindowElements]
 	
-	push ebp
+	mov [scrblkupddesc], edi
+	//pushad
 	mov ebp, [cargodestdata]
 	
 	mov eax, [esi+window.activebuttons]
@@ -265,9 +277,11 @@ cdestmoredetailswinhandler:
 	jnz NEAR fullmode
 	test eax, 1<<0x8
 	jnz NEAR nexthopmode
+	test eax, 1<<0x9
+	jnz NEAR treemode
 	test eax, 1<<0xB	
 	jnz NEAR routedumpmode
-	pop ebp
+	popad
 	ret
 
 uvard stsortlist, 32*0x100/4
@@ -279,10 +293,25 @@ uvard cargounroutable, 32
 uvard curstcargorttbl           //relative ptr or 0
 
 destmode:
-	push edi
-	mov [scrblkupddesc], edi
 	call clearstarrays
 	
+	call destcountcommon
+	
+	xor ebx, ebx
+	mov eax, cargototal
+	mov ecx, 32
+	call cargocountloop
+	mov eax, stamountlist
+	mov ecx, 32*0x100
+	call cargocountloop
+	call TrainListDrawHandlerCountTrains
+	
+	mov WORD [destlinetextid], ourtext(cpgui_destline)
+	call commonprint
+	popad
+	ret
+
+destcountcommon:
 	call gettotalcargocount
 	call getfirstcp
 	or eax, eax
@@ -303,21 +332,47 @@ destmode:
 	mov [stsortlist+edx+ecx], bl
 	call getnextcp
 	jnz .routecountloop
-.doneroutedcount:	
+.doneroutedcount:
+	ret
+
+treemode:
+#if 0
+	call clearstarrays
+	
+	call destcountcommon
 	
 	xor ebx, ebx
-	mov eax, cargototal
-	mov ecx, 32
-	call cargocountloop
-	mov eax, stamountlist
+	xor eax, eax
 	mov ecx, 32*0x100
-	call cargocountloop
+.loop:
+	cmp DWORD [stamountlist+eax*4], 0
+	jz .noinc
+	test BYTE [stflaglist+eax*4], 3
+	jz .noinc
+	inc ebx
+	sub esp, 256
+	pushad
+	or eax, BYTE -1
+	lea edi, [esp+32]
+	mov ecx, 256/4
+	cld
+	rep stosd
+	popad
+	call countstsreachablefromcurrentnode
+	add esp, 256
+.noinc:
+	inc eax
+	loop .loop
+	ret
+
 	call TrainListDrawHandlerCountTrains
 	
-	mov WORD [destlinetextid], ourtext(cpgui_destline)
-	call commonprint
-	pop edi
-	pop ebp
+#endif
+	popad
+	ret
+	
+countstsreachablefromcurrentnode:
+
 	ret
 
 //ebp=[cargodestdata]
@@ -325,7 +380,7 @@ destmode:
 //ebx=destst
 //ecx=cargo<<8
 //edx=amount
-//[packetroutingcheck_flags]=flags: 1=add cargo quantity to next hop stations' amount
+//[packetroutingcheck_flags]=flags:	1=add cargo quantity to next hop stations' amount
 //trashes: none
 uvard packetroutingcheck_flags
 packetroutingcheck:
@@ -345,6 +400,9 @@ packetroutingcheck:
 	jne .notitnh
 	cmp ch, [ebp+esi+routingtableentry.cargo]
 	jne .notitnh
+	add cx, bx
+	or BYTE [stflaglist+ecx*4], 2
+	sub cx, bx
 	inc edi
 	test BYTE [packetroutingcheck_flags], 1
 	jz .notitnh
@@ -389,7 +447,7 @@ packetroutingcheck:
 .notitd:
 	mov esi, [ebp+esi+routingtableentry.next]
 	or esi, esi
-	jnz .nexthoploop
+	jnz .destloop
 .nodest:
 
 	or edi, edi
@@ -493,8 +551,6 @@ cargocountloop:
 	ret
 	
 fullmode:
-	push edi
-	mov [scrblkupddesc], edi
 	call clearstarrays
 
 	call gettotalcargocount
@@ -508,13 +564,10 @@ fullmode:
 .doneroutedcount:
 
 
-	pop edi
-	pop ebp
+	popad
 	ret
 	
 nexthopmode:
-	push edi
-	mov [scrblkupddesc], edi
 	call clearstarrays
 
 	call gettotalcargocount
@@ -544,8 +597,7 @@ nexthopmode:
 
 	mov WORD [destlinetextid], ourtext(cpgui_nexthopline)
 	call commonprint
-	pop edi
-	pop ebp
+	popad
 	ret
 
 packetdumpmode:
@@ -562,8 +614,6 @@ packetdumpmode:
 .nomultiveh:
 	call TrainListDrawHandlerCountTrains
 
-	push edi
-	mov [scrblkupddesc], edi
 	call getfirstcp
 	or eax, eax
 	jz NEAR .done
@@ -624,8 +674,7 @@ packetdumpmode:
 	cmp dl, [esi+window2ofs+window2.extactualvisible]
 	jbe .drawloop
 .done:
-	pop edi
-	pop ebp
+	popad
 	ret
 
 uvard scrblkupddesc
@@ -708,8 +757,6 @@ outtableline:				//ebp=[cargodestdata]
 	ret
 	
 routedumpmode:
-	push edi
-	mov [scrblkupddesc], edi
 	xor ebx, ebx
 	call getfirstroute
 	jz .noroutes
@@ -769,8 +816,7 @@ routedumpmode:
 	cmp dl, [esi+window2ofs+window2.extactualvisible]
 	jbe .drawloop
 .done:
-	pop edi
-	pop ebp
+	popad
 	ret
 
 uvarb getfirstroute_flag
@@ -858,6 +904,10 @@ outroutetableline:				//ebp=[cargodestdata]
 	
 	mov cx, [ebp+edi+routingtableentry.oldestwaiting]
 	mov [textrefstack], cx
+	or cx, cx
+	jnz .lu_ok
+	mov bx, statictext(empty)
+.lu_ok:
 	mov cx, 90
 	call outtablevalue
 	

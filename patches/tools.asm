@@ -915,6 +915,7 @@ extern objectpool_ptr, objectpoolclear
 	testflags cargodest
 	jnc .nocargodest
 	extcall initcargodestmemory
+	extcall cargodestinitstationroutingtable_all
 .nocargodest:
 	popa
 	ret
