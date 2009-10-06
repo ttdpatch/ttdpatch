@@ -587,6 +587,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 
 .unloadcargohere:
 	push ecx
+.unloadcargohere_popecx:
 	mov ebp, [esp+8]			//stack frame
 	mov ebx, [ebp+0xA]                      //station ptr
 	movzx ecx, BYTE [ebp+0x11]                      //cargo offset
@@ -723,15 +724,19 @@ AcceptCargoAtStation_CargoDestAdjust:
 	//[esp+4]=stack frame
 	//[esp+8]=engine
 	//[esp+12]=unrouted amount left
+	//eax=cargo packet
+	//ecx=current location
+	//ebp=[cargodestdata]
 .cploop:
 	mov dx, [eax+ebp+cargopacket.amount]
 	sub [esp+12], dx
 	mov dx, [esp] //eax, max unload amount
-	//or dx, dx
-	//jz .cploopnext
-	cmp [eax+ebp+cargopacket.destst], cl
+
+	movzx ebx, BYTE [eax+ebp+cargopacket.destst]
+	cmp bl, cl
 	je .arrivedatdest
-	
+	or ebx, 0x10000
+
 	//ttl check
 	test BYTE [esi+veh.modflags], (1 << MOD_DIDCASHIN)      //only decrement the ttl once
 	jnz NEAR .nottlcheck
@@ -742,24 +747,27 @@ AcceptCargoAtStation_CargoDestAdjust:
 	test BYTE [acceptcargoatstationflag], 4
 	jnz .unloadcargohere
 	
+	push ecx
+	mov ecx, ebx
+	
 	//checking loop
-	mov ebx, [esp+4]			//stack frame
+	mov ebx, [esp+4+4]			//stack frame
 	mov edx, [ebx+0x12]			//routing table ptr of station
 	or edx, edx
-	jz .cploopnext
+	jz .cploopnext_popecx
 	movzx ebx, BYTE [ebx+0x16]			//id of next station
 	cmp bl, -1
-	je .unloadcargohere
-	//or ebx, 0x10000
+	je .unloadcargohere_popecx
+	or ebx, 0x10000
 	
 	//TODO: is the following really a good idea?
 	cmp [eax+ebp+cargopacket.destst], bl
-	je .cploopnext				//next stop of the vehicle is the destination, don't unload packet
+	je .cploopnext_popecx			//next stop of the vehicle is the destination, don't unload packet
 
 	mov edx, [edx+ebp+routingtable.destrtptr]
 .routecheckloop:				//check each entry of this stations far routing table for entries to the final destniation with a next hop of the vehicles next stop
 	or edx, edx
-	jz .unloadcargohere			//if none are found unload
+	jz .unloadcargohere_popecx		//if none are found unload
 	cmp [edx+ebp+routingtableentry.nexthop], ebx
 	jne .nextroutecheckiteration
 	cmp [edx+ebp+routingtableentry.dest], ecx
@@ -768,12 +776,14 @@ AcceptCargoAtStation_CargoDestAdjust:
 	mov dh, [edx+ebp+routingtableentry.cargo]
 	cmp dh, [esi+veh.cargotype]
 	pop edx
-	je .cploopnext				//if any (there should only be one really) are found, don't unload
+	je .cploopnext_popecx			//if any (there should only be one really) are found, don't unload
 	
 .nextroutecheckiteration:
 	mov edx, [edx+ebp+routingtableentry.next]
 	jmp .routecheckloop
-	
+
+.cploopnext_popecx:
+	pop ecx
 .cploopnext:
 	mov eax, [eax+ebp+cargopacket.nextptr]
 .startcploop:
