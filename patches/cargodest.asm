@@ -359,13 +359,6 @@ uvarb acceptcargoatstationflag	//1=non-routed cargo is accepted here
 
 
 uvarb acceptcargotempcargooffsetval
-
-//below = ????
-//comments have turned into arcane and unknowable writings :0
-//1:	ordinary cargo is accepted at this station
-//2:	routed cargo has been accepted at this station
-//4:	force unload
-
 uvard acceptcargotemplastengine
 uvarw acceptcargotemplaststationandcargo
 uvarw acceptcargoroutedaccepted
@@ -1548,67 +1541,6 @@ addroutesreachablefromthisnodeandrecurse:
 .finish:
 	ret
 
-
-/*
-global cargodeststationperiodicproc
-cargodeststationperiodicproc:		//esi=station2 ptr
-					//[esp+8]=station ptr
-					//trashable: eax, esi
-					//returns nothing
-	pushad
-	mov eax, [esi+station2.cargoroutingtableptr]
-	mov ebp, [cargodestdata]
-	lea edx, [eax+ebp+routingtable.destrtptr]
-	mov di, [currentdate]
-	
-	jmp .loopin
-	//freeing loop: fast unlink and deallocate of old entries
-.loop:
-	lea edx, [eax+ebp+routingtableentry.next]
-.loopin:
-	mov eax, [edx]
-.loopin2:
-	or eax, eax
-	jz .loopdone
-	cmp [eax+ebp+routingtableentry.lastupdated], di
-	je .loop
-	mov ebx, [eax+ebp+routingtableentry.next]
-	mov [edx], ebx
-	call freecargodestdataobj
-	mov eax, ebx
-	jmp .loopin2
-.loopdone:
-
-	//route propagation
-	mov eax, [esi+station2.cargoroutingtableptr]
-	mov ebx, [eax+ebp+routingtable.nexthoprtptr]
-	mov edi, [eax+ebp+routingtable.location]
-
-.nextroute:
-	or ebx, ebx
-	jz .done
-	mov dl, [ebx+ebp+routingtableentry.cargo]
-	
-	mov ecx, [ebx+ebp+routingtableentry.destrttable]
-	call recursiveroutepropagate
-	mov ebx, [ebx+ebp+routingtableentry.next]
-	jmp .nextroute
-
-.done:
-	popad
-	ret
-
-//eax=routing table of next hop (don't propagate back)
-//ebx=routing table entry to current node (enumerate hops here)
-//ecx=routing table of current node
-//dl=current cargo
-//edi=location of final destination
-//esi=location of next hop
-recursiveroutepropagate:
-	
-
-	ret
-*/
 
 //esi=station
 //edi=station2

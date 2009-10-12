@@ -976,7 +976,7 @@ SETTEXT(CFG_CDSTCARGOCLASSGENTYPE, "`%s' (%s) controls cargo generation for the 
 SETTEXT(CFG_CDSTUNROUTEDSCORE, "`%s' (%s) cargo generation destination selector: unrouted cargo score. Range %ld..%ld.  Default %ld.")
 SETTEXT(CFG_CDSTNEGDISTFACTOR, "`%s' (%s) cargo generation destination selector: factor to multiply manhattan distance by before subtracting from score for routed cargo. Range %ld..%ld.  Default %ld.")
 SETTEXT(CFG_CDSTNEGDAYSFACTOR, "`%s' (%s) cargo generation destination selector: factor to multiply minimum cost in days by before subtracting from score for routed cargo. Range %ld..%ld.  Default %ld.")
-SETTEXT(CFG_CDSTROUTEDINITSCORE, "`%s' (%s) cargo generation destination selector: initial score for routed cargo before distance and day costs subtracted, note negative scores result in exclusion. Range %ld..%ld.  Default %ld.")
+SETTEXT(CFG_CDSTROUTEDINITSCORE, "`%s' (%s) cargo generation destination selector: initial score for routed cargo before target station activity is added and distance and day costs are subtracted, note negative scores result in exclusion. Range %ld..%ld.  Default %ld.")
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')
 //----------------------------------------------------
