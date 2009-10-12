@@ -90,6 +90,7 @@ UnloadCargoToStation:
 	ret
 
 .offset_ok:
+	mov BYTE [acceptcargoatstationflag], 5
 	push ebx
 // the next step is deciding how much to unload in this step
 	mov	ax, [esi+veh.currentload]
@@ -115,16 +116,16 @@ UnloadCargoToStation:
 	mov edx, eax
 	testflags cargodest
 	jnc .nocargodest
-	mov BYTE [acceptcargoatstationflag], 4
+	push ecx
 	extcall AcceptCargoAtStation_CargoDestAdjust
-	mov BYTE [acceptcargoatstationflag], 0
+	pop ecx
 .nocargodest:
 	add	[%$cargomoved],ax			// BUGFIX
 	
 	xchg ebx, [esp]
 		//ebx becomes station ptr
 		//[esp] becomes amount of unrouted cargo (to charge, and also if zero don't bother changing cargo origin values at the station)
-
+		//dx=unrouted quantity unloaded in this step
 	push edx
 
 	push eax
@@ -158,17 +159,16 @@ UnloadCargoToStation:
 .cargosourceok:
 	pop eax
 	
-	//ax=quantity actually unloaded
-	//edx=amount currently in station
+	//ax=quantity actually unloaded in this step
+	//dx=amount currently in station
 	//W[esp+4]=amount to charge
-	//W[esp]=amount to update station fields by
+	//W[esp]=unrouted quantity unloaded in this step (useful?)
 	
 	xchg eax, edx
-	neg dx
-	add ax, [esp]	//overflow should be impossible
+	add ax, dx
 	
-	//dx=-vehicle unload amount
-	//eax=cargo in station
+	//dx=vehicle unload amount
+	//ax=new cargo in station
 
 	cmp	eax, [stationcargowaitingmask]	// if amount>mask, it won't fit when putting back the amount, so truncate it
 	jb	.nounloadoverflow
@@ -204,7 +204,7 @@ UnloadCargoToStation:
 	add esp, 8		//eat cargo amounts on stack
 
 	
-	add	[esi+veh.currentload], dx
+	sub	[esi+veh.currentload], dx
 	jz	.doneunload
 	test	BYTE [acceptcargoatstationflag], 16
 	jz	.notempty
@@ -219,6 +219,7 @@ UnloadCargoToStation:
 	or	[ebx+station.cargos+ecx+stationcargo.amount], ax
 
 	or	byte [%$flags], 2	// both the vehicle and the station windows need redrawing
+	mov BYTE [acceptcargoatstationflag], 0
 	ret
 
 
