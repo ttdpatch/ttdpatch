@@ -573,8 +573,6 @@ var isflathead
 global buildbridgehead
 buildbridgehead:
 	xor bx,bx
-	call isrealhumanplayer
-	jnz .gotpieces
 
 	push edi
 	and edi, 0fh
@@ -621,23 +619,14 @@ convertbridgeheads:
 	mov al, [landscape4(si,1)]
 	shr al, 4
 	cmp al, 9
-	jne .donext	// not a bridge
+	jne near .next	// not a bridge
 	test byte [landscape5(si,1)], 0xF0
-	jz .donext	// a tunnel
+	jz near .next	// a tunnel
 	test byte [landscape5(si,1)], 0x40
-	jnz .donext	// not bridge head
+	jnz near .next	// not bridge head
 	test word [landscape3 +2*esi], 3 << 13
-	jnz .donext	// already converted
+	jnz .next	// already converted
 
-	mov ah,[landscape1+esi]
-	mov al,PL_ORG+PL_PLAYER
-	push eax
-	call ishumanplayer
-	je .doconvert
-.donext:
-	jmp short .next
-	
-.doconvert:
 	call ebp
 	and edi, 0fh
 	cmp byte [isflathead+edi], 0	// is it a 'flat' bridgehead
