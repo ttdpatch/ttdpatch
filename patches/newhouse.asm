@@ -3063,7 +3063,8 @@ exported getnearesthousedist
 	jmp short .doit
 
 .notbyclass:
-	mov ebx, [housedataidtogameid+(edi-128)*8+housegameid.grfid]
+	mov ebx, [newhousespriteblock+(edi-128)*4]
+	mov ebx, [ebx+spriteblock.grfid]
 	mov [getnearesthousedist_grfid], ebx
 	mov ebp, .checkbygrfid
 
@@ -3160,7 +3161,8 @@ exported getnearesthousedist
 	gethouseid eax,ebx
 	sub eax, 128
 	jb .quit	// old houses won't match by grfid
-	mov eax, [housedataidtogameid+eax*8+housegameid.grfid]
+	mov eax, [newhousespriteblock+eax*4]
+	mov eax, [eax+spriteblock.grfid]
 	cmp eax, [getnearesthousedist_grfid]
 	ret
 
