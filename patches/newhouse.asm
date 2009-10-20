@@ -2671,6 +2671,41 @@ removehousetilefromlandscape:
 .testonly:
 	jmp [cleartilefn]		// we've hijacked the call to this func
 
+// Auxiliary: given a house tile and its type, find out the coordinates and type of the northern tile
+// In:	ebx: coordinates of tile
+//	ebp: type of tile
+// Out:	ebx and ebp updated to reference the northern tile
+// Uses: none
+findnorthernhousetile:
+	// (code inspired by the RemoveHouse code)
+
+	test byte [newhouseflags+ebp-1],4
+	jz .notSWof2x1
+	dec ebp
+	dec bl
+
+.notSWof2x1:
+	test byte [newhouseflags+ebp-1],0x18
+	jz .notSEof1x2or2x2
+	dec ebp
+	dec bh
+
+.notSEof1x2or2x2:
+	test byte [newhouseflags+ebp-2],0x10
+	jz .notSWof2x2
+	sub ebp,2
+	dec bl
+
+.notSWof2x2:
+	test byte [newhouseflags+ebp-3],0x10
+	jz .notSof2x2
+	sub ebp,3
+	dec bh
+	dec bl
+
+.notSof2x2:
+	ret
+
 // bit mask of cargo types that triggered callback 148
 noglobal uvard CB148_triggercargoes
 
@@ -2706,45 +2741,15 @@ exported foundtileincatchment
 	mov [CB148_triggercargoes],eax
 
 	call [randomfn]
-	xor ax,ax
-	mov [callback_extrainfo],eax	// zero out the low two bytes, they will be the offset
+	mov ax, bx	// save old XY to ax so we can get the difference between it and the northern tile
 
-
-// now find the northmost tile and house type of this building
-// (code inspired by the RemoveHouse code)
-// the low word of [callback_extrainfo] will contain the difference between the triggered tile and
-// the tile the callback is called on
-	test byte [newhouseflags+ebp-1],4
-	jz .notSWof2x1
-	dec ebp
-	dec bl
-	inc byte [callback_extrainfo]
-
-.notSWof2x1:
-	test byte [newhouseflags+ebp-1],0x18
-	jz .notSEof1x2or2x2
-	dec ebp
-	dec bh
-	inc byte [callback_extrainfo+1]
-
-.notSEof1x2or2x2:
-	test byte [newhouseflags+ebp-2],0x10
-	jz .notSWof2x2
-	sub ebp,2
-	dec bl
-	inc byte [callback_extrainfo]
-
-.notSWof2x2:
-	test byte [newhouseflags+ebp-3],0x10
-	jz .notSof2x2
-	sub ebp,3
-	dec bh
-	dec bl
-	add word [callback_extrainfo],0x101
-
-.notSof2x2:
+	call findnorthernhousetile
 // now ebx=coordinates of the north tile
 //     ebp=tile type of the north tile
+
+	sub ax, bx	// get the offset between the triggered tile and the tile the callback is called on
+
+	mov [callback_extrainfo],eax	// now EAX has everything we need in callback_extrainfo
 
 // call callback 148 on all tiles of the house, adjusting the offset each time
 
@@ -2957,3 +2962,205 @@ exported canindustryreplacehouse
 	mov word [operrormsg2],ourtext(nohouseremove)
 	xor bl,bl
 	ret
+
+uvarw getnearesthousedist_forbidden, 4		// four tile coordinates that shouldn't match
+
+uvard getnearesthousedist_grfid		// grfid to be matched
+uvarb getnearesthousedist_class		// class to be matched, or zero if any class will do
+uvard getnearesthousedist_type		// house type to be matched
+
+extern findtiledistance
+
+// handle parametrized variable 65 (Distance of nearest house matching a given criteria)
+// parameter in ah:
+//	bits 0..5: max. distance to search (1..63, 0 is reserved)
+//	bits 6..7: 0 to look for the same house type, 1 to look for same building class, 2 to look for same GRFID
+exported getnearesthousedist
+	push ebx
+	push edx
+	push edi
+	push esi
+	push ebp
+
+	movzx ecx, ah
+	shr ecx,6	// now ECX has the index of the match function
+
+	movzx eax, ah
+	and eax, 0x3F
+	inc eax		// now EAX has the distance in the format needed for findtiledistance
+
+	mov ebx, esi
+
+	cmp byte [curcallback],0x17
+	jne .notconstruct
+// the house isn't created yet, find the type by other means
+	movzx ebp,word [createdhousedataid]
+	movzx ebp,byte [housedataidtogameid+(ebp-128)*8+housegameid.gameid]
+	add ebp,128
+	jmp short .gotid
+
+.notconstruct:
+	gethouseid ebp,ebx
+.gotid:
+
+	// find the northern tile of the building
+	mov edi, ebp
+	// check if the current tile is a house tile (it may not be if we are in the construction callback)
+	mov dl, [landscape4(si)]
+	shr dl, 4
+	cmp dl, 3
+	je .havehouse
+
+	// There isn't really a house on this tile - just set the forbidden indexes to dummy 0 (there can't be a house on that index)
+	and dword [getnearesthousedist_forbidden], 0
+	and dword [getnearesthousedist_forbidden+4], 0
+	jmp .forbidden_filled
+
+.havehouse:
+	call findnorthernhousetile
+
+	// now EBX is the northern tile, EBP is the type of the northern tile and EDI is the type of the original tile
+	// all four forbidden coords start out as the northern tile
+	mov [getnearesthousedist_forbidden], bx
+	mov [getnearesthousedist_forbidden+2], bx
+	mov [getnearesthousedist_forbidden+4], bx
+	mov [getnearesthousedist_forbidden+6], bx
+
+	mov dl, [newhousepartflags+ebp]
+	test dl, 4	// has part at X,Y+1
+	jz .no_y
+	inc byte [getnearesthousedist_forbidden+2+1]	// make second entry point at that part
+.no_y:
+	test dl, 2	// has part at X+1,Y
+	jz .no_x
+	inc byte [getnearesthousedist_forbidden+4]	// make third entry point at that part
+.no_x:
+	test dl, 1	// has part at X+1,Y+1
+	jz .no_xy
+	add word [getnearesthousedist_forbidden+6],0x101
+.no_xy:
+
+.forbidden_filled:
+	push eax	// save max. distance so we can compare it to the return value later
+
+	test ecx,ecx
+	jnz .notbyid
+
+	mov [getnearesthousedist_type], edi
+	mov ebp, .checkbyid
+	jmp short .doit
+
+.notbyid:
+	cmp cl, 1
+	jne .notbyclass
+
+	lea ebp, [houseclasses+(edi-128)*5]
+	mov ebx, [ebp]		// GRFID
+	mov [getnearesthousedist_grfid], ebx
+	mov bl, [ebp+4]
+	mov [getnearesthousedist_class], bl
+	mov ebp, .checkbyclass
+	jmp short .doit
+
+.notbyclass:
+	mov ebx, [housedataidtogameid+(edi-128)*8+housegameid.grfid]
+	mov [getnearesthousedist_grfid], ebx
+	mov ebp, .checkbygrfid
+
+.doit:
+	call findtiledistance
+
+	pop eax
+	xchg eax, edi
+	cmp eax, edi
+	jne .notmaxed
+	xor eax, eax
+.notmaxed:
+	pop ebp
+	pop esi
+	pop edi
+	pop edx
+	pop ebx
+
+.quit:
+	ret
+
+.fail:
+	test esp, esp	// clear zf
+	ret
+
+.checkbyid:
+	mov al, [landscape4(bx)]
+	shr al, 4
+	cmp al, 3
+	jne .quit	// not a house
+	cmp edi, 2
+	ja .skip_forbidden_id	// tiles farther than 2 cannot belong to the same house
+	cmp bx, [getnearesthousedist_forbidden]
+	je .fail
+	cmp bx, [getnearesthousedist_forbidden+2]
+	je .fail
+	cmp bx, [getnearesthousedist_forbidden+4]
+	je .fail
+	cmp bx, [getnearesthousedist_forbidden+6]
+	je .fail
+.skip_forbidden_id:
+	gethouseid eax, ebx
+	cmp eax, [getnearesthousedist_type]
+	ret
+
+.checkbyclass:
+	mov al, [landscape4(bx)]
+	shr al, 4
+	cmp al, 3
+	jne .quit	// not a house
+	cmp edi, 2
+	ja .skip_forbidden_class	// tiles farther than 2 cannot belong to the same house
+	cmp bx, [getnearesthousedist_forbidden]
+	je .fail
+	cmp bx, [getnearesthousedist_forbidden+2]
+	je .fail
+	cmp bx, [getnearesthousedist_forbidden+4]
+	je .fail
+	cmp bx, [getnearesthousedist_forbidden+6]
+	je .fail
+.skip_forbidden_class:
+	gethouseid eax, ebx
+	sub eax,128
+	jns .notold
+	xor eax,eax	// for old houses, use index 0, that is guaranteed to have all zeros
+.notold:
+	push ecx
+	lea ecx, [houseclasses+eax*5]
+	mov eax, [ecx]
+	cmp eax, [getnearesthousedist_grfid]
+	jne .pop_and_quit
+	mov al, [ecx+4]
+	cmp al, [getnearesthousedist_class]
+.pop_and_quit:
+	pop ecx
+	ret
+
+.checkbygrfid:
+	mov al, [landscape4(bx)]
+	shr al, 4
+	cmp al, 3
+	jne .quit	// not a house
+	cmp edi, 2
+	ja .skip_forbidden_grfid	// tiles farther than 2 cannot belong to the same house
+	cmp bx, [getnearesthousedist_forbidden]
+	je .fail
+	cmp bx, [getnearesthousedist_forbidden+2]
+	je .fail
+	cmp bx, [getnearesthousedist_forbidden+4]
+	je .fail
+	cmp bx, [getnearesthousedist_forbidden+6]
+	je .fail
+.skip_forbidden_grfid:
+	gethouseid eax,ebx
+	sub eax, 128
+	jb .quit	// old houses won't match by grfid
+	mov eax, [housedataidtogameid+eax*8+housegameid.grfid]
+	cmp eax, [getnearesthousedist_grfid]
+	ret
+

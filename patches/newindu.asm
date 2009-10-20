@@ -5528,6 +5528,7 @@ newindu_placechkproc:
 
 // now look for the closest water/land tile (closest using Manhattan distance)
 
+	mov eax, 512
 	call findtiledistance
 
 // store the distance we've found
@@ -5582,16 +5583,23 @@ newindu_placechkproc:
 
 
 // in:	esi: XY of the tile to be checked
+//	eax: max. distance to check (exclusive)
 //	ebp-> test function
-// out:	edi: distance or 512 if nothing found
+// out:	edi: distance or the specified max. distance if nothing found
 // uses: eax,ebx,ecx,edx
 //
-// the test function gets the tile XY in ebx, and must return with ZF set iff the tile is OK
-// it can use eax as a scratch register
-findtiledistance:
+// the test function gets the following:
+//	ebx: tile XY
+//	esi: origin of the search
+//	edi: distance between the origin and the current tile
+// and must return with ZF set iff the tile is OK
+// It can use eax as a scratch register
+exported findtiledistance
 
 // (edi will contain the current distance)
 	xor edi,edi
+
+	push eax	// We need eax as scratch, so keep the max. distance on the stack instead
 
 // check for the selected tile (0 distance)
 	mov ebx,esi
@@ -5646,10 +5654,11 @@ findtiledistance:
 	dec edx
 	jns .nextoffset
 
-	cmp edi,512
+	cmp edi,[esp]
 	jb short .nextdistance
 
 .distfound:
+	add esp, 4	// Remove max. distance from stack
 	ret
 
 // check for full water tile at bx; zf is set if the tile is OK
@@ -5687,6 +5696,7 @@ exported getlandorwaterdistance
 	mov ebp,findtiledistance.testdryland
 .notonwater:
 
+	mov eax, 512
 	call findtiledistance
 
 	mov eax,edi
