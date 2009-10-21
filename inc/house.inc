@@ -173,5 +173,12 @@ resd 256
 ptrvarofs newhousescargowatchmask,newhousedatablock,$
 resd 256
 
+// Map gameIDs to the setIDs used in the GRF that defined them.
+// The corresponding GRFID can be found by going to the spriteblock
+// pointed by newhousespriteblock.
+// This is currently used by var. 66 only (to avoid a linear search in housedataidtogameid)
+ptrvarofs housegameidtosetid,newhousedatablock,$
+resw 256
+
 endstruc
 

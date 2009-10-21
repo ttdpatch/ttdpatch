@@ -2323,6 +2323,7 @@ vard housesvarhandler
 endvar
 
 extern getotherhouseanimframe,gethouseaccepthistory,getnearesthousedist
+extern getnearbyhouseidandclass,getnearbyhousegrfid
 vard housesparamvarhandler
 	dd addr(getotherhousecount)
 	dd addr(getothernewhousecount)
@@ -2330,6 +2331,8 @@ vard housesparamvarhandler
 	dd getotherhouseanimframe
 	dd gethouseaccepthistory
 	dd getnearesthousedist
+	dd getnearbyhouseidandclass
+	dd getnearbyhousegrfid
 %ifndef PREPROCESSONLY
 %assign n_housesparamvarhandler (addr($)-housesparamvarhandler)/4
 %endif

@@ -149,6 +149,7 @@ setsubstbuilding:
 	mov [curgrfhouselist+ebx],dl		// Record the new gameid
 	mov eax,[curspriteblock]
 	mov [newhousespriteblock+edx*4],eax
+	mov [housegameidtosetid+edx],bl
 	lodsb
 	cmp al,110
 	jae .invalid
@@ -3164,5 +3165,100 @@ exported getnearesthousedist
 	mov eax, [newhousespriteblock+eax*4]
 	mov eax, [eax+spriteblock.grfid]
 	cmp eax, [getnearesthousedist_grfid]
+	ret
+
+// Handle parametrized variable 66 (get ID and class of nearby house tile)
+// The parameter in ah is the offset from the current tile (high nibble: Y, low nibble: X, both signed)
+// Returned value is:
+//	High word:
+//		FFFF if not a house
+//		0000 if it has no class, or is an old house
+//		01xx has class xx from this grf
+//		02xx has class xx, but from other GRF
+//	Low word:
+//		FFFF if not a house
+//		00xx if it's old house xx
+//		01xx if it's house with setid=xx from this grf
+//		02xx if it's a house with setid=xx, but from another GRF
+
+exported getnearbyhouseidandclass
+	mov ecx,esi
+	sar ax,4
+	sar al,4
+	add ch,ah
+	add cl,al
+	// now ECX has the coordinates of the target tile
+
+	mov al,[landscape4(cx,1)]
+	shr al,4
+	cmp al,3
+	jne .nothouse
+
+	gethouseid eax,ecx
+	cmp eax,128
+	jb .done	// for old houses, EAX is already correct
+
+	push ebx
+	push edx
+	mov edx,[mostrecentspriteblock]
+	mov edx,[edx+spriteblock.grfid]
+	mov ecx,[houseclasses+(eax-128)*5]
+	test ecx,ecx
+	jz .gotclass
+
+	cmp ecx,edx
+	setne ch
+	inc ch
+	mov cl,[houseclasses+(eax-128)*5+4]
+	shl ecx,16
+
+.gotclass:
+	mov ebx,[newhousespriteblock+(eax-128)*4]
+	cmp edx,[ebx+spriteblock.grfid]
+	setne ch
+	inc ch
+	mov cl,[housegameidtosetid+(eax-128)]
+
+	mov eax,ecx
+	pop edx
+	pop ebx
+
+.done:
+	ret
+
+.nothouse:
+	or eax,byte -1
+	ret
+
+// Handle parametrized variable 67 (get GRFID of nearby house tile)
+// The parameter in ah is the offset from the current tile (high nibble: Y, low nibble: X, both signed)
+// Returned value is FFFFFFFF if the selected tile isn't a house, 00000000 if it's an old house, the GRFID of the defining GRF otherwise
+exported getnearbyhousegrfid
+	mov ecx,esi
+	sar ax,4
+	sar al,4
+	add ch,ah
+	add cl,al
+	// now ECX has the coordinates of the target tile
+
+	mov al,[landscape4(cx,1)]
+	shr al,4
+	cmp al,3
+	jne .nothouse
+
+	gethouseid eax,ecx
+	cmp eax,128
+	jb .oldhouse
+
+	mov eax,[newhousespriteblock+(eax-128)*4]
+	mov eax,[eax+spriteblock.grfid]
+	ret
+
+.nothouse:
+	or eax,byte -1
+	ret
+
+.oldhouse:
+	xor eax,eax
 	ret
 
