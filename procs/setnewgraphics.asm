@@ -33,6 +33,12 @@ codefragment findgameoptionswindowstruc,-20
 codefragment newgameoptionsclick
 	ijmp gameoptionsclick
 
+codefragment oldpreparelandinfowindow,-13
+	mov al, 0x0d
+	push cx
+	push dx
+	
+codefragment_call newpreparelandinfowindow, preparelandinfowindow, 6
 
 endcodefragments
 
@@ -116,6 +122,8 @@ extern StartYearDataPointers
 	lea edi,[ebx+0x3b4]
 	storefunctioncall gameoptionstimer
 	mov word [edi+15],0x368d	// two-byte nop
+	
+	patchcode preparelandinfowindow
 	ret
 
 global spritearraysize

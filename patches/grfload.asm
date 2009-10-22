@@ -1964,6 +1964,16 @@ getmiscgrftable:
 	pop esi
 	ret
 
+uvard curlandinfogrf
+
+// Called in the land info window handler, just before drawing the description text.
+// Allow using D0xx GRF texts in the window by copying a saved spriteblock pointer to curmiscgrf.
+// Safe: eax, ebx, ebp
+exported preparelandinfowindow
+	mov [textrefstack],ebx		// overwritten
+	mov ebx,[curlandinfogrf]
+	mov [curmiscgrf],ebx
+	ret
 
 // replacement table for TTD sprites
 // contents for each original sprite:

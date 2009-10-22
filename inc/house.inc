@@ -54,6 +54,8 @@ resb 256
 // Bit 0 - use callback 2A to decide the three cargo types accepted
 // Bit 1 - use callback 2E for custom cargo production
 // Bit 2 - use callback 143 to conditionally deny the destruction of the building
+// Bit 3 - use callback 14E to decide if default foundations need to be drawn
+// Bit 4 - use callback 14F to allow or deny autosloping below the tile
 ptrvarofs housecallbackflags2,newhousedatablock,$
 resb 256
 

@@ -712,11 +712,6 @@ gethouseidebpesi:
 	gethouseid ebp,esi
 	ret
 
-global gethouseidecxedi
-gethouseidecxedi:
-	gethouseid ecx,edi
-	ret
-
 global gethouseidesiebx
 gethouseidesiebx:
 	gethouseid esi,ebx
@@ -3262,3 +3257,83 @@ exported getnearbyhousegrfid
 	xor eax,eax
 	ret
 
+// return text to use in the land info window
+// in:	edi: XY of tile
+// out:	ax: textID to use
+//	zf clear if " (under construction)" needs to be attached to the text
+// safe: eax, ebx, ecx, esi, ebp
+exported queryhousename
+	gethouseid ebp, edi
+
+	mov al, [landscape3+2*edi]
+	and al, 0xc0
+	cmp al, 0xc0
+	sete [miscgrfvar]	// var. 10 is 1 if the house is complete, otherwise 0
+
+	cmp ebp, 127
+	jbe .usearray		// old houses cannot have name callback
+	
+	lea eax,[ebp-128]
+	mov esi, edi
+	mov byte [grffeature],7
+	mov dword [curcallback],0x14D
+	call getnewsprite
+	mov dword [curcallback],0
+	jc .usearray
+	
+	// we have the low byte of the textid in al, fill out the class
+	mov ah, 0xd4
+	mov byte [miscgrfvar],0
+	mov ecx, [mostrecentspriteblock]
+extern curlandinfogrf
+	mov [curlandinfogrf],ecx
+	
+	cmp eax,eax	// set zf to avoid appending anything
+	ret
+
+.usearray:
+	// fall back to the default behaviour of array lookup
+	mov ax, [newhousenames+ebp*2]
+	cmp byte [miscgrfvar],1		// set zf if house is complete
+	mov byte [miscgrfvar],0		// clear miscgrfvar without hurting the flags
+	ret
+
+// called while determining whether a default foundation should be drawn
+// in:	registers from GetTileTypeHeightInfo, except that ebx and esi are swapped
+// out:	"faked" di and zf set to skip drawing foundations for sloped tiles
+// safe: esi,???
+// (mostly copied from checkindustileslope)
+exported checkhousetileslope
+	test di,0xf
+	jnz .sloped
+// the tile isn't sloped, so we won't draw foundations anyway
+	ret
+
+.drawfound:
+// allow drawing the foundations
+	pop eax
+	test edi,edi	// clear zf
+	ret
+
+.sloped:
+	push eax
+	gethouseid eax, ebx
+	sub eax,128
+	jb .drawfound		// old tile types can't suppress foundations
+
+	test byte [housecallbackflags2+eax],8
+	jz .drawfound		// callback isn't enabled - draw foundations
+
+// do the callback
+	movzx esi,bx
+	mov byte [grffeature],7
+	mov dword [curcallback],0x14e
+	call getnewsprite
+	mov dword [curcallback],0
+	jc .drawfound			// callback error
+	test eax,eax
+	jnz .drawfound			// callback wants to draw foundation
+
+	xor edi,edi			// create fake di and set zf
+	pop eax
+	ret

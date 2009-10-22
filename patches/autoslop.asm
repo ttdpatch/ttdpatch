@@ -10,10 +10,11 @@
 #include <human.inc>
 #include <objects.inc>
 #include <pusha.inc>
+#include <house.inc>
 
 extern autoslopevalue,curplayerctrlkey,gettileinfoshort,ishumanplayer
 extern getindustileid,industilecallbackflags
-extern grffeature,curcallback,getnewsprite
+extern grffeature,curcallback,getnewsprite,gethouseidebpebx
 
 
 
@@ -62,7 +63,7 @@ autoslopechecklandscape:
 	cmp ah, 0x20
 	je near .roadtile
 	cmp ah, 0x30
-	je near .noroutetiles
+	je near .housetile
 	cmp ah, 0x50
 	je near .stationtile
 	cmp ah, 0x80
@@ -243,6 +244,18 @@ autoslopechecklandscape:
 .roadup_noroute2:
 	jmp .oktochange
 
+.housetile:
+	gethouseid eax,ebx
+	sub eax, 128
+	jb .noroutetiles	// old houses don't have callbacks
+
+	test byte [housecallbackflags2+eax],0x10
+	jz .noroutetiles
+	
+	mov byte [grffeature],7
+	mov dword [curcallback],0x14f
+	jmp short .docallback
+
 .industrytile:
 
 	xor eax,eax
@@ -252,11 +265,13 @@ autoslopechecklandscape:
 	test byte [industilecallbackflags+eax],0x40
 	jz .noroutetiles
 
-	xchg esi,ebx
 	mov byte [grffeature],9
 	mov byte [curcallback],0x3C
+
+.docallback:
+	xchg esi,ebx
 	call getnewsprite
-	mov byte [curcallback],0
+	mov dword [curcallback],0
 	xchg esi,ebx
 	jc .noroutetiles
 

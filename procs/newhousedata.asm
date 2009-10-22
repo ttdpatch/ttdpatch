@@ -96,14 +96,6 @@ codefragment newgethouseidebpesi
 	call runindex(gethouseidebpesi)
 	setfragmentsize 7
 
-codefragment oldgethouseidecxedi
-	movzx ecx,byte [landscape2+edi]
-	db 0x66,0x8b
-
-codefragment newgethouseidecxedi
-	call runindex(gethouseidecxedi)
-	setfragmentsize 7
-
 codefragment oldgethouseidesiebx,2
 	push dx
 	movzx esi,byte [landscape2+ebx]
@@ -253,6 +245,20 @@ codefragment oldcanindustryreplacehouse_watertower
 
 codefragment_call newcanindustryreplacehouse_watertower,canindustryreplacehouse_watertower,9
 
+codefragment oldqueryhousename
+	movzx ecx,byte [landscape2+edi]
+	db 0x66,0x8b
+
+codefragment_call newqueryhousename, queryhousename, 28
+
+codefragment oldcheckhousetileslope,-5
+	jz $+2+0x26
+	push bx
+	push dx
+	push di
+
+codefragment_call newcheckhousetileslope, checkhousetileslope, 5
+
 endcodefragments
 
 patchnewhousedata:
@@ -331,10 +337,9 @@ patchnewhousedata:
 	mov dword [variabletowrite],newhouseremovemultipliers
 	patchcode findvariableaccess,newvariable,1,1
 //waTownBuildingNames
-	mov eax,[orghouseoffsets+4*10]
-	mov [variabletofind],eax
-	mov dword [variabletowrite],newhousenames
-	patchcode findvariableaccess,newvariable,1,1
+	// There is only one access for this array in TTD code,
+	// and we need to patch that anyway
+	patchcode queryhousename
 //waHouseAvailMaskTable is accessed from one place only and we need to
 //overwrite it anyway
 	patchcode oldgetrandomhousetype,newgetrandomhousetype,1,1
@@ -350,7 +355,6 @@ patchnewhousedata:
 	patchcode oldgethouseidedxedi1,newgethouseidedxedi,1,1
 	patchcode oldgethouseidedxedi2,newcanremovehouse,1,1
 	patchcode oldgethouseidebpesi,newgethouseidebpesi,1,1
-	patchcode oldgethouseidecxedi,newgethouseidecxedi,1,1
 	patchcode oldgethouseidesiebx,newgethouseidesiebx,1,1
 
 	patchcode oldtestcreatechurchorstadium,newtestcreatechurchorstadium,1,1
@@ -385,4 +389,6 @@ extern stationarray2ptr
 	patchcode canindustryreplacehouse_bigtown
 	patchcode canindustryreplacehouse
 	patchcode canindustryreplacehouse_watertower
+	
+	patchcode oldcheckhousetileslope,newcheckhousetileslope,1+WINTTDX,2
 	ret
