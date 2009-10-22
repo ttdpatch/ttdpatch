@@ -1704,11 +1704,11 @@ static void dumpxmlcategoryswitches(FILE *f, categories cat, int depth)
 		fprintf(f, "<bitswitch name=\"%s\" default=\"%ld\"",
 			switches[i].cfgcmd, switches[i].range[2]);
 	   } else if (switches[i].radix == RADIX_HEX)
-		fprintf(f, "<range name=\"%s\" min=\"%lx\" max=\"%lx\" default=\"%lx\"",
+		fprintf(f, "<range name=\"%s\" min=\"%lx\" max=\"%lx\" default=\"%lx\" base=\"16\"",
 			switches[i].cfgcmd,
 			switches[i].range[0], switches[i].range[1], switches[i].range[2]);
 	   else if (switches[i].radix == RADIX_OCT)
-		fprintf(f, "<range name=\"%s\" min=\"%lo\" max=\"%lo\" default=\"%lo\"",
+		fprintf(f, "<range name=\"%s\" min=\"%lo\" max=\"%lo\" default=\"%lo\" base=\"8\"",
 			switches[i].cfgcmd,
 			switches[i].range[0], switches[i].range[1], switches[i].range[2]);
 	   else if (switches[i].radix == RADIX_QUAT) {
@@ -1718,7 +1718,7 @@ static void dumpxmlcategoryswitches(FILE *f, categories cat, int depth)
 	   	catquatvalue(buf1,switches[i].range[0]);
 	   	catquatvalue(buf2,switches[i].range[1]);
 	   	catquatvalue(buf3,switches[i].range[2]);
-		fprintf(f, "<range name=\"%s\" min=\"%s\" max=\"%s\" default=\"%s\"",switches[i].cfgcmd,buf1,buf2,buf3);
+		fprintf(f, "<range name=\"%s\" min=\"%s\" max=\"%s\" default=\"%s\" base=\"4\"",switches[i].cfgcmd,buf1,buf2,buf3);
 	   } else
 		fprintf(f, "<range name=\"%s\" min=\"%ld\" max=\"%ld\" default=\"%ld\"",
 			switches[i].cfgcmd,
