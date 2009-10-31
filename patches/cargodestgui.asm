@@ -972,9 +972,9 @@ getfirstcp:				//expects ebp=[cargodestdata]
 	mov [cpguicurvehid], eax
 	mov eax, [cargodestgamedata.vehcplist+ebp+eax*4]
 	or eax, eax
-	jnz .ok
-	call getnextcp
-.ok:
+	jz getnextcp
+	test BYTE [eax+ebp+cargopacket.flags], 2	//not a cargo packet
+	jnz getnextcp
 	ret
 .st:
 	movzx eax, WORD [esi+window.id]
@@ -992,9 +992,13 @@ getnextcp:	//nz=continue, new packet in eax
 		//z=no next packet, eax=0	
 	or eax, eax
 	jz .test
+.next:
 	mov eax, [ebp+eax+cargopacket.nextptr]
 	or eax, eax
 	jz .test
+	test BYTE [eax+ebp+cargopacket.flags], 2	//not a cargo packet
+	jnz .next
+	or eax, eax
 	ret
 .zret:
 	xor eax, eax

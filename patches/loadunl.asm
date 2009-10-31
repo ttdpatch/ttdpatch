@@ -11,6 +11,7 @@
 #include <station.inc>
 #include <human.inc>
 #include <bitvars.inc>
+#include <dest.inc>
 
 extern acceptcargofn,addexpenses,addfeederprofittoexpenses,calc_te_a
 extern calcvehweight,callbackflags,cargotypes,cargotypesloading
@@ -26,6 +27,7 @@ extern updatestationgraphics
 extern vehcallback,stationplatformanimtrigger
 extern convertplatformsinremoverailstation
 extern acceptcargoatstationflag,acceptcargotimetravelledlasthop,cargodestloadflags
+extern cargodestdata,getorcreatevehstatuscp
 
 
 
@@ -103,7 +105,7 @@ UnloadCargoToStation:
 	cmp	ax,word [esi+veh.currentload]
 	jb	.notdoneyet
 
-	dec	byte [numvehstillunloading]		// vehicle will be empty
+	//dec	byte [numvehstillunloading]		// vehicle will be empty
 	jmp	.nomoreleft
 
 .notdoneyet:
@@ -211,6 +213,7 @@ UnloadCargoToStation:
 .doneunload:
 //if the vehicle finished unloading, clear the cash flag
 	and	byte [esi+veh.modflags],~ ((1 << MOD_DIDCASHIN)|(1 << MOD_MORETOUNLOAD))
+	dec	byte [numvehstillunloading]		// vehicle will be empty
 
 .notempty:
 	//actually add cargo to the station
@@ -1263,9 +1266,29 @@ LoadUnloadCargo:
 //add the profit
 	mov	ebx, [%$income]
 	or	ebx, ebx
-	jz	.done
+	jz	NEAR .done
 	sub	[esi+veh.profit], ebx
 	call	[addexpenses]
+	
+	testflags cargodest
+	jnc .nocdgradloadtxtfxchk
+	testflags gradualloading
+	jnc .nocdgradloadtxtfxchk
+	movzx ecx, WORD [esi+veh.idx]
+	push ebp
+	mov ebp, [cargodestdata]
+	call getorcreatevehstatuscp
+	mov ecx, [eax+ebp+cargopacket.lasttransprofit]
+	add ecx, ebx
+	mov [eax+ebp+cargopacket.lasttransprofit], ecx
+	pop ebp
+	cmp BYTE [numvehstillunloading], 0
+	jne NEAR .done
+	mov ebx, ecx
+	mov ecx, [cargodestdata]
+	mov DWORD [eax+ecx+cargopacket.lasttransprofit], 0
+.nocdgradloadtxtfxchk:
+
 //play cash sound for human1
 	mov	al, [curplayer]
 	cmp	al, [human1]

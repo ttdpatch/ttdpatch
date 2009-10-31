@@ -22,8 +22,8 @@ extern kernel32hnd
 extern cdstunroutedscoreval, cdstnegdistfactorval, cdstnegdaysfactorval, cdstroutedinitscoreval
 
 //uncoment for debugging purposes
-//#undef DEBUG
-//#define DEBUG 1
+#undef DEBUG
+#define DEBUG 1
 
 // save pointer data
 //uvard cargopacketstore
@@ -326,7 +326,46 @@ linkcargopacket:				//ebp=[cargodestdata]
 .firstinsert:
 	mov [eax+ebp+cargopacket.nextptr], ecx
 	ret
-	
+
+global getorcreatevehstatuscp
+getorcreatevehstatuscp:	//ebp=[cargodestdata]
+			//ecx=veh id
+			//returns status packet in eax
+	call getvehstatuscp
+	or eax, eax
+	jnz .ret
+	push ebx
+	push edx
+	push ecx
+	call alloccargodestdataobj
+	mov ebx, [esp]
+	or ebx, 0x20000
+	call linkcargopacket
+	mov BYTE [eax+ebp+cargopacket.flags], 2
+	pop ecx
+	pop edx
+	pop ebx
+.ret:
+	ret
+
+getvehstatuscp:		//ebp=[cargodestdata]
+			//ecx=veh id
+			//returns status packet in eax or zero if none
+
+	mov eax, [cargodestgamedata.vehcplist+ebp+ecx*4]
+	jmp .check
+.loop:
+	test BYTE [eax+ebp+cargopacket.flags], 2
+	jnz .end
+.next:
+	mov eax, [eax+ebp+cargopacket.nextptr]
+.check:
+	or eax, eax
+	jnz .loop
+.end:
+	ret
+
+
 splitcargopacket:	//eax=old cargo packet
 			//dx=amount to split off
 			//ebp=[cargodestdata]
@@ -721,6 +760,8 @@ AcceptCargoAtStation_CargoDestAdjust:
 	//ecx=current location
 	//ebp=[cargodestdata]
 .cploop:
+	test BYTE [eax+ebp+cargopacket.flags], 2	//not a cargo packet
+	jnz NEAR .cploopnext
 	mov dx, [eax+ebp+cargopacket.amount]
 	sub [esp+12], dx
 	mov dx, [esp] //eax, max unload amount
@@ -1013,6 +1054,8 @@ LoadCargoFromStation_CargoDestAdjust:
 	or BYTE [cargodestloadflags], 1
 	jmp .cploopnext
 .cploop:
+	test BYTE [eax+ebp+cargopacket.flags], 2	//not a cargo packet
+	jnz NEAR .cploopnext
 	mov cl, [esi+veh.cargotype]
 	cmp cl, [eax+ebp+cargopacket.cargo]
 	jne .cploopnext
@@ -1846,6 +1889,8 @@ cargodestdelstationpervehhook:
 	or edx, edx
 	jz .end
 .loop:
+	test BYTE [edx+ebp+cargopacket.flags], 2	//not a cargo packet
+	jnz .next
 	cmp [ebp+edx+cargopacket.destst], al
 	je .kill
 	cmp [ebp+edx+cargopacket.sourcest], al
@@ -1894,6 +1939,8 @@ cargodestdelstationperstationhook:
 	or edx, edx
 	jz .end
 .loop:
+	test BYTE [ebx+edx+cargopacket.flags], 2	//not a cargo packet
+	jnz .next
 	cmp [ebx+edx+cargopacket.cargo], ah
 	jne .adv
 	cmp [ebx+edx+cargopacket.destst], al
