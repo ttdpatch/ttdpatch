@@ -22,8 +22,8 @@ extern kernel32hnd
 extern cdstunroutedscoreval, cdstnegdistfactorval, cdstnegdaysfactorval, cdstroutedinitscoreval
 
 //uncoment for debugging purposes
-#undef DEBUG
-#define DEBUG 1
+//#undef DEBUG
+//#define DEBUG 1
 
 // save pointer data
 //uvard cargopacketstore
