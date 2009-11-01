@@ -521,6 +521,8 @@ defourtext cpgui_rd_via
 defourtext cpgui_rd_days
 defourtext cpgui_rd_lastupdate
 defourtext cpgui_rd_oldestwaiting
+
+defourtext cpgui_sourceline
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
