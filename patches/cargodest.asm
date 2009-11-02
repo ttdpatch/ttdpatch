@@ -1890,12 +1890,13 @@ cargodestdelstationpervehhook:
 	jz .end
 .loop:
 	test BYTE [edx+ebp+cargopacket.flags], 2	//not a cargo packet
-	jnz .next
+	jnz .iterate
 	cmp [ebp+edx+cargopacket.destst], al
 	je .kill
 	cmp [ebp+edx+cargopacket.sourcest], al
 	je .kill
 	sub cx, [ebp+edx+cargopacket.amount]
+.iterate:
 	mov edx, [ebp+edx+cargopacket.nextptr]
 .next:
 	or edx, edx
@@ -1940,7 +1941,7 @@ cargodestdelstationperstationhook:
 	jz .end
 .loop:
 	test BYTE [ebx+edx+cargopacket.flags], 2	//not a cargo packet
-	jnz .next
+	jnz .adv
 	cmp [ebx+edx+cargopacket.cargo], ah
 	jne .adv
 	cmp [ebx+edx+cargopacket.destst], al
