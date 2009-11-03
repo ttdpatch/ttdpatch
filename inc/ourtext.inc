@@ -523,6 +523,9 @@ defourtext cpgui_rd_lastupdate
 defourtext cpgui_rd_oldestwaiting
 
 defourtext cpgui_sourceline
+
+defourtext news_newbridge
+defourtext news_newbridge_details
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

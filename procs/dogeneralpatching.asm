@@ -13,6 +13,7 @@
 patchproc sharedorders, patchsharedorders
 patchproc sharedorders, fifoloading, patchdeletepressed
 patchproc newsignals, patchnewsignals
+patchproc morenews, patchnewyear
 
 extern BringWindowToForeground,CreateTooltip,CreateWindow
 extern CreateWindowRelative,DestroyWindow,DistributeProducedCargo
@@ -1433,6 +1434,13 @@ codefragment oldreaddiffset, 7*WINTTDX
 
 codefragment_call newreaddiffset,fixindustriesnone,9 - 4*WINTTDX
 
+codefragment oldnewyearstart
+	mov ebp,[opclass(0xd)]
+	mov ebx,5
+	call dword [ebp+4]
+
+codefragment_call newnewyearstart, newyearstart, 6
+
 endcodefragments
 
 ptrvarall industrydatablock
@@ -2246,6 +2254,11 @@ dogeneralpatching:
 
 	patchcode oldreaddiffset, newreaddiffset, 2, 2, , testmultiflags enhanceddiffsettings, z
 
+	// Install our own function handler as the class A function handler (that class has no functions by default)
+extern patchfunctionhandler
+	mov eax,[opclass(0xa)]
+	mov dword [eax+4],patchfunctionhandler	// Function handler, points to a ret by default
+
 	ret
 
 global newsavename
@@ -2340,4 +2353,8 @@ patchsignals:
 	
 patchnewsignals:
 	or byte [newgraphicssetsenabled+1],1 << (0xE-8)
+	ret
+
+patchnewyear:
+	patchcode newyearstart
 	ret

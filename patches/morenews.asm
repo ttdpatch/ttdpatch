@@ -8,6 +8,9 @@
 #include <town.inc>
 #include <industry.inc>
 #include <ptrvar.inc>
+#include <window.inc>
+#include <news.inc>
+#include <grfdef.inc>
 
 extern clearcrashedtrainpath,newsmessagefn,patchflags
 
@@ -296,4 +299,265 @@ clearcrashedtrain:
 	mov	edx,newsdata(traincleared,5)
 	call	newsmsgwithnearesttown
 .exit:
+	ret
+
+// Called at the beginning of each year if morenews is on
+// Check if any new bridge has been introduced this year, and generate news messages for them
+// Safe: all
+exported checkfornewbridges
+	xor edi,edi
+	testflags newbridges
+	jc .newbridges_on
+
+extern bridgespecificpropertiesttd
+	mov esi,[bridgespecificpropertiesttd]
+.nextold:
+	mov al, [currentyear]
+	cmp [esi+edi],al	// compare intro year with current year
+	jne .skipold
+	call .gen
+.skipold:
+	inc edi
+	cmp edi,NBRIDGES
+	jb .nextold
+	ret
+
+.newbridges_on:
+.nextnew:
+extern bridgeloaded
+	bt [bridgeloaded],edi
+	jnc .skipnew
+	mov al, [currentyear]
+extern bridgeintrodate
+	cmp [bridgeintrodate+edi],al
+	jne .skipnew
+	call .gen
+.skipnew:
+	inc edi
+	cmp edi,NNEWBRIDGES
+	jb .nextnew
+	ret
+
+.gen:
+	mov ebx, 0x060003	// category=new vehicles, type=custom
+	mov ax, 0x0a*8		// class offset of handler function
+extern newbridgenewshandler_funcnum
+	mov ecx, newbridgenewshandler_funcnum
+	mov edx,edi
+	jmp dword [newsmessagefn]
+
+// Draw the bare minimum required for a news message window - can be used in custom news handlers
+// (The code is mostly lifted from TTD custom news handlers)
+// in:	esi->window to draw
+//	edi->screen update block descriptor
+// preserves: esi, edi
+extern fillrectangle
+drawdefaultnewswindow:
+	// draw the white background
+	mov ax, [esi+window.x]
+	mov cx, [esi+window.y]
+	mov bx, [esi+window.width]
+	mov dx, [esi+window.height]
+	add bx, ax
+	add dx, cx
+	dec bx
+	dec dx
+	mov bp, 0x0F
+	call [fillrectangle]
+
+	// draw the 1px border by four fillrectangle calls
+	push ebx
+	mov ebx,eax
+	mov bp,1
+	call [fillrectangle]
+	pop ebx
+
+	push eax
+	mov eax,ebx
+	mov bp,1
+	call [fillrectangle]
+	pop eax
+
+	push edx
+	mov edx,ecx
+	mov bp,1
+	call [fillrectangle]
+	pop edx
+
+	push ecx
+	mov ecx,edx
+	mov bp,1
+	call [fillrectangle]
+	pop ecx
+
+	push esi
+	mov edx,ecx
+	mov ecx,eax
+	add ecx,2
+	inc edx
+	mov bx, 0x00c6	// TextID for the close button
+extern drawtextfn
+	call [drawtextfn]
+	pop esi
+
+	ret
+
+// Custom news handler for the "New bridge available" message
+// Can be called in two ways:
+// edi=0: drawn in the status bar or in the news history window
+//	currstatusnewsitem stores our news structure
+//	must return a textId in eax and fill the text ref. stack accordingly
+//	safe: esi, ???
+// edi!=0: draw full news message
+//	edi->window to draw
+//	currnewsitem stores our news structure
+//	safe: all
+extern currscreenupdateblock, bridgenames, drawsplitcenteredtextfn, bridgeicons
+exported newbridgenewshandler
+	test edi,edi
+	jnz .full
+
+	// summary mode, just return the textid in ax
+	mov word [textrefstack], ourtext(news_newbridge)
+	movzx esi,word [currstatusnewsitem+newsitem.item]
+	mov ax,[bridgenamesttd+esi*2]
+	testflags newbridges
+	jnc .statusnameok
+	mov ax,[bridgenames+esi*2]
+.statusnameok:
+	mov [textrefstack+2],ax
+	mov ax, 0x2b6	// prints two texts separated by a hyphen
+	ret
+
+.full:
+	// full mode - EDI points to a window that needs to be drawn
+	mov esi, edi
+	mov edi, [currscreenupdateblock]
+	call drawdefaultnewswindow
+
+	// Draw the title
+	mov bx, ourtext(news_newbridge)
+	mov cx, [esi+window.width]
+	shr cx,1
+	add cx, [esi+window.x]
+	mov dx, [esi+window.y]
+	add dx, 20
+	mov bp, [esi+window.width]
+	sub bp, 2
+	push esi
+	call dword [drawsplitcenteredtextfn]
+	pop esi
+
+	// Draw a background rectangle inside the window, mimicking the new vehicle window
+	mov bp, 0x0a
+	testflags newspapercolour
+	jnc .gotbgcolor
+extern coloryear
+	movzx ax,[currentyear]
+	add ax,1920
+	cmp ax,[coloryear]
+	jb .gotbgcolor
+	mov bp,103	// greenish background color
+
+.gotbgcolor:
+	mov ax, [esi+window.x]
+	mov cx, [esi+window.y]
+	mov bx, [esi+window.width]
+	mov dx, [esi+window.height]
+	add dx, cx
+	add bx, ax
+	add ax, 25
+	sub bx, 25
+	add cx, 56
+	sub dx, 2
+	call [fillrectangle]
+
+	// Display the name of the bridge
+	movzx ecx, word [currnewsitem+newsitem.item]
+	mov ax, [bridgenamesttd+ecx*2]
+	testflags newbridges
+	jnc .nameok
+	mov ax, [bridgenames+ecx*2]
+.nameok:
+	mov [textrefstack],ax
+	mov bx, 0x885A		// print text in big black letters
+	mov cx,[esi+window.width]
+	shr cx,1
+	add cx,[esi+window.x]
+	mov dx,[esi+window.y]
+	add dx,57
+	mov bp,[esi+window.width]
+	sub bp,2
+	push esi
+	call dword [drawsplitcenteredtextfn]
+	pop esi
+
+	// draw the icon
+	movzx ecx, word [currnewsitem+newsitem.item]
+	mov ebx,[bridgeiconsttd+ecx*4]
+	testflags newbridges
+	jnc .iconok
+	mov ebx,[bridgeicons+ecx*4]
+.iconok:
+	testflags newspapercolour
+	jnc .greyicon
+	movzx ax,[currentyear]
+	add ax,1920
+	cmp ax,[coloryear]
+	jae .coloredicon
+.greyicon:
+	// replace color translation with grey translation
+	and ebx,0x3fff
+	or ebx,0x3238000
+.coloredicon:
+	mov ebp,ebx
+	and ebp,0x3fff
+	add ebp,ebp
+extern newspritexsize
+	add ebp,[newspritexsize]	// now ebp points to the width of the icon
+	mov cx,[esi+window.width]
+	sub cx,[ebp]			// subtract its width before dividing by two, so it ends up centered
+	shr cx,1
+	add cx,[esi+window.x]
+	mov dx,[esi+window.y]
+	add dx,83
+extern drawspritefn
+	push esi
+	push edi
+	call dword [drawspritefn]
+	pop edi
+	pop esi
+
+	// Draw stats
+	movzx eax, word [currnewsitem+newsitem.item]
+	testflags newbridges
+	jc .newdetails
+	mov bx, [bridgespeedsttd+eax*2]
+	mov [textrefstack],bx
+	mov ecx, [bridgespecificpropertiesttd]
+	movzx bx, byte [ecx+NBRIDGES+eax]		// min. length
+	mov [textrefstack+2],bx
+	movzx bx, byte [ecx+2*NBRIDGES+eax]		// max. length
+	mov [textrefstack+4],bx
+	jmp short .gotstats
+.newdetails:
+extern bridgemaxspeed, bridgeminlength, bridgemaxlength
+	mov bx, [bridgemaxspeed+eax*2]
+	mov [textrefstack],bx
+	movzx bx, byte [bridgeminlength+eax]
+	mov [textrefstack+2],bx
+	movzx bx, byte [bridgemaxlength+eax]
+	mov [textrefstack+4],bx
+.gotstats:
+	movzx ecx, word [esi+window.width]
+	lea ebp, [ecx-52]
+	shr ecx,1
+	add cx,[esi+window.x]
+	mov dx,[esi+window.y]
+	add dx,131
+	mov bx,ourtext(news_newbridge_details)
+	push esi
+	call [drawsplitcenteredtextfn]
+	pop esi
+
 	ret

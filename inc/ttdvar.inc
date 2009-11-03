@@ -186,6 +186,7 @@ ttdvar(tracertresult,0x778FB)
 ttdvar(operrormsg2,0x774fc)		// W: popup error message (text ID), second line
 ttdvar(operrormsg1,0x774fe)		// W: ...and first line (used by various place/remove routines)
 ttdvar(currnewsitem,0x776f4)		// currently displayed news item
+ttdvar(currstatusnewsitem,0x9ef33)	// news item currently being scrolled in the status bar
 ttdvar(wgraphicssemaphore,0x778ee)	// W: 
 ttdvar(newsitemparam,0x778ea)		// W: used by the news message function
 ttdvar(customtxtptr,0x7793c)		// P: pointer to area where custom strings are stored

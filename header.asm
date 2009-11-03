@@ -134,6 +134,32 @@ startpatchactions			// this is a macro, not a label...
 	patchaction BuildObject
 	patchaction DemolishRoad		// Just like RemoveRoad, but for dynamite.
 
+// New functions added by TTDPatch
+// These are just regular functions called via the function handler of class A (that class has no functions in unpatched TTD)
+// You are usually better off with calling your fuction directly instead of listing it here,
+// but there are cases where using a class/funcno pair is easier (the custom news draw handler is one example)
+
+%macro startpatchfunctions 0
+	%assign functionnum 0
+	align 4
+	noglobal vard ttdpatchfunctions
+%endmacro
+
+%macro patchfunction 1.nolist
+	global %1_funcnum
+	extern %1
+	dd %1
+	%1_funcnum equ functionnum
+	%assign functionnum functionnum+1
+%endmacro
+
+startpatchfunctions
+	patchfunction newbridgenewshandler
+
+// Trivial function handler to allow calling the functions above
+exported patchfunctionhandler
+	jmp dword [ttdpatchfunctions+4*ebx]
+
 uvard newvehdata, newvehdatastruc_size/4
 uvard persgrfdata, persgrfdatastruc_size/4
 

@@ -3780,3 +3780,17 @@ exported drawgrassytreeland
 	and bl,0xFE
 	jmp near $
 ovar .oldfn,-4,$,drawgrassytreeland
+
+// Called when a new year starts
+// If you expand this function with code for your switch, make sure to update
+// the patchcode line for patchnewyear in dogeneralpatching.asm, to make sure the required patch is installed
+extern opclass
+exported newyearstart
+	pusha
+	testflags morenews
+	jnc .nobridgenews
+	extcall checkfornewbridges
+.nobridgenews:
+	popa
+	mov ebp, [opclass(0xd)]	// overwritten
+	ret
