@@ -1421,92 +1421,32 @@ addroutesreachablefromthisnodeandrecurse:
 	jc NEAR .next			//route is way too long
 
 	//iterate over destination enties in start routing table in eax
+	lea ecx, [eax+routingtable.nexthoprtptr-routingtableentry.next]
+	mov [tempprevroutingtableentrystore], ecx
+
+	mov eax, [eax+ebp+routingtable.nexthoprtptr]
+	push esi
+	mov ecx, [esi+ebp+routingtable.location]
+	mov esi, [curnexthoproutingtable]
+	call addroutesreachablefromthisnodeandrecurse_checkloop
+	pop esi
+	cmp ecx, 1
+	je NEAR .doneandnext
+	jna .noint3_
+	int3  			//distant route tried to update a near route, fail
+.noint3_:
+
+	mov eax, [startroutingtable]
 	lea ecx, [eax+routingtable.destrtptr-routingtableentry.next]
 	mov [tempprevroutingtableentrystore], ecx
+
 	mov eax, [eax+ebp+routingtable.destrtptr]
-	or eax, eax
-	jz NEAR .donecheck
 	mov ecx, [esi+ebp+routingtable.location]
 	mov esi, [curnexthoproutingtable]
-.checkloop:
-	cmp [eax+ebp+routingtableentry.cargo], bl
-	jne NEAR .nextcheck
-	cmp [eax+ebp+routingtableentry.dest], ecx
-	jne NEAR .nextcheck
-	cmp [eax+ebp+routingtableentry.destrttable], esi
-	jne .differentnodecheck
-	//we're going over ourselves!
-	//if the new route to this destination through the initial next node is shorter, carry on recursing, else stop here
-	cmp [eax+ebp+routingtableentry.mindays], di
-	jbe NEAR .doneandnext
-	//update and recurse from here
-	mov esi, [edx+ebp+routingtableentry.destrttable]
-	jmp .updateandstartrecursion
-.differentnodecheck:
-	movzx esi, WORD [eax+ebp+routingtableentry.mindays]
-	//esi is now the cost of the route through a different first node (other)
-	//mov cl, [cargodestroutecomparisonshiftfactor]
-	mov ecx, [cargodestroutecmpfactor]
-	cmp edi, esi
-	je .done_differentnodecheck	//routes are identical (unlikely but whatever...)
-	jb .newroutebetter		//this route is better, maybe delete other
-	//other route is better (esi is smaller), maybe abandon this one
-//	push esi
-//	shr esi, cl
-//	add esi, [esp]	//esi is threshold for new route
-//	add esp, 4
-
-	imul esi, ecx
-	db 0x2E				//branch not taken
-	jo .done_differentnodecheck	//route threshold is *enormous* (user is a plonker), this route is fine.
-	shr esi, 16
-	cmp edi, esi
-	ja NEAR .doneandnext
-	jmp .done_differentnodecheck
-.newroutebetter:
-	//this route is better (edi is smaller), maybe zap other one
-	push edi
-//	shr edi, cl
-//	add edi, [esp]	//esi is threshold for new route
-	imul edi, ecx
-	db 0x3E		//branch taken
-	jno .nobadlen	//players who fail this jump ought to be hit by a huge branch misprediction penalty :P (and have god awful routing)
-	//route threshold is *enormous*, other route is fine
-	pop edi
-	jmp .done_differentnodecheck
-.nobadlen:
-	shr edi, 16
-	cmp esi, edi
-	pop edi
-	jbe .done_differentnodecheck
-	//old route (eax length esi) is no good, exterminate it
-	mov esi, [eax+ebp+routingtableentry.next]
-	
-	call freecargodestdataobj
-	
-	mov ecx, [tempprevroutingtableentrystore]	//this always works, is fudged if first attached
-	mov [ecx+ebp+routingtableentry.next], esi
-	mov eax, esi
-
-	//cloned from below, keep in sync
-        mov esi, [edx+ebp+routingtableentry.destrttable]
-	mov ecx, [esi+ebp+routingtable.location]
-	mov esi, [curnexthoproutingtable]
-
-	jmp .iteratecheck
-	
-.done_differentnodecheck:
-	//see above
-        mov esi, [edx+ebp+routingtableentry.destrttable]
-	mov ecx, [esi+ebp+routingtable.location]
-	mov esi, [curnexthoproutingtable]
-.nextcheck:
-        mov [tempprevroutingtableentrystore], eax
-	mov eax, [eax+ebp+routingtableentry.next]
-.iteratecheck:
-	or eax, eax
-	jnz .checkloop
-.donecheck:	
+	call addroutesreachablefromthisnodeandrecurse_checkloop
+	cmp ecx, 1
+	je NEAR .doneandnext
+	ja NEAR .updateandstartrecursion
 	
 	//edi=current cost in days
 	//bl=cargo
@@ -1582,6 +1522,107 @@ addroutesreachablefromthisnodeandrecurse:
 	or edx, edx
 	jnz .loop
 .finish:
+	ret
+
+	//eax = first routing table entry or 0
+	//ecx = current target destination location
+	//esi= current next hop routing table
+	//di = current cost in days
+	//bl = cargo
+	//set carry if don't add route
+	//trashes: eax, esi
+	//returns: ecx:
+		//0=continue and perhaps add new route
+		//1=abandon
+		//2=update route
+addroutesreachablefromthisnodeandrecurse_checkloop:
+	or eax, eax
+	jz NEAR .donecheck
+.checkloop:
+	cmp [eax+ebp+routingtableentry.cargo], bl
+	jne NEAR .nextcheck
+	cmp [eax+ebp+routingtableentry.dest], ecx
+	jne NEAR .nextcheck
+	cmp [eax+ebp+routingtableentry.destrttable], esi
+	jne .differentnodecheck
+	//we're going over ourselves!
+	//if the new route to this destination through the initial next node is shorter, carry on recursing, else stop here
+	cmp [eax+ebp+routingtableentry.mindays], di
+	jbe NEAR .doneandnext
+	//update and recurse from here
+	mov esi, [edx+ebp+routingtableentry.destrttable]
+	mov ecx, 2
+	ret
+	//jmp .updateandstartrecursion
+.differentnodecheck:
+	movzx esi, WORD [eax+ebp+routingtableentry.mindays]
+	//esi is now the cost of the route through a different first node (other)
+	//mov cl, [cargodestroutecomparisonshiftfactor]
+	mov ecx, [cargodestroutecmpfactor]
+	cmp edi, esi
+	je .done_differentnodecheck	//routes are identical (unlikely but whatever...)
+	jb .newroutebetter		//this route is better, maybe delete other
+	//other route is better (esi is smaller), maybe abandon this one
+//	push esi
+//	shr esi, cl
+//	add esi, [esp]	//esi is threshold for new route
+//	add esp, 4
+
+	imul esi, ecx
+	db 0x2E				//branch not taken
+	jo .done_differentnodecheck	//route threshold is *enormous* (user is a plonker), this route is fine.
+	shr esi, 16
+	cmp edi, esi
+	ja NEAR .doneandnext
+	jmp .done_differentnodecheck
+.newroutebetter:
+	//this route is better (edi is smaller), maybe zap other one
+	push edi
+//	shr edi, cl
+//	add edi, [esp]	//esi is threshold for new route
+	imul edi, ecx
+	db 0x3E		//branch taken
+	jno .nobadlen	//players who fail this jump ought to be hit by a huge branch misprediction penalty :P (and have god awful routing)
+	//route threshold is *enormous*, other route is fine
+	pop edi
+	jmp .done_differentnodecheck
+.nobadlen:
+	shr edi, 16
+	cmp esi, edi
+	pop edi
+	jbe .done_differentnodecheck
+	//old route (eax length esi) is no good, exterminate it
+	mov esi, [eax+ebp+routingtableentry.next]
+	
+	call freecargodestdataobj
+	
+	mov ecx, [tempprevroutingtableentrystore]	//this always works, is fudged if first attached
+	mov [ecx+ebp+routingtableentry.next], esi
+	mov eax, esi
+
+	//cloned from below, keep in sync
+        mov esi, [edx+ebp+routingtableentry.destrttable]
+	mov ecx, [esi+ebp+routingtable.location]
+	mov esi, [curnexthoproutingtable]
+
+	jmp .iteratecheck
+	
+.done_differentnodecheck:
+	//see above
+        mov esi, [edx+ebp+routingtableentry.destrttable]
+	mov ecx, [esi+ebp+routingtable.location]
+	mov esi, [curnexthoproutingtable]
+.nextcheck:
+        mov [tempprevroutingtableentrystore], eax
+	mov eax, [eax+ebp+routingtableentry.next]
+.iteratecheck:
+	or eax, eax
+	jnz .checkloop
+.donecheck:
+	xor ecx, ecx
+	ret
+.doneandnext:
+	mov ecx, 1
 	ret
 
 
