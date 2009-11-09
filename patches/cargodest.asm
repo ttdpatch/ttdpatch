@@ -1529,7 +1529,6 @@ addroutesreachablefromthisnodeandrecurse:
 	//esi= current next hop routing table
 	//di = current cost in days
 	//bl = cargo
-	//set carry if don't add route
 	//trashes: eax, esi
 	//returns: ecx:
 		//0=continue and perhaps add new route
@@ -1965,7 +1964,7 @@ cargodestdelstationpervehhook:
 	//esi=station being deleted
 	//      NB: the above two cannot be the same
 	//al=station id being deleted
-	//ah=cargo
+	//ebp=cargo offset
 	//ecx=0
 	//trashable: none
 	//return amount of routed cargo in station of that cargo in cx
@@ -2086,6 +2085,8 @@ cargodestdelstationfinalhook:
 	or eax, eax
 	jnz .packetloop
 .nopackets:
+	mov [edx+ebp+routingtable.cargopacketsfront], eax
+	mov [edx+ebp+routingtable.cargopacketsrear], eax
 
 	mov eax, [edx+ebp+routingtable.nexthoprtptr]
 	or eax, eax
@@ -2097,8 +2098,9 @@ cargodestdelstationfinalhook:
 	or eax, eax
 	jnz .nexthoploop
 .nonexthop:
+	mov [edx+ebp+routingtable.nexthoprtptr], eax
 	
-	mov eax, [edx+ebp+routingtable.nexthoprtptr]
+	mov eax, [edx+ebp+routingtable.destrtptr]
 	or eax, eax
 	jz .nofar
 .farloop:
@@ -2108,6 +2110,7 @@ cargodestdelstationfinalhook:
 	or eax, eax
 	jnz .farloop
 .nofar:
+	mov [edx+ebp+routingtable.destrtptr], eax
 
 	mov eax, edx
 	call freecargodestdataobj
