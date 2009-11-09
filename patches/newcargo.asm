@@ -129,19 +129,14 @@ addcargotostation_2:
 	push ebx
 	shr ebx, 3
 	movzx eax, ah
-	testflags cargodest
-	jnc .nocargodest
-	call addcargotostation_cargodesthook
-.nocargodest:
-	mov ecx, ebx
 
 // now we need to find the right slot
-	xor ebx, ebx
+	xor ecx, ecx
 .loop:
-	cmp [esi+station2ofs+station2.cargos+ebx+stationcargo2.type], cl
+	cmp [esi+station2ofs+station2.cargos+ecx+stationcargo2.type], bl
 	je .found
-	add ebx, stationcargo2_size
-	cmp ebx, 12*stationcargo2_size
+	add ecx, stationcargo2_size
+	cmp ecx, 12*stationcargo2_size
 	jb .loop
 
 // the caller must already have created the slot for us, so something went very wrong if we get here
@@ -149,11 +144,28 @@ addcargotostation_2:
 
 .found:
 
+	push ecx
+	mov cx, 0x7FFF
+	sub cx, [esi+station.cargos+ebx+stationcargo.amount]
+	cmp ax, cx
+	jbe .amountok
+	mov ax, cx
+.amountok:
+
+	testflags cargodest
+	jnc .nocargodest
+	call addcargotostation_cargodesthook
+.nocargodest:
+
+	mov ecx, ebx
+	pop ebx
+	//ecx=cargo id, ebx=cargo offset
+
 // add the amount to the station, but be careful not to exceed the limit ( 7FFFh )
 	add [esi+station.cargos+ebx+stationcargo.amount],ax
-	jns .nooverflow
-	mov word [esi+station.cargos+ebx+stationcargo.amount],0x7FFF
-.nooverflow:
+//	jns .nooverflow
+//	mov word [esi+station.cargos+ebx+stationcargo.amount],0x7FFF
+//.nooverflow:
 
 // update en-route time and cargo source
 	mov byte [esi+station.cargos+ebx+stationcargo.enroutetime], 0

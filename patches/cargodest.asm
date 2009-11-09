@@ -292,6 +292,7 @@ linkcargopacket:				//ebp=[cargodestdata]
 	cmp ecx, 2
 	jb .station
 	je .veh
+	int3
 .end:
 	ret
 .station:
@@ -375,8 +376,8 @@ splitcargopacket:	//eax=old cargo packet
 	push edx
 	call alloccargodestdataobj
 	xchg eax, ebx
-	mov edx, [eax+ebp+cargopacket.lasttransprofit]
-	mov [ebx+ebp+cargopacket.lasttransprofit], edx
+//	mov edx, [eax+ebp+cargopacket.lasttransprofit]
+//	mov [ebx+ebp+cargopacket.lasttransprofit], edx
 	mov edx, [eax+ebp+cargopacket.flags]
 	mov [ebx+ebp+cargopacket.flags], edx
 	mov dx, [eax+ebp+cargopacket.datearrcurloc]
@@ -432,6 +433,9 @@ AcceptCargoAtStation_CargoDestAdjust:
         test BYTE [esi+veh.modflags], (1 << MOD_DIDCASHIN)
 	jnz NEAR .nobuildroute
 	cmp WORD [esi+veh.capacity], 0
+	je NEAR .nobuildroute
+	movzx edx, WORD [esi+veh.idx]
+	cmp WORD [ebp+cargodestgamedata.vehrttimelist+edx*2], 0
 	je NEAR .nobuildroute
 	mov dl, [esi+veh.cargotype]
 	mov dh, [esi+veh.prevstid]
@@ -1032,7 +1036,13 @@ LoadCargoFromStation_CargoDestAdjust:
 			//trashes cx
 			
 	mov cl, [edi+0xE]		//station idx
-	mov [eax+ebp+cargopacket.lastboardedst], cl
+	xchg [eax+ebp+cargopacket.lastboardedst], cl
+	cmp cl, -1
+	mov cx, [currentdate]
+	jne .notfirstdepart
+	mov [eax+ebp+cargopacket.dateleft], cx
+.notfirstdepart:
+	mov [eax+ebp+cargopacket.datearrcurloc], cx
 	testflags feederservice
 	jnc .loadmoneydatefunc_ret
 	pusha
@@ -1046,8 +1056,6 @@ LoadCargoFromStation_CargoDestAdjust:
 	call addfeederprofittoexpenses
 	popa
 .loadmoneydatefunc_ret:
-	mov cx, [currentdate]
-	mov [eax+ebp+cargopacket.datearrcurloc], cx
 	ret
 
 .loadfail:
@@ -1417,6 +1425,8 @@ addroutesreachablefromthisnodeandrecurse:
 	mov di, [currentdate]
 	sub di, cx
 .nocargowaitingcost:
+	add di, [edx+ebp+routingtableentry.mindays]
+	jc NEAR .next			//route is way too long
 	add di, [esp+12]
 	jc NEAR .next			//route is way too long
 
@@ -1669,6 +1679,7 @@ cargodestinitstationroutingtable_all:
 //ebx=cargo type
 //ax=amount
 //trashable: none
+//returns: ax=amount
 
 //some inspiration stolen from: http://hg.openttd.org/developers/celestar/cargodest.hg/file/5cef98ae76ac/src/routing.cpp#l595
 
@@ -1814,7 +1825,7 @@ addcargotostation_cargodesthook:
 	mov [eax+ebp+cargopacket.amount], cx
 	mov [eax+ebp+cargopacket.cargo], bl
 	mov cx, [currentdate]
-	mov [eax+ebp+cargopacket.dateleft], cx
+	//mov [eax+ebp+cargopacket.dateleft], cx
 	mov [eax+ebp+cargopacket.datearrcurloc], cx
 	mov ecx, [station2ofs_ptr]
 	mov edx, [esi+ecx+station2.cargoroutingtableptr]
@@ -1931,11 +1942,11 @@ cargodestdelstationpervehhook:
 .loop:
 	test BYTE [edx+ebp+cargopacket.flags], 2	//not a cargo packet
 	jnz .iterate
+	sub cx, [ebp+edx+cargopacket.amount]
 	cmp [ebp+edx+cargopacket.destst], al
 	je .kill
 	cmp [ebp+edx+cargopacket.sourcest], al
 	je .kill
-	sub cx, [ebp+edx+cargopacket.amount]
 .iterate:
 	mov edx, [ebp+edx+cargopacket.nextptr]
 .next:

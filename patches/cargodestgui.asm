@@ -715,6 +715,7 @@ packetdumpmode:
 	//dec ebx 
 
 .nomultiveh:
+	inc ebx
 	call TrainListDrawHandlerCountTrains
 
 	call getfirstcp
@@ -835,9 +836,14 @@ outtableline:				//ebp=[cargodestdata]
 	mov bx, statictext(printdate)
 	mov cx, [ebp+edi+cargopacket.dateleft]
 	mov [textrefstack], cx
+	or cx, cx
+	jnz .lu_ok
+	mov bx, statictext(empty)
+.lu_ok:
 	mov cx, 90
 	call outtablevalue
-	
+
+	mov bx, statictext(printdate)
 	mov cx, [ebp+edi+cargopacket.datearrcurloc]
 	mov [textrefstack], cx
 	mov cx, 90
@@ -868,7 +874,7 @@ routedumpmode:
 	call getnextroute
 	jnz .routecountloop
 .noroutes:
-
+	inc ebx
 	call TrainListDrawHandlerCountTrains
 
 

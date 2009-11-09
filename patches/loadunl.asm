@@ -1266,9 +1266,10 @@ LoadUnloadCargo:
 //add the profit
 	mov	ebx, [%$income]
 	or	ebx, ebx
-	jz	NEAR .done
+	jz	.noaddprofit
 	sub	[esi+veh.profit], ebx
 	call	[addexpenses]
+.noaddprofit:
 	
 	testflags cargodest
 	jnc .nocdgradloadtxtfxchk
@@ -1288,6 +1289,9 @@ LoadUnloadCargo:
 	mov ecx, [cargodestdata]
 	mov DWORD [eax+ecx+cargopacket.lasttransprofit], 0
 .nocdgradloadtxtfxchk:
+
+	or	ebx, ebx
+	jz	NEAR .done
 
 //play cash sound for human1
 	mov	al, [curplayer]
