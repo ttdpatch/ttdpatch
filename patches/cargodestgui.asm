@@ -1088,7 +1088,7 @@ getfirstcp:				//expects ebp=[cargodestdata]
 .st:
 	movzx eax, WORD [esi+window.id]
 	cmp eax, 250
-	ja .bad
+	jae .bad
 	imul eax, eax, station_size
 	add eax, [stationarray2ptr]
 	mov eax, [eax+station2.cargoroutingtableptr]

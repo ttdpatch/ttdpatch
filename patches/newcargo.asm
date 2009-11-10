@@ -145,8 +145,9 @@ addcargotostation_2:
 .found:
 
 	push ecx
-	mov cx, 0x7FFF
-	sub cx, [esi+station.cargos+ebx+stationcargo.amount]
+	mov cx, [esi+station.cargos+ecx+stationcargo.amount]
+	neg cx
+	add cx, 0x7FFF
 	cmp ax, cx
 	jbe .amountok
 	mov ax, cx

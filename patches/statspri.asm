@@ -2831,9 +2831,14 @@ cargoinstation:
 	mov ebx,[esp+4]
 	pusha
 	
+	mov cx, [esi+station.cargos+ebx+stationcargo.amount]
+
 	shr ebx,3
 	testflags cargodest
 	jnc .nocargodest
+	add cx, ax
+	test cx, 0xF000
+	jnz .nocargodest	//don't add packets if would result in an overflow
 	call addcargotostation_cargodesthook
 .nocargodest:
 

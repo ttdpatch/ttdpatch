@@ -552,7 +552,7 @@ printstname:
         
 	movzx eax, WORD [textrefstack]
 	cmp eax, 250
-	ja NEAR .fail
+	jae NEAR .fail
 	imul edx, eax, 0x8E
 	add edx, stationarray
 	cmp WORD [edx+station.XY], 0

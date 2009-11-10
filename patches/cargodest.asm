@@ -249,6 +249,11 @@ getstroutetablefromstid:	//station id in ecx
 	sub edx, ecx
 	mov ecx, [stationarray2ptr]
 	mov edx, [ecx+edx*2+station2.cargoroutingtableptr]
+	or edx, edx
+	jz .fail
+	ret
+.fail:
+	int3
 	ret
 	
 fastunlinkstationcargopacket:			//eax=cargo packet relative ptr
@@ -292,11 +297,14 @@ linkcargopacket:				//ebp=[cargodestdata]
 	cmp ecx, 2
 	jb .station
 	je .veh
+.int3:
 	int3
 .end:
 	ret
 .station:
 	movzx ecx, bx
+	cmp bx, 250
+	jae .int3
 	lea edx, [ecx*8]
 	lea edx, [edx*8+edx]
 	sub edx, ecx
@@ -1930,10 +1938,11 @@ cargodestdelvehentryhook:       //esi=vehicle ptr being deleted
 	//esi=station
 	//al=station id
 	//cx=amount of cargo in vehicle
-	//trashable: ebp, edx
+	//trashable: ebp
 	//return amount of unroutable cargo in vehicle in cx
 global cargodestdelstationpervehhook
 cargodestdelstationpervehhook:
+	push edx 
 	mov ebp, [cargodestdata]
 	movzx edx, WORD [edi+veh.idx]
 	mov edx, [ebp+cargodestgamedata.vehcplist+edx*4]
@@ -1953,6 +1962,7 @@ cargodestdelstationpervehhook:
 	or edx, edx
 	jnz .loop
 .end:
+	pop edx
 	ret
 .kill:
 	push DWORD [ebp+edx+cargopacket.nextptr]
@@ -2184,7 +2194,7 @@ stos_locationname:      	//trashes eax, esi
 .st:
 	shr esi, 16
 	cmp esi, 250
-	ja .err
+	jae .err
         //imul esi, esi, 0x8E
 	//add esi, stationarray
 	//jmp stos_stationname
