@@ -9,6 +9,21 @@ extern outofmemoryerror,cargodestdata,cargodestdata_size
 
 patchproc cargodest, patchcargodest
 
+patchproc cargodest, BIT(MISCMODS2_NOSTATCARGOLEAK), patchnocargoleak
+
+begincodefragments
+
+codefragment oldtestratingcargoamountinstationratingcheck, 6	//_CS:0014F85A, 0054BC98
+	add     ah, dl
+	mov     [ebx+esi+0x1F], ah
+	cmp     ah, 40h
+	db	0x77
+
+codefragment newtestratingcargoamountinstationratingcheck
+	xor di, di
+	setfragmentsize 5
+
+endcodefragments
 
 patchcargodest:
 #if WINTTDX
@@ -43,3 +58,7 @@ patchcargodest:
 	mov DWORD [cargodestdata_size], cargodestdata_initialsize
 #endif
 ret
+
+patchnocargoleak:
+	patchcode testratingcargoamountinstationratingcheck
+	ret
