@@ -292,13 +292,54 @@ sort_name:
 	and edi,0x1ff*32
 	add edi,customstringarray
 
-	mov ecx,32
-	repe cmpsb
+	push eax
+	push ebx
+	push edx
+	// ECX will point to a func to get the next char from the first veh,
+	// EDX will point the same for the second one
+	mov ecx, .getsimplechar
+	mov edx, ecx
 
+extern getutf8char
+	cmp word [esi], 0x9EC3
+	jne .firstnotutf
+	mov ecx, getutf8char
+	add esi,2
+.firstnotutf:
+
+	cmp word [edi], 0x9EC3
+	jne .secondnotutf
+	mov edx, getutf8char
+	add edi,2
+.secondnotutf:
+
+	// Do the actual compare - we can't get away with a REPNE SCASB because the strings may be in UTF8
+.nextchar:
+	call ecx
+	mov ebx, eax
+	xchg esi,edi
+	call edx
+	xchg esi,edi
+
+	cmp ebx,eax
+	jne .gotit
+
+	test eax,eax
+	jnz .nextchar
+
+.gotit:
+
+	pop edx
+	pop ebx
+	pop eax
 	pop edi
 	pop esi
 	ret
 
+.getsimplechar:
+	xor eax,eax
+	lodsb
+	ret
 
 uvard tempcargocount,9
 %define tempcargo1 tempcargocount+32
