@@ -432,110 +432,12 @@ AcceptCargoAtStation_CargoDestAdjust:
 	push ebp	//stack frame
 	push eax	//unload amount left
 
+	call nexthoproutebuild
+
 	movzx ecx, BYTE [ebp+0xE]
 	or ecx, 0x10000
 	
 	mov ebp, [cargodestdata]
-
-//begin building next hop route data
-        test BYTE [esi+veh.modflags], (1 << MOD_DIDCASHIN)
-	jnz NEAR .nobuildroute
-	cmp WORD [esi+veh.capacity], 0
-	je NEAR .nobuildroute
-	movzx edx, WORD [esi+veh.idx]
-	cmp WORD [ebp+cargodestgamedata.vehrttimelist+edx*2], 0
-	je NEAR .nobuildroute
-	mov dl, [esi+veh.cargotype]
-	mov dh, [esi+veh.prevstid]
-	or dh, dh
-	jz NEAR .nobuildroute
-	dec dh
-	cmp dh, cl
-	je NEAR .nobuildroute
-	mov BYTE [esi+veh.prevstid], 0
-	cmp DWORD [acceptcargotemplastengine], edi
-	jne .buildroute
-	cmp WORD [acceptcargotemplaststationandcargo], dx
-	je NEAR .nobuildroute
-.buildroute:                                                    //try to avoid doing the same action over and over when a multi-part vehicle arrives
-	mov [acceptcargotemplastengine], edi
-	mov [acceptcargotemplaststationandcargo], dx
-	mov eax, ecx
-	mov bl, dl
-	movzx ecx, dh
-	call getstroutetablefromstid
-	
-	//eax=current locatiom
-	//bl=cargo
-	//edx=routing table of previous node
-
-	mov ecx, [edx+ebp+routingtable.nexthoprtptr]
-	or ecx, ecx
-	jz .addentry
-.nexthopcheckloop:
-	cmp [ecx+ebp+routingtableentry.cargo], bl
-	jne .nexthopcheckloopnext
-	cmp [ecx+ebp+routingtableentry.dest], eax
-	jne .nexthopcheckloopnext
-	//found old routing entry which will do fine
-	push eax
-	mov ax, [currentdate]
-	mov [ecx+ebp+routingtableentry.lastupdated], ax
-	movzx edx, WORD [esi+veh.idx]
-	sub ax, [ebp+cargodestgamedata.vehrttimelist+edx*2]
-	sub ax, [ecx+ebp+routingtableentry.mindays]
-	sar ax, 2
-	add [ecx+ebp+routingtableentry.mindays], ax
-	mov eax, ecx
-	pop ecx
-	jmp .donebuildroute
-.nexthopcheckloopnext:
-	mov ecx, [ecx+ebp+routingtableentry.next]
-	or ecx, ecx
-	jnz .nexthopcheckloop
-.addentry:
-	push eax
-	push eax
-	push edx
-	call alloccargodestdataobj
-	pop edx
-	pop DWORD [eax+ebp+routingtableentry.dest]
-	mov ecx, [esp+8]
-	mov ecx, [ecx+0x12]                     //routing table of current station
-	mov [eax+ebp+routingtableentry.destrttable], ecx
-	mov [eax+ebp+routingtableentry.cargo], bl
-	mov ecx, eax
-	xchg ecx, [edx+ebp+routingtable.nexthoprtptr]
-	mov [eax+ebp+routingtableentry.next], ecx
-	mov cx, [currentdate]
-	mov [eax+ebp+routingtableentry.lastupdated], cx
-	movzx edx, WORD [esi+veh.idx]
-	sub cx, [ebp+cargodestgamedata.vehrttimelist+edx*2]
-	mov [eax+ebp+routingtableentry.mindays], cx
-	pop ecx
-.donebuildroute:
-#if WINTTDX && DEBUG
-	test BYTE [cargodestdebugflag], 4
-	jz .nobuildroute
-	pushad
-	push eax
-	mov edi, textrefstack
-	movzx ax, BYTE [acceptcargotemplaststationandcargo+1]
-	stosw
-	mov esi, [esp+4+32+4]	//stack frame
-	mov esi, [esi+0xA]	//station ptr
-	call stos_stationname
-	mov DWORD [specialtext1], localroutemsg
-	call outdebugcargomessage
-	mov edi, textrefstack
-	pop ebx
-	call stos_routedata
-	mov DWORD [specialtext1], routedumpmess
-	call outdebugcargomessage
-	popad
-#endif
-.nobuildroute:
-//end building next hop route data
 	
 	movzx eax, WORD [esi+veh.idx]
 	mov eax, [ebp+eax*4+cargodestgamedata.vehcplist]
@@ -935,6 +837,126 @@ AcceptCargoAtStation_CargoDestAdjust:
 
 
 	ret
+
+//esi=vehicle
+//ebp=loadunl.asm stack frame
+global nexthoproutebuild
+nexthoproutebuild:
+	pushad
+	movzx ecx, BYTE [ebp+0xE]
+	or ecx, 0x10000
+	
+	mov ebp, [cargodestdata]
+
+//begin building next hop route data
+        test BYTE [esi+veh.modflags], (1 << MOD_DIDCASHIN)
+	jnz NEAR .nobuildroute
+	cmp WORD [esi+veh.capacity], 0
+	je NEAR .nobuildroute
+	movzx edx, WORD [esi+veh.idx]
+	cmp WORD [ebp+cargodestgamedata.vehrttimelist+edx*2], 0
+	je NEAR .nobuildroute
+	mov dl, [esi+veh.cargotype]
+	mov dh, [esi+veh.prevstid]
+	or dh, dh
+	jz NEAR .nobuildroute
+	dec dh
+	cmp dh, cl
+	je NEAR .nobuildroute
+	mov BYTE [esi+veh.prevstid], 0
+	cmp DWORD [acceptcargotemplastengine], edi
+	jne .buildroute
+	cmp WORD [acceptcargotemplaststationandcargo], dx
+	je NEAR .nobuildroute
+.buildroute:                                                    //try to avoid doing the same action over and over when a multi-part vehicle arrives
+	mov [acceptcargotemplastengine], edi
+	mov [acceptcargotemplaststationandcargo], dx
+	mov eax, ecx
+	mov bl, dl
+	movzx ecx, dh
+	call getstroutetablefromstid
+	
+	//eax=current locatiom
+	//bl=cargo
+	//edx=routing table of previous node
+
+	mov ecx, [edx+ebp+routingtable.nexthoprtptr]
+	or ecx, ecx
+	jz .addentry
+.nexthopcheckloop:
+	cmp [ecx+ebp+routingtableentry.cargo], bl
+	jne .nexthopcheckloopnext
+	cmp [ecx+ebp+routingtableentry.dest], eax
+	jne .nexthopcheckloopnext
+	//found old routing entry which will do fine
+	push eax
+	mov ax, [currentdate]
+	mov [ecx+ebp+routingtableentry.lastupdated], ax
+	movzx edx, WORD [esi+veh.idx]
+	sub ax, [ebp+cargodestgamedata.vehrttimelist+edx*2]
+	sub ax, [ecx+ebp+routingtableentry.mindays]
+	sar ax, 2
+#if WINTTDX && DEBUG
+	add ax, [ecx+ebp+routingtableentry.mindays]
+	jns .rtmkok
+	int3		//oh noes!
+.rtmkok:
+	mov [ecx+ebp+routingtableentry.mindays], ax
+#else
+	add [ecx+ebp+routingtableentry.mindays], ax
+#endif
+	mov eax, ecx
+	pop ecx
+	jmp .donebuildroute
+.nexthopcheckloopnext:
+	mov ecx, [ecx+ebp+routingtableentry.next]
+	or ecx, ecx
+	jnz .nexthopcheckloop
+.addentry:
+	push eax
+	push eax
+	push edx
+	call alloccargodestdataobj
+	pop edx
+	pop DWORD [eax+ebp+routingtableentry.dest]
+	mov ecx, [esp+4+_pusha.ebp]
+	mov ecx, [ecx+0x12]                     //routing table of current station
+	mov [eax+ebp+routingtableentry.destrttable], ecx
+	mov [eax+ebp+routingtableentry.cargo], bl
+	mov ecx, eax
+	xchg ecx, [edx+ebp+routingtable.nexthoprtptr]
+	mov [eax+ebp+routingtableentry.next], ecx
+	mov cx, [currentdate]
+	mov [eax+ebp+routingtableentry.lastupdated], cx
+	movzx edx, WORD [esi+veh.idx]
+	sub cx, [ebp+cargodestgamedata.vehrttimelist+edx*2]
+	mov [eax+ebp+routingtableentry.mindays], cx
+	pop ecx
+.donebuildroute:
+#if WINTTDX && DEBUG
+	test BYTE [cargodestdebugflag], 4
+	jz .nobuildroute
+	pushad
+	push eax
+	mov edi, textrefstack
+	movzx ax, BYTE [acceptcargotemplaststationandcargo+1]
+	stosw
+	mov esi, [esp+4+32+_pusha.ebp]	//stack frame
+	mov esi, [esi+0xA]	//station ptr
+	call stos_stationname
+	mov DWORD [specialtext1], localroutemsg
+	call outdebugcargomessage
+	mov edi, textrefstack
+	pop ebx
+	call stos_routedata
+	mov DWORD [specialtext1], routedumpmess
+	call outdebugcargomessage
+	popad
+#endif
+.nobuildroute:
+//end building next hop route data
+	popad
+	ret
 	
 uvarb cargodestloadflags
 	//1=more routed cargo waiting to be loaded onto this vehicle in the station
@@ -964,12 +986,7 @@ LoadCargoFromStation_CargoDestAdjust:
 	mov ebp, [cargodestdata]
 	movzx edx, BYTE [edi+0x16]
 	or edx, 0x10000				//location of next hop
-	mov bl, [edi+0xE]			//current station id
-	inc bl
-	mov [esi+veh.prevstid], bl
-	movzx ebx, WORD [esi+veh.idx]
-	mov cx, [currentdate]
-	mov [ebp+cargodestgamedata.vehrttimelist+ebx*2], cx
+
 
 	mov ebx, [edi+0x12]			//routing table of current station
 	or ebx, ebx
@@ -2140,7 +2157,103 @@ cargodestdelstationfinalhook:
 
 	popad
 	ret
-	
+
+//esi=vehicle, bx=date adjustment
+global cargodesteternalgamevehage
+cargodesteternalgamevehage:
+	pushad
+	mov ebp, [cargodestdata]
+	or ebp, ebp
+	jz .end
+	movzx edx, WORD [esi+veh.idx]
+	mov ax, [ebp+cargodestgamedata.vehrttimelist+edx*2]
+	or ax, ax
+	jz .nodate
+	sub ax, bx
+	mov [ebp+cargodestgamedata.vehrttimelist+edx*2], ax
+.nodate:
+	mov edx, [ebp+cargodestgamedata.vehcplist+edx*4]
+	call agepacketlisting
+.end:
+	popad
+	ret
+
+//esi=station
+//edi=station2
+//bx=age adjustment
+global cargodesteternalgamestatage
+cargodesteternalgamestatage:
+	pushad
+	mov ebp, [cargodestdata]
+	or ebp, ebp
+	jz .end
+	mov ecx, [edi+station2.cargoroutingtableptr]
+	or ecx, ecx
+	jz .end
+	mov edx, [ebp+ecx+routingtable.cargopacketsfront]
+	call agepacketlisting
+	mov edx, [ebp+ecx+routingtable.nexthoprtptr]
+	call ageroutingentrylisting
+	mov edx, [ebp+ecx+routingtable.destrtptr]
+	call ageroutingentrylisting
+.end:
+	popad
+	ret
+
+//edx=first packet or zero, ebp=[cargodestdata], bx=date adjustment
+agepacketlisting:
+	or edx, edx
+	jz .end
+.loop:
+	test BYTE [edx+ebp+cargopacket.flags], 2	//not a cargo packet
+	jnz .iterate
+
+	mov ax, [edx+ebp+cargopacket.dateleft]
+	or ax, ax
+	jz .noleft
+	sub ax, bx
+	mov [edx+ebp+cargopacket.dateleft], ax
+.noleft:
+	mov ax, [edx+ebp+cargopacket.datearrcurloc]
+	or ax, ax
+	jz .iterate
+	sub ax, bx
+	mov [edx+ebp+cargopacket.datearrcurloc], ax
+
+.iterate:
+	mov edx, [ebp+edx+cargopacket.nextptr]
+.next:
+	or edx, edx
+	jnz .loop
+.end:
+	ret
+
+//edx=first routing table entry or zero, ebp=[cargodestdata], bx=date adjustment
+ageroutingentrylisting:
+	or edx, edx
+	jz .end
+.loop:
+
+	mov ax, [edx+ebp+routingtableentry.lastupdated]
+	or ax, ax
+	jz .nolu
+	sub ax, bx
+	mov [edx+ebp+routingtableentry.lastupdated], ax
+.nolu:
+	mov ax, [edx+ebp+routingtableentry.oldestwaiting]
+	or ax, ax
+	jz .iterate
+	sub ax, bx
+	mov [edx+ebp+routingtableentry.oldestwaiting], ax
+
+.iterate:
+	mov edx, [ebp+edx+routingtableentry.next]
+.next:
+	or edx, edx
+	jnz .loop
+.end:
+	ret
+
 #if WINTTDX && DEBUG
 statdeathdelcpobj:
 	test BYTE [cargodestdebugflag+1], 8

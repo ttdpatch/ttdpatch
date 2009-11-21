@@ -27,7 +27,7 @@ extern updatestationgraphics
 extern vehcallback,stationplatformanimtrigger
 extern convertplatformsinremoverailstation
 extern acceptcargoatstationflag,acceptcargotimetravelledlasthop,cargodestloadflags
-extern cargodestdata,getorcreatevehstatuscp
+extern cargodestdata,getorcreatevehstatuscp,nexthoproutebuild
 
 
 
@@ -478,6 +478,18 @@ LoadCargoFromStation:
 	mov	dl, [currentyear]
 	sub	dl, [esi+veh.yearbuilt]
 	mov	[ebx+station.cargos+ecx+stationcargo.lastage], dl
+
+	testflags cargodest
+	jnc .nocargodesttimeset	
+	mov dl, [ebp+0xE]			//current station id
+	inc dl
+	mov [esi+veh.prevstid], dl
+	movzx edx, WORD [esi+veh.idx]
+	add edx, edx
+	add edx, [cargodestdata]
+	mov ax, [currentdate]
+	mov [edx+cargodestgamedata.vehrttimelist], ax
+.nocargodesttimeset:
 
 // check how much we can load from the station
 	mov	dx, [ebx+station.cargos+ecx+stationcargo.amount]
@@ -952,12 +964,22 @@ LoadUnloadCargo:
 
 .notgoodstop:
 	testflags cargodest
-	jnc .donecargodestnextstcheck
+	jnc	NEAR .donecargodestnextstcheck
 	push	edi
 	mov     edi, ecx
 	mov     ah, -1
 	mov     dh, bl
 	mov     dl, [esi+veh.totalorders]
+
+//check for initial special
+	movzx 	ecx, WORD [edi+2*ebx]
+	and	cl, 0x1F
+	cmp	cl, 5
+	jne	.nexttestorder
+	shr	ch, 5
+	add	bl, ch		//adjust for next order not being current order+2
+
+
 .nexttestorder:
 	inc     bl
 	cmp     bl, dl
@@ -966,9 +988,9 @@ LoadUnloadCargo:
 .nowraporder:
 	cmp     bl, dh
 	je      .donecargodestnextstcheck_pop       //went all the way round without finding anything useful
-	mov 	ecx, [edi+2*ebx]
-	test    cl, 0x40                //quick and dirty check to weed out full load
-	jnz     .nexttestorder
+	movzx 	ecx, WORD [edi+2*ebx]
+//	test    cl, 0x40                //quick and dirty check to weed out full load
+//	jnz     .nexttestorder
 	
 	//nonstop check
 	testflags usenewnonstop
@@ -982,7 +1004,8 @@ LoadUnloadCargo:
 	jne     .notst
 	cmp	ch, al
 	je      .nexttestorder          //don't count orders pointing to the current station
-	
+
+.waypointcheck:
 	//waypoint check
 	push ebx
 	movzx ebx, ch
@@ -991,28 +1014,29 @@ LoadUnloadCargo:
 	test BYTE [ebx+station.flags], 1<<6
 	pop ebx
 	jnz .nexttestorder
-	
+
 	mov     ah, ch
 	jmp .donecargodestnextstcheck_pop
 .notst:
 	cmp     cl, 5
 	jne	.nexttestorder
 	mov	cl, ch
-	shr     cl, 5                   //number of extra words
+	shr     cl, 5			//number of extra words
 	and	ch, 0x1F
 	cmp     ch, 5
 	jne     .wrongspec
-	mov     ah, [edi+2*ebx+3]       //station id
-	cmp     ah, al
-	jne     .donecargodestnextstcheck_pop
-	mov	ah, -1
+	mov     ch, [edi+2*ebx+3]	//station id
+	add     bl, cl
+	cmp     ch, al
+	jne     .waypointcheck
+	jmp     .nexttestorder
 .wrongspec:
 	add     bl, cl
 	jmp     .nexttestorder
 
-	
-	
-	
+
+
+
 .donecargodestnextstcheck_pop:
 	mov	[%$cdeststnxtordr], ah
         xor     ah, ah
@@ -1088,7 +1112,7 @@ LoadUnloadCargo:
 
 .dontcheckmods:
 	cmp	word [esi+veh.currentload], 0
-	je	NEAR .DoLoad				// nothing to unload - start loading
+	je	.routebuildonempty			// nothing to unload - start loading
 	testflags advorders
 	jnc .noadvordertest1
 	cmp BYTE [edi+veh.currorderflags], 1
@@ -1108,6 +1132,12 @@ LoadUnloadCargo:
 	call    AcceptCargoAtStation.inforcargodestnoaccept
 	jmp 	.UnloadAcceptDone
 
+.routebuildonempty:
+	testflags cargodest
+	jnc NEAR .DoLoad
+	push DWORD .DoLoad 
+	jmp nexthoproutebuild	//(call)
+	
 .cargonotfromhere:
 
 // first, we decide whether our cargo is accepted here

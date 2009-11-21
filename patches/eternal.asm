@@ -8,9 +8,11 @@
 #include <patchdata.inc>
 #include <industry.inc>
 #include <newvehdata.inc>
+#include <station.inc>
 
 extern getlongymd,getfullymd,getymd,patchflags,newvehdata
-
+extern cargodesteternalgamevehage,cargodesteternalgamestatage
+extern stationarray2ptr
 
 
 // Fix year 2070 problem with service intervals
@@ -51,6 +53,12 @@ limityear:
 	jb .nextveh
 	cmp byte [esi+veh.class],0x13
 	ja .nextveh
+	
+	testflags cargodest
+	jnc .nocdestage
+	call cargodesteternalgamevehage
+.nocdestage:
+
 	dec byte [esi+veh.yearbuilt]
 	cmp dword [esi+veh.scheduleptr],byte -1
 	je .nextveh
@@ -61,6 +69,24 @@ limityear:
 	sub esi,byte -vehiclesize
 	cmp esi,[veharrayendptr]
 	jb .procnext
+
+	//station loop
+	testflags cargodest
+	jnc NEAR .nocdeststatage
+
+	mov esi, [stationarrayptr]
+	mov edi, [stationarray2ptr]
+	mov ecx, numstations
+.stloop:
+	cmp word [esi+station.XY],0
+	je .nextstat
+	call cargodesteternalgamestatage
+.nextstat:
+	add esi, station_size
+	add edi, station2_size
+	loop .stloop
+	
+.nocdeststatage:
 
 	// currentyear is being set back, so decrement variables that are compared to it
 	mov esi,[industryarrayptr]
