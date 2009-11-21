@@ -821,6 +821,17 @@ testflags cargodest
         testflags cargodest
 	jnc .normcargo
 	push eax
+	testflags newcargos
+	jc .cdstnewcargo
+	push ecx
+	mov ecx, ebp
+	shr ecx, 3
+	mov ah, cl
+	pop ecx
+	jmp .cdstdoit
+.cdstnewcargo:
+	mov ah, [edi+station2ofs+station2.cargos+ebp+stationcargo2.type]
+.cdstdoit:
 	extcall cargodestdelstationperstationhook
 	pop eax
 .normcargo:

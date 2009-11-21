@@ -250,11 +250,11 @@ getstroutetablefromstid:	//station id in ecx
 	mov ecx, [stationarray2ptr]
 	mov edx, [ecx+edx*2+station2.cargoroutingtableptr]
 	or edx, edx
-	jz .fail
+//	jz .fail
 	ret
-.fail:
-	int3
-	ret
+//.fail:
+//	int3
+//	ret
 	
 fastunlinkstationcargopacket:			//eax=cargo packet relative ptr
 						//ebp=[cargodestdata]
@@ -875,7 +875,9 @@ nexthoproutebuild:
 	mov bl, dl
 	movzx ecx, dh
 	call getstroutetablefromstid
-	
+	or edx, edx
+	jz NEAR .nobuildroute
+
 	//eax=current locatiom
 	//bl=cargo
 	//edx=routing table of previous node
@@ -1962,6 +1964,13 @@ cargodestdelstationpervehhook:
 	push edx 
 	mov ebp, [cargodestdata]
 	movzx edx, WORD [edi+veh.idx]
+	inc al
+	cmp BYTE [edi+veh.prevstid], al
+	jne .prevstidok
+	mov BYTE [edi+veh.prevstid], 0
+	mov WORD [ebp+cargodestgamedata.vehrttimelist+edx*2], 0
+.prevstidok:
+	dec al
 	mov edx, [ebp+cargodestgamedata.vehcplist+edx*4]
 	or edx, edx
 	jz .end
@@ -2003,6 +2012,7 @@ cargodestdelstationpervehhook:
 	//      NB: the above two cannot be the same
 	//al=station id being deleted
 	//ebp=cargo offset
+	//ah=cargo
 	//ecx=0
 	//trashable: none
 	//return amount of routed cargo in station of that cargo in cx
