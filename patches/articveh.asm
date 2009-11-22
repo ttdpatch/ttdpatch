@@ -1429,42 +1429,23 @@ drawTotalCapacityForTrailers:
 	mov 	dword [specialtext1], edi
 .loopCargo:
 	cmp	word [cargosum+ecx*2], 0		//check if this cargo has a positive value
-	jbe	near .tryNextCargo
+	je	.tryNextCargo
 
-	push	eax
-	movzx	eax, word [cargosum+ecx*2]		//move the cargo into the textrefstring
-	mov	word [textrefstack+2], ax		//to be used by XFromX (8813h)
-	push	ebx
+	// Append some special sequence to the buffer that will print the cargo amount
+	// This will use 9 bytes per cargo type
+	cmp	edi, cargotextbuffer+cargotextbuffer_size-9
+	jae	.bufferFull
+
+	mov	word [edi], 0x039a		// push word to reference stack
+	mov	ax, [cargosum+ecx*2]
+	mov	[edi+2], ax
+	add	edi, 4
+
 	mov	ebx, ecx
 	call	movbxcargoamountname2
-	mov	word [textrefstack], bx
-	pop	ebx
-	pop	eax
-
-	push	eax
-	push	esi
-	push	cx
-	push	dx
-	cmp	edi, [specialtext1]
-	jne	.cargoAlreadyListed
-	mov	ax, 0x9012
-	jmp	.addString
-.cargoAlreadyListed:
-	mov	ax, 0x0009
-.addString:
-	mov	dword [tmpEDI], edi
-	call	newtexthandler				//throw this string on specialtext1
-	push	edi
-	mov	edi, [tmpEDI]
-	cmp	edi, [specialtext1]
-	je	.dontResetColour
-	mov	byte [edi], 0x95			//reset the colour to lightblue (it was white as specified in 0009)
-.dontResetColour:
-	pop	edi
-	pop	dx
-	pop	cx
-	pop	esi
-	pop	eax
+	mov	byte [edi],0x81			// print textID from next word
+	mov	[edi+1],bx
+	add	edi,3
 
 	mov word [edi], ', '		//add comma
 	add edi, 2
@@ -1476,16 +1457,16 @@ drawTotalCapacityForTrailers:
 	cmp	ecx, 32
 	jb	.loopCargo
 
+.bufferFull:
 	pop	ecx
 	pop	eax
 
-	cmp	edi, [specialtext1]
-	jne	.weHaveAString
 	mov	bx, 0x8812
-	jmp	.drawString
-.weHaveAString:
-	mov     byte [edi-2], 0				//need to also remove the colour code
-	mov	bx, statictext(special1)			//our newly created string
+	cmp	edi, [specialtext1]
+	je	.drawString				// no capacity
+	mov     byte [edi-2], 0				//remove last comma and null-terminate
+	mov	word [textrefstack], statictext(special1)	//our newly created string
+	mov	bx, 0x9012
 .drawString:
 	mov	bp, 0x150
 	mov	edi, [currscreenupdateblock]			//area to be drawn to
@@ -1494,7 +1475,8 @@ drawTotalCapacityForTrailers:
 
 uvarw	cargosum,32
 uvarb	cargosource,32,s
-uvarw	cargotextbuffer,128
+cargotextbuffer_size equ 256
+uvarb	cargotextbuffer,cargotextbuffer_size
 global listAdditionalTrailerCargo
 listAdditionalTrailerCargo:
 	;articulated?
@@ -1529,44 +1511,44 @@ listAdditionalTrailerCargo:
 	mov 	dword [specialtext1], edi
 .loopCargo:
 	cmp	word [cargosum+ecx*2], 0		//check if this cargo has a positive value
-	jbe	near .tryNextCargo
+	je	.tryNextCargo
 
-	push	eax
-	movzx	eax, word [cargosum+ecx*2]		//move the cargo into the textrefstring
-	mov	word [textrefstack+2], ax		//to be used by XFromX (8813h)
-	push	ebx
+	// Append some special sequence to the buffer that will print the cargo amount and destination
+	// This will use 21 bytes per cargo type
+	cmp	edi, cargotextbuffer+cargotextbuffer_size-21
+	jae	.bufferFull
+
+	// This is rather tricky -- the text ref. stack isn't big enough to hold all the required data,
+	// so we fill it as we go, with special "push" string codes. We need four words per element:
+	// the first is the cargo amount textId, the second is the amount itself, the third is a fixed text
+	// (consumed by ID 8813 as the source station), the fourth is the ID of the station
+	// (assembling the station name itself is done via a special string code).
+	// Since we're working on a stack, the item that gets used last needs to be pushed first.
+
+	mov	word [edi], 0x039a	 		// push station id to reference stack
+	movzx	ax, byte [cargosource+ecx]
+	mov	[edi+2],ax
+	add	edi, 4
+
+	mov	dword [edi], 0x039a | (statictext(outstation)<<16)	// push a fixed static text to ref.stack
+	add	edi, 4
+
+	mov	word [edi], 0x039a	 		// push cargo amount to reference stack
+	mov	ax, [cargosum+ecx*2]
+	mov	[edi+2],ax
+	add	edi,4
+
+	mov	word [edi], 0x039a	 		// push cargo type text to reference stack
 	mov	ebx, ecx
 	call	movbxcargoamountname2
-	mov	word [textrefstack], bx
-	pop	ebx
-	mov	eax, 8Eh
-	mul	byte [cargosource+ecx]
-	push	esi
-	movzx   esi, ax
-	add     esi, [stationarrayptr]
-	mov     ax, word [esi+station.name]
-	mov     word [textrefstack+4], ax
-	mov     esi, dword [esi+station.townptr]
-	mov     eax, dword [esi+town.citynameparts]
-	mov     dword [textrefstack+8], eax
-	mov     ax, word [esi+town.citynametype]
-	mov     word [textrefstack+6], ax
-	pop	esi
-	pop	eax
+	mov	[edi+2],bx
+	add	edi,4
 
-	push	eax
-	push	esi
-	push	cx
-	push	dx
-	mov	ax, 0x8813
-	call	newtexthandler				//throw this string on specialtext1
-	pop	dx
-	pop	cx
-	pop	esi
-	pop	eax
+	mov	dword [edi], 0x881381			// print textId 8813
+	add	edi,3
 
-	mov word [edi], ', '		//add comma
-	add edi, 2
+	mov	word [edi], ', '
+	add	edi, 2
 
 	mov	word [cargosum+ecx*2], 0		//zero the cargo sum once it has been
 							//thrown in the text handler
@@ -1575,16 +1557,15 @@ listAdditionalTrailerCargo:
 	cmp	ecx, 32
 	jb	.loopCargo
 
+.bufferFull:
 	pop	ecx
 	pop	eax
 
-	cmp	edi, [specialtext1]
-	jne	.weHaveAString
 	mov	bx, 0x8812
-	jmp	.drawString
-.weHaveAString:
+	cmp	edi, [specialtext1]
+	je	.drawString
 	mov     byte [edi-2], 0
-	mov	bx, statictext(special1)			//our newly created string
+	mov	bx, statictext(special1)
 .drawString:
 	mov	bp, 0x150
 	add	dx, 10
