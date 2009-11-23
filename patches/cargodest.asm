@@ -210,18 +210,24 @@ unlinkcargopacket:				//ebp=[cargodestdata]
 	push edx
 	call getstroutetablefromcp
 	pop ecx
-	mov [edx+ebp+routingtable.cargopacketsrear], ecx
 	mov DWORD [ecx+ebp+cargopacket.nextptr], 0
+	or edx, edx
+	jz .end
+	mov [edx+ebp+routingtable.cargopacketsrear], ecx
 	jmp .end
 .frontunlink:
 	push ecx
 	call getstroutetablefromcp
 	pop ecx
-	mov [edx+ebp+routingtable.cargopacketsfront], ecx
 	mov DWORD [ecx+ebp+cargopacket.prevptr], 0
+	or edx, edx
+	jz .end
+	mov [edx+ebp+routingtable.cargopacketsfront], ecx
 	jmp .end
 .lastunlink:
 	call getstroutetablefromcp
+	or edx, edx
+	jz .end
 	xor ecx, ecx
 	mov [edx+ebp+routingtable.cargopacketsrear], ecx
 	mov [edx+ebp+routingtable.cargopacketsfront], ecx
@@ -238,18 +244,28 @@ unlinkcargopacket:				//ebp=[cargodestdata]
 
 	
 getstroutetablefromcp:		//cargo packet in eax
-				//returns cargo routing table in edx
+				//returns cargo routing table in edx or zero
 				//trashes ecx
 	movzx ecx, WORD [eax+ebp+cargopacket.location]
 getstroutetablefromstid:	//station id in ecx
-				//returns cargo routing table in edx
+				//returns cargo routing table in edx or zero
 				//trashes ecx
+
+	cmp ecx, numstations
+	jb .ok
+	xor edx, edx		//frankly this is indicative of a Serious Error™
+#if WINTTDX && DEBUG		//not much can be done about it now though, and this operation (in the current usage of this function) erases the error anyway
+	int3			//flag it if anyone is interested
+#endif
+	ret
+
+.ok:
 	lea edx, [ecx*8]
 	lea edx, [edx*8+edx]
 	sub edx, ecx
 	mov ecx, [stationarray2ptr]
 	mov edx, [ecx+edx*2+station2.cargoroutingtableptr]
-	or edx, edx
+//	or edx, edx
 //	jz .fail
 	ret
 //.fail:
@@ -310,6 +326,8 @@ linkcargopacket:				//ebp=[cargodestdata]
 	sub edx, ecx
 	mov ecx, [stationarray2ptr]
 	mov edx, [ecx+edx*2+station2.cargoroutingtableptr]
+	or edx, edx
+	jz .int3
 .quickstation:					//eax=cargo packet relative ptr (assumes currently unlinked)
 						//ebp=[cargodestdata]
 						//edx=station's cargo routing table
@@ -1353,6 +1371,8 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 .nopreproc:
 	
 	mov edi, [edi+station2.cargoroutingtableptr]
+	or edi, edi
+	jz NEAR .end
 	xor eax, eax
 	xchg eax, [edi+ebp+routingtable.destrtptr]
 	mov [cdestcurstationptr], esi
@@ -1741,6 +1761,8 @@ addcargotostation_cargodesthook:
 .nounroute:
 	mov edi, [station2ofs_ptr]
 	mov edi, [edi+esi+station2.cargoroutingtableptr]
+	or edi, edi
+	jz NEAR .popret
 
 //gather data on available detsinations and their minumum costs
 	push esi
@@ -2024,6 +2046,8 @@ cargodestdelstationperstationhook:
 	mov edx, edi
 	add edx, [station2ofs_ptr]
 	mov edx, [edx+station2.cargoroutingtableptr]
+	or edx, edx
+	jz .end
 	mov edx, [edx+ebx+routingtable.cargopacketsfront]
 	or edx, edx
 	jz .end
