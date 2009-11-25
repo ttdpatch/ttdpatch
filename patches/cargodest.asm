@@ -1172,8 +1172,17 @@ LoadCargoFromStation_CargoDestAdjust:
 
 	pop edi
 
-	mov cx, [esi+veh.capacity]
-	sub cx, [esi+veh.currentload]
+	
+	mov cx, [esi+veh.currentload]
+	or cx, cx
+	jnz .noresetcargosource
+	push ecx
+	mov ecx, [esp+12]
+	mov ecx, [ecx+0xE]		//cur station id
+	mov [esi+veh.cargosource], cl
+	pop ecx
+.noresetcargosource:
+	sub cx, [esi+veh.capacity]
 	jz .doneload
 //	cmp cx, ax
 //	je .doneload
