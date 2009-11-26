@@ -1494,8 +1494,11 @@ listAdditionalTrailerCargo:
 	movzx	ebx, byte [edi+veh.cargotype]		//grab the current cargo type
 	movzx	eax, word [edi+veh.currentload]		//grab the current load
 	add	word [cargosum+ebx*2], ax		//add the load to the cargosum array
+	test	eax,eax
+	jz	.empty					//if this vehicle is empty, ignore the cargo source
 	movzx	eax, byte [edi+veh.cargosource]
 	mov	[cargosource+ebx], al			//it doesnt, move in the source
+.empty:
 	cmp	word [edi+veh.nextunitidx], 0xFFFF
 	je	short .noMoreTrailers
 	movzx	edi, word [edi+veh.nextunitidx]		//iterate to next trailer
