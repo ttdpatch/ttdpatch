@@ -603,22 +603,17 @@ RVTrailerProcessing:
 	inc	byte [esi+veh.cycle]
 	cmp	byte [esi+0x6A], 0
 	jz	short .skipCounter
-	dec	byte [esi+0x6A]		; Break down counter
+	dec	byte [esi+0x6A]
 .skipCounter:
 	cmp	word [esi+0x68], 0
-	jnz	.ProcessCrashedRV
-	cmp     byte [esi+veh.breakdowncountdown], 0
-	jz      short .noBreakDown
-	cmp     byte [esi+veh.breakdowncountdown], 2                 ; break down RV when counter is 1 or 2
-	jbe     short .ProcessCrashedRV
-	dec     byte [esi+veh.breakdowncountdown]
-	jmp	short .noBreakDown
-	
-.ProcessCrashedRV:
-	call	[ProcessCrashedRV]
+	je	.notcrashed
+	jmp	[ProcessCrashedRV]
 	retn
 
-.noBreakDown:
+.notcrashed:
+	pusha
+	call	[ChkForRVCollisionWithTrain]
+	popa
 	test	word [esi+veh.vehstatus], 2		;2 == stopped... so just quit.
 	jnz	near .justQUIT
 
@@ -1972,4 +1967,74 @@ AttemptToCorrectConflictDetection:
 .lNoConflict:
 	pop edi
 	clc
+	ret
+
+// Called to change the status of a road vehicle to crashed
+// The old code handles the head vehicle only, make sure we update every vehicle of the consist in the new code
+// in:	esi->vehicle that collided
+// safe: everything but esi
+exported rvcrash_makecrashed
+	movzx edi, word [esi+veh.engineidx]
+	shl edi, 7
+	add edi, [veharrayptr]
+
+	mov eax, edi
+.next:
+	inc word [eax+0x68]
+	or byte [eax+veh.vehstatus], 0x80
+	movzx eax, word [eax+veh.nextunitidx]
+	cmp ax, 0xFFFF
+	je .done
+	shl eax, 7
+	add eax, [veharrayptr]
+	jmp short .next
+
+.done:
+	ret
+
+// Called to remove all cargo from a road vehicle after a crash and to count the victims of the crash
+// in:	esi->vehicle that collided
+//	edi->engine of the crashed consist, kept from rvcrash_makecrashed
+// out:	cx: total victim count (don't forget to add 1 for the driver)
+// safe: everything but esi
+exported rvcrash_handlecargo
+	mov cx, 1
+.next:
+	xchg esi, edi
+	call isrvbus
+	xchg esi, edi
+	jnz .nonhuman
+	add cx, [edi+veh.currentload]
+.nonhuman:
+	and word [edi+veh.currentload], 0
+	movzx edi, word [edi+veh.nextunitidx]
+	cmp di, 0xFFFF
+	je .done
+	shl edi, 7
+	add edi, [veharrayptr]
+	jmp short .next
+
+.done:
+	ret
+
+// The same as rvcrash_makecrashed, but this one is called when a small UFO destroys the vehicle
+// in:	esi->the UFO
+//	edi->the vehicle destroyed by the UFO
+// safe: ebx, ???
+exported smallufo_makecrashed
+	movzx ebx, word [edi+veh.engineidx]
+	shl ebx, 7
+	add ebx, [veharrayptr]
+
+.next:
+	inc word [ebx+0x68]
+	or byte [ebx+veh.vehstatus], 0x80
+	movzx ebx, word [eax+veh.nextunitidx]
+	cmp bx, 0xFFFF
+	je .done
+	shl ebx, 7
+	add ebx, [veharrayptr]
+	jmp short .next
+
+.done:
 	ret

@@ -369,7 +369,24 @@ extern deleteRVorders
 		push cx
 		and al, 0xF0
 		and cl, 0xF0
-	
+
+	codefragment oldrvcrash_makecrashed
+		inc word [esi+0x68]
+		or word [esi+veh.vehstatus],0x80
+
+	codefragment_call newrvcrash_makecrashed, rvcrash_makecrashed, 10
+
+	codefragment oldrvcrash_handlecargo, 14
+		mov cx, 1
+		cmp byte [esi+veh.cargotype],0
+
+	codefragment_call newrvcrash_handlecargo, rvcrash_handlecargo, 6
+
+	codefragment oldsmallufo_makecrashed
+		inc word [edi+0x68]
+		or word [edi+veh.vehstatus],0x80
+
+	codefragment_call newsmallufo_makecrashed, smallufo_makecrashed, 10
 endcodefragments
 
 patcharticulatedvehicles:
@@ -530,4 +547,7 @@ extern PrepareNewVehicleArrayEntry
 extern CalcExactGroundAltitude
 	mov [CalcExactGroundAltitude], edi
 	
+	patchcode rvcrash_makecrashed
+	patchcode rvcrash_handlecargo
+	patchcode smallufo_makecrashed
 	retn
