@@ -959,23 +959,23 @@ ovar .delstation,-4,$,fixremoveoilstation
 
 
 // Make train break down for a long time when it collides with a road vehicle
-global crashrv
-crashrv:
-	jnz .continue
-	pop edi
-	ret
+exported rvcrashcheck
+	mov eax, [dword 0]
+ovar .collidingRailVeh, -4, $, rvcrashcheck
+	test eax, eax
+	jz .nocollision
 
-.continue:
-	movzx edi,word [edi+veh.engineidx]
-	shl edi,7
-	add edi,[veharrayptr]
+	movzx eax,word [eax+veh.engineidx]
+	shl eax,7
+	add eax,[veharrayptr]
 
-	mov byte [edi+veh.breakdowncountdown],1
-	mov byte [edi+veh.breakdowntime],0xff
-	and word [edi+veh.speed],0
+	mov byte [eax+veh.breakdowncountdown],1
+	mov byte [eax+veh.breakdowntime],0xff
+	and word [eax+veh.speed],0
 	call redrawscreen
-	inc word [esi+0x68]
-	or word [esi+veh.vehstatus],0x80
+	test esp, esp	// make sure zf stays cleared
+
+.nocollision:
 	ret
 
 // called when marking an industry to be closed next month
