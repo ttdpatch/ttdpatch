@@ -254,8 +254,8 @@ NewsMenuWindowHandler:
 	mov dx, -1
 	mov ebp, addr(NewsHistWindowHandler)
 	call [CreateWindow]
-	mov dword [esi+24h], win_newshistory_elements
-	mov word [esi+6h], 101
+	mov dword [esi+window.elemlistptr], win_newshistory_elements
+	mov word [esi+window.id], cPatchWindowNewsHistory
 	mov ax, [esi+window.height]
 	mov cl, 42
 	sub ax, 14

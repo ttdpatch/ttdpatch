@@ -442,14 +442,14 @@ addcoord2:		//edx=coord, does both station spread and rail spread
 	jmp addcoord
 
 createwindow:
-	mov cx, 6//cWinTypeStationList
+	mov cx, cWinTypeStationList
 	movzx dx, [curplayer]
 	add dx, 32
 	push dx
 	call dword [BringWindowToForeground]
 	jnz NEAR .alreadywindowopen
 	mov eax, (640-winwidth)/2 + (((480-winheight)/2) << 16) // x, y
-	mov cx, 6//cWinTypeStationList
+	mov cx, cWinTypeStationList
 	mov ebx, winwidth+(winheight<<16)
 	mov dx, -1
 	mov ebp, windowhandler
@@ -991,7 +991,7 @@ CheckStationFacilitiesLeft:
 	push	bx
 	push	cx
 	movzx	bx, [esi+station.owner]
-	mov	al, 6 //cWinTypeStationList
+	mov	al, cWinTypeStationList
 	call	[RefreshWindows]	// AL = window type
 					// AH = element idx (only if AL:7 set)
 					// BX = window ID (only if AL:6 clear)

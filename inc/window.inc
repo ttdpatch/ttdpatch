@@ -157,6 +157,7 @@
 
 // cWinTypeTTDPatchWindow Window ids
 %define cPatchWindowEnhGUI		100
+%define cPatchWindowNewsHistory		101
 %define cPatchWindowGRFStatus		105
 %define cPatchWindowGRFHelper		108
 %define cPatchWindowSignalGUI		110

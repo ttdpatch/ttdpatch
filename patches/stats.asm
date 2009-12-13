@@ -31,7 +31,7 @@ acceptvehiclecargo:
 	pusha
 	mov dx, si
 	or dx, 0x8000
-	mov cl, 0x1D
+	mov cl, cWinTypeCompany
 	call [FindWindow]
 	call [RefreshWindowArea]
 	popa
@@ -188,12 +188,12 @@ companywindowclicked:
 	mov dx, [esi+window.id]
 .openstatistics:
 	or dx, 0x8000
-	mov cl, 0x1D // cWinTypeCompany
+	mov cl, cWinTypeCompany
 	call [BringWindowToForeground]
 	jnz .done
 
 	push dx
-	mov cx, 0x1D
+	mov cx, cWinTypeCompany
 	mov ebx, CompanyStats_width + (CompanyStats_height << 16)
 	mov dx, -1
 	mov ebp, addr(CompanyStatsWinHandler)
@@ -210,7 +210,7 @@ opencompanywindow:
         push byte PL_DEFAULT
 	call ctrlkeystate
 	jz .stats
-	mov cl, 0x1D	// cWinTypeCompany
+	mov cl, cWinTypeCompany
 	call [BringWindowToForeground]
 	ret
 .stats:

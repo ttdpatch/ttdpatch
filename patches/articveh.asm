@@ -476,17 +476,17 @@ buyRVTrailer:
 	push esi
 	call [UpdateVehicleSpriteBox]
 	pop edi
-	mov al, 0x12 ; cWinTypeDepot
+	mov al, cWinTypeDepot
 	mov bx, [edi+veh.XY]
 	call [RefreshWindows]	; AL = window type
 							; AH = element idx (only if AL:7 set)
 							; BX = window ID (only if AL:6 clear)
 	movzx bx, [edi+veh.owner]
-	mov al, 0x0A ; cWinTypeRVList
+	mov al, cWinTypeRVList
 	call [RefreshWindows]	; AL = window type
 							; AH = element idx (only if AL:7 set)
 							; BX = window ID (only if AL:6 clear)
-	mov al, 0x1D ; Company window
+	mov al, cWinTypeCompany
 	call [RefreshWindows]	; AL = window type
 							; AH = element idx (only if AL:7 set)
 							; BX = window ID (only if AL:6 clear)
@@ -1225,7 +1225,7 @@ RVTrailerProcessing:
 	call	[SelectRVSpriteByLoad]
 	call	[SetRoadVehObjectOffsets]
 	call	[RedrawRoadVehicle]
-	mov	al, 12h ;cWinTypeDepot
+	mov	al, cWinTypeDepot
 	mov	bx, word [esi+veh.XY]
 	call	[RefreshWindows]
 	retn
