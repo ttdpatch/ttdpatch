@@ -62,13 +62,13 @@ uvard curtilecoord
 //28-31:	Terrain type: 0=normal, 1=desert, 2=rainforest, 4=snow
 
 
-//callback return value:
+//callback 0x146 return value:
 //0:		use new sprites
 //1-4:		num sprites, vars 0x20-2F
 //5:		use recolour sprite specified in var 0x30
 //6:		use ordinary signal sprite number: var 0x20, (this overrides all other bits)
 
-//varact2var value
+//varact2var 0x20-2F, (base-sprites (callback 0x14D) affects only the per-tile base, the final X and Y offsets are added to the initial offsets of the signals (callback 0x146))
 //0-12:		sprite number
 //13:		add sprite yrel to Y correction for next sprite (sub from 3D Z), (yrel must fit in a signed byte)
 //14-18:	sprite Y (-3D Z) correction for next sprite, (signed), (added to total)
@@ -76,6 +76,14 @@ uvard curtilecoord
 //19-23:	sprite Y (-3D Z) correction for this sprite only, (signed), (not added to total)
 //24-27:	sprite X correction for next sprite << 1, (signed), (added to total)
 //28-31:	sprite X correction for this sprite only << 1, (signed), (not added to total)
+
+/*
+//callback 0x14D(?) value (pontification only at this point)
+//0:		use new base sprites
+//1-4:		num sprites, vars 0x20-2F
+//5:		use recolour sprite in var 0x30	
+//7:		this must also be set for base sprties to be used (used to filter out old newsignals grfs which don't check the callback id in variabel 0xC)	
+*/
 
 uvarb drawtype
 
@@ -170,7 +178,7 @@ newsignalsdraw:
 	mov BYTE [grffeature],0xE
 	mov DWORD [callback_extrainfo], eax
 	mov eax, 0x10E
-	xor esi, esi
+	//xor esi, esi
 	call getnewsprite
 	xor esi, esi
 	mov [miscgrfvar], esi
@@ -366,7 +374,10 @@ uvard cursigdataflags //1=got curtilecoord height,L5 data cached
 global getsigtiledata
 getsigtiledata:
 	pusha
-	mov esi, [curtilecoord]
+	cmp esi, [curtilecoord]
+	je .ok
+	int3				//something is wrong!
+.ok:
 	or esi, esi
 	jz NEAR .megafail
 	bts DWORD [cursigdataflags], 0
