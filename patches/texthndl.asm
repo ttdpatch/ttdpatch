@@ -11,6 +11,10 @@
 #include <station.inc>
 #include <town.inc>
 
+//uncoment for debugging purposes
+//#undef DEBUG
+//#define DEBUG 1
+
 extern curspriteblock,customtextptr,gethousetexttable,getmiscgrftable
 extern getstationtexttable,gettextintableptr,ntxtptr
 extern systemtextptr,mainstringtable,getextratranstable,hasaction12
@@ -568,7 +572,15 @@ printstname:
 	mov edx, [esi+town.citynameparts]
 	mov [textrefstack+2], edx
 	call newtexthandler
+#if WINTTDX && DEBUG
+	jmp .ok
 .fail:
+	mov ax, statictext(printhexword)
+	call newtexthandler
+.ok:
+#else
+.fail:
+#endif
 	pop DWORD [textrefstack+28]
 	pop DWORD [textrefstack+24]
 	pop DWORD [textrefstack+20]

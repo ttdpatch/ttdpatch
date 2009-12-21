@@ -2337,15 +2337,28 @@ statdeathdelrteobj:
         jmp freecargodestdataobj
 
 global stos_locationname	//esi=location, edi=textrefstack cur ptr (adds up to 4 bytes)
-stos_locationname:      	//trashes eax, esi
+stos_locationname:      	//trashes eax
+	push esi
 	ror esi, 16
 	dec si
 	jz .st
 	dec si
 	jz .veh
 .err:
+#if WINTTDX && DEBUG
+	cmp DWORD [esp], 0
+	je .blank
+	mov ax, statictext(printhexdword)
+	stosw
+	mov eax, [esp]
+	stosd
+	pop esi
+	ret
+#endif
+.blank:
 	mov ax, statictext(empty)
 	stosw
+	pop esi
 	ret
 .st:
 	shr esi, 16
@@ -2358,6 +2371,7 @@ stos_locationname:      	//trashes eax, esi
 	stosw
 	mov eax, esi
 	stosw
+	pop esi
 	ret
 .veh:
 	shr esi, 16-vehicleshift
@@ -2375,6 +2389,7 @@ stos_vehname:
 	stosw
 	movzx ax, BYTE [esi+veh.consistnum]
 	stosw
+	pop esi
 	ret
 
 uvard cargodestdebugflag

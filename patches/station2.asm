@@ -180,7 +180,16 @@ setupstation2:
 	
 	testflags cargodest
 	jnc .nocargodest
-	extcall cargodestinitstationroutingtable
+	mov cl, station2_size
+	push eax
+	mov eax, edi
+	sub eax, [stationarray2ptr]
+	div cl
+	//al=station id
+	mov cl, 250
+	sub cl, al
+	pop eax
+	extcall cargodestinitstationroutingtable	//cl=250-station id
 .nocargodest:
 
 	xor ecx,ecx

@@ -394,3 +394,4 @@ stxt outstation, 0x9A, 12, 0
 stxt printdate, 0x82, 0
 stxt printhexword, 0x9A, 7, 0
 stxt printhexbyte, 0x9A, 6, 0
+stxt printhexdword, 0x9A, 8, 0
