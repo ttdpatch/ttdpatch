@@ -16,6 +16,7 @@
 #include <industry.inc>
 #include <ptrvar.inc>
 #include <win32.inc>
+#include <dest.inc>
 
 extern actionhandler,actionmakewater_actionnum,addexpenses
 extern clearfifodata,clearindustryincargos,deleteconsist
@@ -30,7 +31,7 @@ extern subsidyfn,traincost,treenum,treestart,vehtypedataptr
 extern yeartodate,trackcheat,isplaneinflight
 extern convertplatformsinremoverailstation
 extern invalidatetile,ResetBBlockVehicleLists
-extern newtexthandler
+extern newtexthandler,stationarray2ptr,cargodestdata
 
 
 //uncoment for debugging purposes
@@ -169,6 +170,7 @@ cheatentry "SETLANDVAL", setlandarrayval, 0
 cheatentry "LOGCARGODEST", logcargodest, 0
 #endif
 cheatentry "FIXORDERS", fixorders, 0
+cheatentry "CARGODEST", cargodestcheat, 0
 
 #if DEBUGNETPLAY
 cheatentry "LOGRANDOM",lograndomcheat,0
@@ -3418,6 +3420,10 @@ schedulesharecheck:
 	ret
 	
 orderfixoutmess:
+	push DWORD fixordertitletext
+	call genoutmess
+	ret
+genoutmess:
 #if WINTTDX
 	sub esp, 1024
 	mov edi, esp
@@ -3425,7 +3431,7 @@ orderfixoutmess:
 	call newtexthandler
 	mov edi, esp
 	push byte 0
-	push fixordertitletext
+	push DWORD [esp+4+1024+4] //fixordertitletext
 	push edi
 	push byte 0
 	call [MessageBoxA]
@@ -3437,7 +3443,7 @@ orderfixoutmess:
 	xor cx, cx
 	call dword [errorpopup]
 #endif
-	ret
+	ret 4
 
 uvard orderfix1flags
 uvard orderfix1truncated
@@ -3667,6 +3673,65 @@ dd orderfix1addedzero
 db "3: Additional zero markers added: ", 0x7B, 13, 10
 db 0
 endvar
+
+cargodestcheat:
+	testflags cargodest
+	jnc NEAR .fret
+	call skipspaces
+	mov eax, [esi+ebx]
+	or eax, 0x20202020
+	cmp eax, "rstm"
+	je .reset
+	cmp eax, "fix1"
+	je .fix1
+.help:
+	mov dword [specialerrtext1], cargodestchthelpmessage
+	push DWORD cargodestmessagetitle
+	call genoutmess
+	clc
+	ret
+.fret:
+	stc
+	ret
+.reset:
+	extcall initcargodestmemory
+	extcall cargodestinitstationroutingtable_all
+	clc
+	ret
+.fix1:
+	pushad
+	xor ebx, ebx
+	mov ecx, 0x10000
+	mov esi, stationarray
+	mov edi, [stationarray2ptr]
+	mov ebp, [cargodestdata]
+.fix1loop:
+	cmp WORD [esi+station.XY], 0
+	je .fix1next
+	mov eax, [edi+station2.cargoroutingtableptr]
+	cmp [ebp+eax+routingtable.location], ecx
+	je .fix1next
+	inc ebx
+#if WINTTDX && DEBUG
+	int3
+#endif
+	mov [ebp+eax+routingtable.location], ecx
+.fix1next:
+	add esi, station_size
+	add edi, station2_size
+	inc cl
+	cmp cl, 250
+	jb .fix1loop
+	popad
+	clc
+	ret
+	
+var cargodestmessagetitle, db "Cargo Destinations Operations Sign Cheat Messagebox Title Text", 0
+varb cargodestchthelpmessage
+db "Cht: cargodest rstm	Reset all cargo dest memory. All cargo becomes unrouted, all routes are erased, etc", 13, 10
+db "Cht: cargodest fix1		Fix existance corruption caused by the bug fixed in r2276 (new routing tables with bad location fields)", 13, 10
+db 0
+endvar 
 
 #if DEBUGNETPLAY
 /*
