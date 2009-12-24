@@ -679,7 +679,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	ret
 
 .checkspaceandunload_fail:
-	pop ecx
+	//pop ecx
 	mov ebp, [cargodestdata]
 	pop ecx                         //eat return address
 	jmp .unloadfail
