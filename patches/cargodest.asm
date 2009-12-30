@@ -13,7 +13,7 @@ extern stationarray2ptr,station2ofs_ptr
 extern cargodestroutecmpfactor, cdstrtcostexprthrshld
 extern acceptcargofn
 extern ensurecargoslot, transferprofit, addfeederprofittoexpenses
-extern stationcargowaitingnotmask
+extern stationcargowaitingnotmask,stationcargowaitingmask
 extern patchflags
 extern loadcargounroutedquantity
 extern cdstcargopacketinitttl
@@ -541,12 +541,16 @@ AcceptCargoAtStation_CargoDestAdjust:
 	cmp WORD [eax+ebp+cargopacket.amount], 0
 	jne NEAR .cploopnext
 	
+	push edi
+	mov edi, [esp+4+4]
 	push ecx
 	push DWORD [eax+ebp+cargopacket.nextptr]
+	call clearlasttransprofit
 	call unlinkcargopacket
 	call freecargodestdataobj
 	pop eax
 	pop ecx
+	pop edi
 	jmp .startcploop
 
 .unloadcargohere:
@@ -647,7 +651,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	mov ah, cl
 	call transferprofit
 	sub [edi+veh.profit], eax
-	mov [esi], eax
+	add [esi], eax
 	call addfeederprofittoexpenses
 	popa
 .domoneyandcargoinc_ret:
@@ -666,23 +670,71 @@ AcceptCargoAtStation_CargoDestAdjust:
 	push ecx
 	mov bx, bp
 	mov cx, [stationcargowaitingnotmask]
-	and bx, cx
-	xor bp, bx                      //bp=cargo amount
-	add bp, dx
-	test bp, cx
+	and bp, cx
+	xor bx, bp                      //bx=cargo amount
+	add bx, dx
+	test bx, cx
 	pop ecx
-	jnz .checkspaceandunload_fail
+	jz NEAR .checkspaceandunload_ok
+.ejectcargo:
+	//eject cargo from station sans payment to make space
+	push edi
+	push ebp
+	push eax
+	push edx
+        mov edi, [esp+12+16]		//stack frame
+	mov edi, [edi+0xA]		//station ptr
+	add edi, [station2ofs_ptr]	
+	mov ebp, [cargodestdata]
+	mov eax, [edi+station2.cargoroutingtableptr]
+	or eax, eax
+	jz .ejectcargonocps
+
+	mov eax, [ebp+eax+routingtable.cargopacketsrear]
+.ejectcargocheckpacket:
+	or eax, eax
+	jz .ejectcargonocps
+	test BYTE [eax+ebp+cargopacket.flags], 2	//not a cargo packet
+	jnz .ejectcargonextpacket
+	mov dl, [esi+veh.cargotype]
+	cmp dl, [ebp+eax+cargopacket.cargo]
+	jne .ejectcargonextpacket
+	//this packet will be ejected
+	sub bx, [ebp+eax+cargopacket.amount]
+	push DWORD [ebp+eax+cargopacket.prevptr]
+	push ecx
+	call unlinkcargopacket
+	call freecargodestdataobj
+	pop ecx
+	pop eax
+	test bx, [stationcargowaitingnotmask]
+	jz .doneejectcargo
+	jmp .ejectcargocheckpacket
+	
+
+.ejectcargonextpacket:
+	mov eax, [ebp+eax+cargopacket.prevptr]
+	jmp .ejectcargocheckpacket
+
+.ejectcargonocps:
+	mov bx, [stationcargowaitingmask]
+.doneejectcargo:
+	pop edx
+	pop eax
+	pop ebp
+	pop edi	
+.checkspaceandunload_ok:
 	or bx, bp
 	mov [station.cargos+ecx+stationcargo.amount], bx
 	
 	mov ebp, [cargodestdata]
 	ret
 
-.checkspaceandunload_fail:
-	//pop ecx
-	mov ebp, [cargodestdata]
-	pop ecx                         //eat return address
-	jmp .unloadfail
+//.checkspaceandunload_fail:
+//	//pop ecx
+//	mov ebp, [cargodestdata]
+//	pop ecx                         //eat return address
+//	jmp .unloadfail
 
 	//[esp]=unload amount left
 	//[esp+4]=stack frame
@@ -1088,20 +1140,9 @@ LoadCargoFromStation_CargoDestAdjust:
 	mov [eax+ebp+cargopacket.dateleft], cx
 .notfirstdepart:
 	mov [eax+ebp+cargopacket.datearrcurloc], cx
-	testflags feederservice
-	jnc .loadmoneydatefunc_ret
-	pusha
-	add ebp, eax
-	xor eax, eax
-	xchg eax, [ebp+cargopacket.lasttransprofit]
-	neg eax
-	//mov edi, [esp+32+4+4+20+(4???)]	//pushad, ret, edx, function stack vars
-	mov edi, [edi]				//engine
-	sub [edi+veh.profit],eax
-	call addfeederprofittoexpenses
-	popa
-.loadmoneydatefunc_ret:
 	ret
+	
+
 
 .loadfail:
 	or BYTE [cargodestloadflags], 1
@@ -1155,6 +1196,14 @@ LoadCargoFromStation_CargoDestAdjust:
 	pop edx		//amount of load limit remaining
 
 	pop ebx		//amount of unrouted cargo in station
+	
+	or ebx, ebx
+	jns .routedamountok
+#if WINTTDX & DEBUG
+	int3		//negative amount of unrouted cargo in station. This is Bad™.
+#endif
+	xor ebx, ebx
+.routedamountok:
 	
 	pop eax		//original max load amount
 
@@ -1218,6 +1267,24 @@ LoadCargoFromStation_CargoDestAdjust:
 .nooutacceptendmess:
 #endif
 
+	ret
+
+clearlasttransprofit:	//eax=cargo packet
+			//edi=stack frame
+			//esi=vehicle
+			//ebp=[cargodestdata]
+	testflags feederservice
+	jnc .ret
+	pusha
+	add ebp, eax
+	xor eax, eax
+	xchg eax, [ebp+cargopacket.lasttransprofit]
+	neg eax
+	mov edi, [edi]				//engine
+	sub [edi+veh.profit],eax
+	call addfeederprofittoexpenses
+	popa
+.ret:
 	ret
 	
 
