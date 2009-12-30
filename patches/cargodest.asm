@@ -1580,15 +1580,14 @@ addroutesreachablefromthisnodeandrecurse:
 	cmp ecx, 1
 	je NEAR .doneandnext
 	ja NEAR .updateandstartrecursion
-	
+
 	//edi=current cost in days
 	//bl=cargo
 	//edx=routing table entry to final destination from last node
-	
+
 	mov esi, [edx+ebp+routingtableentry.destrttable]
-	
 	//esi=routing table of final destination
-	
+
 	call alloccargodestdataobj
 	mov [eax+ebp+routingtableentry.cargo], bl
 	
@@ -1666,7 +1665,7 @@ addroutesreachablefromthisnodeandrecurse:
 	//returns: ecx:
 		//0=continue and perhaps add new route
 		//1=abandon
-		//2=update route
+		//2=update route, eax and esi must be sensibly set
 addroutesreachablefromthisnodeandrecurse_checkloop:
 	or eax, eax
 	jz NEAR .donecheck
@@ -1682,6 +1681,9 @@ addroutesreachablefromthisnodeandrecurse_checkloop:
 	cmp [eax+ebp+routingtableentry.mindays], di
 	jbe NEAR .doneandnext
 	//update and recurse from here
+	push eax
+	call addroutesreachablefromthisnodeandrecurse_checkloop.nextcheck
+	pop eax
 	mov esi, [edx+ebp+routingtableentry.destrttable]
 	mov ecx, 2
 	ret
