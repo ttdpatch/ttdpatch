@@ -31,7 +31,7 @@ extern subsidyfn,traincost,treenum,treestart,vehtypedataptr
 extern yeartodate,trackcheat,isplaneinflight
 extern convertplatformsinremoverailstation
 extern invalidatetile,ResetBBlockVehicleLists
-extern newtexthandler,stationarray2ptr,cargodestdata
+extern newtexthandler,stationarray2ptr,cargodestdata,cargodestdata_size
 
 
 //uncoment for debugging purposes
@@ -3684,6 +3684,8 @@ cargodestcheat:
 	je .reset
 	cmp eax, "fix1"
 	je .fix1
+	cmp eax, "stat"
+	je NEAR .stat
 .help:
 	mov dword [specialerrtext1], cargodestchthelpmessage
 	push DWORD cargodestmessagetitle
@@ -3725,13 +3727,157 @@ cargodestcheat:
 	popad
 	clc
 	ret
+.stat:
+	pushad
+	mov ebp, [cargodestdata]
+	xor ebx, ebx
+	xor edi, edi
+	xor edx, edx
+	mov ecx, 0x10000
+.vehpacketloop:
+	mov eax, [ebp+cargodestgamedata.vehcplist+ecx*4-4]
+	call countcargopackets
+	loop .vehpacketloop
+	mov [cdstatpacketsveh], edi
+	mov [cdstatvehstatpackets], edx
+	mov [cdstatcargoveh], ebx
+	
+	xor ebx, ebx
+	xor edi, edi
+	xor edx, edx
+	mov ecx, numstations
+	mov esi, stationarray
+	mov [cdstatnearroutes], edx
+	mov [cdstatfarroutes], edx
+.statloop:
+	cmp WORD [esi+station.XY], 0
+	je .next
+	mov eax, [esi+station2ofs+station2.cargoroutingtableptr]
+	or eax, eax
+	je .next
+	call countroutes
+	mov eax, [ebp+eax+routingtable.cargopacketsfront]
+	call countcargopackets
+.next:
+	add esi, station_size
+	loop .statloop
+	mov [cdstatpacketsstat], edi
+	mov [cdstatcargostat], ebx
+	or edx, edx
+	jz .aok
+	int3	//flag discrepancy	
+.aok:
+
+	mov eax, [ebp+cargodestgamedata.cddusedend]
+	mov [textrefstack], eax
+	mov eax, [cargodestdata_size]
+	mov [textrefstack+4], eax
+	mov DWORD [textrefstack+8], cargodestdata_reservesize*WINTTDX
+
+	mov dword [specialerrtext1], cargodeststatmessage
+	push DWORD cargodestmessagetitle
+	call genoutmess
+	clc
+	popad
+	ret
+
+uvard cdstatpacketsstat
+uvard cdstatcargostat
+uvard cdstatpacketsveh
+uvard cdstatcargoveh
+uvard cdstatvehstatpackets
+uvard cdstatnearroutes
+uvard cdstatfarroutes
+
+//eax=first packet or 0
+//ebp=[cargodestdata]
+//increases edi=count, edx=count of veh stat packets, ebx=cargo
+//trashes: none
+countcargopackets:
+	jmp .test
+.start:
+	test BYTE [ebp+eax+cargopacket.flags], 2
+	jz .cargo
+	inc edx
+	jmp .next
+.cargo:
+	inc edi
+	push eax
+	movzx eax, WORD [ebp+eax+cargopacket.amount]
+	add ebx, eax
+	pop eax
+.next:
+	mov eax, [ebp+eax+cargopacket.nextptr]
+.test:
+	or eax, eax
+	jnz .start
+.end:
+	ret
+
+//eax=cargo routing table
+//ebp=[cargodestdata]
+//trashes: none
+countroutes:
+	push eax
+	push DWORD [eax+ebp+routingtable.destrtptr]
+	mov eax, [eax+ebp+routingtable.nexthoprtptr]
+	jmp .neartest
+.nearstart:
+	inc DWORD [cdstatnearroutes]
+	mov eax, [ebp+eax+routingtableentry.next]
+.neartest:
+	or eax, eax
+	jnz .nearstart
+	
+	pop eax
+	
+	jmp .fartest
+.farstart:
+	inc DWORD [cdstatfarroutes]
+	mov eax, [ebp+eax+routingtableentry.next]
+.fartest:
+	or eax, eax
+	jnz .farstart	
+	pop eax
+	ret
 	
 var cargodestmessagetitle, db "Cargo Destinations Operations Sign Cheat Messagebox Title Text", 0
 varb cargodestchthelpmessage
 db "Cht: cargodest rstm	Reset all cargo dest memory. All cargo becomes unrouted, all routes are erased, etc", 13, 10
 db "Cht: cargodest fix1		Fix existance corruption caused by the bug fixed in r2276 (new routing tables with bad location fields)", 13, 10
+db "Cht: cargodest stat		Display cargodest statistics", 13, 10
 db 0
-endvar 
+endvar
+
+varb cargodeststatmessage
+db 0x94
+db 0x9A, 0xA
+dd cdstatpacketsveh
+db "Packets in vehicles: ", 0x7B, 13, 10
+db 0x9A, 0xA
+dd cdstatvehstatpackets
+db "Vehicle status packets: ", 0x7B, 13, 10
+db 0x9A, 0xA
+dd cdstatcargoveh
+db "Routed cargo in vehicles: ", 0x7B, 13, 10
+db 0x9A, 0xA
+dd cdstatpacketsstat
+db "Packets in stations: ", 0x7B, 13, 10
+db 0x9A, 0xA
+dd cdstatcargostat
+db "Routed cargo in stations: ", 0x7B, 13, 10
+db 0x9A, 0xA
+dd cdstatnearroutes
+db "Single hop routes: ", 0x7B, 13, 10
+db 0x9A, 0xA
+dd cdstatfarroutes
+db "Far routes: ", 0x7B, 13, 10
+db 0x9A, 0xA
+dd cargodestdata
+db "Memory offset: ", 0x9A, 8, 13, 10
+db "Used end: ", 0x9A, 8, ", Allocated: ", 0x9A, 8, ", Reserved: ", 0x9A, 8, 13, 10
+db 0
+endvar
 
 #if DEBUGNETPLAY
 /*
