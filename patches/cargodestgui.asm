@@ -78,12 +78,12 @@ exported CanDispMiscButton
 
 exported cdestmoredetailswintoggle
 	pushad
-	
+
 	cmp DWORD [esi+window.function], ShadedWinHandler
 	jne .nounshade
 	call ShadeWindowHandler.toggleshade		//window is shaded, unshade before trying to do anything to it
 .nounshade:
-	
+
 	push DWORD [esi+window.company]
 	push DWORD [esi+window.data+2]
 	push DWORD [esi+window.data+6]
@@ -117,7 +117,7 @@ exported cdestmoredetailswintoggle
 	push eax
 
 	call [DestroyWindow]
-	
+
 	pop ecx
 	mov dx, -1
 	pop eax
@@ -132,7 +132,7 @@ exported cdestmoredetailswintoggle
 	mov [esi+window2ofs+window2.data1], ax
 	pop DWORD [esi+window2ofs+window2.data2+8]		//function
 	pop DWORD [esi+window2ofs+window2.data2+12]		//type and item info
-	
+
 	pop eax
 	and eax, 1<<14 | 0xFFFF<<16		//preserve stickiness and window id
 	mov [esi+window.flags], eax
@@ -140,10 +140,10 @@ exported cdestmoredetailswintoggle
 	pop DWORD [esi+window.data+6]
 	pop DWORD [esi+window.data+2]
 	pop DWORD [esi+window.company]
-	
+
 	mov BYTE [esi+window.itemsvisible], numrows
-	mov BYTE [esi+window2ofs+window2.extactualvisible], numrows	
-	
+	mov BYTE [esi+window2ofs+window2.extactualvisible], numrows
+
 	popad
 	mov cx, -1
 	ret
@@ -173,7 +173,7 @@ exported cdestmoredetailswintoggle
 	pop eax
 	and eax, 0xFFFFFF
 	mov [esi+window.type], eax
-	
+
 	pop eax
 	and eax, 1<<14 | 0xFFFF<<16		//preserve stickiness and window id
 	mov [esi+window.flags], eax
@@ -183,7 +183,7 @@ exported cdestmoredetailswintoggle
 	pop DWORD [esi+window.company]
 	popad
 	ret
-	
+
 cdestmoredetailswinhandler:
  	mov esi, edi
 	pushad
@@ -234,7 +234,7 @@ cdestmoredetailswinhandler:
 .noresetscroll:
 	popad
 	jmp [RefreshWindowArea]
-	
+
 .redraw:
 	push edi
 	push esi
@@ -262,11 +262,11 @@ cdestmoredetailswinhandler:
 	pop esi
 	pop edi
 	call dword [DrawWindowElements]
-	
+
 	mov [scrblkupddesc], edi
 	//pushad
 	mov ebp, [cargodestdata]
-	
+
 	mov eax, [esi+window.activebuttons]
 	and eax, 0x3F<<6
 	test eax, 1<<0xA
@@ -279,7 +279,7 @@ cdestmoredetailswinhandler:
 	jnz NEAR nexthopmode
 	test eax, 1<<0x9
 	jnz NEAR treemode
-	test eax, 1<<0xB	
+	test eax, 1<<0xB
 	jnz NEAR routedumpmode
 	popad
 	ret
@@ -287,8 +287,8 @@ cdestmoredetailswinhandler:
 uvard stsortlist, 32*0x100/4
 uvard stamountlist, 32*0x100
 uvard stsortlist2, 0x100/4
-uvard stamountlist2, 0x100
-uvard stflaglist, 32*0x100
+uvard stamountlist2, 32*0x100
+uvard stflaglist, 32*0x100	//1=packets stranded, 2=is a single hop destination
 uvard cargototal, 32
 uvard cargorouted, 32
 uvard cargounroutable, 32
@@ -296,9 +296,9 @@ uvard curstcargorttbl           //relative ptr or 0
 
 destmode:
 	call clearstarrays
-	
+
 	call destcountcommon
-	
+
 	xor ebx, ebx
 	mov eax, cargototal
 	mov ecx, 32
@@ -307,7 +307,7 @@ destmode:
 	mov ecx, 32*0x100
 	call cargocountloop
 	call TrainListDrawHandlerCountTrains
-	
+
 	mov WORD [destlinetextid], ourtext(cpgui_destline)
 	call commonprint
 	popad
@@ -326,23 +326,34 @@ destcountcommon:
 	movzx ebx, BYTE [eax+ebp+cargopacket.destst]
 	add ecx, ebx
 	add [stamountlist+ecx*4], edx
-	sub ecx, ebx
+	call getnextcp
+	jnz .routecountloop
+	xor ebx, ebx
+.stloop:
+	mov edx, [stamountlist+ebx*4]
+	or edx, edx
+	jz .next
+
+	mov ecx, ebx
+	and ecx, 0xFF00
+	and ebx, 0x00FF
 	mov DWORD [packetroutingcheck_flags], 0
 	call packetroutingcheck
 	imul edx, ebx, station_size
+	or ebx, ecx
 	movzx edx, BYTE [edx+stationarray+station.displayidx]
 	mov [stsortlist+edx+ecx], bl
-	call getnextcp
-	jnz .routecountloop
+.next:
+	inc ebx
+	cmp ebx, 32<<8+0xFF
+	jbe .stloop
+
+
 .doneroutedcount:
 	ret
 
 treemode:
 #if 0
-	call clearstarrays
-	
-	call destcountcommon
-	
 	xor ebx, ebx
 	xor eax, eax
 	mov ecx, 32*0x100
@@ -368,17 +379,46 @@ treemode:
 	ret
 
 	call TrainListDrawHandlerCountTrains
-	
 #endif
+
+#if 0
+	call clearstarrays
+
+	call destcountcommon
+
+	xor ebx, ebx
+
+	push DWORD 0x03FFFFFF
+	times 7 push DWORD 0xFFFFFFFF
+	push DWORD [curstcargorttbl]
+	push DWORD [curstcargorttbl]
+	push DWORD 0
+	push DWORD 0
+	call countstsreachablefromcurrentnode
+
+
+	call TrainListDrawHandlerCountTrains
+#endif
+
 	popad
 	ret
-	
+
+//[esp+4]=recursion level
+//[esp+8]=cargo
+//[esp+9]=unused
+//[esp+10]=flags
+//[esp+12]=source station routing table
+//[esp+16]=current station routing table
+//[esp+20]=mask of usable destinations
+//[esp+51]=end of function stack
+//ebp=[cargodestdata]
+
 countstsreachablefromcurrentnode:
 
-	ret
+	ret 52
 
 //ebp=[cargodestdata]
-//eax=packet (unused?)
+//eax=packet (unused?), Now not supplied
 //ebx=destst
 //ecx=cargo<<8
 //edx=amount
@@ -390,10 +430,10 @@ packetroutingcheck:
 	mov esi, [curstcargorttbl]
 	or esi, esi
 	jz NEAR .fail
-	
+
 	xor edi, edi	//found count
 	or ebx, 0x10000
-	
+
 	mov esi, [ebp+esi+routingtable.nexthoprtptr]
 	or esi, esi
 	jz .nonexthops
@@ -464,7 +504,7 @@ packetroutingcheck:
 .fail:
 	popad
 	ret
-	
+
 uvarw destlinetextid
 uvarw fulllinetextid
 commonprint:
@@ -504,7 +544,7 @@ commonprint:
 
 	shl edi, 8
 	xor ecx, ecx
-	
+
 .destprintloop:
 	movzx eax, BYTE [stsortlist+edi+ecx]		//eax=station id
 	push ecx
@@ -531,8 +571,8 @@ commonprint:
 	call outlistline
 .donedestprint:
 	pop ecx			//dest st id & cargo
-	
-	//full mode 
+
+	//full mode
 	cmp WORD [fulllinetextid], 0
 	je .skipfullsourceloop
 	movzx eax, BYTE [esi+window2ofs+window2.extactualvisible]
@@ -570,28 +610,28 @@ commonprint:
 	inc ecx
 	cmp ecx, 0x100
 	jb .sourceprintloop
-	
+
 	add esp, 4
-	
-.skipfullsourceloop:	
+
+.skipfullsourceloop:
 	//full mode ends
-	
+
 .skipdest:
 	pop ecx
 	inc ecx
 	cmp ecx, 0x100
 	jb .destprintloop
-	
+
 	shr edi, 8
 
 .skipcargo:
 	inc edi
 	cmp edi, 32
 	jb .cargoprintloop
-	
+
 	pop edi
 	ret
-	
+
 cargocountloop:
 	cmp DWORD [eax], 0
 	jz .noinc
@@ -600,12 +640,12 @@ cargocountloop:
 	add eax, 4
 	loop cargocountloop
 	ret
-	
+
 fullmode:
 	call clearstarrays
-	
+
 	call destcountcommon
-	
+
 	xor ebx, ebx
 	mov eax, cargototal
 	mov ecx, 32
@@ -632,7 +672,7 @@ fullmode:
 	jb .sourceloop
 
 	call TrainListDrawHandlerCountTrains
-	
+
 	mov WORD [destlinetextid], ourtext(cpgui_destline)
 	mov WORD [fulllinetextid], ourtext(cpgui_sourceline)
 	call commonprint
@@ -669,9 +709,11 @@ fullsourceloop:
 .doneroutedcount:
 	pop ebx
 	ret
-	
+
 nexthopmode:
 	call clearstarrays
+	call clearst2arrays
+
 
 	call gettotalcargocount
 	call getfirstcp
@@ -683,10 +725,26 @@ nexthopmode:
 	add [cargorouted+ecx*4], edx
 	shl ecx, 8
 	movzx ebx, BYTE [eax+ebp+cargopacket.destst]
-	mov DWORD [packetroutingcheck_flags], 1
-	call packetroutingcheck
+	add ecx, ebx
+	add [stamountlist2+ecx*4], edx
 	call getnextcp
 	jnz .routecountloop
+	xor ebx, ebx
+.stloop:
+	mov edx, [stamountlist2+ebx*4]
+	or edx, edx
+	jz .next
+
+	mov ecx, ebx
+	and ecx, 0xFF00
+	and ebx, 0x00FF
+	mov DWORD [packetroutingcheck_flags], 1
+	call packetroutingcheck
+	or ebx, ecx
+.next:
+	inc ebx
+	cmp ebx, 32<<8+0xFF
+	jbe .stloop
 .doneroutedcount:
 
 	xor ebx, ebx
@@ -712,7 +770,7 @@ packetdumpmode:
 	inc ebx
 	call getnextcp
 	jnz .packetcountloop
-	//dec ebx 
+	//dec ebx
 
 .nomultiveh:
 	inc ebx
@@ -730,7 +788,7 @@ packetdumpmode:
 	add ax, 4
 	mov dx, [esi+window.y]
 	add dx, 18
-	
+
 	mov bx, ourtext(cpgui_pd_amount)
 	mov cx, 30
 	call outtablevalue
@@ -765,7 +823,7 @@ packetdumpmode:
 	jecxz .draw
 .skiploop:
 	call getnextcp
-	jz NEAR .done	
+	jz NEAR .done
 	loop .skiploop
 .draw:
 	mov edi, eax
@@ -798,13 +856,13 @@ outtableline:				//ebp=[cargodestdata]
 	shl edx, 2
 	lea edx, [edx+edx*2+18]
 	add dx, [esi+window.y]
-	
+
 	mov bx, statictext(printword)
 	mov cx, [ebp+edi+cargopacket.amount]
 	mov [textrefstack], cx
 	mov cx, 30
 	call outtablevalue
-	
+
 	movzx ebx, BYTE [edi+ebp+cargopacket.cargo]
 	mov bx, [newcargotypenames+ebx*2]
 	mov cx, 75
@@ -815,12 +873,12 @@ outtableline:				//ebp=[cargodestdata]
 	mov [textrefstack], cx
 	mov cx, 100
 	call outtablevalue
-	
+
 	movzx cx, BYTE [ebp+edi+cargopacket.destst]
 	mov [textrefstack], cx
 	mov cx, 100
 	call outtablevalue
-	
+
 //	cmp BYTE [esi+window.type], cWinTypeStation
 //	jne .ok
 //	movzx cx, BYTE [ebp+edi+cargopacket.sourcest]
@@ -832,7 +890,7 @@ outtableline:				//ebp=[cargodestdata]
 	mov cx, 100
 	call outtablevalue
 //.nodisp:
-	
+
 	mov bx, statictext(printdate)
 	mov cx, [ebp+edi+cargopacket.dateleft]
 	mov [textrefstack], cx
@@ -848,23 +906,23 @@ outtableline:				//ebp=[cargodestdata]
 	mov [textrefstack], cx
 	mov cx, 90
 	call outtablevalue
-	
+
 	mov bx, statictext(printbyte)
 	movzx cx, BYTE [ebp+edi+cargopacket.ttl]
 	mov [textrefstack], cx
 	mov cx, 50
 	call outtablevalue
-	
+
 	mov bx, statictext(printhexword)
 	mov cx, [ebp+edi+cargopacket.flags]
 	mov [textrefstack], cx
 	mov cx, 75
 	call outtablevalue
-	
+
 	pop edx
 	inc edx
 	ret
-	
+
 routedumpmode:
 	xor ebx, ebx
 	call getfirstroute
@@ -885,7 +943,7 @@ routedumpmode:
 	add ax, 4
 	mov dx, [esi+window.y]
 	add dx, 18
-	
+
 	mov bx, ourtext(cpgui_pd_cargo)
 	mov cx, 75
 	call outtablevalue
@@ -943,7 +1001,7 @@ getfirstroute:	//sets zf on fail
 	or edi, edi
 .end:
 	ret
-	
+
 getnextroute:
 	or edi, edi
 	jz .trynext
@@ -960,7 +1018,7 @@ getnextroute:
 	mov BYTE [getfirstroute_flag], 1
 	or edi, edi
 	ret
-	
+
 outroutetableline:				//ebp=[cargodestdata]
 					//edx=vertical position
 					//edi=cargo packet
@@ -975,7 +1033,7 @@ outroutetableline:				//ebp=[cargodestdata]
 	shl edx, 2
 	lea edx, [edx+edx*2+18]
 	add dx, [esi+window.y]
-	
+
 	movzx ebx, BYTE [edi+ebp+routingtableentry.cargo]
 	mov bx, [newcargotypenames+ebx*2]
 	mov cx, 75
@@ -989,7 +1047,7 @@ outroutetableline:				//ebp=[cargodestdata]
 	popad
 	mov cx, 100
 	call outtablevalue
-	
+
 	mov bx, statictext(ident)
 	pushad
 	mov esi, [ebp+edi+routingtableentry.nexthop]
@@ -998,19 +1056,19 @@ outroutetableline:				//ebp=[cargodestdata]
 	popad
 	mov cx, 100
 	call outtablevalue
-	
+
 	mov bx, statictext(printword)
 	mov cx, [ebp+edi+routingtableentry.mindays]
 	mov [textrefstack], cx
 	mov cx, 50
 	call outtablevalue
-	
+
 	mov bx, statictext(printdate)
 	mov cx, [ebp+edi+routingtableentry.lastupdated]
 	mov [textrefstack], cx
 	mov cx, 90
 	call outtablevalue
-	
+
 	mov cx, [ebp+edi+routingtableentry.oldestwaiting]
 	mov [textrefstack], cx
 	or cx, cx
@@ -1019,13 +1077,13 @@ outroutetableline:				//ebp=[cargodestdata]
 .lu_ok:
 	mov cx, 90
 	call outtablevalue
-	
+
 	mov bx, statictext(printhexbyte)
 	movzx cx, BYTE [ebp+edi+routingtableentry.flags]
 	mov [textrefstack], cx
 	mov cx, 50
 	call outtablevalue
-	
+
 	pop edx
 	inc edx
 	ret
@@ -1075,7 +1133,7 @@ getfirstcp:				//expects ebp=[cargodestdata]
 .bad:
 	xor eax, eax
 .ret:
-	ret	
+	ret
 .veh:
 	movzx eax, WORD [esi+window.id]
 	mov [cpguicurvehid], eax
@@ -1098,7 +1156,7 @@ getfirstcp:				//expects ebp=[cargodestdata]
 	ret
 
 getnextcp:	//nz=continue, new packet in eax
-		//z=no next packet, eax=0	
+		//z=no next packet, eax=0
 	or eax, eax
 	jz .test
 .next:
@@ -1129,7 +1187,7 @@ getnextcp:	//nz=continue, new packet in eax
 	or eax, eax
 	jz .testnext
 	ret
-	
+
 gettotalcargocount:	//trashes: none
 	cmp BYTE [esi+window.type], cWinTypeVehicleDetails
 	je .veh
@@ -1209,7 +1267,7 @@ clearstarrays:
 	xor eax, eax
 	rep stosd
 	ret
-	
+
 clearst2arrays:
 	pushad
 	mov edi, stsortlist2
@@ -1218,7 +1276,7 @@ clearst2arrays:
 	or eax, BYTE -1
 	rep stosd
 	mov edi, stamountlist2
-	mov ecx, 0x100
+	mov ecx, 32*0x100
 	xor eax, eax
 	rep stosd
 	popad
