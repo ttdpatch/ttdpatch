@@ -353,69 +353,200 @@ destcountcommon:
 	ret
 
 treemode:
-#if 0
-	xor ebx, ebx
-	xor eax, eax
-	mov ecx, 32*0x100
-.loop:
-	cmp DWORD [stamountlist+eax*4], 0
-	jz .noinc
-	test BYTE [stflaglist+eax*4], 3
-	jz .noinc
-	inc ebx
-	sub esp, 256
-	pushad
-	or eax, BYTE -1
-	lea edi, [esp+32]
-	mov ecx, 256/4
-	cld
-	rep stosd
-	popad
-	call countstsreachablefromcurrentnode
-	add esp, 256
-.noinc:
-	inc eax
-	loop .loop
-	ret
-
-	call TrainListDrawHandlerCountTrains
-#endif
-
-#if 0
 	call clearstarrays
 
 	call destcountcommon
 
-	xor ebx, ebx
-
-	push DWORD 0x03FFFFFF
-	times 7 push DWORD 0xFFFFFFFF
-	push DWORD [curstcargorttbl]
-	push DWORD [curstcargorttbl]
-	push DWORD 0
-	push DWORD 0
-	call countstsreachablefromcurrentnode
-
-
+	mov edx, 0x80000000
+	call dotreeloop
+	mov ebx, edx
+	sub ebx, 0x80000000
 	call TrainListDrawHandlerCountTrains
-#endif
+
+	mov edx, [trainlistoffset]
+	neg edx
+	dec edx
+	call dotreeloop
 
 	popad
 	ret
 
+//edx=list offset
+dotreeloop:
+	xor edi, edi
+.cargoloop:
+	cmp DWORD [cargototal+edi*4], 0
+	je .nextcargo
+	call printheader
+	cmp DWORD [cargorouted+edi*4], 0
+	je .nextcargo
+
+	push edi
+
+	mov eax, [curstcargorttbl]
+	mov ecx, [ebp+eax+routingtable.destrtptr]
+	or ecx, ecx
+	jz .nofarroutes
+	movzx ecx, WORD [ebp+ecx+routingtableentry.lastupdated]
+.nofarroutes:
+
+	push ecx
+	push DWORD 0
+	push DWORD 0x03FFFFFF
+	times 7 push DWORD 0xFFFFFFFF
+	push eax
+	push edi
+	push DWORD 0
+	call treerecurse
+	add esp, 52
+
+	pop edi
+
+.nextcargo:
+	inc edi
+	cmp edi, 32
+	jb .cargoloop
+	ret
+
 //[esp+4]=recursion level
 //[esp+8]=cargo
-//[esp+9]=unused
+//[esp+9]=unused (B)
 //[esp+10]=flags
-//[esp+12]=source station routing table
-//[esp+16]=current station routing table
-//[esp+20]=mask of usable destinations
-//[esp+51]=end of function stack
+//[esp+12]=current station routing table
+//[esp+16]=mask of usable destinations
+//[esp+48]=total cost so far
+//[esp+52]=date to compare oldest waiting dates to
+//[esp+55]=end of function stack
 //ebp=[cargodestdata]
+//edx=list offset
+//esi=window ptr
+//c call
+//trashes: eax, ebx, ecx, edi
+treerecurse:
+	cmp DWORD [esp+4], 16
+	jae NEAR .ret
+	
+	movzx ecx, BYTE [esp+8]
+	mov edi, [esp+12]
+	
+	mov eax, [ebp+edi+routingtable.nexthoprtptr]
+	or eax, eax
+	jz NEAR .ret
+.loop:
+	cmp [ebp+eax+routingtableentry.cargo], cl
+	jne NEAR .next
+	
+	movzx ebx, BYTE [ebp+eax+routingtableentry.dest]
+	bt [esp+16], ebx				//bt is intelligent enough to do: bt BYTE [esp+16+ebx>>3], ebx&7
+	jnc NEAR .next
+	mov bh, cl
+	mov edi, [stamountlist+ebx*4]
+	mov [textrefstack+6], edi
+	
+	mov edi, [esp+12]
+	movzx ebx, bl
+	or ebx, 0x10000
+	mov [textrefstack+4], bx
+	
+	push eax
+	
+	mov DWORD [textrefstack+10], 0
 
-countstsreachablefromcurrentnode:
+	push DWORD [esp+4+52]
+	push eax		//placeholder
+	times 8 push DWORD 0
+	push DWORD [eax+ebp+routingtableentry.destrttable]
+	push ecx
 
-	ret 52
+//cost = previous cost + this hop route cost + (recursion level > 0) ? comparison date - oldest waiting : 0  
+	push edi
+	movzx edi, WORD [eax+ebp+routingtableentry.mindays]
+	mov [textrefstack+14], edi
+	mov [esp+4+40], edi
+
+	movzx edi, WORD [eax+ebp+routingtableentry.oldestwaiting]
+	or edi, edi
+	jz .nooldestwaiting
+	neg edi
+	add edi, [esp+4+48+4+52]	//comparison date
+.nooldestwaiting:
+
+	mov eax, [esp+4+48+4+4]		//recursion level
+	or eax, eax
+	jnz .addroutewaitcost
+	xor edi, edi
+.addroutewaitcost:
+	add edi, [esp+4+48+4+48]	//total cost so far
+	add [esp+4+40], edi
+	add [textrefstack+14], edi
+
+	inc eax
+	pop edi
+//ends
+
+	push eax
+
+	mov eax, [ebp+edi+routingtable.destrtptr]
+	or eax, eax
+	jz .doneinner
+.inner:
+	cmp [eax+ebp+routingtableentry.nexthop], ebx
+	jne .nextinner
+	cmp [eax+ebp+routingtableentry.cargo], cl
+	jne .nextinner
+	
+	movzx edi, BYTE [eax+ebp+routingtableentry.dest]
+	bt DWORD [esp+52+4+16], edi
+	jnc .nextinner
+	bts DWORD [esp+12], edi
+	ror edi, 8
+	add edi, ecx
+	rol edi, 8
+	mov edi, [stamountlist+edi*4]
+	add [textrefstack+10], edi
+
+.nextinner:
+	mov eax, [ebp+eax+routingtableentry.next]
+	or eax, eax
+	jnz .inner
+.doneinner:
+
+	mov edi, [textrefstack+10]
+	mov eax, [textrefstack+6]
+	add eax, edi
+	mov [textrefstack], eax
+	or eax, eax
+	jz .donecall
+
+	inc edx
+	js .doneprint
+	movzx ecx, BYTE [esi+window2ofs+window2.extactualvisible]
+	cmp edx, ecx
+	jae .doneprint
+
+	mov bx, ourtext(cpgui_treeline)
+	mov ecx, [esp]	//recursion level+1
+	shl ecx, 4
+	call outlistline
+.doneprint:
+
+	or edi, edi
+	jz .donecall
+	call treerecurse
+.donecall:
+	add esp, 52
+
+	pop eax
+	movzx ecx, BYTE [esp+8]
+
+
+.next:
+	mov eax, [ebp+eax+routingtableentry.next]
+	or eax, eax
+	jnz .loop
+
+.ret:
+	ret
 
 //ebp=[cargodestdata]
 //eax=packet (unused?), Now not supplied
@@ -516,31 +647,7 @@ commonprint:
 .cargoprintloop:
 	cmp DWORD [cargototal+edi*4], 0
 	je NEAR .skipcargo
-	inc edx
-	js .skipheader
-	movzx ecx, BYTE [esi+window2ofs+window2.extactualvisible]
-	cmp edx, ecx
-	jae .skipheader
-	mov bx, ourtext(cpgui_cargosum)
-	mov eax, [cargounroutable+edi*4]
-	or eax, eax
-	jz .noextra
-	cmp DWORD [curstcargorttbl], 0
-	je .noextra
-	mov bx, ourtext(cpgui_cargosum_extra)
-.noextra:
-	mov [textrefstack+14], eax
-	mov cx, [newcargotypenames+edi*2]
-	mov [textrefstack], cx
-	mov ecx, [cargototal+edi*4]
-	mov [textrefstack+2], ecx
-	mov eax, [cargorouted+edi*4]
-	mov [textrefstack+6], eax
-	sub ecx, eax
-	mov [textrefstack+10], ecx
-	xor ecx, ecx
-	call outlistline
-.skipheader:
+	call printheader
 
 	shl edi, 8
 	xor ecx, ecx
@@ -678,6 +785,34 @@ fullmode:
 	call commonprint
 	mov WORD [fulllinetextid], 0
 	popad
+	ret
+
+printheader:	
+	inc edx
+	js .skipheader
+	movzx ecx, BYTE [esi+window2ofs+window2.extactualvisible]
+	cmp edx, ecx
+	jae .skipheader
+	mov bx, ourtext(cpgui_cargosum)
+	mov eax, [cargounroutable+edi*4]
+	or eax, eax
+	jz .noextra
+	cmp DWORD [curstcargorttbl], 0
+	je .noextra
+	mov bx, ourtext(cpgui_cargosum_extra)
+.noextra:
+	mov [textrefstack+14], eax
+	mov cx, [newcargotypenames+edi*2]
+	mov [textrefstack], cx
+	mov ecx, [cargototal+edi*4]
+	mov [textrefstack+2], ecx
+	mov eax, [cargorouted+edi*4]
+	mov [textrefstack+6], eax
+	sub ecx, eax
+	mov [textrefstack+10], ecx
+	xor ecx, ecx
+	call outlistline
+.skipheader:
 	ret
 
 //cl=destination station id

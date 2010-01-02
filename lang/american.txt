@@ -502,7 +502,6 @@ cpgui_rd_days="Days"
 cpgui_rd_lastupdate="Last Update"
 cpgui_rd_oldestwaiting="Oldest Waiting"
 cpgui_sourceline="\7B from \9A\0C to \9A\0C"
-
 news_newbridge="\98\0FNew bridge now available!"
 news_newbridge_details="\98Max. Speed: \84\0DMin. Length: \7E\0DMax. Length: \7E"
-
+cpgui_treeline="\7B possible via \9A\0C, \7B arriving, \7B continuable, ETA: \7B days"

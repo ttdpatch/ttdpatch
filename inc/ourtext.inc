@@ -526,6 +526,8 @@ defourtext cpgui_sourceline
 
 defourtext news_newbridge
 defourtext news_newbridge_details
+
+defourtext cpgui_treeline
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last
