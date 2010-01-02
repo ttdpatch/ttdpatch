@@ -519,6 +519,7 @@ enum langtextids {
 	CFG_CDSTNEGDISTFACTOR,
 	CFG_CDSTNEGDAYSFACTOR,
 	CFG_CDSTROUTEDINITSCORE,
+	CFG_CDSTRTDIFFMAX,
 
 //---------------------------------------------------
 //   END OF LANGUAGE TEXTS

@@ -20,6 +20,7 @@ extern cdstcargopacketinitttl
 extern specialtext1, newtexthandler, newcargotypenames
 extern kernel32hnd
 extern cdstunroutedscoreval, cdstnegdistfactorval, cdstnegdaysfactorval, cdstroutedinitscoreval
+extern cargodestroutediffmax
 
 //uncoment for debugging purposes
 //#undef DEBUG
@@ -65,16 +66,16 @@ initcargodestmemory:
 	jne NEAR outofmemoryerror
 	mov DWORD [cargodestdata_size], cargodestdata_initialsize
 #endif
-	
+
 	mov DWORD [eax+cargodestgamedata.version], 1
 	mov DWORD [eax+cargodestgamedata.headerlength], cargodestgamedata.datastart
 	mov DWORD [eax+cargodestgamedata.cddfirstfree], 0
 	mov DWORD [eax+cargodestgamedata.cddusedend], cargodestgamedata.datastart
 	mov DWORD [eax+cargodestgamedata.cddfreeleft], cargodestdata_initialsize-cargodestgamedata.datastart
-	
+
 	popad
 	ret
-	
+
 global alloccargodestdataobj	//32 bytes long
 alloccargodestdataobj:		//ebp = [cargodestdata]
 				//returns relative pointer in eax, trashes ecx
@@ -121,7 +122,7 @@ alloccargodestdataobj:		//ebp = [cargodestdata]
 #else
         jmp outofmemoryerror
 #endif
-	
+
 global freecargodestdataobj	//ebp = [cargodestdata]
 freecargodestdataobj:		//eax = relative pointer to data to be freed
 				//returns nothing, trashes ecx
@@ -161,7 +162,7 @@ freecargodestdata:
 .nofree:
 #endif
 	ret
-	
+
 global unlinkcargopacket			//eax=cargo packet relative ptr
 unlinkcargopacket:				//ebp=[cargodestdata]
 						//trashes: ecx, edx
@@ -175,7 +176,7 @@ unlinkcargopacket:				//ebp=[cargodestdata]
 	int3
 .end:
 	mov DWORD [eax+ebp+cargopacket.location], 0
-	ret	
+	ret
 .veh:
 	xor edx, edx
 	xchg edx, [eax+ebp+cargopacket.prevptr]
@@ -242,7 +243,7 @@ unlinkcargopacket:				//ebp=[cargodestdata]
 	mov [ecx+ebp+cargopacket.prevptr], edx
 	jmp .end
 
-	
+
 getstroutetablefromcp:		//cargo packet in eax
 				//returns cargo routing table in edx or zero
 				//trashes ecx
@@ -271,7 +272,7 @@ getstroutetablefromstid:	//station id in ecx
 //.fail:
 //	int3
 //	ret
-	
+
 fastunlinkstationcargopacket:			//eax=cargo packet relative ptr
 						//ebp=[cargodestdata]
 						//ebx=station routing table
@@ -454,12 +455,12 @@ AcceptCargoAtStation_CargoDestAdjust:
 
 	movzx ecx, BYTE [ebp+0xE]
 	or ecx, 0x10000
-	
+
 	mov ebp, [cargodestdata]
-	
+
 	movzx eax, WORD [esi+veh.idx]
 	mov eax, [ebp+eax*4+cargodestgamedata.vehcplist]
-	
+
 	//eax = first cargo packet of vehicle
 
 	jmp .startcploop
@@ -511,17 +512,17 @@ AcceptCargoAtStation_CargoDestAdjust:
 .nosubfrompacket:
 	sub [eax+ebp+cargopacket.amount], bx
 	add [acceptcargoroutedaccepted], bx
-	
+
 	sub [esp+4], bx
-	
+
 	mov dx, [currentdate]
 	sub dx, [eax+ebp+cargopacket.dateleft]
-	
+
 	or dh, dh
 	jz .nosaturatedays
 	mov dl, 0xFF
 .nosaturatedays:
-	
+
 	test    BYTE [eax+ebp+cargopacket.flags], 1
 	jnz	.skipcostcalc
 	mov	al, [eax+ebp+cargopacket.sourcest]
@@ -535,12 +536,12 @@ AcceptCargoAtStation_CargoDestAdjust:
 	or ecx, 0x10000
 .skipcostcalc:
 	pop eax
-	
+
 	or BYTE [acceptcargoatstationflag], 2
 
 	cmp WORD [eax+ebp+cargopacket.amount], 0
 	jne NEAR .cploopnext
-	
+
 	push edi
 	mov edi, [esp+4+4]
 	push ecx
@@ -563,8 +564,8 @@ AcceptCargoAtStation_CargoDestAdjust:
 	mov ebx, ebp
 	mov ebp, [cargodestdata]
 	mov [acceptcargotempcargooffsetval], cl
-	or	cl,cl
-	jns	.offset_ok
+	or cl,cl
+	jns .offset_ok
 .unloadfail:
 	pop ecx                                 //fail, no cargo slot, set flag to force waiting
 .acceptfail:
@@ -574,7 +575,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 .offset_ok:
 	mov dx, [eax+ebp+cargopacket.amount]
 	mov bx, [esp+4]
-	
+
 #if WINTTDX && DEBUG
 	test BYTE [cargodestdebugflag], 0x20
 	jz .nooutunloadmess
@@ -591,7 +592,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	popad
 .nooutunloadmess:
 #endif
-	
+
 	or bx, bx
 	jz .unloadfail
 	cmp dx, bx
@@ -610,7 +611,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	pop eax
 	pop ecx
 	jmp .startcploop
-	
+
 .splitpacket:
 	mov dx, bx
 	call .checkspaceandunload
@@ -627,7 +628,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	xchg eax, ebx
 	pop ecx
 	jmp .cploopnext
-	
+
 .domoneyandcargoinc:			//eax=cargo packet
 					//cl=station id
 					//ebp=[cargodestdata]
@@ -663,7 +664,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 					//esi=vehicle
 					//dx=amount
 					//trashable: ebx, ecx
-					
+
         mov ebx, [esp+12]		//stack frame
 	add ecx, [ebx+0xA]		//station ptr
 	mov bp, [station.cargos+ecx+stationcargo.amount]
@@ -684,7 +685,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	push edx
         mov edi, [esp+12+16]		//stack frame
 	mov edi, [edi+0xA]		//station ptr
-	add edi, [station2ofs_ptr]	
+	add edi, [station2ofs_ptr]
 	mov ebp, [cargodestdata]
 	mov eax, [edi+station2.cargoroutingtableptr]
 	or eax, eax
@@ -710,7 +711,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	test bx, [stationcargowaitingnotmask]
 	jz .doneejectcargo
 	jmp .ejectcargocheckpacket
-	
+
 
 .ejectcargonextpacket:
 	mov eax, [ebp+eax+cargopacket.prevptr]
@@ -722,11 +723,11 @@ AcceptCargoAtStation_CargoDestAdjust:
 	pop edx
 	pop eax
 	pop ebp
-	pop edi	
+	pop edi
 .checkspaceandunload_ok:
 	or bx, bp
 	mov [station.cargos+ecx+stationcargo.amount], bx
-	
+
 	mov ebp, [cargodestdata]
 	ret
 
@@ -761,13 +762,13 @@ AcceptCargoAtStation_CargoDestAdjust:
 	sub BYTE [eax+ebp+cargopacket.ttl], 1
 	jc .ttlfail
 .nottlcheck:
-	
+
 	test BYTE [acceptcargoatstationflag], 4
 	jnz .unloadcargohere
-	
+
 	push ecx
 	mov ecx, ebx
-	
+
 	//checking loop
 	mov ebx, [esp+4+4]			//stack frame
 	mov edx, [ebx+0x12]			//routing table ptr of station
@@ -777,7 +778,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	cmp bl, -1
 	je .unloadcargohere_popecx
 	or ebx, 0x10000
-	
+
 	//TODO: is the following really a good idea?
 	cmp [eax+ebp+cargopacket.destst], bl
 	je .cploopnext_popecx			//next stop of the vehicle is the destination, don't unload packet
@@ -795,7 +796,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	cmp dh, [esi+veh.cargotype]
 	pop edx
 	je .cploopnext_popecx			//if any (there should only be one really) are found, don't unload
-	
+
 .nextroutecheckiteration:
 	mov edx, [edx+ebp+routingtableentry.next]
 	jmp .routecheckloop
@@ -811,7 +812,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 
 	pop edx         //amount left out of max unload in this step
 	pop ebp
-	
+
         test BYTE [acceptcargoatstationflag], 2
         jz .notaccepted
 	mov ebx,[ebp+0xA]//[%$currstationptr]
@@ -825,7 +826,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	pop edi
 	pop ebx         //amount of unrouted cargo to charge
 	pop eax         //original max amount to unload
-	
+
 	//let x=routed cargo unloaded in this step
 	//let y=routed cargo present before unloading
 	//let bx=unrouted cargo present
@@ -833,7 +834,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	//let b (bx original)=original total amount of cargo
 	//let dx=amount left out of original max amount to unload
 	//let z=amount to unload in this step
-	
+
 	//x=ax-dx
 	//y=b-bx
 	//z=min(x+bx,ax)
@@ -841,7 +842,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	//z=ax+min(bx-dx,0)
 	//z=ax-dx+min(bx,dx)
 	//return z in ax
-	
+
 	//assuming that all routed cargo is unloaded (x==y)
 	//amount of unrouted cargo remaining after this unload:
 	//bx-(z-x)
@@ -860,15 +861,15 @@ AcceptCargoAtStation_CargoDestAdjust:
 	//and byte [esi+veh.modflags],~ ((1 << MOD_MORETOUNLOAD)+(1 << MOD_DIDCASHIN))
 	or BYTE [acceptcargoatstationflag], 16
 .notmaybedoneloading:
-	
+
 	sub ax, dx
-	
+
 	cmp bx, dx
 	jae .ok1
 	mov dx, bx
 .ok1:
 	add ax, dx
-	
+
 	test BYTE [acceptcargoatstationflag], 1
 	jnz .nodenynormalaccept
 	sub ax, dx			//this should kill off any chance of cargo being accepted that isn't explicitly routed there
@@ -899,7 +900,7 @@ AcceptCargoAtStation_CargoDestAdjust:
 	mov DWORD [specialtext1], acceptendmess
 	mov edi, textrefstack+8
 	call stos_vehname
-	
+
 	call outdebugcargomessage
 	popad
 .nooutacceptendmess:
@@ -915,7 +916,7 @@ nexthoproutebuild:
 	pushad
 	movzx ecx, BYTE [ebp+0xE]
 	or ecx, 0x10000
-	
+
 	mov ebp, [cargodestdata]
 
 //begin building next hop route data
@@ -1029,7 +1030,7 @@ nexthoproutebuild:
 //end building next hop route data
 	popad
 	ret
-	
+
 uvarb cargodestloadflags
 	//1=more routed cargo waiting to be loaded onto this vehicle in the station
 
@@ -1131,7 +1132,7 @@ LoadCargoFromStation_CargoDestAdjust:
 			//esi=vehicle
 			//ebp=[cargodestdata]
 			//trashes cx
-			
+
 	mov cl, [edi+0xE]		//station idx
 	xchg [eax+ebp+cargopacket.lastboardedst], cl
 	cmp cl, -1
@@ -1141,7 +1142,7 @@ LoadCargoFromStation_CargoDestAdjust:
 .notfirstdepart:
 	mov [eax+ebp+cargopacket.datearrcurloc], cx
 	ret
-	
+
 
 
 .loadfail:
@@ -1159,9 +1160,9 @@ LoadCargoFromStation_CargoDestAdjust:
 	je .cploopnext
 	cmp [eax+ebp+cargopacket.destst], dl
 	je .loadpacket
-	
+
 	//routing check
-	
+
 	mov ebx, [edi+0x12]
 	mov ecx, [ebx+ebp+routingtable.destrtptr]
 	or ecx, ecx
@@ -1178,7 +1179,7 @@ LoadCargoFromStation_CargoDestAdjust:
 	cmp dh, [esi+veh.cargotype]
 	pop edx
 	je .loadpacket
-	
+
 .nextroutecheckiteration:
 	mov ecx, [ecx+ebp+routingtableentry.next]
 	or ecx, ecx
@@ -1196,7 +1197,7 @@ LoadCargoFromStation_CargoDestAdjust:
 	pop edx		//amount of load limit remaining
 
 	pop ebx		//amount of unrouted cargo in station
-	
+
 	or ebx, ebx
 	jns .routedamountok
 #if WINTTDX & DEBUG
@@ -1204,7 +1205,7 @@ LoadCargoFromStation_CargoDestAdjust:
 #endif
 	xor ebx, ebx
 .routedamountok:
-	
+
 	pop eax		//original max load amount
 
 	sub ax, dx	//ax=routed amount loaded so far
@@ -1221,7 +1222,7 @@ LoadCargoFromStation_CargoDestAdjust:
 
 	pop edi
 
-	
+
 	mov cx, [esi+veh.currentload]
 	or cx, cx
 	jnz .noresetcargosource
@@ -1242,7 +1243,7 @@ LoadCargoFromStation_CargoDestAdjust:
 .notdoneload:
 	or byte [esi+veh.modflags],1 << MOD_NOTDONEYET
 .doneload:
-	
+
 	pop ecx		//cargo
 	pop edx		//original station cargo amount
 	pop ebp
@@ -1286,7 +1287,7 @@ clearlasttransprofit:	//eax=cargo packet
 	popa
 .ret:
 	ret
-	
+
 
 uvarw cargodestlastglobalperiodicpreproc
 
@@ -1316,10 +1317,10 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	mov ebx, [edi+station2.cargoroutingtableptr]
 	or ebx, ebx
 	jz NEAR .prenext
-	
+
 	//set to oldest waiting in that station routable on that path
 	//use old distant routes
-	
+
 	mov edx, [ebp+ebx+routingtable.nexthoprtptr]
 	lea eax, [ebx+routingtable.nexthoprtptr-routingtableentry.next]
 	push eax
@@ -1330,7 +1331,7 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	jz NEAR .preinnerloopend
 	cmp ax, [ebp+edx+routingtableentry.lastupdated]
 	ja NEAR .killoldlocalroute
-	
+
 	//calc oldest waiting
 	//lazily assume that the oldest is the last in the queue which matches
 	mov eax, [ebp+ebx+routingtable.cargopacketsrear]
@@ -1371,7 +1372,7 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 .prepacketnext:
 	mov eax, [ebp+eax+cargopacket.prevptr]
 	jmp .prepacketloop
-	
+
 .gotoldest:
 	mov ax, [ebp+eax+cargopacket.datearrcurloc]
 .nooldest:      //all jumps to here must have ax=0
@@ -1445,7 +1446,7 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	pushad
 	mov ebp, [cargodestdata]
 .nopreproc:
-	
+
 	mov edi, [edi+station2.cargoroutingtableptr]
 	or edi, edi
 	jz NEAR .end
@@ -1462,7 +1463,7 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	mov eax, ebx
 	jmp .loop
 .loopdone:
-	
+
 	mov edx, [edi+ebp+routingtable.nexthoprtptr]
 	mov [startroutingtable], edi
 //	mov bx, [edi+ebp+routingtable.location]		//station id
@@ -1535,7 +1536,7 @@ addroutesreachablefromthisnodeandrecurse:
 	jne NEAR .next
 	cmp esi, [curnexthoproutingtable]
 	je NEAR .next
-	
+
 	//eax=start routing table
 	//esi=routing table of final destination
 	//edx=routing table entry to final destination from last node
@@ -1590,10 +1591,10 @@ addroutesreachablefromthisnodeandrecurse:
 
 	call alloccargodestdataobj
 	mov [eax+ebp+routingtableentry.cargo], bl
-	
+
 	mov ebx, [esi+ebp+routingtable.location]
 	mov [eax+ebp+routingtableentry.dest], ebx
-		
+
 	mov ecx, [startroutingtable]
 	mov ebx, eax
 	xchg [ecx+ebp+routingtable.destrtptr], ebx
@@ -1607,10 +1608,10 @@ addroutesreachablefromthisnodeandrecurse:
 
 .updateandstartrecursion:
 	mov [eax+ebp+routingtableentry.mindays], di
-	
+
 	mov cx, [currentdate]
 	mov [eax+ebp+routingtableentry.lastupdated], cx
-	
+
 #if WINTTDX && DEBUG
 	test BYTE [cargodestdebugflag], 8
 	jz .nodbgmess
@@ -1629,21 +1630,21 @@ addroutesreachablefromthisnodeandrecurse:
 	popad
 .nodbgmess:
 #endif
-	
+
 	//eax=routing table entry to final destination from start
 	//esi=routing table of final destination
 	//edx=routing table entry to final destination from last node
 	//edi=current cost in days
-	
+
 	push edx
-	
-	
+
+
 	push edi
 	push DWORD [esp+4+4+4]
 	push esi
 	call addroutesreachablefromthisnodeandrecurse
 	add esp, 12
-	
+
 	pop edx
 
 .doneandnext:
@@ -1691,30 +1692,39 @@ addroutesreachablefromthisnodeandrecurse_checkloop:
 .differentnodecheck:
 	movzx esi, WORD [eax+ebp+routingtableentry.mindays]
 	//esi is now the cost of the route through a different first node (other)
-	//mov cl, [cargodestroutecomparisonshiftfactor]
-	mov ecx, [cargodestroutecmpfactor]
 	cmp edi, esi
 	je .done_differentnodecheck	//routes are identical (unlikely but whatever...)
 	jb .newroutebetter		//this route is better, maybe delete other
 	//other route is better (esi is smaller), maybe abandon this one
-//	push esi
-//	shr esi, cl
-//	add esi, [esp]	//esi is threshold for new route
-//	add esp, 4
 
-	imul esi, ecx
+	movzx ecx, WORD [cargodestroutediffmax]
+	add ecx, esi
+//	jc .diffcont1			//route threshold is *enormous*	(user is an imbecile), do next test
+					//this level of fail is currently impossible so don't test for it
+	cmp edi, ecx
+	ja NEAR .doneandnext		//new route too long
+.diffcont1:
+
+	imul esi, [cargodestroutecmpfactor]
 	db 0x2E				//branch not taken
 	jo .done_differentnodecheck	//route threshold is *enormous* (user is a plonker), this route is fine.
 	shr esi, 16
 	cmp edi, esi
-	ja NEAR .doneandnext
+	ja NEAR .doneandnext		//new route too long
 	jmp .done_differentnodecheck
 .newroutebetter:
 	//this route is better (edi is smaller), maybe zap other one
+
+	movzx ecx, WORD [cargodestroutediffmax]
+	add ecx, edi
+//	jc .diffcont2			//route threshold is *enormous*	(user is an imbecile), do next test
+					//this level of fail is currently impossible so don't test for it
+	cmp esi, ecx
+	ja NEAR .exterminateoldroute	//old route too long
+.diffcont2:
+
 	push edi
-//	shr edi, cl
-//	add edi, [esp]	//esi is threshold for new route
-	imul edi, ecx
+	imul edi, [cargodestroutecmpfactor]
 	db 0x3E		//branch taken
 	jno .nobadlen	//players who fail this jump ought to be hit by a huge branch misprediction penalty :P (and have god awful routing)
 	//route threshold is *enormous*, other route is fine
@@ -1724,12 +1734,13 @@ addroutesreachablefromthisnodeandrecurse_checkloop:
 	shr edi, 16
 	cmp esi, edi
 	pop edi
-	jbe .done_differentnodecheck
+	jbe .done_differentnodecheck	//old route OK
+.exterminateoldroute:
 	//old route (eax length esi) is no good, exterminate it
 	mov esi, [eax+ebp+routingtableentry.next]
-	
+
 	call freecargodestdataobj
-	
+
 	mov ecx, [tempprevroutingtableentrystore]	//this always works, is fudged if first attached
 	mov [ecx+ebp+routingtableentry.next], esi
 	mov eax, esi
@@ -1740,7 +1751,7 @@ addroutesreachablefromthisnodeandrecurse_checkloop:
 	mov esi, [curnexthoproutingtable]
 
 	jmp .iteratecheck
-	
+
 .done_differentnodecheck:
 	//see above
         mov esi, [edx+ebp+routingtableentry.destrttable]
@@ -1781,7 +1792,7 @@ cargodestinitstationroutingtable:
 	mov [edi+station2.cargoroutingtableptr], eax
 	popad
 	ret
-	
+
 global cargodestinitstationroutingtable_all
 cargodestinitstationroutingtable_all:
 	pushad
@@ -1850,7 +1861,7 @@ addcargotostation_cargodesthook:
 	jz .nonexthop
 .nexthop:
 	call dorouteassimilation
-	mov ecx, [ebp+ecx+routingtableentry.next]	
+	mov ecx, [ebp+ecx+routingtableentry.next]
 	or ecx, ecx
 	jnz .nexthop
 .nonexthop:
@@ -1859,7 +1870,7 @@ addcargotostation_cargodesthook:
 	jz .nodest
 .dest:
 	call dorouteassimilation
-	mov ecx, [ebp+ecx+routingtableentry.next]	
+	mov ecx, [ebp+ecx+routingtableentry.next]
 	or ecx, ecx
 	jnz .dest
 .nodest:
@@ -1873,7 +1884,7 @@ addcargotostation_cargodesthook:
 	movzx edi, WORD [esp+ecx*4]
 	or edi, edi
 	jz NEAR .calcnext
-	
+
 	testflags newcargos
 	jc .newcargos_testaccept
 	mov eax, ebx
@@ -1885,7 +1896,7 @@ addcargotostation_cargodesthook:
 	bt dword [ebp+station2ofs+station2.acceptedcargos], ebx
 	jnc .zeroscore
 .accept:
-	
+
 	neg edi
 	imul edi, DWORD [cdstnegdaysfactorval]
 	call getstmanhattandistance
@@ -1927,7 +1938,7 @@ addcargotostation_cargodesthook:
 	jz NEAR .noroutedestfounderr
 	mul ecx
 	//result is in edx
-	
+
 	xor ecx, ecx
 .getloop:
 	sub edx, [esp+ecx*4]
@@ -1939,7 +1950,7 @@ addcargotostation_cargodesthook:
 .founddest:
 	cmp cl, 0xFF
 	je NEAR .popret	//type 3 unrouted cargo
-	
+
 	push ebp
 	mov ebp, [cargodestdata]
 	push ecx
@@ -1979,7 +1990,7 @@ addcargotostation_cargodesthook:
 	jne .popret
 	mov DWORD [esp+0x400+_pusha.eax], 0		//unrouted cargo is verbotten, drop cargo
 	jmp .finalpopret
-	
+
 dorouteassimilation:
 	push eax
 	push ebx
@@ -2061,7 +2072,7 @@ cargodestdelvehentryhook:       //esi=vehicle ptr being deleted
 	//return amount of unroutable cargo in vehicle in cx
 global cargodestdelstationpervehhook
 cargodestdelstationpervehhook:
-	push edx 
+	push edx
 	mov ebp, [cargodestdata]
 	movzx edx, WORD [edi+veh.idx]
 	inc al
@@ -2249,7 +2260,7 @@ cargodestdelstationfinalhook:
 	jnz .nexthoploop
 .nonexthop:
 	mov [edx+ebp+routingtable.nexthoprtptr], eax
-	
+
 	mov eax, [edx+ebp+routingtable.destrtptr]
 	or eax, eax
 	jz .nofar
@@ -2470,7 +2481,7 @@ outdebugcargomessage:
 	pushad
 	mov ebp, esp
 	and esp, ~3	//createfile seems to choke on unaligned stacks
-	
+
 	push ebp
 	sub esp, 0x1000
 	mov edi, esp	//cdestodstempstring
@@ -2509,14 +2520,14 @@ outdebugcargomessage:
         push DWORD GetSystemTimeAsFileTime_name
 	push DWORD [kernel32hnd]
         call [GetProcAddress]
-        
+
         or ecx, BYTE -1
 	mov DWORD [textrefstack], ecx
 	mov DWORD [textrefstack+4], ecx
-        
+
         or eax, eax
         jz .nogettime
-        
+
         push DWORD textrefstack
 	call eax
 
@@ -2528,7 +2539,7 @@ outdebugcargomessage:
 	mov ax, statictext(special1)
 	call newtexthandler
 	mov edi, esp
-	
+
 	push DWORD 0		// hTemplateFile
 	push DWORD 128		// dwFlagsandAttributes = FILE_ATTRIBUTE_NORMAL
 	//push DWORD 4		// dwCreationDisposition = OPEN_ALWAYS
@@ -2538,9 +2549,9 @@ outdebugcargomessage:
 	push DWORD 0x40000000	// dwDesiredAccess = GENERIC_WRITE
 	push edi		// lpFilename
 	call [CreateFile]
-	
+
 	add esp, 128
-	
+
 	mov [cdestdbgloghndl], eax
 	push DWORD 0
 	push DWORD bytesread
@@ -2642,7 +2653,7 @@ stos_packetdata:
 	mov eax, [ebx+ebp+cargopacket.lasttransprofit]
 	stosd
 	ret
-	
+
 	                //ebx=cargo packet relptr
 	                //ebp=[cargodestdata]
 	                //trashes eax, esi, edi

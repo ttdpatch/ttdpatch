@@ -59,6 +59,7 @@ defword(tgrpassinmax)		// maximum number of passengers accepted that will influe
 defword(branchprobab)		// probability of a road branch
 defword(semaphoreyear)		// year before which semaphores are built
 defword(cdstrtcostexprthrshld)	// time after which an unused single hop route expires
+defword(cargodestroutediffmax)	// factor to add to minimum route to produce route threshold
 
 #define flags_word_end townmingrowthrate
 

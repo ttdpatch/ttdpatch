@@ -361,6 +361,7 @@
 	RANGE(165,"cdstnegdistfactor", CFG_CDSTNEGDISTFACTOR, CARGODEST, "", noswitch, AUTO, S32, FLAGDATA(cdstnegdistfactorval), 0, 1000, 2),
 	RANGE(166,"cdstnegdaysfactor", CFG_CDSTNEGDAYSFACTOR, CARGODEST, "", noswitch, AUTO, S32, FLAGDATA(cdstnegdaysfactorval), 0, 1000, 3),
 	RANGE(167,"cdstroutedinitscore", CFG_CDSTROUTEDINITSCORE, CARGODEST, "", noswitch, AUTO, S32, FLAGDATA(cdstroutedinitscoreval), 0, 0x7FFFFFFF-0xFFFF, 1500),
+	RANGE(168,"cdstrtdiffmax", CFG_CDSTRTDIFFMAX, CARGODEST, "", noswitch, AUTO, U16, FLAGDATA(cargodestroutediffmax), 0, 30000, 60),
 
 //
 // Here follows the switch order list
