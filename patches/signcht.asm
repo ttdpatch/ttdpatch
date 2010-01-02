@@ -3788,6 +3788,7 @@ uvard cdstatcargoveh
 uvard cdstatvehstatpackets
 uvard cdstatnearroutes
 uvard cdstatfarroutes
+uvard cdstatlastmonthcyclicroutecull
 
 //eax=first packet or 0
 //ebp=[cargodestdata]
@@ -3872,6 +3873,9 @@ db "Single hop routes: ", 0x7B, 13, 10
 db 0x9A, 0xA
 dd cdstatfarroutes
 db "Far routes: ", 0x7B, 13, 10
+db 0x9A, 0xA
+dd cdstatlastmonthcyclicroutecull
+db "Cyclic routes between adjacent nodes culled during last route rebuild: ", 0x7B, 13, 10
 db 0x9A, 0xA
 dd cargodestdata
 db "Memory offset: ", 0x9A, 8, 13, 10

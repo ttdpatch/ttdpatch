@@ -20,7 +20,7 @@ extern cdstcargopacketinitttl
 extern specialtext1, newtexthandler, newcargotypenames
 extern kernel32hnd
 extern cdstunroutedscoreval, cdstnegdistfactorval, cdstnegdaysfactorval, cdstroutedinitscoreval
-extern cargodestroutediffmax
+extern cargodestroutediffmax, cdstatlastmonthcyclicroutecull
 
 //uncoment for debugging purposes
 //#undef DEBUG
@@ -1305,9 +1305,10 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	cmp ax, [cargodestlastglobalperiodicpreproc]
 	je NEAR .nopreproc
 	mov [cargodestlastglobalperiodicpreproc], ax
+	xor ecx, ecx
+	mov [cdstatlastmonthcyclicroutecull], ecx
 	mov esi, stationarray
 	mov edi, [stationarray2ptr]
-	xor ecx, ecx
 .preloop:
 	cmp WORD [esi+station.XY], 0
 	je NEAR .prenext
@@ -1585,6 +1586,56 @@ addroutesreachablefromthisnodeandrecurse:
 	//edi=current cost in days
 	//bl=cargo
 	//edx=routing table entry to final destination from last node
+
+
+//yet another check, make sure that no cyclic routes between two nodes are created, as those are BAD™
+	mov eax, [curnexthoproutingtable]
+	mov eax, [ebp+eax+routingtable.destrtptr]
+	or eax, eax
+	jz .donecycliccheck
+	push edi
+	lea ecx, [esi+routingtable.destrtptr-routingtableentry.next]
+	mov esi, [edx+ebp+routingtableentry.dest]
+	mov edi, [startroutingtable]
+.cycloop:
+	//eax=far route of next hop node being tested
+	//bl=cargo
+	//[esp]=current cost in days
+	//edx=routing table entry to final destination from last node
+	//esi=final destination
+	//ecx=previous far route or fudged
+	//edi=start routing table
+	
+	cmp [ebp+eax+routingtableentry.dest], esi
+	jne .cycnextroute
+	cmp [ebp+eax+routingtableentry.cargo], bl
+	jne .cycnextroute
+	cmp [ebp+eax+routingtableentry.destrttable], edi
+	jne .cycnextroute		
+
+	//ALERT: cyclic route between two adjacent nodes detected. Battle stations!
+	pop edi
+	inc DWORD [cdstatlastmonthcyclicroutecull]
+	cmp [ebp+eax+routingtableentry.mindays], edi
+	jbe NEAR .doneandnext		//the node we were going through has a route through this station which is shorter
+					//than the route we would have created, therefore abandon creating the new route
+
+	//the route on the other station is longer, hence it must be exterminated and the new route indeed created from this station
+
+	mov esi, [ebp+eax+routingtableentry.next]
+	mov [ebp+ecx+routingtableentry.next], esi
+	call freecargodestdataobj
+	jmp .donecycliccheck
+
+.cycnextroute:
+	mov ecx, eax
+	mov eax, [ebp+eax+routingtableentry.next]
+	or eax, eax
+	jnz .cycloop
+	pop edi
+.donecycliccheck:
+//ends
+
 
 	mov esi, [edx+ebp+routingtableentry.destrttable]
 	//esi=routing table of final destination
