@@ -1351,6 +1351,11 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	cmp esi, [ebp+edx+routingtableentry.dest]
 	je .gotoldest
 
+#if 0	//disabled for now to try to prevent positive/oscillatory feedback of route costs caused excessive gain. Eg. an empty route causing
+	//a massive route/traffic spike through that route (overshoot), which results next month in the hop wait time being enormous
+	//as the route is clogged with a giant backlog from old packets now routable through it. The following month there is an overshoot
+	//response in the other direction of no far routes being routed through it as the waiting time is too long, such that the route becomes empty again, etc.
+
 	//distant route loop
 	mov edi, [ebp+ebx+routingtable.destrtptr]
 	or edi, edi
@@ -1369,6 +1374,7 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	mov edi, [ebp+edi+routingtableentry.next]
 	or edi, edi
 	jnz .prepacketfarrouteloop
+#endif
 
 .prepacketnext:
 	mov eax, [ebp+eax+cargopacket.prevptr]
