@@ -309,6 +309,11 @@ initialize:
 
 .notagain:
 
+	testflags dontshowkbdleds
+	jnc .noint3
+	int3
+.noint3:
+
 #if !WINTTDX && !LINTTDX
 
 	cld

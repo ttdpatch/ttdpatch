@@ -1115,8 +1115,8 @@ LoadUnloadCargo:
 	je	.routebuildonempty			// nothing to unload - start loading
 	testflags advorders
 	jnc .noadvordertest1
-	cmp BYTE [edi+veh.currorderflags], 1
-	je NEAR .DoLoad
+	test BYTE [edi+veh.currorderflags], 1
+	jnz NEAR .DoLoad
 .noadvordertest1:
 	mov	ebx, [%$currstationptr]
 
@@ -1190,8 +1190,8 @@ LoadUnloadCargo:
 
 	testflags advorders
 	jnc .noadvordertest2
-	cmp BYTE [edi+veh.currorderflags], 2
-	je .VehicleDone
+	test BYTE [edi+veh.currorderflags], 2
+	jnz .VehicleDone
 .noadvordertest2:
 
 // if gradualloading is in the by-wagon mode, we can't start loading until all vehicles finish unloading

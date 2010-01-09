@@ -907,7 +907,7 @@ newordertarget:
 
 .noloadunload:
 	sub ah, 3
-	mov BYTE [esi+veh.currorderflags], ah
+	or BYTE [esi+veh.currorderflags], ah
 	mov ah, [ebx+3]
 	mov al, 1
 	cmp WORD [newordertarget_oldrealvehcurrorder], ax
@@ -1075,7 +1075,7 @@ noglobal uvarb .tempplayer
 	push esi
 	push edi
 	jmp .popandrefit
-	
+
 ; endp arriveatdepot
 
 //ecx=count, esi=veh
@@ -1083,6 +1083,19 @@ multiadvanceorders:
 	or ecx, ecx
 	jz .end
 	pushad
+	call multiadvanceordersgetptr
+	mov [esi+veh.currorderidx], al
+	popad
+.end:
+	ret
+
+//ecx=count, esi=veh
+//trashes edx, ecx
+//returns:	eax: order index
+//		edi: schedule ptr
+//		edx: total orders
+global multiadvanceordersgetptr
+multiadvanceordersgetptr:
 .start:
 	mov byte [esi+veh.currorderflags], 0
 	movzx eax, BYTE [esi+veh.currorderidx]
@@ -1102,17 +1115,15 @@ multiadvanceorders:
 	xor eax, eax
 .good:
 	loop .loop
-	mov [esi+veh.currorderidx], al
-	popad
-.end:
 	ret
 
 	// advance order pointer
 advanceorders:
-	pusha
-	xor ecx,ecx
-	inc ecx
-	jmp short multiadvanceorders.start
+	push ecx
+	mov ecx, 1
+	call multiadvanceorders
+	pop ecx
+	ret
 
 ; endp advanceorders 
 
@@ -1125,6 +1136,18 @@ skipbutton:
 	mov esi, edi
 	extcall removeconsistfromqueue // No-op if consist is not queued or if fifo is off.
 	call advanceorders
+	
+	testflags cargodest
+	jnc .noclearlaststat
+	mov esi, edi
+.clearloop:
+	mov BYTE [esi+veh.prevstid], 0
+	movzx esi, WORD [esi+veh.nextunitidx]
+	cmp si, -1
+	je .noclearlaststat
+	cvivp esi
+	jmp .clearloop
+.noclearlaststat:
 
 	mov bl,[edi+veh.currorder]		// are we going to a depot?
 	and bl,0x1f
