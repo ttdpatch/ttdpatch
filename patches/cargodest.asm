@@ -667,6 +667,14 @@ AcceptCargoAtStation_CargoDestAdjust:
 
         mov ebx, [esp+12]		//stack frame
 	add ecx, [ebx+0xA]		//station ptr
+
+	cmp BYTE [station.cargos+ecx+stationcargo.enroutefrom], 0xFF
+	jne .enroutefromok
+	mov byte [station.cargos+ecx+stationcargo.enroutetime], 0
+	mov bl, [ebx+0xE]		//station ID
+	mov [station.cargos+ecx+stationcargo.enroutefrom], bl
+.enroutefromok:
+
 	mov bp, [station.cargos+ecx+stationcargo.amount]
 	push ecx
 	mov bx, bp
