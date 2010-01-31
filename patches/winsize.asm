@@ -774,14 +774,14 @@ drawwindowelements:
 // If we're here, then ShadedWinHandler was used to handle a cWinEventRedraw
 // Find it on the stack, and return there.
 	xor ecx, ecx
-	mov cl, 8
+	mov cl, 32
 .loop:
 	cmp dword [esp], ShadedWinHandler.drawwindowelements_ret
 	je .done
 	add esp, 2			// One TTD window pushes bp before calling DrawWindowElements
 	loop .loop
-	ud2		// ShadedWinHandler not found in top 4 dwords
-			// (twice the current maximum stack usage)
+	ud2		// ShadedWinHandler not found in top 16 dwords
+			// (64 bytes should be big enough for anyone)
 .done:
 	ret
 	
