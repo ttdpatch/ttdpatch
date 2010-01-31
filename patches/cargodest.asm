@@ -1755,7 +1755,15 @@ addroutesreachablefromthisnodeandrecurse_checkloop:
 	ret
 	//jmp .updateandstartrecursion
 .differentnodecheck:
-	movzx esi, WORD [eax+ebp+routingtableentry.mindays]
+	//For comparing against next hop routes, include the initial waiting time...
+	movzx esi, WORD [eax+ebp+routingtableentry.oldestwaiting]
+	or esi, esi
+	jz .nocargowaitingcost
+	neg si
+	add si, [currentdate]
+.nocargowaitingcost:
+	add si, [eax+ebp+routingtableentry.mindays]
+
 	//esi is now the cost of the route through a different first node (other)
 	cmp edi, esi
 	je .done_differentnodecheck	//routes are identical (unlikely but whatever...)
