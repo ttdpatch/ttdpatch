@@ -246,11 +246,11 @@ unlinkcargopacket:				//ebp=[cargodestdata]
 
 getstroutetablefromcp:		//cargo packet in eax
 				//returns cargo routing table in edx or zero
-				//trashes ecx
+				//returns station2 ptr in ecx
 	movzx ecx, WORD [eax+ebp+cargopacket.location]
 getstroutetablefromstid:	//station id in ecx
 				//returns cargo routing table in edx or zero
-				//trashes ecx
+				//returns station2 ptr in ecx
 
 	cmp ecx, numstations
 	jb .ok
@@ -265,7 +265,9 @@ getstroutetablefromstid:	//station id in ecx
 	lea edx, [edx*8+edx]
 	sub edx, ecx
 	mov ecx, [stationarray2ptr]
-	mov edx, [ecx+edx*2+station2.cargoroutingtableptr]
+	add ecx, edx
+	add ecx, edx
+	mov edx, [ecx+station2.cargoroutingtableptr]
 //	or edx, edx
 //	jz .fail
 	ret
@@ -959,7 +961,10 @@ nexthoproutebuild:
 
 	//eax=current locatiom
 	//bl=cargo
+	//ecx=station2 ptr
 	//edx=routing table of previous node
+	
+	mov [cdestcurstationptr], ecx	//note that now contains station2 not station
 
 	mov ecx, [edx+ebp+routingtable.nexthoprtptr]
 	or ecx, ecx
@@ -1012,6 +1017,18 @@ nexthoproutebuild:
 	movzx edx, WORD [esi+veh.idx]
 	sub cx, [ebp+cargodestgamedata.vehrttimelist+edx*2]
 	mov [eax+ebp+routingtableentry.mindays], cx
+
+	//run minimalistic far route recalculation at route start station
+	push eax
+	mov cx, [currentdate]
+	xchg cx, [cargodestlastglobalperiodicpreproc]	//this effectively disables the global pre-processing
+	mov edi, [cdestcurstationptr]
+	mov esi, edi
+	sub esi, [station2ofs_ptr]
+	call cargodeststationperiodicproc
+	mov [cargodestlastglobalperiodicpreproc], cx
+	pop eax
+	
 	pop ecx
 .donebuildroute:
 #if WINTTDX && DEBUG
@@ -1526,7 +1543,7 @@ uvard tempprevroutingtableentrystore
 //[curnexthoplocation]=next hop from start, location
 //[curnexthoproutingtable]=next hop from start, routing table
 //[curhoproutecargo]=current cargo
-//[cdestcurstationptr]=current start station id
+//[cdestcurstationptr]=current start station ptr
 ////[temproutingtablevalueindicator]=current temporary destination marker
 //[esp+12]=cost (in days) so far
 //[esp+8]=previous node routing table
