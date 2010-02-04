@@ -871,12 +871,15 @@ chkmarksignalroute:
 		// which has a PBS path reserved through it (or else this
 		// train would assume the path is reserved for it!)
 	//mov dh,[sigbitsonpiece+edx]
+	test ah, ah
+	js .nochecktsigotherdir
 	test [esi+edi],al
 	jnz NEAR .fail	// has a PBS path reserved, don't go there
-	
+.nochecktsigotherdir:
+
 	mov dl, ch
 	mov ch, 0	
-	jmp NEAR .nexttile
+	jmp .mark
 
 .nsig:
 	mov dl,ch
@@ -1805,12 +1808,26 @@ clearpathtile:
 
 	push ecx
 	bsf ecx,ebx
-	movzx ebx,al
+	
+	mov bl,[sigbitsonpiece+ecx]
 	shr ecx,1
+	test [landscape3+ebp*2],bl
+	movzx ebx,al	
+
 	mov cl,[sigbitfromddirpiece+(ebx-1)*2+ecx]
+	jz .nosig
+
 	test [landscape3+ebp*2],cl
 	jnz .havesig
+	testflags tsignals
+	jnc .nosig
+	test BYTE [edi+ebp], 4
+	jz .nosig			//is this a through signal, if no, done
+	mov bl, cl
+	pop ecx
+	jmp .clearbit
 
+.nosig:
 	mov bl,[lastmovementstat]
 	add bl,0x80			// set CF if clearing signals only
 
@@ -1890,9 +1907,18 @@ forcemarksignalpath:
 
 	and al,[piececonnections+ebx]	// now al can only be a single piece
 	bsf eax,eax
-	mov al,[sigbitsonpiece+eax]
-	test [landscape3+edi*2],al
-	jnz near .nopathahead	// don't need to mark ahead, we're approaching a signal anyway
+	mov ah,[sigbitsonpiece+eax]
+	test [landscape3+edi*2],ah
+	jz .notsignalahead
+	testflags tsignals
+	jnc NEAR .nopathahead	// don't need to mark ahead, we're approaching a signal anyway
+	test BYTE [landscape6+edi], 4
+	jz NEAR .nopathahead
+	movzx eax, al
+	shr eax, 1
+	mov ah,[sigbitfromsdirpiece+(ebx-1)*2+eax]
+	test [landscape3+edi*2],ah
+	jnz NEAR .nopathahead	//approaching front of through signal
 
 .notsignalahead:
 	// see if the tile can be entered at all
@@ -2153,6 +2179,7 @@ cleartrainsignalpath:
 	call [getroutemap]
 	pop ebp
 	pop esi
+	or al, ah
 	and al,[piececonnections+ebp]
 	jz .done	// end of route
 
