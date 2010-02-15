@@ -2029,7 +2029,7 @@ exported smallufo_makecrashed
 .next:
 	inc word [ebx+0x68]
 	or byte [ebx+veh.vehstatus], 0x80
-	movzx ebx, word [eax+veh.nextunitidx]
+	movzx ebx, word [ebx+veh.nextunitidx]
 	cmp bx, 0xFFFF
 	je .done
 	shl ebx, 7
