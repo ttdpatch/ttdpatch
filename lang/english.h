@@ -369,6 +369,9 @@ SETTEXT(LANG_UNKNOWNSWITCHBIT, "Unknown bit '%s' for switch '%s'.\n")
 // cfg command %s is unknown
 SETTEXT(LANG_UNKNOWNCFGLINE, "Warning: Invalid cfg line '%s'.\n")
 
+// cfg command %s is out of range
+SETTEXT(LANG_OUTOFRANGE, "Warning: Switch '%s' value '%s' out of range.\n")
+
 // Names of the switches for the '-v' options
 // First string is shown always, second only if set and with the given
 // value of the switch in %d.

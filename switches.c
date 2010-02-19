@@ -519,6 +519,7 @@ static int setswitch(int switchid, const char *cfgpar, const char *cfgsub, int s
 				if (offrange >= 0) switch (parvalue) {
 					default:
 						// bring the value into bounds
+						warning(langtext[LANG_OUTOFRANGE],  switches[switchid].cfgcmd, cfgpar);
 						parvalue = switches[switchid].range[offrange];
 						break;
 					case 1:

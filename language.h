@@ -212,6 +212,8 @@ enum langtextids {
 
 	LANG_UNKNOWNCFGLINE,		// cfg command %s is unknown
 
+	LANG_OUTOFRANGE,			// switch %s value out of range
+
 	LANG_CFGFILENOTFOUND,		// A cfg file (%s) could not be found and is ignored.
 
 	LANG_CFGFILENOTWRITABLE,	// Couldn't write the config file
