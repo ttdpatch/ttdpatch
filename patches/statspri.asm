@@ -1541,6 +1541,17 @@ getstationdisplayspritelayout:
 	test eax,eax
 	jz .notours
 
+	// check if this layout is valid
+	cmp ebx,[eax-4]
+	jb .gotlayoutnumber
+	
+	and ebx, 1		// try keeping just the last bit (i.e. direction)
+	cmp ebx,[eax-4]
+	jb .gotlayoutnumber
+	
+	xor ebx,ebx		// there must be only one layout, use that
+	
+.gotlayoutnumber:
 	mov ebx,[eax+ebx*4]
 	ret
 
