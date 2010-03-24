@@ -124,11 +124,12 @@ codefragment oldbuslorrystationwindowdrawhandler, -5
 
 codefragment_call newbuslorrystationwindowdrawhandler,BusLorryStationDrawHandler,5
 
-codefragment oldaddstationspritebase,6
-	mov dh,[ebp+5]
-	mov ebx,[ebp+6]
+codefragment olddrawstationsprites
+	cmp byte [ebp], 0x80
+	je $+6+0xda
 
-codefragment_call newgetstationspritetrl, getstationspritetrl
+codefragment_jmp newdrawstationsprites, drawstationsprites.entry
+
 codefragment_call newgetstationspritelayout, getstationspritelayout, 10
 codefragment_call newgetstationtracktrl, getstationtracktrl
 
@@ -277,10 +278,11 @@ patchbusstop:
 	or byte [newgraphicssetsenabled+2], 1<<(17-16)
 
 // Newstations stuff required by trams
-	patchcode oldaddstationspritebase,newgetstationspritetrl,2-WINTTDX,3
-	add edi,byte lastediadj+90
-	storefragment newgetstationspritetrl
-	sub edi,dword 196-lastediadj
+	patchcode drawstationsprites
+extern class5drawlandcolormap
+	mov eax, [edi+lastediadj+82]
+	mov [class5drawlandcolormap], eax
+	add edi, byte lastediadj-48
 	storefragment newgetstationspritelayout
 	mov byte [edi+lastediadj+24],0x7f
 	add edi,byte 33+lastediadj

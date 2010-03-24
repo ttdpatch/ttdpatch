@@ -41,7 +41,7 @@ extern DrawStationImageInSelWindow,MakeTempScrnBlockDesc
 extern convertplatformsinecx,convertplatformsincargoacceptlist,convertplatformsinremoverailstation
 extern addcargotostation_cargodesthook
 
-extern paStationbusstop1, paStationbusstop2, 
+extern paStationbusstop1, paStationbusstop2,
 extern paStationtruckstop1, paStationtruckstop2
 extern paStationtramstop1, paStationtramstop2
 extern paStationtramfreightstop1, paStationtramfreightstop2
@@ -73,7 +73,7 @@ drawstationimageinrailselectwin:
 	mov bp, 48
 
 	call [MakeTempScrnBlockDesc]
-	popa 
+	popa
 	jz .invalid
 	mov edi, baTempBuffer1
 
@@ -85,11 +85,11 @@ drawstationimageinrailselectwin:
 	pop esi
 	pop dx
 	pop cx
-	
+
 	add cx, 68
 	mov bl, 3
 	mov al, [currconstrtooltracktype]
-	call [DrawStationImageInSelWindow] 
+	call [DrawStationImageInSelWindow]
 .invalid:
 	pop edi
 	ret
@@ -320,7 +320,7 @@ isstationavailable:
 .done:
 	mov dh,0
 	ret
-	
+
 #if 0
 global makestationclassdropdown
 makestationclassdropdown:
@@ -365,7 +365,7 @@ exported makestationclassdropdown
 .loop:
 	cmp al, MAXDROPDOWNEXENTRIES
 	jae .done
-	
+
 	mov ecx, 0xc000
 	mov cl, al
 	mov dword [DropDownExList+4*eax],ecx
@@ -376,7 +376,7 @@ exported makestationclassdropdown
 	pop eax
 	jnc .gotstation
 	bts [DropDownExListDisabled], eax	// mark as disabled, no stations available
-	
+
 .gotstation:
 	inc eax
 	cmp al, MAXDROPDOWNEXENTRIES
@@ -391,8 +391,8 @@ exported makestationclassdropdown
 	mov byte [DropDownExMaxItemsVisible], 16 // Changed the word to a byte to match var size (Lakie)
 	extjmp GenerateDropDownEx
 #endif
-	
-	
+
+
 uvarb stationdropdownnums,255
 #if 1
 exported makestationseldropdown
@@ -424,10 +424,10 @@ exported makestationseldropdown
 
 	call isstationavailable
 	jc .next
-	
+
 	mov dword [DropDownExList+eax*4],0xc100
 	mov byte [DropDownExList+eax*4],dl
-	
+
 	mov [stationdropdownnums+eax],dl
 
 	cmp dl,[curselstation]
@@ -1166,7 +1166,7 @@ newstationtile:
 	extern persgrfdata
 	mov bl,[cantrainenterstattile+ecx]
 	mov [stationnonenter+eax],bl
-	
+
 	mov ebx,[canrventerrailstattile+ecx*8]
 	mov [stationrventer+eax*8],ebx
 	mov ebx,[canrventerrailstattile+ecx*8+4]
@@ -1472,7 +1472,7 @@ getstationspritelayout:
 	movzx ebp,dh
 	mov ebp,[paStationtramstop+(ebp-0x53)*4]
 	retn
-#endif 
+#endif
 
 .notours:
 	movzx ebp,dh
@@ -1504,6 +1504,8 @@ ovar ttdpatchstationspritelayout,-4
 // safe:eax
 global getstationdisplayspritelayout
 getstationdisplayspritelayout:
+	mov byte [gotnormalsprite],0	// set up support for drawing multiple ground tiles here
+
 	cmp ebx,8
 	jb .isitours
 //	cmp ebx,0x53
@@ -1544,13 +1546,13 @@ getstationdisplayspritelayout:
 	// check if this layout is valid
 	cmp ebx,[eax-4]
 	jb .gotlayoutnumber
-	
+
 	and ebx, 1		// try keeping just the last bit (i.e. direction)
 	cmp ebx,[eax-4]
 	jb .gotlayoutnumber
-	
+
 	xor ebx,ebx		// there must be only one layout, use that
-	
+
 .gotlayoutnumber:
 	mov ebx,[eax+ebx*4]
 	ret
@@ -1740,7 +1742,7 @@ extern addsprite
 .nextsprite:
 	shr dh,1		// check next bit
 	jnc .skipsprite
-	
+
 	mov byte [exscurfeature],4
 	mov byte [exsspritelistext], 1
 
@@ -1859,8 +1861,8 @@ doestrainstopatstationtile:
 	mov dh, [landscape5(bx,1)]
 	xor dh, [landscape5(si,1)]
 	and dh,1
-	jnz .done       // wrong 
-	
+	jnz .done       // wrong
+
 	movzx esi,byte [landscape3+esi*2+1]
 	mov dh,[stationnonenter+esi]
 	add dl,8
@@ -2001,7 +2003,7 @@ getplatforminfo:
 	jne .gotend1
 
 	mov bl,[landscape5(cx,1)]
-	cmp bl, 7	// train station 
+	cmp bl, 7	// train station
 	ja .gotend1
 
 	and bl,[.checkdirection]
@@ -2035,7 +2037,7 @@ getplatforminfo:
 	jne .gotend2
 
 	mov bl,[landscape5(cx,1)]
-	cmp bl, 7	// train station 
+	cmp bl, 7	// train station
 	ja .gotend2
 
 	and bl,[.checkdirection]
@@ -2279,13 +2281,13 @@ getstationsectionmiddle:
 .getmiddle:	// eax=0TNLcCpP
 	shld ecx,eax,20		// ecx=xxx0TNLc
 	shr cl,5
-	shr ch,1 
+	shr ch,1
 	and ch,7		// ecx=xxxx0n0l where n,l=N,L div 2 //rounded up
 	and ax,0x0f0f
 	sub ah,ch
 	sub al,cl
 	shl al,4
-	shr ax,4	
+	shr ax,4
 	mov ah,0		// eax=0TNL00CP
 	ret
 
@@ -2599,13 +2601,13 @@ exported getotherstationid
 	pop ebx
 	ret
 
-.nottile:	
+.nottile:
 	pop ebp
 	pop edx
 	pop ebx
 	or eax,byte -1
 	ret
-	
+
 // parametrized variable 69: get cargo acceptance history
 // return value:
 // bit 0: set if cargo type was ever accepted
@@ -2780,7 +2782,7 @@ updatestationgraphics:
 	movzx eax,word [esi+station.railXY]
 	test eax,eax
 	jz .notrainstation
-	
+
 
 	testflags irrstations
 	jnc .noirrstations
@@ -2790,7 +2792,7 @@ updatestationgraphics:
 	sub dh, ah
 	add dx, 0x101
 	jmp short .notflip
-	
+
 .noirrstations:
 	mov dh,[esi+station.platforms]
 	call convertplatformsinremoverailstation
@@ -2841,7 +2843,7 @@ global cargoinstation
 cargoinstation:
 	mov ebx,[esp+4]
 	pusha
-	
+
 	mov cx, [esi+station.cargos+ebx+stationcargo.amount]
 
 	shr ebx,3
@@ -3188,7 +3190,7 @@ exported stationplatformanimtrigger
 	call convertplatformsinecx
 	shr ecx, 8
 	mov ch,1
-	
+
 	//cl=length, ch=tracks
 
 	test byte [landscape5(bx)],1
@@ -3361,8 +3363,8 @@ exported periodicstationupdate
 	clc
 	ret
 
-	
-	
+
+
 // Functions dealing with RV on rail station by eis_os
 
 // special functions to handle station properties
@@ -3380,11 +3382,11 @@ exported setrailstationrvrouteing
 	//CALLINT3			// prevent the use of this feature by grfauthors until the feature is complete
 	lodsd
 	test eax, 0xF0F0F0F0	// prevent the use of the upper 4 bits
-	jnz .bad 
+	jnz .bad
 	mov [canrventerrailstattile+ebx*8], eax
 	lodsd
 	test eax, 0xF0F0F0F0
-	jnz .bad 
+	jnz .bad
 	mov [canrventerrailstattile+ebx*8+4], eax
 	inc ebx
 	loop .nexstationid
@@ -3395,52 +3397,42 @@ exported setrailstationrvrouteing
 	stc
 	ret
 
-// in:	ebx: building sprite from station layout data
-// out:	zf clear if the company color recolor sprite number should be ORed to the high byte
-// safe: none
-exported applystationcompanycolor
-	test bx,0x8000		// overwritten
-	jz .gotit
-	test ebx,0x7FFF0000
-	jnz .hasrecolor		// there is a recolor sprite specified, don't ruin it
-	test ebx,ebx		// clear zf - ebx can't be zero, at least bit 15 is set
-.gotit:
-	ret
-
-.hasrecolor:			// the layout has its own recolor data, don't ruin it
-	cmp eax,eax		// set zf
-	ret
-
 // decide whether to draw station sprite in normal or transparent mode
 // in:	ebx: sprite number & flags from layout
 //	other regs set up for addsprite or addrelsprite
-// out:	cf set for normal drawing, fudged "return" when invisible
+// out: cf set -> invisible
+//	cf clear, zf set -> normal drawing
+//	cf clear, zf clear -> transparent
 // safe: ebp
 exported decidestationtransparency
 	btr ebx,30
-	jc .gotit			// bit 30 set - always draw normally
+	jc .normal			// bit 30 set - always draw normally
 	testmultiflags moretransopts
 	jnz .newtrans
-	bt dword [displayoptions],4	// check "transparent buildings" in display options
-.gotit:
+	test dword [displayoptions],16	// check "transparent buildings" in display options (test clears CF)
 	ret
+
+.normal:
+	cmp eax, eax
+	ret
+
+.transparent:
+	test esp, esp
+	ret
+
 .newtrans:
 	extern newtransopts
 	bt dword [newtransopts],TROPT_STATION
-	jnb .cmret
+	jnb .normal
 	bt dword [newtransopts+transopts.invis],TROPT_STATION
-	jnb .ret
-	pop eax				// returns to a j[n]z short
-	movzx ebx, byte [eax+2]
-	lea eax, [eax+ebx+3+17]		// follow the jump, skip the addsprite
-	jmp eax
-.cmret:
-	cmc
-.ret:
+	jnb .transparent
+	test esp, esp	// clears zf
+	stc		// sets cf
 	ret
 
 noglobal uvarw rootspritex
 noglobal uvarw rootspritey
+noglobal uvarb gotnormalsprite	// set to 1 if we've already encountered a normal sprite while drawing this station preview
 
 // Called instead of LandscapeToPixelCoords when drawing a station in the selection window
 // The old code assumed that there are no linked sprites in the layout, fix that
@@ -3458,11 +3450,21 @@ exported getspritecoordsforstationwindow
 ovar .landscapetopixel,-4,$,getspritecoordsforstationwindow
 	mov [rootspritex],ax	// remember the returned values - linked sprite offsets will be relative to these
 	mov [rootspritey],cx
+	mov byte [gotnormalsprite],1
 	ret
 
 .linked:
+	cmp byte [gotnormalsprite],0
+	je .stackedground
 	add ax,[rootspritex]	// this is a linked sprite - just add the coordinates of the root sprite
 	add cx,[rootspritey]
+	ret
+
+.stackedground:
+	// Linked spritedata entries before the first normal one are interpreted as extra land sprites.
+	// Normal landscape drawing doesn't support pixel offsets for that, so ignore those here as well
+	xor eax,eax
+	xor ecx,ecx
 	ret
 
 // called to do extra slope check for train stations, from slopebld.asm
@@ -3577,7 +3579,7 @@ ovar preferredStationNameTypePtr, -5
 // In:	esi->station
 //	edi->town
 //	cx: XY location
-//	edx: mask of already-used default station names 
+//	edx: mask of already-used default station names
 //	ebp: TextID TTD chose, minus 300F.	(Construction would have failed if {bt edx, ebp} sets carry.)
 // Locals:  Uses ebx(!) as base pointer
 //	ebx-4: Flags; cf is bit 0
@@ -3697,3 +3699,73 @@ checknewgrfname:
 	popa
 	stc
 	ret
+
+// We jump here from Class5DrawLand (0014CB90 in the DOS version, specifically),
+// to draw all station sprites except the ground sprites.
+// We change almost all of the code in some way, so taking it over completely is easier to follow.
+// in:	AX, CX, DL: landscape X, Y, Z coordinates of the tile
+//	EBP->station tile sprite layout
+// safe: EBX, ESI, EDI, EBP
+drawstationsprites:
+// WARNING: THE ENTRY POINT IS .entry!!!
+// I've added the popping in front of it because it's common to all branches
+.nextitem_pop:
+	pop ebp
+	pop dx
+	pop cx
+	pop ax
+	add ebp, 10
+global drawstationsprites.entry
+.entry:
+	cmp byte [ebp], 0x80
+	jne .keepgoing
+	ret
+	
+.keepgoing:
+	push ax
+	push cx
+	push dx
+	push ebp
+	cmp byte [ebp+2], 0x80
+	je .linked
+
+// Sprite establishes a new bounding box
+	movsx bx, byte [ebp]
+	add ax, bx
+	movsx bx, byte [ebp+1]
+	add cx, bx
+	add dl, [ebp+2]
+	movsx di, byte [ebp+3]
+	movsx si, byte [ebp+4]
+	mov dh, [ebp+5]
+	mov ebx, [ebp+6]
+	mov ebp, [addsprite]
+	jmp .gotfunc
+
+.linked:
+	movsx ax, byte [ebp]
+	movsx cx, byte [ebp+1]
+	mov ebx, [ebp+6]
+	mov ebp, [addrelsprite]
+	
+.gotfunc:
+	call getstationspritetrl
+	call decidestationtransparency
+	jc .nextitem_pop
+	jnz .transparent
+
+	test bx,0x8000		// overwritten
+	jz .nocolor
+	test ebx,0x7FFF0000
+	jnz .nocolor		// there is a recolor sprite specified, don't ruin it
+	or ebx, [dword 0]
+ovar class5drawlandcolormap,-4
+.nocolor:
+	call ebp
+	jmp .nextitem_pop
+
+.transparent:
+	and ebx, 0x3fff
+	or ebx, 0x3224000
+	call ebp
+	jmp .nextitem_pop
