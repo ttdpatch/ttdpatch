@@ -3700,23 +3700,73 @@ checknewgrfname:
 	stc
 	ret
 
+// This var will be set to 1 by displstationgroundsprite in slopebld.asm if the currently drawn station tile is on sloped land
+// We need this to be able to render extra ground tiles correctly (using addrelsprite instead of addgroundsprite)
+// If buildonslopes is off, this will stay zero forever
+uvarb drawstation_slopedland
+
 // We jump here from Class5DrawLand (0014CB90 in the DOS version, specifically),
 // to draw all station sprites except the ground sprites.
 // We change almost all of the code in some way, so taking it over completely is easier to follow.
 // in:	AX, CX, DL: landscape X, Y, Z coordinates of the tile
 //	EBP->station tile sprite layout
 // safe: EBX, ESI, EDI, EBP
-drawstationsprites:
-// WARNING: THE ENTRY POINT IS .entry!!!
-// I've added the popping in front of it because it's common to all branches
+exported drawstationsprites
+// The first loop is for partial support of an OTTD feature "stacked ground tiles"
+// If you specify "linked" entries before the first normal one, they are interpreted
+// as extra ground sprites to draw. The loop keeps running while it finds such special
+// entries, then either returns or jumps into the second loop directly.
+.nextground:
+	push ax
+	push cx
+	push dx
+	push ebp
+	cmp byte [ebp], 0x80
+	je .near_ret
+	cmp byte [ebp+2], 0x80
+	jne .normal	// normal bounding box -- jump into the normal loop
+	
+	// pixel offsets are not supported, so ignore offsets 0 and 1
+	mov ebx, [ebp+6]
+	call getstationspritetrl
+	test ebx,0x7FFF0000
+	jnz .nogroundcolor		// there is a recolor sprite specified, don't ruin it
+	or ebx, [dword 0]
+ovar class5drawlandcolormap1,-4
+.nogroundcolor:
+extern addgroundsprite
+	cmp byte [drawstation_slopedland],0
+	jne .slopedground
+	call [addgroundsprite]
+	jmp short .thisgrounddone
+.slopedground:
+	mov ax,31
+	mov cx,1
+	call [addrelsprite]
+.thisgrounddone:
+	pop ebp
+	pop dx
+	pop cx
+	pop ax
+	add ebp, 10
+	jmp .nextground
+
+.near_ret:
+	pop ebp
+	pop dx
+	pop cx
+	pop ax
+	ret
+
+// The second loop, drawing normal and linked sprites - standard TTD functionality with Patch enhancements
+// WARNING: program flow isn't linear here! The logical end of the loop is moved in front of it to avoid some jumps
+// The loop is entered at .normal (from the loop above) and does a ret when it's out of things to do
 .nextitem_pop:
 	pop ebp
 	pop dx
 	pop cx
 	pop ax
 	add ebp, 10
-global drawstationsprites.entry
-.entry:
 	cmp byte [ebp], 0x80
 	jne .keepgoing
 	ret
@@ -3730,6 +3780,7 @@ global drawstationsprites.entry
 	je .linked
 
 // Sprite establishes a new bounding box
+.normal:
 	movsx bx, byte [ebp]
 	add ax, bx
 	movsx bx, byte [ebp+1]
@@ -3748,6 +3799,8 @@ global drawstationsprites.entry
 	mov ebx, [ebp+6]
 	mov ebp, [addrelsprite]
 	
+// here EBX=sprite to draw (not translated); EBP->function to call for sprite drawing
+// the rest of the registers are set up for whatever is needed by the draw function, so nothing is safe
 .gotfunc:
 	call getstationspritetrl
 	call decidestationtransparency
@@ -3759,7 +3812,7 @@ global drawstationsprites.entry
 	test ebx,0x7FFF0000
 	jnz .nocolor		// there is a recolor sprite specified, don't ruin it
 	or ebx, [dword 0]
-ovar class5drawlandcolormap,-4
+ovar class5drawlandcolormap2,-4
 .nocolor:
 	call ebp
 	jmp .nextitem_pop

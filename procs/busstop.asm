@@ -128,7 +128,7 @@ codefragment olddrawstationsprites
 	cmp byte [ebp], 0x80
 	je $+6+0xda
 
-codefragment_jmp newdrawstationsprites, drawstationsprites.entry
+codefragment_jmp newdrawstationsprites, drawstationsprites
 
 codefragment_call newgetstationspritelayout, getstationspritelayout, 10
 codefragment_call newgetstationtracktrl, getstationtracktrl
@@ -279,9 +279,10 @@ patchbusstop:
 
 // Newstations stuff required by trams
 	patchcode drawstationsprites
-extern class5drawlandcolormap
+extern class5drawlandcolormap1,class5drawlandcolormap2
 	mov eax, [edi+lastediadj+82]
-	mov [class5drawlandcolormap], eax
+	mov [class5drawlandcolormap1], eax
+	mov [class5drawlandcolormap2], eax
 	add edi, byte lastediadj-48
 	storefragment newgetstationspritelayout
 	mov byte [edi+lastediadj+24],0x7f

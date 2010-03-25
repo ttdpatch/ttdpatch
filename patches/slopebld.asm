@@ -458,6 +458,8 @@ ovar .oldfnoffset,-4,$,correctstationalt
 global displstationgroundsprite
 displstationgroundsprite:
 	test di,di
+extern drawstation_slopedland
+	setnz byte [drawstation_slopedland]		// see statspri.asm for details
 	jz .noslope
 	
 	cmp dh,8
