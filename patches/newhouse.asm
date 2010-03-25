@@ -928,6 +928,38 @@ proc processtileaction2
 	_ret
 
 .extended:
+// first, process "stacked ground tiles" - entries that look like linked sprites but come before the first normal one
+.nextground:
+	cmp byte [esi+6], 0x80
+	jne .nextbox		// jump into the normal loop
+	
+	call .getadjustedspriteno
+	btr ebx,30
+	add esi, 3		// ignore offsets 4 and 5 - we cannot support xoffs and yoffs for ground tiles
+	
+// if we aren't on flat ground, there's a foundation already added
+// we must make the actual ground sprite share the foundation's bounding box
+	test di,0xf		// we need to keep edi intact during this loop
+	jz .extranormalground
+
+	pusha
+	mov ax,31
+	mov cx,1
+	call [addrelsprite]
+	popa
+	jmp short .extragrounddone
+
+.extranormalground:
+// flat land - we can simply add the ground sprite normally
+	push ebp
+	call [addgroundsprite]
+	pop ebp
+
+.extragrounddone:
+	dec byte [%$numsprites]
+	jnz .nextground
+	_ret
+
 // in the extended format, we have more building sprites, so we use a loop to process them
 .nextbox:
 // read spritenum
