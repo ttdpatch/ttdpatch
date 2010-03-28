@@ -40,6 +40,17 @@ struc routingtable
 	resb 32-$
 endstruc
 
+struc searchqueueitem
+	.next:		resd 1
+	.currentcargo:	resd 1
+	.nexthoploc:	resd 1
+	.nexthoprt:	resd 1
+	.days:		resd 1
+	.prevrt:	resd 1
+	.currentrt:	resd 1
+	resb 32-$
+endstruc
+
 struc cargodestgamedata
 	.version:	resd 1	//put "1" here
 	.headerlength:	resd 1

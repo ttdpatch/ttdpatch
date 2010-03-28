@@ -26,6 +26,10 @@ extern cargodestroutediffmax, cdstatlastmonthcyclicroutecull
 //#undef DEBUG
 //#define DEBUG 1
 
+#define MODE 1
+//0 = old (modified recursive iteratively depth-first search)
+//1 = new (more or less Djikstra's/Uniform Cost Search. ie. same as above but using a sorted queue rather than the stack)
+
 // save pointer data
 //uvard cargopacketstore
 //uvard cargopacketstore_size
@@ -861,8 +865,8 @@ AcceptCargoAtStation_CargoDestAdjust:
 	//max(0,bx-dx)
 	//therefore loading not finished if bx>dx
 
-        test BYTE [acceptcargoatstationflag], 8		//if nothing is unloaded in this step, we're done
-        jnz .notmaybedoneloading
+	test BYTE [acceptcargoatstationflag], 8		//if nothing is unloaded in this step, we're done
+	jnz .notmaybedoneloading
 	test BYTE [acceptcargoatstationflag], 1
 	jz .doneloading
 	cmp bx, dx
@@ -930,7 +934,7 @@ nexthoproutebuild:
 	mov ebp, [cargodestdata]
 
 //begin building next hop route data
-        test BYTE [esi+veh.modflags], (1 << MOD_DIDCASHIN)
+	test BYTE [esi+veh.modflags], (1 << MOD_DIDCASHIN)
 	jnz NEAR .nobuildroute
 	cmp WORD [esi+veh.capacity], 0
 	je NEAR .nobuildroute
@@ -949,7 +953,7 @@ nexthoproutebuild:
 	jne .buildroute
 	cmp WORD [acceptcargotemplaststationandcargo], dx
 	je NEAR .nobuildroute
-.buildroute:                                                    //try to avoid doing the same action over and over when a multi-part vehicle arrives
+.buildroute:							//try to avoid doing the same action over and over when a multi-part vehicle arrives
 	mov [acceptcargotemplastengine], edi
 	mov [acceptcargotemplaststationandcargo], dx
 	mov eax, ecx
@@ -1315,8 +1319,11 @@ clearlasttransprofit:	//eax=cargo packet
 
 
 uvarw cargodestlastglobalperiodicpreproc
+#if MODE
+uvard searchqueuestart
+#endif
 
-//called by station2.asm:monthlystationupdate
+//called by station2.asm:monthlystationupdate, nexthoproutebuild
 global cargodeststationperiodicproc
 cargodeststationperiodicproc:		//edi=station2 ptr
 					//esi=station ptr
@@ -1498,14 +1505,22 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 
 	mov edx, [edi+ebp+routingtable.nexthoprtptr]
 	mov [startroutingtable], edi
-//	mov bx, [edi+ebp+routingtable.location]		//station id
-//	mov [temproutingtablevalueindicator], bx	//low word
+
+#if MODE
+	cmp DWORD [searchqueuestart], 0
+	je .sqs_ok
+	int3	//oh noes
+.sqs_ok:
+#endif
+
 .buildloop:
 	or edx, edx
-	jz .end
+	jz .buildloopend
 	push DWORD [edx+ebp+routingtableentry.next]
-	mov bl, [edx+ebp+routingtableentry.cargo]
-	mov [curhoproutecargo], bl
+	movzx ebx, BYTE [edx+ebp+routingtableentry.cargo]
+
+	push ebx
+	sub esp, 8
 	movzx esi, WORD [edx+ebp+routingtableentry.mindays]
 	mov bx, [edx+ebp+routingtableentry.oldestwaiting]
 	or bx, bx
@@ -1515,36 +1530,304 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 .nocargowaitingcost:
 	push esi
 	mov esi, [edx+ebp+routingtableentry.destrttable]
-	mov [curnexthoproutingtable], esi
+	mov [esp-12+16], esi
 	mov esi, [edx+ebp+routingtableentry.dest]
-//	mov [temproutingtablevalueindicator+2], si	//high word
+
 	push DWORD [startroutingtable]
 	push DWORD [edx+ebp+routingtableentry.destrttable]
-	mov [curnexthoplocation], esi
+	mov [esp-4+20], esi
+#if MODE
+	call queuenextnodes
+#else
 	call addroutesreachablefromthisnodeandrecurse
-	add esp, 12
+#endif
+	add esp, 24
+/*
+	call alloccargodestdataobj
+
+	//prepend to queue. 
+	mov ecx, [searchqueuestart]
+	mov [ebp+eax+searchqueueitem.next], ecx
+	mov [searchqueuestart], eax
+
+	pop DWORD [ebp+eax+searchqueueitem.currentrt]
+	pop DWORD [ebp+eax+searchqueueitem.prevrt]
+	pop DWORD [ebp+eax+searchqueueitem.days]
+	pop DWORD [ebp+eax+searchqueueitem.nexthoprt]
+	pop DWORD [ebp+eax+searchqueueitem.nexthoploc]
+	pop DWORD [ebp+eax+searchqueueitem.currentcargo]
+*/
 	pop edx
 	jmp .buildloop
+.buildloopend:
+
+#if MODE
+.outerloop:
+	mov ecx, [searchqueuestart]
+	or ecx, ecx
+	jz NEAR .end
+	xor eax, eax
+	xor edx, edx
+	mov ebx, searchqueuestart
+	or edi, BYTE -1
+.queueloop:
+//ecx=current queue item
+//edi=lowest cost so far
+//eax=associated queue item
+//edx=address of previous item pointer to associated queue item
+
+	mov esi, [ebp+ecx+searchqueueitem.days]
+	cmp esi, edi
+	jae .iterate
+	mov edi, esi
+	mov edx, ebx
+	mov eax, ecx	
+.iterate:
+	lea ebx, [ebp+ecx+searchqueueitem.next]
+	mov ecx, [ebx]
+.nextitem:
+	or ecx, ecx
+	jnz .queueloop
+
+	or eax, eax
+	jz NEAR .end
+
+	mov ebx, [ebp+eax+searchqueueitem.currentcargo]
+	push ebx
+	push DWORD [ebp+eax+searchqueueitem.nexthoploc]
+	push DWORD [ebp+eax+searchqueueitem.nexthoprt]
+	push edi
+	push DWORD [ebp+eax+searchqueueitem.prevrt]
+	mov esi, [ebp+eax+searchqueueitem.currentrt]
+	push esi
+	
+	mov ecx, [ebp+eax+searchqueueitem.next]
+	mov [edx], ecx
+	
+	call freecargodestdataobj
+	
+	//iterate over destination enties in start routing table in eax
+	mov eax, [startroutingtable]
+	lea ecx, [eax+routingtable.nexthoprtptr-routingtableentry.next]
+	mov [tempprevroutingtableentrystore], ecx
+
+	mov eax, [eax+ebp+routingtable.nexthoprtptr]
+	mov edx, esi
+	mov ecx, [esi+ebp+routingtable.location]
+	mov esi, [esp+4+16-4]	//current next hop routing table
+	call addroutesreachablefromthisnodeandrecurse_checkloop
+	cmp ecx, 1
+	je NEAR .doneandnext
+
+	mov eax, [startroutingtable]
+	lea ecx, [eax+routingtable.destrtptr-routingtableentry.next]
+	mov [tempprevroutingtableentrystore], ecx
+
+	mov eax, [eax+ebp+routingtable.destrtptr]
+	mov ecx, [edx+ebp+routingtable.location]
+	mov edx, ecx
+	mov esi, [esp+16-4]	//current next hop routing table
+	call addroutesreachablefromthisnodeandrecurse_checkloop
+	cmp ecx, 1
+	je NEAR .doneandnext
+
+	//edi=current cost in days
+	//bl=cargo
+	//edx=final destination location
+
+//yet another check, make sure that no cyclic routes between two nodes are created, as those are BAD™
+	mov eax, [esp+16-4]
+	mov eax, [ebp+eax+routingtable.destrtptr]
+	or eax, eax
+	jz .donecycliccheck
+	push edi
+	lea ecx, [esi+routingtable.destrtptr-routingtableentry.next]
+	mov esi, edx
+	mov edi, [startroutingtable]
+.cycloop:
+	//eax=far route of next hop node being tested
+	//bl=cargo
+	//[esp]=current cost in days
+	//esi=final destination
+	//ecx=previous far route or fudged
+	//edi=start routing table
+	
+	cmp [ebp+eax+routingtableentry.dest], esi
+	jne .cycnextroute
+	cmp [ebp+eax+routingtableentry.cargo], bl
+	jne .cycnextroute
+	cmp [ebp+eax+routingtableentry.destrttable], edi
+	jne .cycnextroute		
+
+	//ALERT: cyclic route between two adjacent nodes detected. Battle stations!
+	pop edi
+	inc DWORD [cdstatlastmonthcyclicroutecull]
+	cmp [ebp+eax+routingtableentry.mindays], edi
+	jbe NEAR .doneandnext		//the node we were going through has a route through this station which is shorter
+					//than the route we would have created, therefore abandon creating the new route
+
+	//the route on the other station is longer, hence it must be exterminated and the new route indeed created from this station
+
+	mov esi, [ebp+eax+routingtableentry.next]
+	mov [ebp+ecx+routingtableentry.next], esi
+	call freecargodestdataobj
+	jmp .donecycliccheck
+
+.cycnextroute:
+	mov ecx, eax
+	mov eax, [ebp+eax+routingtableentry.next]
+	or eax, eax
+	jnz .cycloop
+	pop edi
+.donecycliccheck:
+//ends
+
+
+
+	mov esi, [esp-4+4]
+	//esi=routing table of final destination
+
+	call alloccargodestdataobj
+	mov [eax+ebp+routingtableentry.cargo], bl
+
+	mov ebx, [esi+ebp+routingtable.location]
+	mov [eax+ebp+routingtableentry.dest], ebx
+
+	mov ecx, [startroutingtable]
+	mov ebx, eax
+	xchg [ecx+ebp+routingtable.destrtptr], ebx
+	mov [eax+ebp+routingtableentry.next], ebx
+
+	mov ecx, [esp-4+16]
+	mov [eax+ebp+routingtableentry.destrttable], ecx
+
+	mov ecx, [esp-4+20]
+	mov [eax+ebp+routingtableentry.nexthop], ecx
+
+	mov [eax+ebp+routingtableentry.mindays], di
+
+	mov cx, [currentdate]
+	mov [eax+ebp+routingtableentry.lastupdated], cx
+
+#if WINTTDX && DEBUG
+	test BYTE [cargodestdebugflag], 8
+	jz .nodbgmess
+	pushad
+	push eax
+	mov edi, textrefstack
+	mov esi, [cdestcurstationptr]      //station ptr
+	call stos_stationname
+	mov DWORD [specialtext1], farroutemsg
+	call outdebugcargomessage
+	mov edi, textrefstack
+	pop ebx
+	call stos_routedata
+	mov DWORD [specialtext1], routedumpmess
+	call outdebugcargomessage
+	popad
+.nodbgmess:
+#endif
+	
+	call queuenextnodes
+.doneandnext:
+	add esp, 24
+
+	jmp .outerloop
+#endif
 .end:
 
 	popad
 	ret
 
-uvard curnexthoproutingtable
-uvard curnexthoplocation
 uvard startroutingtable
-//uvard temproutingtablevalueindicator
-uvarb curhoproutecargo
 uvard cdestcurstationptr
 
 uvard tempprevroutingtableentrystore
 
+#if MODE
+
 //[startroutingtable]=start routing table
-//[curnexthoplocation]=next hop from start, location
-//[curnexthoproutingtable]=next hop from start, routing table
-//[curhoproutecargo]=current cargo
 //[cdestcurstationptr]=current start station ptr
-////[temproutingtablevalueindicator]=current temporary destination marker
+//[esp+24]=current cargo
+//[esp+20]=next hop from start, location
+//[esp+16]=next hop from start, routing table
+//[esp+12]=cost (in days) so far
+//[esp+8]=previous node routing table
+//[esp+4]=this node routing table
+//ebp=[cargodestdata]
+//trashable: eax, ebx, ecx, edx, edi, esi
+//c calling convention
+queuenextnodes:
+	mov edx, [esp+4]
+	mov edx, [edx+ebp+routingtable.nexthoprtptr]
+	or edx, edx
+	jz NEAR .finish
+	mov ebx, [esp+24]
+.loop:
+	mov esi, [edx+ebp+routingtableentry.destrttable]
+	or esi, esi
+	jz NEAR .next
+	cmp esi, [startroutingtable]
+	je NEAR .next
+	cmp [edx+ebp+routingtableentry.cargo], bl
+	jne NEAR .next
+	cmp esi, [esp+16]
+	je NEAR .next
+	cmp esi, [esp+8]
+	je NEAR .next
+
+	//esi=routing table of final destination
+	//edx=routing table entry to final destination from last node
+	//bl=cargo
+
+	xor edi, edi
+	mov cx, [edx+ebp+routingtableentry.oldestwaiting]
+	or cx, cx
+	jz .nocargowaitingcost
+	mov di, [currentdate]
+	sub di, cx
+.nocargowaitingcost:
+	add di, [edx+ebp+routingtableentry.mindays]
+	jc NEAR .next			//route is way too long
+	add di, [esp+12]
+	jc NEAR .next			//route is way too long
+
+	call alloccargodestdataobj
+
+	//prepend to queue.
+	//appending would almost certainly be better, examine later 
+	mov ecx, [searchqueuestart]
+	mov [ebp+eax+searchqueueitem.next], ecx
+	mov [searchqueuestart], eax
+
+	mov [ebp+eax+searchqueueitem.currentcargo], ebx
+	mov ecx, [esp+20]
+	mov [ebp+eax+searchqueueitem.nexthoploc], ecx
+	mov ecx, [esp+16]
+	mov [ebp+eax+searchqueueitem.nexthoprt], ecx
+	mov [ebp+eax+searchqueueitem.days], edi
+	mov ecx, [esp+4]
+	mov [ebp+eax+searchqueueitem.prevrt], ecx
+	mov [ebp+eax+searchqueueitem.currentrt], esi
+
+
+.doneandnext:
+	mov eax, [startroutingtable]
+	mov bl, [esp+24]
+.next:
+	mov edx, [edx+ebp+routingtableentry.next]
+	or edx, edx
+	jnz .loop
+.finish:
+	ret
+
+#else
+
+//[startroutingtable]=start routing table
+//[cdestcurstationptr]=current start station ptr
+//[esp+24]=current cargo
+//[esp+20]=next hop from start, location
+//[esp+16]=next hop from start, routing table
 //[esp+12]=cost (in days) so far
 //[esp+8]=previous node routing table
 //[esp+4]=this node routing table
@@ -1556,7 +1839,7 @@ addroutesreachablefromthisnodeandrecurse:
 	mov edx, [edx+ebp+routingtable.nexthoprtptr]
 	or edx, edx
 	jz NEAR .finish
-	mov bl, [curhoproutecargo]
+	mov ebx, [esp+24]
 	mov eax, [startroutingtable]
 .loop:
 	mov esi, [edx+ebp+routingtableentry.destrttable]
@@ -1566,7 +1849,7 @@ addroutesreachablefromthisnodeandrecurse:
 	je NEAR .next
 	cmp [edx+ebp+routingtableentry.cargo], bl
 	jne NEAR .next
-	cmp esi, [curnexthoproutingtable]
+	cmp esi, [esp+16]
 	je NEAR .next
 
 	//eax=start routing table
@@ -1593,7 +1876,7 @@ addroutesreachablefromthisnodeandrecurse:
 	mov eax, [eax+ebp+routingtable.nexthoprtptr]
 	push esi
 	mov ecx, [esi+ebp+routingtable.location]
-	mov esi, [curnexthoproutingtable]
+	mov esi, [esp+4+16]
 	call addroutesreachablefromthisnodeandrecurse_checkloop
 	pop esi
 	cmp ecx, 1
@@ -1608,7 +1891,7 @@ addroutesreachablefromthisnodeandrecurse:
 
 	mov eax, [eax+ebp+routingtable.destrtptr]
 	mov ecx, [esi+ebp+routingtable.location]
-	mov esi, [curnexthoproutingtable]
+	mov esi, [esp+16]
 	call addroutesreachablefromthisnodeandrecurse_checkloop
 	cmp ecx, 1
 	je NEAR .doneandnext
@@ -1620,7 +1903,7 @@ addroutesreachablefromthisnodeandrecurse:
 
 
 //yet another check, make sure that no cyclic routes between two nodes are created, as those are BAD™
-	mov eax, [curnexthoproutingtable]
+	mov eax, [esp+16]
 	mov eax, [ebp+eax+routingtable.destrtptr]
 	or eax, eax
 	jz .donecycliccheck
@@ -1682,10 +1965,10 @@ addroutesreachablefromthisnodeandrecurse:
 	xchg [ecx+ebp+routingtable.destrtptr], ebx
 	mov [eax+ebp+routingtableentry.next], ebx
 
-	mov ecx, [curnexthoproutingtable]
+	mov ecx, [esp+16]
 	mov [eax+ebp+routingtableentry.destrttable], ecx
 
-	mov ecx, [curnexthoplocation]
+	mov ecx, [esp+20]
 	mov [eax+ebp+routingtableentry.nexthop], ecx
 
 .updateandstartrecursion:
@@ -1720,18 +2003,20 @@ addroutesreachablefromthisnodeandrecurse:
 
 	push edx
 
-
+	push DWORD [esp+4+24]
+	push DWORD [esp+8+20]
+	push DWORD [esp+12+16]
 	push edi
-	push DWORD [esp+4+4+4]
+	push DWORD [esp+16+4+4]
 	push esi
 	call addroutesreachablefromthisnodeandrecurse
-	add esp, 12
+	add esp, 24
 
 	pop edx
 
 .doneandnext:
 	mov eax, [startroutingtable]
-	mov bl, [curhoproutecargo]
+	mov bl, [esp+24]
 .next:
 	mov edx, [edx+ebp+routingtableentry.next]
 	or edx, edx
@@ -1739,7 +2024,9 @@ addroutesreachablefromthisnodeandrecurse:
 .finish:
 	ret
 
-	//eax = first routing table entry or 0
+#endif
+
+	//eax = first routing table entry or 0 of source station
 	//ecx = current target destination location
 	//esi= current next hop routing table
 	//di = current cost in days
@@ -1750,6 +2037,8 @@ addroutesreachablefromthisnodeandrecurse:
 		//1=abandon
 		//2=update route, eax and esi must be sensibly set
 addroutesreachablefromthisnodeandrecurse_checkloop:
+	push ecx
+	push esi
 	or eax, eax
 	jz NEAR .donecheck
 .checkloop:
@@ -1767,8 +2056,12 @@ addroutesreachablefromthisnodeandrecurse_checkloop:
 	push eax
 	call addroutesreachablefromthisnodeandrecurse_checkloop.nextcheck
 	pop eax
+	add esp, 8	//pop esi,ecx
 	mov esi, [edx+ebp+routingtableentry.destrttable]
 	mov ecx, 2
+#if MODE
+	int3
+#endif
 	ret
 	//jmp .updateandstartrecursion
 .differentnodecheck:
@@ -1836,17 +2129,15 @@ addroutesreachablefromthisnodeandrecurse_checkloop:
 	mov eax, esi
 
 	//cloned from below, keep in sync
-        mov esi, [edx+ebp+routingtableentry.destrttable]
-	mov ecx, [esi+ebp+routingtable.location]
-	mov esi, [curnexthoproutingtable]
+	mov ecx, [esp+4]
+	mov esi, [esp]
 
 	jmp .iteratecheck
 
 .done_differentnodecheck:
 	//see above
-        mov esi, [edx+ebp+routingtableentry.destrttable]
-	mov ecx, [esi+ebp+routingtable.location]
-	mov esi, [curnexthoproutingtable]
+	mov ecx, [esp+4]
+	mov esi, [esp]
 .nextcheck:
         mov [tempprevroutingtableentrystore], eax
 	mov eax, [eax+ebp+routingtableentry.next]
@@ -1855,9 +2146,11 @@ addroutesreachablefromthisnodeandrecurse_checkloop:
 	jnz .checkloop
 .donecheck:
 	xor ecx, ecx
+	add esp, 8
 	ret
 .doneandnext:
 	mov ecx, 1
+	add esp, 8
 	ret
 
 
