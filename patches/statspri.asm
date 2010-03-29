@@ -1612,8 +1612,12 @@ exported dispstationsprite
 	jnz .donthurt
 	or ebx,eax
 .donthurt:
-	// fallthrough
-
+	cmp byte [gotnormalsprite],0
+	jne getstationspritetrl		// if we've already had a normal sprite, this one will be normal
+	xor ebx, 0x80000000
+	jmp getstationtracktrl		// otherwise, this is an extra track sprite - reuse groundsprite code,
+					// except that the meaning of bit 31 is inverted
+	
 // same for station sprite numbers
 global getstationspritetrl
 getstationspritetrl:
@@ -3728,7 +3732,8 @@ exported drawstationsprites
 	
 	// pixel offsets are not supported, so ignore offsets 0 and 1
 	mov ebx, [ebp+6]
-	call getstationspritetrl
+	xor ebx, 0x80000000		// reuse groundsprite selector code, except that bit 31 is inverted
+	call getstationtracktrl
 	test ebx,0x7FFF0000
 	jnz .nogroundcolor		// there is a recolor sprite specified, don't ruin it
 	or ebx, [dword 0]
