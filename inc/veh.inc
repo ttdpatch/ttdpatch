@@ -158,6 +158,8 @@ endstruc
 // 03h=refit to cargo specified. One extra word: cargo: 5 bits, gap: 3 bits, refit cycle: 8 bits. Ignored if not arriveatdepot.
 // 04h=go to station, load only, one extra word: high byte: station id, low byte: reserved (0x80)
 // 05h=go to station, unload only, one extra word: high byte: station id, low byte: reserved (0x80)
+// 06h=do nothing for a cases then skip next n orders for b cases (for branching). Two extra words: MSB->LSB: word 1: gap: 1 bit, a: 7 bits, gap: 1 bit, b: 7 bits, word 2: counter: 8 bits, gap: 3 bits, n: 5 bits
+// 07h=unconditional skip. One extra word: MSB->LSB, gap: 11 bits, n: 5 bits
 //high 3 bits means number of words in schedule heap after command which are associated
 
 

@@ -528,6 +528,14 @@ defourtext news_newbridge
 defourtext news_newbridge_details
 
 defourtext cpgui_treeline
+
+defourtext advorder_branchskipddltxt
+defourtext advorder_uncondskipddltxt
+defourtext advorder_orderbranchyesguibtntxt
+defourtext advorder_orderbranchnoguibtntxt
+defourtext advorder_branchskiporderwintxt
+defourtext advorder_uncondskiporderwintxt
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

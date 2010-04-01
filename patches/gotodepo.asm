@@ -454,10 +454,13 @@ showorder:
 	add [esp+8], ebp
 
 	and ah, 0x1F
-	cmp ah, 5
+	cmp ah, 7
 	ja .specialfail
 	testflags advorders
 	jnc .specialfail
+	cmp ah, 6
+	je NEAR .branchskip
+	ja NEAR .uncondskip
 	cmp ah, 3
 	ja NEAR .noloadunloadorder
 	cmp ah, 2
@@ -555,7 +558,36 @@ extern newcargotypenames
 	stosd
 	jmp .specialfail
 
+.branchskip:
+	mov ax, ourtext(advorder_branchskiporderwintxt)
+	stosw
+	mov eax, [esp+8]
+	mov eax, [eax-2]
+	mov ebp, eax
+	shr eax, 8
+	and eax, BYTE 0x7F
+	stosw
+	mov eax, ebp
+	shr eax, 16
+	and eax, BYTE 0x1F
+	stosw
+	mov eax, ebp
+	and eax, BYTE 0x7F
+	stosw
+	mov eax, ebp
+	shr eax, 24
+	movzx eax, al
+	stosw
+	jmp .specialfail
 
+.uncondskip:
+	mov ax, ourtext(advorder_uncondskiporderwintxt)
+	stosw
+	mov eax, [esp+8]
+	movzx eax, BYTE [eax]
+	and eax, BYTE 0x1F
+	stosw
+	jmp .specialfail
 
 ; endp showorder 
 
@@ -782,10 +814,13 @@ newordertarget:
 //	shr al, 5
 //	add [esi+veh.currorderidx], al		//correction for special orders >2 bytes
 	and ah, 0x1F
-	cmp ah, 5
+	cmp ah, 7
 	ja .skiporder
 	testflags advorders
 	jnc .skiporder
+	cmp ah, 6
+	je NEAR .branchskip
+	ja NEAR .uncondskip
 	cmp ah, 3
 	ja NEAR .noloadunload
 	cmp ah, 2
@@ -913,18 +948,6 @@ newordertarget:
 	cmp WORD [newordertarget_oldrealvehcurrorder], ax
 	mov WORD [esi+veh.currorder], ax
 	je .cmpfail
-/*
-	movzx ebx, ah
-	cmp BYTE [esi+veh.laststation], ah
-	jne .noresetlaststation
-	mov byte [esi+veh.laststation],-1
-.noresetlaststation:
-	imul ebx, ebx, station_size
-	add ebx, stationarray
-	mov bx, [ebx+station.railXY]
-	mov ax, bx
-	stc
-*/
 	clc
 	ret
 .cmpfail:
@@ -932,6 +955,36 @@ newordertarget:
 	mov [esi+veh.target], ax
 	add esp, 4
 	ret
+
+.uncondskip:
+	pushad
+	mov bl, [ebx+2]		//parameter
+	jmp .multiskip
+.branchskip:
+	pushad
+	movzx edx, WORD [ebx+2] //parameter word 1
+	and edx, 0x7F7F
+	movzx ecx, WORD [ebx+4]	//parameter word 2
+	add dh, dl
+	
+	//dh=max roll over value
+	//dl=threshold
+	//cl=skip count
+	//ch=counter
+	
+	mov al, ch
+	inc al
+	cmp al, dh
+	jnae .noreset
+	xor al, al
+.noreset:
+	mov [ebx+5], al	//set counter
+
+	cmp ch, dl
+	jae NEAR .skip
+
+	movzx ebx, cl
+	jmp .multiskip
 
 ; endp newordertarget
 
@@ -1176,7 +1229,7 @@ skipbutton:
 //
 //	[esi+31h] controls tooltips and dropdown behaviour:
 //	0 - station order, 1 - depot order, 2 - End-of-orders (or nothing selected)
-//	3 - conditional skip, 4 - refit vehicle
+//	3 - load conditional skip, 4 - refit vehicle, 7 - branch skip, 8 - unconditional skip
 global selectorder
 selectorder:
 	bt DWORD [esi+window.activebuttons], 8
@@ -1221,10 +1274,15 @@ selectorder:
 .special:
 	mov al, [ebx+1]
 	and al, 1Fh
+	cmp al, 6
+	je .param
+	cmp al, 7
+	je .param
 	cmp al, 3
 	ja .ok
 	cmp al, 2
 	jb .ok
+.param:
 	mov word [textrefstack+6], ourtext(advorder_ordercondskiploadparamddltxt)
 	inc eax
 	mov byte [esi+0x31],al
@@ -2430,7 +2488,7 @@ insertvehorderhere_gotveh:
 	pusha
 	mov ebx, esi
 	call VehOrders@@SelItemToOrderIdx.in
-	mov ebx, esi
+	//mov ebx, esi
 	jmp insertvehorderhere.in
 //esi=window, dx=order
 insertvehorderhere:
@@ -2537,6 +2595,7 @@ noglobal vard .ordertexts
 	dd ourtext(advorder_gotonearestdepotddltxt), ourtext(advorder_servicenearestdepotddltxt),
 	dd ourtext(advorder_loadcondskipddltxt), ourtext(advorder_selrefitveh),
 	dd ourtext(advorder_ordergotoloadonlyddltxt), ourtext(advorder_ordergotounloadonlyddltxt),
+	dd ourtext(advorder_branchskipddltxt), ourtext(advorder_uncondskipddltxt),
 
 .numordertexts equ ($-.ordertexts) / 4
 endvar
@@ -2552,6 +2611,7 @@ endvar
 	jne .maketheddl
 	or byte [DropDownExListDisabled], 1<<3
 .maketheddl:
+	movzx ecx, cl
 	mov edi, DropDownExList
 	rep movsd
 	pop esi
@@ -2574,6 +2634,9 @@ endvar
 	jne NEAR vehorderwinhandlerhook_cancel
 	mov dl, 5
 	mov dh, al
+	cmp al, 6
+	je .branchskip
+	ja .uncondskip
 	cmp al, 2
 	je .skipload
 	cmp al, 3
@@ -2581,6 +2644,11 @@ endvar
 	ja NEAR .gotonoloadunload
 	call insertvehorderhere
 	jmp vehorderwinhandlerhook_cancel
+.branchskip:
+	push word 0x80
+	push word 0x8181
+	jmp short .triple
+.uncondskip:
 .skipload:
 	push word 80h
 	jmp short .dbl
@@ -2606,9 +2674,35 @@ endvar
 	pusha
 	jmp insertvehorderhere.in
 
+.triple:
+	mov edi, esi
+	movzx esi, WORD [esi+window.id]
+	shl esi, 7
+	add esi, [veharrayptr]
+	mov al, [edi+100010b]
+	or dh, 40h
+	call insertvehorderhere_gotveh
+	mov al, [savedinsertvehorderpos]
+	inc al
+	pop dx
+	push DWORD .triplenext
+	pusha
+	jmp insertvehorderhere.in
+.triplenext:
+	mov al, [savedinsertvehorderpos]
+	inc al
+	pop dx
+	push DWORD vehorderwinhandlerhook_cancel
+	pusha
+	jmp insertvehorderhere.in
+
 .fullloadparams:
 	cmp BYTE [esi+0x31], 4
 	je .refitparams
+	cmp BYTE [esi+0x31], 7
+	je .branchparams
+	cmp BYTE [esi+0x31], 8
+	je .uncondparams
 	cmp BYTE [esi+0x31], 3
 	jne NEAR .end
 	movzx ecx, cl
@@ -2626,6 +2720,39 @@ endvar
 	mov esi, .loadparamtexts
 	mov cl, .numloadparamtexts
 	mov DWORD [DropDownExListDisabled], 12
+	jmp .maketheddl
+
+.branchparams:
+	movzx ecx, cl
+	call GenerateDropDownExPrepare
+	jc NEAR vehorderwinhandlerhook_cancel
+	push ecx
+	push esi
+noglobal vard .branchparamtexts
+	dd ourtext(advorder_orderbranchnoguibtntxt), ourtext(advorder_orderbranchyesguibtntxt)
+	dd ourtext(advorder_orderskipcountguibtntxt)
+
+.numbranchparamtexts equ ($-.branchparamtexts)/4
+endvar
+noglobal varb .branchparammasks, 0x7F,0x7F,0x1F
+noglobal varb .branchparamshifts, 8,0,16
+	mov esi, .branchparamtexts
+	mov cl, .numbranchparamtexts
+	jmp .maketheddl
+
+.uncondparams:
+	movzx ecx, cl
+	call GenerateDropDownExPrepare
+	jc NEAR vehorderwinhandlerhook_cancel
+	push ecx
+	push esi
+noglobal vard .uncondparamtexts
+	dd ourtext(advorder_orderskipcountguibtntxt)
+
+.numuncondparamtexts equ ($-.uncondparamtexts)/4
+endvar
+	mov esi, .uncondparamtexts
+	mov cl, .numuncondparamtexts
 	jmp .maketheddl
 
 .refitparams:
@@ -2661,7 +2788,27 @@ endvar
 
 .specparamddlitemsel:
 	cmp byte [esi+0x31], 4
-	je .refitparamsel
+	je NEAR .refitparamsel
+	cmp byte [esi+0x31], 8
+	je NEAR .uncondparamsel
+	cmp byte [esi+0x31], 7
+	jne .loadcondskipparamsel
+	movzx ecx, al
+	mov [advorderskipcondloadtxtinputwintmpidval], al
+	call VehOrders@@SelItemToOrderIdx
+	mov eax, [ebx+2]
+	mov ebx, ecx
+	mov cl, [.branchparamshifts+ebx]
+	shr eax, cl
+	and al, [.branchparammasks+ebx]
+	movzx eax, al
+	jmp .mktxtinputwindow
+.uncondparamsel:
+	call VehOrders@@SelItemToOrderIdx
+	movzx eax, BYTE [ebx+2]
+	and eax, BYTE 0x1F
+	jmp .mktxtinputwindow
+.loadcondskipparamsel:
 	cmp al, 2
 	ja .specparamopsel
 	dec al
@@ -2673,6 +2820,7 @@ endvar
 	shr eax, cl
 	mov [advorderskipcondloadtxtinputwintmpidval], cl
 	and eax, BYTE 0x7F
+.mktxtinputwindow:
 	mov [textrefstack], eax
 	mov ax, statictext(printdword)
 	mov bl, 0xFF
@@ -2761,7 +2909,42 @@ endvar
 	jc NEAR vehorderwinhandlerhook_cancel
 	cmp edx, -1
 	je NEAR vehorderwinhandlerhook_cancel
-	mov cl, [advorderskipcondloadtxtinputwintmpidval]
+	movzx ecx, BYTE [advorderskipcondloadtxtinputwintmpidval]
+	cmp BYTE [esi+0x31], 3
+	je .loadskiptxtchange
+	cmp BYTE [esi+0x31], 8
+	je NEAR .uncondskiptxtchange
+	cmp BYTE [esi+0x31], 7
+	jne NEAR vehorderwinhandlerhook_cancel
+
+.branchskiptxtchange:
+	movzx ebx, BYTE [.branchparammasks+ecx]
+	cmp edx, ebx
+	jna .branchparamok
+	mov edx, ebx
+.branchparamok:
+	mov cl, [.branchparamshifts+ecx]
+	push ebx
+	call VehOrders@@SelItemToOrderIdx
+	pop eax
+	shl edx, cl
+	shl eax, cl
+	not eax
+	and [ebx+2], eax
+	or [ebx+2], edx
+	jmp vehorderwinhandlerhook_cancel
+
+.uncondskiptxtchange:
+	call VehOrders@@SelItemToOrderIdx
+	cmp dl, 0x1F
+	jna .uncondparamok
+	mov dl, 0x1F
+.uncondparamok:
+	or dl, 0x80
+	mov [ebx+2], dl
+	jmp vehorderwinhandlerhook_cancel
+
+.loadskiptxtchange:
 	or cl, cl
 	jnz .countn
 	or edx, edx
