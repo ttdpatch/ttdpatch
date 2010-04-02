@@ -2,7 +2,8 @@ struc cargopacket
 	.prevptr:	resd 1	//relative to start of cargo packet store. These two form a doubly linked list. Always valid
 	.nextptr:	resd 1	//same
 	.location:	resd 1	//location: always valid
-	.lasttransprofit:	resd 1	//if flags&2 holds current cumulative consist load/unload profit instead
+	.vehst_consistprofit:	//[dword] current cumulative consist load/unload profit
+	.lasttransprofit:	resd 1
 	.flags:		resw 1	//1=destroy packet immediately without payment, 2=this is a vehicle status packet (not cargo)
 				//always valid
 	.dateleft:	resw 1

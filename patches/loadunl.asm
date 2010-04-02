@@ -123,7 +123,7 @@ UnloadCargoToStation:
 	pop ecx
 .nocargodest:
 	add	[%$cargomoved],ax			// BUGFIX
-	
+
 	xchg ebx, [esp]
 		//ebx becomes station ptr
 		//[esp] becomes amount of unrouted cargo (to charge, and also if zero don't bother changing cargo origin values at the station)
@@ -160,15 +160,15 @@ UnloadCargoToStation:
 
 .cargosourceok:
 	pop eax
-	
+
 	//ax=quantity actually unloaded in this step
 	//dx=amount currently in station
 	//W[esp+4]=amount to charge
 	//W[esp]=unrouted quantity unloaded in this step (useful?)
-	
+
 	xchg eax, edx
 	add ax, dx
-	
+
 	//dx=vehicle unload amount
 	//ax=new cargo in station
 
@@ -205,7 +205,7 @@ UnloadCargoToStation:
 
 	add esp, 8		//eat cargo amounts on stack
 
-	
+
 	sub	[esi+veh.currentload], dx
 	jz	.doneunload
 	test	BYTE [acceptcargoatstationflag], 16
@@ -275,7 +275,7 @@ AcceptCargoAtStation:
 
 	or bx, bx
 	jz .recordaccept
-	
+
 	mov	al, [esi+veh.cargosource]
 	mov	ah, [%$currstationidx]
 	mov	dl, [esi+veh.cargotransittime]
@@ -480,7 +480,7 @@ LoadCargoFromStation:
 	mov	[ebx+station.cargos+ecx+stationcargo.lastage], dl
 
 	testflags cargodest
-	jnc .nocargodesttimeset	
+	jnc .nocargodesttimeset
 	mov dl, [ebp+0xE]			//current station id
 	inc dl
 	mov [esi+veh.prevstid], dl
@@ -535,7 +535,7 @@ LoadCargoFromStation:
 // with gradualloading, we don't load the whole amount in one step
 	testflags gradualloading
 	jnc	.gotloadamount
-	
+
 //	push	eax
 	call	maxloadamount
 
@@ -618,7 +618,7 @@ LoadCargoFromStation:
 
 .noadjustprofit_pop:
 	popa
-	
+
 .noadjustprofit:
 // actually load the cargo from the station
 	testflags fifoloading
@@ -968,8 +968,17 @@ LoadUnloadCargo:
 	push	edi
 	mov     edi, ecx
 	mov     ah, -1
+	mov	edx, 50<<16
 	mov     dh, bl
 	mov     dl, [esi+veh.totalorders]
+
+	//dl=order count (words)
+	//dh=current order position
+	//edx:high=counter
+	//edi=address of orders
+	//ebx=order position under consideration (initially current)
+	//ah=station found
+	//al=current station
 
 //check for initial special
 	movzx 	ecx, WORD [edi+2*ebx]
@@ -986,19 +995,19 @@ LoadUnloadCargo:
 	jb      .nowraporder
 	mov     bl, 0
 .nowraporder:
+	sub	edx, 0x10000
+	js	NEAR .donecargodestnextstcheck_pop		//too many iterations, give up
 	cmp     bl, dh
-	je      .donecargodestnextstcheck_pop       //went all the way round without finding anything useful
+	je      NEAR .donecargodestnextstcheck_pop		//went all the way round without finding anything useful
 	movzx 	ecx, WORD [edi+2*ebx]
-//	test    cl, 0x40                //quick and dirty check to weed out full load
-//	jnz     .nexttestorder
-	
+
 	//nonstop check
 	testflags usenewnonstop
 	jnc .nononstopcheck
 	test    cl, 0x80                //quick and dirty check to weed out non-stop orders
 	jnz     .nexttestorder
 .nononstopcheck:
-	
+
 	and	cl, 0x1F
 	cmp     cl, 1
 	jne     .notst
@@ -1023,6 +1032,8 @@ LoadUnloadCargo:
 	mov	cl, ch
 	shr     cl, 5			//number of extra words
 	and	ch, 0x1F
+	cmp	ch, 7
+	je	.skip
 	cmp     ch, 5
 	jne     .wrongspec
 	mov     ch, [edi+2*ebx+3]	//station id
@@ -1034,9 +1045,41 @@ LoadUnloadCargo:
 	add     bl, cl
 	jmp     .nexttestorder
 
+.skip:
+	mov     ch, [edi+2*ebx+2]
+	add     bl, cl
+	movzx	ecx, ch
+.skipcommon:
+	and	ecx, BYTE 0x1F
+	jz	NEAR .nexttestorder
 
+	push	eax
 
+.skiploop:
+	inc     bl
+	cmp     bl, dl
+	jb      .nowraporder2
+	mov     bl, 0
+.nowraporder2:
 
+	mov	ax, [edi+2*ebx]
+	and	al, 0x1F
+	cmp	al, 5
+	jne	.notspecial
+	shr	ah, 5
+	add	bl, ah
+.notspecial:
+
+	sub	edx, 0x10000
+	js	.donecargodestnextstcheck_pop2	//too many iterations, give up
+
+	loop	.skiploop
+
+	pop	eax
+	jmp     .nexttestorder
+
+.donecargodestnextstcheck_pop2:
+	pop	eax
 .donecargodestnextstcheck_pop:
 	mov	[%$cdeststnxtordr], ah
         xor     ah, ah
@@ -1051,7 +1094,7 @@ LoadUnloadCargo:
 	add     ebx, eax
 	mov	ebx, [ebx+station2.cargoroutingtableptr]
 	mov     [%$cdeststrttbl], ebx
-	
+
 // get the length of the station (this will only be used for trains)
 	testflags irrstations
 	jc .irrgetstationlen
@@ -1062,13 +1105,13 @@ LoadUnloadCargo:
 	xchg eax, esi
 	mov	[%$stationlength],dh
 	jmp short .donegetstationlen
-.irrgetstationlen:	
+.irrgetstationlen:
 	push	esi
 	movzx	esi,word [esi+veh.XY]
 	call	getirrplatformlength	// works for regular or irregular stations
 	mov	[%$stationlength],al
 	pop	esi
-.donegetstationlen: 
+.donegetstationlen:
 
 	testflags gradualloading
 	jnc	.dontsetupgradload
@@ -1135,9 +1178,9 @@ LoadUnloadCargo:
 .routebuildonempty:
 	testflags cargodest
 	jnc NEAR .DoLoad
-	push DWORD .DoLoad 
+	push DWORD .DoLoad
 	jmp nexthoproutebuild	//(call)
-	
+
 .cargonotfromhere:
 
 // first, we decide whether our cargo is accepted here
@@ -1300,7 +1343,7 @@ LoadUnloadCargo:
 	sub	[esi+veh.profit], ebx
 	call	[addexpenses]
 .noaddprofit:
-	
+
 	testflags cargodest
 	jnc .nocdgradloadtxtfxchk
 	testflags gradualloading
@@ -1309,15 +1352,15 @@ LoadUnloadCargo:
 	push ebp
 	mov ebp, [cargodestdata]
 	call getorcreatevehstatuscp
-	mov ecx, [eax+ebp+cargopacket.lasttransprofit]
+	mov ecx, [eax+ebp+cargopacket.vehst_consistprofit]
 	add ecx, ebx
-	mov [eax+ebp+cargopacket.lasttransprofit], ecx
+	mov [eax+ebp+cargopacket.vehst_consistprofit], ecx
 	pop ebp
 	cmp BYTE [numvehstillunloading], 0
 	jne NEAR .done
 	mov ebx, ecx
 	mov ecx, [cargodestdata]
-	mov DWORD [eax+ecx+cargopacket.lasttransprofit], 0
+	mov DWORD [eax+ecx+cargopacket.vehst_consistprofit], 0
 .nocdgradloadtxtfxchk:
 
 	or	ebx, ebx

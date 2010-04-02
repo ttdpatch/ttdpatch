@@ -967,7 +967,7 @@ nexthoproutebuild:
 	//bl=cargo
 	//ecx=station2 ptr
 	//edx=routing table of previous node
-	
+
 	mov [cdestcurstationptr], ecx	//note that now contains station2 not station
 
 	mov ecx, [edx+ebp+routingtable.nexthoprtptr]
@@ -1032,7 +1032,7 @@ nexthoproutebuild:
 	call cargodeststationperiodicproc
 	mov [cargodestlastglobalperiodicpreproc], cx
 	pop eax
-	
+
 	pop ecx
 .donebuildroute:
 #if WINTTDX && DEBUG
@@ -1545,7 +1545,7 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 /*
 	call alloccargodestdataobj
 
-	//prepend to queue. 
+	//prepend to queue.
 	mov ecx, [searchqueuestart]
 	mov [ebp+eax+searchqueueitem.next], ecx
 	mov [searchqueuestart], eax
@@ -1581,7 +1581,7 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	jae .iterate
 	mov edi, esi
 	mov edx, ebx
-	mov eax, ecx	
+	mov eax, ecx
 .iterate:
 	lea ebx, [ebp+ecx+searchqueueitem.next]
 	mov ecx, [ebx]
@@ -1600,12 +1600,12 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	push DWORD [ebp+eax+searchqueueitem.prevrt]
 	mov esi, [ebp+eax+searchqueueitem.currentrt]
 	push esi
-	
+
 	mov ecx, [ebp+eax+searchqueueitem.next]
 	mov [edx], ecx
-	
+
 	call freecargodestdataobj
-	
+
 	//iterate over destination enties in start routing table in eax
 	mov eax, [startroutingtable]
 	lea ecx, [eax+routingtable.nexthoprtptr-routingtableentry.next]
@@ -1651,13 +1651,13 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	//esi=final destination
 	//ecx=previous far route or fudged
 	//edi=start routing table
-	
+
 	cmp [ebp+eax+routingtableentry.dest], esi
 	jne .cycnextroute
 	cmp [ebp+eax+routingtableentry.cargo], bl
 	jne .cycnextroute
 	cmp [ebp+eax+routingtableentry.destrttable], edi
-	jne .cycnextroute		
+	jne .cycnextroute
 
 	//ALERT: cyclic route between two adjacent nodes detected. Battle stations!
 	pop edi
@@ -1727,7 +1727,7 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	popad
 .nodbgmess:
 #endif
-	
+
 	call queuenextnodes
 .doneandnext:
 	add esp, 24
@@ -1795,7 +1795,7 @@ queuenextnodes:
 	call alloccargodestdataobj
 
 	//prepend to queue.
-	//appending would almost certainly be better, examine later 
+	//appending would almost certainly be better, examine later
 	mov ecx, [searchqueuestart]
 	mov [ebp+eax+searchqueueitem.next], ecx
 	mov [searchqueuestart], eax
@@ -1919,13 +1919,13 @@ addroutesreachablefromthisnodeandrecurse:
 	//esi=final destination
 	//ecx=previous far route or fudged
 	//edi=start routing table
-	
+
 	cmp [ebp+eax+routingtableentry.dest], esi
 	jne .cycnextroute
 	cmp [ebp+eax+routingtableentry.cargo], bl
 	jne .cycnextroute
 	cmp [ebp+eax+routingtableentry.destrttable], edi
-	jne .cycnextroute		
+	jne .cycnextroute
 
 	//ALERT: cyclic route between two adjacent nodes detected. Battle stations!
 	pop edi

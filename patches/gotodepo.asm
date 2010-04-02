@@ -95,7 +95,7 @@ checkgotostation:
 	jne .novehicle
 	cmp byte [ebx+veh.class],0x11	// prevent bus/truck combination
 	jne .rvcheckdone
-	
+
 	cmp byte [ebx+veh.cargotype],0
 	setz dl
 	cmp byte [edi+veh.cargotype],0
@@ -156,7 +156,7 @@ checkgotostation:
 .continue:
 	popa
 .continue_nopop:
-	
+
 	pop eax			// return to TTD code at a farther point than normally
 	add eax,0xc7+8*WINTTDX
 	jmp eax
@@ -291,7 +291,7 @@ shareorders:
 	add edi,[veharrayptr]
 	call dword [delvehschedule]
 	mov ecx,[edi+veh.scheduleptr]
-	mov [edx+veh.scheduleptr],ecx	
+	mov [edx+veh.scheduleptr],ecx
 	mov cl,[edi+veh.totalorders]
 	mov [edx+veh.totalorders],cl
 	mov byte [edx+veh.currorderidx],0
@@ -323,7 +323,7 @@ checkgotoowner:
 	mov ah,[landscape1+edi]
 	pop edi
 	jmp .gotit
-; endp checkgotoowner 
+; endp checkgotoowner
 
 // check whether a target is the right vehicle type
 // in:	ah=bit in stationfacilities that must be set
@@ -350,7 +350,7 @@ checkgototype:
 	and ah,0	// set zero
 .isright:
 	ret
-; endp checkgototype 
+; endp checkgototype
 
 varb depottypes, 0xc0,0x20,0x80,0x10
 
@@ -589,7 +589,7 @@ extern newcargotypenames
 	stosw
 	jmp .specialfail
 
-; endp showorder 
+; endp showorder
 
 // figure out whether a ship order has the right player and isn't too far
 // in:	edi=vehicle
@@ -657,7 +657,7 @@ isshiporder:
 	mov ebx,eax
 .endloop:
 	loop .loop
-	
+
 	cmp ebx, byte -1
 	je .popdone
 
@@ -694,7 +694,7 @@ isshiporder:
 	popa
 	ret
 
-; endp isshiporder 
+; endp isshiporder
 
 // set order type.  For AI, set DL to 1, for humans leave it
 // then store DX in [EBP]
@@ -706,7 +706,7 @@ setordertype:
 .ishuman:
 	mov [ebp],dx
 	ret
-; endp setordertype 
+; endp setordertype
 
 // figure out target of a command
 // in:	command on stack
@@ -746,7 +746,7 @@ getofsptr:
 	sar eax,24
 	add [esp+8],eax
 	jmp .done
-; endp getofsptr 
+; endp getofsptr
 
 uvard newordertarget_oldrealvehcurrorder
 
@@ -927,7 +927,7 @@ newordertarget:
 	cmp eax, ecx
 	jnae .skip
 	jae .multiskip
-	
+
 .skip:
 	popad
 	jmp .skiporder
@@ -966,12 +966,12 @@ newordertarget:
 	and edx, 0x7F7F
 	movzx ecx, WORD [ebx+4]	//parameter word 2
 	add dh, dl
-	
+
 	//dh=max roll over value
 	//dl=threshold
 	//cl=skip count
 	//ch=counter
-	
+
 	mov al, ch
 	inc al
 	cmp al, dh
@@ -1178,7 +1178,7 @@ advanceorders:
 	pop ecx
 	ret
 
-; endp advanceorders 
+; endp advanceorders
 
 // called when the skip button is pressed
 // make sure the vehicle doesn't insist on
@@ -1189,7 +1189,7 @@ skipbutton:
 	mov esi, edi
 	extcall removeconsistfromqueue // No-op if consist is not queued or if fifo is off.
 	call advanceorders
-	
+
 	testflags cargodest
 	jnc .noclearlaststat
 	mov esi, edi
@@ -1215,7 +1215,7 @@ skipbutton:
 	mov word [edi+veh.currorder],0		// force to check commands again
 .notdepot:
 	ret
-; endp skipbutton 
+; endp skipbutton
 
 // called when drawing the selected order in the order list
 // don't disable "full load" for depots -- we use it for "only if service"
@@ -1270,7 +1270,7 @@ selectorder:
 .ok:
 	mov al,8
 	ret
-	
+
 .special:
 	mov al, [ebx+1]
 	and al, 1Fh
@@ -1319,7 +1319,7 @@ fullloadbutton:
 .regular:
 	mov dh,~ 0x20	// for regular full load, clear "unload" bit
 	ret
-; endp fullloadbutton 
+; endp fullloadbutton
 
 
 // called when an aircraft leaves a hangar
@@ -1354,7 +1354,7 @@ leavehangar:
 .onlist:
 	mov al,1
 	ret
-; endp leavehangar 
+; endp leavehangar
 
 
 // called before checking if an aircraft has a new order ready,
@@ -1381,7 +1381,7 @@ isgoingtohangar:
 
 .continue:
 	ret
-; endp isgoingtohangar 
+; endp isgoingtohangar
 
 
 // called when an aircraft gets a new order ready
@@ -1465,7 +1465,7 @@ newaircrafttarget:
 	cmp esp, esp		// ste
 	ret
 
-; endp newaircrafttarget 
+; endp newaircrafttarget
 
 
 // called when an aircraft decides whether to taxi or fly to the next
@@ -1485,7 +1485,7 @@ nextplaneorder:
 
 	mov al,7
 	ret
-; endp nextplaneorder 
+; endp nextplaneorder
 
 
 // if heading for depot, don't mess with the 'out' way status
@@ -1543,7 +1543,7 @@ isdelstationorder:
 	lea ebp, [ebp+ebx*2]
 	or esp, esp                     //skip station test
 	ret
-; endp isdelstationorder 
+; endp isdelstationorder
 
 
 // called when a depot is being removed, to find that depot in the depot array
@@ -1590,7 +1590,7 @@ removedepotfromarray:
 .done:
 	pop ecx
 	ret 4
-; endp removedepotfromarray 
+; endp removedepotfromarray
 
 
 // Auxiliary procedure: force vehicle to re-check its orders if it's heading for the removed depot
@@ -1610,7 +1610,7 @@ resetvehorderifdepot:
 
 .done:
 	ret
-; endp resetvehorderifdepot 
+; endp resetvehorderifdepot
 
 
 // lastremoveddepot* no longer valid, clear all vehicle orders that refer to it
@@ -1690,7 +1690,7 @@ marknewdepottype:
 	cmp ebp,0x80000000		// overwritten by runindex call
 	pop eax
 	ret 6
-; endp marknewdepottype 
+; endp marknewdepottype
 
 
 // find either the last removed depot or an unused slot
@@ -1782,7 +1782,7 @@ findnewdepotsslot:
 	or al,1			// guaranteed to clear ZF
 .done:
 	ret
-; endp findnewdepotsslot 
+; endp findnewdepotsslot
 
 
 // notify all vehicles that use the replaced depot in their schedules
@@ -1823,7 +1823,7 @@ refreshdepotschedules:
 
 	popa
 	ret
-; endp refreshdepotschedules 
+; endp refreshdepotschedules
 
 
 // called when an order is copied from a sold vehicle to a recently bought one
@@ -1892,7 +1892,7 @@ copyoldorder:
 	add edi,[veharrayptr]
 	cmp byte [edi+veh.class],0	// is it still valid?
 	je .exit
-	
+
 	mov edx,esi
 	xor eax,eax
 	xor ecx,ecx
@@ -1907,8 +1907,8 @@ copyoldorder:
 	popa
 	or dl,dl
 	ret
-	
-; endp copyoldorder 
+
+; endp copyoldorder
 
 // called when clicking on the depot button if the target is already a depot
 // if currorder is set to 0x100, it will be changed to the current entry in the orders list
@@ -2098,7 +2098,7 @@ resetorders:
 	pusha
 	call makeordercopy
 	popa
-	
+
 	jmp short .nodequeue
 
 .notunshare:
@@ -2978,7 +2978,7 @@ endvar
 	popad
 	jmp near $
 	ovar vehorderwinhandlerhook.oldfn,-4
-	
+
 .gotonoloadunload:
 	sub al, 3
 	mov [curvehordergotomtooltype], al
@@ -2989,7 +2989,7 @@ endvar
 	mov esi, waAnimGoToCursorSprites
 	call [setmousetool]
 	jmp vehorderwinhandlerhook_cancel
-	
+
 .clearmtool:
 	mov ebx, 0
 	mov al, 0
@@ -3118,7 +3118,7 @@ exported vehorderwinitemoffsetshiftcorrectorhook_hook
 .faile:
 	cmp esp, esp
 	ret
-	
+
 exported vehorderwinitemcounthook_hook
 .loop:
 	mov bx, [edi]
@@ -3135,6 +3135,5 @@ exported vehorderwinitemcounthook_hook
 	jmp .loop
 .ret:
 	ret
-
 
 
