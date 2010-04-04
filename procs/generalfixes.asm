@@ -883,6 +883,13 @@ codefragment olddrawgrassytreeland,8
 	push ebx
 	mov bx,6
 
+codefragment oldcheckorderlimit
+	cmp     BYTE [edi+veh.totalorders], 40
+	jnb     NEAR $+0x10E	//loc_163A8C
+
+codefragment newcheckorderlimit
+	cmp     BYTE [edi+veh.totalorders], 100
+
 endcodefragments
 
 patchgeneralfixes:
@@ -1402,6 +1409,7 @@ extern miscmods2flags
 	patchcode oldtreeperiodicupdate,newtreeperiodicupdate,1,1,,{test ebx,MISCMODS2_NOENHANCETREES},z
 	patchcode oldtreediesongrass,newtreediesongrass,1,1,,{test ebx,MISCMODS2_NOENHANCETREES},z
 	patchcode oldplanttree,newplanttree,1,1,,{test ebx,MISCMODS2_NOENHANCETREES},z
+	patchcode oldcheckorderlimit,newcheckorderlimit,1,1,,{test ebx,MISCMODS2_MOREORDERS},nz
 	stringaddress olddrawgrassytreeland
 	test ebx,MISCMODS2_NOENHANCETREES
 	jnz .noenhtrees

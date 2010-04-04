@@ -590,6 +590,7 @@ BIT(ignoretaskbar,         "Don't consider the size of the Taskbar when position
 BIT(nonewsignalsiggui,     "Prevent new signals being used for the signals GUI")
 BIT(notalwaysthreestatetrans,"Use three-state graphics for the transparency gui only if the transparent or invisible states are selected")
 BIT(nostatcargoleak,"Disable cargo vanishing from stations due to low ratings and/or randomness, activated regardless of this switch if cargodest is on")
+BIT(moreorders,"Increase the maximum number of order words per vehicle/shared set from 40 to 100")
 
 
 // Description for morebuildoptions bits

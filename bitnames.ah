@@ -83,6 +83,7 @@ defbit MISCMODS2_IGNORETASKBAR,		 1 // Don't consider the size of the Taskbar wh
 defbit MISCMODS2_NONEWSIGNALSIGGUI,	 2 // Prevent new signals being used for the signals GUI
 defbit MISCMODS2_NOTALWAYSTHREESTATETRANS,3// Don't use three-state graphics for the transparency gui when normal drawing selected
 defbit MISCMODS2_NOSTATCARGOLEAK, 4//Disable cargo vanishing from stations, activated regardless if cargodest is on
+defbit MISCMODS2_MOREORDERS,			5 //Increase the maximum number of order words per vehicle/shared set from 40 to 100
 enddefbits
 
 
