@@ -3405,10 +3405,10 @@ exported setrailstationrvrouteing
 // in:	ebx: sprite number & flags from layout
 //	other regs set up for addsprite or addrelsprite
 // out: cf set -> invisible
-//	cf clear, zf set -> normal drawing
-//	cf clear, zf clear -> transparent
+//	cf clear, zf clear -> normal drawing
+//	cf clear, zf set -> transparent
 // safe: ebp
-exported decidestationtransparency
+decidestationtransparency:
 	btr ebx,30
 	jc .normal			// bit 30 set - always draw normally
 	testmultiflags moretransopts
@@ -3416,11 +3416,11 @@ exported decidestationtransparency
 	test dword [displayoptions],16	// check "transparent buildings" in display options (test clears CF)
 	ret
 
-.normal:
+.transparent:
 	cmp eax, eax
 	ret
 
-.transparent:
+.normal:
 	test esp, esp
 	ret
 
@@ -3430,7 +3430,7 @@ exported decidestationtransparency
 	jnb .normal
 	bt dword [newtransopts+transopts.invis],TROPT_STATION
 	jnb .transparent
-	test esp, esp	// clears zf
+	cmp eax,eax	// sets zf
 	stc		// sets cf
 	ret
 
@@ -3810,7 +3810,7 @@ extern addgroundsprite
 	call getstationspritetrl
 	call decidestationtransparency
 	jc .nextitem_pop
-	jnz .transparent
+	jz .transparent
 
 	test bx,0x8000		// overwritten
 	jz .nocolor
