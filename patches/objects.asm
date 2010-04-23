@@ -1175,7 +1175,7 @@ proc GetObjectColourMap
 	jz .onecc
 
 	cmp byte dword [numtwocolormaps+1], 1 // No 2cc maps loaded so we can only do 1cc
-	jnc .onecc
+	jb .onecc
 
 	mov edx, [%$tile]
 	test word [objectpool+edx+object.flags], OF_TWOCC
@@ -1211,7 +1211,7 @@ proc GetObjectColourMap
 
 .guichecks:
 	cmp byte [numtwocolormaps+1], 1 // No 2cc maps loaded so we can only do 1cc
-	jnc .onecc
+	jb .onecc
 
 	test word [objectflags+edx*2], OF_TWOCC // We only have the grf raw data of flags for thr gui
 	jnz .twocc
@@ -1678,6 +1678,9 @@ RemoveObjectFlags:
 	mov word [operrormsg2], 0x5800
 	test bl, 2
 	jnz .fail
+
+	cmp byte [curplayer], 0x11
+	je .fail
 
 .done:
 	clc
