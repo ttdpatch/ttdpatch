@@ -673,9 +673,9 @@ extern setmousetool
 	movzx edx, byte [objectsizes+edx]
 
 	mov ax, dx
-	and dx, 0xF
-	and ax, 0xF0
-	shl dx, 4
+	and ax, 0xF
+	and dx, 0xF0
+	shl ax, 4
 
 	mov word [highlightareainnerxsize], ax
 	mov word [highlightareainnerysize], dx
