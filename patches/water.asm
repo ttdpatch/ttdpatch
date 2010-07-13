@@ -6,6 +6,8 @@
 #include <veh.inc>
 #include <human.inc>
 #include <misc.inc>
+#include <ptrvar.inc>
+#include <objects.inc>
 
 extern actionhandler,addgroundsprite,addsprite,canalfeatureids
 extern checkvehiclesinthewayfn,cleartilefn,curplayerctrlkey,getdesertmap
@@ -980,38 +982,66 @@ iswateredtile:
 	jmp .notwater
 
 .testother:
-// Station Tiles
+// ESI=XY, DL=Z, DH=L5[ESI], BX=class<<3, DI=map of corners above DL
+// returns carry if water
 	cmp bl, 5<<3
-	jnz .notstationwithwater
-	cmp dh, 0x4B
-	jb .notstationwithwater
-	jmp .watertile
-.notstationwithwater:
-
-// Bridge & Tunnel Parts:
+	je .station
+	
 	cmp bl, 9<<3
-	jnz .nobridgepiecewithwater
+	je .bridgetunnelpiece
+	
+	cmp bl, 0xA<<3
+	je .object
+	
+.notwater:
+	popa
+	clc
+	ret
+
+// Station Tiles
+.station:
+	cmp dh, 0x4B
+	jb .notwater
+// fall through
+
+.watertile:
+       popa
+       stc
+       ret
+
+	
+// Bridge + Tunnel Parts:
+.bridgetunnelpiece:
 	// test if it's a bridge middlepart
-	bt dx, 14   // would be:  bt dh, 6 but thats not supported in x86 
-	jnc .testbridgeend // not a middle part
-	bt dx, 13  // 5
-	jc .nobridgepiecewithwater // not a land/water
-	bt dx, 11 // 3
-	jnc .nobridgepiecewithwater // not a water tile
+	bt dx, 14		// would be:  bt dh, 6 but thats not supported in x86 
+	jnc .testbridgeend	// not a middle part
+	bt dx, 13		// 5
+	jc .notwater		// not a land/water
+	bt dx, 11		// 3
+	jnc .notwater		// not a water tile
 	jmp .watertile
 .testbridgeend:
 	and dh, 0x86
 	cmp dh, 0x84
 	je .watertile
-.nobridgepiecewithwater:
-.notwater:
-	popa
-	clc
-	ret
-.watertile:
-	popa
-	stc
-	ret
+	jmp .notwater
+	
+// Objects
+.object:
+	cmp dh, NOBJECTTYPE
+	jne .notwater
+	
+	extern objectpool_ptr
+	cmp dword [objectpool_ptr], 0
+	je .notwater    // new grf object subsystem not loaded properly?
+	
+	movzx edi, word [landscape3+esi*2]
+	imul edi, object_size
+	test word [objectpool+edi+object.flags], OF_ALLOWBUILDWATER
+	jnz .watertile
+	jmp .notwater
+;endp iswateredtile
+
 	
 var waterliftmaproutes, db 2, 1, 1, 2
 				db 2, 1, 1, 2
