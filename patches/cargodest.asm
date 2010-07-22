@@ -240,6 +240,8 @@ unlinkcargopacket:				//ebp=[cargodestdata]
 	xor ecx, ecx
 	xchg ecx, [eax+ebp+cargopacket.nextptr]
 	mov [edx], ecx
+	or ecx, ecx
+	jz .end
 	mov DWORD [ecx+ebp+cargopacket.prevptr], 0
 	jmp .end
 .station:
@@ -292,7 +294,10 @@ unlinkcargopacket:				//ebp=[cargodestdata]
 	//eax=current (to be removed)
 	xor ecx, ecx
 	xchg ecx, [eax+ebp+cargopacket.nextptr]
+	//ecx=previous or 0
 	mov [edx+ebp+cargopacket.nextptr], ecx
+	or ecx, ecx
+	jz .end
 	mov [ecx+ebp+cargopacket.prevptr], edx
 	jmp .end
 
