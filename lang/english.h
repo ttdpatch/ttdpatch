@@ -536,6 +536,7 @@ SWITCHTEXT(rvovertakeparams, "Road vehicle overtaking behaviour parameters","")
 SWITCHTEXT(advzfunctions, "Enables more 3d features","")
 SWITCHTEXT(moreindustries, "Increase the maximum number of industries", " to %d.")
 SWITCHTEXT(cargodest, "Enables cargo destinations","")
+SWITCHTEXT(cdstopts, "Options for cargo destinations","")
 
 //---------------------------------------
 //  BIT SWITCH DESCRIPTIONS
@@ -725,6 +726,11 @@ BIT(lockbridges,	"Lock settings for bridges")
 BIT(lockobjects,	"Lock settings for objects")
 BIT(lockcompany,	"Lock settings for company property")
 BIT(lockoneway,		"Lock setting for one-way indicators")
+
+// Description for cdestopts bits
+BITSWITCH(cdstopts)
+BIT(noaddactivityscore,	"Don't add last month's station activity to the destination score")
+BIT(farroutewait,	"Don't just use single-hop cargo for oldest waiting value")
 
 // A cfg file (%s) could not be found and is ignored.
 SETTEXT(LANG_CFGFILENOTFOUND, "Couldn't find cfg file %s.  Ignored.\n")
@@ -983,6 +989,9 @@ SETTEXT(CFG_CDSTNEGDISTFACTOR, "`%s' (%s) cargo generation destination selector:
 SETTEXT(CFG_CDSTNEGDAYSFACTOR, "`%s' (%s) cargo generation destination selector: factor to multiply minimum cost in days by before subtracting from score for routed cargo. Range %ld..%ld.  Default %ld.")
 SETTEXT(CFG_CDSTROUTEDINITSCORE, "`%s' (%s) cargo generation destination selector: initial score for routed cargo before target station activity is added and distance and day costs are subtracted, note negative scores result in exclusion. Range %ld..%ld.  Default %ld.")
 SETTEXT(CFG_CDSTRTDIFFMAX, "`%s' (%s) sets route comparison threshold for cargodest switch. Route cost threshold (in days) at a node is equal to minimum found cost + this value. Set to 0 to only ever allow one route to any destination. Set to an enormous value to disable any semblence of intelligent routing. The (per route) lesser of this and the cdstrtcmpfactor switch applies. Range %ld..%ld.  Default %ld.")
+SETTEXT(CFG_CDSTOPTS, "`%s' (%s) modifies aspects of cargo destinations.")
+SETTEXT(CFG_CDSTWAITMULT, "%s' (%s) sets oldest waiting time multiplier*256 for adding to a single-hop route's cost. Range %ld..%ld.  Default %ld.")
+SETTEXT(CFG_CDSTWAITSLEW, "%s' (%s) sets oldest waiting time maximum relative monthly change for adding to a single-hop route's cost. This is to help prevent oscillatory changes in route costs, particularly when cdstopts.farroutewait is enabled. Set to 0 to disable. Range %ld..%ld.  Default %ld.")
 //----------------------------------------------------
 //   SWITCH DISPLAY ('-v')
 //----------------------------------------------------

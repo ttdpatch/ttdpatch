@@ -10,7 +10,7 @@
 #include <imports/gui.inc>
 
 extern doresizewinfunc, stos_locationname, TrainListDrawHandlerCountTrains, ShadedWinHandler, ShadeWindowHandler.toggleshade
-extern stationarray2ptr, cargodestdata, newcargotypenames, trainlistoffset, patchflags
+extern stationarray2ptr, cargodestdata, newcargotypenames, trainlistoffset, patchflags, cargodestwaitmult
 
 global CargoPacketWin_elements._sizer_constraints
 
@@ -464,12 +464,16 @@ treerecurse:
 	mov [textrefstack+14], edi
 	mov [esp+4+40], edi
 
-	movzx edi, WORD [eax+ebp+routingtableentry.oldestwaiting]
-	or edi, edi
-	jz .nooldestwaiting
-	neg edi
-	add edi, [esp+4+48+4+52]	//comparison date
-.nooldestwaiting:
+//	movzx edi, WORD [eax+ebp+routingtableentry.oldestwaiting]
+//	or edi, edi
+//	jz .nooldestwaiting
+//	neg edi
+//	add edi, [esp+4+48+4+52]	//comparison date
+//.nooldestwaiting:
+
+	movzx edi, WORD [eax+ebp+routingtableentry.dayswaiting]
+	imul edi, [cargodestwaitmult]
+	shr edi, 8
 
 	mov eax, [esp+4+48+4+4]		//recursion level
 	or eax, eax
@@ -1204,7 +1208,8 @@ outroutetableline:				//ebp=[cargodestdata]
 	mov cx, 90
 	call outtablevalue
 
-	mov cx, [ebp+edi+routingtableentry.oldestwaiting]
+	mov bx, statictext(printword)
+	mov cx, [ebp+edi+routingtableentry.dayswaiting]
 	mov [textrefstack], cx
 	or cx, cx
 	jnz .lu_ok

@@ -362,6 +362,9 @@
 	RANGE(166,"cdstnegdaysfactor", CFG_CDSTNEGDAYSFACTOR, CARGODEST, "", noswitch, AUTO, S32, FLAGDATA(cdstnegdaysfactorval), 0, 1000, 3),
 	RANGE(167,"cdstroutedinitscore", CFG_CDSTROUTEDINITSCORE, CARGODEST, "", noswitch, AUTO, S32, FLAGDATA(cdstroutedinitscoreval), 0, 0x7FFFFFFF-0xFFFF, 1500),
 	RANGE(168,"cdstrtdiffmax", CFG_CDSTRTDIFFMAX, CARGODEST, "", noswitch, AUTO, U16, FLAGDATA(cargodestroutediffmax), 0, 30000, 60),
+	BITS (169,"cdstopts", CFG_CDSTOPTS, CARGODEST, "", cdstopts, S32, FLAGDATA(cargodestflags), 0),
+	RANGE(170,"cdstroutewaitfactor", CFG_CDSTWAITMULT, CARGODEST, "", noswitch, AUTO, S32, FLAGDATA(cargodestwaitmult), 0, 2560, 128),
+	RANGE(171,"cdstroutewaitmaxslew", CFG_CDSTWAITSLEW, CARGODEST, "", noswitch, AUTO, U16, FLAGDATA(cargodestwaitslew), 0, 9000, 40),
 
 //
 // Here follows the switch order list
@@ -537,3 +540,4 @@ SWITCHORDER:			// not actually a label, see perl/sw_sort.pl
 	advzfunctions,
 	moreindustries,
 	cargodest,
+	cdstopts,

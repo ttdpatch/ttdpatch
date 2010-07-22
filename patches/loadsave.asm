@@ -1121,11 +1121,13 @@ extern clearindustry2array
 	test byte [extrachunksloaded3],LOADED_X3_CARGODESTDATA
 	jz .cdest_init
 	test byte [extrachunksloaded2],LOADED_X2_STATION2
-	jnz .cdest_loadend
+	jnz .cdest_loadinit
 	extcall freecargodestdata
 .cdest_init:
 	extcall initcargodestmemory
 	extcall cargodestinitstationroutingtable_all
+.cdest_loadinit:
+	extcall cargodestinitpostload
 .cdest_loadend:
 
 	testflags newobjects

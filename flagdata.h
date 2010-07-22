@@ -32,6 +32,8 @@ deflong(cdstunroutedscoreval)	//cargo generation destination selector: unrouted 
 deflong(cdstnegdistfactorval)	//cargo generation destination selector: factor to multiply manhattan distance by before subtracting from score for routed cargo
 deflong(cdstnegdaysfactorval)	//cargo generation destination selector: factor to multiply minimum cost in days by before subtracting from score for routed cargo
 deflong(cdstroutedinitscoreval)	//cargo generation destination selector: initial score for routed cargo before distance and day costs subtracted, note negative scores result in exclusion
+deflong(cargodestflags)		//cargo destination option flags
+deflong(cargodestwaitmult)	//cargo destination route cost calculator: oldest waiting time multiplier*256
 
 #define flags_long_end newservint
 
@@ -60,6 +62,7 @@ defword(branchprobab)		// probability of a road branch
 defword(semaphoreyear)		// year before which semaphores are built
 defword(cdstrtcostexprthrshld)	// time after which an unused single hop route expires
 defword(cargodestroutediffmax)	// factor to add to minimum route to produce route threshold
+defword(cargodestwaitslew)	// cargo destination route oldest waiting time maximum monthly relative change
 
 #define flags_word_end townmingrowthrate
 

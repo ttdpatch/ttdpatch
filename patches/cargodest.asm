@@ -20,7 +20,8 @@ extern cdstcargopacketinitttl
 extern specialtext1, newtexthandler, newcargotypenames
 extern kernel32hnd
 extern cdstunroutedscoreval, cdstnegdistfactorval, cdstnegdaysfactorval, cdstroutedinitscoreval
-extern cargodestroutediffmax, cdstatlastmonthcyclicroutecull
+extern cargodestroutediffmax, cdstatlastmonthcyclicroutecull, cargodestflags
+extern cargodestwaitmult, cargodestwaitslew, getymd
 
 //uncoment for debugging purposes
 //#undef DEBUG
@@ -39,7 +40,7 @@ uvard cargodestdata_size
 
 //uvarb cargodestgameoptionflag
 
-uvarb cargodestroutecomparisonshiftfactor
+//uvarb cargodestroutecomparisonshiftfactor
 
 uvarb cargodestgenflags, 32
 
@@ -71,12 +72,60 @@ initcargodestmemory:
 	mov DWORD [cargodestdata_size], cargodestdata_initialsize
 #endif
 
-	mov DWORD [eax+cargodestgamedata.version], 1
+	mov DWORD [eax+cargodestgamedata.version], 2
 	mov DWORD [eax+cargodestgamedata.headerlength], cargodestgamedata.datastart
 	mov DWORD [eax+cargodestgamedata.cddfirstfree], 0
 	mov DWORD [eax+cargodestgamedata.cddusedend], cargodestgamedata.datastart
 	mov DWORD [eax+cargodestgamedata.cddfreeleft], cargodestdata_initialsize-cargodestgamedata.datastart
 
+	popad
+	ret
+
+global cargodestinitpostload
+cargodestinitpostload:
+	pushad
+	mov WORD [cargodestlastglobalperiodicpreproc], 0
+	mov ebp, [cargodestdata]
+	cmp DWORD [ebp+cargodestgamedata.version], 2
+	jae NEAR .nofixoldestwaiting
+
+	mov ax, [currentdate]
+	call [getymd]
+	movzx ebx, bl
+	movzx eax, WORD [currentdate]
+	sub eax, ebx
+	//eax=last date oldest waiting times updated
+
+	mov esi, stationarray
+	mov edi, [stationarray2ptr]
+	xor ecx, ecx
+.preloop:
+	cmp WORD [esi+station.XY], 0
+	je NEAR .prenext
+	mov ebx, [edi+station2.cargoroutingtableptr]
+	or ebx, ebx
+	jz NEAR .prenext
+	mov edx, [ebp+ebx+routingtable.nexthoprtptr]
+	or edx, edx
+	jz NEAR .prenext
+.doadjustoldestwaiting:
+	cmp WORD [ebp+edx+routingtableentry.dayswaiting], 0
+	je .ok
+	sub [ebp+edx+routingtableentry.dayswaiting], ax
+	neg WORD [ebp+edx+routingtableentry.dayswaiting]
+.ok:
+	mov edx, [ebp+edx+routingtableentry.next]
+	or edx, edx
+	jnz .doadjustoldestwaiting
+.prenext:
+	add esi, station_size
+	add edi, station2_size
+	inc cl
+	cmp cl, numstations
+	jb .preloop
+
+	mov DWORD [ebp+cargodestgamedata.version], 2
+.nofixoldestwaiting:
 	popad
 	ret
 
@@ -1323,6 +1372,8 @@ uvarw cargodestlastglobalperiodicpreproc
 uvard searchqueuestart
 #endif
 
+uvarb stationpassarray, 256
+
 //called by station2.asm:monthlystationupdate, nexthoproutebuild
 global cargodeststationperiodicproc
 cargodeststationperiodicproc:		//edi=station2 ptr
@@ -1364,6 +1415,38 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	jz NEAR .preinnerloopend
 	cmp ax, [ebp+edx+routingtableentry.lastupdated]
 	ja NEAR .killoldlocalroute
+	
+	mov ch, [ebp+edx+routingtableentry.cargo]
+
+//distant route loop
+	test BYTE [cargodestflags], 2
+	jz .nofarrouteoldestwaitingtablemake
+	pushad
+	mov edi, stationpassarray
+	mov ecx, 256/4
+	xor eax, eax
+	cld
+	rep stosd
+	mov esi, [ebp+edx+routingtableentry.dest]
+	mov edi, [ebp+ebx+routingtable.destrtptr]
+	or edi, edi
+	jz .doneoldestwaitingtablemake
+.prepacketfarrouteloop:
+        mov eax, [ebp+edx+routingtableentry.dest]
+	cmp eax, [ebp+edi+routingtableentry.nexthop]
+	jne .prepacketfarroutenext
+	cmp ch, [ebp+edi+routingtableentry.cargo]
+	jne .prepacketfarroutenext
+	movzx eax, BYTE [ebp+edi+routingtableentry.dest]
+	or BYTE [stationpassarray+eax], 1
+.prepacketfarroutenext:
+	mov edi, [ebp+edi+routingtableentry.next]
+	or edi, edi
+	jnz .prepacketfarrouteloop
+.doneoldestwaitingtablemake:
+	popad
+.nofarrouteoldestwaitingtablemake:
+//ends
 
 	//calc oldest waiting
 	//lazily assume that the oldest is the last in the queue which matches
@@ -1375,46 +1458,37 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	jz .nooldest
 
 	//check packet
-	mov ch, [ebp+eax+cargopacket.cargo]
-	cmp ch, [ebp+edx+routingtableentry.cargo]
+	cmp ch, [ebp+eax+cargopacket.cargo]
+	//cmp ch, [ebp+edx+routingtableentry.cargo]
 	jne .prepacketnext
 	movzx esi, BYTE [ebp+eax+cargopacket.destst]
 	or esi, 0x10000
 	cmp esi, [ebp+edx+routingtableentry.dest]
 	je .gotoldest
 
-#if 0	//disabled for now to try to prevent positive/oscillatory feedback of route costs caused excessive gain. Eg. an empty route causing
+	//switchable for now, turn off to try to prevent positive/oscillatory feedback of route costs caused excessive gain. Eg. an empty route causing
 	//a massive route/traffic spike through that route (overshoot), which results next month in the hop wait time being enormous
 	//as the route is clogged with a giant backlog from old packets now routable through it. The following month there is an overshoot
 	//response in the other direction of no far routes being routed through it as the waiting time is too long, such that the route becomes empty again, etc.
 
-	//distant route loop
-	mov edi, [ebp+ebx+routingtable.destrtptr]
-	or edi, edi
-	jz .prepacketnext
-.prepacketfarrouteloop:
-	cmp esi, [ebp+edi+routingtableentry.dest]
-	jne .prepacketfarroutenext
-	push esi
-        mov esi, [ebp+edx+routingtableentry.dest]
-	cmp esi, [ebp+edi+routingtableentry.nexthop]
-	pop esi
-	jne .prepacketfarroutenext
-	cmp ch, [ebp+edi+routingtableentry.cargo]
-	je .gotoldest
-.prepacketfarroutenext:
-	mov edi, [ebp+edi+routingtableentry.next]
-	or edi, edi
-	jnz .prepacketfarrouteloop
-#endif
+	test BYTE [cargodestflags], 2
+	jz .nofarrouteoldestwaiting
+	and esi, 0xFF
+	cmp BYTE [stationpassarray+esi], 0
+	jne .gotoldest
+
+.nofarrouteoldestwaiting:
 
 .prepacketnext:
 	mov eax, [ebp+eax+cargopacket.prevptr]
 	jmp .prepacketloop
 
+.nooldest:
+	mov ax, [currentdate]
+	jmp .gotoldestdate
 .gotoldest:
 	mov ax, [ebp+eax+cargopacket.datearrcurloc]
-.nooldest:      //all jumps to here must have ax=0
+.gotoldestdate:
 	pop esi
 	pop edi
 #if WINTTDX && DEBUG
@@ -1437,7 +1511,41 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	popad
 .nosetoldestwaitingroutemess:
 #endif
-	mov [ebp+edx+routingtableentry.oldestwaiting], ax
+
+	neg ax
+	add ax, [currentdate]
+
+	cmp WORD [cargodestwaitslew], 0
+	jz .noslewcheck	
+	push ebx
+	push ecx
+	mov cx, [ebp+edx+routingtableentry.dayswaiting]
+	mov bx, [cargodestwaitslew]
+	//ax=new waiting time
+	//cx=old waiting time
+	sub ax, cx
+	//ax=increase in waiting time
+	js .negcheck
+	cmp ax, bx
+	jbe .donecheck
+	mov ax, bx
+	jmp .donecheck
+
+.negcheck:
+	neg ax
+	cmp ax, bx
+	jbe .donecheckneg
+	mov ax, bx
+.donecheckneg:
+	neg ax	
+	
+.donecheck:
+	add ax, cx	
+	pop ecx
+	pop ebx
+.noslewcheck:
+
+	mov [ebp+edx+routingtableentry.dayswaiting], ax
 	mov [esp], edx
 	mov edx, [ebp+edx+routingtableentry.next]
 	jmp .preinnerloop
@@ -1522,11 +1630,12 @@ cargodeststationperiodicproc:		//edi=station2 ptr
 	push ebx
 	sub esp, 8
 	movzx esi, WORD [edx+ebp+routingtableentry.mindays]
-	mov bx, [edx+ebp+routingtableentry.oldestwaiting]
-	or bx, bx
+	movzx ebx, WORD [edx+ebp+routingtableentry.dayswaiting]
+	or ebx, ebx
 	jz .nocargowaitingcost
-	add si, [currentdate]
-	sub si, bx
+	imul ebx, [cargodestwaitmult]
+	shr ebx, 8
+	add si, bx
 .nocargowaitingcost:
 	push esi
 	mov esi, [edx+ebp+routingtableentry.destrttable]
@@ -1781,12 +1890,9 @@ queuenextnodes:
 	//bl=cargo
 
 	xor edi, edi
-	mov cx, [edx+ebp+routingtableentry.oldestwaiting]
-	or cx, cx
-	jz .nocargowaitingcost
-	mov di, [currentdate]
-	sub di, cx
-.nocargowaitingcost:
+	movzx edi, WORD [edx+ebp+routingtableentry.dayswaiting]
+	imul edi, [cargodestwaitmult]
+	shr edi, 8
 	add di, [edx+ebp+routingtableentry.mindays]
 	jc NEAR .next			//route is way too long
 	add di, [esp+12]
@@ -1857,13 +1963,9 @@ addroutesreachablefromthisnodeandrecurse:
 	//edx=routing table entry to final destination from last node
 	//bl=cargo
 
-	xor edi, edi
-	mov cx, [edx+ebp+routingtableentry.oldestwaiting]
-	or cx, cx
-	jz .nocargowaitingcost
-	mov di, [currentdate]
-	sub di, cx
-.nocargowaitingcost:
+	movzx edi, WORD [edx+ebp+routingtableentry.dayswaiting]
+	imul edi, [cargodestwaitmult]
+	shr edi, 8	
 	add di, [edx+ebp+routingtableentry.mindays]
 	jc NEAR .next			//route is way too long
 	add di, [esp+12]
@@ -2066,12 +2168,9 @@ addroutesreachablefromthisnodeandrecurse_checkloop:
 	//jmp .updateandstartrecursion
 .differentnodecheck:
 	//For comparing against next hop routes, include the initial waiting time...
-	movzx esi, WORD [eax+ebp+routingtableentry.oldestwaiting]
-	or esi, esi
-	jz .nocargowaitingcost
-	neg si
-	add si, [currentdate]
-.nocargowaitingcost:
+	movzx esi, WORD [eax+ebp+routingtableentry.dayswaiting]
+	imul esi, [cargodestwaitmult]
+	shr esi, 8
 	add si, [eax+ebp+routingtableentry.mindays]
 
 	//esi is now the cost of the route through a different first node (other)
@@ -2285,7 +2384,10 @@ addcargotostation_cargodesthook:
 	call getstmanhattandistance
 	imul eax, DWORD [cdstnegdistfactorval]
 	sub edi, eax
+	test BYTE [cargodestflags], 1
+	jnz .noactivityadd
 	add edi, [ebp+station2ofs+station2.activitylastmonth]
+.noactivityadd:
 	add edi, [cdstroutedinitscoreval]
 	jns .scoreok
 	//negative score, don't bother trying to route cargo there...
@@ -2746,11 +2848,11 @@ ageroutingentrylisting:
 	sub ax, bx
 	mov [edx+ebp+routingtableentry.lastupdated], ax
 .nolu:
-	mov ax, [edx+ebp+routingtableentry.oldestwaiting]
-	or ax, ax
-	jz .iterate
-	sub ax, bx
-	mov [edx+ebp+routingtableentry.oldestwaiting], ax
+//	mov ax, [edx+ebp+routingtableentry.oldestwaiting]
+//	or ax, ax
+//	jz .iterate
+//	sub ax, bx
+//	mov [edx+ebp+routingtableentry.oldestwaiting], ax
 
 .iterate:
 	mov edx, [ebp+edx+routingtableentry.next]
@@ -3001,7 +3103,7 @@ stos_routedata:
 	stosw
 	mov ax, [ebx+ebp+routingtableentry.lastupdated]
 	stosw
-	mov ax, [ebx+ebp+routingtableentry.oldestwaiting]
+	mov ax, [ebx+ebp+routingtableentry.dayswaiting]
 	stosw
 	ret
 
@@ -3058,7 +3160,7 @@ var GetSystemTimeAsFileTime_name, db "GetSystemTimeAsFileTime", 0
 
 var addcargonoroutemess, db "TTDP:  1: Added ", 0x7E, " unrouted ", 0x80, " to: ", 0x80, 13, 10, 0
 var addcargoroutemess, db "TTDP:  2: Added ", 0x7E, " routed ", 0x80, " to: ", 0x80, ", destination: ", 0x80, 13, 10, 0
-var routedumpmess, db "TTDP:   : Relptr: ", 0x9A, 0x8, ", Dest: ", 0x80, ", Next Hop: ", 0x80, ", Cargo: ", 0x80, ", Flags: ", 0x7E, ", Mindays: ", 0x7E, ", Last Updated: ", 0x82, ", Oldest Waiting: ", 0x82, 13, 10, 0
+var routedumpmess, db "TTDP:   : Relptr: ", 0x9A, 0x8, ", Dest: ", 0x80, ", Next Hop: ", 0x80, ", Cargo: ", 0x80, ", Flags: ", 0x7E, ", Mindays: ", 0x7E, ", Last Updated: ", 0x82, ", Oldest Waiting: ", 0x7E, 13, 10, 0
 var localroutemsg, db "TTDP:  4: Added/Updated local route from: ", 0x9A, 12, ", to: ", 0x80, 13, 10, 0
 var farroutemsg, db "TTDP:  8: Added/Updated far route for: ", 0x80, 13, 10, 0
 var packetdumpmess, db "TTDP:   : Relptr ", 0x9A, 0x8, ", Location: ", 0x80, ", Dest: ", 0x9A, 12, ", Source: ", 0x9A, 12, ", Amount: ", 0x7E, ", Cargo: ", 0x80, ", Flags: ", 0x7E, ", TTL: ", 0x7E, ", Last Station: ", 0x9A, 12, ", Left: ", 0x82, ", Left Last Trans: ", 0x82, ", Last Trans Profit: ", 0x7F, 13, 10, 0
@@ -3069,7 +3171,7 @@ var loadmess, db "TTDP: 40: max ", 0x7E, " units of packet loaded from: ", 0x9A,
 var acceptendmess, db "TTDP: 80: unloaded: ", 0x7E, ", of which unrouted: ", 0x7E, ", of which charged: ", 0x7E, ", at: ", 0x9A, 12, ", from: ", 0x80, 13, 10, 0
 var loadendmess, db "TTDP:100: loaded: ", 0x7E, ", of which unrouted: ", 0x7E, ", at: ", 0x9A, 12, ", to: ", 0x80, 13, 10, 0
 var killoldlocalroutemsg, db "TTDP:200: Exterminating expired local route from: ", 0x9A, 12, ", to: ", 0x9A, 12, 13, 10, 0
-var setoldestwaitinglocalroutemsg, db "TTDP:400: Setting local route from: ", 0x9A, 12, ", to: ", 0x9A, 12, ", oldest waiting value to: ", 0x82, 13, 10, 0
+var setoldestwaitinglocalroutemsg, db "TTDP:400: Setting local route from: ", 0x9A, 12, ", to: ", 0x9A, 12, ", oldest waiting value to: ", 0x7E, 13, 10, 0
 var vehkillcpmess, db "TTDP:800: Vehicle deletion, about to exterminate cargo packet", 13, 10, 0
 var stkillcpmess, db "TTDP:800: Station deletion, about to exterminate cargo packet", 13, 10, 0
 var routekillmess, db "TTDP:800: Station deletion, about to exterminate route at: ", 0x80, 13, 10, 0

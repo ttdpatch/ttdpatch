@@ -156,8 +156,9 @@
 #define isignals		122	// Invertable one-two way signal routing				(-)
 #define advorders		123	// Advanced orders					(-)
 #define moretransopts		124	// Provide more transparency options.	(-)
+#define cdstopts		125	// Options for cargo destinations			(-)
 
-#define lastbitdefaulton	124	// META: last bit defined to be set by -a
+#define lastbitdefaulton	125	// META: last bit defined to be set by -a
 
 // add new flags that should be on by default above, flags off by default below
 
@@ -192,11 +193,11 @@
 #define shortrvs		218	// allow shortened RVs					(118)
 #define articulatedrvs		219	// allow articulated RVs				(119)
 #define newroutes		220	// Enable newRoutes					(120)
-#define newobjects		221	// Enable support for newobjects					(-)
+#define newobjects		221	// Enable support for newobjects			(-)
 #define rvovertakeparams	222	// Road vehicle overtaking parameters			(-)
 #define advzfunctions		223	// Support for more 3d features				(-)
 #define moreindustries		224	// Increase the size of the industry array		(-)
-#define cargodest		225	// Specific cargo destinations		(-)
+#define cargodest		225	// Specific cargo destinations				(-)
 
 #define lastbitdefaultoff	225	// META: last bit defined not to be set by -a unless DEBUG
 

@@ -228,3 +228,8 @@ defbit lockobjects,				29 // Make objects (lighthouses, transmitters, newobjects
 defbit lockcompany,				30 // Make company property (HQ, statues, &c.) transparent
 defbit lockoneway,				31 // Hide one-way indicators when road toolbar is closed
 enddefbits
+
+defbitvar cdstopts,cargodestflags
+defbit noaddactivityscore,			0 // Don't add last month's cumulative station activity to the routed cargo destination selection score
+defbit farroutewait,				1 // When calculating the oldest waiting cargo for a route, include cargo routed through the next node as well as to it
+enddefbits

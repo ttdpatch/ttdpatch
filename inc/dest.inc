@@ -26,7 +26,8 @@ struc routingtableentry
 	.flags:		resb 1
 	.mindays:	resw 1	//when updated: calculate the difference in costs, divide by 4 and add to this. Initially, set to the the first cost.
 	.lastupdated:	resw 1
-	.oldestwaiting:	resw 1	//for next hop entries only
+	//.oldestwaiting:	resw 1	//for next hop entries only (version 1: date, version 2: days)
+	.dayswaiting:	resw 1
 	resb 32-$
 endstruc
 
