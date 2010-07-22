@@ -3278,7 +3278,7 @@ var actiondop
 .idiv:
 	test ebx,ebx
 	jz .nozerodiv
-	cwd
+	cdq
 	idiv ebx
 .nozerodiv:
 	ret
@@ -3286,7 +3286,7 @@ var actiondop
 .imod:
 	test ebx,ebx
 	jz .nozerodiv
-	cwd
+	cdq
 	idiv ebx
 	mov eax,edx
 	ret
