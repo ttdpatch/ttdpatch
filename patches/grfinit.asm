@@ -1618,14 +1618,7 @@ extern CloneTrainChangeGrfSprites
 	mov [stationrventer+ecx*8+4],edi
 
 .nogameid:
-testmultiflags newobjects
-	jz .nonewobjects
 
-extern win_objectgui_curclass, doesclasshaveusableobjects.external
-	mov word [win_objectgui_curclass], -1 // Until we can think of a better method, just reset the gui
-	call doesclasshaveusableobjects.external
-
-.nonewobjects:
 	inc cl
 	jnz .nextnonenter
 

@@ -282,8 +282,20 @@ win_objectgui_winhandler:
 	cmp dl, cWinEventMouseToolClose
 	je near win_objectgui_setmousetool.noobject
 
+	cmp dl, cWinEventGRFChanges
+	je near win_objectgui_grfchanges
+	
+	
 //	cmp dl, cWinEventSecTick
 //	jz win_signalgui_sectick
+	ret
+	
+win_objectgui_grfchanges:
+	pusha
+	mov word [win_objectgui_curobject], -1
+	mov word [win_objectgui_curclass], -1
+	call doesclasshaveusableobjects
+	popa
 	ret
 
 win_objectgui_timer:
@@ -518,6 +530,7 @@ win_objectgui_classdropdown.text:
 	inc cl
 
 win_objectgui_classdropdown:
+	movzx ecx, cl
 	extcall GenerateDropDownExPrepare
 	jnc .noolddrop
 	ret
@@ -544,6 +557,9 @@ win_objectgui_classdropdown:
 	mov dword [DropDownExList+4*eax],-1	// terminate it
 	mov byte [DropDownExMaxItemsVisible], 16
 	mov word [DropDownExFlags], 11b
+	
+	movzx edx, word [win_objectgui_curclass]
+	
 	pop ecx
 	extjmp GenerateDropDownEx
 
@@ -556,8 +572,8 @@ win_objectgui_objectdropdown.text:
 	inc cl
 
 win_objectgui_objectdropdown:
-	push ecx
 	movzx ecx, cl
+	push ecx
 	bt dword [esi+window.disabledbuttons], ecx
 	pop ecx
 	jc .ret
@@ -738,12 +754,21 @@ extern generatesoundeffect
 
 // Called to workout if we have any extries for current class
 // (sets the current object to the first found one if it does)
-global doesclasshaveusableobjects.external
 doesclasshaveusableobjects:
 	push ecx
 	call win_objectgui_setmousetool.noobject
-	cmp word [win_objectgui_curclass], -1
-	je .no
+
+// We always try to select the first class (eis_os)
+//	cmp word [win_objectgui_curclass], -1	
+//	je .no
+	
+	cmp word [win_objectgui_curclass], -1	
+	jne .validclass
+	cmp byte [numobjectclasses], 0
+	jbe .validclass
+	mov word [win_objectgui_curclass], 0
+	
+.validclass:
 	cmp word [win_objectgui_curobject], -1
 	jne .skip
 
@@ -785,7 +810,8 @@ doesclasshaveusableobjects:
 	bts dword [esi+window.disabledbuttons], win_objectgui_elements.dropdown2_id
 	bts dword [esi+window.disabledbuttons], win_objectgui_elements.buildbtn_id
 	ret
-
+#if 0
+// We can use cWinEventGRFChanges for this (eis_os)
 .external:
 	push ecx // called upon newgrf change to update the window
 	push edx
@@ -801,6 +827,7 @@ doesclasshaveusableobjects:
 	pop edx
 	pop ecx
 	ret
+#endif
 
 // ************************************ Object Pool Functions *************************************
 
@@ -830,7 +857,7 @@ extern addgroundsprite
 extern addsprite
 extern objectpool_ptr
 extern displayfoundation
-extern CalcExactGroundAltitude
+
 extern redrawtile
 extern curplayerctrlkey
 extern invalidatetile
@@ -1827,7 +1854,8 @@ DrawObject:
 	push ecx
 	or al, 8
 	or cl, 8
-	call [CalcExactGroundAltitude]
+	extern getgroundaltitude
+	call [getgroundaltitude]
 	mov di, 1
 	mov si, di
 	mov dh, 0xA
