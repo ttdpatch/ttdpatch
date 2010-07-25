@@ -588,12 +588,14 @@ win_objectgui_objectdropdown:
 	push ecx
 	push ebx
 	push edx
-	xor eax,eax
-	xor ebx,ebx
+
+	xor eax, eax
+	xor ebx, ebx
 	xor edx, edx
 
 	// Generate our list?
 	mov bx, [win_objectgui_curclass]
+	mov dword [esp], -1
 
 .loop:
 	inc edx
@@ -607,6 +609,12 @@ win_objectgui_objectdropdown:
 	call validobject
 	jc .loop
 
+// Works out the selected item's index [-1 if never added to list] (Lakie)
+	cmp dx, word [win_objectgui_curobject]
+	jne .notcur
+	mov dword [esp], eax
+
+.notcur:
 	mov cx, word [objectnames+edx*2]
 	cmp ch, 0xD0
 	jb .nofix
@@ -626,6 +634,7 @@ win_objectgui_objectdropdown:
 	mov dword [DropDownExList+4*eax],-1	// terminate it
 	mov byte [DropDownExMaxItemsVisible], 16
 	mov word [DropDownExFlags], 11b
+
 	pop edx
 	pop ebx
 	pop ecx
@@ -756,7 +765,12 @@ extern generatesoundeffect
 // (sets the current object to the first found one if it does)
 doesclasshaveusableobjects:
 	push ecx
+	push ebx
 	call win_objectgui_setmousetool.noobject
+
+// Check that we do have atleast one class loaded, to prevent gibberish (Lakie)
+	cmp byte [numobjectclasses], 0
+	je .noclasses
 
 // We always try to select the first class (eis_os)
 //	cmp word [win_objectgui_curclass], -1	
@@ -764,19 +778,28 @@ doesclasshaveusableobjects:
 	
 	cmp word [win_objectgui_curclass], -1	
 	jne .validclass
-	cmp byte [numobjectclasses], 0
-	jbe .validclass
+//	cmp byte [numobjectclasses], 0
+//	jbe .validclass
 	mov word [win_objectgui_curclass], 0
 	
 .validclass:
-	cmp word [win_objectgui_curobject], -1
-	jne .skip
+	mov bx, [win_objectgui_curclass]
 
-	push eax
+// We should probably check if this current object is still valid first (Lakie)
+// (Because the gui may be openned later when the object is no-longer valid)
+	cmp word [win_objectgui_curobject], -1
+	je .noobject
+
+	mov cx, [win_objectgui_curobject]
 	push ebx
+	push ecx
+	call validobject
+	jnc .skip
+
+.noobject:
+	push eax
 	xor ecx, ecx
 	xor eax, eax
-	mov bx, [win_objectgui_curclass]
 
 .loop:
 	inc ecx
@@ -792,19 +815,23 @@ doesclasshaveusableobjects:
 
 .done:
 	cmp al, 0
-	pop ebx
 	pop eax
 	je .no
 
 	mov word [win_objectgui_curobject], cx
 
 .skip:
+	pop ebx
 	pop ecx
 	btr dword [esi+window.disabledbuttons], win_objectgui_elements.dropdown2_id
 	btr dword [esi+window.disabledbuttons], win_objectgui_elements.buildbtn_id
 	ret
 
+.noclasses:
+	mov word [win_objectgui_curclass], -1
+	
 .no:
+	pop ebx
 	pop ecx
 	mov word [win_objectgui_curobject], -1
 	bts dword [esi+window.disabledbuttons], win_objectgui_elements.dropdown2_id
