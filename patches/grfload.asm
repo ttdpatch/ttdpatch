@@ -119,6 +119,7 @@ endproc initializegraphics
 //Uses:	ax, ecx
 global getfilesize
 getfilesize:
+	xor ecx, ecx
 	mov ax,0x4202
 	xor edx,edx
 
