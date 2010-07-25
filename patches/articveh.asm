@@ -381,7 +381,7 @@ extern delvehschedule
 	ret
 
 uvard PrepareNewVehicleArrayEntry
-uvard CalcExactGroundAltitude
+// uvard CalcExactGroundAltitude
 
 ; The bulk of this code works the same as buyNewRoadVehicle
 ; Inputs and outputs are identical
@@ -421,7 +421,8 @@ buyRVTrailer:
 	mov [esi+veh.xpos], ax
 	mov [esi+veh.ypos], cx
 	push esi
-	call [CalcExactGroundAltitude]
+extern getgroundaltitude
+	call [getgroundaltitude]
 	pop esi
 	mov [esi+veh.zpos], dl
 	mov byte [esi+veh.zsize], 6

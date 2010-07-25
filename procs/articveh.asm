@@ -361,7 +361,7 @@ extern deleteRVorders
 	codefragment findPrepareNewVehicleArrayEntry, -23
 		mov esi, [veharrayptr]
 		push cx
-	
+#if 0
 	codefragment findCalcExactGroundAltitude
 		push ebx
 		push edi
@@ -369,7 +369,7 @@ extern deleteRVorders
 		push cx
 		and al, 0xF0
 		and cl, 0xF0
-
+#endif
 	codefragment oldrvcrash_makecrashed
 		inc word [esi+0x68]
 		or word [esi+veh.vehstatus],0x80
@@ -542,11 +542,14 @@ patcharticulatedvehicles:
 	stringaddress findPrepareNewVehicleArrayEntry
 extern PrepareNewVehicleArrayEntry
 	mov [PrepareNewVehicleArrayEntry], edi
-	
+
+#if 0
+// duplicate of getgroundaltitude
 	stringaddress findCalcExactGroundAltitude
 extern CalcExactGroundAltitude
 	mov [CalcExactGroundAltitude], edi
-	
+#endif
+
 	patchcode rvcrash_makecrashed
 	patchcode rvcrash_handlecargo
 	patchcode smallufo_makecrashed
