@@ -42,6 +42,7 @@ extern user32hnd,vehsorttable,heapstart,heapptr
 extern oldveharraysize,varheap,Sleep
 extern initourtextptr,initnoregist
 extern hexdwords
+extern int21handler
 // For GUARDS:
 extern __varlist_start, __varlist_end
 
@@ -1271,6 +1272,10 @@ proc dofindstring
 
 	xor ecx,ecx
 
+#define DUMPVERDATASTATS 0
+#if DUMPVERDATASTATS
+	jmp .dumpverdata
+#endif
 .searchdone:
 
 	pop ebx
@@ -1339,7 +1344,111 @@ proc dofindstring
 	mov edx,findstringerror
 	jmp criticalerror
 
+#if DUMPVERDATASTATS
+.dumpverdata:
+	push edi
+	push edx
+// format:
+// [numid]\t[offset]\t[fragmentname]\t[patchproc]
+	cmp edx, 1
+	jnz .dumpverdataopen
+	
+#if WINTTDX
+	// we assume here that the jump table is valid in all windows versions
+	mov dword [int21handler], 0x401136
+#endif
+	push edx
+	mov edx, dumpvarfilename
+	xor ecx, ecx
+	mov ax, 0x3c00		//create file
+	push ebp
+	mov ebp, esp
+	and esp, byte ~ 3
+	CALLINT21
+	mov esp, ebp
+	pop ebp
+	pop edx
+	jc near .dumpvardataret
+	mov word [dumpvarfilehandle], ax
+	
+.dumpverdataopen:
+	cmp word [dumpvarfilehandle], -1
+	je .dumpvardataret
+
+	mov edi, dumpvarbuffer
+	mov eax, edx
+	mov cl, 4
+	call hexnibbles
+	
+	mov byte [edi], 0x09
+	inc edi
+	
+	mov eax,[%$found]
+	dec eax			// edi always points to next byte, so take -1
+	add eax,[%$correction]
+	
+	mov cl, 8
+	call hexnibbles
+	
+	mov byte [edi], 0x09
+	inc edi
+
+	mov esi,[lastsearchfragmentname]
+	test esi,esi
+	jle .dumpvardatacopyprocname
+	
+.dumpvardatacopy:
+	lodsb
+	test al, al
+	stosb
+	loopnz .dumpvardatacopy
+	dec edi
+	
+.dumpvardatacopyprocname:
+	mov al, 0x09
+	stosb
+
+	mov esi,[lastpatchprocname]
+	test esi,esi
+	jle .dumpvardatastore
+.dumpvardatacopy2:
+	lodsb
+	test al,al
+	stosb
+	loopnz .dumpvardatacopy2
+	dec edi
+
+.dumpvardatastore:
+	mov ax, 0x0A0D
+	stosw
+	mov ecx, edi
+	sub ecx, dumpvarbuffer
+
+	mov edx, dumpvarbuffer
+	mov bx, [dumpvarfilehandle]
+	mov ax, 0x4000
+	
+	push ebp
+	mov ebp, esp
+	and esp, byte ~ 3
+	CALLINT21
+	mov esp, ebp
+	pop ebp
+	
+.dumpvardataret:
+	pop edx
+	pop edi
+	xor ecx, ecx
+	jmp .searchdone
+#endif
 endproc // dofindstring
+
+#if DUMPVERDATASTATS
+uvarb dumpvarbuffer, 2048
+svard dumpvarfilehandle
+var dumpvarfilename
+	db "vardata.dmp",0
+#endif
 
 var findstringerror
 	db "Failed to find string #"
