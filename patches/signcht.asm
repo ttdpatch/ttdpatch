@@ -160,12 +160,17 @@ cheatentry "CLONETILE", clonetilecheat,0
 cheatentry "UNRESERVEPBSTRACK",unreservepbstrack,0
 cheatentry "HEIGHTMAP",loadheightmapcheat,0
 
-#if 1 && DEBUG
-cheatentry "SETINDVAL",setindustrystrucval,0
-cheatentry "RESETBBLIST",ResetBBlockVehicleLists,0
+#if 1
+// Give peeople a chance to use objects
+//   in the scenario editor
 cheatentry "CREATEOBJECT", createnewobject, 0 
 extern win_objectgui_create
 cheatentry "OBJECTGUI", win_objectgui_create, 0
+#endif
+
+#if 1 && DEBUG
+cheatentry "SETINDVAL",setindustrystrucval,0
+cheatentry "RESETBBLIST",ResetBBlockVehicleLists,0
 cheatentry "SETLANDVAL", setlandarrayval, 0
 cheatentry "LOGCARGODEST", logcargodest, 0
 #endif
