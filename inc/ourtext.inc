@@ -536,6 +536,9 @@ defourtext advorder_orderbranchnoguibtntxt
 defourtext advorder_branchskiporderwintxt
 defourtext advorder_uncondskiporderwintxt
 
+defourtext objectquery
+defourtext objecterr_cantbuildonland
+
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 
 defourtext last

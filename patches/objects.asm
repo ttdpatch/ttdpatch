@@ -203,7 +203,6 @@ exported setobjectclasstexid
 	mov ax, ourtext(invalidsprite)
 	stc
 	ret
-	
 
 // Select window
 %assign win_objectgui_padding 10 
@@ -284,16 +283,27 @@ win_objectgui_winhandler:
 
 	cmp dl, cWinEventGRFChanges
 	je near win_objectgui_grfchanges
-	
-	
-//	cmp dl, cWinEventSecTick
-//	jz win_signalgui_sectick
 	ret
 	
 win_objectgui_grfchanges:
 	pusha
 	mov word [win_objectgui_curobject], -1
 	mov word [win_objectgui_curclass], -1
+	
+	// To prevent possible crashes, if we have any active drop downs, we close them
+	bt dword [esi+window.activebuttons], win_objectgui_elements.dropdown1_id
+	jnc .nodrop1
+	mov ecx, win_objectgui_elements.dropdown1_id
+	extcall GenerateDropDownExPrepare
+	jmp .nodrop2
+
+.nodrop1:
+	bt dword [esi+window.activebuttons], win_objectgui_elements.dropdown2_id
+	jnc .nodrop2
+	mov ecx, win_objectgui_elements.dropdown2_id
+	extcall GenerateDropDownExPrepare
+
+.nodrop2:
 	call doesclasshaveusableobjects
 	popa
 	ret
@@ -425,13 +435,81 @@ drawobjectproperties:
 	ret
 
 // Draws the objects preview sprite onto the window
+// - Updated to create a drawing buffer to prevent overlap
+// - Now also uses a compatible full tile drawing routine
 drawobjectpreviewsprite:
+	call .createbuffer
+	jz .invalid
+
+	pusha
+	movzx eax, word [win_objectgui_curobject]
+	mov esi, 0
+	mov byte [grffeature], 0xF
+	call getnewsprite
+	push eax	 // Data Pointer
+	push ebx	 // Sprite Availability
+	push dword 3 // Construction stage (always fully built for objects)
+
+	mov esi, [esp+0x30] // Restore window handle
+	call .getcolours
+
+	mov edi, baTempBuffer1
+	mov cx, [esi+window.x]
+	mov dx, [esi+window.y]
+	add cx, win_objectgui_elements.preview_x+89
+	add dx, win_objectgui_elements.preview_y+33
+
+	push ebx
+	push dword 0xF
+	call DrawObjectTileSelWindow
+	popa
+
+.invalid:
+	ret
+
+// Out:	z flag, clear if failed
+.createbuffer:
+	pusha
+	mov edi, baTempBuffer1
+	mov esi, [esp+0x28] // Restore window handle
+	mov byte [edi], 0
+
+	//	DX,BX = X,Y CX,BP = width,height
+	mov dx, [esi+window.x]
+	mov bx, [esi+window.y]
+	add dx, win_objectgui_elements.preview_x+1	// So it doesn't clip the edges
+	add bx, win_objectgui_elements.preview_y+1
+	mov cx, win_objectgui_elements.preview_width-2
+	mov bp, win_objectgui_elements.preview_height-2
+
+extern MakeTempScrnBlockDesc
+	call [MakeTempScrnBlockDesc]
+	popa
+	ret
+
+// In:	esi = Window handle
+// Out:	esi = Window handle
+//	 bx = Recolour mapping
+.getcolours:
+	mov edx, 0x10	// Get the recolour to defaultly apply
+	cmp byte [gamemode], 2
+	je .noowner
+	movzx edx, byte [human1]
+
+.noowner:
+	push edx // Owner of the window
+	push dword 0 // No tile index
+	push dword [win_objectgui_curobject] // Current selected object id
+	call GetObjectColourMap
+	ret
+
+#if 0	// Orginial method of previewing the object
 	pusha
 	mov esi, [esp+0x24]
 	mov cx, [esi+window.x]
 	mov dx, [esi+window.y]
-	add cx, win_objectgui_elements.preview_x+59
-	add dx, win_objectgui_elements.preview_y+36
+	add cx, win_objectgui_elements.preview_x+89 // 59
+	add dx, win_objectgui_elements.preview_y+33 // 36
 
 	movzx eax, word [win_objectgui_curobject]
 	push esi
@@ -443,7 +521,6 @@ drawobjectpreviewsprite:
 
 	inc eax
 	call getobjectpreviewsprite
-extern drawspritefn
 	call [drawspritefn]
 
 .nosprite:
@@ -493,6 +570,7 @@ recolourobjectsprite:
 	pop edx // We don't want to change ebx back
 	pop edx
 	ret
+#endif
 
 win_objectgui_clickhandler:
 	call dword [WindowClicked]
@@ -555,7 +633,7 @@ win_objectgui_classdropdown:
 	
 .done:
 	mov dword [DropDownExList+4*eax],-1	// terminate it
-	mov byte [DropDownExMaxItemsVisible], 16
+	mov byte [DropDownExMaxItemsVisible], 12
 	mov word [DropDownExFlags], 11b
 	
 	movzx edx, word [win_objectgui_curclass]
@@ -632,9 +710,19 @@ win_objectgui_objectdropdown:
 
 .done:
 	mov dword [DropDownExList+4*eax],-1	// terminate it
-	mov byte [DropDownExMaxItemsVisible], 16
+	mov byte [DropDownExMaxItemsVisible], 12
 	mov word [DropDownExFlags], 11b
 
+	test byte [expswitches],EXP_PREVIEWDD
+	jz .nopreview
+
+	// Used for the setting up previewdd
+	mov word [DropDownExListItemExtraWidth], 38
+	mov word [DropDownExListItemHeight], 23
+	mov byte [DropDownExMaxItemsVisible], 7
+	mov dword [DropDownExListItemDrawCallback], DrawObjectDDPreview //makestationseldropdown_callback
+
+.nopreview:
 	pop edx
 	pop ebx
 	pop ecx
@@ -1267,9 +1355,10 @@ proc GetObjectColourMap
 	cmp byte [numtwocolormaps+1], 1 // No 2cc maps loaded so we can only do 1cc
 	jb .onecc
 
-	test word [objectflags+edx*2], OF_TWOCC // We only have the grf raw data of flags for thr gui
+	test word [objectflags+edx*2], OF_TWOCC // We only have the grf raw data of flags for the gui
 	jnz .twocc
 	jmp .onecc
+endproc
 
 // In:	eax - owner
 // Out:	al - first colour [lower nibble]
@@ -1297,6 +1386,7 @@ GetOwnerColours:
 
 uvard ObjectCost
 uvard ObjectLayout
+uvarb ObjectWater
 
 // Create Object function
 // Input:	edi - tile index (word)
@@ -1446,7 +1536,7 @@ CheckObjectTile:
 	push ecx
 	push eax
 	call [CheckForVehiclesInTheWay]
-	jnz .fail
+	jnz near .fail
 
 	rol di, 4		// Store the x, y in the ax, cx registors
 	mov eax, edi
@@ -1471,10 +1561,20 @@ CheckObjectTile:
 	jnz .fail
 	
 	pusha
-	mov esi, 0		// Clear Tile
 	mov ebx, [esp+0x20]	// get our game id
-	call BuildObjectFlags
+	mov dl, byte [landscape4(di, 1)]	// We check water slightly differently
+	and dl, 0xF0
+	cmp dl, 0x60
+	je .water
 
+.usual:
+// Allows the grf to prevent an object being constructd on land (Lakie)
+	mov word [operrormsg2], ourtext(objecterr_cantbuildonland)
+	test word [objectflags+ebx*2], OF_NOBUILDLAND
+	jnz .failpop
+
+	mov esi, 0		// Clear Tile
+	call BuildObjectFlags
 	call [actionhandler]
 	cmp ebx, 1<<31
 	je .failpop
@@ -1495,13 +1595,38 @@ CheckObjectTile:
 	stc
 	ret
 
+.water:
+// Checks water tiles allowing flat water tiles and 'river rapids' (Lakie)
+//   Additionally also removes the cost of clearing the water.
+	mov dh, byte [landscape5(di, 1)]
+	test word [objectflags+ebx*2], OF_BUILDWATER	// Can we build on water
+	jz .usual
+
+	cmp dh, 3	// River Rapids (valid due to slopes not allowed on map edge)
+	je .donepop
+	cmp dh, 0	// Flat water tile
+	jne .usual
+
+	mov esi, 0		// Check to see if we can clear the water tile
+	mov bl, 2		// (mainly to check if we are trying to replace map edge tiles)
+	call [actionhandler]
+	cmp ebx, 1<<31
+	je .failpop
+
+.donepop:
+	popa
+	pop eax
+	pop ecx
+	clc
+	ret
+
 // In:	ebx = game id
 // Out: ebx = action flags
 BuildObjectFlags:
 	push eax
 	xchg ebx, eax
 	mov ebx, 0xA
-	test word [objectflags+eax*2], OF_ALLOWBUILDWATER
+	test word [objectflags+eax*2], OF_BUILDWATER
 	jz .nowater
 	and bl, ~8
 
@@ -1559,6 +1684,20 @@ CheckObjectSlope:
 //	bh = object owner
 CreateObjectTile:
 	pusha
+	movzx cx, byte [landscape4(di, 1)]
+	and cl, 0xF0
+	cmp cl, 0x60
+	jne .notwater
+	cmp byte [landscape5(di, 1)], 0x1
+	je .notwater
+
+// Stores the water bits of the water tile we are being built on (Lakie)
+	mov ch, byte [landscape3+edi*2]
+	or ch, 4
+
+.notwater:
+	mov byte [ObjectWater], ch
+
 	rol di, 4		// Store the x, y in the ax, cx registors
 	mov eax, edi
 	mov ecx, eax
@@ -1588,6 +1727,9 @@ CreateObjectTile:
 	push eax
 	call [randomfn]
 	mov byte [landscape6+edi], al
+
+	mov al, byte [ObjectWater]
+	mov byte [landscape7+edi], al
 	pop eax
 
 	push eax
@@ -1723,6 +1865,12 @@ RemoveObject:
 //	bl = action code
 // Out: carry = set if error
 RemoveObjectFlags:
+	cmp byte [curplayer], 0x11
+	je .fail
+	
+	cmp byte [gamemode], 2 // Objects are always removeable in the scenerio editor
+	je .done
+
 	test word [objectpool+ecx+object.flags], OF_ANYREMOVE
 	jnz .done
 
@@ -1733,9 +1881,6 @@ RemoveObjectFlags:
 	test bl, 2
 	jnz .fail
 
-	cmp byte [curplayer], 0x11
-	je .fail
-
 .done:
 	clc
 	ret
@@ -1744,9 +1889,6 @@ RemoveObjectFlags:
 	mov word [operrormsg2], 0x013B
 	cmp byte [curplayerctrlkey], 1
 	jz .done
-
-	cmp byte [gamemode], 2 // Objects are always removeable in the scenerio editor
-	je .done
 
 .fail:
 	stc
@@ -1758,6 +1900,9 @@ RemoveObjectFlags:
 //	edi = tile
 RemoveObjectTile:
 	pusha
+	mov cl, byte [landscape7+edi]
+	mov byte [ObjectWater], cl
+
 	rol di, 4 // Store the x, y in the ax, cx registors
 	mov eax, edi
 	mov ecx, edi
@@ -1803,6 +1948,34 @@ RemoveObjectTile:
 	pop ebx
 
 .normaltile:
+	test byte [ObjectWater], 4
+	jz .wasntwater
+
+// Restore the water tile originally under the object (Lakie)
+	pusha
+	rol di, 4 // Store the x, y in the ax, cx registors
+	mov eax, edi
+	mov ecx, edi
+	rol cx, 8
+	and ax, 0x0FF0
+	and cx, 0x0FF0
+	ror di, 4
+	
+	movzx edi, byte [ObjectWater]
+	and di, ~4
+	jnz .notsea
+	mov byte [curplayerctrlkey], 1 // Overrides canal/rivers on sea level
+
+.notsea:
+	shr di, 1 // 1 = river, 0 = canal
+
+extern actionmakewater_actionnum
+	mov esi, actionmakewater_actionnum
+	mov bx, 1
+	call [actionhandler]
+	popa
+
+.wasntwater:
 	pop esi
 	clc
 	ret
@@ -1914,6 +2087,7 @@ DrawObject:
 	call DrawObjectFoundations.gameid
 	pop edx
 
+	push edi
 	push eax
 	push ecx
 	push edx
@@ -1949,6 +2123,24 @@ DrawObject:
 	pop edx
 	pop ecx
 	pop eax
+	pop edi
+
+// Replaces the ground sprite with water showing correct canal / river bits (Lakie)
+	xchg esi, edi // Were we built upon water
+	test byte [landscape7+esi], 4
+	jz .nowater
+
+	movzx edi, word [landscape3+esi*2] // Should we draw water
+	imul edi, object_size
+	test word [objectpool+edi+object.flags], OF_DRAWWATER
+	jz .nowater
+
+	call [gettileinfoshort]
+	movzx bp, byte [landscape7+esi]
+extern Class6DrawLandCanalsOrRiversOrSeeWaterL3.ebp
+	call Class6DrawLandCanalsOrRiversOrSeeWaterL3.ebp
+
+.nowater:
 	popa
 	stc
 	ret
@@ -2057,6 +2249,358 @@ ClassAAnimationHandler:
 	pop edi
 	pop ebp
 	pop ebx
+	ret
+
+// In:	 cx, dx = x, y
+//	ebx = dropdown item index
+DrawObjectDDPreview:
+	inc ecx
+	call .createview
+	jz .invalid
+
+	pusha
+	mov edi, baTempBuffer1
+	mov word [edi+scrnblockdesc.zoom], 1
+	shl word [edi+scrnblockdesc.x], 1
+	shl word [edi+scrnblockdesc.y], 1
+	shl word [edi+scrnblockdesc.width], 1
+	shl word [edi+scrnblockdesc.height], 1
+
+	movzx eax, word [objectddgameidlist+ebx*2]
+	mov ebp, eax
+	mov esi, 0
+	mov byte [grffeature], 0xF
+	call getnewsprite
+	push eax	 // Data Pointer
+	push ebx	 // Sprite Availability
+	push dword 3 // Construction stage (always fully built for objects)
+
+	add cx, 16
+	add dx, 8
+	shl cx, 1
+	shl dx, 1
+
+	call .getcolours
+	push ebx
+	push dword 0xF
+	call DrawObjectTileSelWindow
+	popa
+
+.invalid:
+	ret
+
+.createview:
+	pusha
+	mov edi, baTempBuffer1
+	mov byte [edi], 0
+	//	DX,BX = X,Y CX,BP = width,height
+	mov ebx, edx
+	mov edx, ecx
+	mov cx, 64/2
+	mov bp, 46/2
+
+	call [MakeTempScrnBlockDesc]
+	popa
+	ret
+
+.getcolours:
+	push edx
+	mov edx, 0x10	// Get the recolour to defaultly apply
+	cmp byte [gamemode], 2
+	je .noowner
+	movzx edx, byte [human1]
+
+.noowner:
+	push edx // Owner of the window
+	push dword 0 // No tile index
+	push dword ebp // Current selected object id
+	call GetObjectColourMap
+	pop edx
+	ret
+
+// ************************************ Object Preview Drawing ************************************
+extern drawspritefn, exscurfeature, exsspritelistext
+global DrawObjectTileSelWindow
+
+uvarw DrawPreviewLastX
+uvarw DrawPreviewLastY
+
+// Draws a object tile in a temporary buffer, [also house or industry tiles in theory]. (Lakie)
+// - This is going to mainly be a stripped down and simplified clone of processtileaction2
+// In:	 cx = x
+//	 dx = y
+//	edi = Sprite Block
+//	(On the stack in this order)
+//	- Data Pointer
+//	- Sprite Availablity
+//	- Construction State
+//	- Defualt Recolour
+//	- Grf Feature
+proc DrawObjectTileSelWindow
+	arg dataptr, spritesavail, conststate, defcolor, grffeature
+	slocal numsprites, byte
+
+	_enter
+
+	mov esi, dword [%$dataptr]
+	
+	mov bl, [esi] // Num sprites / type of action2
+	mov byte [%$numsprites], bl
+	inc esi
+
+	call .getsprite
+	jz .noground
+
+	pusha	// Draw the ground tile
+	call [drawspritefn]
+	popa
+
+.noground:
+	cmp byte [%$numsprites], 0
+	ja .newformat
+
+	call .getsprite
+	jz .done
+
+	pusha
+	movzx ax, byte [esi] // x
+	movzx cx, byte [esi+1] // y
+	mov dl, 0 // z
+	call .topixels
+	mov bx, cx
+	
+	mov ecx, dword [esp+_pusha.ecx]
+	mov edx, dword [esp+_pusha.edx]
+	add cx, ax
+	add dx, bx
+	mov ebx, dword [esp+_pusha.ebx]
+	
+	// Draw the upper tile part
+	call [drawspritefn]
+	popa
+
+.done:
+	_ret
+
+.error:
+	ud2
+	_ret
+
+.newformat:
+	// First loop the extended ground sprites
+	// - There isn't much difference between this and .normal/.shared, the
+	//     main difference is ground sprites do not support the x, y offsets.
+	cmp byte [esi+6], 0x80
+	jne .normal
+
+	call .getsprite
+	jz .error
+	btr ebx, 30
+	add esi, 3
+
+	pusha	// Draw the extra ground tile
+	call [drawspritefn]
+	popa
+	dec byte [%$numsprites]
+	jnz .newformat
+	_ret
+
+.normal:
+	// Handles the rest of the action2, both the 'boxes' and 'relatives'
+	call .getsprite
+	jz .error
+	btr ebx, 30
+
+	pusha
+	cmp byte [esi+2], 0x80
+	je .shared
+	
+	// Get the landscape offsets and convert them to pixel offsets
+	movzx ax, byte [esi] // x
+	movzx cx, byte [esi+1] // y
+	mov dl, byte [esi+2] // z
+	call .topixels
+	mov bx, cx
+
+	mov ecx, dword [esp+_pusha.ecx]
+	mov edx, dword [esp+_pusha.edx]
+	add cx, ax
+	add dx, bx
+
+	// To provide almost correct functionality for 'relatives'
+	mov word [DrawPreviewLastX], ax
+	mov word [DrawPreviewLastY], dx
+
+	mov ebx, dword [esp+_pusha.ebx]
+	add dword [esp+_pusha.esi], 6
+	jmp .offsets
+	
+.shared:
+	// Already pixel offsets so no adjustment needed
+	movzx cx, byte [esi]
+	movzx dx, byte [esi+1]
+	add cx, word [DrawPreviewLastX]
+	add dx, word [DrawPreviewLastY]
+	add dword [esp+_pusha.esi], 3
+
+.offsets:
+	call [drawspritefn]
+	popa
+	dec byte [%$numsprites]
+	jnz .normal
+	_ret
+
+// In:	esi = Pointer to Action2 (Sprite raw)
+// Out:	ebx = Sprite (with recolour)
+//	z flag = set means sprite valid
+.getsprite:
+	mov ebx, dword [esi]
+	add esi, 4
+	btr ebx, 31
+	jnc .ttdsprite
+
+	// Grf (house / industry) sprites need adjusting according to construction
+	push edx
+	mov edx, dword [%$spritesavail]
+	shl edx, 2
+	add edx, [%$conststate]
+	movzx edx, byte [.spriteoffsets+edx]
+	add ebx, edx
+
+	mov dl, [%$grffeature]	// Something to do with GRM apparently
+	mov [exscurfeature], dl
+	mov byte [exsspritelistext], 1
+	pop edx
+
+.ttdsprite:
+	test bx, bx
+	jns .norecolor
+
+	rol ebx, 16	// Tests for a specified recolour mapping
+	test bx, 0x3fff
+	jnz .goodrecolor
+	or bx, [%$defcolor]
+
+.goodrecolor:
+	ror ebx,16
+	
+.norecolor:
+	test ebx, ebx
+	_ret 0 // Preserve stack frame
+
+// In:	ax, cx, dl = landscape x, y, z
+// Out:	ax, cx = pixel x, y
+.topixels:
+	xor dh, dh
+	mov bx, ax
+	neg ax
+	add ax, cx
+	add cx, bx
+	shl ax, 1
+	sub cx, dx
+	_ret 0
+endproc
+
+.spriteoffsets:
+	db 0,0,0,0
+	db 0,0,0,1
+	db 0,1,1,2
+	db 0,1,2,3
+
+// ************************************ Periodic Tile Proc ****************************************
+global ClassAPeriodicHandler
+ClassAPeriodicHandler:
+	cmp byte [landscape1+ebx], 0 // Only operate on the first tile (prevent over redraw)
+	jne .done
+
+	pusha
+	xchg edi, ebx
+	mov bh, byte [landscape1+edi]
+	movzx ebp, word [landscape3+edi*2]
+	
+	push ebp
+	imul ebp, object_size
+	movzx esi, word [objectpool+ebp+object.dataid]
+	movzx esi, word [objectsdataidtogameid+esi*2]
+	pop ebp
+	test esi, esi	// Do we have a valid gameid?
+	jz .donepop
+
+	push esi
+	call GetObjectSize	// Result in dx
+
+	push IsObjectTile
+	push RedrawObjectTile
+	push esi
+	push ebp
+	call LoopTiles	// Mark all the object tiles as dirty
+
+.donepop:
+	popa
+
+.done:
+	ret
+
+// ****************************************** Query Tile ******************************************
+global QueryObject
+
+// In:	 ax = Statue string
+//	 cl = Tile class
+//	edi = Tile index (xy)
+// Out:	ax = String to use
+//	ecx= TextRefStack Values
+QueryObject:
+	cmp cl, 2
+	je .done
+
+	mov ax, 0x5805	// Original owned land
+	cmp cl, 5
+	jne .done
+
+	// New objects
+	push esi
+	xor ecx, ecx
+	movzx esi, word [landscape3+edi*2]
+	imul esi, object_size
+	movzx esi, word [objectpool+esi+object.dataid]
+	movzx esi, word [objectsdataidtogameid+esi*2]
+	
+	test esi, esi	// No grf loaded, so fallback to company owned land
+	jz .donepop
+
+	mov ax, ourtext(objectquery)	// Store the text id and its value to use
+	mov ecx, dword [objectspriteblock+esi*4]
+extern curlandinfogrf
+	mov dword [curlandinfogrf], ecx
+	
+	mov cx, word [objectnames+esi*2]
+	call .fixtextid
+
+// It's not gartentuee'd that the class and object textids come from the same grf
+//   but this commented code would give the ablity to show both
+//	shl ecx, 16
+//	
+//	movzx esi, word [objectclass+esi*2]
+//	mov cx, word [objectclassesnames+esi*2]
+//	call .fixtextid
+
+	// Other odd quirk is that the text becomes UD:<num> upon any grf changes
+	// I'm unsure if these issues are in the text handler system or of my code
+
+.donepop:
+	pop esi
+
+.done:
+	ret
+
+.fixtextid:
+	cmp ch, 0xD0
+	jb .nofix
+	cmp ch, 0xD3
+	ja .nofix
+	add ch, 0x04
+
+.nofix:
 	ret
 
 // **************************************** Newgrf Vars *******************************************

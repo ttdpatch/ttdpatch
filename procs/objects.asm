@@ -60,6 +60,16 @@ extern DrawObject
 	jnc $+8
 	ret
 
+codefragment oldobjecthookquery
+	cmp cl, 2
+	jz $+6
+	mov ax, 0x5805 // Company owned land
+
+codefragment newobjecthookquery
+extern QueryObject
+	icall QueryObject
+	setfragmentsize 9
+
 endcodefragments
 
 
@@ -172,10 +182,12 @@ extern ObjectClearTile
 	stringaddress newobjectdeferdrawtile, 1, 1
 	mov byte [edi], 0x73 // jae
 	patchcode objecthookdrawtile, 1, 2
+	patchcode objecthookquery
 
-extern ClassAAnimationHandler
+extern ClassAAnimationHandler, ClassAPeriodicHandler
 	mov eax, [ophandler+(0xA * 8)]
 	mov dword [eax+(12 * 4)], ClassAAnimationHandler
+	mov dword [eax+(8 * 4)], ClassAPeriodicHandler
 	ret
 
 .notfoundelelist:

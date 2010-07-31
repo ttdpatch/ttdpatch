@@ -3,7 +3,7 @@
 #include <patchproc.inc>
 
 // all switches using L7 must be listed here
-patchproc higherbridges,newhouses,newindustries,onewayroads,enhancetunnels,newstations,advzfunctions, patchlandscape7
+patchproc higherbridges,newhouses,newindustries,onewayroads,enhancetunnels,newstations,advzfunctions,newobjects, patchlandscape7
 
 extern malloccrit,landscape7_ptr, reloc
 

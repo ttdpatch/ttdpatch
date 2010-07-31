@@ -357,11 +357,15 @@ FillCanalAction2FeatureArray:
 // edi = corner map
 // dl = height
 // L3 of esi = Canal/River Type
+global Class6DrawLandCanalsOrRiversOrSeeWaterL3.ebp
 Class6DrawLandCanalsOrRiversOrSeeWaterL3:
 	// the corners aren't allowed to be used with canals code because of crash
 	cmp esi,0x101
 	jb .nocanal
 	movzx ebp, byte [landscape3+2*esi]
+
+// Same as above but with ebp containing the bits from L3
+.ebp:
 	and ebp, 11b
 	jz .nobitsset
 	shr ebp, 1			// now for canals = 0 and for rivers = 1
@@ -1037,7 +1041,7 @@ iswateredtile:
 	
 	movzx edi, word [landscape3+esi*2]
 	imul edi, object_size
-	test word [objectpool+edi+object.flags], OF_ALLOWBUILDWATER
+	test word [objectpool+edi+object.flags], OF_BUILDWATER
 	jnz .watertile
 	jmp .notwater
 ;endp iswateredtile
