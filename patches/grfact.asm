@@ -3957,6 +3957,10 @@ definegrftranslation:
 	or edi,byte -1
 	ret
 
+	// *** action 14 handler ***
+action14:
+	ret
+	
 uvarb spriteand
 uvard spritebase
 
@@ -3966,7 +3970,7 @@ uvard grfstage
 
 // Actions for which we don't need to check that the GRFID is valid
 // so far that's actions 6-9, B-E and 10
-spriteactnogrfid equ 00010111101111000000b
+spriteactnogrfid equ 100010111101111000000b
 
 	// pointers to the actions specified in the first byte of
 	// the pseudo sprite data
@@ -3976,7 +3980,7 @@ global numspriteactions,spritegrfidcheckofs
 // Actions for which the byte after the action byte is the feature
 // and we should check if it's enabled
 // so far that's actions 0, 2-4 and 13 (not 1 because the sprites need to be skipped always)
-vard docheckfeature, 10000000000000001101b
+vard docheckfeature, 010000000000000001101b
 
 	align 4
 
@@ -4002,6 +4006,7 @@ var spriteinitializeaction
 	dd addr(initgrfsounds)		//11: define sounds
 	dd skipcharset			//12: define glyphs
 	dd 0				//13: translate grf texts
+	dd 0				//14: grf information
 
 numspriteactions equ (addr($)-spriteinitializeaction)/4
 spritegrfidcheckofs equ numspriteactions*4
@@ -4030,7 +4035,8 @@ var spriteactivateaction
 	dd addr(skipgrfsounds)		//11: define sounds
 	dd loadcharset			//12: define glyphs
 	dd definegrftranslation		//13: translate grf texts
-
+	dd 0				//14: grf information
+	
 	dd spriteactnogrfid
 
 
@@ -4057,6 +4063,7 @@ var spritetestactaction
 	dd addr(skipgrfsounds)		//11: define sounds
 	dd skipcharset			//12: define glyphs
 	dd 0				//13: translate grf texts
+	dd 0				//14: grf information
 
 	dd spriteactnogrfid
 
@@ -4084,6 +4091,7 @@ var spritesloadedaction
 	dd addr(skipgrfsounds)		//11: define sounds
 	dd skipcharset			//12: define glyphs
 	dd 0				//13: translate grf texts
+	dd 0				//14: grf information
 
 	dd -1				// never check for valid GRFID
 
@@ -4111,6 +4119,7 @@ var spritereserveaction
 	dd addr(skipgrfsounds)		//11: define sounds
 	dd skipcharset			//12: define glyphs
 	dd 0				//13: translate grf texts
+	dd 0				//14: grf information
 
 	dd -1				// never check for valid GRFID
 
