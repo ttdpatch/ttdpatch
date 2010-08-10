@@ -1468,6 +1468,9 @@ vard calcoperators
 	dd addr(.signed_divmod),addr(.signed_divmod),addr(.unsigned_divmod),addr(.unsigned_divmod)
 	dd addr(.multiply),addr(.and),addr(.or),addr(.xor),addr(.storevar),addr(.copy),addr(.storepers)
 	dd addr(.rotater),.signed_cmp,.unsigned_cmp
+	dd .shiftl
+	dd .unsigned_shiftr
+	dd .signed_shiftr
 numcalcoperators equ ($-calcoperators)/4
 
 endvar
@@ -1656,6 +1659,20 @@ endvar
 
 .cmp_above:
 	mov eax,2
+	ret
+
+.shiftl:
+	shl eax, cl
+	ret
+
+.unsigned_shiftr:
+	call .make_eax_unsigned
+	shr eax, cl
+	ret
+
+.signed_shiftr:
+	call .make_eax_signed
+	sar eax, cl
 	ret
 
 uvard lastcalcresult
