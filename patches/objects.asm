@@ -2207,11 +2207,7 @@ ClassAAnimationHandler:
 	push ebp
 	imul ebp, object_size
 	mov al, byte [objectpool+ebp+object.animation]
-	mov ah, al
-	and ah, 0xF0
 	inc al
-	and al, 0xF
-	or al, ah
 	mov byte [objectpool+ebp+object.animation], al
 
 	push edx
@@ -2668,16 +2664,30 @@ getObjectVar42:
 	ret
 
 // Var 43, Construction stage and Animation stage
-// Out:	00000C0A - Colour (no owner) and Animation Counter
+// Out:	0000CCAA - Colour (no owner) and Animation Counter
 getObjectVar43:
 	test esi, esi
 	jz .gui
 
-	movzx eax, word [landscape3+esi*2]
-	imul eax, object_size
-	movzx eax, byte [objectpool+eax+object.animation]
-	shl ax, 4
-	shr al, 4
+	push ecx
+	movzxebx, word [landscape3+esi*2]
+	imul ebx, object_size
+	movzx eax, byte [objectpool+ebx+object.animation]
+	mov ah, byte [objectpool+ebx+object.colour]
+
+	cmp byte [landscape1+esi], 0x10
+	jae .noowner
+
+	push eax
+	movzx eax, byte [landscape1+esi]
+	call GetOwnerColours
+
+	or cl, al
+	pop eax
+	mov ah, cl
+
+.noowner:
+	pop ecx
 	ret
 
 .gui:
