@@ -2670,10 +2670,10 @@ getObjectVar43:
 	jz .gui
 
 	push ecx
-	movzxebx, word [landscape3+esi*2]
-	imul ebx, object_size
-	movzx eax, byte [objectpool+ebx+object.animation]
-	mov ah, byte [objectpool+ebx+object.colour]
+	movzx ecx, word [landscape3+esi*2]
+	imul ecx, object_size
+	movzx eax, byte [objectpool+ecx+object.animation]
+	mov ah, byte [objectpool+ecx+object.colour]
 
 	cmp byte [landscape1+esi], 0x10
 	jae .noowner
