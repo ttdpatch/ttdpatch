@@ -9,7 +9,8 @@ extern malloc, newwindowcount, patchflags, windowstack, reloc, window2ofs_ptr
 
 begincodefragments
 
-codefragment oldfinishclosewindow, -2
+codefragment oldfinishclosewindow, 0
+	shr ecx, 1
 	rep movsw
 
 codefragment_call newfinishclosewindow, FinishCloseWindow, 5
