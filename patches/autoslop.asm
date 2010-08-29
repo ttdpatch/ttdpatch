@@ -507,11 +507,11 @@ autoslopechecklandscape:
 	call [gettileinfoshort]
 
 extern patchflags
-	testmultiflags newobjects // If objects aren't loaded then there isn't much point continuing
-	jz near .normalobject
-
 	cmp dh, NOBJECTTYPE // Is it an object tile?
 	jne near .normalobject
+
+	testmultiflags newobjects // If objects aren't loaded then there isn't much point continuing
+	jz near .exit
 
 extern objectsdataidtogameid
 	movzx eax, word [landscape3+esi*2] // Get the object id (no pool then we die but that should be unlikely)
@@ -520,7 +520,20 @@ extern objectsdataidtogameid
 	movzx eax, word [objectsdataidtogameid+eax*2]
 	test eax, eax // No gameid?, object data isn't loaded then so we assume no changes allowed
 	jz near .exit
+	
+	// We now only check that is allowed
+	mov dword [esp+_pusha.eax], eax
+	popa
 
+extern objectcallbackflags
+	test word [objectcallbackflags+eax*2], OC_AUTOSLOPE
+	jz near .noroutetiles
+
+	mov byte [grffeature], 0xF
+	mov word [curcallback], 0x15D
+	jmp near .docallback
+	
+#if 0
 	// So we do have an object
 extern miscgrfvar, CheckObjectSlope
 	call CalcProposedSlope // Get the proposed corner layout, and tile
@@ -574,6 +587,7 @@ CalcProposedSlope:
 	bts di, 4 // Steep slope, invalid other bits
 	pop eax
 	ret
+#endif
 
 var cornerbits
 	db 3, 2, 1, 0

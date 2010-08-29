@@ -69,6 +69,12 @@ extern objectcostfactors
 extern objectstartdates
 extern objectenddates
 extern objectflags
+extern objectanimframes
+extern objectanimspeeds
+extern objectanimtriggers
+extern objectremovalcostfactors
+extern objectcallbackflags
+extern objectheights
 
 // Properties for classes of objects
 extern objectclasses			// the actual defined classes
@@ -154,6 +160,24 @@ exported setobjectclass
 	mov dword [objectspriteblock+eax*4],ecx
 
 .endofthisdefine:
+// Now we default all of the poperties for it
+// Required properties (leaving these unset voids the object)
+	mov word [objectnames+eax*2], 0
+	mov byte [objectsizes+eax], 0
+
+// Optional properties
+	mov byte [objectavailability+eax], 0
+	mov byte [objectcostfactors+eax], 2
+	mov dword [objectstartdates+eax*4], 0
+	mov dword [objectenddates+eax*4], 0
+	mov word [objectflags+eax*2], 0
+	mov word [objectanimframes+eax*2], -1
+	mov byte [objectanimspeeds+eax], 0
+	mov byte [objectanimtriggers+eax], 0
+	mov byte [objectremovalcostfactors+eax], 2
+	mov word [objectcallbackflags+eax*2], 0
+	mov byte [objectheights+eax], -1
+
 	pop ecx
 	inc ebx
 	dec ecx
@@ -202,6 +226,14 @@ exported setobjectclasstexid
 .fail:
 	mov ax, ourtext(invalidsprite)
 	stc
+	ret
+
+// Based off the specs, I believe it is meant to work more or less this way
+exported setobjectbuyfactor
+	lodsb
+	mov byte [objectcostfactors+ebx], al
+	mov byte [objectremovalcostfactors+ebx], al
+	clc
 	ret
 
 // Select window
@@ -1650,11 +1682,14 @@ CheckObjectSlope:
 	test di, 0x10
 	jnz .fail
 
+	test word [objectcallbackflags+eax*2], OC_SLOPECHECK
+	jz .default
+
 	xor esi, esi
 	movzx ecx, cl
 	mov dword [callback_extrainfo], ecx
 
-	mov dword [curcallback],0x149
+	mov word [curcallback],0x157
 	mov byte [grffeature], 0xF
 	call getnewsprite
 	mov dword [curcallback],0
@@ -1989,11 +2024,11 @@ RemoveObjectCost:
 	push edx
 	push ebx
 	imul ecx, object_size
-	mov ebx, 2 // Our base factor
+	mov ebx, 2 // Our fallback base factor
 
 	test ax, ax
 	jz .nogrf
-	movzx ebx, byte [objectcostfactors+eax] // Get the grf factor
+	movzx ebx, byte [objectremovalcostfactors+eax]
 
 .nogrf:
 	// multiple it by the number of tiles
@@ -2041,30 +2076,44 @@ DrawObject:
 	pop eax
 
 .fallback:
+	push ebp
 	call DrawObjectFoundations
 	call GetObjectColourMapWrapper
 	shl ebp, 16
 
 	push ebp
 	mov bx, 1420
-	call [addgroundsprite]
+	call .fallback_ground
 	pop ebx
 
-	push eax
-	push ecx
 	or al, 8
 	or cl, 8
-	extern getgroundaltitude
-	call [getgroundaltitude]
 	mov di, 1
 	mov si, di
 	mov dh, 0xA
 	mov bx, 4790 + 0x8000
 	call [addsprite]
-	pop eax
-	pop ecx
+	pop ebp
 	popa
 	stc
+	ret
+
+// Because of foundations, we need to draw our ground tile differently
+.fallback_ground:
+	mov ebp, dword [esp+8]
+	test bp, bp
+	jnz .fallback_found
+
+	call [addgroundsprite]
+	ret
+
+.fallback_found:
+	push edx
+	mov ax,31
+	mov cx,1
+extern addrelsprite
+	call [addrelsprite]
+	pop edx
 	ret
 
 .newObject:
@@ -2087,6 +2136,7 @@ DrawObject:
 	call DrawObjectFoundations.gameid
 	pop edx
 
+	push esi
 	push edi
 	push eax
 	push ecx
@@ -2124,6 +2174,7 @@ DrawObject:
 	pop ecx
 	pop eax
 	pop edi
+	pop esi
 
 // Replaces the ground sprite with water showing correct canal / river bits (Lakie)
 	xchg esi, edi // Were we built upon water
@@ -2513,7 +2564,7 @@ ClassAPeriodicHandler:
 	xchg edi, ebx
 	mov bh, byte [landscape1+edi]
 	movzx ebp, word [landscape3+edi*2]
-	
+
 	push ebp
 	imul ebp, object_size
 	movzx esi, word [objectpool+ebp+object.dataid]
@@ -2580,9 +2631,6 @@ extern curlandinfogrf
 //	mov cx, word [objectclassesnames+esi*2]
 //	call .fixtextid
 
-	// Other odd quirk is that the text becomes UD:<num> upon any grf changes
-	// I'm unsure if these issues are in the text handler system or of my code
-
 .donepop:
 	pop esi
 
@@ -2600,12 +2648,11 @@ extern curlandinfogrf
 	ret
 
 // **************************************** Newgrf Vars *******************************************
-global getObjectVar40, getObjectVar41, getObjectVar42, getObjectVar43
 extern gettileterrain, gettileinfoshort
 
 // Var:	40, Relative Position
-// Out:	eax = 00xyXXYY
-getObjectVar40:
+// Out:	eax = 00yxYYXX
+exported getObjectVar40
 	test esi, esi
 	jz .gui
 
@@ -2623,7 +2670,7 @@ getObjectVar40:
 
 // Var:	41, Tile Type
 // Out:	0000sstt (tt - same as var 43 houses, ss - slope data)
-getObjectVar41:
+exported getObjectVar41
 	test esi, esi
 	jz .gui
 
@@ -2644,28 +2691,27 @@ getObjectVar41:
 	xor eax, eax
 	ret
 
-// Var 42, Construction Year
-// Out: 0000yyyy (year since year 0)
-getObjectVar42:
+// Var 42, Construction Date
+// Out: dddddddd (year since year 0)
+exported getObjectVar42
 	test esi, esi
 	jz .gui
 
 	movzx eax, word [landscape3+esi*2]
 	imul eax, object_size
 	movzx eax, word [objectpool+eax+object.buildyear]
+	imul eax, 365	// Rough fix until the object pool update
 	ret
 
 .gui:
 	movzx eax, word [currentdate]
 	add eax, 701265
 	add eax, [landscape3+ttdpatchdata.daysadd]
-	call GetObjectYear
-	call reduceyeartoword
 	ret
 
-// Var 43, Construction stage and Animation stage
+// Var 43, Colour and Animation stage
 // Out:	0000CCAA - Colour (no owner) and Animation Counter
-getObjectVar43:
+exported getObjectVar43
 	test esi, esi
 	jz .gui
 
@@ -2691,6 +2737,58 @@ getObjectVar43:
 	ret
 
 .gui:
+	xor eax, eax
+	ret
+
+// Var 44, Object Owner
+// Out:	000000AA - Owner id (0x10 if unowned)
+exported getObjectVar44
+	movzx eax, byte [landscape1+esi] // Too easy?
+	ret
+
+// Should I use the same method as var65 or just use the reftown it was built with?
+// Var45, Get distance of closest town
+// Out:	?
+exported getObjectVar45
+	xor eax, eax
+	ret
+
+// Var46, Get euclidean distance of closest town
+// Out:	?
+exported getObjectVar46
+	xor eax, eax
+	ret
+
+
+// For the below "ParamVar" functions, ah = parameter from grf
+
+// Var60, Get object id at offset from tile
+// Out:	?
+exported getObjectParamVar60
+	xor eax, eax
+	ret
+
+// Var61, Get random bits at offset from tile
+// Out:	000000RR - Random Bits from tile (given tile is of same object)
+exported getObjectParamVar61
+	xor eax, eax
+	ret
+
+// Var62, Land info at offset from tile
+// Out:	?
+exported getObjectParamVar62
+	xor eax, eax
+	ret
+
+// Var63, Get animation counter at offset from tile
+// Out:	000000AA - Animation Counter from tile (given tile is of same object)
+exported getObjectParamVar63
+	xor eax, eax
+	ret
+
+// Var64, Count of object type and closest object distance
+// Out:	?
+exported getObjectParamVar64
 	xor eax, eax
 	ret
 

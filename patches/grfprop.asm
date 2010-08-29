@@ -520,16 +520,22 @@ action0props objectproperties,NOBJECTS,curgrfobjectgameids,0x08
 	prop 0x05,U,0
 	prop 0x06,U,0
 	prop 0x07,U,0
-// defvehdata spclobjectdata, F,F,T,B
+// defvehdata spclobjectdata, F,F,T,B,B,B,D,D,W,W,B,B,B,W,B
 	propex 0x08,F, setobjectclass
 	propex 0x09,F, setobjectclasstexid
 	propex 0x0A,T, objectnames
 	propex 0x0B,B, objectavailability
 	propex 0x0C,B, objectsizes
-	propex 0x0D,B, objectcostfactors
+	propex 0x0D,F, setobjectbuyfactor
 	propex 0x0E,D, objectstartdates
 	propex 0x0F,D, objectenddates
 	propex 0x10,W, objectflags
+	propex 0x11,W, objectanimframes
+	propex 0x12,B, objectanimspeeds
+	propex 0x13,B, objectanimtriggers
+	propex 0x14,B, objectremovalcostfactors
+	propex 0x15,W, objectcallbackflags
+	propex 0x16,B, objectheights
 endaction0props
 
 %pop

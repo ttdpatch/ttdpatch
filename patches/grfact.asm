@@ -4304,7 +4304,13 @@ uvard objectavailability, NOBJECTS/4				// a byte representing the climates it i
 uvard objectcostfactors, NOBJECTS/4				// a byte which contains the cost factor
 uvard objectstartdates, NOBJECTS				// a dword representing intro date from 1/1/0000
 uvard objectenddates, NOBJECTS					// a dword representing outtro date from 1/1/0000
-uvard objectflags, NOBJECTS/2					// a dword of flags which control how objects behave
+uvard objectflags, NOBJECTS/2					// a word of flags which control how objects behave
+uvarw objectanimframes,NOBJECTS/2				// a word with the animation frames
+uvarb objectanimspeeds,NOBJECTS/4				// a byte with the animation speed
+uvarb objectanimtriggers,NOBJECTS/4				// a byte with the animation triggers
+uvarb objectremovalcostfactors,NOBJECTS/4			// a byte with the cost factor for removal
+uvard objectcallbackflags,NOBJECTS/2				// a word of callback flags which control the called callbacks
+uvarb objectheights,NOBJECTS/4					// a byte with the height of the object
 
 // Properties for classes of objects
 uvard objectclasses, NOBJECTSCLASSES				// the actual defined classes
