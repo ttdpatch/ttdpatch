@@ -173,7 +173,7 @@ exported setobjectclass
 	mov word [objectflags+eax*2], 0
 	mov word [objectanimframes+eax*2], -1
 	mov byte [objectanimspeeds+eax], 0
-	mov byte [objectanimtriggers+eax], 0
+	mov word [objectanimtriggers+eax], 0
 	mov byte [objectremovalcostfactors+eax], 2
 	mov word [objectcallbackflags+eax*2], 0
 	mov byte [objectheights+eax], -1

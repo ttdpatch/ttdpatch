@@ -532,7 +532,7 @@ action0props objectproperties,NOBJECTS,curgrfobjectgameids,0x08
 	propex 0x10,W, objectflags
 	propex 0x11,W, objectanimframes
 	propex 0x12,B, objectanimspeeds
-	propex 0x13,B, objectanimtriggers
+	propex 0x13,W, objectanimtriggers
 	propex 0x14,B, objectremovalcostfactors
 	propex 0x15,W, objectcallbackflags
 	propex 0x16,B, objectheights
