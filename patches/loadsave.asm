@@ -2390,8 +2390,18 @@ canhaveobjectpool:
 
 loadobjectpool:
 	cmp eax, NACTIVEOBJECTS*object_size
-	ja badchunk
-	jmp short loadsaveobjectpool
+	je loadsaveobjectpool
+
+	cmp eax, NACTIVEOBJECTS*oldobject_size
+	jne badchunk
+
+	call loadsaveobjectpool
+extern objectpoolmigrate
+	jmp objectpoolmigrate
+
+// Somehow check saved file ttdpatch version against ours?
+// The mirgrate the data
+	jmp loadsaveobjectpool
 
 saveobjectpool:
 	mov eax, NACTIVEOBJECTS*object_size

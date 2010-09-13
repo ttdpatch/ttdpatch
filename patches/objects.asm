@@ -164,9 +164,9 @@ exported setobjectclass
 // Required properties (leaving these unset voids the object)
 	mov word [objectnames+eax*2], 0
 	mov byte [objectsizes+eax], 0
+	mov byte [objectavailability+eax], 0
 
 // Optional properties
-	mov byte [objectavailability+eax], 0
 	mov byte [objectcostfactors+eax], 2
 	mov dword [objectstartdates+eax*4], 0
 	mov dword [objectenddates+eax*4], 0
@@ -262,6 +262,7 @@ endguiwindow
 
 svarw win_objectgui_curclass
 svard win_objectgui_curobject
+uvarw cur_object_tile
 
 exported win_objectgui_create
 	bts dword [esi+window.activebuttons], ebx
@@ -987,7 +988,52 @@ objectpoolclear:
 	rep stosd
 	popa
 	ret
+
+global objectpoolmigrate
+objectpoolmigrate:
+	push esi
+	push edi
+	push eax
+	mov esi, NACTIVEOBJECTS*oldobject_size
+	mov edi, NACTIVEOBJECTS*object_size
+
+// Always going to do atleast one iteration
+.loop:
+	cmp word [objectpool+esi+object.origin], 0
+	je .skip
+
+	// We have a record, move the data as needed
+	mov ax, word [objectpool+esi+oldobject.origin] // Origin move 0x0 -> 0x0
+	mov word [objectpool+edi+object.origin], ax
+	mov ax, word [objectpool+esi+oldobject.dataid] // Dataid move 0x2 -> 0x4
+	mov word [objectpool+edi+object.dataid], ax
+	mov al, byte [objectpool+esi+oldobject.colour] // Colours move 0x2 -> 0x4
+	mov byte [objectpool+edi+object.colour], al
+
+	// Calculate the date
+	movzx eax, word [objectpool+esi+oldobject.buildyear]
+	imul eax, (365*4)+1	// multiply by 4 years (one being a leap year)
+	shr eax, 2			// Divide by 4
+	mov dword [objectpool+edi+object.builddate], eax
+
+	// Finally get the townptr
+	pusha
+	mov ax, word [objectpool+edi+object.origin]
+	call findnearesttown
+	mov dword [esp+_pusha.eax], edi
+	popa
+	mov dword [objectpool+edi+object.townptr], eax
+
+.skip:
+	sub esi, oldobject_size
+	sub edi, object_size
+	jnz .loop
 	
+	pop eax
+	pop edi
+	pop esi
+	ret
+
 // ********************************** Externs for the code below **********************************
 
 extern CheckForVehiclesInTheWay
@@ -1011,6 +1057,7 @@ extern invalidatetile
 extern getyear4fromdate
 extern reduceyeartoword
 extern deftwocolormaps
+extern findnearesttown
 
 // *************************************** Helper functions ***************************************
 
@@ -1249,22 +1296,34 @@ SetObjectPoolEntry:
 	movzx eax, word [currentdate]
 	add eax, 701265
 	add eax, [landscape3+ttdpatchdata.daysadd]
-	call GetObjectYear
-	call reduceyeartoword
-	mov word [objectpool+ecx+object.buildyear], ax
+// We now store the build date itself (Lakie)
+//	call GetObjectYear
+//	call reduceyeartoword
+//	mov word [objectpool+ecx+object.buildyear], ax
+	mov dword [objectpool+ecx+object.builddate], eax
 	pop eax
 
-	mov bx, word [objectflags+eax*2]
-	mov word [objectpool+ecx+object.flags], bx
+// We no longer cache object flags in the pool (Lakie)
+//	mov bx, word [objectflags+eax*2]
+//	mov word [objectpool+ecx+object.flags], bx
 	mov bx, [objectsgameiddata+eax*idf_gameid_data_size+idf_gameid_data.dataid]
 	mov word [objectpool+ecx+object.dataid], bx
 
+// We now store a 'nearest' town
+	pusha
+	mov ax, di
+	call findnearesttown
+	mov dword [esp+_pusha.ebx], edi
+	popa
+	mov dword [objectpool+ecx+object.townptr], ebx
+
 	cmp byte [gamemode], 2
 	jne .companyowned
-	call [randomfn]
-	mov byte [objectpool+ecx+object.colour], al
+	mov bh, 0x10
 
 .companyowned:
+	call SetObjectBuildColour
+
 	pop ebx
 	pop ecx
 	pop eax
@@ -1329,9 +1388,18 @@ proc GetObjectColourMap
 	mov dword [%$tile], edx
 
 	movzx edx, word [%$gameid]
+	test dx, dx
+	jz .normal
+
+	// We have a special case where having cb15b set means cached colour
+	test word [objectcallbackflags+edx*2], OC_BUILDCOLOUR
+	jnz .cached
+
+.normal:
 	cmp byte [%$owner], 0x10
 	jb .owned
 
+.cached:
 	mov eax, dword [%$tile]
 	movzx ax, byte [objectpool+eax+object.colour]
 	mov cx, ax
@@ -1351,8 +1419,7 @@ proc GetObjectColourMap
 	cmp byte dword [numtwocolormaps+1], 1 // No 2cc maps loaded so we can only do 1cc
 	jb .onecc
 
-	mov edx, [%$tile]
-	test word [objectpool+edx+object.flags], OF_TWOCC
+	test word [objectflags+edx*2], OF_TWOCC
 	jnz .twocc
 
 .onecc:
@@ -1419,6 +1486,7 @@ GetOwnerColours:
 uvard ObjectCost
 uvard ObjectLayout
 uvarb ObjectWater
+uvarb ObjectCurHeight
 
 // Create Object function
 // Input:	edi - tile index (word)
@@ -1474,6 +1542,12 @@ exported BuildObject
 	call SetObjectPoolEntry
 
 	mov dword [ObjectLayout], -1 // Return and clear the selected layout
+
+	push ebx
+	mov ebx, edi
+	mov edx, OA_CONSTRUCTION
+	call ObjectAnimTrigger
+	pop ebx
 	pop edx
 	pop ecx
 	pop eax
@@ -1578,16 +1652,18 @@ CheckObjectTile:
 	and cx, 0x0FF0
 	ror di, 4
 
-	pusha
-	call [gettileinfo]
-	mov dword [miscgrfvar], edi
-	popa
+//	pusha
+//	call [gettileinfo]
+//	mov dword [miscgrfvar], edi
+//	popa
 
 	push ecx
 	push eax
+	mov word [cur_object_tile], di
 	mov eax, [esp+0x8]
 	mov ecx, [esp+0xC]
 	call CheckObjectSlope
+	mov word [cur_object_tile], 0
 	pop eax
 	pop ecx
 	jnz .fail
@@ -1672,12 +1748,11 @@ BuildObjectFlags:
 // Out:	zero flag = set for not allowed
 global CheckObjectSlope
 CheckObjectSlope:
-	push eax
-	push ecx
-	push edi
-	push esi
+	pusha
 	mov word [operrormsg2], 0x1000
-	mov edi, dword [miscgrfvar]
+	mov esi, edi
+	call [gettileinfoshort]
+	mov dword [miscgrfvar], edi
 
 	test di, 0x10
 	jnz .fail
@@ -1697,20 +1772,32 @@ CheckObjectSlope:
 	jc .default
 
 	test ax, ax
-	pop esi
-	pop edi
-	pop ecx
-	pop eax
+	popa
 	ret
 
 .default:
-	test di, di
+	mov eax, dword [esp+12]
+	shr dl, 3	// Height is in multiples of 8
 
+	test word [objectflags+eax*2], OF_NOFOUNDATIONS
+	jnz .flat
+
+	test di, di
+	jz .flat
+
+	bt di, 4
+	adc dl, 1
+
+.flat:
+	cmp cl, 0
+	jne .notfirst
+	mov byte [ObjectCurHeight], dl
+
+.notfirst:
+	cmp dl, [ObjectCurHeight] // Should be ok, (je = jz)
+	
 .fail:
-	pop esi
-	pop edi
-	pop ecx
-	pop eax
+	popa
 	ret
 
 // In:	edi = tile
@@ -1746,14 +1833,14 @@ CreateObjectTile:
 	popa
 
 	// Landscape 1 = owner (0x10 for no owner)
-	// Landscape 2 = tile offset from origin (northen tile)
+	// Landscape 2 = tile animation // tile offset from origin (northen tile)
 	// Landscape 3 = pool id
 	// Landscape 4 = Class A and hieght
 	// Landscape 5 = newObject Type (NOBJECTTYPE)
 	// Landscape 6 = Random bits
 
 	mov byte [landscape1+edi], bh
-	mov byte [landscape2+edi], cl
+	mov byte [landscape2+edi], 0 //cl
 	mov word [landscape3+edi*2], dx
 	and byte [landscape4(di, 1)], 0xF
 	or byte [landscape4(di, 1)], 0xA0
@@ -1774,12 +1861,8 @@ CreateObjectTile:
 	pop edx
 	pop eax
 
-	cmp cl, 0
-	ja .notfirst
-
 	test word [objectflags+eax*2], OF_ANIMATED
 	jnz .hasanimation
-.notfirst:
 	ret
 
 .hasanimation:
@@ -1793,6 +1876,70 @@ CreateObjectTile:
 	pop ebx
 	pop ebp
 	ret
+
+// in:	 bh = owner
+//		eax = game id
+//		ecx = pool id
+SetObjectBuildColour:
+	push ebx
+	push eax
+	push edx
+	mov edx, eax
+	cmp bh, 0x10
+	jb .owned
+
+	call [randomfn]
+
+	test word [objectcallbackflags+edx*2], OC_BUILDCOLOUR
+	jz .done
+	
+.hascolour:
+	mov bl, al
+
+	test word [objectflags+edx*2], OF_TWOCC
+	jnz .twocc
+	and al, 0xF
+
+.twocc:
+	push esi
+	push ebx
+
+	xor esi, esi
+	movzx eax, al
+	mov dword [miscgrfvar], eax
+	mov byte [grffeature], 0xF
+	mov word [curcallback], 0x15B
+	mov eax, [esp+8]
+
+	call getnewsprite
+	mov dword [miscgrfvar], 0
+	mov word [curcallback], 0
+	pop ebx
+	pop esi
+	jnc .done
+
+	// Restore original calculated value
+	mov al, bl
+
+.done:
+	mov byte [objectpool+ecx+object.colour], al
+
+.donenoset:
+	pop edx
+	pop eax
+	pop ebx
+	ret
+
+.owned:
+	test word [objectcallbackflags+edx*2], OC_BUILDCOLOUR
+	jz .donenoset
+
+	push ecx
+	movzx eax, bh
+	call GetOwnerColours
+	or al, cl
+	pop ecx
+	jmp .hascolour
 
 // **************************************** Object Removal ****************************************
 // Removal of newgrf objects (Hooks owned land)
@@ -1832,9 +1979,11 @@ RemoveObject:
 .companyowned:
 	call RemoveObjectFlags
 	jc .fail
-	movzx eax, word [objectpool+ecx+object.dataid]
 
-	push dword [objectsdataidtogameid+eax*2]
+	movzx eax, word [objectpool+ecx+object.dataid]
+	movzx edx, word [objectsdataidtogameid+eax*2]
+
+	push edx
 	call GetObjectSize
 
 	push edi
@@ -1906,12 +2055,16 @@ RemoveObjectFlags:
 	cmp byte [gamemode], 2 // Objects are always removeable in the scenerio editor
 	je .done
 
-	test word [objectpool+ecx+object.flags], OF_ANYREMOVE
+	test dx, dx
+	jz .nogrf
+
+	test word [objectflags+edx*2], OF_ANYREMOVE
 	jnz .done
 
-	test word [objectpool+ecx+object.flags], OF_UNREMOVALABLE
+	test word [objectflags+edx*2], OF_UNREMOVALABLE
 	jnz .unremovable
 
+.nogrf:
 	mov word [operrormsg2], 0x5800
 	test bl, 2
 	jnz .fail
@@ -1968,9 +2121,10 @@ RemoveObjectTile:
 	cmp cl, 0
 	ja .normaltile
 
-	imul edx, object_size
-	test word [objectpool+edx+object.flags], OF_ANIMATED
-	jz .normaltile
+// We no longer now if the object tile is animated or not
+//	imul edx, object_size
+//	test word [objectpool+edx+object.flags], OF_ANIMATED
+//	jz .normaltile
 
 	push ebx
 	push ebp
@@ -2023,8 +2177,10 @@ RemoveObjectCost:
 	push eax
 	push edx
 	push ebx
+	push ecx
 	imul ecx, object_size
 	mov ebx, 2 // Our fallback base factor
+	mov ecx, 5 // default object remove cost is 1/5th of buy / sell factor
 
 	test ax, ax
 	jz .nogrf
@@ -2038,19 +2194,31 @@ RemoveObjectCost:
 	mov edx, [costs+0x8A]
 	imul ebx, edx
 
+	push eax
+	pop eax
+
+	// No grf?
+	test ax, ax
+	jz .normal
+
 	// Unmovable flag (if we get here we know ctrl is pressed)
-	test word [objectpool+ecx+object.flags], OF_UNREMOVALABLE
+	test word [objectflags+eax*2], OF_UNREMOVALABLE
 	jz .removable
-	imul ebx, 25
+	imul ebx, 125
 
 .removable:
 	// Removal as income flag
-	test word [objectpool+ecx+object.flags], OF_REMOVALINCOME
+	test word [objectflags+eax*2], OF_REMOVALINCOME
 	jz .normal
-	shr ebx, 1
-	neg ebx
+	
+	neg ecx
 
 .normal:
+	mov eax, ebx
+	xor edx, edx
+	idiv ecx
+	mov ebx, eax
+	pop ecx
 	pop edx
 	pop edx
 	pop eax
@@ -2074,6 +2242,7 @@ DrawObject:
 	pop edx
 	pop ecx
 	pop eax
+
 
 .fallback:
 	push ebp
@@ -2181,9 +2350,7 @@ extern addrelsprite
 	test byte [landscape7+esi], 4
 	jz .nowater
 
-	movzx edi, word [landscape3+esi*2] // Should we draw water
-	imul edi, object_size
-	test word [objectpool+edi+object.flags], OF_DRAWWATER
+	test word [objectflags+edi*2], OF_DRAWWATER
 	jz .nowater
 
 	call [gettileinfoshort]
@@ -2198,12 +2365,13 @@ extern Class6DrawLandCanalsOrRiversOrSeeWaterL3.ebp
 
 // In:	ebx = tile
 //	ebp = raised flags
+//	esi = gameid (only for .gameid)
 // Out:	carry = set if foundations
 DrawObjectFoundations.gameid:
 	push edi
 	movzx edi, word [landscape3+ebx*2]
 	imul edi, object_size
-	test word [objectpool+edi+object.flags], OF_NOFOUNDATIONS
+	test word [objectflags+esi*2], OF_NOFOUNDATIONS
 	pop edi
 	jnz DrawObjectFoundations.override
 
@@ -2240,61 +2408,6 @@ GetObjectColourMapWrapper:
 	call GetObjectColourMap
 	mov bp, bx
 	pop edx
-	pop ebx
-	ret
-
-// Used to increment the animation of the object
-global ClassAAnimationHandler
-ClassAAnimationHandler:
-	test word  [animcounter], 3
-	jnz .finish
-
-	cmp byte [landscape5(bx, 1)], NOBJECTTYPE
-	jne .notobject
-
-	push ebp
-	push ebx
-	movzx ebp, word [landscape3+ebx*2]
-	push ebp
-	imul ebp, object_size
-	mov al, byte [objectpool+ebp+object.animation]
-	inc al
-	mov byte [objectpool+ebp+object.animation], al
-
-	push edx
-	movzx edx, word [objectpool+ebp+object.dataid]
-	push dword [objectsdataidtogameid+edx*2]
-	call GetObjectSize
-
-	push edi
-	mov bh, [landscape1+ebx]
-	movzx edi, word [objectpool+ebp+object.origin]
-	mov ebp, [esp+8]
-	push dword IsObjectTile
-	push dword RedrawObjectTile
-	push dword 0 // Unused by the sub functions
-	push ebp
-	call LoopTiles
-	pop ebp
-	pop edi
-	pop edx
-	pop ebx
-	pop ebp
-
-.finish:
-	ret
-
-// Not an object tile so purge it from the animated tile list
-.notobject:
-	push ebx
-	push ebp
-	push edi
-	mov edi, ebx
-	mov ebp, [ophandler+0xA0]
-	mov ebx, 3
-	call [ebp+4]
-	pop edi
-	pop ebp
 	pop ebx
 	ret
 
@@ -2554,13 +2667,360 @@ endproc
 	db 0,1,1,2
 	db 0,1,2,3
 
+// ***************************************** Animation ********************************************
+// Used to increment the animation of the object
+global ClassAAnimationHandler
+ClassAAnimationHandler:
+	cmp byte [gamemode], 2
+	je near .finish
+
+	cmp byte [landscape5(bx, 1)], NOBJECTTYPE
+	jne near .notobject
+
+	pusha
+	movzx ebp, word [landscape3+ebx*2]
+	imul ebp, object_size
+	movzx eax, word [objectpool+ebp+object.dataid]
+	movzx eax, word [objectsdataidtogameid+eax*2]
+	
+	// don't bother if the grf isn't loaded
+	test ax, ax
+	jz near .finishpop
+
+	// Check animation enabled
+	test word [objectflags+eax*2], OF_ANIMATED
+	jz near .finishpop
+	cmp word [objectanimframes+eax*2], -1
+	je near .original
+
+	movzx edi, word [animcounter]
+	mov ebp, 1
+
+	// Should be loop for an animation speed callback?
+	test word [objectcallbackflags+eax*2], OC_ANIM_SPEED
+	jz .speedprop
+
+	push eax
+	push ebx
+	mov esi, ebx
+	mov byte [grffeature], 0xF
+	mov word [curcallback], 0x15A
+	call getnewsprite
+	mov byte [curcallback],0
+	mov cl,al
+	pop ebx
+	pop eax
+	jnc .hasspeed
+
+.speedprop:
+	mov cl, byte [objectanimspeeds+eax]
+
+.hasspeed:
+	shl ebp, cl
+	dec ebp
+
+	// Has the animation time elapsed?
+	test edi, ebp
+	jnz near .finishpop
+
+	// Should we call the next frame callback?
+	mov edx, eax
+	test word [objectcallbackflags+eax*2], OC_ANIM_NEXTFRAME
+	jz .normal
+
+	// Should put random bits into var10
+	test word [objectflags+eax*2], OF_ANIMATEDRANDBITS
+	jz .norandbits
+
+	push eax
+	call [randomfn]
+	mov dword [miscgrfvar], eax
+	pop eax
+
+.norandbits:
+	mov dword [miscgrfvar], 0
+	push eax
+	push ebx
+	mov esi, ebx
+	mov byte [grffeature], 0xF
+	mov word [curcallback], 0x158
+	call getnewsprite
+	mov byte [curcallback],0
+	mov cl,al
+	pop ebx
+	pop edx
+	jc .normal
+
+	test ah, ah
+	jz .nosound
+
+	pusha
+	movzx eax,ah
+	and al,0x7f
+	mov ecx,ebx
+	rol bx,4
+	ror cx,4
+	and bx,0x0ff0
+	and cx,0x0ff0
+	or esi,byte -1
+	call [generatesoundeffect]
+	popa
+
+.nosound:
+	cmp al, 0xFF
+	je .endanim
+
+	cmp al, 0xFE
+	jnz .gotframe
+
+.normal:
+	mov al, byte [landscape2+ebx]
+	inc al
+	cmp al, byte [objectanimframes+edx*2]
+	jbe .gotframe
+
+	cmp byte [objectanimframes+1+edx*2], 1
+	jne .endanim
+	xor al, al
+
+.gotframe:
+	mov byte [landscape2+ebx], al
+	mov edi, ebx
+	call RedrawObjectTile
+
+.finishpop:
+	popa
+
+.finish:
+	ret
+
+.endanim:
+	mov edi, ebx
+	mov ebp, [ophandler+0xA0]
+	mov ebx, 3
+	call [ebp+4]
+	popa
+	ret
+
+.original:
+	test word [animcounter], 3	// Now every tick
+	jnz .finishpop
+
+	inc byte [landscape2+ebx]
+	mov edi, ebx
+	call RedrawObjectTile
+	popa
+	ret
+
+#if 0
+	push ebp
+	push ebx
+	movzx ebp, word [landscape3+ebx*2]
+	push ebp
+	imul ebp, object_size
+	mov al, byte [objectpool+ebp+object.animation]
+	inc al
+	mov byte [objectpool+ebp+object.animation], al
+
+	push edx
+	movzx edx, word [objectpool+ebp+object.dataid]
+	push dword [objectsdataidtogameid+edx*2]
+	call GetObjectSize
+
+	push edi
+	mov bh, [landscape1+ebx]
+	movzx edi, word [objectpool+ebp+object.origin]
+	mov ebp, [esp+8]
+	push dword IsObjectTile
+	push dword RedrawObjectTile
+	push dword 0 // Unused by the sub functions
+	push ebp
+	call LoopTiles
+	pop ebp
+	pop edi
+	pop edx
+	pop ebx
+	pop ebp
+
+.finish:
+	ret
+#endif
+
+// Not a new object tile so purge it from the animated tile list
+.notobject:
+	push ebx
+	push ebp
+	push edi
+	mov edi, ebx
+	mov ebp, [ophandler+0xA0]
+	mov ebx, 3
+	call [ebp+4]
+	pop edi
+	pop ebp
+	pop ebx
+	ret
+
+// Do callback 159 (Animation Control)
+// in:	ebx = tile yx
+//	edx = trigger bit
+ObjectAnimTrigger:
+	pusha
+	mov esi, ebx
+	cmp dword [objectpool_ptr], 0
+	jz near .error
+	
+	movzx eax, word [landscape3+ebx*2]
+	imul eax, object_size
+	cmp word [objectpool+eax+object.origin], 0
+	je .done // should be error most likely
+
+	// Do we have a game id (newgrf loaded)?
+	movzx eax, word [objectpool+eax+object.dataid]
+	movzx eax, word [objectsdataidtogameid+eax*2]
+	test eax, eax
+	jz .done
+
+	// Does this object allow animation?
+	test word [objectflags+eax*2], OF_ANIMATED
+	jz .done
+
+	// Is this trigger enabled?
+	test word [objectanimtriggers+eax*2], dx
+	jz .done
+
+.docallback:
+	// Setup the callback variable data
+	mov byte [grffeature], 0xF
+	mov word  [curcallback], 0x159
+	and dword [callback_extrainfo], 0
+	mov [callback_extrainfo], dl
+	
+	// Is this for the whole object?
+	test dl, OA_FORALLTILES
+	jnz .wholeobject
+
+	push eax
+	call [randomfn]
+	mov [miscgrfvar], eax
+	pop eax
+
+	call getnewsprite
+	jc .done
+
+	mov esi, ebx
+	call SetObjectTileAnimStage
+	mov byte [curcallback],0
+
+.done:
+	popa
+	ret
+
+.hasgameid:
+	pusha
+	jmp .docallback
+
+.wholeobject:
+	push eax
+	call GetObjectSize
+	
+	mov edi, ebx
+	movzx ebx, word [landscape3+ebx*2]
+
+	push IsObjectTile
+	push CallObjectTileTrigger
+	push eax
+	push ebx
+	call LoopTiles
+
+	mov byte [curcallback],0
+	popa
+	ret
+
+.error:
+	ud2
+	popa
+	ret
+
+// Calls the trigger for all tiles in the object
+CallObjectTileTrigger:
+	pusha
+	push eax
+	call [randomfn]
+	mov [miscgrfvar], eax
+	pop eax
+
+	mov esi, edi
+	call getnewsprite
+	jc .novalue
+
+	mov ebx, edi
+	call SetObjectTileAnimStage
+
+.novalue:
+	popa
+	ret
+
+// Start/stop animation and set the animation stage of a new object tile
+// (Almost the same as sethouseanimstage, but stores the current frame differently)
+// in:	al:	number of new stage where to start
+//		or: ff to stop animation
+//		or: fe to start wherewer it is currently
+//		or: fd to do nothing (for convenience)
+//	ebx:	XY of house tile
+SetObjectTileAnimStage:
+	or ah,ah
+	jz .nosound
+
+	pusha
+	movzx eax,ah
+	and al,0x7f
+	mov ecx,ebx
+	rol bx,4
+	ror cx,4
+	and bx,0x0ff0
+	and cx,0x0ff0
+	or esi,byte -1
+	call [generatesoundeffect]
+	popa
+
+.nosound:
+	cmp al,0xfd
+	je .animdone
+
+	cmp al,0xff
+	jne .dontstop
+
+	pusha
+	mov edi,ebx
+	mov ebx,3				// Class 14 function 3 - remove animated tile
+	mov ebp,[ophandler+0x14*8]
+	call [ebp+4]
+	popa
+	ret
+
+.dontstop:
+	cmp al,0xfe
+	je .dontset
+	mov byte [landscape2+ebx],al
+
+.dontset:
+	pusha
+	mov edi,ebx
+	mov ebx,2				// Class 14 function 2 - add animated tile
+	mov ebp,[ophandler+0x14*8]
+	call [ebp+4]
+	popa
+
+.animdone:
+	ret
+
 // ************************************ Periodic Tile Proc ****************************************
 global ClassAPeriodicHandler
 ClassAPeriodicHandler:
-	cmp byte [landscape1+ebx], 0 // Only operate on the first tile (prevent over redraw)
+	pusha
+	cmp byte [landscape4(bx, 1)], NOBJECTTYPE
 	jne .done
 
-	pusha
 	xchg edi, ebx
 	mov bh, byte [landscape1+edi]
 	movzx ebp, word [landscape3+edi*2]
@@ -2571,8 +3031,19 @@ ClassAPeriodicHandler:
 	movzx esi, word [objectsdataidtogameid+esi*2]
 	pop ebp
 	test esi, esi	// Do we have a valid gameid?
-	jz .donepop
+	jz .done
 
+	mov ebx, edi
+	mov eax, esi
+	mov edx, OA_PERIODICTILE
+	call ObjectAnimTrigger.hasgameid
+	
+	cmp word [objectpool+ebp+object.origin], di
+	jne .done
+
+	mov edx, OA_WHOLEOBJECT
+	call ObjectAnimTrigger.hasgameid
+	
 	push esi
 	call GetObjectSize	// Result in dx
 
@@ -2582,10 +3053,8 @@ ClassAPeriodicHandler:
 	push ebp
 	call LoopTiles	// Mark all the object tiles as dirty
 
-.donepop:
-	popa
-
 .done:
+	popa
 	ret
 
 // ****************************************** Query Tile ******************************************
@@ -2648,7 +3117,7 @@ extern curlandinfogrf
 	ret
 
 // **************************************** Newgrf Vars *******************************************
-extern gettileterrain, gettileinfoshort
+extern gettileterrain, gettileinfoshort, specialgrfregisters, mostrecentspriteblock
 
 // Var:	40, Relative Position
 // Out:	eax = 00yxYYXX
@@ -2656,12 +3125,20 @@ exported getObjectVar40
 	test esi, esi
 	jz .gui
 
-	movzx eax, byte [landscape2+esi]
+	push ebx
+	mov eax, esi
+	movzx ebx, word [landscape3+esi*2]
+	imul ebx, object_size
+	movzx ebx, word [objectpool+ebx+object.origin]
+	sub eax, ebx
+
+	mov bx, ax
+	shl al, 4
+	shr ax, 4
 	shl eax, 16
 
-	mov al, byte [landscape2+esi]
-	shl ax, 4
-	shr al, 4
+	mov ax, bx
+	pop ebx
 	ret
 
 .gui:
@@ -2672,8 +3149,9 @@ exported getObjectVar40
 // Out:	0000sstt (tt - same as var 43 houses, ss - slope data)
 exported getObjectVar41
 	test esi, esi
-	jz .gui
+	jz .noobject
 
+.hasobject:
 	pusha
 	call [gettileinfoshort] // First we get the tile information
 	shl di, 8
@@ -2687,7 +3165,10 @@ exported getObjectVar41
 	popa
 	ret
 
-.gui:
+.noobject:
+	movzx esi, word [cur_object_tile]
+	jnz .hasobject
+
 	xor eax, eax
 	ret
 
@@ -2699,7 +3180,7 @@ exported getObjectVar42
 
 	movzx eax, word [landscape3+esi*2]
 	imul eax, object_size
-	movzx eax, word [objectpool+eax+object.buildyear]
+	mov eax, dword [objectpool+eax+object.builddate]
 	imul eax, 365	// Rough fix until the object pool update
 	ret
 
@@ -2718,7 +3199,7 @@ exported getObjectVar43
 	push ecx
 	movzx ecx, word [landscape3+esi*2]
 	imul ecx, object_size
-	movzx eax, byte [objectpool+ecx+object.animation]
+	movzx eax, byte [landscape2+esi]
 	mov ah, byte [objectpool+ecx+object.colour]
 
 	cmp byte [landscape1+esi], 0x10
@@ -2743,52 +3224,437 @@ exported getObjectVar43
 // Var 44, Object Owner
 // Out:	000000AA - Owner id (0x10 if unowned)
 exported getObjectVar44
+	test esi, esi
+	jz .gui
+
 	movzx eax, byte [landscape1+esi] // Too easy?
 	ret
 
-// Should I use the same method as var65 or just use the reftown it was built with?
-// Var45, Get distance of closest town
-// Out:	?
-exported getObjectVar45
-	xor eax, eax
+.gui:
+	movzx eax, byte [human1]
 	ret
 
+// For these we use the same system as OpenTTD, using the town ref it was built with.
+// Var45, Get distance of closest town
+// Out:	00zzDDDD - Zone, Distance (manhatten) to nearest town
+exported getObjectVar45
+	xor eax, eax
+
+	test esi, esi
+	jz .noobject
+
+	push ebx
+	push ebp
+	push edi
+	push edx
+
+	mov eax, esi
+	movzx edi, word [landscape3+eax*2]
+	imul edi, object_size
+	mov edi, dword [objectpool+edi+object.townptr]
+
+	// Calculate distance as the function will not (bp)
+	mov bx, [edi+town.XY]
+	sub bl, al
+	jnb .notx
+	neg bl
+
+.notx:
+	sub bh, ah
+	jnb .noty
+	neg bh
+
+.noty:
+	add bl, bh
+	rcl bh, 1
+	and bh, 1
+	mov bp, bx
+
+// Note, uses edi if given (no bp), otherwise searchs (bp)
+.hastown:
+	mov ebx,2	// find nearest town and zone
+	mov ecx,[ophandler+3*8]
+	call [ecx+4]
+
+	movzx eax, dl	// zone
+	shl eax, 16
+	mov ax, bp	// distance
+
+	pop edx
+	pop edi
+	pop ebp
+	pop ebx
+
+.done:
+	ret
+
+.noobject:
+	cmp word [cur_object_tile], 0
+	je .done
+
+	push ebx
+	push ebp
+	push edi
+	push edx
+
+	mov ax, word [cur_object_tile]
+	xor edi, edi
+	jmp .hastown
+
 // Var46, Get euclidean distance of closest town
-// Out:	?
+// Out: DDDDDDDD - Distance (euclidean squared) to nearest town
 exported getObjectVar46
 	xor eax, eax
+
+	test esi, esi
+	jz .noobject
+
+	push ebx
+	push ebp
+	push edi
+	push edx
+
+	mov eax, esi
+	movzx edi, word [landscape3+eax*2]
+	imul edi, object_size
+	mov edi, dword [objectpool+edi+object.townptr]
+
+.hastown:
+	movzx ebx, al 			// object X
+	movzx ebp, byte [edi+town.XY]	// town X
+	sub ebx, ebp
+	imul ebx, ebx	// ebx = X diff squared
+	
+	movzx eax, ah			// object Y
+	movzx ebp, byte [edi+town.XY+1]	// town Y
+	sub eax, ebp
+	imul eax, eax	// eax = Y diff squared
+
+	add eax, ebx	// eax = Euclidian distance squared
+
+	pop edx
+	pop edi
+	pop ebp
+	pop ebx
+
+.done:
 	ret
+
+.noobject:
+	cmp word [cur_object_tile], 0
+	je .done
+
+	push ebx
+	push ebp
+	push edi
+	push edx
+
+	mov ax, word [cur_object_tile]
+	call findnearesttown
+	jmp .hastown
 
 
 // For the below "ParamVar" functions, ah = parameter from grf
 
-// Var60, Get object id at offset from tile
-// Out:	?
-exported getObjectParamVar60
-	xor eax, eax
+// in:	esi = tile index
+//		 ah = offset information
+// out:	 cx = offseted index
+// uses:	eax (trashed)
+getOffset:
+	push edx
+
+	shr ax, 4		// 0xF0 y
+	shl ah, 4		// 0xF0 x
+	movsx dx, ah	// Keep the sign of the number
+	movsx ax, al
+	rol dx, 4		// move the components to YYXX (with sign)
+	ror ax, 4
+
+	mov cx, si // base xy
+	add cl, al // Add each component (should be signed addition)
+	add ch, dh
+	movzx ecx, cx
+
+	pop edx
 	ret
+
+// Var60, Get object id at offset from tile 
+// Out:	0000ttss - Type of return, Set id if valid type
+exported getObjectParamVar60
+	test esi, esi
+	jz .noobject
+
+.hassetup:
+	call getOffset	//in	= si, ah
+					//out	= cx
+
+	// Check the tile class
+	mov al, [landscape4(cx, 1)]
+	and al, 0xF0
+	cmp al, 0xA0
+	jne .notobject
+
+	cmp byte [landscape5(cx, 1)], NOBJECTTYPE
+	jne .notobject
+
+	movzx eax, word [landscape3+ecx*2]
+	imul eax, object_size
+	movzx eax, word [objectpool+eax+object.dataid]
+
+	mov ecx, [mostrecentspriteblock]
+	mov ecx, [ecx+spriteblock.grfid]
+	cmp ecx, dword [objectsdataiddata+eax*idf_dataid_data_size+idf_dataid_data.grfid]
+	jne .notsamegrf
+
+	mov ax, word [objectsdataiddata+eax*idf_dataid_data_size+idf_dataid_data.setid]
+	movzx eax, al	// Since we don't currently support extended bytes?
+					// we'll just assume just a byte value
+	ret
+
+.notsamegrf:
+	mov eax, 0xFFFE
+	ret
+
+.notobject:
+	mov eax, 0xFFFF
+	ret
+
+.noobject:
+	cmp word [cur_object_tile], 0
+	je .notobject
+
+	movzx esi, word [cur_object_tile]
+	jmp .hassetup
 
 // Var61, Get random bits at offset from tile
 // Out:	000000RR - Random Bits from tile (given tile is of same object)
 exported getObjectParamVar61
+	call getOffset
+	
+	mov al, byte [landscape4(cx, 1)]	// Is it an object tile?
+	and al, 0xF0
+	cmp al, 0xA0
+	jne .notobject
+
+	cmp byte [landscape5(cx, 1)], NOBJECTTYPE
+	jne .notobject
+
+	mov ax, word [landscape3+ecx*2]	// Is it part of the same object (poolid)
+	cmp ax, word [landscape3+esi*2]
+	jne .notobject
+
+	movzx eax, byte [landscape6+ecx]
+	ret
+
+.notobject:
 	xor eax, eax
 	ret
 
 // Var62, Land info at offset from tile
-// Out:	?
+// Out:	0czzbbss - Tile class, lowest corner height, Bit field, Slope data
 exported getObjectParamVar62
-	xor eax, eax
+	xor eax, eax	// Default eax value
+	pusha
+
+	test esi, esi
+	jz .noobject
+
+	movzx ebp, word [landscape3+esi*2]
+
+.hassetup:
+// The majority of the rest is effectively copied from industries version
+	mov ecx,esi	// X
+	shr cx,4
+	and cl,0xf0
+	movsx edx,ah
+	and dl,0xf0
+	add cx,dx
+
+	shl ah,4	// Y
+	movsx edx,ah
+	mov eax,esi
+	shl eax,4
+	and ah,0x0f
+	add ax,dx
+
+	call [gettileinfo]
+
+	mov [esp+28],di		// low word of saved EAX of stack, the high byte is zero
+	mov [esp+30],dl		// byte 3 of saved EAX
+	mov byte [esp+31], 0	// highest byte of saved EAX
+
+	cmp bx, 10*8		// is it a class A tile?
+	jne .notpart
+
+	mov eax, ebp
+	cmp ax, word [landscape3+esi*2]	// esi is now the offset of the asked tile
+	sete byte [esp+29]	// byte 2 of saved eax
+
+.notpart:
+	cmp bx, 6*8		// is it a class 6 tile?
+	sete al
+	shl al,1
+	or [esp+29],al
+
+	call gettileterrain
+	shl al,2
+	or [esp+29],al
+
+	shr bl,3
+	mov [esp+31],bl
+
+.bad:
+	popa
 	ret
+
+.noobject:
+	cmp word [cur_object_tile], 0 // Most likely the UI
+	je .bad
+
+	movzx esi, word [cur_object_tile]
+	mov ebp, -1 // i.e. invalid
+	jmp .hassetup
 
 // Var63, Get animation counter at offset from tile
 // Out:	000000AA - Animation Counter from tile (given tile is of same object)
 exported getObjectParamVar63
+	call getOffset	
+	
+	mov al, byte [landscape4(cx, 1)]	// Is it an object tile?
+	and al, 0xF0
+	cmp al, 0xA0
+	jne .notobject
+
+	cmp byte [landscape5(cx, 1)], NOBJECTTYPE
+	jne .notobject
+
+	mov ax, word [landscape3+ecx*2]	// Is it part of the same object (poolid)
+	cmp ax, word [landscape3+esi*2]
+	jne .notobject
+
+	movzx eax, byte [landscape2+ecx]
+	ret
+
+.notobject:
 	xor eax, eax
 	ret
 
 // Var64, Count of object type and closest object distance
-// Out:	?
+// Out:	CCCCDDDD - Count of object type on map, Distance of closest object instance to tile
 exported getObjectParamVar64
+	// grfid = [specialgrfregisters+0*4]
+	// setid = ah
+	push ebx
+	push dword 0
+	test esi, esi
+	jz .noobject
+
+	mov dword [esp], esi
+	movzx esi, word [landscape3+esi*2]
+	imul esi, object_size
+	movzx esi, word [objectpool+esi+object.origin]
+
+.hassetup:
+	movzx eax, ah
+	mov ebx, dword [specialgrfregisters] // we take it from the first register
+	test ebx, ebx
+	jz .nothing
+	cmp ebx, -1
+	jne .goodgrf
+
+	mov ebx, [mostrecentspriteblock]
+	mov ebx, [ebx+spriteblock.grfid]
+
+.goodgrf:
+	mov dword [esp], esi
+	xor ecx, ecx
+
+// Last idf.lastdataid is never actually used :(
+//	cmp dword [objectsdataidcount], 0
+//	je .nothing
+
+.nextdataid:
+	inc ecx
+	cmp ebx, dword [objectsdataiddata+ecx*idf_dataid_data_size+idf_dataid_data.grfid]
+	jne .skipdataid
+	cmp al, byte [objectsdataiddata+ecx*idf_dataid_data_size+idf_dataid_data.setid]
+	je .gotdataid
+
+.skipdataid:
+	cmp ecx, NOBJECTS //[objectsdataidcount]
+	jbe .nextdataid
+
+.nothing:
+	mov eax, 0xFFFF
+	pop ebx
+	pop ebx
+	ret
+
+.noobject:
+	cmp word [cur_object_tile], 0
+	je .nothing
+
+	movzx esi, word [cur_object_tile]
+	mov dword [esp], esi
+	xor esi, esi
+	jmp .hassetup
+
+.gotdataid:
+	push edx
+	push edi
+	push ebp
+
 	xor eax, eax
+	mov edi, NOBJECTS*object_size
+	sub edi, object_size
+	or ebp, byte -1
+
+.nextpoolid:
+	cmp word [objectpool+edi+object.origin], 0
+	je .skippoolid
+	cmp word [objectpool+edi+object.dataid], cx
+	jne .skippoolid
+
+	inc ax
+	cmp word [objectpool+edi+object.origin], si
+	je .skippoolid
+
+	push edx
+	movzx bx, byte [esp+16]
+	movzx dx, byte [esp+17]
+
+	sub bl, byte [objectpool+edi+object.origin]
+	sbb bh, 0
+	jns .notx
+	neg bx
+
+.notx:
+	sub dl, byte [objectpool+edi+object.origin+1]
+	sbb dh, 0
+	jns .noty
+	neg dx
+
+.noty:
+	add bx, dx
+	pop edx
+
+	cmp bx, bp
+	ja .skippoolid
+
+	mov bp, bx
+
+.skippoolid:
+	sub edi, object_size
+	jns .nextpoolid
+
+	// now ax = count, bp = distance
+	shl eax, 16
+	mov ax, bp
+
+	pop ebp
+	pop edi
+	pop edx
+	pop ebx
+	pop ebx
 	ret
 

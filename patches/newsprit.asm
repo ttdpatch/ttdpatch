@@ -1731,10 +1731,10 @@ grfcalltable getother
 	ret
 
 .getObjects:
-	movzx esi, word [landscape3+esi*2]
-extern objectpool
-	imul esi, object_size
-	movzx esi, word [objectpool+esi+object.origin]
+//	movzx esi, word [landscape3+esi*2]
+//extern objectpool
+//	imul esi, object_size
+//	movzx esi, word [objectpool+esi+object.origin]
 	ret
 
 #if MEASUREVAR40X
@@ -2231,7 +2231,7 @@ vard varavailability
 	dd 0,7<<29,			0,7<<29			// sounds
 	dd 0,7<<29,			0,7<<29			// airports
 	dd 0,7<<29,			0,7<<29			// signals
-	dd 101b,7<<29,			0,7<<29			// objects
+	dd 1110011b,7<<29|10101b,			0,7<<29			// objects
 
 checkfeaturesize varavailability, (4*2*2)
 
@@ -2442,8 +2442,8 @@ vard signalsparamvarhandler
 %endif
 
 extern getObjectVar40, getObjectVar41, getObjectVar42, getObjectVar43, getObjectVar44
-extern getObjectVar45, getObjectParamVar60, getObjectParamVar61, getObjectParamVar62
-extern getObjectParamVar63, getObjectParamVar64
+extern getObjectVar45, getObjectVar46, getObjectParamVar60, getObjectParamVar61
+extern getObjectParamVar62, getObjectParamVar63, getObjectParamVar64
 
 vard objectvarhandler
 	dd getObjectVar40
@@ -2452,6 +2452,7 @@ vard objectvarhandler
 	dd getObjectVar43
 	dd getObjectVar44
 	dd getObjectVar45
+	dd getObjectVar46
 %ifndef PREPROCESSONLY
 %assign n_objectvarhandler (addr($)-objectvarhandler)/4
 %endif

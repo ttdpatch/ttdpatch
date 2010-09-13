@@ -1035,13 +1035,18 @@ iswateredtile:
 	cmp dh, NOBJECTTYPE
 	jne .notwater
 	
-	extern objectpool_ptr
+extern objectpool_ptr, objectsdataidtogameid, objectflags
 	cmp dword [objectpool_ptr], 0
 	je .notwater    // new grf object subsystem not loaded properly?
 	
 	movzx edi, word [landscape3+esi*2]
 	imul edi, object_size
-	test word [objectpool+edi+object.flags], OF_BUILDWATER
+//	test word [objectpool+edi+object.flags], OF_BUILDWATER
+	movzx edi, word [objectpool+edi+object.dataid]
+	movzx edi, word [objectsdataidtogameid+edi*2]
+	test di, di
+	jz .notwater
+	test word [objectflags+edi*2], OF_BUILDWATER | OF_DRAWWATER
 	jnz .watertile
 	jmp .notwater
 ;endp iswateredtile

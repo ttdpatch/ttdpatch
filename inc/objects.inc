@@ -39,6 +39,16 @@
 // Remember to buffer this structure always
 struc object
 	.origin:	resw 1 // (00) Word with the x,y corrdinate of the northen tile
+	.builddate:	resd 1 // (02) Dword storing date the object was built
+	.dataid:	resw 1 // (06) Word specifying the object's data id
+	.townptr:	resd 1 // (08) Dword (Pointer) to closest town
+	.colour:	resb 1 // (0C) Colour for non-company owned objects (Two nibbles for 2cc)
+			resb 3 // Buffer to dwords
+endstruc
+
+// Used to attempt to translate the data from the old format to the newer one
+struc oldobject
+	.origin:	resw 1 // (00) Word with the x,y corrdinate of the northen tile
 	.buildyear:	resw 1 // (02) Word with the build year from 1921
 	.dataid:	resw 1 // (04) Word specifying the object's data id
 	.animation:	resb 1 // (06) Byte which allows for animation
@@ -47,6 +57,6 @@ struc object
 			resb 2 // Buffer to dwords
 endstruc
 
-// Additional notes:
+// Additional notes: (now redudant)
 // - The object pools flags are copied at construction time and
 //     should be used over the grf's flags

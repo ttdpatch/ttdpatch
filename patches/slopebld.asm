@@ -793,9 +793,17 @@ correctexactalt.done:
 // Same for a Class A (special objects) tile
 global correctspecialexactalt
 correctspecialexactalt:
-	cmp dh,3			// leave company-owned land alone
+	cmp dh, 3			// leave company-owned land alone
+	je correctexactalt.done
+	
+	cmp dh, 5
 	jne correctexactalt.chkslope
-	jmp correctexactalt.done
+
+	bt word [calcexactgroundcornercopy], 4 // correct steep slope tiles
+	jnc correctexactalt.chkslope
+	
+	add dl, 4
+	jmp correctexactalt.chkslope
 
 // Same for a railway tile
 global correctrailexactalt
