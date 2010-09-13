@@ -1731,10 +1731,10 @@ grfcalltable getother
 	ret
 
 .getObjects:
-//	movzx esi, word [landscape3+esi*2]
-//extern objectpool
-//	imul esi, object_size
-//	movzx esi, word [objectpool+esi+object.origin]
+	movzx esi, word [landscape3+esi*2]
+	extern objectpool
+	imul esi, object_size
+	mov esi, dword [objectpool+esi+object.townptr]
 	ret
 
 #if MEASUREVAR40X
