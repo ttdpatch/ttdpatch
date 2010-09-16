@@ -384,7 +384,7 @@ exported Class5CreateStation
 	or byte [landscape3+edi*2], 1<<7
 .notoverbuilding:
 #if !WINTTDX
-	and al, 0F0h			// overwritten
+	and al, 0Fh			// overwritten
 #endif
 	ret
 
