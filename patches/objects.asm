@@ -1776,7 +1776,7 @@ CheckObjectSlope:
 	ret
 
 .default:
-	mov eax, dword [esp+12]
+	mov eax, dword [esp+_pusha.eax]
 	shr dl, 3	// Height is in multiples of 8
 
 	test word [objectflags+eax*2], OF_NOFOUNDATIONS

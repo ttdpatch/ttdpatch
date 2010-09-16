@@ -807,6 +807,9 @@ insertTramDepotFlag:
 	test	bl, 80h			// Trams flag
 	jz	.nottram
 	// Also check movzx (DOS)
+#if !WINTTDX
+	movzx edi, di
+#endif
 	mov	byte [landscape3+edi*2], 1
 .nottram:
 	mov	byte [landscape5(di)], bh
@@ -815,16 +818,21 @@ insertTramDepotFlag:
 
 global drawTramOrRoadDepot
 drawTramOrRoadDepot:
-	push	ebx
-	push	esi
-	mov	esi, dword [Class2LandPointer]
-	xor	ebx, ebx
-	mov	bl, byte [landscape3+esi*2]
-	and	bl, 01h
-	cmp	bl, 01h
-	pop	esi
-	pop	ebx
-	jne	.dontDrawTramDepot
+//	push	ebx
+//	push	esi
+//	mov	esi, dword [Class2LandPointer]
+//	xor	ebx, ebx
+//	mov	bl, byte [landscape3+esi*2]
+//	and	bl, 01h
+//	cmp	bl, 01h
+//	pop	esi
+//	pop	ebx
+//	jne	.dontDrawTramDepot
+	push esi
+	mov esi, dword [Class2LandPointer]
+	test word [landscape3+esi*2], 1
+	pop esi
+	jz	.dontDrawTramDepot
 	sub	bx, 054Fh
 	add	bx, [tramtracks]
 .dontDrawTramDepot:
@@ -1926,9 +1934,9 @@ global checkIfTramDepot1
 checkIfTramDepot1:
 	push	esi
 	movzx	esi, word [esi+window.id]
-	cmp	byte [landscape3+esi*2], 1
+	test word [landscape3+esi*2], 1
 	pop	esi
-	jne	.notATramDepot
+	jz	.notATramDepot
 .tramdepot:
 	movzx	cx, [human1]
 	bt	[eax+vehtype.playeravail], cx
