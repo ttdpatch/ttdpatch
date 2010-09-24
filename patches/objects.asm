@@ -1315,7 +1315,9 @@ SetObjectPoolEntry:
 	call findnearesttown
 	mov dword [esp+_pusha.ebx], edi
 	popa
+
 	mov dword [objectpool+ecx+object.townptr], ebx
+	pop ebx
 
 	cmp byte [gamemode], 2
 	jne .companyowned
@@ -1324,7 +1326,6 @@ SetObjectPoolEntry:
 .companyowned:
 	call SetObjectBuildColour
 
-	pop ebx
 	pop ecx
 	pop eax
 	ret
@@ -1405,7 +1406,6 @@ proc GetObjectColourMap
 	mov cx, ax
 	and ax, 0x0F
 	and cx, 0xF0
-
 	jmp .hascolours
 
 .owned:
@@ -1909,7 +1909,7 @@ SetObjectBuildColour:
 	mov dword [miscgrfvar], eax
 	mov byte [grffeature], 0xF
 	mov word [curcallback], 0x15B
-	mov eax, [esp+8]
+	mov eax, edx
 
 	call getnewsprite
 	mov dword [miscgrfvar], 0
@@ -2375,6 +2375,7 @@ DrawObjectFoundations.gameid:
 	pop edi
 	jnz DrawObjectFoundations.override
 
+// Draws the basic 
 DrawObjectFoundations:
 	test bp, bp
 	jz .nofondations
