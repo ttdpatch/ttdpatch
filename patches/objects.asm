@@ -1517,6 +1517,20 @@ exported BuildObject
 	call GetObjectPoolEntry		// Can we create an instance of an object?
 	jc .fail
 
+	// Store the height of the initial tile (Lakie)
+	pusha
+	mov esi, edi
+	call [gettileinfoshort]
+	shr dl, 3	// Height is in multiples of 8
+	test di, di
+	jz .flat
+	bt di, 4
+	adc dl, 1
+
+.flat:
+	mov byte [ObjectCurHeight], dl
+	popa
+
 	push eax
 	call GetObjectSize
 	jc .fail
@@ -1779,8 +1793,8 @@ CheckObjectSlope:
 	mov eax, dword [esp+_pusha.eax]
 	shr dl, 3	// Height is in multiples of 8
 
-	test word [objectflags+eax*2], OF_NOFOUNDATIONS
-	jnz .flat
+//	test word [objectflags+eax*2], OF_NOFOUNDATIONS
+//	jnz .flat
 
 	test di, di
 	jz .flat
@@ -1789,11 +1803,6 @@ CheckObjectSlope:
 	adc dl, 1
 
 .flat:
-	cmp cl, 0
-	jne .notfirst
-	mov byte [ObjectCurHeight], dl
-
-.notfirst:
 	cmp dl, [ObjectCurHeight] // Should be ok, (je = jz)
 	
 .fail:
@@ -2269,20 +2278,27 @@ DrawObject:
 
 // Because of foundations, we need to draw our ground tile differently
 .fallback_ground:
+	push ebp
 	mov ebp, dword [esp+8]
 	test bp, bp
+	pop ebp
 	jnz .fallback_found
 
 	call [addgroundsprite]
 	ret
 
 .fallback_found:
+	push eax
+	push ecx
 	push edx
 	mov ax,31
 	mov cx,1
 extern addrelsprite
 	call [addrelsprite]
 	pop edx
+	pop ecx
+	pop eax
+	add dl, 16
 	ret
 
 .newObject:

@@ -4296,7 +4296,7 @@ uvard objectsgameiddata, (NOBJECTS*idf_gameid_data_size)/4
 uvard objectsgameidcount
 
 // Properties for objects (gameid based)
-uvard objectclass, NOBJECTS/2					// a word id to the actuall objectclasses
+uvard objectclass, NOBJECTS/2					// a word id to the actual objectclasses
 uvard objectnames, NOBJECTS/2					// a TextID
 uvard objectspriteblock, NOBJECTS				// to get GRF specific TextIDs
 uvard objectsizes, NOBJECTS/4					// a byte representing size (15x15 maximum)
@@ -4305,12 +4305,12 @@ uvard objectcostfactors, NOBJECTS/4				// a byte which contains the cost factor
 uvard objectstartdates, NOBJECTS				// a dword representing intro date from 1/1/0000
 uvard objectenddates, NOBJECTS					// a dword representing outtro date from 1/1/0000
 uvard objectflags, NOBJECTS/2					// a word of flags which control how objects behave
-uvarw objectanimframes,NOBJECTS/2				// a word with the animation frames
-uvarb objectanimspeeds,NOBJECTS/4				// a byte with the animation speed
-uvarb objectanimtriggers,NOBJECTS/2				// a word with the animation triggers
-uvarb objectremovalcostfactors,NOBJECTS/4			// a byte with the cost factor for removal
+uvard objectanimframes,NOBJECTS/2				// a word with the animation frames
+uvard objectanimspeeds,NOBJECTS/4				// a byte with the animation speed
+uvard objectanimtriggers,NOBJECTS/2				// a word with the animation triggers
+uvard objectremovalcostfactors,NOBJECTS/4			// a byte with the cost factor for removal
 uvard objectcallbackflags,NOBJECTS/2				// a word of callback flags which control the called callbacks
-uvarb objectheights,NOBJECTS/4					// a byte with the height of the object
+uvard objectheights,NOBJECTS/4					// a byte with the height of the object
 
 // Properties for classes of objects
 uvard objectclasses, NOBJECTSCLASSES				// the actual defined classes
