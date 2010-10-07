@@ -353,7 +353,7 @@ win_objectgui_timer:
 	call dword [invalidatehandle]
 //	or byte [esi+window.flags], 7
 	ret
-	
+
 .toolbar:
 	movzx eax, byte [esi+window.data]
 	mov byte [esi+window.data], 0
@@ -362,18 +362,18 @@ win_objectgui_timer:
 	call [FindWindow]
 	btr dword [esi+window.activebuttons], eax
 	jmp [RefreshWindowArea]
-	
+
 win_objectgui_redraw:
 	push esi
 	call dword [DrawWindowElements]	
 	mov cx, [esi+window.x]
 	mov dx, [esi+window.y]
-		
+
 	push ecx
 	push edx
 	cmp word [win_objectgui_curclass], -1
 	je .noclassselected
-	
+
 	movzx ebx, word [win_objectgui_curclass]
 	mov eax, dword [objectclassesnamesprptr+ebx*4]
 extern curmiscgrf
@@ -1688,6 +1688,13 @@ CheckObjectTile:
 	and dl, 0xF0
 	cmp dl, 0x60
 	je .water
+	cmp dl, 0xA0
+	jne .usual
+
+	test byte [landscape7+edi], 4
+	jz .usual
+	test word [objectflags+ebx*2], OF_NOBUILDLAND
+	jnz .waterobject
 
 .usual:
 // Allows the grf to prevent an object being constructd on land (Lakie)
@@ -1695,6 +1702,7 @@ CheckObjectTile:
 	test word [objectflags+ebx*2], OF_NOBUILDLAND
 	jnz .failpop
 
+.waterobject:
 	mov esi, 0		// Clear Tile
 	call BuildObjectFlags
 	call [actionhandler]
@@ -1976,7 +1984,7 @@ RemoveObject:
 	movzx ecx, word [landscape3+edi*2]
 	imul ecx, object_size
 	cmp word [objectpool+ecx+object.origin], 0
-	je .ud2
+	je near .ud2
 
 	mov bh, [landscape1+edi]
 	cmp bh, [curplayer]
@@ -1986,11 +1994,11 @@ RemoveObject:
 	jne .companyfail
 
 .companyowned:
-	call RemoveObjectFlags
-	jc .fail
-
 	movzx eax, word [objectpool+ecx+object.dataid]
 	movzx edx, word [objectsdataidtogameid+eax*2]
+
+	call RemoveObjectFlags
+	jc .fail
 
 	push edx
 	call GetObjectSize
@@ -2010,6 +2018,8 @@ RemoveObject:
 	pop ecx
 	pop ebp
 	pop edi
+	jc .fail
+
 	movzx eax, word [objectsdataidtogameid+eax*2]
 
 	cmp edx, 0	// We shouldn't really get 0 unless there has been an error
@@ -2100,6 +2110,12 @@ RemoveObjectTile:
 	mov cl, byte [landscape7+edi]
 	mov byte [ObjectWater], cl
 
+	test cl, 4
+	jz .notwater
+	test bl, 8
+	jnz near .fail
+
+.notwater:
 	rol di, 4 // Store the x, y in the ax, cx registors
 	mov eax, edi
 	mov ecx, edi
@@ -2176,6 +2192,12 @@ extern actionmakewater_actionnum
 .wasntwater:
 	pop esi
 	clc
+	ret
+
+.fail:
+	mov word [operrormsg2], 0x3807
+	popa
+	stc
 	ret
 
 // In:	eax = game id
@@ -2496,7 +2518,7 @@ DrawObjectDDPreview:
 	ret
 
 // ************************************ Object Preview Drawing ************************************
-extern drawspritefn, exscurfeature, exsspritelistext
+extern drawspritefn, exscurfeature, exsspritelistext, newspritedata, newspritexofs, newspriteyofs
 global DrawObjectTileSelWindow
 
 uvarw DrawPreviewLastX
@@ -2529,6 +2551,9 @@ proc DrawObjectTileSelWindow
 	jz .noground
 
 	pusha	// Draw the ground tile
+	mov word [DrawPreviewLastX], cx
+	mov word [DrawPreviewLastY], dx
+
 	call [drawspritefn]
 	popa
 
@@ -2604,14 +2629,21 @@ proc DrawObjectTileSelWindow
 	add cx, ax
 	add dx, bx
 
+	mov ebx, [esp+_pusha.ebx]
+	push ecx
+	push edx
+
 	// To provide almost correct functionality for 'relatives'
-	mov word [DrawPreviewLastX], ax
+	call .getoffset
+	mov word [DrawPreviewLastX], cx
 	mov word [DrawPreviewLastY], dx
 
-	mov ebx, dword [esp+_pusha.ebx]
+	pop edx
+	pop ecx
+
 	add dword [esp+_pusha.esi], 6
 	jmp .offsets
-	
+
 .shared:
 	// Already pixel offsets so no adjustment needed
 	movzx cx, byte [esi]
@@ -2626,6 +2658,49 @@ proc DrawObjectTileSelWindow
 	dec byte [%$numsprites]
 	jnz .normal
 	_ret
+
+// In:	ebx - sprite
+//	 cx - x offset
+//	 dx - y offset
+// Out:	 cx - x offset
+//	 dx - y offset
+.getoffset:
+	push ebx
+	push ebp
+	and ebx, 0x3FFF
+	cmp bx, baseoursprites
+	jb .ttdoffsets
+
+	mov byte [exscurfeature], 0xF
+	extcall exsfeaturespritetoreal
+
+	// Next find the location of its 'offsets'
+	mov ebp, [newspritedata]
+	lea ebp, [ebp+ebx*4]
+	mov ebp, [ebp]
+	test ebp, ebp
+	jz .badoffsets
+
+	add cx, [ebp+4]
+	add dx, [ebp+6]
+	pop ebp
+	pop ebx
+	_ret 0
+
+.ttdoffsets:
+	mov ebp, [newspritexofs]
+	add cx, [ebp+ebx*2]
+	mov ebp, [newspriteyofs]
+	add dx, [ebp+ebx*2]
+	pop ebp
+	pop ebx
+	_ret 0
+
+.badoffsets:
+	ud2
+	pop ebp
+	pop ebx
+	_ret 0
 
 // In:	esi = Pointer to Action2 (Sprite raw)
 // Out:	ebx = Sprite (with recolour)

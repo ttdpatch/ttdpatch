@@ -1,5 +1,5 @@
 %assign NOBJECTS	400
-%assign NOBJECTSCLASSES	100 // We don't show more so we best not allow more
+%assign NOBJECTSCLASSES	40 // OpenTTD only allows 32
 %assign NACTIVEOBJECTS	4096
 %assign NOBJECTTYPE	0x5
 
