@@ -941,7 +941,6 @@ getindustilelandslope:
 	pusha
 	movzx ebp,byte [landscape2+esi]	// get industry ID
 .got_esi_ebp:
-
 // get fine X and Y coordinates from XY (plus the offsets), for GetTileTypeHeightInfo
 
 // first the Y coordinate into ecx
@@ -960,6 +959,7 @@ getindustilelandslope:
 	and ah,0x0f
 	add ax,dx
 
+.got_ax_cx_ebp:
 	call [gettileinfo]
 
 	mov [esp+28],di		// low word of saved EAX of stack, the high byte is zero
@@ -4755,7 +4755,22 @@ getindustilelandslope_industry:
 	mov ebp,esi
 	getinduidfromptr ebp
 	movzx esi,word [esi+industry.XY]
-	jmp getindustilelandslope.got_esi_ebp
+
+// unsigned addition
+	mov ecx,esi
+	shr cx,4
+	and cl,0xf0
+	movzx edx,ah
+	and dl,0xf0
+	add cx,dx
+
+	shl ah,4
+	movzx edx,ah
+	mov eax,esi
+	shl eax,4
+	and ah,0x0f
+	add ax,dx
+	jmp getindustilelandslope.got_ax_cx_ebp
 
 exported getotherindustileanimstage_industry
 	push ebx
