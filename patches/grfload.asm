@@ -1192,14 +1192,23 @@ procgrffile:
 pseudospriteaction:
 	mov cl,INVSP_ISREAL
 	cmp byte [esi-6],0x59	// are we trying to read a real sprite as a pseudo-sprite?
-	jne .invalid
+	jne .invalidrealsprite
 
 	xor eax,eax
 	lodsb
 	mov ecx,eax
 	cmp eax,numspriteactions
 	jb .goodaction
-
+	
+.invalidaction:
+	mov cl,INVSP_BADACTION
+.invalidrealsprite:
+	// We need to resolve Action9 first to support future addons,
+	// so while loading we accept all sprites regardless of type
+	cmp dword [procall_type],PROCALL_LOADED
+	jne .invalid
+	ret
+	
 .badaction:
 	mov cl,INVSP_BADACTION
 
