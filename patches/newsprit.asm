@@ -2442,8 +2442,8 @@ vard signalsparamvarhandler
 %endif
 
 extern getObjectVar40, getObjectVar41, getObjectVar42, getObjectVar43, getObjectVar44
-extern getObjectVar45, getObjectVar46, getObjectParamVar60, getObjectParamVar61
-extern getObjectParamVar62, getObjectParamVar63, getObjectParamVar64
+extern getObjectVar45, getObjectVar46, getObjectVar47, getObjectParamVar60
+extern getObjectParamVar61, getObjectParamVar62, getObjectParamVar63, getObjectParamVar64
 
 vard objectvarhandler
 	dd getObjectVar40
@@ -2453,6 +2453,7 @@ vard objectvarhandler
 	dd getObjectVar44
 	dd getObjectVar45
 	dd getObjectVar46
+	dd getObjectVar47
 %ifndef PREPROCESSONLY
 %assign n_objectvarhandler (addr($)-objectvarhandler)/4
 %endif

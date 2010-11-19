@@ -1084,6 +1084,9 @@ proc validobject
 	cmp word [objectnames+ebx*2], 0
 	je near .fail
 
+	cmp byte [objectsizes+ebx], 0x11
+	jb near .fail
+
 	mov word [operrormsg2], ourtext(objecterr_noaction3)
 	cmp dword [objectsgameiddata+ebx*idf_gameid_data_size+idf_gameid_data.act3info], 0
 	je near .fail
@@ -1878,10 +1881,13 @@ CreateObjectTile:
 	pop edx
 	pop eax
 
-	test word [objectflags+eax*2], OF_ANIMATED
-	jnz .hasanimation
+// Grf Authors are expected to use the callback to start animations,
+//   changed to be consistant with OpenTTD. (Lakie)
+//	test word [objectflags+eax*2], OF_ANIMATED
+//	jnz .hasanimation
 	ret
 
+#if 0
 .hasanimation:
 	push ebp
 	push ebx
@@ -1893,6 +1899,7 @@ CreateObjectTile:
 	pop ebx
 	pop ebp
 	ret
+#endif
 
 // in:	 bh = owner
 //		eax = game id
@@ -3282,31 +3289,13 @@ exported getObjectVar42
 	add eax, [landscape3+ttdpatchdata.daysadd]
 	ret
 
-// Var 43, Colour and Animation stage
-// Out:	0000CCAA - Colour (no owner) and Animation Counter
+// Var 43, Animation stage
+// Out:	000000AA - Animation Counter
 exported getObjectVar43
 	test esi, esi
 	jz .gui
 
-	push ecx
-	movzx ecx, word [landscape3+esi*2]
-	imul ecx, object_size
 	movzx eax, byte [landscape2+esi]
-	mov ah, byte [objectpool+ecx+object.colour]
-
-	cmp byte [landscape1+esi], 0x10
-	jae .noowner
-
-	push eax
-	movzx eax, byte [landscape1+esi]
-	call GetOwnerColours
-
-	or cl, al
-	pop eax
-	mov ah, cl
-
-.noowner:
-	pop ecx
 	ret
 
 .gui:
@@ -3327,7 +3316,7 @@ exported getObjectVar44
 	ret
 
 // For these we use the same system as OpenTTD, using the town ref it was built with.
-// Var45, Get distance of closest town
+// Var 45, Get distance of closest town
 // Out:	00zzDDDD - Zone, Distance (manhatten) to nearest town
 exported getObjectVar45
 	xor eax, eax
@@ -3393,7 +3382,7 @@ exported getObjectVar45
 	xor edi, edi
 	jmp .hastown
 
-// Var46, Get euclidean distance of closest town
+// Var 46, Get euclidean distance of closest town
 // Out: DDDDDDDD - Distance (euclidean squared) to nearest town
 exported getObjectVar46
 	xor eax, eax
@@ -3444,6 +3433,44 @@ exported getObjectVar46
 	mov ax, word [cur_object_tile]
 	call findnearesttown
 	jmp .hastown
+
+// Var 47, Object Colour(s)
+// Out:	000000CC - Object Colour
+exported getObjectVar47
+	test esi, esi
+	jz .gui
+
+	push ecx
+	movzx ecx, word [landscape3+esi*2]
+	imul ecx, object_size
+	mov ah, byte [objectpool+ecx+object.colour]
+
+	// We don't want to fetch if object cached
+	movzx ecx, word [objectpool+ecx+object.dataid]
+	movzx ecx, word [objectsdataidtogameid+ecx*2]
+	test word [objectcallbackflags+ecx*2], OC_BUILDCOLOUR
+	jnz .noowner
+
+	cmp byte [landscape1+esi], 0x10
+	jae .noowner
+
+	movzx eax, byte [landscape1+esi]
+	call GetOwnerColours
+	or cl, al
+
+.noowner:
+	// Filter the colour down to the required channels
+	test word [objectflags+ecx*2], OF_TWOCC
+	jnz .done
+	and ax, 0xF
+
+.done:
+	pop ecx
+	ret
+
+.gui:
+	xor eax, eax
+	ret
 
 
 // For the below "ParamVar" functions, ah = parameter from grf
