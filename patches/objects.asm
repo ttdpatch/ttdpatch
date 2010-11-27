@@ -3572,8 +3572,8 @@ exported getObjectParamVar61
 // Var62, Land info at offset from tile
 // Out:	0czzbbss - Tile class, lowest corner height, Bit field, Slope data
 exported getObjectParamVar62
-	xor eax, eax	// Default eax value
 	pusha
+	mov dword [esp+_pusha.eax], 0 // Default return value
 
 	test esi, esi
 	jz .noobject
