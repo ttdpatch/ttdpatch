@@ -70,6 +70,17 @@ extern QueryObject
 	icall QueryObject
 	setfragmentsize 9
 
+codefragment oldobjectsell, 7
+	mov [landscape1+ebx], dh
+	ret
+	mov bl, 1
+	db 0xE8
+
+codefragment newobjectsell
+extern SellObject
+	icall SellObject
+	setfragmentsize 7
+
 endcodefragments
 
 
@@ -183,6 +194,7 @@ extern ObjectClearTile
 	mov byte [edi], 0x73 // jae
 	patchcode objecthookdrawtile, 1, 2
 	patchcode objecthookquery
+	patchcode objectsell
 
 extern ClassAAnimationHandler, ClassAPeriodicHandler
 	mov eax, [ophandler+(0xA * 8)]

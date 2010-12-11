@@ -635,8 +635,8 @@ win_objectgui_clickhandler:
 	je near win_objectgui_objectbuild
 
 	ret
-	
-	
+
+
 win_objectgui_classdropdown.text:
 	inc cl
 
@@ -896,7 +896,7 @@ doesclasshaveusableobjects:
 // We always try to select the first class (eis_os)
 //	cmp word [win_objectgui_curclass], -1	
 //	je .no
-	
+
 	cmp word [win_objectgui_curclass], -1	
 	jne .validclass
 //	cmp byte [numobjectclasses], 0
@@ -912,8 +912,8 @@ doesclasshaveusableobjects:
 	je .noobject
 
 	mov cx, [win_objectgui_curobject]
-	push ebx
 	push ecx
+	push ebx
 	call validobject
 	jnc .skip
 
@@ -1518,7 +1518,7 @@ exported BuildObject
 
 	call GetObjectLayout		// Result is in ObjectLayout
 	call GetObjectPoolEntry		// Can we create an instance of an object?
-	jc .fail
+	jc near .fail
 
 	// Store the height of the initial tile (Lakie)
 	pusha
@@ -1970,6 +1970,38 @@ SetObjectBuildColour:
 // Input:	edi - tile coordinates
 uvard ObjectClearTile
 
+global SellObject
+SellObject:
+	mov bl, 1
+	cmp byte [landscape5(bx, 1)], NOBJECTTYPE
+	je .new
+	call [ObjectClearTile]
+	ret
+
+// Effectively a highly stripped down version of RemoveObject
+.new:
+	pusha
+	movzx ecx, word [landscape3+ebx*2]
+	mov ebp, ecx
+	shl ebp, 4 // imul ebp, object_size
+
+	movzx edi, word [objectpool+ebp+object.origin]
+	movzx eax, word [objectpool+ebp+object.dataid]
+
+	push dword [objectsdataidtogameid+eax*2]
+	call GetObjectSize
+
+	push dword IsObjectTile		// Functions and values for check tile
+	push dword RemoveObjectTile
+	push eax
+	push ecx
+	call LoopTiles
+
+	xor edi, edi
+	call SetObjectPoolEntry
+	popa
+	ret
+
 global RemoveObject, RemoveObject.origfn
 RemoveObject:
 	mov word [operrormsg2], 0x013B
@@ -1998,7 +2030,7 @@ RemoveObject:
 	je .companyowned
 
 	cmp bh, 0x10
-	jne .companyfail
+	jne near .companyfail
 
 .companyowned:
 	movzx eax, word [objectpool+ecx+object.dataid]
@@ -2149,9 +2181,6 @@ RemoveObjectTile:
 	call idf_decreaseusage // Requires an action3 structure
 	pop edx
 	pop ebx
-
-	cmp cl, 0
-	ja .normaltile
 
 // We no longer now if the object tile is animated or not
 //	imul edx, object_size
@@ -2625,8 +2654,8 @@ proc DrawObjectTileSelWindow
 	je .shared
 	
 	// Get the landscape offsets and convert them to pixel offsets
-	movzx ax, byte [esi] // x
-	movzx cx, byte [esi+1] // y
+	movsx ax, byte [esi] // x
+	movsx cx, byte [esi+1] // y
 	mov dl, byte [esi+2] // z
 	call .topixels
 	mov bx, cx
@@ -3437,9 +3466,6 @@ exported getObjectVar46
 // Var 47, Object Colour(s)
 // Out:	000000CC - Object Colour
 exported getObjectVar47
-	test esi, esi
-	jz .gui
-
 	push ecx
 	movzx ecx, word [landscape3+esi*2]
 	imul ecx, object_size
@@ -3466,10 +3492,6 @@ exported getObjectVar47
 
 .done:
 	pop ecx
-	ret
-
-.gui:
-	xor eax, eax
 	ret
 
 
