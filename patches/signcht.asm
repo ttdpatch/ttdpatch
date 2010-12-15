@@ -3119,9 +3119,21 @@ setlandarrayval:
 	stc
 	ret
 
-createnewobject: 
+// Arguments:
+// - Object id (hex) 0..190
+// - Layout number (dec/hex) 0..3
+createnewobject:
 	call gethexnumber // Result in dx
-	shl edx, 8
+	mov ax, dx
+
+	call gethexnumber // Result in dx
+	jnc .arg2	// Argument 2 is optional
+	mov dl, 0
+
+.arg2:
+	and dl, 3 // Should eliminate the need for sanity checks
+	shl edx, 16
+	mov dx, ax
 
 	call getsignxy // results in esi
 	mov edi, esi

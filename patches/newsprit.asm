@@ -2231,7 +2231,7 @@ vard varavailability
 	dd 0,7<<29,			0,7<<29			// sounds
 	dd 0,7<<29,			0,7<<29			// airports
 	dd 0,7<<29,			0,7<<29			// signals
-	dd 1110011b,7<<29|10101b,			0,7<<29			// objects
+	dd 101110011b,7<<29|10101b,			0,7<<29			// objects
 
 checkfeaturesize varavailability, (4*2*2)
 
@@ -2442,7 +2442,7 @@ vard signalsparamvarhandler
 %endif
 
 extern getObjectVar40, getObjectVar41, getObjectVar42, getObjectVar43, getObjectVar44
-extern getObjectVar45, getObjectVar46, getObjectVar47, getObjectParamVar60
+extern getObjectVar45, getObjectVar46, getObjectVar47, getObjectVar48, getObjectParamVar60
 extern getObjectParamVar61, getObjectParamVar62, getObjectParamVar63, getObjectParamVar64
 
 vard objectvarhandler
@@ -2454,6 +2454,7 @@ vard objectvarhandler
 	dd getObjectVar45
 	dd getObjectVar46
 	dd getObjectVar47
+	dd getObjectVar48
 %ifndef PREPROCESSONLY
 %assign n_objectvarhandler (addr($)-objectvarhandler)/4
 %endif

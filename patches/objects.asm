@@ -75,6 +75,7 @@ extern objectanimtriggers
 extern objectremovalcostfactors
 extern objectcallbackflags
 extern objectheights
+extern objectviews
 
 // Properties for classes of objects
 extern objectclasses			// the actual defined classes
@@ -177,6 +178,7 @@ exported setobjectclass
 	mov byte [objectremovalcostfactors+eax], 2
 	mov word [objectcallbackflags+eax*2], 0
 	mov byte [objectheights+eax], -1
+	mov byte [objectviews+eax], 1
 
 	pop ecx
 	inc ebx
@@ -236,6 +238,25 @@ exported setobjectbuyfactor
 	clc
 	ret
 
+// We recieve a number of 'views', either 1, 2 or 4.
+exported setobjectviews
+	lodsb
+
+	btr ax, 0 // 3->2, 1->0, etc
+	cmp al, 4 // Truncate to 4
+	jbe .under
+	mov al, 4
+
+.under:
+	test al, al // 0->1
+	jnz .above
+	mov al, 1
+
+.above:
+	mov byte [objectviews+ebx], al
+	clc
+	ret
+
 // Select window
 %assign win_objectgui_padding 10 
 
@@ -262,6 +283,7 @@ endguiwindow
 
 svarw win_objectgui_curclass
 svard win_objectgui_curobject
+uvarb win_objectgui_curobject_view
 uvarw cur_object_tile
 
 exported win_objectgui_create
@@ -307,7 +329,7 @@ win_objectgui_winhandler:
 	cmp dl, cWinEventDropDownItemSelect
 	jz near win_objectgui_dropdowncallback
 	cmp dl, cWinEventTimer
-	jz win_objectgui_timer
+	jz near win_objectgui_timer
 
 	cmp dl, cWinEventMouseToolClick
 	je near win_objectgui_mousetoolcallback
@@ -435,6 +457,7 @@ drawobjectproperties:
 	push eax
 	movzx ebx, word [win_objectgui_curobject]
 	push ebx
+	push dword [win_objectgui_curobject_view]
 	call GetObjectSize
 	movzx eax, dl
 	mul dh
@@ -452,11 +475,12 @@ drawobjectproperties:
 	call [drawtextfn]
 	pop edx
 	pop ecx
-	add dx, 12
+	add dx, 11
 
 .showsize:
 	push edx
 	push dword [win_objectgui_curobject]
+	push dword [win_objectgui_curobject_view]
 	call GetObjectSize
 	mov word [textrefstack], dx
 	pop edx
@@ -667,7 +691,7 @@ win_objectgui_classdropdown:
 .done:
 	mov dword [DropDownExList+4*eax],-1	// terminate it
 	mov byte [DropDownExMaxItemsVisible], 12
-	mov word [DropDownExFlags], 11b
+	mov word [DropDownExFlags], 1b
 	
 	movzx edx, word [win_objectgui_curclass]
 	
@@ -815,13 +839,17 @@ extern setmousetool
 	call [setmousetool]
 	pop esi
 	
-	movzx edx, word [win_objectgui_curobject]
-	movzx edx, byte [objectsizes+edx]
+//.active:
+	cmp word [win_objectgui_curobject], byte -1
+	je .noobject
+	
+	push dword [win_objectgui_curobject]
+	push dword [win_objectgui_curobject_view]
+	call GetObjectSize
 
-	mov ax, dx
-	and ax, 0xF
-	and dx, 0xF0
-	shl ax, 4
+	shl dx, 4
+	movzx ax, dl
+	movzx dx, dh
 
 	mov word [highlightareainnerxsize], ax
 	mov word [highlightareainnerysize], dx
@@ -848,8 +876,13 @@ win_objectgui_mousetoolcallback:
 	cmp byte [curmousetoolwintype], cWinTypeTTDPatchWindow // Is this depot clone vehicle active?
 	jne .notactive
 
-	movzx edx, word [win_objectgui_curobject]
-	shl edx, 8
+	// Nothing selected then we do not attempt building
+	cmp word [win_objectgui_curobject], -1
+	je .notactive
+
+	movzx edx, byte [win_objectgui_curobject_view]
+	shl edx, 16
+	mov dx, word [win_objectgui_curobject]
 
 	movzx edi, word [mousetoolclicklocxy]
 	rol di, 4 // Store the x, y in the ax, cx registors
@@ -1181,6 +1214,7 @@ GetObjectYear:
 //	edx = tiles to loop
 proc GetObjectSize
 	arg gameid
+	arg view
 
 	_enter
 	mov word [operrormsg2], ourtext(objecterr_invalidsize)
@@ -1194,6 +1228,11 @@ proc GetObjectSize
 	and dx, 0xF0F
 	jz .default
 
+	test byte [%$view], 1
+	jz .done
+	rol dx, 8 // swap the x,y sizes
+
+.done:
 	clc
 	_ret
 
@@ -1328,6 +1367,10 @@ SetObjectPoolEntry:
 
 .companyowned:
 	call SetObjectBuildColour
+
+// Store the object view being built
+	mov al, [ObjectView]
+	mov byte [objectpool+ecx+object.view], al
 
 	pop ecx
 	pop eax
@@ -1490,10 +1533,12 @@ uvard ObjectCost
 uvard ObjectLayout
 uvarb ObjectWater
 uvarb ObjectCurHeight
+uvarb ObjectView
 
 // Create Object function
 // Input:	edi - tile index (word)
-//		edx - object data id (word) (from bit 8)
+//		edx - object data id (word,  0..15)
+//		    - object view    (byte, 16..23)
 // Output:	ebx - 0x80000000 if fail, cost if sucessful
 exported BuildObject
 	push eax
@@ -1502,8 +1547,9 @@ exported BuildObject
 	mov byte [currentexpensetype], expenses_construction
 	and dword [ObjectCost], 0
 
-	mov eax, edx			// Move our game id to a more perminant home
-	shr eax, 8
+	movzx eax, dx			// Move our game id to a more perminant home
+	rol edx, 16
+	mov byte [ObjectView], dl
 
 	mov word [operrormsg2], ourtext(cheatinvalidparm)
 	or eax, eax
@@ -1535,6 +1581,7 @@ exported BuildObject
 	popa
 
 	push eax
+	push dword [ObjectView]
 	call GetObjectSize
 	jc .fail
 
@@ -1559,6 +1606,7 @@ exported BuildObject
 	call SetObjectPoolEntry
 
 	mov dword [ObjectLayout], -1 // Return and clear the selected layout
+	mov byte [ObjectView], 0
 
 	push ebx
 	mov ebx, edi
@@ -1989,6 +2037,7 @@ SellObject:
 	movzx eax, word [objectpool+ebp+object.dataid]
 
 	push dword [objectsdataidtogameid+eax*2]
+	push dword [objectpool+ebp+object.view] 
 	call GetObjectSize
 
 	push dword IsObjectTile		// Functions and values for check tile
@@ -2040,6 +2089,7 @@ RemoveObject:
 	jc .fail
 
 	push edx
+	push dword [objectpool+ecx+object.view]
 	call GetObjectSize
 
 	push edi
@@ -3048,11 +3098,17 @@ ObjectAnimTrigger:
 	jmp .docallback
 
 .wholeobject:
-	push eax
-	call GetObjectSize
-	
 	mov edi, ebx
 	movzx ebx, word [landscape3+ebx*2]
+
+	push ebx
+	imul ebx, object_size
+	mov dl, byte [objectpool+ebx+object.view]
+	pop ebx
+
+	push eax
+	push edx
+	call GetObjectSize
 
 	push IsObjectTile
 	push CallObjectTileTrigger
@@ -3165,14 +3221,15 @@ ClassAPeriodicHandler:
 	mov eax, esi
 	mov edx, OA_PERIODICTILE
 	call ObjectAnimTrigger.hasgameid
-	
+
 	cmp word [objectpool+ebp+object.origin], di
 	jne .done
 
 	mov edx, OA_WHOLEOBJECT
 	call ObjectAnimTrigger.hasgameid
-	
+
 	push esi
+	push dword [objectpool+ebp+object.view]
 	call GetObjectSize	// Result in dx
 
 	push IsObjectTile
@@ -3492,6 +3549,29 @@ exported getObjectVar47
 
 .done:
 	pop ecx
+	ret
+
+// Var 48, Object View
+// Out:	0000000V - Object View
+exported getObjectVar48
+	test esi, esi
+	jz .gui
+
+	push ecx
+	movzx ecx, word [landscape3+esi*2]
+	imul ecx, object_size
+	movzx eax, byte [objectpool+ecx+object.view]
+	pop ecx
+	ret
+
+.gui:
+	cmp word [cur_object_tile], 0
+	jne .inconstruction
+	movzx eax, byte [win_objectgui_curobject_view]
+	ret
+
+.inconstruction:
+	movzx eax, byte [ObjectView]
 	ret
 
 

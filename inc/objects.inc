@@ -43,7 +43,8 @@ struc object
 	.dataid:	resw 1 // (06) Word specifying the object's data id
 	.townptr:	resd 1 // (08) Dword (Pointer) to closest town
 	.colour:	resb 1 // (0C) Colour for non-company owned objects (Two nibbles for 2cc)
-			resb 3 // Buffer to dwords
+	.view:		resb 1 // (0D) View of the object (used for multiple views per object, 0..3)
+			resb 2 // Buffer to dwords
 endstruc
 
 // Used to attempt to translate the data from the old format to the newer one

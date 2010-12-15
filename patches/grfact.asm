@@ -4311,6 +4311,7 @@ uvard objectanimtriggers,NOBJECTS/2				// a word with the animation triggers
 uvard objectremovalcostfactors,NOBJECTS/4			// a byte with the cost factor for removal
 uvard objectcallbackflags,NOBJECTS/2				// a word of callback flags which control the called callbacks
 uvard objectheights,NOBJECTS/4					// a byte with the height of the object
+uvard objectviews,NOBJECTS/4					// a byte with the number ov views an object supports
 
 // Properties for classes of objects
 uvard objectclasses, NOBJECTSCLASSES				// the actual defined classes

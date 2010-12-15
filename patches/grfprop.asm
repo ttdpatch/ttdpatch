@@ -536,6 +536,7 @@ action0props objectproperties,NOBJECTS,curgrfobjectgameids,0x08
 	propex 0x14,B, objectremovalcostfactors
 	propex 0x15,W, objectcallbackflags
 	propex 0x16,B, objectheights
+	propex 0x17,F, setobjectviews
 endaction0props
 
 %pop
