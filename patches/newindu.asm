@@ -4142,6 +4142,15 @@ induwindow_redraw:
 	mov byte [curcallback],0
 	jc .noextrainfo
 
+	// Match OpenTTD in copying grf registers 100h-105h into textrefstack
+	push esi
+	push edi
+	mov esi,specialgrfregisters
+	mov edi,textrefstack
+	times 6 movsd
+	pop edi
+	pop esi
+
 	add ah,0xd4
 	mov ebx,eax
 	mov ecx,[mostrecentspriteblock]
