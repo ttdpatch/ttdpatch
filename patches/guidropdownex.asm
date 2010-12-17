@@ -231,12 +231,16 @@ proc GenerateDropDownEx
 
 	// calculate the width of the texts, unsafe local vars!
 	push ebp
-	mov ebp, DropDownExList
+	xor ebp, ebp
 .nexttext:
-	mov eax, dword [ebp]
+	mov eax, dword [DropDownExList+ebp*4]
 	cmp eax, -1
 	je .nomoretext
-
+	
+	extern curmiscgrf
+	mov edi, dword [DropDownExListGrfPtr+ebp*4]
+	mov [curmiscgrf], edi
+	
 	bt word [DropDownExFlags], 2
 	jnc .textid
 	mov [specialtext1], eax
@@ -256,7 +260,7 @@ proc GenerateDropDownEx
 	jl .okay
 	movzx ebx, cx
 .okay:
-	add ebp, 4
+	inc ebp
 	jmp .nexttext
 .nomoretext:
 	mov ecx, ebp
@@ -265,8 +269,6 @@ proc GenerateDropDownEx
 	// unsafe local vars end
 
 	// how many items do we have?
-	sub ecx, DropDownExList
-	shr ecx, 2
 	mov dword [%$itemstotal], ecx
 
 	bt word [DropDownExFlags], 0
