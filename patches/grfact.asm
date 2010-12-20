@@ -4317,7 +4317,7 @@ uvard objectviews,NOBJECTS/4					// a byte with the number ov views an object su
 uvard objectclasses, NOBJECTSCLASSES				// the actual defined classes
 uvard numobjectclasses						// how many classes we have have loaded already
 uvard objectclassesnames, NOBJECTSCLASSES/2			// the TextID for the name
-uvard objectclassesnamesprptr, NOBJECTSCLASSES/2		// the spriteblockptr for this TextID
+uvard objectclassesnamesprptr, NOBJECTSCLASSES		// the spriteblockptr for this TextID
 
 	// other variables
 uvard newstationnum
