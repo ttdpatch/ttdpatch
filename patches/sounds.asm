@@ -32,7 +32,7 @@ exported AmbientSound
 	mov [miscgrfvar],eax
 
 	mov word [curcallback],0x144
-	mov eax,0x10C		// feature 0C (newsounds) generic
+	mov eax,0x8000000C	// feature 0C (newsounds) generic
 	mov [grffeature],al
 	xor esi,esi
 	call getnewsprite

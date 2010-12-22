@@ -273,7 +273,9 @@ proc processnewinfo
 	movzx ebx, byte [ebx+action0propdef.size]
 	
 	mov eax, ebx
-	mul byte [%$offset]
+	push edx // mul above a byte size alters edx
+	mul word [%$offset]
+	pop edx
 	add edi,eax
 
 

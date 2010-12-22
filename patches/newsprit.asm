@@ -75,7 +75,7 @@ grfcalltable getaction3, dd addr(getaction3.generic)
 
 .generic:
 	mov edx,eax
-	mov eax,[genericids+(eax-0x100)*4]
+	mov eax,[genericids+eax*4]
 	ret
 
 .gettrains:
@@ -527,8 +527,8 @@ grfcalltable getaction2spritenum
 //
 // get TTD sprite ID for new graphics
 //
-// in:	 al=vehtype for vehicles, station sprite set for stations
-//	 ah=0 means regular feature sprite, ah=1 means generic feature callback
+// in:	 ax=vehtype for vehicles, station sprite set for stations
+//	 eax bit 31 set means generic feature callback
 //	 bx=direction for vehicles
 //	esi->vehicle/station struct or 0 if none available
 //	[grffeature] must be set correctly
@@ -585,8 +585,7 @@ ovar skiptransfix, 0
 	call checktsc
 #endif
 
-	mov cl,0
-	cmp cl,ah
+	btr eax, 31
 	mov ecx,[grffeature]
 	sbb edx,edx	// -1 for generic (-> ignore feature), 0 for regular
 	mov [curgrffeature],ecx

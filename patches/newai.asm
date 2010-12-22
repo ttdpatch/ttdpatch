@@ -121,7 +121,7 @@ getaiselectioncallback:
 	movsx edi,byte [featurevarofs+eax*2]
 	sub edi,byte -0x80
 	sub esi,edi
-	mov ah,1
+	bts eax, 31
 	mov byte [curcallback],0x18
 	mov byte [nostructvars],2
 	extern structvarcustomhnd

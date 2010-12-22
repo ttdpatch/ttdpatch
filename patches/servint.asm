@@ -149,7 +149,7 @@ getreplacevehicle:
 .next:
 	mov al,[esi+veh.class]
 	and eax,0xf
-	mov ah,1	// generic callback
+	bts eax, 31	// generic callback
 	mov [grffeature],al
 	call getnewsprite
 	jc near .done

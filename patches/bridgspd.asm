@@ -240,7 +240,7 @@ exported vehonbridge
 	mov byte [miscgrfvar],10
 	mov [callback_extrainfo],edi
 
-	mov eax,0x106	// generic callback for feature 6 (bridges)
+	mov eax,0x80000006 // generic callback for feature 6 (bridges)
 	mov [grffeature],al
 	mov byte [curcallback],0x33
 	call getnewsprite

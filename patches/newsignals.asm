@@ -177,7 +177,7 @@ newsignalsdraw:
 	mov DWORD [curcallback],0x146
 	mov BYTE [grffeature],0xE
 	mov DWORD [callback_extrainfo], eax
-	mov eax, 0x10E
+	mov eax, 0x8000000E
 	//xor esi, esi
 	call getnewsprite
 	xor esi, esi
