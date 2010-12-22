@@ -1188,6 +1188,12 @@ getvariationalvariable:
 	adc ebx,0		// advance ebx if it is one
 	mov cl,[ebx]		// cl will contain 60+x parameter (or var.num otherwise)
 
+	cmp al,0x7b		// for 7B we need to retrieve the 'real variable' from cl
+	jne .noindirect
+	mov al,cl
+	mov cl,[variationalparameter]
+
+.noindirect:
 	cmp al, 0x7D
 	jae .paramvar		// 7D, 7E, 7F are always available, with or without structure, special handler, or anything else.
 
@@ -1329,10 +1335,11 @@ getvariationalvariable:
 
 	test dh,0x20
 	jnz .nextvar
-	jmp short .gotval	// could do jz .nextvar, but this is better for the BPL
+	jmp near .gotval	// could do jz .nextvar, but this is better for the BPL
 
 .nextvar:
 	push eax
+	mov [variationalparameter], al
 	movzx ebp,byte [ebx]
 	inc ebx
 	call getvariationalvariable
@@ -1676,6 +1683,7 @@ endvar
 	ret
 
 uvard lastcalcresult
+uvarb variationalparameter
 
 // get the "other" variable for random 83 or variational 82
 // in:	esi=vehicle/station
