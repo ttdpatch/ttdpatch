@@ -26,7 +26,7 @@ extern RefreshWindowArea
 extern player2array
 extern numtwocolormaps
 
-uvard objectsdataiddata,256*idf_dataid_data_size
+uvard objectsdataiddata,NOBJECTS*(idf_dataid_data_size/4)
 uvard objectsdataidcount
 
 global objectsdefandclassnames
@@ -264,9 +264,9 @@ exported setobjectviews
 %assign win_objectgui_dropheight 12
 %assign win_objectgui_drop1y 20
 
-%assign win_objectgui_previewheight 72
+%assign win_objectgui_previewheight 120
 
-guiwindow win_objectgui,200,195
+guiwindow win_objectgui,230,195
 	guicaption cColorSchemeDarkGreen, ourtext(objectgui_title)
 	guiele background,cWinElemSpriteBox,cColorSchemeDarkGreen,x,0,-x2,0,y,14,-y2,0,data,0
 	// Dropdown 1
@@ -274,15 +274,22 @@ guiwindow win_objectgui,200,195
 	guiele dropdown1,cWinElemTextBox,cColorSchemeGrey,-x,win_objectgui_padding+win_objectgui_dropwidth,-x2,win_objectgui_padding,y,win_objectgui_drop1y,h,win_objectgui_dropheight,data,statictext(txtetoolbox_dropdown)
 	// Preview
 	guiele preview,cWinElemSpriteBox,cColorSchemeGrey,x,win_objectgui_padding,-x2,win_objectgui_padding,y,40,h,win_objectgui_previewheight,data,0
+	// Additional preview planes (w+<num>), where <num> is (0, 3]
+%assign win_objectgui_view_padding win_objectgui_padding+(win_objectgui_width-2*win_objectgui_padding)/2+2
+	guiele previex,cWinElemSpriteBox,cColorSchemeGrey,x,win_objectgui_view_padding,-x2,win_objectgui_padding,y,40,h,win_objectgui_previewheight,data,0
+	guiele previey,cWinElemExtraData,cColorSchemeGrey,x,win_objectgui_padding,-x2,win_objectgui_view_padding,y,40+(win_objectgui_previewheight+4)/2,h,(win_objectgui_previewheight-4)/2,data,0
+	guiele previez,cWinElemExtraData,cColorSchemeGrey,x,win_objectgui_view_padding,-x2,win_objectgui_padding,y,40+(win_objectgui_previewheight+4)/2,h,(win_objectgui_previewheight-4)/2,data,0
 	// Dropdown 2
 	guiele dropdown2_text,cWinElemSpriteBox,cColorSchemeGrey,x,win_objectgui_padding,-x2,win_objectgui_padding+win_objectgui_dropwidth+1,y,40+win_objectgui_previewheight+8,h,win_objectgui_dropheight,data,0
 	guiele dropdown2,cWinElemTextBox,cColorSchemeGrey,-x,win_objectgui_padding+win_objectgui_dropwidth,-x2,win_objectgui_padding,y,40+win_objectgui_previewheight+8,h,win_objectgui_dropheight,data,statictext(txtetoolbox_dropdown)
-	// Build button
-	guiele buildbtn, cWinElemTextBox, cColorSchemeGrey, x, win_objectgui_padding, -x2, win_objectgui_padding, -y, win_objectgui_padding+win_objectgui_dropheight, h, win_objectgui_dropheight, data, ourtext(objectbuild)
 endguiwindow
+
+%assign win_objectgui_preview_mask ~((1 << win_objectgui_elements.preview_id) | (1 << win_objectgui_elements.previex_id) | (1 << win_objectgui_elements.previey_id) | (1 << win_objectgui_elements.previez_id))
+%assign win_objectgui_preview_default (1 << win_objectgui_elements.preview_id)
 
 svarw win_objectgui_curclass
 svard win_objectgui_curobject
+svarw win_objectgui_curobject_lines
 uvarb win_objectgui_curobject_view
 uvarw cur_object_tile
 
@@ -297,8 +304,8 @@ exported win_objectgui_create
 	pop ebx
 	test esi,esi
 	jz .noold
-	mov byte [esi+window.data], bl
-	or byte [esi+window.flags], 7
+
+	call dword [DestroyWindow]
 	popa
 	ret
 
@@ -315,7 +322,11 @@ exported win_objectgui_create
 	mov word [esi+window.id], cPatchWindowObjectGUI // window.id
 	mov byte [esi+window.data], bl
 	or byte [esi+window.flags], 7
-	call doesclasshaveusableobjects
+	mov dword [esi+window.activebuttons], 0
+	mov bl, byte [currentmonth]
+	mov byte [esi+window.data+1], bl
+	call findfirstusableobject
+	call doesobjectresizegui
 	popa
 	ret
 
@@ -330,21 +341,25 @@ win_objectgui_winhandler:
 	jz near win_objectgui_dropdowncallback
 	cmp dl, cWinEventTimer
 	jz near win_objectgui_timer
+	cmp dl, cWinEventUITick
+	jz near win_objectgui_uitick
+	cmp dl, cWinEventClose
+	jz near win_objectgui_close
 
 	cmp dl, cWinEventMouseToolClick
 	je near win_objectgui_mousetoolcallback
 	cmp dl, cWinEventMouseToolClose
-	je near win_objectgui_setmousetool.noobject
+	je near win_objectgui_setmousetool.close
 
 	cmp dl, cWinEventGRFChanges
 	je near win_objectgui_grfchanges
 	ret
-	
+
 win_objectgui_grfchanges:
 	pusha
 	mov word [win_objectgui_curobject], -1
 	mov word [win_objectgui_curclass], -1
-	
+
 	// To prevent possible crashes, if we have any active drop downs, we close them
 	bt dword [esi+window.activebuttons], win_objectgui_elements.dropdown1_id
 	jnc .nodrop1
@@ -359,31 +374,51 @@ win_objectgui_grfchanges:
 	extcall GenerateDropDownExPrepare
 
 .nodrop2:
-	call doesclasshaveusableobjects
+	call findfirstusableobject
+	call doesobjectresizegui
 	popa
 	ret
 
-win_objectgui_timer:
-	mov dword [esi+window.activebuttons], 0
-	
-	cmp byte [esi+window.data], 0
-	jne .toolbar
+win_objectgui_uitick:
+	mov bl, byte [currentmonth]
+	cmp bl, byte [esi+window.data+1]
+	jne .monthchange
+	ret
 
-.ok:
+.monthchange:
+	mov byte [esi+window.data+1], bl
+	cmp word [win_objectgui_curobject], -1
+	jne .update
+	ret
+
+.update:
+	mov bx, word [win_objectgui_curobject]
+	call findfirstusableobject // validate object or find new object
+	cmp bx, word [win_objectgui_curobject]
+	jne .resize
+	jmp dword [RefreshWindowArea]
+
+.resize:
+	jmp doesobjectresizegui
+
+win_objectgui_timer:
 	mov al,[esi]
 	mov bx,[esi+window.id]
 	call dword [invalidatehandle]
-//	or byte [esi+window.flags], 7
 	ret
 
-.toolbar:
+win_objectgui_close:
 	movzx eax, byte [esi+window.data]
-	mov byte [esi+window.data], 0
 	mov cl, 1
 	xor dx, dx
-	call [FindWindow]
+	call dword [FindWindow]
+	test esi, esi
+	jz .done
 	btr dword [esi+window.activebuttons], eax
-	jmp [RefreshWindowArea]
+	call dword [RefreshWindowArea]
+
+.done:
+	ret
 
 win_objectgui_redraw:
 	push esi
@@ -485,36 +520,170 @@ drawobjectproperties:
 	mov word [textrefstack], dx
 	pop edx
 
+	push ecx
+	push edx
 	mov bx, ourtext(objectgui_size)
 	call [drawtextfn]
 	pop edx
 	pop ecx
+	add dx, 11
+
+// Check to see if the object has any optional text via
+//   callback 15C.
+	movzx ebx, word [win_objectgui_curobject]
+	test word [objectcallbackflags+ebx*2], OC_DIAPLAYDETAILS
+	jz near .noextra
+
+// We have roughly 4 cases (cb15C enabled)
+// - there was never a valid textid
+// - there was a valid textid but isn't now
+// - there wasn't a valid textid but is now
+// - the length of the textid(s) has changed
+
+	// Get the text id to use
+	push esi
+	push eax
+	xor esi, esi
+	mov eax, ebx
+	mov dword [miscgrfvar], 0
+	mov byte [grffeature], 0xF
+	mov word [curcallback], 0x15C
+	call getnewsprite
+	mov byte [curcallback],0
+	mov ebx, eax
+	pop eax
+	pop esi
+	jc .extrafail
+
+	// Make sure the text id is valid
+	cmp bx, 0x400
+	jae .extrafail
+
+	// Add the offset to where we'd expect the text
+	add bx, 0xD400
+
+	// Read the grf registers 0x100-0x105 into textstack
+	push esi
+	push edi
+	mov esi, specialgrfregisters
+	mov edi, textrefstack
+	times 6 movsd
+	pop edi
+	pop esi
+
+	push ebp
+	push ecx
+	push edx
+	movzx ebp, word [win_objectgui_curobject]
+	mov ebp, dword [objectspriteblock+ebp*4]
+	mov dword [curmiscgrf], ebp
+	mov bp, win_objectgui_width-2*win_objectgui_padding
+extern drawsplittextfn
+	call [drawsplittextfn]
+	pop edx
+	pop ecx
+	pop ebp
+
+	mov bx, word [win_objectgui_curobject_lines]
+extern tempSplittextlinesNumlinesptr
+	mov ecx, dword [tempSplittextlinesNumlinesptr]
+	mov cx, [ecx]
+	inc cx
+	cmp bx, cx
+	jne .extrachange
+
+.noextra:
+	pop edx
+	pop ecx
 	ret
+
+// In the below functions
+//	 bx = old lines
+//	 cx = mew lines
+.extrafail:
+	cmp word [win_objectgui_curobject_lines], 0
+	je .noextra
+
+	mov bx, word [win_objectgui_curobject_lines]
+	mov word [win_objectgui_curobject_lines], 0
+	mov cx, 0
+	sub cx, bx
+	imul cx, 10
+	dec cx
+	jmp .resize
+
+.extrachange:
+	mov word [win_objectgui_curobject_lines], cx
+	sub cx, bx
+	imul cx, 10
+
+	test bx, bx
+	jnz .resize
+	inc cx
+
+// cx = change in px
+.resize:
+	// apply difference in lines
+	push edi
+	mov esi, [esp+16]
+	mov edi, dword [esi+window.elemlistptr]
+	add [edi+win_objectgui_elements.background_id*windowbox_size+windowbox.y2], cx
+	call dword [RefreshWindowArea]
+	add word [esi+window.height], cx
+	pop edi
+
+	pop edx
+	pop ecx
+	pop ebx // ret
+	pop esi // esi
+	jmp dword [RefreshWindowArea]
 
 // Draws the objects preview sprite onto the window
 // - Updated to create a drawing buffer to prevent overlap
 // - Now also uses a compatible full tile drawing routine
 drawobjectpreviewsprite:
+	push eax
+	push ecx
+	push ebp
+	push esi
+	push edi
+
+	xor ecx, ecx
+	xor ebp, ebp
+
+	movzx eax, word [win_objectgui_curobject]
+	mov ch, byte [win_objectgui_curobject_view]
+	mov esi, dword [esp+24]
+	mov edi, dword [esi+window.elemlistptr]
+
+.nextview:
 	call .createbuffer
 	jz .invalid
 
 	pusha
-	movzx eax, word [win_objectgui_curobject]
+	push esi
+	mov byte [win_objectgui_curobject_view], cl
 	mov esi, 0
 	mov byte [grffeature], 0xF
 	call getnewsprite
+	pop esi
+
 	push eax	 // Data Pointer
 	push ebx	 // Sprite Availability
 	push dword 3 // Construction stage (always fully built for objects)
 
-	mov esi, [esp+0x30] // Restore window handle
 	call .getcolours
 
+	// Calculates correct x y (cx, dx)
+	mov cx, [ebp+edi+win_objectgui_elements.preview_id*windowbox_size+windowbox.x2]
+	mov dx, [ebp+edi+win_objectgui_elements.preview_id*windowbox_size+windowbox.y2]
+	sub cx, [ebp+edi+win_objectgui_elements.preview_id*windowbox_size+windowbox.x1]
+	sub dx, 35
+	shr cx, 1
+	add cx, [ebp+edi+win_objectgui_elements.preview_id*windowbox_size+windowbox.x1]
+	add cx, [esi+window.x]
+	add dx, [esi+window.y]
 	mov edi, baTempBuffer1
-	mov cx, [esi+window.x]
-	mov dx, [esi+window.y]
-	add cx, win_objectgui_elements.preview_x+89
-	add dx, win_objectgui_elements.preview_y+33
 
 	push ebx
 	push dword 0xF
@@ -522,25 +691,41 @@ drawobjectpreviewsprite:
 	popa
 
 .invalid:
+	inc cl
+	add ebp, windowbox_size
+	cmp cl, [objectviews+eax]
+	jb .nextview
+
+	mov byte [win_objectgui_curobject_view], ch
+	pop edi
+	pop esi
+	pop ebp
+	pop ecx
+	pop eax
 	ret
 
 // Out:	z flag, clear if failed
 .createbuffer:
 	pusha
+	// Calculates the correct x, y, w, h (dx, bx, cx, bp) for view
+	movzx edx, word [ebp+edi+win_objectgui_elements.preview_id*windowbox_size+windowbox.x1]
+	movzx ebx, word [ebp+edi+win_objectgui_elements.preview_id*windowbox_size+windowbox.y1]
+	movzx ecx, word [ebp+edi+win_objectgui_elements.preview_id*windowbox_size+windowbox.x2]
+	movzx ebp, word [ebp+edi+win_objectgui_elements.preview_id*windowbox_size+windowbox.y2]
+	inc dx
+	inc bx
+	sub cx, dx
+	sub bp, bx
+	dec cx
+	dec bp
+	add dx, [esi+window.x]
+	add bx, [esi+window.y]
+
 	mov edi, baTempBuffer1
-	mov esi, [esp+0x28] // Restore window handle
 	mov byte [edi], 0
 
-	//	DX,BX = X,Y CX,BP = width,height
-	mov dx, [esi+window.x]
-	mov bx, [esi+window.y]
-	add dx, win_objectgui_elements.preview_x+1	// So it doesn't clip the edges
-	add bx, win_objectgui_elements.preview_y+1
-	mov cx, win_objectgui_elements.preview_width-2
-	mov bp, win_objectgui_elements.preview_height-2
-
 extern MakeTempScrnBlockDesc
-	call [MakeTempScrnBlockDesc]
+	call dword [MakeTempScrnBlockDesc]
 	popa
 	ret
 
@@ -655,46 +840,71 @@ win_objectgui_clickhandler:
 	cmp cl, win_objectgui_elements.dropdown2_id
 	je near win_objectgui_objectdropdown
 
-	cmp cl, win_objectgui_elements.buildbtn_id
-	je near win_objectgui_objectbuild
+	cmp cl, win_objectgui_elements.preview_id
+	jb .done
+	cmp cl, win_objectgui_elements.previez_id
+	jbe near win_objectgui_previewclick
 
+.done:
 	ret
-
 
 win_objectgui_classdropdown.text:
 	inc cl
 
 win_objectgui_classdropdown:
 	movzx ecx, cl
+	bt dword [esi+window.disabledbuttons], ecx
+	jc .ret
 	extcall GenerateDropDownExPrepare
 	jnc .noolddrop
+
+.ret:
 	ret
 
 .noolddrop:
 	push ecx
-	xor eax,eax
-	xor ebx,ebx
+	push ebx
+	push ebp
+	push dword -1 // edx
+	mov eax, -1
+	xor ebx, ebx
+	xor ebp, ebp
 
 .loop:
+	inc eax
 	cmp al, MAXDROPDOWNEXENTRIES
 	jae .done
 	cmp al,[numobjectclasses]
 	jae .done
 
+	// Remove any 'empty' classes from being listed
+	call findclassfirstobject	// Skip past objects from previous classes
+	push ebx					// We care not for the altered gameid index
+	call doesclasshaveusableobjects
+	pop ebx
+	jz .loop
+
+	cmp ax, word [win_objectgui_curclass]
+	jne .notcur
+	mov dword [esp], eax
+
+.notcur:
+	mov word [objectddgameidlist+ebp*2], ax
 	movzx ecx, word [objectclassesnames+eax*2]
-	mov dword [DropDownExList+4*eax],ecx
+	mov dword [DropDownExList+4*ebp], ecx
 	mov ecx, dword [objectclassesnamesprptr+eax*4]
-	mov dword [DropDownExListGrfPtr+4*eax],ecx
-	inc eax
+	mov dword [DropDownExListGrfPtr+4*ebp], ecx
+	inc ebp
 	jmp .loop
-	
+
 .done:
-	mov dword [DropDownExList+4*eax],-1	// terminate it
+	mov dword [DropDownExList+4*ebp],-1	// terminate it
 	mov byte [DropDownExMaxItemsVisible], 12
 	mov word [DropDownExFlags], 1b
-	
-	movzx edx, word [win_objectgui_curclass]
-	
+
+	pop edx
+	pop ebp
+	pop ebx
 	pop ecx
 	extjmp GenerateDropDownEx
 
@@ -708,11 +918,8 @@ win_objectgui_objectdropdown.text:
 
 win_objectgui_objectdropdown:
 	movzx ecx, cl
-	push ecx
 	bt dword [esi+window.disabledbuttons], ecx
-	pop ecx
 	jc .ret
-
 	extcall GenerateDropDownExPrepare
 	jnc .noolddrop
 
@@ -750,7 +957,7 @@ win_objectgui_objectdropdown:
 	mov dword [esp], eax
 
 .notcur:
-	mov cx, word [objectnames+edx*2]
+	movzx ecx, word [objectnames+edx*2]
 	cmp ch, 0xD0
 	jb .nofix
 	cmp ch, 0xD3
@@ -770,14 +977,14 @@ win_objectgui_objectdropdown:
 	mov byte [DropDownExMaxItemsVisible], 12
 	mov word [DropDownExFlags], 11b
 
-	test byte [expswitches],EXP_PREVIEWDD
+	test byte [expswitches], EXP_PREVIEWDD
 	jz .nopreview
 
 	// Used for the setting up previewdd
 	mov word [DropDownExListItemExtraWidth], 38
 	mov word [DropDownExListItemHeight], 23
 	mov byte [DropDownExMaxItemsVisible], 7
-	mov dword [DropDownExListItemDrawCallback], DrawObjectDDPreview //makestationseldropdown_callback
+	mov dword [DropDownExListItemDrawCallback], DrawObjectDDPreview
 
 .nopreview:
 	pop edx
@@ -793,18 +1000,20 @@ win_objectgui_dropdowncallback:
 	ret
 
 .selectclass:
+	mov ax, [objectddgameidlist+eax*2]
 	cmp word [win_objectgui_curclass], ax
 	je .noclasschange
 
 	mov word [win_objectgui_curclass], ax
 	mov word [win_objectgui_curobject], -1
-	call doesclasshaveusableobjects
+	call findclassusableobjects
 
 .noclasschange:
+	call doesobjectresizegui
 	mov al,[esi]
 	mov bx,[esi+window.id]
 	call dword [invalidatehandle]
-	jmp win_objectgui_setmousetool.noobject
+	ret
 
 .selectobject:
 	push ebx
@@ -813,22 +1022,39 @@ win_objectgui_dropdowncallback:
 	pop ebx
 	jmp .noclasschange
 
-win_objectgui_objectbuild:
-	bt dword [esi+window.disabledbuttons], win_objectgui_elements.buildbtn_id
-	jc .disabled
+win_objectgui_previewclick:
+	cmp word [win_objectgui_curobject], -1
+	je .invalid
 
-	bt dword [esi+window.activebuttons], win_objectgui_elements.buildbtn_id
-	jc win_objectgui_setmousetool.noobject
-	jmp win_objectgui_setmousetool
+	push ecx
+	push eax
+	push ebx
 
-.disabled:
-	ret
+	movzx eax, word [win_objectgui_curobject]
+	mov bl, byte [win_objectgui_curobject_view]
+	sub cl, win_objectgui_elements.preview_id
+
+	cmp cl, byte [objectviews+eax]
+	jb .good
+	xor cl, cl
+
+.good:
+	mov byte [win_objectgui_curobject_view], cl
+	add cl, win_objectgui_elements.preview_id
+
+	movzx ecx, cl
+	and dword [esi+window.activebuttons], win_objectgui_preview_mask
+	bts dword [esi+window.activebuttons], ecx
+
+	pop ebx
+	pop eax
+	pop ecx
+
+.invalid:
+	jmp win_objectgui_setmousetool // Update the preview area and gui
 
 // Functions which control the mouse tool
 win_objectgui_setmousetool:
-	cmp word [win_objectgui_curobject], byte -1
-	je .noobject
-
 	push esi
 	mov dx, [esi+window.id]
 	mov ah, cWinTypeTTDPatchWindow
@@ -838,8 +1064,10 @@ win_objectgui_setmousetool:
 extern setmousetool
 	call [setmousetool]
 	pop esi
-	
-//.active:
+
+	mov ax, 0x10
+	mov dx, ax
+
 	cmp word [win_objectgui_curobject], byte -1
 	je .noobject
 	
@@ -851,25 +1079,58 @@ extern setmousetool
 	movzx ax, dl
 	movzx dx, dh
 
+.noobject:
 	mov word [highlightareainnerxsize], ax
 	mov word [highlightareainnerysize], dx
 	mov word [highlightareaouterxsize], ax
 	mov word [highlightareaouterysize], dx
+	jmp dword [RefreshWindowArea] // Refresh the screen
 
-	bts dword [esi+window.activebuttons], win_objectgui_elements.buildbtn_id 
-	call dword [RefreshWindowArea] // Refresh the screen
+.close:
+	push edi
+	mov edi, [esp+12] // 'my' push, ret, this esi, original esi
+
+	// Trap a crash when its the save/load guis
+extern windowstack
+	cmp edi, [windowstack] 
+	jb .justdestroy
+
+	// Is it another window destroying us?
+	cmp edi, esi
+	jne .destroy
+	pop edi
 	ret
 
-// Reset the mouse tool
-.noobject:
-	push esi
-	mov ebx, 0
-	mov al, 0
-	call [setmousetool]
-	pop esi
+.justdestroy:
+	pop edi
+	jmp dword [DestroyWindow]
 
-	btr dword [esi+window.activebuttons], win_objectgui_elements.buildbtn_id
-	call dword [RefreshWindowArea] // Refresh the screen
+.destroy:
+	// Store the arguments for searching
+	mov cl, byte [edi+window.type]
+	mov dx, word [edi+window.id]
+
+	// Terminate our window (shuffles windowstack)
+	call dword [DestroyWindow]
+
+	// Search for the new location of the window
+	call dword [FindWindow]
+
+	// Some actions (dynamite) lead to esi = 0
+	test esi, esi
+	jz .donedestroy
+
+	// Store the new esi in mousetool
+	mov dword [esp+12], esi
+
+	// We only need to replace the esi around the
+	//   mousetool if there is a push esi there
+	cmp dword [esp+28], edi // 'my' push, ret, this windowptr, original windowptr, dx, ebx, ax, original windowptr (possibly)
+	jne .donedestroy
+	mov dword [esp+28], esi
+
+.donedestroy:
+	pop edi
 	ret
 
 win_objectgui_mousetoolcallback:
@@ -910,32 +1171,134 @@ extern BuildObject_actionnum
 extern generatesoundeffect
 	call [generatesoundeffect]
 	pop esi
-	call win_objectgui_setmousetool.noobject
 
 .notactive:
 	ret
 
-// Called to workout if we have any extries for current class
-// (sets the current object to the first found one if it does)
-doesclasshaveusableobjects:
+// Really a super set of the below function
+//  - Works out the number of usable classes
+//  - Checks if current object valid
+//  - Looks for first valid object in class
+//  - Looks for first valid object (any class)
+//  - Checks if there is more than one object avaiable for the class. //!!ChangeMe
+findfirstusableobject:
+	push eax
 	push ecx
 	push ebx
-	call win_objectgui_setmousetool.noobject
+
+	cmp byte [numobjectclasses], 0
+	je near .fail
+
+	// Count how many classes have usable objects in them
+	mov eax, -1
+	xor ebx,ebx
+	xor ecx,ecx
+
+.classloop:
+	inc eax
+	cmp al, NOBJECTSCLASSES
+	jae .classdone
+	cmp al,[numobjectclasses]
+	jae .classdone
+
+	call findclassfirstobject
+	push ebx
+	call doesclasshaveusableobjects
+	pop ebx
+	jz .classloop
+
+	inc ecx
+	jmp .classloop
+
+.classdone:
+	bts dword [esi+window.disabledbuttons], win_objectgui_elements.dropdown1_id
+	cmp cx, 1
+	jb .fail
+	je .oneclass
+	btr dword [esi+window.disabledbuttons], win_objectgui_elements.dropdown1_id
+
+.oneclass:
+	// No active class so we start searching from scratch
+	cmp word [win_objectgui_curclass], -1
+	je .search
+
+	// Is the current object valid, or one in that class valid?
+	call findclassusableobjects
+
+	cmp word [win_objectgui_curobject], -1	
+	jne .done
+
+.search:
+	// No valid objects in last selected class, search for the
+	//   first valid object regardless of class
+	xor ecx, ecx
+	xor eax, eax
+
+.searchloop:
+	inc ecx
+	cmp ecx, [objectsgameidcount]
+	ja .searchdone
+	
+	push ecx
+	push dword [objectclass+ecx*2]
+	call validobject
+	jc .searchloop
+
+	inc al
+
+.searchdone:
+	cmp al, 0
+	je .fail
+
+	mov word [win_objectgui_curobject], cx
+	mov ax, word [objectclass+ecx*2]
+	mov word [win_objectgui_curclass], ax
+	mov bx, cx
+	call doesclasshaveusableobjects // check if there is atleast a second object.
+	jz .disable
+
+	btr dword [esi+window.disabledbuttons], win_objectgui_elements.dropdown2_id
+	pop ebx
+	pop ecx
+	pop eax
+	ret
+
+.done:
+	pop ebx
+	pop ecx
+	pop eax
+	ret
+
+.fail:
+	mov word [win_objectgui_curclass], -1
+	mov word [win_objectgui_curobject], -1
+	bts dword [esi+window.disabledbuttons], win_objectgui_elements.dropdown1_id
+
+.disable:
+	bts dword [esi+window.disabledbuttons], win_objectgui_elements.dropdown2_id
+	pop ebx
+	pop ecx
+	pop eax
+	ret
+
+// Called to workout if we have any extries for current class
+// (sets the current object to the first found one if it does)
+findclassusableobjects:
+	push ecx
+	push ebx
 
 // Check that we do have atleast one class loaded, to prevent gibberish (Lakie)
 	cmp byte [numobjectclasses], 0
 	je .noclasses
 
 // We always try to select the first class (eis_os)
-//	cmp word [win_objectgui_curclass], -1	
+//	cmp word [win_objectgui_curclass], -1
 //	je .no
 
 	cmp word [win_objectgui_curclass], -1	
 	jne .validclass
-//	cmp byte [numobjectclasses], 0
-//	jbe .validclass
 	mov word [win_objectgui_curclass], 0
-	
+
 .validclass:
 	mov bx, [win_objectgui_curclass]
 
@@ -974,11 +1337,14 @@ doesclasshaveusableobjects:
 
 	mov word [win_objectgui_curobject], cx
 
-.skip:
+	mov ax, bx
+	mov bx, cx // disable dropdown if only one object usable in class
+	call doesclasshaveusableobjects
+
 	pop ebx
 	pop ecx
+	jz .disable
 	btr dword [esi+window.disabledbuttons], win_objectgui_elements.dropdown2_id
-	btr dword [esi+window.disabledbuttons], win_objectgui_elements.buildbtn_id
 	ret
 
 .noclasses:
@@ -988,27 +1354,227 @@ doesclasshaveusableobjects:
 	pop ebx
 	pop ecx
 	mov word [win_objectgui_curobject], -1
+
+.disable:
 	bts dword [esi+window.disabledbuttons], win_objectgui_elements.dropdown2_id
-	bts dword [esi+window.disabledbuttons], win_objectgui_elements.buildbtn_id
 	ret
-#if 0
-// We can use cWinEventGRFChanges for this (eis_os)
-.external:
-	push ecx // called upon newgrf change to update the window
-	push edx
-	push esi
-	mov cl, cWinTypeTTDPatchWindow
-	mov dx, cPatchWindowObjectGUI
-	call [FindWindow]
-	jz .notopen
+
+.skip:
+	// Slighlty more complicated for an active object as it could
+	//   some valid obhects infront or behind it
+	mov ax, bx
+	xor bx, bx // Look for first usable object of class
 	call doesclasshaveusableobjects
 
-.notopen:
-	pop esi
-	pop edx
+	cmp bx, cx // Is it the same object as is active?
+	jne .notsame
+	call doesclasshaveusableobjects // Same, so we need to look further down the chain
+
+.notsame:
+	pop ebx
+	pop ecx
+	jz .disable
+	btr dword [esi+window.disabledbuttons], win_objectgui_elements.dropdown2_id
+	ret
+
+// Vastly simplifed version of above (findclassusableobjects)
+//   but with almost every validity check removed
+// In:	 ax = classid
+//		 bx = last objectid
+// Out:	 bx = new objectid
+findclassfirstobject:
+	inc ebx
+
+	cmp ebx, dword [objectsgameidcount]
+	ja .done
+
+	cmp ax, word [objectclass+ebx*2]
+	jne findclassfirstobject
+
+.done:
+	dec ebx // As the next function called will "inc ebx"
+	ret
+
+// Similar to above (findclassusableobjects) but used more as a check
+// In:	 ax = classid
+//		 bx = last objectid (usually 0)
+// Out:	 zf = 1 if none
+//		 bx = new objectid (if zf 0)
+doesclasshaveusableobjects:
+	push ecx
+	push ebx
+	xor ecx, ecx
+
+.loop:
+	inc ebx
+	cmp ebx, [objectsgameidcount]
+	ja .done
+
+	push ebx
+	push eax
+	call validobject
+	jc .loop
+
+	inc cl
+	mov dword [esp], ebx // Store new 'good' object index
+
+.done:
+	test cl, cl
+	pop ebx
 	pop ecx
 	ret
-#endif
+
+// Calculates the height of the objectgui based on the object and game mode
+doesobjectresizegui:
+	push edi
+	push ebp
+	push eax
+	push edx
+
+	mov word [win_objectgui_curobject_lines], -1
+	mov edi, dword [esi+window.elemlistptr]
+	movzx eax, word [win_objectgui_curobject]
+
+	// Handle the changes to the previews of view(s)
+	call resizepreviews
+	mov bp, word [edi+win_objectgui_elements.previey_id*windowbox_size+windowbox.y2]
+
+	add bp, 28 // drop-down below previews
+	test ax, ax
+	js near .store
+
+// Size of the default lines of text
+	add bp, 19 // text size + padding
+	cmp byte [gamemode], 2
+	je .scenario
+	add bp, 11
+
+.scenario:
+// Check to see if the object has any optional text via
+//   callback 15C.
+	mov word [win_objectgui_curobject_lines], 0
+	test word [objectcallbackflags+eax*2], OC_DIAPLAYDETAILS
+	jz near .store
+
+	// Get the text id to use
+	push esi
+	push eax
+	xor esi, esi
+	mov dword [miscgrfvar], 0
+	mov byte [grffeature], 0xF
+	mov word [curcallback], 0x15C
+	call getnewsprite
+	mov byte [curcallback],0
+	pop edx
+	pop esi
+	jc .store
+
+	// Make sure the text id is valid
+	cmp ax, 0x400
+	jae .store
+
+	// Add the offset to where we'd expect the text
+	add ax, 0xD400
+
+// For the extra space of tezt given from callback 15C
+//   resize based on height of the text (wrapped).
+	push edi
+	push ebp
+	push esi
+
+	// Read the grf registers 0x100-0x105 into textstack
+	mov esi, specialgrfregisters
+	mov edi, textrefstack
+	times 6 movsd
+
+	mov edi, dword [objectspriteblock+edx*4]
+	mov dword [curmiscgrf], edi
+	mov edi, baTempBuffer1
+	extcall newtexthandler
+
+	mov esi, baTempBuffer1
+	mov word [currentfont], 0
+	mov di, win_objectgui_width-2*win_objectgui_padding
+extern splittextlines
+	call [splittextlines]
+	inc di // Doesn't count the 'last' line
+	mov word [win_objectgui_curobject_lines], di
+	pop esi
+	pop ebp
+
+	// Add the text size
+	imul di, 10
+	add bp, di
+	inc bp
+	pop edi
+
+// Finally store the final menu height
+.store:
+	dec bp
+	mov [edi+win_objectgui_elements.background_id*windowbox_size+windowbox.y2], bp
+
+	// Refresh now to remove any 'reminants'
+	call dword [RefreshWindowArea]
+
+	inc bp
+	mov word [esi+window.height], bp
+
+	pop edx
+	pop eax
+	pop ebp
+	pop edi
+	jmp win_objectgui_setmousetool
+
+//In:	eax = objectid
+//		edi = elemlistptr
+//		esi = windowptr
+//Safe:	ebp
+resizepreviews:
+	mov byte [win_objectgui_curobject_view], 0 // Default the object view choice
+	and dword [esi+window.activebuttons], win_objectgui_preview_mask
+
+	cmp ax, -1 // No object then we have no active view, and draw the full size one
+	je .single
+	or dword [esi+window.activebuttons], win_objectgui_preview_default
+
+	movzx ebp, byte [objectviews+eax]
+	bsr ebp, ebp // 1, 2, 4 => 0, 1, 2
+	jz .single // Should never hit this but just incase ax = 0
+	jmp [.views+ebp*4]
+
+.views:
+	dd .single
+	dd .double
+	dd .quadriple
+
+.single:
+	mov byte [edi+win_objectgui_elements.previex_id*windowbox_size+windowbox.type], cWinElemExtraData
+	mov byte [edi+win_objectgui_elements.previey_id*windowbox_size+windowbox.type], cWinElemExtraData
+	mov byte [edi+win_objectgui_elements.previez_id*windowbox_size+windowbox.type], cWinElemExtraData
+
+	mov word [edi+win_objectgui_elements.preview_id*windowbox_size+windowbox.x2], win_objectgui_elements.preview_x+(win_objectgui_width-win_objectgui_padding*2)
+	mov word [edi+win_objectgui_elements.preview_id*windowbox_size+windowbox.y2], win_objectgui_elements.preview_y+win_objectgui_previewheight-1
+	ret
+
+.double:
+	mov byte [edi+win_objectgui_elements.previex_id*windowbox_size+windowbox.type], cWinElemSpriteBox
+	mov byte [edi+win_objectgui_elements.previey_id*windowbox_size+windowbox.type], cWinElemExtraData
+	mov byte [edi+win_objectgui_elements.previez_id*windowbox_size+windowbox.type], cWinElemExtraData
+
+	mov word [edi+win_objectgui_elements.preview_id*windowbox_size+windowbox.x2], win_objectgui_elements.preview_x+((win_objectgui_width-win_objectgui_padding*2-4)/2)-1
+	mov word [edi+win_objectgui_elements.preview_id*windowbox_size+windowbox.y2], win_objectgui_elements.preview_y+win_objectgui_previewheight-1
+	mov word [edi+win_objectgui_elements.previex_id*windowbox_size+windowbox.y2], win_objectgui_elements.previex_y+win_objectgui_previewheight-1
+	ret
+
+.quadriple:
+	mov byte [edi+win_objectgui_elements.previex_id*windowbox_size+windowbox.type], cWinElemSpriteBox
+	mov byte [edi+win_objectgui_elements.previey_id*windowbox_size+windowbox.type], cWinElemSpriteBox
+	mov byte [edi+win_objectgui_elements.previez_id*windowbox_size+windowbox.type], cWinElemSpriteBox
+
+	mov word [edi+win_objectgui_elements.preview_id*windowbox_size+windowbox.x2], win_objectgui_elements.preview_x+((win_objectgui_width-win_objectgui_padding*2-4)/2)-1
+	mov word [edi+win_objectgui_elements.preview_id*windowbox_size+windowbox.y2], win_objectgui_elements.preview_y+(win_objectgui_previewheight/2)-3
+	mov word [edi+win_objectgui_elements.previex_id*windowbox_size+windowbox.y2], win_objectgui_elements.previex_y+(win_objectgui_previewheight/2)-3
+	ret
 
 // ************************************ Object Pool Functions *************************************
 
@@ -2543,6 +3109,8 @@ DrawObjectDDPreview:
 	call .createview
 	jz .invalid
 
+	mov al, byte [win_objectgui_curobject_view]
+	mov byte [win_objectgui_curobject_view], 0
 	pusha
 	mov edi, baTempBuffer1
 	mov word [edi+scrnblockdesc.zoom], 1
@@ -2570,6 +3138,7 @@ DrawObjectDDPreview:
 	push dword 0xF
 	call DrawObjectTileSelWindow
 	popa
+	mov byte [win_objectgui_curobject_view], al
 
 .invalid:
 	ret
