@@ -20,7 +20,7 @@
 #include <transopts.inc>
 #include <ptrvar.inc>
 #include <patchdata.inc>
-
+#include <spriteheader.inc>
 
 extern MassageSoundData
 extern costrailmul,curcallback,curspriteblock
@@ -78,8 +78,7 @@ uvarb action1lastfeature
 
 	// *** action 0 handler ***
 action0:
-	// Four extra bytes in front of this sprite data are used this way:
-	// - (in) length of spritedata
+	// Usage of prespriteheader.actionfeaturedate:
 	// - (out) feature based data: 
 	//         stations: layout buffer ptr
 	//
@@ -92,7 +91,7 @@ proc processnewinfo
 
 	push edi
 	
-	lea ebx,[esi-6]
+	lea ebx,[_prespriteheader(esi-2,actionfeaturedata)]
 	mov [%$dataptrofs],ebx
 
 	mov [%$feature],eax
@@ -102,7 +101,7 @@ proc processnewinfo
 	mov [%$propdescription], ebx
 		
 	
-	mov ecx,[esi-6]			// length of data
+	mov ecx,[_prespriteheader(esi-2,size)]			// length of data
 	lea ecx,[esi-2+ecx+1]		// calculates the first byte after our data
 	mov [%$maxesi],ecx
 
@@ -330,7 +329,7 @@ proc processnewinfo
 	//	
 	//	esi->data
 	//	ebp=feature
-	//	edx->spritedata-4
+	//	edx->prespriteheader.actionfeaturedata
 	//		Points to the dword infront of SpriteData
 	//		Stations will overwrite the dword with a buffer ptr
 	//		
@@ -432,8 +431,7 @@ action0cargo:
 
 	// *** action 1 handler ***
 action1:
-	// Four extra bytes in front of this sprite data are used this way:
-	// - unused
+	// Usage of prespriteheader.actionfeaturedata:
 	// - (word) grfhelper: stores faked spritenumber
 
 newspriteblock:
@@ -475,7 +473,7 @@ activatevehspriteblock:
 .nosprites:
 	// grfhelper
 	pop esi
-	mov word [esi-2-2], ax		// esi is on pseudspritedata+2
+	mov word [_prespriteheader(esi-2,actionfeaturedata)], ax		// esi is on pseudspritedata+2
 	mov [spritebase],eax
 	ret
 
@@ -490,7 +488,7 @@ skipvehspriteblock:
 
 	// *** action 2 handler ***
 action2:
-	// Four extra bytes in front of this sprite data are used this way:
+	// Usage of prespriteheader.actionfeaturedata:
 	// - regular cargo ID:
 	//   <00> <W:base-sprite> <B:and-mask>
 	//	base-sprite: real sprite number of first sprite in action 1
@@ -510,12 +508,12 @@ newcargoid:
 //	jnz near .invalid
 	push eax
 
-	xor ebp,ebp
-	xchg ebp,[esi-6]
+	mov dword [_prespriteheader(esi-2,actionfeaturedata)], 0
+	mov ebp, dword [_prespriteheader(esi-2,size)]
 	lea ebp,[ebp+esi-2]
 
 	mov al,[spriteand]
-	mov [esi-3],al	// store and mask in front of cargo ID data
+	mov [_prespriteheader(esi-2,actionfeaturedata+3)],al	// store and mask in front of cargo ID data
 
 		// find out the number of directions and store in cl
 	lea ecx,[eax+1]
@@ -701,8 +699,8 @@ newcargoid:
 	ret
 
 .variationalid:
-	lea ecx,[esi-8]
-	or dword [ecx],byte -1
+	lea ecx, [esi-4] // now ecx=start of spritedata
+	or dword [_prespriteheader(ecx,actionfeaturedata)],byte -1
 	xor ebx,ebx
 	inc ebx
 	test al,0xc
@@ -735,18 +733,16 @@ newcargoid:
 	mov dh,INVSP_INVCID
 	jz .invalid
 
-	mov edx,[ecx]
+	mov edx, dword [_prespriteheader(ecx,actionfeaturedata)]
 	test edx,edx
 	jg .havebuffer
 
-	lea edx,[ebp-4]
-	sub edx,ecx	// now edx=length of sprite data
+	mov edx, dword [_prespriteheader(ecx,size)]
 	push edx
-	call malloc
+	call calloc
 	pop edx
-	sub edx,ecx
-	sub edx,4	// now edx=offset from start of sprite data
-	mov [ecx],edx
+	sub edx, ecx // now edx=offset from start of sprite data
+	mov dword [_prespriteheader(ecx,actionfeaturedata)],edx
 
 .havebuffer:
 	mov [esi+edx-2],ax
@@ -801,7 +797,7 @@ activatecargoid:
 .realcargoid:
 	mov ebx,[spritebase]	// that's really a WORD value
 	mov eax,ebx
-	xchg ax,[esi-5]
+	xchg ax,[_prespriteheader(esi-2,actionfeaturedata)+1]
 	sub ebx,eax
 
 	xor eax,eax
@@ -881,7 +877,7 @@ uvarb action3lastfeature
 
 	// *** action 3 handler ***
 action3:
-	// Four extra bytes in front of this sprite data are used this way:
+	// Usage of prespriteheader.actionfeaturedata:
 	//	- pointer to action3info struc
 
 initializevehcargomap:
@@ -898,7 +894,8 @@ initializevehcargomap:
 	inc edi
 
 	mov ebx,ecx
-	xchg ecx,[esi-6]
+	mov dword [_prespriteheader(esi-2,actionfeaturedata)], ecx
+	mov ecx, dword [_prespriteheader(esi-2,size)]
 	lea ebp,[ecx+esi-2]
 
 	lodsb		// n-id
@@ -996,7 +993,7 @@ setvehcargomap:
 .notmandatory:
 	mov edx,eax
 
-	mov ebp,[esi-6]
+	mov ebp,[_prespriteheader(esi-2,actionfeaturedata)]]
 	lodsb
 	mov ecx,eax
 	and ecx,0x7f
@@ -1248,7 +1245,7 @@ grfcalltable action3storeid, dd addr(action3storeid.generic)
 
 	push edx
 	mov ebx,[lastnonoverride]
-	mov edx,[ebx-7]
+	mov edx,[_prespriteheader(ebx-3,actionfeaturedata)]
 	mov bh,[ebx]
 	mov edx,[edx+action3info.overrideptr]
 	xor eax,eax
@@ -1816,7 +1813,7 @@ action4:
 
 initnewvehnames:
 	xor ebp,ebp
-	xchg ebp,[esi-6]
+	xchg ebp,[_prespriteheader(esi-2,actionfeaturedata)]
 	lea ebp,[ebp+esi-2]
 
 //	call checklanguage
@@ -1851,7 +1848,7 @@ initnewvehnames:
 	call malloccrit
 	pop edx
 
-	lea ebx,[esi-8]
+	lea ebx, [_prespriteheader(esi-4, actionfeaturedata)]
 	mov [ebx],edx			// store struct at DWORD before sprite data
 	xchg ebx,[orggentextptr]	// store and load beginning of linked list
 	mov [edx+orggentext.next],ebx	// link new struc at beginning and chain prev beginning
@@ -2165,7 +2162,7 @@ activatenewgraphics:
 
 	//grfhelper
 	pop esi
-	mov word [esi-2-2], ax		// esi is on pseudspritedata+2
+	mov word [_prespriteheader(esi-2,actionfeaturedata)], ax		// esi is on pseudspritedata+2
 	mov [ebx],ax
 	ret
 
@@ -2190,7 +2187,7 @@ action6:
 	// - unused
 
 applyparam:
-	mov ebp,[esi-6]		// sprite size
+	mov ebp,[_prespriteheader(esi-2,size)]		// sprite size
 
 .nextparam:
 	// here ecx=number*4
@@ -2225,7 +2222,7 @@ applyparam:
 // I can see no reliable way to check the size after initialization,
 // so I'm disabling the check for now.
 #if 0
-	cmp esi,[edi-4]		// outside of sprite length?
+	cmp esi,dword [_prespriteheader(edi,size)]		// outside of sprite length?
 	ja .bad
 #endif
 
@@ -2304,7 +2301,7 @@ initaction9:
 	add ebp,ebx	// jump to edi+numsprites
 
 .havetarget:
-	mov [esi-6],ebp
+	mov [_prespriteheader(esi-2,actionfeaturedata)],ebp
 	ret
 
 skipspriteif:
@@ -2501,7 +2498,7 @@ endvar
 	jnz .dont
 
 .skipit:
-	mov ebx,[esi-8]	// target sprite
+	mov ebx,[_prespriteheader(esi-4, actionfeaturedata)]	// target sprite
 	cmp ebx,byte -1
 #if 0
 	xor eax,eax
@@ -2667,7 +2664,8 @@ replacettdsprite:
 .notdefgrf:
 	mov edi,[edx+spriteblock.spritelist]
 	mov esi,[edi+ebp*4]
-	mov edi,[esi-4]		// sprite size
+	mov edi,dword [_prespriteheader(esi,size)]		// sprite size
+	
 	xchg eax,edi
 	call overridesprite
 
@@ -2795,7 +2793,7 @@ formatspriteerror:
 	mov esi,[edx+spriteblock.spritelist]
 	mov esi,[esi+eax*4]
 
-	mov ebp,[esi-4]		// length of sprite
+	mov ebp,dword [_prespriteheader(esi,size)]		// length of sprite
 	add ebp,esi
 
 	xor eax,eax
@@ -3751,11 +3749,11 @@ initgrfsounds:
 	mov [esi+soundinfo.length],eax
 
 	// data long enough?
-	cmp dword [ebp-4],8
+	cmp dword [_prespriteheader(ebp,size)],8
 	jae .imported
 
 	mov esi,ebp
-	add esi,[ebp-4]		// to give correct offset in error message
+	add esi,dword [_prespriteheader(ebp,size)]	// to give correct offset in error message
 	mov dl,INVSP_OUTOFDATA
 	jmp .bad
 
@@ -3765,7 +3763,7 @@ initgrfsounds:
 	jmp .bad
 
 .isbinary:
-	mov ebx,[ebp-4]
+	mov ebx,dword [_prespriteheader(ebp,size)]
 	movzx eax,byte [ebp+1]	// filename length
 	add ebp,2		// skip the FF and length bytes
 	mov [esi+soundinfo.filename],ebp
@@ -4487,14 +4485,17 @@ var newgrfflags, db newtrains,newrvs,newships,newplanes,newstations,canals,newbr
 	times 0x48-(addr($)-newgrfflags) db noflag
 	db anyflagset	// feature 0x48 is special, for action 4/gen. textIDs
 
-
-	dd 0x590000			// marker as valid sprite data
-	dd dummygrfid_end-dummygrfid	// sprite length is before sprite data
+%define SKIPGUARD 1
+istruc prespriteheader
+	at prespriteheader.pseudoflag, db 0x59			// marker as valid pseudo sprite data	
+	at prespriteheader.size, dd dummygrfid_end-dummygrfid	// sprite length
+iend
 var dummygrfid	// dummy action 8 so that at least one is in the list
 	db 8,THISGRFVERSION	// action,version
 	db 0xff,0xff,0,0	// grf-id
 	db "Hello" // 0,0			// description, copyright
 var dummygrfid_end
+%undef SKIPGUARD
 
 var ttdversion, db WINTTDX+2*LINTTDX
 

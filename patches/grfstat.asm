@@ -1,7 +1,5 @@
 // -------------------------------------------
 // Graphic Status and Control Window
-//
-// It relies
 // -------------------------------------------
 
 #include <std.inc>
@@ -12,6 +10,8 @@
 #include <bitvars.inc>
 #include <grf.inc>
 #include <flags.inc>
+#include <spriteheader.inc>
+
 
 extern activatedefault,ctrlkeystate
 extern BringWindowToForeground,CreateTooltip,CreateWindow,DestroyWindow
@@ -967,7 +967,7 @@ win_grfstat_getspriteblockinfo:
 .nodesc:
 
 	mov al, 0
-	mov ecx,[edi-10]	// sprite size is stored in front of data
+	mov ecx,[_prespriteheader(edi-6, size)]	// sprite size is stored in front of data
 	sub ecx,7
 	mov [edi+ecx],al	// make sure last byte is zero terminator
 	jbe .tooshort

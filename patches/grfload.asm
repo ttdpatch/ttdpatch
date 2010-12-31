@@ -11,6 +11,7 @@
 #include <bitvars.inc>
 #include <flagdata.inc>
 #include <house.inc>
+#include <spriteheader.inc>
 
 extern calloc,copyspriteinfofn,curfileofsptr,curspriteblock,decodespritefn
 extern dummygrfid,exscurfeature,exsfeaturemaxspritesperblock
@@ -417,8 +418,6 @@ parseline:
 endproc initializegraphics
 
 
-#define PRESPRITESIZE 8
-
 // in:	eax=number of parameters
 //	edx=pointer to filename
 //	edi->parameter data (0 if none)
@@ -463,14 +462,14 @@ proc readgrffile
 	// waste another 8 bytes for each sprite to store various data
 	// for the sprite actions, plus the sprite number and pseudo/regular type
 
-	add eax,PRESPRITESIZE
+	add eax, prespriteheader_size
 	push eax
 	add [totalmem],eax
 	call malloc
 	pop edi
 	jc near .outofmem
 
-	add edi,PRESPRITESIZE
+	add edi, prespriteheader_size
 
 #ifdef DEBUGSPRITESTORE
 	push dword [%$sprite]
@@ -492,9 +491,10 @@ proc readgrffile
 .first:
 	mov [%$curptr],edi
 	mov eax,[%$len]
-	mov [edi-4],eax
+	mov [_prespriteheader(edi,size)],eax
 	inc esi
-	mov [edi-8],esi
+	mov [_prespriteheader(edi,spritenumber)],esi
+	mov dword [_prespriteheader(edi,actionfeaturedata)], 0
 	call dword [copyspriteinfofn]
 	test ax,ax
 	setz [%$pseudo]		// mark as regular or pseudo sprite
@@ -572,7 +572,7 @@ proc readgrffile
 	mov esi,[%$curptr]
 	mov al,[%$pseudo]
 	add al,0x58	// set pseudo/real sprite code and a marker that this is actual sprite data
-	mov [esi-6],al
+	mov [_prespriteheader(esi,pseudoflag)],al
 
 	inc dword [%$sprite]
 	jmp .nextsprite
@@ -1191,7 +1191,7 @@ procgrffile:
 //	esi=remaining pseudo-sprite data
 pseudospriteaction:
 	mov cl,INVSP_ISREAL
-	cmp byte [esi-6],0x59	// are we trying to read a real sprite as a pseudo-sprite?
+	cmp byte [_prespriteheader(esi,pseudoflag)],0x59	// are we trying to read a real sprite as a pseudo-sprite?
 	jne .invalidrealsprite
 
 	xor eax,eax
@@ -1333,7 +1333,7 @@ insertactivespriteblockaction1:
 	pusha
 	mov esi,[edx+spriteblock.spritelist]
 	mov esi,[esi+edi*4]
-	mov edi,[esi-4]		// sprite size
+	mov edi,[_prespriteheader(esi,size)]		// sprite size
 	xchg eax,edi
 	call overridesprite
 	popa
@@ -1436,7 +1436,7 @@ insertactivespriteblock:
 	pusha
 	mov esi,[edx+spriteblock.spritelist]
 	mov esi,[esi+edi*4]
-	mov edi,[esi-4]		// sprite size
+	mov edi,[_prespriteheader(esi,size)]		// sprite size
 	xchg eax,edi
 	call overridesprite
 	popa

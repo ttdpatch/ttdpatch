@@ -15,6 +15,7 @@
 #include <transopts.inc>
 #include <idf.inc>
 #include <objects.inc>
+#include <spriteheader.inc>
 
 extern acttriggers,cachevehvar40x,canalfeatureids,cargoaction3,curcallback
 extern curgrffile,curgrfsprite,curstationtile,curtriggers,ecxcargooffset
@@ -336,7 +337,7 @@ grfcalltable getaction2spritenum
 	//mov ax,[ebx+5]
 	movzx eax, word [ebx+5]
 
-	movzx cx,byte [ebx-1]
+	movzx cx,byte [_prespriteheader(ebx,actionfeaturedata+3)]
 
 	lea bx,[ecx+1]
 	// carry clear here
@@ -348,7 +349,7 @@ grfcalltable getaction2spritenum
 .planesnotrotor:
 	push edx
 
-	movzx ecx,byte [ebx-1]
+	movzx ecx,byte [_prespriteheader(ebx,actionfeaturedata+3)]
 	push ecx	// store AND mask for later
 
 	add ebx,3	// skip action, veh-type, and cargo-id(set-id)
@@ -503,7 +504,7 @@ grfcalltable getaction2spritenum
 	//for houses and industry tiles, we return a pointer to the real data
 	// in eax instead of a sprite number
 	lea eax,[ebx+3]
-	movzx ebx,byte [ebx-1]
+	movzx ebx,byte [_prespriteheader(ebx,actionfeaturedata+3)]
 	stc	// eax is not a sprite number
 	ret
 
@@ -706,7 +707,7 @@ ovar skiptransfix, 0
 
 	mov eax,[edx+spriteblock.spritelist]
 	mov ebx,[eax+ebx*4]
-	mov eax,[ebx-8]
+	mov eax,dword [_prespriteheader(ebx, spritenumber)]
 	mov [curgrfsprite],eax
 
 	mov al,[ebx+3]
@@ -889,7 +890,7 @@ checkoverride:
 	cmp byte [edi],3	// action 3?
 	jne .trynextaction
 
-	mov ecx,[edi-4]
+	mov ecx, dword [_prespriteheader(edi, actionfeaturedata)]
 	movzx ecx,byte [ecx+action3info.numveh]
 	add edi,3
 
@@ -2043,14 +2044,14 @@ getspecparamvar:
 	mov edx,[mostrecentspriteblock]
 	mov eax,[edx+spriteblock.spritelist]
 	mov ebx,[eax+(ebx-1)*4]		// ebx is one too high
-	mov ebx,[ebx-4]			// read offset to var.action 2 copy with resolved procedure sprite numbers
+	mov ebx, dword [_prespriteheader(ebx, actionfeaturedata)]			// read offset to var.action 2 copy with resolved procedure sprite numbers
 	add ebx,[esp+12]
 	movzx ebx,word [ebx-1]
 
 .gotaction2:
 	mov eax,[edx+spriteblock.spritelist]
 	mov ebx,[eax+ebx*4]
-	mov eax,[ebx-8]
+	mov eax, dword [_prespriteheader(ebx, spritenumber)]
 	mov [curgrfsprite],eax
 
 	mov al,[ebx+3]

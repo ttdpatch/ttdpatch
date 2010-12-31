@@ -2,6 +2,7 @@
 #include <textdef.inc>
 #include <window.inc>
 #include <grf.inc>
+#include <spriteheader.inc>
 
 #include <imports/gui.inc>
 #include <imports/drawsprite.inc>
@@ -181,13 +182,13 @@ win_grfhelperchangedspritetext:
 	mov ecx, edx
 	mov ebx,[eax+spriteblock.spritelist]
 	mov esi,[ebx+edx*4]
-	cmp byte [esi-6], 0x58
+	cmp byte [_prespriteheader(esi,pseudoflag)], 0x58
 	jne .error // is it a real sprite?
 	
 .next:
 	dec edx
 	mov edi,[ebx+edx*4]
-	cmp byte [edi-6], 0x59
+	cmp byte [_prespriteheader(edi,pseudoflag)], 0x59
 	jne .next
 	// now we are at?
 	cmp byte [edi], 0x05
@@ -201,7 +202,7 @@ win_grfhelperchangedspritetext:
 .action5:
 	mov ax, 0
 .action1_5:	
-	movzx ebx, word [edi-2]
+	movzx ebx, word [_prespriteheader(edi,actionfeaturedata)]
 	sub edx, ecx
 	neg edx
 	dec edx
