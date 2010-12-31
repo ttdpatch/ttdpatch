@@ -22,8 +22,8 @@ struc linkedspritedesc
 	.sprite:	resd 1	// 0x00
 	.x:		resw 1	// 0x04
 	.y:		resw 1	// 0x06
-	.z:		resw 1	// 0x08
-	.unused:	resw 1	// 0x09
+	.z:		resb 1	// 0x08
+	.unused:	resb 1	// 0x09
 	.next:		resd 1	// 0x0A
 	.exsfeature:	resw 1	// 0x0E //only valid with spritelimit patch
 endstruc
