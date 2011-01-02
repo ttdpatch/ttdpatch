@@ -1812,8 +1812,8 @@ action4:
 	// - general texts: pointer to orggentext struc
 
 initnewvehnames:
-	xor ebp,ebp
-	xchg ebp,[_prespriteheader(esi-2,actionfeaturedata)]
+	mov dword [_prespriteheader(esi-2, actionfeaturedata)], 0
+	mov ebp, dword [_prespriteheader(esi-2,size)]
 	lea ebp,[ebp+esi-2]
 
 //	call checklanguage
