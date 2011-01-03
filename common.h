@@ -193,7 +193,7 @@
 #define shortrvs		218	// allow shortened RVs					(118)
 #define articulatedrvs		219	// allow articulated RVs				(119)
 #define newroutes		220	// Enable newRoutes					(120)
-#define newobjects		221	// Enable support for newobjects			(-)
+#define newobjects		221	// Enable support for newobjects			(74)
 #define rvovertakeparams	222	// Road vehicle overtaking parameters			(-)
 #define advzfunctions		223	// Support for more 3d features				(-)
 #define moreindustries		224	// Increase the size of the industry array		(-)
