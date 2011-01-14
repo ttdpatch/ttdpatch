@@ -1491,18 +1491,18 @@ loadspriteheader:
 //	patch flag is added to the patchsetspritecache line in patches.ah
 //
 // overrideembeddedsprite: same, but size and number are stored at esi:
-//	W spritenum
-//	W spritesize (as stored in TTD's cache)
+//	B[prespriteheader_size]
+//		.size: spritesize
+//		.actionfeaturedata: spritenumber
 //	B[spritesize] spritedata
 // also:cx=minimum size, will be overwritten only if smaller. (or 0 for no check)
 
 global overrideembeddedsprite,overridesprite
 overrideembeddedsprite:
-	xor eax,eax
 	mov ch,0
-	lodsw
-	mov edi,eax
-	lodsw
+	mov eax, dword [esi+prespriteheader.size]
+	mov edi, dword [esi+prespriteheader.actionfeaturedata]	// spritenumber
+	add esi, prespriteheader_size
 	stc
 	jmp short overridesprite.do
 

@@ -7,6 +7,7 @@
 #include <curr.inc>
 #include <patchdata.inc>
 #include <bitvars.inc>
+#include <spriteheader.inc>
 
 extern morecurropts,newsmessagefn,patchflags,getnumber,gettextandtableptrs,malloccrit
 extern getnumber,gettextandtableptrs,morecurropts
@@ -425,9 +426,26 @@ applycurrencychanges:
 	ret
 
 // Euro glyph in three font sizes
-var euroglyph
-	incbin "embedded/eurochar.dat"
+var euroglyph1
+istruc prespriteheader
+	at prespriteheader.size, incbin "embedded/eurocha1.dat",2,2
+	at prespriteheader.actionfeaturedata, incbin "embedded/eurocha1.dat",0,2
+iend
+	incbin "embedded/eurocha1.dat",4
+	
+var euroglyph2
+istruc prespriteheader
+	at prespriteheader.size, incbin "embedded/eurocha2.dat",2,2
+	at prespriteheader.actionfeaturedata, incbin "embedded/eurocha2.dat",0,2
+iend
+	incbin "embedded/eurocha2.dat",4
 
+var euroglyph3
+istruc prespriteheader
+	at prespriteheader.size, incbin "embedded/eurocha3.dat",2,2
+	at prespriteheader.actionfeaturedata, incbin "embedded/eurocha3.dat",0,2
+iend
+	incbin "embedded/eurocha3.dat",4
 
 // New code to show money
 // Starts at the code for pounds, and also overwrites code for two more currencies, but we don't care

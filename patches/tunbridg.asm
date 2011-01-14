@@ -10,6 +10,7 @@
 #include <flags.inc>
 #include <bitvars.inc>
 #include <veh.inc>
+#include <spriteheader.inc>
 
 extern istrackrighttype,istrackrighttype.tracktypeset
 extern addsprite, redrawtile, gettileinfo
@@ -873,4 +874,8 @@ exported tunnelsteamcheck
 	ret
 
 var enhancetunnelshelpersprite
-	incbin "embedded/t_helper.dat"
+istruc prespriteheader
+	at prespriteheader.size, incbin "embedded/t_helper.dat",2,2
+	at prespriteheader.actionfeaturedata, incbin "embedded/t_helper.dat",0,2
+iend
+	incbin "embedded/t_helper.dat",4

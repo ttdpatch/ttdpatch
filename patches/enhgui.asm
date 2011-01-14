@@ -18,6 +18,7 @@
 #include <misc.inc>
 #include <human.inc>
 #include <ptrvar.inc>
+#include <spriteheader.inc>
 
 extern BringWindowToForeground,CreateTooltip,CreateWindow,DestroyWindow
 extern DragEWRailUITick,DragNSRailUITick,DrawWindowElements,FindWindow
@@ -1025,9 +1026,17 @@ specialcolortextbytes:
 
 var textcolortablewithcompany
 #if WINTTDX
-	incbin "embedded/tcc_w.dat"
+istruc prespriteheader
+	at prespriteheader.size, incbin "embedded/tcc_w.dat",2,2
+	at prespriteheader.actionfeaturedata, incbin "embedded/tcc_w.dat",0,2
+iend
+	incbin "embedded/tcc_w.dat",4
 #else
-	incbin "embedded/tcc_d.dat"
+istruc prespriteheader
+	at prespriteheader.size, incbin "embedded/tcc_d.dat",2,2
+	at prespriteheader.actionfeaturedata, incbin "embedded/tcc_d.dat",0,2
+iend
+	incbin "embedded/tcc_d.dat",4
 #endif
 
 

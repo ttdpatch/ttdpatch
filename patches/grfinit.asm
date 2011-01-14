@@ -20,6 +20,7 @@
 #include <house.inc>
 #include <font.inc>
 #include <textdef.inc>
+#include <spriteheader.inc>
 
 #include <vehspecificprops.inc>
 
@@ -31,7 +32,7 @@ extern costrailmuldefault,currsymsafter,currsymsbefore,currtownname
 extern defaultindustriesofclimate,defcargoid,defcargotypes,defclimatecargobits
 extern deftwocolormaps,defvehsprites,desynchtimeout,dummyspriteblock
 extern elrailsprites.trackicons,enhancegui_newgame
-extern euroglyph,exsresetspritecounts,externalvars
+extern exsresetspritecounts,externalvars
 extern findcurrtownname,gettexttableptr,grferror,grfidlistnum,grfresources
 extern grfstat_titleclimate,grfvarreinitstart,industileoverrides,initisengine
 extern initrailvehsorttable,initveh2,isengine,isfreight,isfreightmult,lastextrahousedata
@@ -949,8 +950,22 @@ var defaultglobalcargolabels
 	dd "PASS","RUBR","MAIL","OIL_","FRUT","GOOD","MAIZ","WOOD","CORE","WATR","DIAM","FOOD"
 	dd "PASS","SUGR","MAIL","TOYS","BATT","SWET","TOFF","COLA","CTCD","BUBL","PLST","FZDR"
 
-var oslashglyphs
-	incbin "embedded/oslash.dat"
+var oslashglyph1
+istruc prespriteheader
+	at prespriteheader.size, incbin "embedded/oslash1.dat",2,2
+	at prespriteheader.actionfeaturedata, incbin "embedded/oslash1.dat",0,2
+iend
+.data:
+	incbin "embedded/oslash1.dat",4
+	
+var oslashglyph2
+istruc prespriteheader
+	at prespriteheader.size, incbin "embedded/oslash2.dat",2,2
+	at prespriteheader.actionfeaturedata, incbin "embedded/oslash2.dat",0,2
+iend
+.data:
+	incbin "embedded/oslash2.dat",4
+
 
 	// things to do after the .grfs modify the vehicles
 postinfoapply:
@@ -1033,9 +1048,11 @@ postinfoapply:
 	testmultiflags generalfixes
 	jz .nooslash
 
-	mov esi, oslashglyphs
+	mov esi, oslashglyph1
 	mov cl,10
 	call overrideembeddedsprite
+	
+	mov esi, oslashglyph2
 	mov cl,10
 	call overrideembeddedsprite
 
@@ -1048,11 +1065,16 @@ postinfoapply:
 	test byte [morecurropts],morecurrencies_noeuro
 	jnz .noeuro
 
-	mov esi,euroglyph
+	extern euroglyph1, euroglyph2, euroglyph3
+	mov esi, euroglyph1
 	mov cl,10
 	call overrideembeddedsprite
+	
+	mov esi, euroglyph2
 	mov cl,10
 	call overrideembeddedsprite
+	
+	mov esi, euroglyph3
 	mov cl,10
 	call overrideembeddedsprite
 
