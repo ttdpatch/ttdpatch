@@ -867,7 +867,13 @@ proc processtileaction2
 	test di,0xf
 	jz .normalground
 
+	bt di, 4
+	jnc .notsteep
+	add dl, 8
+
+.notsteep:
 	add dl,8
+
 	pusha
 	mov ax,31
 	mov cx,1

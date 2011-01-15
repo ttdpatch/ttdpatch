@@ -542,16 +542,19 @@ newcargoid:
 	je near .industryid
 
 	mov dl,[esi-3]
+
+	cmp dl, 7
+	je .houseid
+	cmp dl, 9
+	je .industileid
+	cmp dl, 0xF
+	je .objectid
+
+	// The above 3 features should not require an action1 but may use one
 	cmp byte [action1lastfeature],dl
 	mov dh,INVSP_WRONGFEATURE
 	jne near .invalid
-
-	cmp byte [esi-3],7
-	je .houseid
-	cmp byte [esi-3],9
-	je .industileid
-	cmp byte [esi-3],0xF
-	je .objectid
+	
 	mov edx,eax
 	lodsb
 	add edx,eax
@@ -583,6 +586,7 @@ newcargoid:
 .houseid:
 .industileid:
 .objectid:
+	mov bh, dl
 	or al,al
 	jnz .advancedtileid
 
@@ -626,6 +630,10 @@ newcargoid:
 	and ch,0xc0
 	and ah,~0xc0
 
+	// Check last Action1 is usable (same feature)
+	cmp byte [action1lastfeature], bh
+	jne .wrongfeature
+
 	cmp ax,[lastspriteblocknumsets]
 	mov dh,INVSP_BADBLOCK
 	jae .invalidtilesprite
@@ -639,6 +647,11 @@ newcargoid:
 .invalidtilesprite:
 	stc
 	ret
+
+.wrongfeature:
+	mov dh,INVSP_WRONGFEATURE
+	sub esi, 4 // Set it to the first byte of the sprite id
+	jmp .invalid
 
 .industryid:
 	// industry entries don't contain sprite numbers, so check the size only

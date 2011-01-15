@@ -2393,9 +2393,6 @@ CheckObjectSlope:
 	call [gettileinfoshort]
 	mov dword [miscgrfvar], edi
 
-	test di, 0x10
-	jnz .fail
-
 	test word [objectcallbackflags+eax*2], OC_SLOPECHECK
 	jz .default
 
@@ -2415,6 +2412,9 @@ CheckObjectSlope:
 	ret
 
 .default:
+	test di, 0x10	// OpenTTD appears to leave this check to the grf if cb157
+	jnz .fail
+
 	mov eax, dword [esp+_pusha.eax]
 	shr dl, 3	// Height is in multiples of 8
 
@@ -2953,7 +2953,7 @@ DrawObject:
 // Because of foundations, we need to draw our ground tile differently
 .fallback_ground:
 	push ebp
-	mov ebp, dword [esp+8]
+	mov ebp, dword [esp+12]
 	test bp, bp
 	pop ebp
 	jnz .fallback_found
@@ -2972,7 +2972,6 @@ extern addrelsprite
 	pop edx
 	pop ecx
 	pop eax
-	add dl, 16
 	ret
 
 .newObject:
@@ -3058,11 +3057,7 @@ extern Class6DrawLandCanalsOrRiversOrSeeWaterL3.ebp
 //	esi = gameid (only for .gameid)
 // Out:	carry = set if foundations
 DrawObjectFoundations.gameid:
-	push edi
-	movzx edi, word [landscape3+ebx*2]
-	imul edi, object_size
 	test word [objectflags+esi*2], OF_NOFOUNDATIONS
-	pop edi
 	jnz DrawObjectFoundations.override
 
 // Draws the basic 
@@ -3070,6 +3065,11 @@ DrawObjectFoundations:
 	test bp, bp
 	jz .nofondations
 
+	bt bp, 4
+	jnc .nosteep
+	add dl, 8
+
+.nosteep:
 	add dl, 8
 	call displayfoundation
 	ret
@@ -3921,6 +3921,7 @@ exported getObjectVar41
 
 .noobject:
 	movzx esi, word [cur_object_tile]
+	test esi, esi
 	jnz .hasobject
 
 	xor eax, eax
