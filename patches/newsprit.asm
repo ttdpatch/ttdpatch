@@ -2056,14 +2056,18 @@ getspecparamvar:
 
 	mov al,[ebx+3]
 	sub al,0x80
-	jb .gotfn			// this'll give us a semi-random value, but it's invalid to do this anyway
+	jae .validaction2			// action 2 is a valid random / variational one
 
+	mov ebx, 0xffff 			// use 0xffff as value for invalid callback result
+	jmp short .gotretvalue
+
+.validaction2
 	call getrandomorvariational
 	test bh,bh			// got callback result?
 	jns .gotaction2
-
-.gotfn:
 	and ebx,0x7fff
+
+.gotretvalue
 	mov eax,ebx
 	pop dword [isother]
 	pop edx
