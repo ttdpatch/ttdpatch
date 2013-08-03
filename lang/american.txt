@@ -513,3 +513,4 @@ advorder_branchskiporderwintxt="Branch: Continue \7E times, then skip next \7E o
 advorder_uncondskiporderwintxt="Skip next \7E orders"
 objectquery="Object: \98\80"
 objecterr_cantbuildonland="\94...Can't build on land"
+objectgui_tooltips_menu="\98Place objects"

@@ -538,6 +538,7 @@ defourtext advorder_uncondskiporderwintxt
 
 defourtext objectquery
 defourtext objecterr_cantbuildonland
+defourtext objectgui_tooltips_menu
 
 ; ADD NEW ENTRIES DIRECTLY ABOVE THIS LINE ONLY
 

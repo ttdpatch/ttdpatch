@@ -1,5 +1,6 @@
 #include <defs.inc>
 #include <frag_mac.inc>
+#include <textdef.inc>
 #include <ptrvar.inc>
 #include <patchproc.inc>
 #include <window.inc>
@@ -121,7 +122,7 @@ exported patchobjects
 	mov [eax], edi
 	mov ecx, MAINTOOLBARBUTTONORG
 	rep movsw
-	mov word [edi], 0x1F9	// set the new tooltip
+	mov word [edi], ourtext(objectgui_tooltips_menu)	// set the new tooltip
 
 	stringaddress findmaintoolbarclicktable
 	mov eax, edi
