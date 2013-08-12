@@ -1496,7 +1496,7 @@ proc createshiplift
 	mov cx, [%$tiley]
 	mov ebx, 80000000h
 	mov word [operrormsg1], ourtext(cantbuildcanalhere)
-	mov word [operrormsg2], 0x5800
+	mov word [operrormsg2], 0x0239
 	_ret
 
 endproc createshiplift
