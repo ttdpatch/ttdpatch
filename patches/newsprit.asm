@@ -1047,8 +1047,8 @@ getvariationalvariable:
 	adc ebx,0		// advance ebx if it is one
 	mov cl,[ebx]		// cl will contain 60+x parameter (or var.num otherwise)
 
-	cmp al, 0x7E
-	jae .paramvar		// 7E, 7F are always available, with or without structure, special handler, or anything else.
+	cmp al, 0x7D
+	jae .paramvar		// 7D, 7E, 7F are always available, with or without structure, special handler, or anything else.
 
 	test esi,esi
 	jz .checkvaravail
@@ -1331,7 +1331,7 @@ dwordsize:
 vard calcoperators
 	dd addr(.add),addr(.sub),addr(.signed_min),addr(.signed_max),addr(.unsigned_min),addr(.unsigned_max)
 	dd addr(.signed_divmod),addr(.signed_divmod),addr(.unsigned_divmod),addr(.unsigned_divmod)
-	dd addr(.multiply),addr(.and),addr(.or),addr(.xor)
+	dd addr(.multiply),addr(.and),addr(.or),addr(.xor),addr(.storevar),addr(.copy)
 numcalcoperators equ ($-calcoperators)/4
 
 endvar
@@ -1469,6 +1469,20 @@ endvar
 	mov eax,edx
 .notunsmod:
 	pop edx
+	ret
+
+.storevar:
+	call .make_eax_signed
+	xchg eax,ecx
+	call .make_eax_unsigned
+	cmp eax,NUMGRFREGISTERS
+	jae .notgood
+	mov [advvaraction2varbuff+eax*4], ecx
+.notgood:
+	// fallthrough to .copy
+
+.copy:
+	mov eax, ecx
 	ret
 
 uvard lastcalcresult
@@ -1740,6 +1754,8 @@ getspecparamvar:
 	cmp al,0x1e
 	je .grffncall
 	ja .grfparam
+	cmp al, 0x1D
+	je .varbuff
 
 	mov ah,cl
 	movzx ecx,byte [grfvarfeature]
@@ -1771,6 +1787,11 @@ getspecparamvar:
 #endif
 
 .done:
+	ret
+
+.varbuff:
+	movzx ecx, cl
+	mov eax, [advvaraction2varbuff+ecx*4]
 	ret
 
 .grfparam:
@@ -2124,3 +2145,6 @@ varb specialparamvars
 checkfeaturesize specialparamvars, (1*2)
 
 endvar
+
+global advvaraction2varbuff
+uvard advvaraction2varbuff, NUMGRFREGISTERS

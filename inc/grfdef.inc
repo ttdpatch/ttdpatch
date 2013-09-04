@@ -20,6 +20,9 @@ totalsprites equ 0x131a+6*WINTTDX	// Windows TTD has six more (for Fish UK logo 
 
 %define NUMCARGOS 32		// if newcargos is on
 
+// NewGRF Adv. Action2 Storage
+%assign NUMGRFREGISTERS 256
+
 // GRM IDs
 %define GRM_TRAINS TRAINBASE
 %define GRM_RVS ROADVEHBASE
