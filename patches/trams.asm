@@ -2086,7 +2086,7 @@ checkIfTramDepot5:
 global resetL3DataToo
 resetL3DataToo:
 	mov	byte [landscape2 + esi], 0
-	and word [nosplit landscape3+esi*2], ~0xFF // Reset the lower byte since thats used for owner of crossings
+	and word [nosplit landscape3+esi*2], ~0xFFF // Reset the lower byte since thats used for owner of crossings and bits 8..11 used to store track type
 	retn
 
 global updateRoadMenuSelection
