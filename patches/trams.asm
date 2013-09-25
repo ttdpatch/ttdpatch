@@ -1494,13 +1494,19 @@ drawTramBridgeMiddlePart:
 	//RIGHT HERE...!! TEST FOR CUSTOM BRIDGEHEAD
 	//IF bridge head
 	push	ax
+	push	cx
 	mov	al, [landscape5(di)]
 	and	al, 0xC0
 	cmp	al, 0x80
 	jne	.notacustombridgehead_pop
-	mov	ax, word [landscape3+2*edi]
-	and	ax, 0FA0h
-	cmp	ax, 0
+	mov	cl, [landscape5(di)]
+	and	cl, 1
+	mov	ax, 0xF50
+	shl	al, cl
+	mov	cx, word [landscape3+2*edi]
+	and	cx, ax
+	cmp	cx, 0
+	pop	cx
 	pop	ax
 	je	.notacustombridgehead
 	xor	ecx, ecx
@@ -1524,6 +1530,7 @@ drawTramBridgeMiddlePart:
 	pop	ecx
 	jmp	.draw
 .notacustombridgehead_pop:
+	pop cx
 	pop ax
 .notacustombridgehead:
 	add	edi, eax
