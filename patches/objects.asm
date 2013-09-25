@@ -2073,7 +2073,7 @@ endproc
 
 // In:	eax - owner
 // Out:	al - first colour [lower nibble]
-//		cl - second colour [upper bibble] (same as first if no second colour defined) 
+//		cl - second colour [upper nibble] (same as first if no second colour defined) 
 GetOwnerColours:
 	push edx
 	mov ecx, eax
@@ -4107,9 +4107,12 @@ exported getObjectVar47
 	cmp byte [landscape1+esi], 0x10
 	jae .noowner
 
+	push ecx
 	movzx eax, byte [landscape1+esi]
+.hasowner:
 	call GetOwnerColours
-	or cl, al
+	or al, cl
+	pop ecx
 
 .noowner:
 	// Filter the colour down to the required channels

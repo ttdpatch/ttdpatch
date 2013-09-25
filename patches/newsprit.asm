@@ -2061,13 +2061,13 @@ getspecparamvar:
 	mov ebx, 0xffff 			// use 0xffff as value for invalid callback result
 	jmp short .gotretvalue
 
-.validaction2
+.validaction2:
 	call getrandomorvariational
 	test bh,bh			// got callback result?
 	jns .gotaction2
 	and ebx,0x7fff
 
-.gotretvalue
+.gotretvalue:
 	mov eax,ebx
 	pop dword [isother]
 	pop edx
