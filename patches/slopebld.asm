@@ -1354,8 +1354,10 @@ removeroadonslope:
 	mov	byte dh, [landscape3+esi*2]
 .dontLoadTramArray:
 	//mov byte [landscape3+esi*2], 0   //TrAsH! tram tracks...
-
+	
+	push edx
 	call getroadfoundationtype
+	pop edx
 	ja .done
 
 	// regular sloped road, do the overwritten part
