@@ -708,7 +708,7 @@ displbridgeendgroundsprite:
 .testcoast:
 	test byte [landscape5(ax,1)], 20h
 	jnz .nocoast
-	test byte [landscape5(ax,1)], 19h
+	test byte [landscape5(ax,1)], 18h
 	jz .nocoast
 	test word [landscape3 + 2*eax], 1
 	jz .drawcoast
