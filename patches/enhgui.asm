@@ -1222,11 +1222,21 @@ drawtitlebar:
 //IN: ESI=window
 //OUT: cf set if this window can't be stickyfied
 exported WindowCanSticky
+	cmp byte [esi+window.type], 14h
+	jz .nosticky
 	cmp byte [esi+window.type], 15h
 	jz .nosticky
 	cmp byte [esi+window.type], 16h
 	jz .nosticky
 	cmp byte [esi+window.type], 17h
+	jz .nosticky
+	cmp byte [esi+window.type], 18h
+	jz .nosticky
+	cmp byte [esi+window.type], 19h
+	jz .nosticky
+	cmp byte [esi+window.type], 1Ah
+	jz .nosticky
+	cmp byte [esi+window.type], 1Bh
 	jz .nosticky
 	cmp byte [esi+window.type], 20h
 	jz .nosticky
@@ -1240,6 +1250,7 @@ exported WindowCanSticky
 .nosticky:
 	stc
 	ret
+
 
 global TitleBarClicked
 TitleBarClicked:
