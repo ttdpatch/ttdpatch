@@ -303,12 +303,12 @@ patchnewtrains:
 	xor ebx,ebx		// window already larger -- no change
 .gotntwsizeinc:
 	add [edi],ebx
-	add word [edi+2],60
+	add word [edi+2],90
 	pop ecx
 	loop .crntwsizeloop
 	call .expandnewvehwindow
 	// also make the info box longer by six lines
-	mov ebx,(60 << 16)+60
+	mov ebx,(90<< 16)+90
 	add [edi+56],bx
 	add [edi+66],ebx
 	add [edi+78],ebx
