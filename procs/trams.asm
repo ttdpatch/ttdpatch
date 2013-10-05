@@ -29,12 +29,9 @@ extern setTramXPieceTool,setTramYPieceTool, drawTramTracksInTunnel, addgroundspr
 extern drawTramTracksUnderBridge, checkIfTramsAndKeepTracksUnder, newSendVehicleToDepotAuto
 extern busstationwindow, busdepotwindow, DestroyWindow
 extern buildtruckstopprocarea, buildtruckstopfunction, buildbuslorryorientation
-
 extern roadmenudropdown,roadmenuelemlisty2,roadDropdownCode,createRoadConstructionWindow
-
 extern checkdepot3jump, checkdepot4jump, checkdepot3return, checkdepot4return, checkdepot5jump, checkdepot5return
-
-extern paRoadDepotSpriteTable
+extern paRoadDepotSpriteTable, addrailfence1, DrawTramTracks.fencerecol
 
 begincodefragments
 	codefragment olddrawgroundspriteroad, 9
@@ -581,5 +578,8 @@ patchtrams:
 	
 	patchcode checkbuildovertunnel
 
+	mov edi, dword [addrailfence1]
+	mov eax, dword [edi+44]
+	mov dword [DrawTramTracks.fencerecol], eax
 	retn
 

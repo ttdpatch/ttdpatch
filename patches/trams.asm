@@ -445,7 +445,17 @@ ovar .origfn, -4, $, DrawTramTracks
 	push	ebx
 	push	ebp
 	push	esi
-;    //add rail fences...
+
+	; Store the recolour map for the fences
+	movzx ebx, byte [landscape1+esi]
+	movzx ebx, byte [companycolors+ebx]
+	add ebx, 775
+	shl ebx, 16
+	or ebx, 0x8000
+	mov dword [ dword 0 ], ebx
+ovar .fencerecol, -4, $, DrawTramTracks
+
+	//add rail fences
 	xor	ebx,ebx
 
 	mov	bl, byte [curTileMap]
