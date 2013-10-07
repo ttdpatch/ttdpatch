@@ -439,7 +439,7 @@ ovar .origfn, -4, $, DrawTramTracks
 
 .skipSlopes:
 	cmp	byte [temproadmap], 0
-	jnz	.dontAddOffRoadTracks
+	jnz near .dontAddOffRoadTracks
 	add	bx, 17h
 	push	eax
 	push	ebx
