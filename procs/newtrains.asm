@@ -297,7 +297,7 @@ patchnewtrains:
 	push ecx
 	stringaddress createnewtrainwindowsize,ecx,2
 	xor ebx,ebx
-	mov bl,240		// min. X size
+	mov bx,260		// min. X size
 	sub bx,[edi]
 	jns .gotntwsizeinc
 	xor ebx,ebx		// window already larger -- no change
