@@ -1187,7 +1187,7 @@ extern objectpoolclear
 ; endp newloadproc
 
 
-// Called after loading a savegame/scenario or after generating a random game
+// Called after loading a savegame/scenario including the title screen game
 //
 exported updategamedata
 	extern followvehicleidx
